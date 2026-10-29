@@ -1,0 +1,35 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "cupy": "14.2.0",
+  "device": {
+    "name": "NVIDIA GeForce RTX 5080",
+    "compute_capability": "12.0",
+    "sm_count": 84,
+    "total_mem_GB": 15.92,
+    "clock_MHz": 2655,
+    "mem_clock_MHz": 15001,
+    "mem_bus_bits": 256,
+    "l2_MB": 64.0,
+    "shared_per_block_KB": 48
+  },
+  "cuda_runtime_version": 12090,
+  "cuda_driver_version": 13000,
+  "nvrtc_version": [
+    12,
+    9
+  ],
+  "nvrtc_compile_s": 0.15,
+  "copy_kernel": {
+    "bytes_moved_GB": 0.537,
+    "GB_per_s": 826.9
+  },
+  "stencil_kernel": {
+    "cells": 16777216,
+    "ms_per_call": 0.24,
+    "G_cell_updates_per_s": 69.78
+  },
+  "launch_overhead_us": 7.4,
+  "float64_ratio_hint": "GeForce FP64 is 1/64 of FP32; keep the main loop in float32 (decision 3)",
+  "verdict": "PASS: NVRTC compiled for this GPU and the kernels ran correctly"
+}
