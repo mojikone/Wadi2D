@@ -1,0 +1,39 @@
+# build outputs
+build/
+out/
+*.obj
+*.o
+*.exe
+*.dll
+*.lib
+*.pdb
+*.ilk
+*.exp
+*.cubin
+*.ptx
+*.fatbin
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# editors and OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# large data stays out of git (100 MB and more; list them in the iteration README instead)
+*.tif
+*.tiff
+*.dss
+*.nc
+*.grb
+*.grb2
+*.hdf
+*.h5
+*.zip
+*.7z
