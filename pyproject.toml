@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wadi2d"
+version = "0.1.0.dev0"
+description = "GPU 2D shallow-water solver with sub-grid terrain and HEC-HMS-style hydrology inside, for wadi flood work"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Mojtaba" }]
+keywords = ["shallow water", "flood", "CUDA", "hydrology", "HEC-HMS", "wadi"]
+dependencies = [
+  "numpy>=2.0",
+  "scipy>=1.12",
+  "h5py>=3.10",
+  "rasterio>=1.4",
+  "shapely>=2.0",
+  "pyproj>=3.6",
+  "pydantic>=2.6",
+  "numba>=0.60",
+  "hecdss>=0.1.29",
+]
+
+[project.optional-dependencies]
+# NVIDIA GPU path: CUDA C++ kernels compiled at run time by NVRTC through CuPy; no CUDA toolkit needed.
+gpu = [
+  "cupy-cuda12x>=13.4",
+  "nvidia-cuda-runtime-cu12>=12.8",
+  "nvidia-cuda-nvrtc-cu12>=12.8",
+  "nvidia-cublas-cu12",
+  "nvidia-cufft-cu12",
+  "nvidia-curand-cu12",
+  "nvidia-cusolver-cu12",
+  "nvidia-cusparse-cu12",
+  "nvidia-nvjitlink-cu12>=12.8",
+]
+dev = ["pytest>=8", "pytest-cov", "ruff>=0.5", "mypy>=1.10", "black>=24"]
+
+[project.scripts]
+wadi2d = "wadi2d.engine.cli:main"
+
+[project.urls]
+Repository = "https://github.com/mojikone/Wadi2D"
+
+[tool.setuptools.packages.find]
+include = ["wadi2d*"]
+
+[tool.setuptools.package-data]
+wadi2d = ["py.typed", "solver/gpu/kernels/*.cu", "solver/gpu/kernels/*.cuh", "config/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -ra"
+markers = [
+  "gpu: needs an NVIDIA GPU with CuPy (skipped otherwise)",
+  "data: needs the Block 2 data folder (skipped otherwise)",
+  "slow: long-running",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "NPY", "RUF", "SIM"]
+
+[tool.black]
+line-length = 110
+target-version = ["py312"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+warn_unused_ignores = true
