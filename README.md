@@ -6,8 +6,15 @@ wall until overtopped), a mesh generator, catchment delineation, HEC-HMS-style l
 the plain, ARF the HMS depth-area way, gridded rainfall input, terrain modification for dams and channels, a Windows UI with a live
 view of the run. Design flows at design points and full-catchment flood maps, in minutes on one GPU.
 
-**State (2026-10-29): decided and recorded, nothing researched or coded. Next: `W1 research and design note`.** The profile, the
-decisions with their reasons and the open questions are in `CLAUDE.md`.
+That is the full scope. **Version 1** (decided 2026-10-29) ships the solver on a uniform grid with sub-grid tables and crest-aware faces,
+the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a QGIS plugin as the UI; the mesh generator, the standalone
+UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
+its reasons is in `CLAUDE.md`.
+
+**State (2026-10-29, end of day): decided and recorded, nothing researched or coded. Product requirements added the same day (easy UI,
+open source, scalable across PCs, hardware-adaptive) and the version-1 scope fixed. Next: toolchain check, then `W1 research and design
+note`.** The profile, the decisions with their reasons,
+the product requirements and the open questions are in `CLAUDE.md`.
 
 ## Iterations
 
