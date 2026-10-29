@@ -3,8 +3,9 @@
 **State line (2026-10-29, end of day): decided and recorded, nothing researched or coded. Version-1 scope fixed the same day (decision 17
 and the Version 1 scope section): uniform grid with sub-grid tables and crest lines on the faces, QGIS plugin as the UI, lumped hydrology read
 from HMS files, rain-on-grid, ARF multi-run; mesh generator, standalone UI, in-app delineation, most gridded-rainfall formats, local time
-stepping and multi-PC runs deferred to version 2. Next: the toolchain check on the RTX 5080, then `W1 research and design note` with the
-research workflow scaled to the version-1 scope, the stack benchmark and the design note for his approval, then the build.**
+stepping and multi-PC runs deferred to version 2. Engineering rules for the code (his instruction, same day) and the steep-cell time-step
+strategy (decision 18) recorded. Next: the toolchain check on the RTX 5080, then `W1 research and design note` with the research workflow
+scaled to the version-1 scope, the stack benchmark and the design note for his approval, then the build.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -64,7 +65,7 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
 
 1. **Solver**: full shallow-water equations, finite volume, explicit, CUDA; second order (MUSCL-type), well-balanced (still water
    stays still on steep ground), robust wet/dry, supercritical flow and jumps; adaptive global time step on CFL; local time stepping
-   to be evaluated (the steep fine cells set the step for everyone).
+   to be evaluated (the steep fine cells set the step for everyone; the strategy is decision 18).
 2. **Sub-grid**: per cell a volume-vs-level table, per face a wet-width / conveyance-vs-level table, built from the 0.5 m DEM. Faces
    snap to breaklines and carry the crest profile, so **high ground blocks the flow until the level passes the crest**. This is the
    feature he asked for first ("edges aware of topography"). **Version 1 (2026-10-29)**: on the uniform grid a crest line is rasterised
@@ -175,6 +176,55 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     the observed event. **Deferred to version 2**: mesh generator, standalone UI, in-app delineation and Muskingum-Cunge from terrain,
     gridded rainfall beyond GeoTIFF stacks, channel templates, local time stepping, multi-PC runs and domain decomposition, portability
     beyond NVIDIA plus CPU unless the benchmark says otherwise.
+18. **Steep cells and the time step** (his question, 2026-10-29: "the small cells on steep slopes bite the run time; is there an
+    intelligent way to manage it?"). [Certain] The explicit step is dt = CFL dx / (|u| + sqrt(g h)), so the cost per unit area grows as
+    1/dx^3: halving the cell is eight times the work. The strategy, in the order it pays:
+    (a) **Do not make the steep cells small.** With sub-grid tables a confined hill wadi is resolved by its conveyance and storage curves,
+    not by the cell size; a 20-40 m cell on a steep reach is correct where the bed drop inside the cell stays below the flow depth (the
+    flat free surface per cell is the limit), so the cell-size rule on steep ground is **dx <= h / S** (about 40 m at 5%, 20 m at 10% for
+    2 m of flow [Likely]), with refinement spent where the extent matters: fans, the plain, structures. The version-2 mesher takes dx from
+    slope and expected depth, not from channel width. Research item: a sloped sub-grid free surface inside steep cells (Volp 2013 and
+    successors [Likely]) would lift that cap. Illustration [Guessing: assumed depths and velocities]: a hill wadi channel at 5 m cells, 2 m
+    deep at 5 m/s, dt ~0.5 s; the same channel at 40 m with sub-grid, ~3.8 s; the plain at 10 m, 1 m deep at 2 m/s, ~1.8 s; a sheet of
+    rain on a hillslope at 5 m, ~3 s. The steep channel is the limiter only when it is meshed fine.
+    (b) **Mode (b) removes the hills from the 2D domain** for design flows; nothing to manage.
+    (c) **Hygiene, in version 1**: friction treated point-implicitly so it never sets the step; velocity desingularised in thin cells
+    (Kurganov-Petrova type) and cells below a depth threshold excluded from the CFL search, so one near-dry cell with a spurious
+    velocity cannot throttle the whole domain. [Likely] This is the commonest cause of tiny steps in rain-on-grid runs.
+    (d) **Tile-level local time stepping, version 2**: each 32 x 32 tile advances in a power-of-two multiple of the global minimum step,
+    halos interpolated in time (PARFLOOD's LTS on the block-uniform quadtree, Dazzi et al. 2018 [Likely]); speed-up 2-3x on real
+    catchments [Likely], bounded by the share of cells in the finest class. The tile design of decision 4 makes it a contained addition.
+    (e) **Not chosen**: a semi-implicit or implicit scheme (the HEC-RAS answer; a different engine with a sparse solve per step), and a
+    second equation set (kinematic or diffusive wave) in the hill cells; both are heavy and the second muddies acceptance.
+
+## Engineering rules for the code (his instruction, 2026-10-29)
+
+His words: code in a standard way, so that changing one part never destroys the rest or forces a rewrite of hundreds or thousands of
+lines; a parameter used in several places is set once, in one central location, and fed to wherever it is needed; look ahead so future
+modifications are fast and painless. Binding for every stage; the design note lays out the module map.
+
+1. **Small modules, one job each, a declared interface.** The solver kernels, the table builder, the hydrology engine, the ARF
+   orchestration, the file readers and the QGIS plugin are separate packages that talk through data structures, never through each
+   other's internals. No source file beyond a few hundred lines; a change touches one module and its tests.
+2. **One source of truth for every parameter.** Physical constants, numerical settings (CFL, limiter, depth thresholds, tile size),
+   units, defaults and file layouts live in one typed, versioned configuration schema in one file, validated at load and passed down
+   explicitly; no literal repeated in a kernel or a dialog. Every run writes its full resolved configuration next to its results, so any
+   figure can be reproduced from the folder alone.
+3. **Stable data contracts.** The engine's inputs and outputs (grid and tables, rainfall, hydrographs, structures, results) are
+   versioned files with a schema; the plugin, a later standalone UI and a later job runner speak only that contract, so either side
+   changes alone. This is also decision 16's door and the test harness's entry point.
+4. **Extension points named in advance.** The tile is the unit of the grid (quadtree levels and domain splitting attach there); the
+   compute backend is behind one interface (CUDA first, CPU or Kokkos later); rainfall sources, loss methods, transform methods, routing
+   methods and structures are each a registry of implementations behind one interface, so adding one is a new file, not an edit of the
+   core.
+5. **Tests before the next stage.** Unit tests for the table builder (against the HEC-RAS tables) and for every hydrology method
+   (against HMS numbers); the analytic cases as regression tests for the solver; a Block 2 run as the end-to-end check. Nothing is done
+   without its test, and a change that breaks one is not merged.
+6. **Standard tooling, not house style.** The language's own formatter and linter (clang-format and clang-tidy for C++ and CUDA, ruff
+   and black for Python), type hints and docstrings, a build that runs from a clean checkout with one command, continuous integration
+   running the tests once there is a remote.
+7. **Version control hygiene** (his standing rule): one logical change per commit, a branch for anything larger than a fix, releases
+   tagged; W# folders for the engineering iterations as before.
 
 ## Version 1 scope (decided 2026-10-29)
 
@@ -259,7 +309,8 @@ What that implies (my reading, each point open for the design note):
 ## Open questions for the design note
 
 - Numerical scheme (Roe vs HLLC, MUSCL limiter, friction treatment with sub-grid, well-balancing with wet/dry), precision strategy,
-  local time stepping.
+  local time stepping. Steep cells (decision 18): the dx <= h/S rule and whether a sloped sub-grid free surface lifts it; the thin-cell
+  velocity treatment and the depth threshold for the CFL search.
 - Quadtree vs unstructured mesh and sub-grid at refinement interfaces (version 2); how a face carries a crest profile together with
   sub-grid tables. **Version 1**: tile size and layout (32 x 32 proposed), the crest-line staircase and its length factor, the HEC-RAS
   table oracle, and the engine's file-and-pipe protocol that the QGIS plugin and a later job runner share.
@@ -292,7 +343,10 @@ What that implies (my reading, each point open for the design note):
    TRITON); job queues and node services on a LAN; multi-GPU and multi-node domain decomposition for explicit shallow-water solvers
    (TRITON, SERGHEI, NCCL, MPI on Windows) and LAN latency figures. **Scaled the same day to the version-1 scope (decision 17)**: meshing
    and distributed execution one agent each, to keep the version-2 doors open in the design; the UI track aimed at QGIS plugin patterns
-   (TUFLOW's plugin, processing providers, long-running tasks, canvas refresh from a plugin); about 200 agents.
+   (TUFLOW's plugin, processing providers, long-running tasks, canvas refresh from a plugin); about 200 agents. Added after his
+   engineering-rules message: sub-grid on steep slopes (flat vs sloped free surface per cell, Volp 2013 and later), tile-level local
+   time stepping on GPU (Dazzi 2018, Hu 2019), thin-cell velocity desingularisation; module layouts and configuration schemas of
+   open hydraulic engines (SWMM, Delft3D, SERGHEI, LISFLOOD-FP) as patterns for rules 1-4.
 3. Design note for his approval before any code; then the build in the stated order, each stage verified.
 
 ## Iterations
