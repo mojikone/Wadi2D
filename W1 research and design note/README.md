@@ -12,11 +12,14 @@ Live until the design note is approved and the build starts; then it is the reco
 | `research/raw/` | One file per research topic, written by the research agents, each with its independent verification section |
 | `research/N_numerics.md`, `H_hydrology.md`, `S_software.md` | Track syntheses: the answer to each design question, evidence, rejected alternatives, numbers the code uses |
 | `research/00_design_inputs.md` | The decision table that feeds the design note |
+| `design_seed_architecture.md` | The architecture proposal given to the design panels (module map, config, data contracts, protocol, build order) |
+| `panels/` | The design panels' proposals and judgements, kept as the record of the alternatives |
+| `design/` | The design note sections written by the panels' synthesisers |
 | `design_note.md` | The design note: scheme, sub-grid formulation, module map, data contracts, test plan, build order |
 | `benchmarks/` | Micro-benchmarks run on the RTX 5080 (kernel throughput, compile times) with their scripts and outputs |
 
 ## How it relates to the code
 
-The software lives at the repository root (`wadi2d/` package, `engine/` kernels, `tests/`, `plugin/`). W# folders hold the
+The software lives at the repository root (`wadi2d/` package with the kernels inside it, `tests/`, `plugin/`). W# folders hold the
 engineering iterations: research, design, benchmarks and validation runs, never overwritten. A later iteration (W2 ...) that
 revises a decision says so here and in the root `README.md`.
