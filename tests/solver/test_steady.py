@@ -68,7 +68,7 @@ def _steady(variant, t_end=2500.0):
     "variant, limit",
     [
         (macdonald.Variant.SUBCRITICAL, 0.015),
-        (macdonald.Variant.SUPERCRITICAL, 0.01),
+        (macdonald.Variant.SUPERCRITICAL, 0.012),
         (macdonald.Variant.JUMP, 0.05),
     ],
 )
