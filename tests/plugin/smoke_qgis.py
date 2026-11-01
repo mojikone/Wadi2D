@@ -303,7 +303,8 @@ def smoke() -> None:
     )
     pump(watch_live, what="the good run")
     check(dock.panel.bar.value() == 100, "progress bar reaches 100")
-    check(dock.panel.message.text() == "Finished.", "plain message at the end")
+    said = dock.panel.message.text()
+    check(said == "Finished. point P1 is outside the domain.", "the warning stays on screen")
     status = dock.panel.status.text()
     check(
         all(word in status for word in ("of 1 h 00 min", "step 1.5 s", "wet cells", "mass error")),
@@ -452,7 +453,7 @@ def smoke() -> None:
     second.initGui()
     check(second.dock is not None and second.dock.run is not None, "the next session re-attaches by itself")
     finished_run(second.dock)
-    check(second.dock.panel.message.text() == "Finished.", "the attached run ends normally")
+    check(second.dock.panel.message.text().startswith("Finished."), "the attached run ends normally")
     check(group(run_dir.name) is not None, "the attached run's maps are loaded")
     check(not pid_alive(pid), "and its process is gone")
 

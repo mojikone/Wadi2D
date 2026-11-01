@@ -118,6 +118,13 @@ def test_warnings_are_kept() -> None:
     assert state.warnings == ["point P1 is outside the domain"]
 
 
+def test_a_warning_stays_in_the_last_message() -> None:
+    state = RunState(exit_code=0)
+    for _ in range(2):
+        state.apply({"ev": "warn", "message": "water stood 9 m deep against the domain edge"})
+    assert state.outcome() == "Finished. water stood 9 m deep against the domain edge."
+
+
 def test_read_state_takes_t_end_from_the_plugin_record(tmp_path: Path) -> None:
     (tmp_path / "progress.jsonl").write_bytes(line(ev="step", t=10.0))
     write_run_info(tmp_path, 4242, "EPSG:32640", 100.0)

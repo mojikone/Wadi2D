@@ -127,6 +127,7 @@ class RunState:
             words.append(self.error.rstrip(". ") + ".")
         if self.error_xy:
             words.append(f"At x {self.error_xy[0]:,.1f}, y {self.error_xy[1]:,.1f} (marked on the map).")
+        words.extend(warning.rstrip(". ") + "." for warning in dict.fromkeys(self.warnings))
         return " ".join(words)
 
 

@@ -301,7 +301,8 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.open_button.setVisible(bool(loaded))
         if state.succeeded:
             self.panel.bar.setValue(100)
-        tone = "good" if state.succeeded else ("note" if state.exit_code == EXIT_STOPPED else "bad")
+        calm = state.succeeded and not state.warnings
+        tone = "good" if calm else ("note" if state.succeeded or state.exit_code == EXIT_STOPPED else "bad")
         self.panel.say(state.outcome(), tone)
         if state.error_xy:
             self.marker = mark_cell(self.iface.mapCanvas(), state.error_xy, run.crs)
