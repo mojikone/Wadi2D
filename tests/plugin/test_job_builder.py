@@ -12,6 +12,7 @@ from wadi2d_qgis.job_builder import (
     Feature,
     build_job,
     feature_collection,
+    finite,
     hms_files,
     hms_import_args,
     hms_subbasins,
@@ -208,3 +209,10 @@ def test_merge_keeps_the_import_storm_and_the_dock_modes(tmp_path: Path) -> None
     assert merged["hydrology"]["curve_number"] == 80.0
     assert merged["hydrology"]["subbasins"][0] == {"name": "S1", "mode": "2d", "outlet": [1, 2]}
     assert merged["hydrology"]["subbasins"][1] == {"name": "S2", "mode": "lumped"}
+
+
+def test_a_failed_reprojection_is_seen_at_any_depth() -> None:
+    inf = float("inf")
+    assert finite([[[1.0, 2.0], [3.0, 4.0]]])
+    assert not finite([[[1.0, 2.0], [inf, inf]]])
+    assert not finite([float("nan"), 2.0])

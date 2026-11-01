@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, Q
 from . import settings
 from .engine_process import EngineQuery, EngineRun
 from .job_builder import (
+    LayerError,
     SchemaView,
     build_job,
     hms_import_args,
@@ -149,7 +150,11 @@ class Wadi2DDock(QgsDockWidget):
         return values
 
     def _checked_values(self) -> dict | None:
-        values = self._collect()
+        try:
+            values = self._collect()
+        except LayerError as error:
+            self.panel.say(str(error), "bad")
+            return None
         found = problems(values)
         if found:
             self.panel.say(" ".join(found), "bad")
@@ -293,7 +298,7 @@ class Wadi2DDock(QgsDockWidget):
         self.live.clear()
         self.results_dir = run.out_dir
         loaded = load_maps(run.out_dir, run.out_dir.name)
-        self.panel.open_button.setVisible(True)
+        self.panel.open_button.setVisible(bool(loaded))
         if state.succeeded:
             self.panel.bar.setValue(100)
         tone = "good" if state.succeeded else ("note" if state.exit_code == EXIT_STOPPED else "bad")

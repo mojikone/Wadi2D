@@ -9,6 +9,7 @@ from the engine's JSON Schema: this module says where a widget's value goes, nev
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -86,6 +87,10 @@ class SchemaView:
 
     def tip(self, path: str) -> str:
         return self.field(path).get("description", "")
+
+
+class LayerError(ValueError):
+    """A layer that cannot be used; the text is for the user."""
 
 
 @dataclass(frozen=True)
@@ -346,6 +351,13 @@ def raster_path(layer) -> str | None:
     return path if Path(path).is_file() else None
 
 
+def finite(coordinates) -> bool:
+    """Every number in nested coordinates is a real number; a failed reprojection gives infinities."""
+    if isinstance(coordinates, (list, tuple)):
+        return all(finite(item) for item in coordinates)
+    return math.isfinite(coordinates)
+
+
 def layer_features(layer, crs, fields: dict[str, str] | None = None) -> list[Feature]:
     """Every feature of a layer, one per part, reprojected to ``crs``; ``fields`` maps property to field."""
     from qgis.core import QgsCoordinateTransform, QgsGeometry, QgsProject, QgsWkbTypes
@@ -369,6 +381,11 @@ def layer_features(layer, crs, fields: dict[str, str] | None = None) -> list[Fea
             elif kind == QgsWkbTypes.PolygonGeometry:
                 rings = [[[p.x(), p.y()] for p in ring] for ring in part.asPolygon()]
                 features.append(Feature("Polygon", rings, properties))
+    if not all(finite(feature.coordinates) for feature in features):
+        raise LayerError(
+            f'Layer "{layer.name()}" lands nowhere in the DEM coordinate system. Check the CRS set on that '
+            "layer: a GeoJSON that names no CRS is read as degrees."
+        )
     return features
 
 
