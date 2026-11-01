@@ -1,11 +1,9 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
-**State line (2026-10-29, end of day): decided and recorded, nothing researched or coded. Version-1 scope fixed the same day (decision 17
-and the Version 1 scope section): uniform grid with sub-grid tables and crest lines on the faces, QGIS plugin as the UI, lumped hydrology read
-from HMS files, rain-on-grid, ARF multi-run; mesh generator, standalone UI, in-app delineation, most gridded-rainfall formats, local time
-stepping and multi-PC runs deferred to version 2. Engineering rules for the code (his instruction, same day) and the steep-cell time-step
-strategy (decision 18) recorded. Next: the toolchain check on the RTX 5080, then `W1 research and design note` with the research workflow
-scaled to the version-1 scope, the stack benchmark and the design note for his approval, then the build.**
+**State line (2026-11-01): building, on his word of 2026-10-29 ("go ahead, and come back with the software"). Done and committed: toolchain
+gate (CUDA kernels through CuPy and NVRTC, no toolkit needed), HMS readers, analytic validation cases, solver core on GPU and CPU (staggered
+scheme, see decision 19 and `W1 research and design note/design_note.md`). In progress: lumped hydrology with HMS replication, engine pipeline
+(IO, forcing, run, ARF, CLI), QGIS plugin. Nothing pushed.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -63,7 +61,7 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
 
 ## Design decisions so far (with reasons; each may be re-opened in the design note)
 
-1. **Solver**: full shallow-water equations, finite volume, explicit, CUDA; second order (MUSCL-type), well-balanced (still water
+1. **Solver** (**scheme overturned by decision 19**; the requirements stand): full shallow-water equations, finite volume, explicit, CUDA; second order (MUSCL-type), well-balanced (still water
    stays still on steep ground), robust wet/dry, supercritical flow and jumps; adaptive global time step on CFL; local time stepping
    to be evaluated (the steep fine cells set the step for everyone; the strategy is decision 18).
 2. **Sub-grid**: per cell a volume-vs-level table, per face a wet-width / conveyance-vs-level table, built from the 0.5 m DEM. Faces
@@ -196,6 +194,13 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     catchments [Likely], bounded by the share of cells in the finest class. The tile design of decision 4 makes it a contained addition.
     (e) **Not chosen**: a semi-implicit or implicit scheme (the HEC-RAS answer; a different engine with a sparse solve per step), and a
     second equation set (kinematic or diffusive wave) in the hill cells; both are heavy and the second muddies acceptance.
+19. **Staggered scheme, not collocated HLLC** (2026-11-01, decided by prototype and by the source review `research/raw/N01_subgrid_scheme_decision.md`,
+    which agreed independently). Level per cell, conservative momentum per face, friction implicit, crest faces limited by critical flow, thin
+    sheet flow read by volume over length with a mean-surface drive. Reasons: sub-grid tables sit exactly on these unknowns; still water is exact by
+    construction; TUFLOW HPC works this way. Measured: a plain flat-surface sub-grid holds 14 % of the correct storage on a 5 % plane, this one
+    100 %; thin crest 0.996 of critical flow; Stoker plateau exact; 2.2 to 2.9 G cell-updates/s with real tables on the RTX 5080. Weakness: a
+    channel with vertical walls at 45 degrees runs 12 to 30 % too deep at 6 to 3 cells wide. `design_note.md` carries the equations and the list
+    of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
 
 ## Engineering rules for the code (his instruction, 2026-10-29)
 
@@ -351,4 +356,5 @@ What that implies (my reading, each point open for the design note):
 
 ## Iterations
 
-- none yet. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.
+- `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
+  the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.

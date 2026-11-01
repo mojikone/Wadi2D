@@ -11,16 +11,14 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-10-29, end of day): decided and recorded, nothing researched or coded. Product requirements added the same day (easy UI,
-open source, scalable across PCs, hardware-adaptive) and the version-1 scope fixed. Next: toolchain check, then `W1 research and design
-note`.** The profile, the decisions with their reasons,
+**State (2026-11-01): building. Solver core runs on the RTX 5080 and on the CPU and passes its analytic tests; the hydrology, the engine pipeline and the QGIS plugin are in progress. Not yet usable end to end.** The profile, the decisions with their reasons,
 the product requirements and the open questions are in `CLAUDE.md`.
 
 ## Iterations
 
 | Folder | Date | What it holds | Status |
 |---|---|---|---|
-| (none yet) | | first will be `W1 research and design note` | |
+| `W1 research and design note` | 2026-10-29 | Toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note | live |
 
 ## Test case
 
