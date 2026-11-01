@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 PLUGIN = "wadi2d_qgis"
+ENGINE_FILE = "engine.txt"
 SOURCE = Path(__file__).resolve().parent.parent / "plugin" / PLUGIN
 
 
@@ -42,6 +43,7 @@ def install(target_dir: Path, link: bool = False) -> Path:
         subprocess.run(command, check=True, stdout=subprocess.DEVNULL)
     else:
         shutil.copytree(SOURCE, destination, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    (destination / ENGINE_FILE).write_text(f'"{sys.executable}" -m wadi2d.engine.cli\n', encoding="utf-8")
     return destination
 
 

@@ -16,7 +16,7 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from .engine_process import EngineQuery
-from .protocol import DEFAULT_ENGINE
+from .protocol import default_engine
 
 ENGINE_KEY = "wadi2d/engine"
 LAST_RUN_KEY = "wadi2d/last_run"
@@ -24,7 +24,7 @@ LAST_FOLDER_KEY = "wadi2d/last_folder"
 
 
 def engine_text() -> str:
-    return QgsSettings().value(ENGINE_KEY, DEFAULT_ENGINE, type=str)
+    return QgsSettings().value(ENGINE_KEY, default_engine(), type=str)
 
 
 def set_engine_text(text: str) -> None:

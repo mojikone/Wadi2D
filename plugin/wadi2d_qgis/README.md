@@ -12,7 +12,7 @@ python tools/install_plugin.py          copy into the default QGIS profile; repe
 python tools/install_plugin.py --link   a directory junction, so edits in the repo are live
 ```
 
-Then enable Wadi2D in Plugins > Manage and Install Plugins. If the engine is not found, press **Engine...** in the dock:
+Then enable Wadi2D in Plugins > Manage and Install Plugins. The installer records the Python that ran it as the engine. If the engine is not found, press **Engine...** in the dock:
 one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The default is the project venv.
 
 ## Use

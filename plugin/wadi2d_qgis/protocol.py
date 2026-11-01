@@ -27,8 +27,18 @@ QUERY_TIMEOUT_S = 600
 STDERR_TAIL_CHARS = 600
 RECENT_S = 300  # a progress file touched this recently, with no process known, counts as a live run
 
-DEFAULT_ENGINE = r"D:\Mojtaba\Renardet\Wadi2D\.venv\Scripts\python.exe -m wadi2d.engine.cli"
 ENGINE_MODULE = ("-m", "wadi2d.engine.cli")
+ENGINE_FILE = "engine.txt"  # written beside this module by tools/install_plugin.py
+FALLBACK_ENGINE = "python -m wadi2d.engine.cli"
+
+
+def default_engine(folder: Path | None = None) -> str:
+    """The engine the installer found, or a plain python on the PATH."""
+    path = (folder or Path(__file__).resolve().parent) / ENGINE_FILE
+    try:
+        return path.read_text(encoding="utf-8").strip() or FALLBACK_ENGINE
+    except OSError:
+        return FALLBACK_ENGINE
 
 EXIT_FINISHED = 0
 EXIT_STOPPED = 6

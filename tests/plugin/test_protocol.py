@@ -9,7 +9,9 @@ from pathlib import Path
 
 import pytest
 from wadi2d_qgis.protocol import (
-    DEFAULT_ENGINE,
+    ENGINE_FILE,
+    FALLBACK_ENGINE,
+    default_engine,
     ENGINE_MODULE,
     EXIT_MESSAGES,
     clean_env,
@@ -36,8 +38,8 @@ def test_unknown_and_missing_exit_codes_still_read_plainly() -> None:
 
 
 def test_the_default_engine_splits_into_python_and_module() -> None:
-    assert parse_engine(DEFAULT_ENGINE)[1:] == list(ENGINE_MODULE)
-    assert parse_engine(DEFAULT_ENGINE)[0].endswith("python.exe")
+    assert parse_engine(r'"C:\Program Files\x\python.exe" -m wadi2d.engine.cli')[1:] == list(ENGINE_MODULE)
+    assert parse_engine(FALLBACK_ENGINE)[1:] == list(ENGINE_MODULE)
 
 
 @pytest.mark.parametrize(
@@ -140,3 +142,10 @@ def test_a_python_traceback_comes_through_as_its_tail() -> None:
     stderr = "Traceback (most recent call last):\n  File x\nValueError: no\n"
     assert engine_error_text(stderr).endswith("ValueError: no")
     assert engine_error_text("  ") == ""
+
+
+def test_the_default_engine_comes_from_the_installer_not_from_this_machine(tmp_path) -> None:
+    assert default_engine(tmp_path) == FALLBACK_ENGINE
+    (tmp_path / ENGINE_FILE).write_text('"C:/x y/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
+    assert default_engine(tmp_path) == '"C:/x y/python.exe" -m wadi2d.engine.cli'
+    assert "Mojtaba" not in FALLBACK_ENGINE
