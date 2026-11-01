@@ -1,0 +1,290 @@
+Basin: Sample Basin
+     Last Modified Date: 30 October 2026
+     Last Modified Time: 10:00:00
+     Version: 4.12
+     Filepath Separator: \
+     Unit System: Metric
+     Missing Flow To Zero: No
+     Enable Flow Ratio: No
+     Compute Local Flow At Junctions: No
+     Unregulated Output Required: No
+
+     Enable Sediment Routing: No
+End:
+
+Subbasin: S1
+     Last Modified Date: 30 October 2026
+     Last Modified Time: 10:00:00
+     Latitude Degrees:  24.5
+     Longitude Degrees: 56.2
+     Canvas X: 100.5
+     Canvas Y: 200.5
+     Area: 10.5
+     Downstream: J1
+
+     Discretization: None
+     File: sample.sqlite
+
+     Canopy: None
+     Allow Simultaneous Precip Et: No
+     Plant Uptake Method: None
+
+     Surface: None
+
+     LossRate: SCS
+     Percent Impervious Area: 2.5
+     Curve Number: 85
+     Initial Abstraction: 8.96
+
+     Transform: SCS
+     Lag: 60
+     Unitgraph Type: STANDARD
+
+     Baseflow: None
+End:
+
+Subbasin: S2
+     Canvas X: 110.5
+     Canvas Y: 210.5
+     Area: 5.25
+     Downstream: J1
+
+     Canopy: Simple
+     Initial Canopy Storage Percent: 0
+     Canopy Storage Capacity: 2
+     End Canopy:
+
+     Surface: Simple
+     Initial Surface Storage Percent: 0
+     Surface Storage Capacity: 4
+     End Surface:
+
+     LossRate: Initial+Constant
+     Percent Impervious Area: 0.0
+     Initial Loss: 12
+     Constant Loss Rate: 3.5
+
+     Transform: Clark
+     Clark Method: Specified
+     Time of Concentration: 90
+     Storage Coefficient: 45
+     Time Area Method: Default
+
+     Baseflow: Recession
+     Recession Factor: 0.9
+     Initial Baseflow: 1.5
+     Threshold Flow to Peak Ratio: 0.1
+End:
+
+Subbasin: S3
+     Canvas X: 120.5
+     Canvas Y: 220.5
+     Area: 7.75
+     Downstream: R2
+
+     LossRate: Deficit Constant
+     Initial Deficit: 10
+     Maximum Deficit: 40
+     Percolation Rate: 2
+     Recovery Factor: 1
+
+     Transform: Snyder
+     Snyder Method: Standard
+     Snyder Tp: 3.5
+     Snyder Cp: 0.6
+
+     Baseflow: Linear Reservoir
+     Groundwater Layer: 1
+End:
+
+Subbasin: S4
+     Canvas X: 130.5
+     Canvas Y: 230.5
+     Area: 1.25
+     Downstream: Z Outlet
+
+     LossRate: Green and Ampt
+     Moisture Deficit: 0.3
+     Wetting Front Suction: 120
+
+     Transform: Modified Clark
+     Mod Clark Method: Specified
+     Time of Concentration: 30
+     Storage Coefficient: 15
+
+     Baseflow: None
+     Future Key In HMS 5: Keep Me
+     Future Key In HMS 5: Keep Me Too
+End:
+
+Junction: J1
+     Canvas X: 140.5
+     Canvas Y: 240.5
+     Downstream: R1
+End:
+
+Reach: R1
+     Canvas X: 150.5
+     Canvas Y: 250.5
+     From Canvas X: 140.5
+     From Canvas Y: 240.5
+     Downstream: Res 1
+
+     Route: Muskingum Cunge
+     Channel: Trapezoid
+     Length: 2500.5
+     Energy Slope: 0.012
+     Mannings n: 0.100
+     Bottom Width: 60
+     Side Slope: 0.700
+     Initial Variable: Combined Inflow
+     Space-Time Method: Automatic DX and DT
+     Index Parameter Type: Index Celerity
+     Index Celerity: 1.524
+     Number Subreaches: 1
+     Maximum Depth Iterations: 20
+     Maximum Route Step Iterations: 30
+     Channel Loss: None
+End:
+
+Reach: R2
+     Downstream: J2
+
+     Route: Muskingum
+     Muskingum K: 1.5
+     Muskingum x: 0.2
+     Muskingum Steps: 3
+     Initial Variable: Combined Inflow
+     Channel Loss: None
+End:
+
+Reach: R3
+     Downstream: J2
+
+     Route: Lag
+     Lag: 25
+     Initial Variable: Combined Inflow
+     Channel Loss: None
+End:
+
+Reach: R4
+     Downstream: J2
+
+     Route: Modified Puls
+     Number of Reaches: 4
+     Storage Outflow Table Name: SQ 1
+     Initial Variable: Combined Inflow
+     Channel Loss: None
+End:
+
+Reservoir: Res 1
+     Canvas X: 160.5
+     Canvas Y: 260.5
+     Downstream: D1
+
+     Route: Controlled Outflow
+     Routing Curve: Elevation-Storage
+     Initial Elevation: 205.5
+     Elevation-Storage Table: ES 1
+     Main Tailwater Condition: None
+     Spillway: Broad-Crested Spillway
+     Spillway Outlet: Main
+     Spillway Crest Length: 72
+     Spillway Crest Elevation: 207
+     Spillway Coefficient: 2.1
+     End Spillway:
+     Spillway: Broad-Crested Spillway
+     Spillway Outlet: Auxiliary
+     Spillway Crest Length: 20
+     Spillway Crest Elevation: 208
+     Spillway Coefficient: 2.2
+     End Spillway:
+     Conduit: Culvert
+     Culvert Shape: Circular
+     Rise: 1.5
+     End Conduit:
+     Evaporation Method: Zero Evaporation
+     End Evaporation:
+End:
+
+Diversion: D1
+     Canvas X: 170.5
+     Canvas Y: 270.5
+     Downstream: J2
+     Divert To: R3
+     Diverter: Specified
+     Flow Table: Div 1
+     End Diverter:
+End:
+
+Source: Src 1
+     Canvas X: 180.5
+     Canvas Y: 280.5
+     Downstream: R3
+     Flow Method: Constant
+     Constant Flow: 2.5
+End:
+
+Junction: J2
+     Canvas X: 190.5
+     Canvas Y: 290.5
+     Downstream: Sink 1
+End:
+
+Sink: Sink 1
+     Canvas X: 200.5
+     Canvas Y: 300.5
+End:
+
+Junction: Z Outlet
+     Canvas X: 210.5
+     Canvas Y: 310.5
+     From Canvas X: 210.5
+     From Canvas Y: 310.5
+End:
+
+Computation Point: Z Outlet
+     Parameter Set: 1
+          Graph: Yes
+     End Parameter Set:
+     Graph Definition:
+          Line: Outflow
+     End Graph Definition:
+End Computation Point:
+
+Basin Layer Properties:
+     Element Layer:
+          Name: Icons
+          Layer shown: Yes
+     End Layer:
+     2D Connection Layer:
+          Layer shown: No
+     End Layer:
+     Map Layer:
+          Name: Backdrop
+          Layer:13
+          Layer shown: No
+     End Layer:
+End:
+
+Basin Schematic Properties:
+     Last View N: 300.5
+     Fix Element Locations: Yes
+End:
+
+Basin Spatial Properties:
+     Coordinate System: PROJCS["WGS_1984_UTM_Zone_40N",UNIT["Meter",1.0]]
+     Terrain: Sample Terrain
+     Break Point: 1
+          X Coordinate: 431019.5
+          Y Coordinate: 2733413.25
+     End Break Point:
+     Break Point: 2
+          X Coordinate: 438599.5
+          Y Coordinate: 2727058.25
+     End Break Point:
+     reach_prefix: R
+     junction_insert: true
+     junction_prefix: J
+     subbasin_prefix: S
+End:

@@ -1,0 +1,20 @@
+Meteorology: Storm Classic
+     Version: 4.12
+     Unit System: Metric
+     Precipitation Method: Frequency Storm
+     Evapotranspiration Method: No Evapotranspiration
+     Use Basin Model: Sample Basin
+End:
+
+Precip Method Parameters: Frequency Storm
+     Probability: 1 Percent
+     Input Type: Annual Duration
+     Output Type: Annual Duration
+     Intensity Duration: 5
+     Storm Duration: 1440
+     Intensity Position: 50
+     Storm Area: 300
+     Depth: 10.5
+     Depth: 22.5
+     Depth: 205.4
+End:

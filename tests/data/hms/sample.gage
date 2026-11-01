@@ -1,0 +1,12 @@
+Gage Manager: Sample Project
+     Version: 4.12
+End:
+
+Gage: G1
+     Gage Type: Precipitation
+     Variant: Variant-1
+       Start Time: 1 January 2000, 00:00
+       End Time: 2 January 2000, 00:00
+       DSS Pathname: //G1/PRECIP-INC//1HOUR/OBS/
+     End Variant: Variant-1
+End:

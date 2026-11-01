@@ -1,0 +1,2 @@
+# The HMS fixtures carry CRLF on purpose: byte-exact tests read them. Git must not touch the line endings.
+* -text

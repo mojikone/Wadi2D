@@ -1,0 +1,44 @@
+Depth-Area Analysis Manager: Sample Project
+     Version: 4.12
+     Filepath Separator: \
+End:
+
+Analysis: DA 100
+     Description:
+     DSS File: DA_100.dss
+     Last Modified Date: 29 October 2026
+     Last Modified Time: 13:19:18
+     Last Execution Date: 26 October 2026
+     Last Execution Time: 09:53:26
+
+     Time Zone GMT Offset: -28800000
+     Start Date: 31 December 1999
+     Start Time: 24:00
+     End Date: 2 January 2000
+     End Time: 24:00
+     Time Interval: 5
+
+     Basin Model Name: Sample Basin
+     Met Model Name: Storm 100
+
+     Analysis Point: S1
+     Analysis Point: J1
+     Analysis Point: Z Outlet
+
+     Time-Series Output: Save All
+     Time Series Results Manager Start:
+     Time Series Results Manager End:
+End:
+
+Analysis: DA 200
+     Description: Second one
+     DSS File: DA_200.dss
+     Start Date: 1 January 2000
+     Start Time: 00:00
+     End Date: 2 January 2000
+     End Time: 00:00
+     Time Interval: 60
+     Basin Model Name: Sample Basin
+     Met Model Name: Storm 200
+     Analysis Point: Z Outlet
+End:

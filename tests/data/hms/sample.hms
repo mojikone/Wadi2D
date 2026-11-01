@@ -1,0 +1,35 @@
+Project: Sample Project
+     Description:
+     Version: 4.12
+     Filepath Separator: \
+     DSS File Name: sample.dss
+     Time Zone ID: America/Los_Angeles
+End:
+
+Precipitation: Storm 100
+     Filename: sample.met
+     Description:
+     Last Modified Date: 30 October 2026
+     Last Modified Time: 08:53
+End:
+
+Precipitation: Storm Classic
+     Filename: frequency.met
+     Description:
+End:
+
+Basin: Sample Basin
+     Filename: sample.basin
+     Description:
+     Last Modified Date: 30 October 2026
+     Last Modified Time: 13:19:18
+End:
+
+Control: Control 1
+     FileName: subfolder\sample.control
+     Description:
+End:
+
+Mystery Component: M1
+     Filename: mystery.txt
+End:

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DepthAreaAnalysisResults>
+  <AnalysisName>DA 100</AnalysisName>
+  <ExecutionTime>26Oct2026, 09:53:30</ExecutionTime>
+  <StartTime>31Dec1999, 24:00</StartTime>
+  <EndTime>02Jan2000, 24:00</EndTime>
+  <AnalysisPoint name="S1" fPart="DAA:DA 100&gt;S1">
+    <BasinElement name="S1" type="Subbasin">
+      <ExecutionTime>26Oct2026, 09:53:30</ExecutionTime>
+      <SubbasinArea area="10.5" units="KM2" />
+      <UnitSystem>SI</UnitSystem>
+      <IsComputationPoint>No</IsComputationPoint>
+      <DrainageArea area="10.5" units="KM2" />
+      <Hydrology>
+        <TimeSeries>
+          <TimeSeriesType type="Outflow" displayString="Outflow" />
+          <DssFileName>DA_100.dss</DssFileName>
+          <DssPathname>//S1/FLOW//5MIN/DAA:DA 100&gt;S1/</DssPathname>
+        </TimeSeries>
+      </Hydrology>
+      <Sediment />
+      <Statistics>
+        <StatisticMeasure type="Precipitation Total" displayString="Precipitation Total" value="205.0" units="MM" />
+        <StatisticMeasure type="Loss Total" displayString="Loss Total" value="41.5" units="MM" />
+        <StatisticMeasure type="Excess Total" displayString="Excess Total" value="163.5" units="MM" />
+        <StatisticMeasure type="Outflow Maximum" displayString="Maximum Outflow" value="39.25" units="M3/S" />
+        <StatisticMeasure type="Outflow Maximum Time" displayString="Time of Maximum Outflow" value="01Jan2000, 12:20" />
+        <StatisticMeasure type="Outflow Volume" displayString="Outflow Volume" value="273489.5" units="M3" />
+        <StatisticMeasure type="Outflow Depth" displayString="Outflow Depth" value="163.5" units="MM" />
+      </Statistics>
+    </BasinElement>
+  </AnalysisPoint>
+  <AnalysisPoint name="J1" fPart="DAA:DA 100&gt;J1">
+    <BasinElement name="S1" type="Subbasin">
+      <SubbasinArea area="10.5" units="KM2" />
+      <DrainageArea area="10.5" units="KM2" />
+      <Statistics>
+        <StatisticMeasure type="Outflow Maximum" displayString="Maximum Outflow" value="37.5" units="M3/S" />
+        <StatisticMeasure type="Outflow Maximum Time" displayString="Time of Maximum Outflow" value="01Jan2000, 12:25" />
+      </Statistics>
+    </BasinElement>
+    <BasinElement name="J1" type="Junction">
+      <DrainageArea area="15.75" units="KM2" />
+      <FlowLink upstreamName="S1" />
+      <Statistics>
+        <StatisticMeasure type="Outflow Maximum" displayString="Maximum Outflow" value="66.5" units="M3/S" />
+        <StatisticMeasure type="Outflow Maximum Time" displayString="Time of Maximum Outflow" value="31Dec1999, 24:00" />
+        <StatisticMeasure type="Outflow Volume" displayString="Outflow Volume" value="500000.25" units="M3" />
+      </Statistics>
+    </BasinElement>
+  </AnalysisPoint>
+</DepthAreaAnalysisResults>

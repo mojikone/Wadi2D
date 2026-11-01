@@ -1,0 +1,35 @@
+Paired Data Manager: Sample Project
+     Version: 4.12
+     Filepath Separator: \
+End:
+
+Table: Elev-Dis
+     Table Type: Stage-Flow
+     Last Modified Date: 13 October 2025
+     Last Modified Time: 08:11:18
+     X-Units: M
+     Y-Units: M3/S
+     Use External DSS File: NO
+     DSS File: sample.dss
+     Pathname: //Elev-Dis/STAGE-FLOW///TABLE/
+     Interpolation: Linear Interpolation
+End:
+
+Table: ARF A
+     Table Type: Area-Reduction Factor
+     X-Units: KM2
+     Use External DSS File: NO
+     DSS File: sample.dss
+     Pathname: //ARF A/AREA-REDUCTION FACTOR///TABLE/
+     Interpolation: Linear Interpolation
+End:
+
+Table: Pattern A
+     Table Type: Percent Graph
+     X-Units: %
+     Y-Units: %
+     Use External DSS File: NO
+     DSS File: sample.dss
+     Pathname: //Pattern A/PERCENT GRAPH///TABLE/
+     Interpolation: Linear Interpolation
+End:
