@@ -331,13 +331,13 @@ class Run(_Part):
         8.0, ge=0.0, le=25.0, description="Fastest flow assumed by --dry-run, m/s; Block 2 at 20 m gave 8"
     )
     estimate_wave: float = Field(
-        1.6,
+        1.3,
         ge=1.0,
         le=10.0,
-        description="Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 at 20 m gave 1.6",
+        description="Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 whole catchment at 20 m gave 1.3",
     )
     estimate_overhead: float = Field(
-        1.7, ge=1.0, le=10.0, description="Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.7"
+        1.5, ge=1.0, le=10.0, description="Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.5"
     )
 
 

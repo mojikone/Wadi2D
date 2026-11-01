@@ -534,6 +534,42 @@
       "title": "Inflow",
       "type": "object"
     },
+    "InitialLevel": {
+      "additionalProperties": false,
+      "description": "Water standing at a level when the run starts: a reservoir at its full supply level, say.",
+      "properties": {
+        "coordinates": {
+          "description": "Polygon ring, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 3,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "level": {
+          "description": "Water level on the datum of the DEM, m",
+          "title": "Level",
+          "type": "number"
+        }
+      },
+      "required": [
+        "coordinates",
+        "level"
+      ],
+      "title": "InitialLevel",
+      "type": "object"
+    },
     "Numerics": {
       "additionalProperties": false,
       "properties": {
@@ -710,6 +746,14 @@
           "title": "Wet Depth",
           "type": "number"
         },
+        "edge_depth": {
+          "default": 3.0,
+          "description": "Depth against a closed domain edge that draws a warning, m",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Edge Depth",
+          "type": "number"
+        },
         "progress_every_s": {
           "default": 2.0,
           "description": "Wall seconds between progress events and stop checks",
@@ -822,16 +866,16 @@
           "type": "number"
         },
         "estimate_wave": {
-          "default": 1.6,
-          "description": "Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 at 20 m gave 1.6",
+          "default": 1.3,
+          "description": "Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 whole catchment at 20 m gave 1.3",
           "maximum": 10.0,
           "minimum": 1.0,
           "title": "Estimate Wave",
           "type": "number"
         },
         "estimate_overhead": {
-          "default": 1.7,
-          "description": "Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.7",
+          "default": 1.5,
+          "description": "Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.5",
           "maximum": 10.0,
           "minimum": 1.0,
           "title": "Estimate Overhead",
@@ -1356,6 +1400,14 @@
       "title": "Boundaries",
       "type": "array"
     },
+    "initial_levels": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/InitialLevel"
+      },
+      "title": "Initial Levels",
+      "type": "array"
+    },
     "outputs": {
       "$ref": "#/$defs/Outputs",
       "default": {
@@ -1368,6 +1420,7 @@
         "arrival_depth": 0.1,
         "speed_depth": 0.05,
         "wet_depth": 0.1,
+        "edge_depth": 3.0,
         "progress_every_s": 2.0,
         "points": [],
         "lines": []
@@ -1383,8 +1436,8 @@
         "balance_every": 8,
         "estimate_depth": 7.5,
         "estimate_speed": 8.0,
-        "estimate_wave": 1.6,
-        "estimate_overhead": 1.7
+        "estimate_wave": 1.3,
+        "estimate_overhead": 1.5
       }
     },
     "arf": {
