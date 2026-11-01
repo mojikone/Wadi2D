@@ -1,7 +1,8 @@
 """The grid cache: tables are the only expensive artefact, so they are kept by a hash of what made them.
 
-The key hashes DEM identity, extent, cell size, terrain objects, table settings and Manning. It is stored inside
-the file too, so a renamed or truncated file is a miss, never a wrong grid.
+The key hashes DEM identity, extent, cell size, terrain objects, table settings, Manning and the source of the
+code that builds tables. It is stored inside the file too, so a renamed or truncated file is a miss, never a wrong
+grid, and a changed table builder is a miss, never old tables reused in silence.
 """
 
 from __future__ import annotations
@@ -21,12 +22,25 @@ from wadi2d.tables.builder import GridTables
 
 CACHE_FORMAT = "1"
 GZIP_LEVEL = 1
+PACKAGE = Path(__file__).resolve().parent.parent
+BUILDER_SOURCES = ("tables/*.py", "terrain/*.py", "grid/*.py", "solver/layout.py")
+"""Every file whose code decides what is in a table."""
 
 
 def cache_key(parts: dict[str, Any]) -> str:
     """Stable hash of a JSON-serialisable description of the grid."""
     text = json.dumps({"format": FORMAT_VERSION, "cache": CACHE_FORMAT, **parts}, sort_keys=True, default=str)
     return hashlib.sha256(text.encode("utf-8")).hexdigest()[:24]
+
+
+def builder_identity(root: Path = PACKAGE) -> str:
+    """Hash of the code that builds tables."""
+    digest = hashlib.sha256()
+    for pattern in BUILDER_SOURCES:
+        for path in sorted(root.glob(pattern)):
+            digest.update(path.name.encode("utf-8"))
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:24]
 
 
 def cache_path(folder: str | Path, key: str) -> Path:

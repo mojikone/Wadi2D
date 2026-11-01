@@ -27,7 +27,7 @@ from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.forcing import Forcing, boundary_set, build_storm, load_polygons, manning_grid
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
-from wadi2d.io.cache import cache_key, cache_path, load_tables, save_tables
+from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
 from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoint
 from wadi2d.io.geotiff import write_map
 from wadi2d.io.identity import file_identity
@@ -150,6 +150,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
     t = cfg.terrain
     return cache_key(
         {
+            "builder": builder_identity(),
             "dem": bed.identity(limit),
             "window": [window.x0, window.y0, window.ny, window.nx],
             "dx": cfg.grid.dx,
