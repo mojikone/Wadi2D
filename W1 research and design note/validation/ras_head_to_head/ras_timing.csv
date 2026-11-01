@@ -1,0 +1,8 @@
+ras_20m_swe_em,HEC-RAS 6.6 September 2024,SWE-EM,16,0,106.2,00:01:31,Unsteady Finished Successfully,0.01921
+ras_20m_swe_elm,HEC-RAS 6.6 September 2024,SWE-ELM,16,0,147.8,00:02:17,Unsteady Finished Successfully,0.00447
+ras_10m_swe_em,HEC-RAS 6.6 September 2024,SWE-EM,16,0,654.9,00:10:24,Unsteady Finished Successfully,0.01088
+ras_10m_swe_elm,HEC-RAS 6.6 September 2024,SWE-ELM,16,0,624.6,00:09:53,Unsteady Finished Successfully,0.00253
+ras_20m_swe_em_dt1s,HEC-RAS 6.6 September 2024,SWE-EM,16,0,159.2,00:02:28,Unsteady Finished Successfully,0.02028
+ras_20m_swe_em_cores8,HEC-RAS 6.6 September 2024,SWE-EM,8,0,81.0,00:01:11,Unsteady Finished Successfully,0.01921
+ras_20m_swe_em_cores32,HEC-RAS 6.6 September 2024,SWE-EM,32,0,169.6,00:02:39,Unsteady Finished Successfully,0.01921
+ras_10m_swe_em_cores8,HEC-RAS 6.6 September 2024,SWE-EM,8,0,521.8,00:08:14,Unsteady Finished Successfully,0.01087

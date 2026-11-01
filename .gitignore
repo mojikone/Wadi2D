@@ -43,4 +43,6 @@ desktop.ini
 **/run*/live/
 **/validation/ras_head_to_head/*/
 **/validation/block2_full/*/
+!**/validation/block2_full/jobs/
+!**/validation/block2_full/scripts/
 **/validation/block2_first_run/*/

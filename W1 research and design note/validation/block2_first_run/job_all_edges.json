@@ -1,0 +1,152 @@
+{
+ "project": {
+  "name": "block2_first_run_all_edges_open",
+  "description": "First real test: 20 m grid at the mountain front around Bidah 03 and Faydh 01, uniform rain"
+ },
+ "grid": {
+  "dx": 20.0,
+  "extent": [
+   426000.0,
+   2720000.0,
+   441000.0,
+   2735000.0
+  ],
+  "cache_dir": "cache"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\GGC_2_MERGE_HDSM.tif",
+  "pixel_stride": 2,
+  "manning": 0.04
+ },
+ "storm": {
+  "kind": "uniform",
+  "depth_mm": 300.0,
+  "duration_min": 360.0
+ },
+ "hydrology": {
+  "curve_number": 85.0
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     440995.0,
+     2720000.0
+    ],
+    [
+     440995.0,
+     2735000.0
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     426000.0,
+     2734995.0
+    ],
+    [
+     441000.0,
+     2734995.0
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     426000.0,
+     2720005.0
+    ],
+    [
+     441000.0,
+     2720005.0
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     426005.0,
+     2720000.0
+    ],
+    [
+     426005.0,
+     2735000.0
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 1800.0,
+  "series_every_s": 60.0,
+  "live_every_s": 10.0,
+  "lines": [
+   {
+    "name": "Bidah 03",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ]
+    ]
+   },
+   {
+    "name": "Faydh 01",
+    "coordinates": [
+     [
+      431107.75,
+      2733764.2
+     ],
+     [
+      430988.93,
+      2733651.25
+     ],
+     [
+      431003.28,
+      2734233.93
+     ],
+     [
+      431235.24,
+      2733997.1
+     ],
+     [
+      431244.34,
+      2733873.98
+     ],
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431054.16,
+      2733225.76
+     ]
+    ]
+   }
+  ],
+  "points": [
+   {
+    "name": "Bidah 03 upstream",
+    "x": 437900.0,
+    "y": 2726600.0
+   }
+  ]
+ },
+ "run": {
+  "duration_s": 28800.0,
+  "backend": "gpu",
+  "source_every_s": 30.0
+ }
+}

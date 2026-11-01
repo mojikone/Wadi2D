@@ -1,0 +1,6 @@
+20,gpu,w20m,0,wall 16.3,loop 6.36,tables 7.44,steps 25180,dt_min 0.634,err 1.53e-06,gpu_before 28 %
+20,gpu,t20m_gpu2,0,wall 8.6,loop 6.48,tables 0.06,steps 25180,dt_min 0.634,err 1.55e-06,gpu_before 29 %
+10,gpu,w10m,0,wall 15.7,loop 11.09,tables 2.48,steps 43269,dt_min 0.382,err 4.32e-07,gpu_before 62 %
+10,gpu,t10m_gpu2,0,wall 13.5,loop 11.19,tables 0.2,steps 43269,dt_min 0.382,err 4.30e-07,gpu_before 62 %
+20,cpu,t20m_cpu,0,wall 48.4,loop 46.19,tables 0.16,steps 25180,dt_min 0.634,err 1.60e-06,gpu_before 28 %
+10,cpu,t10m_cpu,0,wall 119.1,loop 117.28,tables 0.2,steps 43281,dt_min 0.382,err 3.76e-07,gpu_before 29 %

@@ -43,6 +43,23 @@
 2. **Water ponds against the closed edges.** The window cuts hill catchments on the south and west sides, so runoff stands up to 33 m deep against the wall: an artefact of the window, not of the solver. With all four edges open (`run_all_edges`, 21.6 s): deepest cell 9.6 m, balance 0.013 %, Bidah unchanged at 272.5 m3/s. Any window job should leave every edge that falls outward open.
 3. **Deep water near cell (79, 462), about 435,200 E, 2,733,400 N: 9.6 m mean depth with 8 m/s over the sill.** This is what now sets the time step (dt 0.46-0.65 s). Probably an embankment in the surface model with its culvert missing [Guessing, not checked on the ground]. A burn line or a crest line is the tool if it needs treating.
 
+## Rerun after the independent review and the solver fixes
+
+`run_after_review2`, same job, new folder; the runs above stay as they were. **These figures supersede the table above for anyone quoting the current engine.** The GPU was shared with another job, so the wall time is an upper figure.
+
+| | Before | After |
+|---|---|---|
+| Balance error | 14,719 m3, 0.026 % | 0.89 m3, 1.6e-8: the boundary flow is now summed every step |
+| Steps | 54,696 | 87,723 |
+| dt, mean / minimum | 0.527 / 0.457 s | 0.328 / 0.045 s |
+| Run wall time | 23.9 s | 85.5 s, GPU shared |
+| Bidah 03, Faydh 01 at 6 h | 272.5, 413.3 m3/s | 272.2, 413.6 m3/s |
+| Wet area | 20.8 km2 | 20.8 km2 |
+
+The result did not move; the time step did. The solver's wave speed now carries the wet share of the cell plan, and that is what takes the minimum step from 0.46 to 0.045 s. `--dry-run` now reads 134 s on this job under the same load, 1.6 x high; its overhead factor needs one calibration on an idle GPU.
+
+Hybrid rerun (`run_hybrid_after_review`): rain 51.44 Mm3, inflow 5.42 Mm3, balance 1.5e-8.
+
 ## What this run did not test
 
 Dam crest lines and spillways on real terrain (synthetic tests only), the ARF study on Block 2, the composite map on a real run (the accumulation raster reads correctly: 20.97 km2 within 10 % at the Bidah line), any comparison with HEC-RAS, and any observed event.
