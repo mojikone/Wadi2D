@@ -115,8 +115,9 @@ __device__ __forceinline__ float face_step(
     float plan = from_left ? om[k - S] : om[k];
     const float dother = from_left ? dR : dL;
     if (dother > P.h_cfl) plan = fminf(plan, from_left ? om[k] : om[k - S]);
-    const float c2 = P.g * A * rho / (fmaxf(plan, P.a_min) * dx);
-    return fabsf(un) + P.lead * fabsf(un - uf) + sqrtf(fmaxf(c2, 0.0f));
+    const float wave = sqrtf(fmaxf(P.g * A * rho / (fmaxf(plan, P.a_min) * dx), 0.0f));
+    // a thin front can jump in one step; a flow cannot gain more than 2c, the dam-break limit
+    return fabsf(un) + fminf(P.lead * fabsf(un - uf), 2.0f * wave) + wave;
 }
 
 extern "C" __global__ void faces(

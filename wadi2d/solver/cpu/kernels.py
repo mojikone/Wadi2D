@@ -182,8 +182,8 @@ def face_step(
     dother = d_right if from_left else d_left
     if dother > h_cfl:
         plan = min(plan, om[k] if from_left else om[k - s])
-    c2 = g * area * rho / (max(plan, a_min) * dx)
-    return abs(un) + lead * abs(un - uf) + F(np.sqrt(max(c2, ZERO)))
+    wave = F(np.sqrt(max(g * area * rho / (max(plan, a_min) * dx), ZERO)))
+    return abs(un) + min(lead * abs(un - uf), F(2.0) * wave) + wave
 
 
 @njit(parallel=True)
