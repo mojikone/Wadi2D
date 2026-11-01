@@ -1,0 +1,257 @@
+"""Numba twin of solver/gpu/kernels. Same statement order, same helper names, same float32 arithmetic.
+
+The sections numbered [1] to [6] match faces.cu; parity tests hold the two together.
+"""
+
+from __future__ import annotations
+
+import numpy as np
+from numba import njit, prange
+
+from wadi2d.solver.layout import HALO, STRIDE, STRIDE2, TILE, TILE2
+
+F = np.float32
+ZERO = F(0.0)
+HALF = F(0.5)
+ONE = F(1.0)
+
+
+@njit(inline="always")
+def minmod(a, b):
+    if a * b <= ZERO:
+        return ZERO
+    return a if abs(a) < abs(b) else b
+
+
+@njit(inline="always")
+def ustar(uc, uup, udown, second):
+    if not second:
+        return uc
+    return uc + HALF * minmod(uc - uup, udown - uc)
+
+
+@njit(inline="always")
+def cell_level(hb, hc, tab, rows):
+    if hc <= ZERO:
+        return hb
+    last = rows - 1
+    if hb >= hc:
+        return tab[last] + (hb - hc)
+    s = F(np.sqrt(hb / hc)) * F(last)
+    r = int(s)
+    return tab[r] + (s - F(r)) * (tab[r + 1] - tab[r])
+
+
+@njit(inline="always")
+def face_lookup(e, top, tab, rows):
+    last = rows - 1
+    m = F(last)
+    if e >= top:
+        a1 = tab[2 * last]
+        a0 = tab[2 * last - 2]
+        c = (m - ONE) / m
+        w = (a1 - a0) / (top * (ONE - c * c))
+        area = a1 + w * (e - top)
+        return area, tab[2 * last + 1] * (area / max(a1, F(1e-12))), w
+    s = F(np.sqrt(e / top)) * m
+    r = int(s)
+    c0 = F(r) / m
+    c1 = F(r + 1) / m
+    e0 = c0 * c0 * top
+    de = (c1 * c1 - c0 * c0) * top
+    f = (e - e0) / de
+    a0 = tab[2 * r]
+    a1 = tab[2 * r + 2]
+    t0 = tab[2 * r + 1]
+    return a0 + f * (a1 - a0), t0 + f * (tab[2 * r + 3] - t0), (a1 - a0) / de
+
+
+@njit
+def face_step(
+    k, fid, dt, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet, h_cfl, u_max,
+    second, sheet,
+):  # fmt: skip
+    """One face: s is the array step along the normal, p across it. Returns the wave speed."""
+    e_l = d[k - s] - fl[fid]
+    e_r = d[k] - fr[fid]
+    uf = u[k]
+    e_lp = max(e_l, ZERO)
+    e_rp = max(e_r, ZERO)
+    from_left = uf > ZERO or (uf == ZERO and e_l >= e_r)
+    eup = e_lp if from_left else e_rp
+    if eup <= e_wet:
+        u1[k] = ZERO
+        m1[k] = ZERO
+        q1[k] = ZERO
+        return ZERO
+    start = 2 * rows * fid
+    area, t, w = face_lookup(eup, ef[fid], ftab[start : start + 2 * rows], rows)
+    h_l = h[k - s]
+    h_r = h[k]
+    hup = h_l if from_left else h_r
+
+    # [1] section
+    rho = ONE
+    d_eta = e_rp - e_lp
+    if sheet:
+        avol = hup * dx
+        edown = e_rp if from_left else e_lp
+        if avol < area:
+            sub = min(edown / eup, ONE)
+            sub2 = sub * sub
+            alpha = sub2 * sub2
+            rho = alpha + (ONE - alpha) * avol / area
+        if edown <= ZERO:
+            # [2] disconnected
+            g_u = gl[fid] if from_left else gr[fid]
+            g_d = gr[fid] if from_left else gl[fid]
+            h_d = h_r if from_left else h_l
+            drop = (hup - g_u) - max(h_d - g_d, HALF * (g_u - g_d))
+            level_drop = abs(e_l - e_r)
+            drive = max(eup, min(drop, level_drop))
+            d_eta = -drive if from_left else drive
+
+    # [3] momentum fluxes
+    um = u[k - s]
+    up = u[k + s]
+    qc_l = HALF * (q[k - s] + q[k])
+    qc_r = HALF * (q[k] + q[k + s])
+    s_l = ustar(um, u[k - 2 * s], uf, second) if qc_l > ZERO else ustar(uf, up, um, second)
+    s_r = ustar(uf, um, up, second) if qc_r > ZERO else ustar(up, u[k + 2 * s], uf, second)
+    flux = qc_r * s_r - qc_l * s_l
+    qy_s = HALF * (qp[k - s] + qp[k])
+    qy_n = HALF * (qp[k - s + p] + qp[k + p])
+    u_s = u[k - p]
+    u_n = u[k + p]
+    us_s = ustar(u_s, u[k - 2 * p], uf, second) if qy_s > ZERO else ustar(uf, u_n, u_s, second)
+    us_n = ustar(uf, u_s, u_n, second) if qy_n > ZERO else ustar(u_n, u[k + 2 * p], uf, second)
+    flux += qy_n * us_n - qy_s * us_s
+
+    # [4] momentum and pressure
+    abar = HALF * (h_l + h_r) * dx
+    press = dt * g * d_eta / dx
+    if abar > F(1e-6) * dx:
+        us = (m[k] - dt * flux / dx) / abar - press
+    else:
+        us = uf - press
+
+    # [5] friction
+    vb = F(0.25) * (vp[k - s] + vp[k] + vp[k - s + p] + vp[k + p])
+    t3 = t * t * t * F(np.cbrt(t))
+    fric = area * area / max(t3, F(1e-30))
+    if rho < ONE:
+        fric = fric / max(rho * F(np.cbrt(rho)), F(1e-12))
+    a = dt * g * fric
+    sp = F(np.sqrt(us * us + vb * vb))
+    un = F(2.0) * us / (ONE + F(np.sqrt(ONE + F(4.0) * a * sp)))
+    if abs(un) > u_max:
+        un = u_max if un > ZERO else -u_max
+
+    # [6] crest face
+    qn = area * rho * un
+    c = cw[fid]
+    if c > ZERO:
+        qc = c * area * F(np.sqrt(area / max(w, F(1e-9))))
+        if abs(qn) > qc:
+            qn = qc if qn > ZERO else -qc
+            un = qn / max(area * rho, F(1e-12))
+    u1[k] = un
+    m1[k] = abar * un
+    q1[k] = qn
+    dup = d[k - s] if from_left else d[k]
+    return abs(un) + F(np.sqrt(g * dup)) if dup > h_cfl else ZERO
+
+
+@njit(parallel=True)
+def faces(
+    active, dt, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy, cwy, ftaby,
+    u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+):  # fmt: skip
+    for a in prange(active.size):
+        t = active[a]
+        w = ZERO
+        for j in range(TILE):
+            for i in range(TILE):
+                k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
+                fid = t * TILE2 + j * TILE + i
+                wx = face_step(
+                    k, fid, dt, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx, u1, mx1, qx1,
+                    rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+                )  # fmt: skip
+                wy = face_step(
+                    k, fid, dt, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby, v1, my1, qy1,
+                    rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+                )  # fmt: skip
+                w = max(w, max(wx, wy))
+        wave[t] = w
+
+
+@njit(parallel=True)
+def limit(active, dt, h, qx1, qy1, r, dx):
+    area = dx * dx
+    for a in prange(active.size):
+        t = active[a]
+        for j in range(TILE):
+            for i in range(TILE):
+                k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
+                out = (
+                    max(qx1[k + 1], ZERO)
+                    + max(-qx1[k], ZERO)
+                    + max(qy1[k + STRIDE], ZERO)
+                    + max(-qy1[k], ZERO)
+                )
+                have = max(h[k], ZERO) * area
+                r[k] = have / (out * dt) if out * dt > have else ONE
+
+
+@njit(inline="always")
+def scaled(q, rl, rr):
+    return q * (rl if q > ZERO else rr)
+
+
+@njit(parallel=True)
+def update(active, dt, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
+    area = dx * dx
+    for a in prange(active.size):
+        t = active[a]
+        any_wet = 0
+        for j in range(TILE):
+            for i in range(TILE):
+                k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
+                fid = t * TILE2 + j * TILE + i
+                rc = r[k]
+                qw = scaled(qx1[k], r[k - 1], rc)
+                qe = scaled(qx1[k + 1], rc, r[k + 1])
+                qn = scaled(qy1[k], r[k - STRIDE], rc)
+                qs = scaled(qy1[k + STRIDE], rc, r[k + STRIDE])
+                qx[k] = qw
+                qy[k] = qn
+                hn = max(h[k] - dt * (qe - qw + qs - qn) / area + dt * src[k], ZERO)
+                h[k] = hn
+                d[k] = cell_level(hn, hc[fid], dtab[rows * fid : rows * (fid + 1)], rows)
+                if hn > ZERO:
+                    any_wet = 1
+        wet[t] = any_wet
+
+
+@njit
+def exchange(active, slot, src, nhalo, a):
+    for n in range(active.size):
+        t = active[n]
+        for m in range(nhalo):
+            a[t * STRIDE2 + slot[m]] = a[src[(t - 1) * nhalo + m]]
+
+
+@njit
+def boundary(cell, ref, kind, d0, h0, h, d):
+    for m in range(cell.size):
+        k = cell[m]
+        if kind[m] == 0:
+            h[k] = h0[m]
+            d[k] = d0[m]
+        elif kind[m] == 1:
+            h[k] = ZERO
+            d[k] = ZERO
+        else:
+            h[k] = h[ref[m]]
+            d[k] = max(d[ref[m]] + d0[m], ZERO)
