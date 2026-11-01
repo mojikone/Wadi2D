@@ -21,6 +21,7 @@ class Model:
         self.backend = select_backend(backend, tables, record)
         self.stepper = Stepper(self.backend, self.grid, self.num)
         self.host = HostState(self.grid, {})
+        self.boundary_tiles = np.zeros(0, np.int64)
 
     def set_depth(self, hbar: np.ndarray) -> None:
         """Set the mean depth grid, with levels through the table and zero velocities."""
@@ -68,12 +69,35 @@ class Model:
         for t in range(1, grid.ntiles):
             tj, ti = grid.tiles[t]
             keep[t] = bool(np.any(rate[tj * TILE : (tj + 1) * TILE, ti * TILE : (ti + 1) * TILE] != 0.0))
+        keep[self.boundary_tiles] = True
         self.stepper.rebuild_active()
+
+    def set_source_cells(self, cells: np.ndarray, rate: np.ndarray) -> None:
+        """The fast form of ``set_source``: ``rate`` per entry of ``cells``, state indices of own cells."""
+        src = np.zeros(self.grid.ntiles * STRIDE2, np.float32)
+        src[cells] = rate
+        self.backend.set_field("src", src)
+        keep = self.stepper.keep_active
+        keep[:] = False
+        keep[cells[rate != 0.0] // STRIDE2] = True
+        keep[self.boundary_tiles] = True
+        self.stepper.rebuild_active()
+
+    def device_index(self, index: np.ndarray):
+        """State indices in the form ``read_cells`` takes."""
+        cp = getattr(self.backend, "cp", None)
+        return index if cp is None else cp.asarray(index)
+
+    def read_cells(self, name: str, index) -> np.ndarray:
+        """Entries of a state array at indices from ``device_index``, without reading the whole array."""
+        a = getattr(self.backend, name)[index]
+        cp = getattr(self.backend, "cp", None)
+        return a if cp is None else cp.asnumpy(a)
 
     def set_boundary(self, bc: BoundaryCells) -> None:
         self.backend.set_boundary(bc)
-        tiles = np.unique(bc.cell // STRIDE2)
-        self.stepper.keep_active[tiles] = True
+        self.boundary_tiles = np.unique(bc.cell // STRIDE2)
+        self.stepper.keep_active[self.boundary_tiles] = True
         self.stepper.rebuild_active()
 
     def advance(self, t_end: float, on_step=None) -> float:

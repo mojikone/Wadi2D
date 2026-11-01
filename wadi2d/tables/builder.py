@@ -45,7 +45,7 @@ class ArrayBed:
 
 @dataclass
 class CrestFaces:
-    """Faces edited by terrain objects, as (ny, nx) grids; NaN means untouched."""
+    """Faces edited by terrain objects, as (ny, nx) grids; NaN means untouched. A wall face is closed."""
 
     xz: np.ndarray
     xlen: np.ndarray
@@ -53,6 +53,8 @@ class CrestFaces:
     yz: np.ndarray
     ylen: np.ndarray
     yc: np.ndarray
+    xwall: np.ndarray | None = None
+    ywall: np.ndarray | None = None
 
     @classmethod
     def empty(cls, shape: tuple[int, int]) -> CrestFaces:
@@ -145,8 +147,8 @@ def build_tables(
 
     zbar_g = zmin_g + rel_g
     active = grid.mask
-    fx = _faces(zfx_g, zmin_g, zbar_g, active, 1, crest.xc, cfg.crest_tolerance)
-    fy = _faces(zfy_g, zmin_g, zbar_g, active, 0, crest.yc, cfg.crest_tolerance)
+    fx = _faces(zfx_g, zmin_g, zbar_g, active, 1, crest.xc, cfg.crest_tolerance, crest.xwall)
+    fy = _faces(zfy_g, zmin_g, zbar_g, active, 0, crest.yc, cfg.crest_tolerance, crest.ywall)
     return GridTables(
         grid, zmin_g, zbar_g, hc, dtab,
         *(grid.to_tiles(a) for a in fx[:4]), efx, grid.to_tiles(fx[4]), ftabx,
@@ -154,7 +156,7 @@ def build_tables(
     )  # fmt: skip
 
 
-def _faces(zf, zmin, zbar, active, axis, crest_c, tol):
+def _faces(zf, zmin, zbar, active, axis, crest_c, tol, wall=None):
     """Invert over zmin and over the mean bed on both sides; closed faces; natural crests.
 
     ``axis`` 1: x faces, the neighbour is (j, i-1). ``axis`` 0: y faces, the neighbour is (j-1, i).
@@ -163,6 +165,8 @@ def _faces(zf, zmin, zbar, active, axis, crest_c, tol):
     zbar_n = np.roll(zbar, 1, axis=axis)
     act_n = np.roll(active, 1, axis=axis)
     open_face = active & act_n
+    if wall is not None:
+        open_face = open_face & ~wall
     fl = np.where(open_face, zf - zmin_n, CLOSED)
     fr = np.where(open_face, zf - zmin, CLOSED)
     gl = np.where(open_face, zf - zbar_n, 0.0)

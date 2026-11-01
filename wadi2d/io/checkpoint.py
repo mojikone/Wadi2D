@@ -1,0 +1,58 @@
+"""checkpoint.h5: enough to continue a run: state arrays, maxima, series so far, the water accounts."""
+
+from __future__ import annotations
+
+from dataclasses import asdict
+from pathlib import Path
+
+import h5py
+import numpy as np
+
+from wadi2d.solver.layout import STATE_ARRAYS
+
+CHECKPOINT_FORMAT = "1"
+BALANCE = "balance_"
+
+
+def save_checkpoint(path: str | Path, model, monitor) -> Path:
+    """Write through a temporary name; a crash during the write leaves the last good checkpoint."""
+    out = Path(path)
+    tmp = out.with_suffix(".tmp")
+    st = model.stepper
+    model.backend.synchronize()
+    with h5py.File(tmp, "w") as f:
+        f.attrs["format"] = CHECKPOINT_FORMAT
+        f.attrs["t"], f.attrs["dt"], f.attrs["nsteps"] = st.t, st.dt, st.nsteps
+        f.attrs["next_series"], f.attrs["next_map"] = monitor.next_series, monitor.next_map
+        for name in STATE_ARRAYS:
+            f.create_dataset(f"state/{name}", data=model.backend.get_field(name))
+        for name, a in monitor.maxima.raw().items():
+            f.create_dataset(f"maxima/{name}", data=a)
+        for key, value in asdict(monitor.balance).items():
+            f.attrs[f"{BALANCE}{key}"] = value
+        f.create_dataset("times", data=np.asarray(monitor.times, np.float64))
+        for n, s in enumerate(monitor.series + monitor.line_series):
+            for key, values in s.columns.items():
+                f.create_dataset(f"series/{n}/{key}", data=np.asarray(values, np.float64))
+    tmp.replace(out)
+    return out
+
+
+def load_checkpoint(path: str | Path, model, monitor) -> None:
+    """Put a saved run back into a freshly built model and monitor of the same job."""
+    with h5py.File(path, "r") as f:
+        for name in STATE_ARRAYS:
+            model.backend.set_field(name, f[f"state/{name}"][()])
+        monitor.maxima.restore({name: f[f"maxima/{name}"][()] for name in f["maxima"]})
+        st = model.stepper
+        st.t, st.dt, st.nsteps = float(f.attrs["t"]), float(f.attrs["dt"]), int(f.attrs["nsteps"])
+        monitor.next_series, monitor.next_map = float(f.attrs["next_series"]), float(f.attrs["next_map"])
+        saved = {k[len(BALANCE) :]: v.item() for k, v in f.attrs.items() if k.startswith(BALANCE)}
+        monitor.balance = type(monitor.balance)(**saved)
+        monitor.times = list(f["times"][()])
+        for n, s in enumerate(monitor.series + monitor.line_series):
+            for key in s.columns:
+                s.columns[key] = list(f[f"series/{n}/{key}"][()])
+    wet = model._tile_wet(model.field("h"))
+    model.backend.wet[:] = wet
+    model.stepper.rebuild_active()

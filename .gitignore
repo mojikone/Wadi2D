@@ -37,3 +37,7 @@ desktop.ini
 *.h5
 *.zip
 *.7z
+
+# run folders and caches hold rasters and HDF5; the reports and job files stay
+**/cache/
+**/run*/live/

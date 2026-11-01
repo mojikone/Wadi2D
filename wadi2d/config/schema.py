@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 FORMAT_VERSION = "1.0"
 
@@ -30,6 +30,7 @@ class GridConfig(_Part):
     dx: float = Field(10.0, ge=0.5, le=1000.0, description="Cell size, m")
     domain: str | None = Field(None, description="Polygon file; None uses extent")
     extent: tuple[float, float, float, float] | None = Field(None, description="xmin, ymin, xmax, ymax, m")
+    cache_dir: str | None = Field(None, description="Grid cache folder; None uses 'cache' in the run folder")
 
 
 class TerrainObject(_Part):
@@ -44,9 +45,24 @@ class TerrainObject(_Part):
     coefficient: float = Field(2.1, ge=0.5, le=4.0, description="Spillway C in Q = C L H^1.5, m^0.5/s")
     length: float | None = Field(None, ge=0.1, le=2000.0, description="Spillway crest length, m")
 
+    @model_validator(mode="after")
+    def _heights(self) -> TerrainObject:
+        if len(self.coordinates) < 2:
+            raise ValueError("a terrain object needs at least two vertices")
+        if self.z is not None and len(self.z) != len(self.coordinates):
+            raise ValueError("z needs one elevation per vertex")
+        if self.kind in ("crest_line", "spillway") and self.z is None and self.z_constant is None:
+            raise ValueError(f"{self.kind} needs z or z_constant")
+        if self.kind == "burn_line" and self.z is None and self.z_constant is None and self.depth <= 0.0:
+            raise ValueError("burn_line needs z, z_constant or depth")
+        return self
+
 
 class Terrain(_Part):
     dem: str | None = Field(None, description="GeoTIFF path; its CRS is the project CRS")
+    pixel_stride: int = Field(
+        1, ge=1, le=64, description="Read every n-th DEM pixel; dx must be a multiple of pixel * stride"
+    )
     objects: list[TerrainObject] = []
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
     manning_raster: str | None = None
@@ -103,6 +119,23 @@ class Boundary(_Part):
     slope: float = Field(0.005, ge=1e-5, le=0.5, description="Energy slope for kind 'normal'")
 
 
+class DesignPoint(_Part):
+    """A point where depth and level are recorded."""
+
+    name: str
+    x: float = Field(description="Easting, m")
+    y: float = Field(description="Northing, m")
+    drainage_area_km2: float | None = Field(None, gt=0.0, description="For the depth-area study, km2")
+
+
+class DesignLine(_Part):
+    """A line across the flow; discharge is summed over the lattice faces it crosses, positive to its right."""
+
+    name: str
+    coordinates: list[tuple[float, float]] = Field(description="Polyline, m", min_length=2)
+    drainage_area_km2: float | None = Field(None, gt=0.0, description="For the depth-area study, km2")
+
+
 class Outputs(_Part):
     map_every_s: float = Field(900.0, ge=0.0, le=86400.0, description="0 disables time maps, s")
     series_every_s: float = Field(60.0, ge=1.0, le=3600.0, description="Point and line series step, s")
@@ -111,6 +144,112 @@ class Outputs(_Part):
     )
     live_stride: int = Field(2, ge=1, le=16, description="Cells per live-raster pixel")
     hazard: Literal["dv"] = "dv"
+    maxima_every: int = Field(4, ge=1, le=64, description="Steps between updates of the maxima")
+    arrival_depth: float = Field(
+        0.1, ge=0.0, le=10.0, description="Level above the cell's lowest point that counts as arrival, m"
+    )
+    speed_depth: float = Field(
+        0.05, ge=0.0, le=1.0, description="Cells shallower than this are left out of speed and hazard, m"
+    )
+    wet_depth: float = Field(
+        0.1, ge=0.0, le=10.0, description="Mean depth that counts a cell as wet in the wet area, m"
+    )
+    progress_every_s: float = Field(
+        2.0, ge=0.05, le=600.0, description="Wall seconds between progress events and stop checks"
+    )
+    points: list[DesignPoint] = []
+    lines: list[DesignLine] = []
+
+
+class ArfTableConfig(_Part):
+    """An area-reduction table, read linearly in area."""
+
+    areas_km2: list[float] = Field(min_length=1, description="Storm areas, increasing, km2")
+    factors: list[float] = Field(min_length=1, description="Area-reduction factor per area")
+    table_type: str = Field(
+        "fixed-area",
+        description="What the table is; printed on every output, because a storm-centred ratio is not a "
+        "fixed-area curve",
+    )
+
+
+class Storm(_Part):
+    """Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``."""
+
+    kind: Literal["none", "uniform", "hypothetical"] = "none"
+    depth_mm: float = Field(0.0, ge=0.0, le=5000.0, description="Point depth, mm")
+    duration_min: float = Field(60.0, gt=0.0, le=20160.0, description="Storm duration, minutes")
+    time_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of duration")
+    depth_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of depth")
+    storm_area_km2: float | None = Field(None, gt=0.0, description="Area at which the ARF table is read")
+    arf: ArfTableConfig | None = None
+
+    @model_validator(mode="after")
+    def _pattern(self) -> Storm:
+        if self.kind == "hypothetical" and (self.time_percent is None or self.depth_percent is None):
+            raise ValueError("a hypothetical storm needs time_percent and depth_percent")
+        return self
+
+
+class Subbasin(_Part):
+    """A subbasin of the job. Lumped: its hydrograph enters at ``outlet`` and its polygon masks the rain."""
+
+    name: str
+    mode: Literal["lumped", "2d"] = "lumped"
+    outlet: tuple[float, float] | None = Field(None, description="Where a lumped hydrograph enters, m")
+    curve_number: float | None = Field(None, gt=0.0, le=100.0, description="CN of a 2D subbasin")
+
+
+class Inflow(_Part):
+    """A hydrograph entering at a point: from ``element`` of the lumped network, or from the table."""
+
+    name: str
+    x: float = Field(description="Easting, m")
+    y: float = Field(description="Northing, m")
+    element: str | None = Field(None, description="Lumped element whose outflow enters here")
+    times_s: list[float] | None = Field(None, description="Table times, s")
+    flows: list[float] | None = Field(None, description="Table discharges, m3/s")
+
+    @model_validator(mode="after")
+    def _source(self) -> Inflow:
+        table = self.times_s is not None and self.flows is not None
+        if table == (self.element is not None):
+            raise ValueError(f"inflow {self.name} needs either element or times_s and flows")
+        if table and len(self.times_s) != len(self.flows):
+            raise ValueError(f"inflow {self.name}: one flow per time")
+        return self
+
+
+class Hydrology(_Part):
+    """Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none."""
+
+    hms_basin: str | None = Field(None, description="HEC-HMS .basin file of the lumped network")
+    hms_sqlite: str | None = Field(None, description="The basin .sqlite holding the subbasin polygons")
+    polygons: str | None = Field(None, description="GeoJSON of subbasin polygons with a 'name' property")
+    time_step_min: float = Field(5.0, gt=0.0, le=60.0, description="Step of the lumped engine, minutes")
+    curve_number: float | None = Field(
+        None, gt=0.0, le=100.0, description="CN of 2D cells without a better source; None means no losses"
+    )
+    subbasins: list[Subbasin] = []
+    inflows: list[Inflow] = []
+    inject_radius: float = Field(
+        30.0, ge=0.0, le=1000.0, description="Cells this close to an inflow point receive it, m"
+    )
+    inject_min_depth: float = Field(
+        0.1, ge=0.0, le=5.0, description="Cells below this level count as dry for an inflow, m"
+    )
+
+
+class ArfStudy(_Part):
+    """The depth-area study: one run per storm area, each design point reading its own drainage area."""
+
+    areas_km2: list[float] = Field([], description="Storm areas, km2; empty means log-spaced")
+    n_areas: int = Field(6, ge=2, le=32, description="Log-spaced storm areas")
+    area_min_km2: float = Field(10.0, gt=0.0, description="Smallest log-spaced storm area, km2")
+    area_max_km2: float = Field(600.0, gt=0.0, description="Largest log-spaced storm area, km2")
+    exact_points: bool = Field(False, description="Add each design point's drainage area as a storm area")
+    accumulation: str | None = Field(None, description="Flow accumulation raster for the composite map")
+    accumulation_units: Literal["cells", "km2"] = "cells"
 
 
 class Run(_Part):
@@ -122,6 +261,11 @@ class Run(_Part):
     checkpoint_every_s: float = Field(
         300.0, ge=0.0, le=86400.0, description="Wall seconds between checkpoints; 0 disables"
     )
+    balance_every: int = Field(
+        8, ge=1, le=64, description="Steps between samples of the flow through open boundaries"
+    )
+    estimate_depth: float = Field(2.0, gt=0.0, le=50.0, description="Depth assumed by --dry-run, m")
+    estimate_speed: float = Field(3.0, ge=0.0, le=25.0, description="Velocity assumed by --dry-run, m/s")
 
 
 class RunConfig(_Part):
@@ -132,9 +276,12 @@ class RunConfig(_Part):
     terrain: Terrain = Terrain()
     tables: Tables = Tables()
     numerics: Numerics = Numerics()
+    storm: Storm = Storm()
+    hydrology: Hydrology = Hydrology()
     boundaries: list[Boundary] = []
     outputs: Outputs = Outputs()
     run: Run = Run()
+    arf: ArfStudy = ArfStudy()
 
 
 def json_schema() -> dict:
