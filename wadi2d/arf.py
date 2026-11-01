@@ -17,14 +17,24 @@ from pathlib import Path
 import numpy as np
 import rasterio
 
+from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
+from wadi2d.forcing import build_storm
 from wadi2d.grid.tiles import TileGrid
-from wadi2d.hydrology.constants import M3_PER_MM_KM2
 from wadi2d.io.geotiff import NODATA, write_map
 from wadi2d.io.progress import Progress
-from wadi2d.run import EXIT_DONE, EXIT_INVALID, RunSummary, check_inputs, prepare_grid, run_job
+from wadi2d.run import (
+    EXIT_DONE,
+    EXIT_INVALID,
+    EXIT_STOPPED,
+    InvalidJob,
+    JobError,
+    RunSummary,
+    check_inputs,
+    prepare_grid,
+    run_job,
+)
 
-M2_PER_KM2 = M3_PER_MM_KM2 * M3_PER_MM_KM2
 COMPOSITE_MAPS = ("max_depth", "max_speed", "hazard")
 UNLISTED_TYPE = "unspecified"
 
@@ -32,6 +42,7 @@ UNLISTED_TYPE = "unspecified"
 @dataclass
 class StudySummary:
     exit_code: int = EXIT_DONE
+    message: str = ""
     areas_km2: list[float] = field(default_factory=list)
     runs: list[RunSummary] = field(default_factory=list)
     table: list[dict[str, object]] = field(default_factory=list)
@@ -131,6 +142,8 @@ def accumulation_on_grid(path: str, units: str, grid: TileGrid) -> np.ndarray:
 
 def composite_map(maps: list[np.ndarray], areas: np.ndarray, cell_area: np.ndarray) -> np.ndarray:
     """Per cell, the runs that bracket its drainage area, linear in ln A; outside them, the end run."""
+    if areas.size == 1:
+        return np.array(maps[0], dtype=np.float64)
     ln_a = np.log(areas)
     ln_c = np.log(np.clip(cell_area, areas[0], areas[-1]))
     high = np.clip(np.searchsorted(ln_a, ln_c), 1, ln_a.size - 1)
@@ -160,45 +173,85 @@ def composite_maps(
     return result
 
 
+def check_study(cfg: RunConfig, areas: list[float]) -> None:
+    """A study needs rain and a table that tells its runs apart: identical runs under exit 0 would mean nothing."""
+    if cfg.storm.kind == "none":
+        raise InvalidJob("a depth-area study needs a storm")
+    if cfg.storm.arf is None:
+        raise InvalidJob("a depth-area study needs storm.arf: without a table every run is the same run")
+    storm = build_storm(cfg)
+    depths = {round(storm.at_area(area).total_depth, 9) for area in areas}
+    if len(areas) > 1 and len(depths) == 1:
+        raise InvalidJob(
+            f"storm.arf gives one factor at all the storm areas {areas}: the runs would be identical"
+        )
+
+
+def _stopped(summary: StudySummary, progress: Progress, stop: Path) -> None:
+    summary.exit_code = EXIT_STOPPED
+    stop.unlink(missing_ok=True)
+    progress.emit("done", status="stopped", code=EXIT_STOPPED, partial=True, runs=len(summary.runs))
+
+
+def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary) -> None:
+    check_inputs(cfg)
+    summary.areas_km2 = storm_areas(cfg)
+    check_study(cfg, summary.areas_km2)
+    stop = folder / "stop"
+    cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else folder / "cache"
+    tables, crs = prepare_grid(cfg, cache, progress)
+    kind = table_type(cfg)
+    progress.emit("start", areas_km2=summary.areas_km2, arf_table_type=kind)
+    folders = []
+    for area in summary.areas_km2:
+        if stop.exists():
+            _stopped(summary, progress, stop)
+            return
+        storm = cfg.storm.model_copy(update={"storm_area_km2": area})
+        one = cfg.model_copy(update={"storm": storm})
+        run_dir = folder / "runs" / run_name(area)
+        folders.append(run_dir)
+        result = run_job(one, run_dir, backend, tables=(tables, crs), stop_files=(stop,))
+        summary.runs.append(result)
+        progress.emit("output", kind="run", area_km2=area, code=result.exit_code, peaks=result.peaks)
+        if result.exit_code == EXIT_STOPPED:
+            _stopped(summary, progress, stop)
+            return
+        if result.exit_code != EXIT_DONE:
+            summary.exit_code = result.exit_code
+            summary.message = result.message
+            progress.emit("error", code=result.exit_code, message=result.message, area_km2=area)
+            return
+    summary.table = design_table(cfg, summary.areas_km2, summary.runs)
+    write_table(folder / "design_points.csv", summary.table)
+    if cfg.arf.accumulation is not None:
+        summary.composite = composite_maps(cfg, tables, crs, folder, summary.areas_km2, folders)
+    (folder / "study.json").write_text(
+        json.dumps(
+            {"areas_km2": summary.areas_km2, "arf_table_type": kind, "table": summary.table}, indent=2
+        ),
+        encoding="utf-8",
+    )
+    progress.emit("done", status="finished", code=EXIT_DONE, rows=len(summary.table))
+
+
 def arf_study(
     cfg: RunConfig, out: str | Path, backend: str | None = None, echo: bool = False
 ) -> StudySummary:
-    """Run the study into ``out``: ``runs/<area>/`` per storm area, ``design_points.csv``, ``composite/``."""
+    """Run the study into ``out``: ``runs/<area>/`` per storm area, ``design_points.csv``, ``composite/``.
+
+    ``out/stop`` stops it, and each run's own folder still stops that run. A stopped or failed study writes no table.
+    """
     folder = Path(out)
     folder.mkdir(parents=True, exist_ok=True)
     summary = StudySummary()
-    if cfg.storm.kind == "none":
-        summary.exit_code = EXIT_INVALID
-        return summary
-    check_inputs(cfg)
     with Progress(folder / "progress.jsonl", echo=echo) as progress:
-        cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else folder / "cache"
-        tables, crs = prepare_grid(cfg, cache, progress)
-        summary.areas_km2 = storm_areas(cfg)
-        kind = table_type(cfg)
-        progress.emit("start", areas_km2=summary.areas_km2, arf_table_type=kind)
-        folders = []
-        for area in summary.areas_km2:
-            storm = cfg.storm.model_copy(update={"storm_area_km2": area})
-            one = cfg.model_copy(update={"storm": storm})
-            run_dir = folder / "runs" / run_name(area)
-            folders.append(run_dir)
-            result = run_job(one, run_dir, backend, tables=(tables, crs))
-            summary.runs.append(result)
-            progress.emit("output", kind="run", area_km2=area, code=result.exit_code, peaks=result.peaks)
-            if result.exit_code != EXIT_DONE:
-                summary.exit_code = result.exit_code
-                progress.emit("error", code=result.exit_code, message=result.message, area_km2=area)
-                return summary
-        summary.table = design_table(cfg, summary.areas_km2, summary.runs)
-        write_table(folder / "design_points.csv", summary.table)
-        if cfg.arf.accumulation is not None:
-            summary.composite = composite_maps(cfg, tables, crs, folder, summary.areas_km2, folders)
-        (folder / "study.json").write_text(
-            json.dumps(
-                {"areas_km2": summary.areas_km2, "arf_table_type": kind, "table": summary.table}, indent=2
-            ),
-            encoding="utf-8",
-        )
-        progress.emit("done", status="finished", code=EXIT_DONE, rows=len(summary.table))
+        try:
+            _study(cfg, folder, backend, progress, summary)
+        except JobError as error:
+            summary.exit_code, summary.message = error.code, str(error)
+            progress.emit("error", code=error.code, message=str(error))
+        except ValueError as error:
+            summary.exit_code, summary.message = EXIT_INVALID, str(error)
+            progress.emit("error", code=EXIT_INVALID, message=str(error))
     return summary

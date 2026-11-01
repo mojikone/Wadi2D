@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import time
 import traceback
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -20,21 +21,24 @@ from pydantic import ValidationError
 from rasterio import features
 from rasterio.transform import Affine
 
-from wadi2d.config.constants import G
+from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import RunConfig
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.forcing import Forcing, boundary_set, build_storm, load_polygons, manning_grid
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.io.cache import cache_key, cache_path, load_tables, save_tables
-from wadi2d.io.checkpoint import load_checkpoint, save_checkpoint
+from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoint
 from wadi2d.io.geotiff import write_map
+from wadi2d.io.identity import file_identity
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, RasterBed, apply_objects
+from wadi2d.terrain.crest import line_lengths
+from wadi2d.terrain.vector import read_features
 
 EXIT_DONE, EXIT_UNEXPECTED, EXIT_INVALID, EXIT_INPUT, EXIT_BACKEND = 0, 1, 2, 3, 4
 EXIT_NUMERICAL, EXIT_STOPPED, EXIT_MEMORY = 5, 6, 7
@@ -64,7 +68,9 @@ PATH_FIELDS = (
     ("terrain", "dem"),
     ("terrain", "manning_raster"),
     ("terrain", "cn_raster"),
+    ("storm", "depth_grid"),
     ("hydrology", "hms_basin"),
+    ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
     ("hydrology", "polygons"),
     ("arf", "accumulation"),
@@ -107,18 +113,20 @@ def check_inputs(cfg: RunConfig) -> None:
             raise InputMissing(f"{part}.{name} not found: {value}")
 
 
-def _domain_polygon(path: str | None) -> shapely.Geometry | None:
+def _domain_polygon(path: str | None, crs: str) -> shapely.Geometry | None:
     if path is None:
         return None
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
-    items = data.get("features", [{"geometry": data}])
-    return shapely.union_all([shapely.geometry.shape(f.get("geometry", f)) for f in items])
+    return shapely.union_all([shape for _properties, shape in read_features(path, crs)])
+
+
+def _wkt(bed: RasterBed) -> str:
+    return bed.crs.to_wkt() if bed.crs is not None else ""
 
 
 def domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> np.ndarray:
     """Active cells: data under the centre pixel, inside the domain polygon if there is one."""
     mask = bed.active_mask(window, cfg.grid.dx)
-    polygon = _domain_polygon(cfg.grid.domain)
+    polygon = _domain_polygon(cfg.grid.domain, _wkt(bed))
     if polygon is not None:
         transform = Affine(cfg.grid.dx, 0.0, window.x0, 0.0, -cfg.grid.dx, window.y0)
         mask &= features.geometry_mask([polygon], out_shape=mask.shape, transform=transform, invert=True)
@@ -126,36 +134,54 @@ def domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> np.ndarra
 
 
 def grid_window(cfg: RunConfig, bed: RasterBed) -> GridWindow:
-    polygon = _domain_polygon(cfg.grid.domain)
+    polygon = _domain_polygon(cfg.grid.domain, _wkt(bed))
     extent = cfg.grid.extent if polygon is None else polygon.bounds
     return bed.snap(extent, cfg.grid.dx)
 
 
 def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
     """Hash of everything the tables depend on."""
-    extras = {}
-    for name in (cfg.grid.domain, cfg.terrain.manning_raster):
-        if name is not None:
-            st = Path(name).stat()
-            extras[Path(name).name] = [st.st_size, st.st_mtime_ns]
+    limit = cfg.grid.content_hash_limit_mb
+    extras = {
+        key: file_identity(name, limit)
+        for key, name in (("domain", cfg.grid.domain), ("manning", cfg.terrain.manning_raster))
+        if name is not None
+    }
+    t = cfg.terrain
     return cache_key(
         {
-            "dem": bed.identity(),
+            "dem": bed.identity(limit),
             "window": [window.x0, window.y0, window.ny, window.nx],
             "dx": cfg.grid.dx,
-            "objects": [o.model_dump() for o in cfg.terrain.objects],
+            "objects": [o.model_dump() for o in t.objects],
+            "object_settings": [t.join_cells, t.spillway_snap_cells, t.burn_pixels],
             "tables": cfg.tables.model_dump(),
-            "manning": cfg.terrain.manning,
+            "manning": t.manning,
             "extras": extras,
         }
     )
+
+
+def job_hash(cfg: RunConfig) -> str:
+    """What a checkpoint must match: everything that changes the water, the input files included."""
+    data = cfg.model_dump(mode="json")
+    for part, name in (("run", "backend"), ("run", "checkpoint_every_s"), ("grid", "cache_dir")):
+        data[part].pop(name)
+    data.pop("project")
+    limit = cfg.grid.content_hash_limit_mb
+    files = {}
+    for part, name in PATH_FIELDS:
+        value = getattr(getattr(cfg, part), name)
+        if value is not None and (part, name) not in OPTIONAL_INPUT:
+            files[f"{part}.{name}"] = file_identity(value, limit)
+    return cache_key({"job": data, "files": files})
 
 
 def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = None) -> tuple[GridTables, str]:
     """The tables and the CRS as WKT, from the cache when nothing changed."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
-        crs = bed.crs.to_wkt() if bed.crs is not None else ""
+        crs = _wkt(bed)
         window = grid_window(cfg, bed)
         key = grid_key(cfg, bed, window)
         path = cache_path(cache_dir, key)
@@ -168,14 +194,79 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             raise InvalidJob("the domain holds no active cell")
         grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
         bed.bind(grid.x0, grid.y0)
-        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel)
-        tables = build_tables(grid, bed, cfg.tables, manning_grid(cfg, grid), edits.crest, edits.edit)
+        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain)
+        tables = build_tables(grid, bed, cfg.tables, manning_grid(cfg, grid, crs), edits.crest, edits.edit)
     save_tables(path, tables, key)
     emit("output", kind="grid_cache_saved", path=str(path))
     return tables, crs
 
 
-def hydrographs(cfg: RunConfig, storm) -> list[tuple[str, tuple[float, float], np.ndarray, np.ndarray]]:
+def _project_tables(h, hms_basin):
+    """The paired tables, when a reservoir or a diversion needs them; a basin without one needs no DSS read."""
+    from wadi2d.hms import load_pdata
+    from wadi2d.hydrology.from_hms import load_project_tables
+
+    if not hms_basin.reservoirs and not hms_basin.diversions:
+        return None
+    folder = Path(h.hms_basin).parent
+    found = [Path(h.hms_project)] if h.hms_project else sorted(folder.glob("*.hms"))
+    if not found:
+        raise InvalidJob(f"{Path(h.hms_basin).name} has reservoirs or diversions: set hydrology.hms_project")
+    stem = found[0].with_suffix("")
+    return load_project_tables(load_pdata(stem.with_suffix(".pdata")), stem.with_suffix(".dss"))
+
+
+def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
+    """What falls on the lumped network: the storm, or the depth grid averaged over each subbasin."""
+    if cfg.storm.depth_grid is None:
+        return storm
+    from wadi2d.hydrology.from_hms import grid_storm
+    from wadi2d.storm.grid_depth import DepthGrid
+
+    h = cfg.hydrology
+    if h.hms_sqlite is None:
+        raise InvalidJob("a depth grid on a lumped network needs hydrology.hms_sqlite for the polygons")
+    system = hms_basin.spatial.coordinate_system if hms_basin.spatial is not None else None
+    try:
+        rain = grid_storm(
+            storm, DepthGrid.load(cfg.storm.depth_grid, system or crs or None), basin, h.hms_sqlite, True
+        )
+    except KeyError as error:
+        raise InvalidJob(f"no polygon for subbasin {error} in hydrology.hms_sqlite") from error
+    return rain("", cfg.storm.storm_area_km2)
+
+
+def _check_routes(h, basin, wanted) -> None:
+    """Every lumped subbasin's water enters once: dropped water and doubled water both end in exit 0."""
+    lumped = {s.name: s for s in h.subbasins if s.mode == "lumped"}
+    known = set(basin.subbasins) if basin is not None else set()
+    carried: dict[str, str] = {}
+    for name, _point, element in wanted:
+        if basin is None or element not in basin.elements:
+            raise InvalidJob(f"inflow {name}: element {element} is not in the basin")
+        if element in lumped and lumped[element].outlet is not None and name == element:
+            continue
+        for sub in basin.upstream_of(element) & known:
+            carried[sub] = name
+    tabled = {i.name for i in h.inflows if i.element is None}
+    for name, sub in lumped.items():
+        if name in carried and sub.outlet is not None:
+            raise InvalidJob(f"subbasin {name} enters twice: at its outlet and in inflow {carried[name]}")
+        if name not in carried and sub.outlet is None and name not in tabled:
+            raise InvalidJob(
+                f"lumped subbasin {name} has no way in: its rain is masked and its hydrograph would be dropped; "
+                "give it an outlet, an inflow from an element below it, or a table inflow of the same name"
+            )
+    for sub, inflow in carried.items():
+        if sub not in lumped:
+            raise InvalidJob(
+                f"inflow {inflow} carries subbasin {sub}: list it as lumped, or its rain falls twice"
+            )
+
+
+def hydrographs(
+    cfg: RunConfig, storm, crs: str = ""
+) -> list[tuple[str, tuple[float, float], np.ndarray, np.ndarray]]:
     """Every (name, point, times, flows) that enters the 2D domain; the lumped engine runs here if needed."""
     h = cfg.hydrology
     table = [
@@ -185,22 +276,26 @@ def hydrographs(cfg: RunConfig, storm) -> list[tuple[str, tuple[float, float], n
     ]
     wanted = [(i.name, (i.x, i.y), i.element) for i in h.inflows if i.element is not None]
     wanted += [(s.name, s.outlet, s.name) for s in h.subbasins if s.mode == "lumped" and s.outlet is not None]
-    if not wanted or storm is None:
+    if not wanted:
+        _check_routes(h, None, [])
         return table
     if h.hms_basin is None:
         raise InvalidJob("a lumped inflow needs hydrology.hms_basin")
+    if storm is None:
+        raise InvalidJob("a lumped inflow needs a storm")
     from wadi2d.hms import load_basin
     from wadi2d.hydrology.from_hms import basin_from_hms
     from wadi2d.hydrology.model import TimeGrid
     from wadi2d.hydrology.network import LumpedEngine
 
+    hms_basin = load_basin(h.hms_basin)
+    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin))
+    _check_routes(h, basin, wanted)
     steps = int(np.ceil(cfg.run.duration_s / SECONDS_PER_MINUTE / h.time_step_min))
     grid = TimeGrid(h.time_step_min, steps)
-    run = LumpedEngine(basin_from_hms(load_basin(h.hms_basin))).run(storm, grid)
+    run = LumpedEngine(basin).run(_lumped_rain(cfg, storm, basin, hms_basin, crs), grid)
     times = grid.minutes * SECONDS_PER_MINUTE
     for name, point, element in wanted:
-        if element not in run.outflow:
-            raise InvalidJob(f"inflow {name}: element {element} is not in the basin")
         table.append((name, point, times, run.outflow[element]))
     return table
 
@@ -247,7 +342,17 @@ def arf_tags(cfg: RunConfig) -> dict[str, str]:
     return {"arf_table_type": arf.table_type, "storm_area_km2": str(cfg.storm.storm_area_km2)}
 
 
-def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, crs, progress) -> None:
+def status_tags(summary: RunSummary, t: float, cfg: RunConfig) -> dict[str, str]:
+    """A map says how it was made: a stopped run's maxima are maxima so far, not the event's."""
+    return {
+        "run_status": summary.status,
+        "partial": str(summary.status != "finished").lower(),
+        "t_end_s": f"{t:.3f}",
+        "duration_s": f"{cfg.run.duration_s:.3f}",
+    }
+
+
+def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, crs, progress, tags) -> None:
     fields_ = monitor.maxima.fields()
     grid = tables.grid
     arrived = fields_["arrival"] >= 0.0
@@ -260,7 +365,6 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
         "arrival": (fields_["arrival"], arrived),
         "max_mean_depth": (fields_["mean_depth"], None),
     }
-    tags = arf_tags(cfg)
     for name, (data, valid) in maps.items():
         write_map(out / "maps" / f"{name}.tif", data, grid, crs, valid, tags)
     results.maxima(fields_)
@@ -272,45 +376,95 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     progress.emit("output", kind="maps", path=str(out / "maps"))
 
 
-def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary) -> None:
+def preflight(cfg: RunConfig, crs: str):
+    """Everything that can refuse a job without a grid; it comes before the tables, which can take minutes."""
+    storm = build_storm(cfg)
+    polygons = load_polygons(cfg.hydrology, crs)
+    return storm, polygons, hydrographs(cfg, storm, crs)
+
+
+def spillway_notes(cfg: RunConfig) -> list[str]:
+    """A spillway far longer than its line passes less than its rating: the cells beside it starve it."""
+    notes = []
+    for obj in cfg.terrain.objects:
+        if obj.kind == "spillway" and obj.length is not None:
+            drawn = float(line_lengths(obj.coordinates)[-1])
+            if obj.length > cfg.terrain.spillway_stretch * drawn:
+                notes.append(
+                    f"spillway of {obj.length:g} m drawn on {drawn:g} m: it will pass less than C L H^1.5; "
+                    "draw its true length"
+                )
+    return notes
+
+
+def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Progress) -> bool:
+    """Whether this run continues a checkpoint; a checkpoint of another job is refused, before anything is written."""
+    if not resume:
+        return False
+    if not checkpoint.exists():
+        progress.emit("warn", message="no checkpoint in this folder: the run starts from the beginning")
+        return False
+    saved = checkpoint_job(checkpoint)
+    if saved is None:
+        raise InvalidJob(f"{checkpoint.name} is damaged or too old to resume: run without --resume")
+    if saved != job_hash(cfg):
+        raise InvalidJob(
+            f"{checkpoint.name} was made by another job or other input files: resuming would give a result that "
+            "belongs to neither; run without --resume in a new folder"
+        )
+    return True
+
+
+def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files) -> None:
     check_inputs(cfg)
+    checkpoint = out / "checkpoint.h5"
+    continuing = _check_resume(cfg, checkpoint, resume, progress)
     (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
     t0 = time.monotonic()
-    crs = ""
+    if tables is not None:
+        tables, crs = tables
+    else:
+        with rasterio.open(cfg.terrain.dem) as dem:
+            crs = dem.crs.to_wkt() if dem.crs is not None else ""
+    storm, polygons, flows = preflight(cfg, crs)
+    if storm is None and not flows and not any(b.kind == "stage" for b in cfg.boundaries):
+        progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
+    if cfg.storm.depth_grid is not None:
+        progress.emit(
+            "warn",
+            message="depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; "
+            "HMS with Uniform Depth: Yes uses the mean above each analysis point instead",
+        )
+    for note in spillway_notes(cfg):
+        progress.emit("warn", message=note)
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
         tables, crs = prepare_grid(cfg, cache, progress)
-    else:
-        tables, crs = tables
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = int(grid.mask.sum())
-
-    storm = build_storm(cfg)
-    polygons = load_polygons(cfg.hydrology)
-    flows = hydrographs(cfg, storm)
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
     except (RuntimeError, ImportError, OSError) as error:
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
-    bset = boundary_set(cfg.boundaries, tables)
+    bset = boundary_set(cfg.boundaries, tables, cfg.grid.line_samples)
     model.set_depth(np.zeros(grid.shape))
     if bset.size:
         model.set_boundary(bset.cells)
-    forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows)
+    forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs)
 
-    checkpoint = out / "checkpoint.h5"
-    results = Results(
-        out / "results.h5", grid, crs, cfg.model_dump_json(), append=resume and checkpoint.exists()
-    )
-    monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs)
-    stop = monitor.stop_file
-    stop.unlink(missing_ok=True)
+    results = Results(out / "results.h5", grid, crs, cfg.model_dump_json(), append=continuing)
+    if results.salvaged:
+        progress.emit(
+            "warn", message="results.h5 was left unreadable by a kill: snapshots before it are lost"
+        )
+    monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs, stop_files)
     monitor.balance.storage0 = monitor.storage()
-    if resume and checkpoint.exists():
+    if continuing:
         load_checkpoint(checkpoint, model, monitor)
+    key = job_hash(cfg)
     progress.emit(
         "start", backend=summary.backend, cells=summary.cells, tiles=grid.ntiles - 1, dx=grid.dx,
         duration_s=cfg.run.duration_s, tables_s=round(summary.tables_s, 2), t=model.stepper.t,
@@ -321,6 +475,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary)
     end = cfg.run.duration_s
     dry = False
     try:
+        if monitor.stop_requested():
+            raise StopRequested
         while t < end - 1e-9:
             t_next = min(t + cfg.run.source_every_s, end)
             rate, rain, inflow = forcing.rate(t, t_next)
@@ -333,13 +489,12 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary)
             t = t_next
             if monitor.checkpoint_due:
                 monitor.checkpoint_due = False
-                save_checkpoint(checkpoint, model, monitor)
+                save_checkpoint(checkpoint, model, monitor, key)
         summary.exit_code, summary.status = EXIT_DONE, "finished"
     except StopRequested:
         monitor.settle(model.stepper.t)
-        save_checkpoint(checkpoint, model, monitor)
+        save_checkpoint(checkpoint, model, monitor, key)
         summary.exit_code, summary.status = EXIT_STOPPED, "stopped"
-        stop.unlink(missing_ok=True)
     except NumericalFailure as error:
         summary.loop_s = time.monotonic() - t1
         where = _failed_cell(model)
@@ -353,14 +508,16 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary)
 
 def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1) -> None:
     st = model.stepper
-    monitor.finish(st.t, st.nsteps)
-    _write_outputs(cfg, tables, monitor, results, out, crs, progress)
+    monitor.finish(st.t)
+    monitor.stop_file.unlink(missing_ok=True)
+    tags = {**arf_tags(cfg), **status_tags(summary, st.t, cfg)}
+    _write_outputs(cfg, tables, monitor, results, out, crs, progress, tags)
     summary.loop_s = time.monotonic() - t1
     summary.t_end, summary.steps, summary.balance = st.t, st.nsteps, monitor.balance
     summary.dt_min = monitor.dt_min
     mean_depth = monitor.maxima.fields()["mean_depth"]
     wet = int(np.count_nonzero(mean_depth >= cfg.outputs.wet_depth))
-    summary.wet_area_km2 = wet * tables.grid.dx**2 * 1e-6
+    summary.wet_area_km2 = wet * tables.grid.dx**2 / M2_PER_KM2
     t = np.asarray(monitor.times)
     for s in monitor.line_series:
         q = np.abs(np.asarray(s.columns["discharge_m3s"]))
@@ -371,13 +528,12 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
         "rain_m3": b.rain, "inflow_m3": b.inflow, "outflow_m3": b.outflow, "storage_start_m3": b.storage0,
         "storage_end_m3": b.storage, "error_m3": b.error, "relative_error": b.relative,
     }  # fmt: skip
-    results.attributes(
-        {"status": summary.status, "t_end_s": st.t, "steps": st.nsteps, **balance, **arf_tags(cfg)}
-    )
+    results.attributes({"status": summary.status, "t_end_s": st.t, "steps": st.nsteps, **balance, **tags})
     results.close()
     progress.emit(
         "done",
-        status=summary.status, code=summary.exit_code, t=st.t, steps=st.nsteps, loop_s=round(summary.loop_s, 2),
+        status=summary.status, code=summary.exit_code, partial=summary.status != "finished", t=st.t,
+        duration_s=cfg.run.duration_s, steps=st.nsteps, loop_s=round(summary.loop_s, 2),
         tables_s=round(summary.tables_s, 2), wet_area_km2=round(summary.wet_area_km2, 4),
         dt_min=summary.dt_min, balance=balance,
     )  # fmt: skip
@@ -390,14 +546,18 @@ def run_job(
     tables: tuple[GridTables, str] | None = None,
     resume: bool = False,
     echo: bool = False,
+    stop_files: Iterable[Path] = (),
 ) -> RunSummary:
-    """Run one job into folder ``out``. ``tables`` reuses a grid already in memory: (tables, CRS WKT)."""
+    """Run one job into folder ``out``. ``tables`` reuses a grid already in memory: (tables, CRS WKT).
+
+    ``out/stop`` stops the run, and so does any of ``stop_files``; a stop that was there first stops it at once.
+    """
     folder = Path(out)
     folder.mkdir(parents=True, exist_ok=True)
     summary = RunSummary()
     with Progress(folder / "progress.jsonl", echo=echo, append=resume) as progress:
         try:
-            _run(cfg, folder, backend, tables, resume, progress, summary)
+            _run(cfg, folder, backend, tables, resume, progress, summary, tuple(stop_files))
         except JobError as error:
             summary.exit_code, summary.message = error.code, str(error)
             progress.emit("error", code=error.code, message=str(error))
@@ -421,6 +581,7 @@ __all__ = [
     "JobError",
     "RunSummary",
     "load_job",
+    "preflight",
     "prepare_grid",
     "resolve_paths",
     "run_job",

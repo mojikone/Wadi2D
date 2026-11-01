@@ -1,1272 +1,1405 @@
 {
- "$defs": {
-  "ArfStudy": {
-   "additionalProperties": false,
-   "description": "The depth-area study: one run per storm area, each design point reading its own drainage area.",
-   "properties": {
-    "areas_km2": {
-     "default": [],
-     "description": "Storm areas, km2; empty means log-spaced",
-     "items": {
-      "type": "number"
-     },
-     "title": "Areas Km2",
-     "type": "array"
-    },
-    "n_areas": {
-     "default": 6,
-     "description": "Log-spaced storm areas",
-     "maximum": 32,
-     "minimum": 2,
-     "title": "N Areas",
-     "type": "integer"
-    },
-    "area_min_km2": {
-     "default": 10.0,
-     "description": "Smallest log-spaced storm area, km2",
-     "exclusiveMinimum": 0.0,
-     "title": "Area Min Km2",
-     "type": "number"
-    },
-    "area_max_km2": {
-     "default": 600.0,
-     "description": "Largest log-spaced storm area, km2",
-     "exclusiveMinimum": 0.0,
-     "title": "Area Max Km2",
-     "type": "number"
-    },
-    "exact_points": {
-     "default": false,
-     "description": "Add each design point's drainage area as a storm area",
-     "title": "Exact Points",
-     "type": "boolean"
-    },
-    "accumulation": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Flow accumulation raster for the composite map",
-     "title": "Accumulation"
-    },
-    "accumulation_units": {
-     "default": "cells",
-     "enum": [
-      "cells",
-      "km2"
-     ],
-     "title": "Accumulation Units",
-     "type": "string"
-    }
-   },
-   "title": "ArfStudy",
-   "type": "object"
-  },
-  "ArfTableConfig": {
-   "additionalProperties": false,
-   "description": "An area-reduction table, read linearly in area.",
-   "properties": {
-    "areas_km2": {
-     "description": "Storm areas, increasing, km2",
-     "items": {
-      "type": "number"
-     },
-     "minItems": 1,
-     "title": "Areas Km2",
-     "type": "array"
-    },
-    "factors": {
-     "description": "Area-reduction factor per area",
-     "items": {
-      "type": "number"
-     },
-     "minItems": 1,
-     "title": "Factors",
-     "type": "array"
-    },
-    "table_type": {
-     "default": "fixed-area",
-     "description": "What the table is; printed on every output, because a storm-centred ratio is not a fixed-area curve",
-     "title": "Table Type",
-     "type": "string"
-    }
-   },
-   "required": [
-    "areas_km2",
-    "factors"
-   ],
-   "title": "ArfTableConfig",
-   "type": "object"
-  },
-  "Boundary": {
-   "additionalProperties": false,
-   "description": "An open boundary: cells along a line whose level is prescribed; every other edge is a wall.",
-   "properties": {
-    "kind": {
-     "enum": [
-      "stage",
-      "normal",
-      "free"
-     ],
-     "title": "Kind",
-     "type": "string"
-    },
-    "coordinates": {
-     "description": "Polyline along the boundary cells, m",
-     "items": {
-      "maxItems": 2,
-      "minItems": 2,
-      "prefixItems": [
-       {
-        "type": "number"
-       },
-       {
-        "type": "number"
-       }
-      ],
-      "type": "array"
-     },
-     "title": "Coordinates",
-     "type": "array"
-    },
-    "stage": {
-     "default": 0.0,
-     "description": "Level for kind 'stage', m",
-     "title": "Stage",
-     "type": "number"
-    },
-    "slope": {
-     "default": 0.005,
-     "description": "Energy slope for kind 'normal'",
-     "maximum": 0.5,
-     "minimum": 1e-05,
-     "title": "Slope",
-     "type": "number"
-    }
-   },
-   "required": [
-    "kind",
-    "coordinates"
-   ],
-   "title": "Boundary",
-   "type": "object"
-  },
-  "DesignLine": {
-   "additionalProperties": false,
-   "description": "A line across the flow; discharge is summed over the lattice faces it crosses, positive to its right.",
-   "properties": {
-    "name": {
-     "title": "Name",
-     "type": "string"
-    },
-    "coordinates": {
-     "description": "Polyline, m",
-     "items": {
-      "maxItems": 2,
-      "minItems": 2,
-      "prefixItems": [
-       {
-        "type": "number"
-       },
-       {
-        "type": "number"
-       }
-      ],
-      "type": "array"
-     },
-     "minItems": 2,
-     "title": "Coordinates",
-     "type": "array"
-    },
-    "drainage_area_km2": {
-     "anyOf": [
-      {
-       "exclusiveMinimum": 0.0,
-       "type": "number"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "For the depth-area study, km2",
-     "title": "Drainage Area Km2"
-    }
-   },
-   "required": [
-    "name",
-    "coordinates"
-   ],
-   "title": "DesignLine",
-   "type": "object"
-  },
-  "DesignPoint": {
-   "additionalProperties": false,
-   "description": "A point where depth and level are recorded.",
-   "properties": {
-    "name": {
-     "title": "Name",
-     "type": "string"
-    },
-    "x": {
-     "description": "Easting, m",
-     "title": "X",
-     "type": "number"
-    },
-    "y": {
-     "description": "Northing, m",
-     "title": "Y",
-     "type": "number"
-    },
-    "drainage_area_km2": {
-     "anyOf": [
-      {
-       "exclusiveMinimum": 0.0,
-       "type": "number"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "For the depth-area study, km2",
-     "title": "Drainage Area Km2"
-    }
-   },
-   "required": [
-    "name",
-    "x",
-    "y"
-   ],
-   "title": "DesignPoint",
-   "type": "object"
-  },
-  "GridConfig": {
-   "additionalProperties": false,
-   "description": "The uniform grid. The origin snaps to DEM pixel corners; dx must be a multiple of the DEM pixel.",
-   "properties": {
-    "dx": {
-     "default": 10.0,
-     "description": "Cell size, m",
-     "maximum": 1000.0,
-     "minimum": 0.5,
-     "title": "Dx",
-     "type": "number"
-    },
-    "domain": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Polygon file; None uses extent",
-     "title": "Domain"
-    },
-    "extent": {
-     "anyOf": [
-      {
-       "maxItems": 4,
-       "minItems": 4,
-       "prefixItems": [
-        {
-         "type": "number"
+  "$defs": {
+    "ArfStudy": {
+      "additionalProperties": false,
+      "description": "The depth-area study: one run per storm area, each design point reading its own drainage area.",
+      "properties": {
+        "areas_km2": {
+          "default": [],
+          "description": "Storm areas, km2; empty means log-spaced",
+          "items": {
+            "type": "number"
+          },
+          "title": "Areas Km2",
+          "type": "array"
         },
-        {
-         "type": "number"
+        "n_areas": {
+          "default": 6,
+          "description": "Log-spaced storm areas",
+          "maximum": 32,
+          "minimum": 2,
+          "title": "N Areas",
+          "type": "integer"
         },
-        {
-         "type": "number"
+        "area_min_km2": {
+          "default": 10.0,
+          "description": "Smallest log-spaced storm area, km2",
+          "exclusiveMinimum": 0.0,
+          "title": "Area Min Km2",
+          "type": "number"
         },
-        {
-         "type": "number"
+        "area_max_km2": {
+          "default": 600.0,
+          "description": "Largest log-spaced storm area, km2",
+          "exclusiveMinimum": 0.0,
+          "title": "Area Max Km2",
+          "type": "number"
+        },
+        "exact_points": {
+          "default": false,
+          "description": "Add each design point's drainage area as a storm area",
+          "title": "Exact Points",
+          "type": "boolean"
+        },
+        "accumulation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Flow accumulation raster for the composite map",
+          "title": "Accumulation"
+        },
+        "accumulation_units": {
+          "default": "cells",
+          "enum": [
+            "cells",
+            "km2"
+          ],
+          "title": "Accumulation Units",
+          "type": "string"
         }
-       ],
-       "type": "array"
       },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "xmin, ymin, xmax, ymax, m",
-     "title": "Extent"
+      "title": "ArfStudy",
+      "type": "object"
     },
-    "cache_dir": {
-     "anyOf": [
-      {
-       "type": "string"
+    "ArfTableConfig": {
+      "additionalProperties": false,
+      "description": "An area-reduction table, read linearly in area.",
+      "properties": {
+        "areas_km2": {
+          "description": "Storm areas, increasing, km2",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1,
+          "title": "Areas Km2",
+          "type": "array"
+        },
+        "factors": {
+          "description": "Area-reduction factor per area",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1,
+          "title": "Factors",
+          "type": "array"
+        },
+        "table_type": {
+          "default": "fixed-area",
+          "description": "What the table is; printed on every output, because a storm-centred ratio is not a fixed-area curve",
+          "title": "Table Type",
+          "type": "string"
+        },
+        "reduces_below_table": {
+          "default": true,
+          "description": "Below the smallest area the first factor holds; False leaves the depth whole, as HMS",
+          "title": "Reduces Below Table",
+          "type": "boolean"
+        }
       },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Grid cache folder; None uses 'cache' in the run folder",
-     "title": "Cache Dir"
+      "required": [
+        "areas_km2",
+        "factors"
+      ],
+      "title": "ArfTableConfig",
+      "type": "object"
+    },
+    "Boundary": {
+      "additionalProperties": false,
+      "description": "An open boundary: cells along a line whose level is prescribed; every other edge is a wall.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "stage",
+            "normal",
+            "free"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "coordinates": {
+          "description": "Polyline along the boundary cells, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "stage": {
+          "default": 0.0,
+          "description": "Level for kind 'stage', m",
+          "title": "Stage",
+          "type": "number"
+        },
+        "slope": {
+          "default": 0.005,
+          "description": "Energy slope for kind 'normal'",
+          "maximum": 0.5,
+          "minimum": 1e-05,
+          "title": "Slope",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "coordinates"
+      ],
+      "title": "Boundary",
+      "type": "object"
+    },
+    "DesignLine": {
+      "additionalProperties": false,
+      "description": "A line across the flow; discharge is summed over the lattice faces it crosses, positive to its right.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "coordinates": {
+          "description": "Polyline, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "drainage_area_km2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For the depth-area study, km2",
+          "title": "Drainage Area Km2"
+        }
+      },
+      "required": [
+        "name",
+        "coordinates"
+      ],
+      "title": "DesignLine",
+      "type": "object"
+    },
+    "DesignPoint": {
+      "additionalProperties": false,
+      "description": "A point where depth and level are recorded.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "x": {
+          "description": "Easting, m",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "Northing, m",
+          "title": "Y",
+          "type": "number"
+        },
+        "drainage_area_km2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "For the depth-area study, km2",
+          "title": "Drainage Area Km2"
+        }
+      },
+      "required": [
+        "name",
+        "x",
+        "y"
+      ],
+      "title": "DesignPoint",
+      "type": "object"
+    },
+    "GridConfig": {
+      "additionalProperties": false,
+      "description": "The uniform grid. The origin snaps to DEM pixel corners; dx must be a multiple of the DEM pixel.",
+      "properties": {
+        "dx": {
+          "default": 10.0,
+          "description": "Cell size, m",
+          "maximum": 1000.0,
+          "minimum": 0.5,
+          "title": "Dx",
+          "type": "number"
+        },
+        "domain": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Polygon file; None uses extent",
+          "title": "Domain"
+        },
+        "extent": {
+          "anyOf": [
+            {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "xmin, ymin, xmax, ymax, m",
+          "title": "Extent"
+        },
+        "cache_dir": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Grid cache folder; None uses 'cache' in the run folder",
+          "title": "Cache Dir"
+        },
+        "line_samples": {
+          "default": 4,
+          "description": "Points per cell when a boundary line picks the cells it crosses",
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Line Samples",
+          "type": "integer"
+        },
+        "content_hash_limit_mb": {
+          "default": 64.0,
+          "description": "Input files up to this size are hashed by content for the cache, MB",
+          "maximum": 4096.0,
+          "minimum": 0.0,
+          "title": "Content Hash Limit Mb",
+          "type": "number"
+        }
+      },
+      "title": "GridConfig",
+      "type": "object"
+    },
+    "Hydrology": {
+      "additionalProperties": false,
+      "description": "Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none.",
+      "properties": {
+        "hms_basin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "HEC-HMS .basin file of the lumped network",
+          "title": "Hms Basin"
+        },
+        "hms_project": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The .hms file, for paired tables; None takes the one beside the basin file",
+          "title": "Hms Project"
+        },
+        "hms_sqlite": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The basin .sqlite holding the subbasin polygons",
+          "title": "Hms Sqlite"
+        },
+        "polygons": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "GeoJSON of subbasin polygons with a 'name' property",
+          "title": "Polygons"
+        },
+        "time_step_min": {
+          "default": 5.0,
+          "description": "Step of the lumped engine, minutes",
+          "exclusiveMinimum": 0.0,
+          "maximum": 60.0,
+          "title": "Time Step Min",
+          "type": "number"
+        },
+        "curve_number": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 100.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CN of 2D cells without a better source; None means no losses",
+          "title": "Curve Number"
+        },
+        "subbasins": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Subbasin"
+          },
+          "title": "Subbasins",
+          "type": "array"
+        },
+        "inflows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Inflow"
+          },
+          "title": "Inflows",
+          "type": "array"
+        },
+        "inject_radius": {
+          "default": 30.0,
+          "description": "Cells this close to an inflow point receive it, m",
+          "maximum": 1000.0,
+          "minimum": 0.0,
+          "title": "Inject Radius",
+          "type": "number"
+        },
+        "inject_min_depth": {
+          "default": 0.1,
+          "description": "Cells below this level count as dry for an inflow, m",
+          "maximum": 5.0,
+          "minimum": 0.0,
+          "title": "Inject Min Depth",
+          "type": "number"
+        },
+        "inject_max_offset": {
+          "default": 200.0,
+          "description": "An inflow point farther than this from the domain is refused, m",
+          "maximum": 5000.0,
+          "minimum": 0.0,
+          "title": "Inject Max Offset",
+          "type": "number"
+        }
+      },
+      "title": "Hydrology",
+      "type": "object"
+    },
+    "Inflow": {
+      "additionalProperties": false,
+      "description": "A hydrograph entering at a point: from ``element`` of the lumped network, or from the table.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "x": {
+          "description": "Easting, m",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "Northing, m",
+          "title": "Y",
+          "type": "number"
+        },
+        "element": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Lumped element whose outflow enters here",
+          "title": "Element"
+        },
+        "times_s": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table times, s",
+          "title": "Times S"
+        },
+        "flows": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table discharges, m3/s",
+          "title": "Flows"
+        }
+      },
+      "required": [
+        "name",
+        "x",
+        "y"
+      ],
+      "title": "Inflow",
+      "type": "object"
+    },
+    "Numerics": {
+      "additionalProperties": false,
+      "properties": {
+        "cfl": {
+          "default": 0.45,
+          "description": "Courant number on |u| + sqrt(g d)",
+          "maximum": 0.7,
+          "minimum": 0.05,
+          "title": "Cfl",
+          "type": "number"
+        },
+        "limiter": {
+          "default": "minmod",
+          "description": "Second-order momentum advection limiter",
+          "enum": [
+            "none",
+            "minmod"
+          ],
+          "title": "Limiter",
+          "type": "string"
+        },
+        "sheet_flow": {
+          "default": true,
+          "description": "Volume-based section and mean-surface drive for thin flow on slopes",
+          "title": "Sheet Flow",
+          "type": "boolean"
+        },
+        "e_wet": {
+          "default": 0.0001,
+          "description": "Depth over the face invert below which a face is dry, m",
+          "maximum": 0.1,
+          "minimum": 1e-06,
+          "title": "E Wet",
+          "type": "number"
+        },
+        "h_cfl": {
+          "default": 0.01,
+          "description": "Cells with a level below this are left out of the step, m",
+          "maximum": 1.0,
+          "minimum": 0.0001,
+          "title": "H Cfl",
+          "type": "number"
+        },
+        "u_max": {
+          "default": 25.0,
+          "description": "Velocity cap, m/s",
+          "maximum": 100.0,
+          "minimum": 1.0,
+          "title": "U Max",
+          "type": "number"
+        },
+        "dt_max": {
+          "default": 5.0,
+          "description": "Largest step, s",
+          "maximum": 600.0,
+          "minimum": 0.001,
+          "title": "Dt Max",
+          "type": "number"
+        },
+        "dt_min": {
+          "default": 0.001,
+          "description": "Below it the run stops and names the cell, s",
+          "maximum": 1.0,
+          "minimum": 1e-06,
+          "title": "Dt Min",
+          "type": "number"
+        },
+        "dt_every": {
+          "default": 8,
+          "description": "Steps between time-step reductions",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Dt Every",
+          "type": "integer"
+        },
+        "wave_floor": {
+          "default": 3.0,
+          "description": "Least wave speed in the step rule, so dry ground gets no long step, m/s",
+          "maximum": 30.0,
+          "minimum": 0.1,
+          "title": "Wave Floor",
+          "type": "number"
+        },
+        "plan_min": {
+          "default": 0.02,
+          "description": "Least wet share of a cell plan in the wave speed",
+          "maximum": 1.0,
+          "minimum": 0.0001,
+          "title": "Plan Min",
+          "type": "number"
+        },
+        "active_every": {
+          "default": 16,
+          "description": "Steps between active-tile rebuilds; at most the tile size",
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Active Every",
+          "type": "integer"
+        }
+      },
+      "title": "Numerics",
+      "type": "object"
+    },
+    "Outputs": {
+      "additionalProperties": false,
+      "properties": {
+        "map_every_s": {
+          "default": 900.0,
+          "description": "0 disables time maps, s",
+          "maximum": 86400.0,
+          "minimum": 0.0,
+          "title": "Map Every S",
+          "type": "number"
+        },
+        "series_every_s": {
+          "default": 60.0,
+          "description": "Point and line series step, s",
+          "maximum": 3600.0,
+          "minimum": 1.0,
+          "title": "Series Every S",
+          "type": "number"
+        },
+        "live_every_s": {
+          "default": 5.0,
+          "description": "Wall seconds between live rasters; 0 disables",
+          "maximum": 3600.0,
+          "minimum": 0.0,
+          "title": "Live Every S",
+          "type": "number"
+        },
+        "live_stride": {
+          "default": 2,
+          "description": "Cells per live-raster pixel",
+          "maximum": 16,
+          "minimum": 1,
+          "title": "Live Stride",
+          "type": "integer"
+        },
+        "hazard": {
+          "const": "dv",
+          "default": "dv",
+          "title": "Hazard",
+          "type": "string"
+        },
+        "maxima_every": {
+          "default": 4,
+          "description": "Steps between updates of the maxima",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Maxima Every",
+          "type": "integer"
+        },
+        "arrival_depth": {
+          "default": 0.1,
+          "description": "Level above the cell's lowest point that counts as arrival, m",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Arrival Depth",
+          "type": "number"
+        },
+        "speed_depth": {
+          "default": 0.05,
+          "description": "Cells shallower than this are left out of speed and hazard, m",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Speed Depth",
+          "type": "number"
+        },
+        "wet_depth": {
+          "default": 0.1,
+          "description": "Mean depth that counts a cell as wet in the wet area, m",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Wet Depth",
+          "type": "number"
+        },
+        "progress_every_s": {
+          "default": 2.0,
+          "description": "Wall seconds between progress events and stop checks",
+          "maximum": 600.0,
+          "minimum": 0.05,
+          "title": "Progress Every S",
+          "type": "number"
+        },
+        "points": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DesignPoint"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "lines": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/DesignLine"
+          },
+          "title": "Lines",
+          "type": "array"
+        }
+      },
+      "title": "Outputs",
+      "type": "object"
+    },
+    "Project": {
+      "additionalProperties": false,
+      "properties": {
+        "format_version": {
+          "default": "1.0",
+          "title": "Format Version",
+          "type": "string"
+        },
+        "name": {
+          "default": "run",
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "title": "Project",
+      "type": "object"
+    },
+    "Run": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "default": 3600.0,
+          "description": "Simulated time, s",
+          "maximum": 2600000.0,
+          "minimum": 1.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "backend": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "gpu",
+            "cpu"
+          ],
+          "title": "Backend",
+          "type": "string"
+        },
+        "source_every_s": {
+          "default": 30.0,
+          "description": "Step at which rain and inflows are refreshed, s",
+          "maximum": 600.0,
+          "minimum": 1.0,
+          "title": "Source Every S",
+          "type": "number"
+        },
+        "checkpoint_every_s": {
+          "default": 300.0,
+          "description": "Wall seconds between checkpoints; 0 disables",
+          "maximum": 86400.0,
+          "minimum": 0.0,
+          "title": "Checkpoint Every S",
+          "type": "number"
+        },
+        "balance_every": {
+          "default": 8,
+          "description": "Kept so old jobs load; the balance now counts every step",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Balance Every",
+          "type": "integer"
+        },
+        "estimate_depth": {
+          "default": 7.5,
+          "description": "Deepest flowing cell assumed by --dry-run, m; Block 2 at 20 m gave 7.5",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Estimate Depth",
+          "type": "number"
+        },
+        "estimate_speed": {
+          "default": 8.0,
+          "description": "Fastest flow assumed by --dry-run, m/s; Block 2 at 20 m gave 8",
+          "maximum": 25.0,
+          "minimum": 0.0,
+          "title": "Estimate Speed",
+          "type": "number"
+        },
+        "estimate_wave": {
+          "default": 1.6,
+          "description": "Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 at 20 m gave 1.6",
+          "maximum": 10.0,
+          "minimum": 1.0,
+          "title": "Estimate Wave",
+          "type": "number"
+        },
+        "estimate_overhead": {
+          "default": 1.7,
+          "description": "Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.7",
+          "maximum": 10.0,
+          "minimum": 1.0,
+          "title": "Estimate Overhead",
+          "type": "number"
+        }
+      },
+      "title": "Run",
+      "type": "object"
+    },
+    "Storm": {
+      "additionalProperties": false,
+      "description": "Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.",
+      "properties": {
+        "kind": {
+          "default": "none",
+          "enum": [
+            "none",
+            "uniform",
+            "hypothetical"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "depth_mm": {
+          "default": 0.0,
+          "description": "Point depth, mm",
+          "maximum": 5000.0,
+          "minimum": 0.0,
+          "title": "Depth Mm",
+          "type": "number"
+        },
+        "depth_grid": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Raster of depths in mm, replacing depth_mm; each 2D cell takes its own value",
+          "title": "Depth Grid"
+        },
+        "duration_min": {
+          "default": 60.0,
+          "description": "Storm duration, minutes",
+          "exclusiveMinimum": 0.0,
+          "maximum": 20160.0,
+          "title": "Duration Min",
+          "type": "number"
+        },
+        "time_percent": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hypothetical pattern, percent of duration",
+          "title": "Time Percent"
+        },
+        "depth_percent": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Hypothetical pattern, percent of depth",
+          "title": "Depth Percent"
+        },
+        "storm_area_km2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Area at which the ARF table is read",
+          "title": "Storm Area Km2"
+        },
+        "arf": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArfTableConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "Storm",
+      "type": "object"
+    },
+    "Subbasin": {
+      "additionalProperties": false,
+      "description": "A subbasin of the job. Lumped: its hydrograph enters at ``outlet`` and its polygon masks the rain.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "mode": {
+          "default": "lumped",
+          "enum": [
+            "lumped",
+            "2d"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "outlet": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where a lumped hydrograph enters, m",
+          "title": "Outlet"
+        },
+        "curve_number": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 100.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CN of a 2D subbasin",
+          "title": "Curve Number"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Subbasin",
+      "type": "object"
+    },
+    "Tables": {
+      "additionalProperties": false,
+      "description": "Sub-grid tables. Rows are spaced quadratically: fine near the bottom, where the geometry matters.",
+      "properties": {
+        "rows": {
+          "default": 16,
+          "description": "Rows per cell and per face table",
+          "maximum": 64,
+          "minimum": 4,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "face_depth_max": {
+          "default": 16.0,
+          "description": "Table top above the face invert, at most, m",
+          "maximum": 100.0,
+          "minimum": 1.0,
+          "title": "Face Depth Max",
+          "type": "number"
+        },
+        "face_depth_min": {
+          "default": 8.0,
+          "description": "Table top above the face invert, at least, m",
+          "maximum": 50.0,
+          "minimum": 0.5,
+          "title": "Face Depth Min",
+          "type": "number"
+        },
+        "crest_tolerance": {
+          "default": 0.05,
+          "description": "A face is a natural crest when its invert exceeds both mean beds by this, m",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Crest Tolerance",
+          "type": "number"
+        }
+      },
+      "title": "Tables",
+      "type": "object"
+    },
+    "Terrain": {
+      "additionalProperties": false,
+      "properties": {
+        "dem": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "GeoTIFF path; its CRS is the project CRS",
+          "title": "Dem"
+        },
+        "pixel_stride": {
+          "default": 1,
+          "description": "Read every n-th DEM pixel; dx must be a multiple of pixel * stride",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Pixel Stride",
+          "type": "integer"
+        },
+        "join_cells": {
+          "default": 2.0,
+          "description": "A crest or wall ending this close to another line joins it, cells",
+          "maximum": 16.0,
+          "minimum": 0.0,
+          "title": "Join Cells",
+          "type": "number"
+        },
+        "spillway_snap_cells": {
+          "default": 1.0,
+          "description": "A crest face this close to a spillway line carries the spillway, cells",
+          "maximum": 8.0,
+          "minimum": 0.0,
+          "title": "Spillway Snap Cells",
+          "type": "number"
+        },
+        "burn_pixels": {
+          "default": 2,
+          "description": "Burn width when an object gives none, DEM pixels",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Burn Pixels",
+          "type": "integer"
+        },
+        "spillway_stretch": {
+          "default": 1.5,
+          "description": "A spillway longer than its drawn line by this ratio gets a warning",
+          "maximum": 20.0,
+          "minimum": 1.0,
+          "title": "Spillway Stretch",
+          "type": "number"
+        },
+        "objects": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/TerrainObject"
+          },
+          "title": "Objects",
+          "type": "array"
+        },
+        "manning": {
+          "default": 0.035,
+          "description": "Default Manning n, s/m^(1/3)",
+          "maximum": 0.5,
+          "minimum": 0.008,
+          "title": "Manning",
+          "type": "number"
+        },
+        "manning_raster": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Manning Raster"
+        },
+        "cn_raster": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cn Raster"
+        }
+      },
+      "title": "Terrain",
+      "type": "object"
+    },
+    "TerrainObject": {
+      "additionalProperties": false,
+      "description": "A vector edit of the terrain, applied when the tables are built; the DEM file never changes.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "crest_line",
+            "wall",
+            "burn_line",
+            "spillway"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "coordinates": {
+          "description": "Polyline vertices in the DEM CRS, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "z": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Crest or invert elevation per vertex, m",
+          "title": "Z"
+        },
+        "z_constant": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Constant crest or invert elevation, m",
+          "title": "Z Constant"
+        },
+        "width": {
+          "default": 0.0,
+          "description": "Burn width, m; 0 means two DEM pixels",
+          "maximum": 200.0,
+          "minimum": 0.0,
+          "title": "Width",
+          "type": "number"
+        },
+        "depth": {
+          "default": 0.0,
+          "description": "Burn depth below ground, m",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Depth",
+          "type": "number"
+        },
+        "coefficient": {
+          "default": 2.1,
+          "description": "Spillway C in Q = C L H^1.5, m^0.5/s",
+          "maximum": 4.0,
+          "minimum": 0.5,
+          "title": "Coefficient",
+          "type": "number"
+        },
+        "length": {
+          "anyOf": [
+            {
+              "maximum": 2000.0,
+              "minimum": 0.1,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spillway crest length, m",
+          "title": "Length"
+        }
+      },
+      "required": [
+        "kind",
+        "coordinates"
+      ],
+      "title": "TerrainObject",
+      "type": "object"
     }
-   },
-   "title": "GridConfig",
-   "type": "object"
   },
-  "Hydrology": {
-   "additionalProperties": false,
-   "description": "Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none.",
-   "properties": {
-    "hms_basin": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
+  "additionalProperties": false,
+  "description": "The whole job.",
+  "properties": {
+    "project": {
+      "$ref": "#/$defs/Project",
+      "default": {
+        "format_version": "1.0",
+        "name": "run",
+        "description": ""
       }
-     ],
-     "default": null,
-     "description": "HEC-HMS .basin file of the lumped network",
-     "title": "Hms Basin"
     },
-    "hms_sqlite": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
+    "grid": {
+      "$ref": "#/$defs/GridConfig",
+      "default": {
+        "dx": 10.0,
+        "domain": null,
+        "extent": null,
+        "cache_dir": null,
+        "line_samples": 4,
+        "content_hash_limit_mb": 64.0
       }
-     ],
-     "default": null,
-     "description": "The basin .sqlite holding the subbasin polygons",
-     "title": "Hms Sqlite"
     },
-    "polygons": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
+    "terrain": {
+      "$ref": "#/$defs/Terrain",
+      "default": {
+        "dem": null,
+        "pixel_stride": 1,
+        "join_cells": 2.0,
+        "spillway_snap_cells": 1.0,
+        "burn_pixels": 2,
+        "spillway_stretch": 1.5,
+        "objects": [],
+        "manning": 0.035,
+        "manning_raster": null,
+        "cn_raster": null
       }
-     ],
-     "default": null,
-     "description": "GeoJSON of subbasin polygons with a 'name' property",
-     "title": "Polygons"
     },
-    "time_step_min": {
-     "default": 5.0,
-     "description": "Step of the lumped engine, minutes",
-     "exclusiveMinimum": 0.0,
-     "maximum": 60.0,
-     "title": "Time Step Min",
-     "type": "number"
-    },
-    "curve_number": {
-     "anyOf": [
-      {
-       "exclusiveMinimum": 0.0,
-       "maximum": 100.0,
-       "type": "number"
-      },
-      {
-       "type": "null"
+    "tables": {
+      "$ref": "#/$defs/Tables",
+      "default": {
+        "rows": 16,
+        "face_depth_max": 16.0,
+        "face_depth_min": 8.0,
+        "crest_tolerance": 0.05
       }
-     ],
-     "default": null,
-     "description": "CN of 2D cells without a better source; None means no losses",
-     "title": "Curve Number"
     },
-    "subbasins": {
-     "default": [],
-     "items": {
-      "$ref": "#/$defs/Subbasin"
-     },
-     "title": "Subbasins",
-     "type": "array"
-    },
-    "inflows": {
-     "default": [],
-     "items": {
-      "$ref": "#/$defs/Inflow"
-     },
-     "title": "Inflows",
-     "type": "array"
-    },
-    "inject_radius": {
-     "default": 30.0,
-     "description": "Cells this close to an inflow point receive it, m",
-     "maximum": 1000.0,
-     "minimum": 0.0,
-     "title": "Inject Radius",
-     "type": "number"
-    },
-    "inject_min_depth": {
-     "default": 0.1,
-     "description": "Cells below this level count as dry for an inflow, m",
-     "maximum": 5.0,
-     "minimum": 0.0,
-     "title": "Inject Min Depth",
-     "type": "number"
-    }
-   },
-   "title": "Hydrology",
-   "type": "object"
-  },
-  "Inflow": {
-   "additionalProperties": false,
-   "description": "A hydrograph entering at a point: from ``element`` of the lumped network, or from the table.",
-   "properties": {
-    "name": {
-     "title": "Name",
-     "type": "string"
-    },
-    "x": {
-     "description": "Easting, m",
-     "title": "X",
-     "type": "number"
-    },
-    "y": {
-     "description": "Northing, m",
-     "title": "Y",
-     "type": "number"
-    },
-    "element": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
+    "numerics": {
+      "$ref": "#/$defs/Numerics",
+      "default": {
+        "cfl": 0.45,
+        "limiter": "minmod",
+        "sheet_flow": true,
+        "e_wet": 0.0001,
+        "h_cfl": 0.01,
+        "u_max": 25.0,
+        "dt_max": 5.0,
+        "dt_min": 0.001,
+        "dt_every": 8,
+        "wave_floor": 3.0,
+        "plan_min": 0.02,
+        "active_every": 16
       }
-     ],
-     "default": null,
-     "description": "Lumped element whose outflow enters here",
-     "title": "Element"
     },
-    "times_s": {
-     "anyOf": [
-      {
-       "items": {
-        "type": "number"
-       },
-       "type": "array"
-      },
-      {
-       "type": "null"
+    "storm": {
+      "$ref": "#/$defs/Storm",
+      "default": {
+        "kind": "none",
+        "depth_mm": 0.0,
+        "depth_grid": null,
+        "duration_min": 60.0,
+        "time_percent": null,
+        "depth_percent": null,
+        "storm_area_km2": null,
+        "arf": null
       }
-     ],
-     "default": null,
-     "description": "Table times, s",
-     "title": "Times S"
     },
-    "flows": {
-     "anyOf": [
-      {
-       "items": {
-        "type": "number"
-       },
-       "type": "array"
-      },
-      {
-       "type": "null"
+    "hydrology": {
+      "$ref": "#/$defs/Hydrology",
+      "default": {
+        "hms_basin": null,
+        "hms_project": null,
+        "hms_sqlite": null,
+        "polygons": null,
+        "time_step_min": 5.0,
+        "curve_number": null,
+        "subbasins": [],
+        "inflows": [],
+        "inject_radius": 30.0,
+        "inject_min_depth": 0.1,
+        "inject_max_offset": 200.0
       }
-     ],
-     "default": null,
-     "description": "Table discharges, m3/s",
-     "title": "Flows"
-    }
-   },
-   "required": [
-    "name",
-    "x",
-    "y"
-   ],
-   "title": "Inflow",
-   "type": "object"
-  },
-  "Numerics": {
-   "additionalProperties": false,
-   "properties": {
-    "cfl": {
-     "default": 0.45,
-     "description": "Courant number on |u| + sqrt(g d)",
-     "maximum": 0.7,
-     "minimum": 0.05,
-     "title": "Cfl",
-     "type": "number"
     },
-    "limiter": {
-     "default": "minmod",
-     "description": "Second-order momentum advection limiter",
-     "enum": [
-      "none",
-      "minmod"
-     ],
-     "title": "Limiter",
-     "type": "string"
-    },
-    "sheet_flow": {
-     "default": true,
-     "description": "Volume-based section and mean-surface drive for thin flow on slopes",
-     "title": "Sheet Flow",
-     "type": "boolean"
-    },
-    "e_wet": {
-     "default": 0.0001,
-     "description": "Depth over the face invert below which a face is dry, m",
-     "maximum": 0.1,
-     "minimum": 1e-06,
-     "title": "E Wet",
-     "type": "number"
-    },
-    "h_cfl": {
-     "default": 0.01,
-     "description": "Cells with a level below this are left out of the step, m",
-     "maximum": 1.0,
-     "minimum": 0.0001,
-     "title": "H Cfl",
-     "type": "number"
-    },
-    "u_max": {
-     "default": 25.0,
-     "description": "Velocity cap, m/s",
-     "maximum": 100.0,
-     "minimum": 1.0,
-     "title": "U Max",
-     "type": "number"
-    },
-    "dt_max": {
-     "default": 5.0,
-     "description": "Largest step, s",
-     "maximum": 600.0,
-     "minimum": 0.001,
-     "title": "Dt Max",
-     "type": "number"
-    },
-    "dt_min": {
-     "default": 0.001,
-     "description": "Below it the run stops and names the cell, s",
-     "maximum": 1.0,
-     "minimum": 1e-06,
-     "title": "Dt Min",
-     "type": "number"
-    },
-    "dt_every": {
-     "default": 8,
-     "description": "Steps between time-step reductions",
-     "maximum": 64,
-     "minimum": 1,
-     "title": "Dt Every",
-     "type": "integer"
-    },
-    "active_every": {
-     "default": 16,
-     "description": "Steps between active-tile rebuilds; must stay under the tile size",
-     "maximum": 64,
-     "minimum": 1,
-     "title": "Active Every",
-     "type": "integer"
-    }
-   },
-   "title": "Numerics",
-   "type": "object"
-  },
-  "Outputs": {
-   "additionalProperties": false,
-   "properties": {
-    "map_every_s": {
-     "default": 900.0,
-     "description": "0 disables time maps, s",
-     "maximum": 86400.0,
-     "minimum": 0.0,
-     "title": "Map Every S",
-     "type": "number"
-    },
-    "series_every_s": {
-     "default": 60.0,
-     "description": "Point and line series step, s",
-     "maximum": 3600.0,
-     "minimum": 1.0,
-     "title": "Series Every S",
-     "type": "number"
-    },
-    "live_every_s": {
-     "default": 5.0,
-     "description": "Wall seconds between live rasters; 0 disables",
-     "maximum": 3600.0,
-     "minimum": 0.0,
-     "title": "Live Every S",
-     "type": "number"
-    },
-    "live_stride": {
-     "default": 2,
-     "description": "Cells per live-raster pixel",
-     "maximum": 16,
-     "minimum": 1,
-     "title": "Live Stride",
-     "type": "integer"
-    },
-    "hazard": {
-     "const": "dv",
-     "default": "dv",
-     "title": "Hazard",
-     "type": "string"
-    },
-    "maxima_every": {
-     "default": 4,
-     "description": "Steps between updates of the maxima",
-     "maximum": 64,
-     "minimum": 1,
-     "title": "Maxima Every",
-     "type": "integer"
-    },
-    "arrival_depth": {
-     "default": 0.1,
-     "description": "Level above the cell's lowest point that counts as arrival, m",
-     "maximum": 10.0,
-     "minimum": 0.0,
-     "title": "Arrival Depth",
-     "type": "number"
-    },
-    "speed_depth": {
-     "default": 0.05,
-     "description": "Cells shallower than this are left out of speed and hazard, m",
-     "maximum": 1.0,
-     "minimum": 0.0,
-     "title": "Speed Depth",
-     "type": "number"
-    },
-    "wet_depth": {
-     "default": 0.1,
-     "description": "Mean depth that counts a cell as wet in the wet area, m",
-     "maximum": 10.0,
-     "minimum": 0.0,
-     "title": "Wet Depth",
-     "type": "number"
-    },
-    "progress_every_s": {
-     "default": 2.0,
-     "description": "Wall seconds between progress events and stop checks",
-     "maximum": 600.0,
-     "minimum": 0.05,
-     "title": "Progress Every S",
-     "type": "number"
-    },
-    "points": {
-     "default": [],
-     "items": {
-      "$ref": "#/$defs/DesignPoint"
-     },
-     "title": "Points",
-     "type": "array"
-    },
-    "lines": {
-     "default": [],
-     "items": {
-      "$ref": "#/$defs/DesignLine"
-     },
-     "title": "Lines",
-     "type": "array"
-    }
-   },
-   "title": "Outputs",
-   "type": "object"
-  },
-  "Project": {
-   "additionalProperties": false,
-   "properties": {
-    "format_version": {
-     "default": "1.0",
-     "title": "Format Version",
-     "type": "string"
-    },
-    "name": {
-     "default": "run",
-     "title": "Name",
-     "type": "string"
-    },
-    "description": {
-     "default": "",
-     "title": "Description",
-     "type": "string"
-    }
-   },
-   "title": "Project",
-   "type": "object"
-  },
-  "Run": {
-   "additionalProperties": false,
-   "properties": {
-    "duration_s": {
-     "default": 3600.0,
-     "description": "Simulated time, s",
-     "maximum": 2600000.0,
-     "minimum": 1.0,
-     "title": "Duration S",
-     "type": "number"
-    },
-    "backend": {
-     "default": "auto",
-     "enum": [
-      "auto",
-      "gpu",
-      "cpu"
-     ],
-     "title": "Backend",
-     "type": "string"
-    },
-    "source_every_s": {
-     "default": 30.0,
-     "description": "Step at which rain and inflows are refreshed, s",
-     "maximum": 600.0,
-     "minimum": 1.0,
-     "title": "Source Every S",
-     "type": "number"
-    },
-    "checkpoint_every_s": {
-     "default": 300.0,
-     "description": "Wall seconds between checkpoints; 0 disables",
-     "maximum": 86400.0,
-     "minimum": 0.0,
-     "title": "Checkpoint Every S",
-     "type": "number"
-    },
-    "balance_every": {
-     "default": 8,
-     "description": "Steps between samples of the flow through open boundaries",
-     "maximum": 64,
-     "minimum": 1,
-     "title": "Balance Every",
-     "type": "integer"
-    },
-    "estimate_depth": {
-     "default": 2.0,
-     "description": "Depth assumed by --dry-run, m",
-     "exclusiveMinimum": 0.0,
-     "maximum": 50.0,
-     "title": "Estimate Depth",
-     "type": "number"
-    },
-    "estimate_speed": {
-     "default": 3.0,
-     "description": "Velocity assumed by --dry-run, m/s",
-     "maximum": 25.0,
-     "minimum": 0.0,
-     "title": "Estimate Speed",
-     "type": "number"
-    }
-   },
-   "title": "Run",
-   "type": "object"
-  },
-  "Storm": {
-   "additionalProperties": false,
-   "description": "Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.",
-   "properties": {
-    "kind": {
-     "default": "none",
-     "enum": [
-      "none",
-      "uniform",
-      "hypothetical"
-     ],
-     "title": "Kind",
-     "type": "string"
-    },
-    "depth_mm": {
-     "default": 0.0,
-     "description": "Point depth, mm",
-     "maximum": 5000.0,
-     "minimum": 0.0,
-     "title": "Depth Mm",
-     "type": "number"
-    },
-    "duration_min": {
-     "default": 60.0,
-     "description": "Storm duration, minutes",
-     "exclusiveMinimum": 0.0,
-     "maximum": 20160.0,
-     "title": "Duration Min",
-     "type": "number"
-    },
-    "time_percent": {
-     "anyOf": [
-      {
-       "items": {
-        "type": "number"
-       },
-       "type": "array"
+    "boundaries": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Boundary"
       },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Hypothetical pattern, percent of duration",
-     "title": "Time Percent"
+      "title": "Boundaries",
+      "type": "array"
     },
-    "depth_percent": {
-     "anyOf": [
-      {
-       "items": {
-        "type": "number"
-       },
-       "type": "array"
-      },
-      {
-       "type": "null"
+    "outputs": {
+      "$ref": "#/$defs/Outputs",
+      "default": {
+        "map_every_s": 900.0,
+        "series_every_s": 60.0,
+        "live_every_s": 5.0,
+        "live_stride": 2,
+        "hazard": "dv",
+        "maxima_every": 4,
+        "arrival_depth": 0.1,
+        "speed_depth": 0.05,
+        "wet_depth": 0.1,
+        "progress_every_s": 2.0,
+        "points": [],
+        "lines": []
       }
-     ],
-     "default": null,
-     "description": "Hypothetical pattern, percent of depth",
-     "title": "Depth Percent"
     },
-    "storm_area_km2": {
-     "anyOf": [
-      {
-       "exclusiveMinimum": 0.0,
-       "type": "number"
-      },
-      {
-       "type": "null"
+    "run": {
+      "$ref": "#/$defs/Run",
+      "default": {
+        "duration_s": 3600.0,
+        "backend": "auto",
+        "source_every_s": 30.0,
+        "checkpoint_every_s": 300.0,
+        "balance_every": 8,
+        "estimate_depth": 7.5,
+        "estimate_speed": 8.0,
+        "estimate_wave": 1.6,
+        "estimate_overhead": 1.7
       }
-     ],
-     "default": null,
-     "description": "Area at which the ARF table is read",
-     "title": "Storm Area Km2"
     },
     "arf": {
-     "anyOf": [
-      {
-       "$ref": "#/$defs/ArfTableConfig"
-      },
-      {
-       "type": "null"
+      "$ref": "#/$defs/ArfStudy",
+      "default": {
+        "areas_km2": [],
+        "n_areas": 6,
+        "area_min_km2": 10.0,
+        "area_max_km2": 600.0,
+        "exact_points": false,
+        "accumulation": null,
+        "accumulation_units": "cells"
       }
-     ],
-     "default": null
     }
-   },
-   "title": "Storm",
-   "type": "object"
   },
-  "Subbasin": {
-   "additionalProperties": false,
-   "description": "A subbasin of the job. Lumped: its hydrograph enters at ``outlet`` and its polygon masks the rain.",
-   "properties": {
-    "name": {
-     "title": "Name",
-     "type": "string"
-    },
-    "mode": {
-     "default": "lumped",
-     "enum": [
-      "lumped",
-      "2d"
-     ],
-     "title": "Mode",
-     "type": "string"
-    },
-    "outlet": {
-     "anyOf": [
-      {
-       "maxItems": 2,
-       "minItems": 2,
-       "prefixItems": [
-        {
-         "type": "number"
-        },
-        {
-         "type": "number"
-        }
-       ],
-       "type": "array"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Where a lumped hydrograph enters, m",
-     "title": "Outlet"
-    },
-    "curve_number": {
-     "anyOf": [
-      {
-       "exclusiveMinimum": 0.0,
-       "maximum": 100.0,
-       "type": "number"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "CN of a 2D subbasin",
-     "title": "Curve Number"
-    }
-   },
-   "required": [
-    "name"
-   ],
-   "title": "Subbasin",
-   "type": "object"
-  },
-  "Tables": {
-   "additionalProperties": false,
-   "description": "Sub-grid tables. Rows are spaced quadratically: fine near the bottom, where the geometry matters.",
-   "properties": {
-    "rows": {
-     "default": 16,
-     "description": "Rows per cell and per face table",
-     "maximum": 64,
-     "minimum": 4,
-     "title": "Rows",
-     "type": "integer"
-    },
-    "face_depth_max": {
-     "default": 16.0,
-     "description": "Table top above the face invert, at most, m",
-     "maximum": 100.0,
-     "minimum": 1.0,
-     "title": "Face Depth Max",
-     "type": "number"
-    },
-    "face_depth_min": {
-     "default": 8.0,
-     "description": "Table top above the face invert, at least, m",
-     "maximum": 50.0,
-     "minimum": 0.5,
-     "title": "Face Depth Min",
-     "type": "number"
-    },
-    "crest_tolerance": {
-     "default": 0.05,
-     "description": "A face is a natural crest when its invert exceeds both mean beds by this, m",
-     "maximum": 1.0,
-     "minimum": 0.0,
-     "title": "Crest Tolerance",
-     "type": "number"
-    }
-   },
-   "title": "Tables",
-   "type": "object"
-  },
-  "Terrain": {
-   "additionalProperties": false,
-   "properties": {
-    "dem": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "GeoTIFF path; its CRS is the project CRS",
-     "title": "Dem"
-    },
-    "pixel_stride": {
-     "default": 1,
-     "description": "Read every n-th DEM pixel; dx must be a multiple of pixel * stride",
-     "maximum": 64,
-     "minimum": 1,
-     "title": "Pixel Stride",
-     "type": "integer"
-    },
-    "objects": {
-     "default": [],
-     "items": {
-      "$ref": "#/$defs/TerrainObject"
-     },
-     "title": "Objects",
-     "type": "array"
-    },
-    "manning": {
-     "default": 0.035,
-     "description": "Default Manning n, s/m^(1/3)",
-     "maximum": 0.5,
-     "minimum": 0.008,
-     "title": "Manning",
-     "type": "number"
-    },
-    "manning_raster": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "title": "Manning Raster"
-    },
-    "cn_raster": {
-     "anyOf": [
-      {
-       "type": "string"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "title": "Cn Raster"
-    }
-   },
-   "title": "Terrain",
-   "type": "object"
-  },
-  "TerrainObject": {
-   "additionalProperties": false,
-   "description": "A vector edit of the terrain, applied when the tables are built; the DEM file never changes.",
-   "properties": {
-    "kind": {
-     "enum": [
-      "crest_line",
-      "wall",
-      "burn_line",
-      "spillway"
-     ],
-     "title": "Kind",
-     "type": "string"
-    },
-    "coordinates": {
-     "description": "Polyline vertices in the DEM CRS, m",
-     "items": {
-      "maxItems": 2,
-      "minItems": 2,
-      "prefixItems": [
-       {
-        "type": "number"
-       },
-       {
-        "type": "number"
-       }
-      ],
-      "type": "array"
-     },
-     "title": "Coordinates",
-     "type": "array"
-    },
-    "z": {
-     "anyOf": [
-      {
-       "items": {
-        "type": "number"
-       },
-       "type": "array"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Crest or invert elevation per vertex, m",
-     "title": "Z"
-    },
-    "z_constant": {
-     "anyOf": [
-      {
-       "type": "number"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Constant crest or invert elevation, m",
-     "title": "Z Constant"
-    },
-    "width": {
-     "default": 0.0,
-     "description": "Burn width, m; 0 means two DEM pixels",
-     "maximum": 200.0,
-     "minimum": 0.0,
-     "title": "Width",
-     "type": "number"
-    },
-    "depth": {
-     "default": 0.0,
-     "description": "Burn depth below ground, m",
-     "maximum": 50.0,
-     "minimum": 0.0,
-     "title": "Depth",
-     "type": "number"
-    },
-    "coefficient": {
-     "default": 2.1,
-     "description": "Spillway C in Q = C L H^1.5, m^0.5/s",
-     "maximum": 4.0,
-     "minimum": 0.5,
-     "title": "Coefficient",
-     "type": "number"
-    },
-    "length": {
-     "anyOf": [
-      {
-       "maximum": 2000.0,
-       "minimum": 0.1,
-       "type": "number"
-      },
-      {
-       "type": "null"
-      }
-     ],
-     "default": null,
-     "description": "Spillway crest length, m",
-     "title": "Length"
-    }
-   },
-   "required": [
-    "kind",
-    "coordinates"
-   ],
-   "title": "TerrainObject",
-   "type": "object"
-  }
- },
- "additionalProperties": false,
- "description": "The whole job.",
- "properties": {
-  "project": {
-   "$ref": "#/$defs/Project",
-   "default": {
-    "format_version": "1.0",
-    "name": "run",
-    "description": ""
-   }
-  },
-  "grid": {
-   "$ref": "#/$defs/GridConfig",
-   "default": {
-    "dx": 10.0,
-    "domain": null,
-    "extent": null,
-    "cache_dir": null
-   }
-  },
-  "terrain": {
-   "$ref": "#/$defs/Terrain",
-   "default": {
-    "dem": null,
-    "pixel_stride": 1,
-    "objects": [],
-    "manning": 0.035,
-    "manning_raster": null,
-    "cn_raster": null
-   }
-  },
-  "tables": {
-   "$ref": "#/$defs/Tables",
-   "default": {
-    "rows": 16,
-    "face_depth_max": 16.0,
-    "face_depth_min": 8.0,
-    "crest_tolerance": 0.05
-   }
-  },
-  "numerics": {
-   "$ref": "#/$defs/Numerics",
-   "default": {
-    "cfl": 0.45,
-    "limiter": "minmod",
-    "sheet_flow": true,
-    "e_wet": 0.0001,
-    "h_cfl": 0.01,
-    "u_max": 25.0,
-    "dt_max": 5.0,
-    "dt_min": 0.001,
-    "dt_every": 8,
-    "active_every": 16
-   }
-  },
-  "storm": {
-   "$ref": "#/$defs/Storm",
-   "default": {
-    "kind": "none",
-    "depth_mm": 0.0,
-    "duration_min": 60.0,
-    "time_percent": null,
-    "depth_percent": null,
-    "storm_area_km2": null,
-    "arf": null
-   }
-  },
-  "hydrology": {
-   "$ref": "#/$defs/Hydrology",
-   "default": {
-    "hms_basin": null,
-    "hms_sqlite": null,
-    "polygons": null,
-    "time_step_min": 5.0,
-    "curve_number": null,
-    "subbasins": [],
-    "inflows": [],
-    "inject_radius": 30.0,
-    "inject_min_depth": 0.1
-   }
-  },
-  "boundaries": {
-   "default": [],
-   "items": {
-    "$ref": "#/$defs/Boundary"
-   },
-   "title": "Boundaries",
-   "type": "array"
-  },
-  "outputs": {
-   "$ref": "#/$defs/Outputs",
-   "default": {
-    "map_every_s": 900.0,
-    "series_every_s": 60.0,
-    "live_every_s": 5.0,
-    "live_stride": 2,
-    "hazard": "dv",
-    "maxima_every": 4,
-    "arrival_depth": 0.1,
-    "speed_depth": 0.05,
-    "wet_depth": 0.1,
-    "progress_every_s": 2.0,
-    "points": [],
-    "lines": []
-   }
-  },
-  "run": {
-   "$ref": "#/$defs/Run",
-   "default": {
-    "duration_s": 3600.0,
-    "backend": "auto",
-    "source_every_s": 30.0,
-    "checkpoint_every_s": 300.0,
-    "balance_every": 8,
-    "estimate_depth": 2.0,
-    "estimate_speed": 3.0
-   }
-  },
-  "arf": {
-   "$ref": "#/$defs/ArfStudy",
-   "default": {
-    "areas_km2": [],
-    "n_areas": 6,
-    "area_min_km2": 10.0,
-    "area_max_km2": 600.0,
-    "exact_points": false,
-    "accumulation": null,
-    "accumulation_units": "cells"
-   }
-  }
- },
- "title": "RunConfig",
- "type": "object"
+  "title": "RunConfig",
+  "type": "object"
 }

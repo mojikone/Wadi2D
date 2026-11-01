@@ -9,12 +9,9 @@ level is overwritten; the balance counts what crosses the faces into them.
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
-import rasterio
 import shapely
 from rasterio import features
 from scipy.integrate import cumulative_trapezoid
@@ -36,42 +33,58 @@ from wadi2d.storm.hypothetical import HYPOTHETICAL_STORM, MINUTES_PER_HOUR
 from wadi2d.storm.uniform import UNIFORM_STORM
 from wadi2d.tables import GridTables, hbar_at_level
 from wadi2d.terrain.crest import NORTH, staircase
+from wadi2d.terrain.sampling import raster_at_cells
+from wadi2d.terrain.vector import read_features
 
-SAMPLES_PER_CELL = 4
-"""Points per cell when a polyline picks the cells it crosses."""
+UNIT_DEPTH = 1.0
+"""A depth-grid storm is built on 1 mm: it gives each time's share of the depth, the ARF included."""
+NAME_FIELD = "name"
 
 KIND_FIXED, KIND_FREE, KIND_FOLLOW = 0, 1, 2
 
 
 def build_storm(cfg: RunConfig) -> Storm | None:
-    """The job's storm through the storm registry; None when no rain falls."""
+    """The job's storm through the storm registry; None when the job has no rain.
+
+    A storm with no depth is refused: rain 0 with exit 0 is the worst thing this function could return.
+    """
     s = cfg.storm
-    if s.kind == "none" or s.depth_mm <= 0.0:
+    if s.kind == "none":
         return None
-    arf = None if s.arf is None else ArfTable(np.asarray(s.arf.areas_km2), np.asarray(s.arf.factors))
+    if s.depth_grid is None and s.depth_mm <= 0.0:
+        raise ValueError(f"storm kind {s.kind!r} has no depth: set storm.depth_mm or storm.depth_grid")
+    depth = UNIT_DEPTH if s.depth_grid is not None else s.depth_mm
+    arf = None
+    if s.arf is not None:
+        arf = ArfTable(
+            np.asarray(s.arf.areas_km2),
+            np.asarray(s.arf.factors),
+            reduces_below_table=s.arf.reduces_below_table,
+        )
     if s.kind == "uniform":
         storm: UniformStorm = STORM_METHODS.build(
-            UNIFORM_STORM, depth_mm=s.depth_mm, duration_minutes=s.duration_min,
+            UNIFORM_STORM, depth_mm=depth, duration_minutes=s.duration_min,
             storm_area_km2=s.storm_area_km2, arf=arf,
         )  # fmt: skip
         return storm
     pattern = PercentPattern(np.asarray(s.time_percent), np.asarray(s.depth_percent))
     built: HypotheticalStorm = STORM_METHODS.build(
-        HYPOTHETICAL_STORM, depth_mm=s.depth_mm, pattern=pattern,
+        HYPOTHETICAL_STORM, depth_mm=depth, pattern=pattern,
         duration_hours=s.duration_min / MINUTES_PER_HOUR, storm_area_km2=s.storm_area_km2, arf=arf,
     )  # fmt: skip
     return built
 
 
-def load_polygons(h: Hydrology) -> dict[str, shapely.Geometry]:
-    """Subbasin polygons by name, from the basin .sqlite or a GeoJSON with a ``name`` property."""
+def load_polygons(h: Hydrology, crs: str = "") -> dict[str, shapely.Geometry]:
+    """Subbasin polygons by name, from the basin .sqlite or a vector file with a ``name`` property."""
     out: dict[str, shapely.Geometry] = {}
     if h.hms_sqlite is not None:
         out.update({row.name: row.shape() for row in hms_sqlite.subbasin_polygons(h.hms_sqlite)})
     if h.polygons is not None:
-        data = json.loads(Path(h.polygons).read_text(encoding="utf-8"))
-        for feature in data["features"]:
-            out[str(feature["properties"]["name"])] = shapely.geometry.shape(feature["geometry"])
+        for properties, shape in read_features(h.polygons, crs):
+            if NAME_FIELD not in properties:
+                raise ValueError(f"{h.polygons}: a polygon has no {NAME_FIELD!r} property")
+            out[str(properties[NAME_FIELD])] = shape
     return out
 
 
@@ -85,34 +98,11 @@ def _labels(grid: TileGrid, polygons: list[shapely.Geometry]) -> np.ndarray:
     )
 
 
-def _raster_at_cells(path: str, grid: TileGrid) -> np.ndarray:
-    """A raster sampled at the cell centres (nearest), NaN off it or on its nodata."""
-    ny, nx = grid.shape
-    with rasterio.open(path) as src:
-        jj = np.arange(ny)
-        ii = np.arange(nx)
-        x, y = grid.xy_of(jj, ii)
-        inv = ~src.transform
-        cols = np.floor(inv.a * x + inv.c).astype(np.int64)
-        rows = np.floor(inv.e * y + inv.f).astype(np.int64)
-        c0, c1 = max(cols.min(), 0), min(cols.max() + 1, src.width)
-        r0, r1 = max(rows.min(), 0), min(rows.max() + 1, src.height)
-        out = np.full((ny, nx), np.nan)
-        if c0 >= c1 or r0 >= r1:
-            return out
-        window = rasterio.windows.Window(c0, r0, c1 - c0, r1 - r0)
-        a = src.read(1, window=window, masked=True).astype(np.float64).filled(np.nan)
-    rkeep = (rows >= r0) & (rows < r1)
-    ckeep = (cols >= c0) & (cols < c1)
-    out[np.ix_(rkeep, ckeep)] = a[np.ix_(rows[rkeep] - r0, cols[ckeep] - c0)]
-    return out
-
-
-def manning_grid(cfg: RunConfig, grid: TileGrid) -> float | np.ndarray:
+def manning_grid(cfg: RunConfig, grid: TileGrid, crs: str = "") -> float | np.ndarray:
     """One value, or a grid where a Manning raster gives one."""
     if cfg.terrain.manning_raster is None:
         return cfg.terrain.manning
-    n = _raster_at_cells(cfg.terrain.manning_raster, grid)
+    n = raster_at_cells(cfg.terrain.manning_raster, grid, crs)
     return np.where(np.isfinite(n), n, cfg.terrain.manning)
 
 
@@ -128,7 +118,9 @@ def _subbasin_curve_numbers(h: Hydrology) -> dict[str, float]:
     return {name: value for name, value in out.items() if value is not None}
 
 
-def curve_numbers(cfg: RunConfig, grid: TileGrid, polygons: dict[str, shapely.Geometry]) -> np.ndarray:
+def curve_numbers(
+    cfg: RunConfig, grid: TileGrid, polygons: dict[str, shapely.Geometry], crs: str = ""
+) -> np.ndarray:
     """CN per cell, NaN for no losses. A raster beats a subbasin value, which beats the job's default."""
     h = cfg.hydrology
     cn = np.full(grid.shape, np.nan if h.curve_number is None else h.curve_number)
@@ -137,7 +129,7 @@ def curve_numbers(cfg: RunConfig, grid: TileGrid, polygons: dict[str, shapely.Ge
     for n, (_name, value) in enumerate(named):
         cn[labels == n + 1] = value
     if cfg.terrain.cn_raster is not None:
-        raster = _raster_at_cells(cfg.terrain.cn_raster, grid)
+        raster = raster_at_cells(cfg.terrain.cn_raster, grid, crs)
         cn = np.where(np.isfinite(raster), raster, cn)
     return cn
 
@@ -158,10 +150,12 @@ class BoundarySet:
         return int(self.cells.cell.size)
 
 
-def cells_along(grid: TileGrid, coordinates: list[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]:
+def cells_along(
+    grid: TileGrid, coordinates: list[tuple[float, float]], samples: int = 4
+) -> tuple[np.ndarray, np.ndarray]:
     """Active cells a polyline crosses; a sample just off the domain takes the nearest active cell in reach."""
     line = shapely.LineString(coordinates)
-    n = max(int(np.ceil(line.length / grid.dx * SAMPLES_PER_CELL)), 2)
+    n = max(int(np.ceil(line.length / grid.dx * samples)), 2)
     pts = shapely.line_interpolate_point(line, np.linspace(0.0, line.length, n))
     jj = np.floor((grid.y0 - shapely.get_y(pts)) / grid.dx).astype(np.int64)
     ii = np.floor((shapely.get_x(pts) - grid.x0) / grid.dx).astype(np.int64)
@@ -215,11 +209,11 @@ def _one_boundary(b: Boundary, j: np.ndarray, i: np.ndarray, tables: GridTables,
     return kind, ref, d0, h0
 
 
-def boundary_set(boundaries: list[Boundary], tables: GridTables) -> BoundarySet:
+def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 4) -> BoundarySet:
     """All boundary cells, and the faces between them and the interior with the sign of an outflow."""
     grid = tables.grid
     taken = np.zeros(grid.shape, bool)
-    picked = [cells_along(grid, b.coordinates) for b in boundaries]
+    picked = [cells_along(grid, b.coordinates, samples) for b in boundaries]
     for j, i in picked:
         taken[j, i] = True
     parts = []
@@ -279,7 +273,7 @@ def line_faces(grid: TileGrid, coordinates: list[tuple[float, float]]) -> LineFa
 
 @dataclass
 class Injection:
-    """A hydrograph as cumulative volume, and the cells that take it."""
+    """A hydrograph, linear between its table times, and the cells that take it."""
 
     name: str
     cells: np.ndarray
@@ -289,12 +283,29 @@ class Injection:
     lowest: int
     """Position within ``cells`` of the lowest one."""
     times: np.ndarray
-    volume: np.ndarray
+    flows: np.ndarray
     min_depth: float
 
+    def __post_init__(self) -> None:
+        if np.any(np.diff(self.times) <= 0.0):
+            raise ValueError(f"inflow {self.name}: table times must increase")
+        self.volume = np.concatenate(([0.0], cumulative_trapezoid(self.flows, self.times)))
+
+    def volume_at(self, t: float) -> float:
+        """The exact integral of the piecewise-linear flow up to t; interpolating volumes would flatten it."""
+        times = self.times
+        if t <= times[0]:
+            return 0.0
+        if t >= times[-1]:
+            return float(self.volume[-1])
+        k = int(np.searchsorted(times, t, side="right")) - 1
+        flow = self.flows[k] + (self.flows[k + 1] - self.flows[k]) * (t - times[k]) / (
+            times[k + 1] - times[k]
+        )
+        return float(self.volume[k] + 0.5 * (self.flows[k] + flow) * (t - times[k]))
+
     def mean_flow(self, t0: float, t1: float) -> float:
-        v = np.interp((t0, t1), self.times, self.volume)
-        return float((v[1] - v[0]) / (t1 - t0))
+        return (self.volume_at(t1) - self.volume_at(t0)) / (t1 - t0)
 
     def share(self, depth: np.ndarray) -> np.ndarray:
         """Weights over the cells."""
@@ -319,6 +330,7 @@ class Forcing:
         storm: Storm | None,
         polygons: dict[str, shapely.Geometry],
         hydrographs: list[tuple[str, tuple[float, float], np.ndarray, np.ndarray]],
+        crs: str = "",
     ) -> None:
         grid = tables.grid
         self.model = model
@@ -329,12 +341,44 @@ class Forcing:
         self.state = np.asarray(state_index(grid, self.jj, self.ii), np.int64)
         self.tile = self.state // STRIDE2
 
-        lumped = [
-            polygons[s.name] for s in cfg.hydrology.subbasins if s.mode == "lumped" and s.name in polygons
-        ]
-        self.rained = _labels(grid, lumped)[self.jj, self.ii] == 0
-        self.classes, self.class_of = self._loss_classes(curve_numbers(cfg, grid, polygons))
+        names = [s.name for s in cfg.hydrology.subbasins if s.mode == "lumped"]
+        missing = [name for name in names if name not in polygons]
+        if missing:
+            raise ValueError(
+                f"lumped subbasins without a polygon would take their rain twice: {missing}; "
+                "give hydrology.hms_sqlite or hydrology.polygons"
+            )
+        self.rained = _labels(grid, [polygons[name] for name in names])[self.jj, self.ii] == 0
+        cn = curve_numbers(cfg, grid, polygons, crs)
+        self._check_curve_numbers(cfg, cn)
+        self.depths = None
+        if cfg.storm.depth_grid is not None:
+            self.depths = self._read_depths(cfg, grid, crs)
+        self.cell_loss = None
+        self.classes, self.class_of = self._loss_classes(cn)
+        if self.depths is not None and self.classes is not None:
+            has = self.class_of >= 0
+            self.cell_loss = ScsCurveNumber(curve_number=cn[self.jj, self.ii][has])
         self.injections = [self._injection(cfg, tables, *h) for h in hydrographs]
+
+    def _check_curve_numbers(self, cfg: RunConfig, cn: np.ndarray) -> None:
+        """A CN raster must cover the cells it is meant for: a hole would run off without losses."""
+        if cfg.terrain.cn_raster is None:
+            return
+        holes = int(np.count_nonzero(np.isnan(cn[self.jj, self.ii]) & self.rained))
+        if holes:
+            raise ValueError(
+                f"terrain.cn_raster gives no CN on {holes} rained cells of {self.rained.size}, and nothing "
+                "else does: extend the raster or set hydrology.curve_number"
+            )
+
+    def _read_depths(self, cfg: RunConfig, grid: TileGrid, crs: str) -> np.ndarray:
+        """The depth grid per interior cell; a rained cell without a depth is refused."""
+        values = raster_at_cells(cfg.storm.depth_grid, grid, crs)[self.jj, self.ii]
+        holes = int(np.count_nonzero(~np.isfinite(values) & self.rained))
+        if holes:
+            raise ValueError(f"storm.depth_grid has no depth on {holes} rained cells of {self.rained.size}")
+        return np.nan_to_num(values)
 
     def _loss_classes(self, cn: np.ndarray) -> tuple[ScsCurveNumber | None, np.ndarray]:
         """Few distinct CN values, so a refresh computes each once; class -1 means rain passes whole."""
@@ -351,19 +395,33 @@ class Forcing:
         grid = tables.grid
         x, y = grid.xy_of(self.jj, self.ii)
         dist = np.hypot(x - point[0], y - point[1])
-        near = np.nonzero(dist <= max(cfg.hydrology.inject_radius, 0.0))[0]
+        offset = float(dist.min())
+        if offset > cfg.hydrology.inject_max_offset:
+            raise ValueError(
+                f"inflow {name} at {tuple(point)} is {offset:.0f} m from the nearest domain cell; the limit is "
+                f"{cfg.hydrology.inject_max_offset:.0f} m (hydrology.inject_max_offset)"
+            )
+        near = np.nonzero(dist <= cfg.hydrology.inject_radius)[0]
         if near.size == 0:
             near = np.array([int(np.argmin(dist))])
         lowest = int(np.argmin(tables.zmin[self.jj[near], self.ii[near]]))
-        volume = np.concatenate(([0.0], cumulative_trapezoid(flows, times)))
         index = self.model.device_index(self.state[near])
         return Injection(
-            name, near, index, lowest, np.asarray(times, np.float64), volume, cfg.hydrology.inject_min_depth
-        )
+            name, near, index, lowest, np.asarray(times, np.float64), np.asarray(flows, np.float64),
+            cfg.hydrology.inject_min_depth,
+        )  # fmt: skip
 
     def _excess_mm(self, t: float) -> np.ndarray:
-        """Cumulative excess at time t: one value per class, with the plain rain last."""
+        """Cumulative excess at time t: per class with the plain rain last, or per cell under a depth grid."""
         depth = float(self.storm.cumulative_depth(np.array([t / SECONDS_PER_MINUTE]))[0])
+        if self.depths is not None:
+            rain = depth * self.depths
+            if self.cell_loss is None:
+                return rain
+            has = self.class_of >= 0
+            with np.errstate(divide="ignore", invalid="ignore"):
+                rain[has] = np.nan_to_num(self.cell_loss.cumulative_excess(rain[has]))
+            return rain
         if self.classes is None:
             return np.array([depth])
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -376,8 +434,8 @@ class Forcing:
         out = np.zeros(self.state.size, np.float32)
         rain = 0.0
         if self.storm is not None:
-            per_class = (self._excess_mm(t1) - self._excess_mm(t0)) / (MM_PER_M * step)
-            out[:] = per_class[self.class_of] * self.rained
+            excess = (self._excess_mm(t1) - self._excess_mm(t0)) / (MM_PER_M * step)
+            out[:] = (excess if self.depths is not None else excess[self.class_of]) * self.rained
             rain = float(out.sum(dtype=np.float64)) * self.area * step
         inflow = 0.0
         for inj in self.injections:

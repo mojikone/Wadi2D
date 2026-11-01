@@ -16,6 +16,7 @@ from wadi2d_qgis.job_builder import (
     hms_import_args,
     hms_subbasins,
     merge_hms,
+    merge_notes,
     notes,
     problems,
     snap_dx,
@@ -35,6 +36,20 @@ def values(tmp_path: Path, **changes) -> dict:
         "structures": {}, "boundaries": [], "design": [], "output": str(tmp_path / "out"), "duration_h": 12.0,
     }  # fmt: skip
     return {**base, **changes}
+
+
+def test_a_snapped_cell_size_is_said() -> None:
+    said = " ".join(notes({"boundaries": [1], "dx": 20.0, "pixel": 3.0}))
+    assert "21 m" in said
+    assert notes({"boundaries": [1], "dx": 21.0, "pixel": 3.0}) == []
+
+
+def test_a_duration_set_by_the_control_file_is_said() -> None:
+    job = {"run": {"duration_s": 3600.0}}
+    said = " ".join(merge_notes(job, {"run": {"duration_s": 172800.0}}))
+    assert "48 h" in said
+    assert "1 h" in said
+    assert merge_notes(job, {"run": {"duration_s": 3600.0}}) == []
 
 
 def test_snap_dx_goes_to_the_nearest_pixel_multiple() -> None:

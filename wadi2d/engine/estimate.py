@@ -64,9 +64,10 @@ def measure_cost(backend: str, num: Numerics, cfg: Tables) -> tuple[float, str]:
 
 def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     """What the job will cost; the cell count comes from the DEM, the cost from a short probe."""
-    from wadi2d.run import domain_mask, grid_window
+    from wadi2d.run import domain_mask, grid_window, preflight
 
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+        preflight(cfg, bed.crs.to_wkt() if bed.crs is not None else "")
         window = grid_window(cfg, bed)
         mask = domain_mask(cfg, bed, window)
     grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
@@ -78,7 +79,8 @@ def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     gb = (tiles + 1) * (state + static) * BYTES / 1e9
     ns, name = measure_cost(backend or cfg.run.backend, cfg.numerics, cfg.tables)
     r = cfg.run
-    wave = r.estimate_speed + np.sqrt(G * r.estimate_depth)
+    ns *= r.estimate_overhead
+    wave = r.estimate_wave * (r.estimate_speed + np.sqrt(G * r.estimate_depth))
     step = float(min(cfg.numerics.cfl * cfg.grid.dx / wave, cfg.numerics.dt_max))
     steps = int(np.ceil(r.duration_s / step))
     return Estimate(cells, tiles, round(gb, 3), round(ns, 3), step, steps, ns * 1e-9 * cells * steps, name)

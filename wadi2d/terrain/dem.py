@@ -17,6 +17,8 @@ from rasterio.enums import Resampling
 from rasterio.windows import Window
 from scipy import ndimage
 
+from wadi2d.io.identity import file_identity
+
 ALIGN_TOLERANCE = 1e-6
 """Relative tolerance on 'a whole number of pixels'."""
 HUGE_ELEVATION = 1e30
@@ -156,13 +158,10 @@ class RasterBed:
         out[np.ix_(rkeep, ckeep)] = np.isfinite(values) & (values < HUGE_ELEVATION)
         return out
 
-    def identity(self) -> dict[str, object]:
+    def identity(self, content_limit_mb: float) -> dict[str, object]:
         """What the grid cache hashes: the file as it stands."""
-        st = self.path.stat()
         return {
-            "name": self.path.name,
-            "size": st.st_size,
-            "mtime_ns": st.st_mtime_ns,
+            "file": file_identity(self.path, content_limit_mb),
             "shape": [self.src.height, self.src.width],
             "transform": list(self.src.transform)[:6],
             "stride": self.stride,

@@ -10,9 +10,10 @@ import rasterio
 
 from wadi2d.arf import accumulation_on_grid
 from wadi2d.config.schema import RunConfig
+from wadi2d.engine.hms_import import build_job
 from wadi2d.forcing import _labels, build_storm, load_polygons
 from wadi2d.grid import TileGrid
-from wadi2d.run import hydrographs
+from wadi2d.run import hydrographs, run_job
 from wadi2d.terrain import RasterBed
 
 pytestmark = pytest.mark.data
@@ -77,7 +78,11 @@ def test_lumped_hydrograph_comes_from_the_hms_basin(hms_project_dir: Path):
             "storm": {"kind": "uniform", "depth_mm": 100.0, "duration_min": 120.0},
             "hydrology": {
                 "hms_basin": str(hms_project_dir / "Basin_1.basin"),
-                "subbasins": [{"name": "S13", "mode": "lumped", "outlet": BIDAH}],
+                "subbasins": [
+                    {"name": "S13", "mode": "lumped", "outlet": BIDAH},
+                    {"name": "S11", "mode": "lumped"},
+                    {"name": "S12", "mode": "lumped"},
+                ],
                 "inflows": [{"name": "Faydh", "x": 431000.0, "y": 2733700.0, "element": "Faydh 01"}],
             },
             "run": {"duration_s": 86400.0},
@@ -89,6 +94,55 @@ def test_lumped_hydrograph_comes_from_the_hms_basin(hms_project_dir: Path):
         volume = np.trapezoid(q, times)
         area = 20.971 if name == "S13" else 74.304
         assert volume / (area * 1e6) * 1000.0 == pytest.approx(70.0, abs=25.0), name
+
+
+def test_the_pmp_grid_storm_rains(hms_project_dir: Path, terrain: Path, tmp_path: Path):
+    cfg = build_job(hms_project_dir, "Basin_1.basin", "FM_PMP.met", "Control_1.control")
+    assert cfg.storm.depth_grid is not None
+    assert cfg.storm.depth_mm == 0.0
+    data = cfg.model_dump(mode="json")
+    data["grid"] = {"dx": 40.0, "extent": [434000.0, 2724000.0, 436000.0, 2726000.0]}
+    data["terrain"]["dem"] = str(terrain / "GGC_2_MERGE_HDSM_5.tif")
+    data["hydrology"]["subbasins"] = []
+    data["hydrology"]["curve_number"] = 85.0
+    data["outputs"] = {"map_every_s": 0.0, "live_every_s": 0.0}
+    data["run"] = {"duration_s": 28800.0, "backend": "cpu"}
+    summary = run_job(RunConfig.model_validate(data), tmp_path / "out")
+    assert summary.exit_code == 0, summary.message
+    assert summary.balance.rain > 0.0
+
+
+def test_the_pmp_grid_reaches_the_lumped_network(hms_project_dir: Path):
+    cfg = build_job(hms_project_dir, "Basin_1.basin", "FM_PMP.met", "Control_1.control")
+    data = cfg.model_dump(mode="json")
+    data["hydrology"]["subbasins"] = [{"name": "S13", "mode": "lumped", "outlet": BIDAH}]
+    job = RunConfig.model_validate(data)
+    ((_name, _point, times, flows),) = hydrographs(job, build_storm(job))
+    assert np.trapezoid(flows, times) > 0.3 * 20.97e6
+
+
+@pytest.mark.parametrize(
+    "project",
+    [r"HMS\B6\60 HMS_Block_6_Mod1", r"Majlas\Hydrology\HEC_HMS_Majlas"],
+    ids=["block6", "majlas"],
+)
+def test_other_projects_import_and_compute(block2_dir: Path, project: str):
+    folder = block2_dir.parents[1] / project
+    if not folder.is_dir():
+        pytest.skip(f"{folder} not available")
+    computed = 0
+    for basin in sorted(folder.glob("*.basin"))[:4]:
+        met = sorted(folder.glob("*.met"))[0].name
+        control = sorted(folder.glob("*.control"))[0].name
+        cfg = build_job(folder, basin.name, met, control)
+        without = [s.name for s in cfg.hydrology.subbasins if s.outlet is None]
+        assert not without, f"{basin.name}: {without}"
+        try:
+            assert hydrographs(cfg, build_storm(cfg))
+            computed += 1
+        except ValueError as error:
+            assert "Muskingum-Cunge" in str(error), "only a reach left without parameters may refuse"
+    assert computed
 
 
 def test_accumulation_raster_gives_the_dam_catchment(hms_project_dir: Path, terrain: Path):

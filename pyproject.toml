@@ -36,6 +36,8 @@ gpu = [
   "nvidia-cusparse-cu12",
   "nvidia-nvjitlink-cu12>=12.8",
 ]
+# shapefile and GeoPackage inputs; GeoJSON needs nothing.
+vector = ["fiona>=1.9"]
 dev = ["pytest>=8", "pytest-cov", "ruff>=0.5", "mypy>=1.10", "black>=24"]
 
 [project.scripts]

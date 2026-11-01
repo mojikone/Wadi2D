@@ -31,6 +31,15 @@ class GridConfig(_Part):
     domain: str | None = Field(None, description="Polygon file; None uses extent")
     extent: tuple[float, float, float, float] | None = Field(None, description="xmin, ymin, xmax, ymax, m")
     cache_dir: str | None = Field(None, description="Grid cache folder; None uses 'cache' in the run folder")
+    line_samples: int = Field(
+        4, ge=1, le=32, description="Points per cell when a boundary line picks the cells it crosses"
+    )
+    content_hash_limit_mb: float = Field(
+        64.0,
+        ge=0.0,
+        le=4096.0,
+        description="Input files up to this size are hashed by content for the cache, MB",
+    )
 
 
 class TerrainObject(_Part):
@@ -62,6 +71,19 @@ class Terrain(_Part):
     dem: str | None = Field(None, description="GeoTIFF path; its CRS is the project CRS")
     pixel_stride: int = Field(
         1, ge=1, le=64, description="Read every n-th DEM pixel; dx must be a multiple of pixel * stride"
+    )
+    join_cells: float = Field(
+        2.0, ge=0.0, le=16.0, description="A crest or wall ending this close to another line joins it, cells"
+    )
+    spillway_snap_cells: float = Field(
+        1.0,
+        ge=0.0,
+        le=8.0,
+        description="A crest face this close to a spillway line carries the spillway, cells",
+    )
+    burn_pixels: int = Field(2, ge=1, le=64, description="Burn width when an object gives none, DEM pixels")
+    spillway_stretch: float = Field(
+        1.5, ge=1.0, le=20.0, description="A spillway longer than its drawn line by this ratio gets a warning"
     )
     objects: list[TerrainObject] = []
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
@@ -180,6 +202,10 @@ class ArfTableConfig(_Part):
         description="What the table is; printed on every output, because a storm-centred ratio is not a "
         "fixed-area curve",
     )
+    reduces_below_table: bool = Field(
+        True,
+        description="Below the smallest area the first factor holds; False leaves the depth whole, as HMS",
+    )
 
 
 class Storm(_Part):
@@ -187,6 +213,9 @@ class Storm(_Part):
 
     kind: Literal["none", "uniform", "hypothetical"] = "none"
     depth_mm: float = Field(0.0, ge=0.0, le=5000.0, description="Point depth, mm")
+    depth_grid: str | None = Field(
+        None, description="Raster of depths in mm, replacing depth_mm; each 2D cell takes its own value"
+    )
     duration_min: float = Field(60.0, gt=0.0, le=20160.0, description="Storm duration, minutes")
     time_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of duration")
     depth_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of depth")
@@ -233,6 +262,9 @@ class Hydrology(_Part):
     """Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none."""
 
     hms_basin: str | None = Field(None, description="HEC-HMS .basin file of the lumped network")
+    hms_project: str | None = Field(
+        None, description="The .hms file, for paired tables; None takes the one beside the basin file"
+    )
     hms_sqlite: str | None = Field(None, description="The basin .sqlite holding the subbasin polygons")
     polygons: str | None = Field(None, description="GeoJSON of subbasin polygons with a 'name' property")
     time_step_min: float = Field(5.0, gt=0.0, le=60.0, description="Step of the lumped engine, minutes")
@@ -246,6 +278,12 @@ class Hydrology(_Part):
     )
     inject_min_depth: float = Field(
         0.1, ge=0.0, le=5.0, description="Cells below this level count as dry for an inflow, m"
+    )
+    inject_max_offset: float = Field(
+        200.0,
+        ge=0.0,
+        le=5000.0,
+        description="An inflow point farther than this from the domain is refused, m",
     )
 
 
@@ -271,10 +309,26 @@ class Run(_Part):
         300.0, ge=0.0, le=86400.0, description="Wall seconds between checkpoints; 0 disables"
     )
     balance_every: int = Field(
-        8, ge=1, le=64, description="Steps between samples of the flow through open boundaries"
+        8, ge=1, le=64, description="Kept so old jobs load; the balance now counts every step"
     )
-    estimate_depth: float = Field(2.0, gt=0.0, le=50.0, description="Depth assumed by --dry-run, m")
-    estimate_speed: float = Field(3.0, ge=0.0, le=25.0, description="Velocity assumed by --dry-run, m/s")
+    estimate_depth: float = Field(
+        7.5,
+        gt=0.0,
+        le=50.0,
+        description="Deepest flowing cell assumed by --dry-run, m; Block 2 at 20 m gave 7.5",
+    )
+    estimate_speed: float = Field(
+        8.0, ge=0.0, le=25.0, description="Fastest flow assumed by --dry-run, m/s; Block 2 at 20 m gave 8"
+    )
+    estimate_wave: float = Field(
+        1.6,
+        ge=1.0,
+        le=10.0,
+        description="Real wave speed over u + sqrt(g h), the wet plan share raises it; Block 2 at 20 m gave 1.6",
+    )
+    estimate_overhead: float = Field(
+        1.7, ge=1.0, le=10.0, description="Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.7"
+    )
 
 
 class RunConfig(_Part):

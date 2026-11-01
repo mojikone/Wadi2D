@@ -177,7 +177,23 @@ def notes(values: dict) -> list[str]:
         found.append("No boundary set: every edge is a wall, so water cannot leave the domain.")
     if not values.get("hms") and values.get("rain_hours", 0.0) > values.get("duration_h", 0.0):
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
+    dx, pixel = values.get("dx"), values.get("pixel", 0.0)
+    if dx and snap_dx(dx, pixel) != dx:
+        found.append(
+            f"The cell size becomes {snap_dx(dx, pixel):g} m, a whole number of {pixel:g} m DEM pixels."
+        )
     return found
+
+
+def merge_notes(job: dict, merged: dict) -> list[str]:
+    """What the HMS import changed from the form, for the user to see before the run starts."""
+    asked, set_by_hms = job["run"]["duration_s"], merged["run"]["duration_s"]
+    if asked == set_by_hms:
+        return []
+    return [
+        f"The HMS control file sets {set_by_hms / SECONDS_PER_HOUR:g} h of simulated time, "
+        f"not the {asked / SECONDS_PER_HOUR:g} h in the form."
+    ]
 
 
 def _elevation(feature: Feature):

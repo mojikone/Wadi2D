@@ -1,10 +1,11 @@
 """Terrain objects: vector edits applied when the tables are built. Adding a kind is one class in the registry.
 
 Face objects write into :class:`CrestFaces`; a crest raises a face, a spillway sets its discharge law, a wall
-closes it. Order inside the result: crest lines (the higher wins where two meet), then spillways, then walls. A
-spillway drawn on a dam line shares the dam's faces: its own staircase could fall one cell off the dam's and pour
-into the back of it, so it takes the crest faces beside it and walks its own lattice only where none are near.
-Burn lines edit pixels through the ``edit`` hook of ``build_tables``.
+closes it. Order inside the result: crest lines (the higher wins where two meet), then spillways, then walls.
+Crest lines and walls that end beside another one are joined on the lattice first, so a dyke that stops on a dam
+on paper also stops on it in the grid. A spillway drawn on a dam line shares the dam's faces: its own staircase
+could fall one cell off the dam's and pour into the back of it, so it takes the crest faces beside it and walks
+its own lattice only where none are near. Burn lines edit pixels through the ``edit`` hook of ``build_tables``.
 """
 
 from __future__ import annotations
@@ -19,26 +20,25 @@ from rasterio import features
 from rasterio.transform import Affine
 
 from wadi2d.config.constants import CRITICAL_WEIR_COEFF
-from wadi2d.config.schema import TerrainObject
+from wadi2d.config.schema import Terrain, TerrainObject
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.storm.registry import Registry
 from wadi2d.tables.builder import CrestFaces
-from wadi2d.terrain.crest import NORTH, Staircase, elevations_along, line_lengths, staircase
-
-SPILLWAY_SNAP_CELLS = 1.0
-"""A crest face this many cells from a spillway line carries the spillway."""
-BURN_PIXELS = 2
-"""Burn width when an object gives none, DEM pixels."""
+from wadi2d.terrain.crest import NORTH, Staircase, elevations_along, join_ends, line_lengths, staircase
 
 PixelEdit = Callable[[np.ndarray, int, int], None]
+
+STAIR_FIELDS = ("axis", "j", "i", "side", "s", "factor")
 
 
 @dataclass
 class FaceSet:
-    """The face grids under construction, and which faces crest lines own."""
+    """The face grids under construction, the joined barrier lines, and which faces crest lines own."""
 
     grid: TileGrid
     crest: CrestFaces
+    cfg: Terrain
+    stairs: dict[int, Staircase] = field(default_factory=dict)
     lines: list[Staircase] = field(default_factory=list)
 
     def crest_faces(self) -> Staircase | None:
@@ -47,17 +47,15 @@ class FaceSet:
         return Staircase(*(np.concatenate([getattr(s, n) for s in self.lines]) for n in STAIR_FIELDS))
 
 
-STAIR_FIELDS = ("axis", "j", "i", "side", "s", "factor")
-
-
 class Applied(Protocol):
     """One kind of terrain object. ``faces`` runs in ``phase`` order; ``pixels`` returns a pixel edit or None."""
 
     phase: int
+    barrier: bool
 
     def faces(self, obj: TerrainObject, target: FaceSet) -> None: ...
 
-    def pixels(self, obj: TerrainObject, grid: TileGrid, pixel: float) -> PixelEdit | None: ...
+    def pixels(self, obj: TerrainObject, grid: TileGrid, pixel: float, cfg: Terrain) -> PixelEdit | None: ...
 
 
 TERRAIN_OBJECTS: Registry[Applied] = Registry("terrain object")
@@ -82,14 +80,15 @@ class CrestLine:
     """High ground as a line: faces closed up to the crest, overtopped at critical flow."""
 
     phase = 0
+    barrier = True
 
     def faces(self, obj: TerrainObject, target: FaceSet) -> None:
-        st = staircase(target.grid, obj.coordinates)
+        st = target.stairs[id(obj)]
         z = elevations_along(obj.coordinates, obj.z, obj.z_constant, st.s)
         _set(target, st, z, st.factor, CRITICAL_WEIR_COEFF, keep_max=True)
         target.lines.append(st)
 
-    def pixels(self, _obj: TerrainObject, _grid: TileGrid, _pixel: float) -> PixelEdit | None:
+    def pixels(self, _obj, _grid, _pixel, _cfg) -> PixelEdit | None:
         return None
 
 
@@ -105,7 +104,7 @@ def _near_crest(target: FaceSet, obj: TerrainObject) -> Staircase | None:
     y = grid.y0 - (jc + np.where(north, 0.0, 0.5)) * grid.dx
     line = shapely.LineString(obj.coordinates)
     pts = shapely.points(x, y)
-    near = shapely.distance(line, pts) <= SPILLWAY_SNAP_CELLS * grid.dx
+    near = shapely.distance(line, pts) <= target.cfg.spillway_snap_cells * grid.dx
     if not near.any():
         return None
     out = Staircase(*(getattr(all_faces, n)[near] for n in STAIR_FIELDS))
@@ -118,6 +117,7 @@ class Spillway:
     """A crest with the user's law Q = C L H^1.5, its faces stretched so their widths add up to L."""
 
     phase = 1
+    barrier = False
 
     def faces(self, obj: TerrainObject, target: FaceSet) -> None:
         st = _near_crest(target, obj)
@@ -130,7 +130,7 @@ class Spillway:
         factor = np.full(st.size, length / (st.size * target.grid.dx))
         _set(target, st, z, factor, obj.coefficient, keep_max=False)
 
-    def pixels(self, _obj: TerrainObject, _grid: TileGrid, _pixel: float) -> PixelEdit | None:
+    def pixels(self, _obj, _grid, _pixel, _cfg) -> PixelEdit | None:
         return None
 
 
@@ -139,14 +139,15 @@ class Wall:
     """Closed faces: nothing passes, at any level."""
 
     phase = 2
+    barrier = True
 
     def faces(self, obj: TerrainObject, target: FaceSet) -> None:
-        st = staircase(target.grid, obj.coordinates)
+        st = target.stairs[id(obj)]
         north = st.axis == NORTH
         target.crest.ywall[st.j[north], st.i[north]] = True
         target.crest.xwall[st.j[~north], st.i[~north]] = True
 
-    def pixels(self, _obj: TerrainObject, _grid: TileGrid, _pixel: float) -> PixelEdit | None:
+    def pixels(self, _obj, _grid, _pixel, _cfg) -> PixelEdit | None:
         return None
 
 
@@ -155,12 +156,13 @@ class BurnLine:
     """A channel cut into the bed: pixels under the line drop to its invert, or by ``depth`` below ground."""
 
     phase = 0
+    barrier = False
 
     def faces(self, _obj: TerrainObject, _target: FaceSet) -> None:
         return None
 
-    def pixels(self, obj: TerrainObject, grid: TileGrid, pixel: float) -> PixelEdit | None:
-        width = obj.width if obj.width > 0.0 else BURN_PIXELS * pixel
+    def pixels(self, obj: TerrainObject, grid: TileGrid, pixel: float, cfg: Terrain) -> PixelEdit | None:
+        width = obj.width if obj.width > 0.0 else cfg.burn_pixels * pixel
         line = shapely.LineString(obj.coordinates)
         strip = line.buffer(0.5 * width, cap_style="flat")
         xmin, ymin, xmax, ymax = strip.bounds
@@ -198,17 +200,22 @@ class TerrainEdits:
     edit: PixelEdit | None
 
 
-def apply_objects(grid: TileGrid, objects: Iterable[TerrainObject], pixel: float) -> TerrainEdits:
+def apply_objects(
+    grid: TileGrid, objects: Iterable[TerrainObject], pixel: float, cfg: Terrain | None = None
+) -> TerrainEdits:
     """Turn the job's objects into edited faces and a pixel edit."""
+    cfg = cfg or Terrain()
     crest = CrestFaces.empty(grid.shape)
     crest.xwall = np.zeros(grid.shape, bool)
     crest.ywall = np.zeros(grid.shape, bool)
-    target = FaceSet(grid, crest)
     built = [(TERRAIN_OBJECTS.build(o.kind), o) for o in objects]
+    stairs = {id(o): staircase(grid, o.coordinates) for kind, o in built if kind.barrier}
+    join_ends(list(stairs.values()), cfg.join_cells, grid)
+    target = FaceSet(grid, crest, cfg, stairs)
     edits: list[PixelEdit] = []
     for kind, obj in sorted(built, key=lambda item: item[0].phase):
         kind.faces(obj, target)
-        edit = kind.pixels(obj, grid, pixel)
+        edit = kind.pixels(obj, grid, pixel, cfg)
         if edit is not None:
             edits.append(edit)
     if not edits:

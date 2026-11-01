@@ -19,6 +19,7 @@ from wadi2d.grid.tiles import TileGrid
 
 GZIP_LEVEL = 1
 CHUNK = 128
+DAMAGED_SUFFIX = ".damaged.h5"
 
 
 def safe_name(name: str) -> str:
@@ -33,7 +34,14 @@ class Results:
         self, path: str | Path, grid: TileGrid, crs_wkt: str, config_json: str, append: bool = False
     ) -> None:
         self.path = Path(path)
-        self.f = h5py.File(self.path, "a" if append and self.path.exists() else "w")
+        self.salvaged = False
+        try:
+            self.f = h5py.File(self.path, "a" if append and self.path.exists() else "w")
+        except OSError:
+            # a hard kill leaves the file marked open; the checkpoint holds what matters, snapshots are lost
+            self.path.replace(self.path.with_suffix(DAMAGED_SUFFIX))
+            self.f = h5py.File(self.path, "w")
+            self.salvaged = True
         if "mask" in self.f:
             return
         a = self.f.attrs

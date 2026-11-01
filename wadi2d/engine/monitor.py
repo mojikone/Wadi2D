@@ -1,19 +1,20 @@
 """What watches a run: maxima, series, the water balance, progress, the live raster, the stop file, checkpoints.
 
 The stepper calls :meth:`Monitor.on_step` after every step, so everything here is a counter check until something
-is due. Sampling the boundary flow only on the steps that already synchronise keeps the cost of the balance low.
+is due, except the boundary tally, which has to see every step for the balance to be true.
 """
 
 from __future__ import annotations
 
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 
 from wadi2d.config.schema import RunConfig
-from wadi2d.engine.maxima import Maxima
+from wadi2d.engine.maxima import Maxima, Tally
 from wadi2d.forcing import BoundarySet, LineFaces, line_faces
 from wadi2d.io.geotiff import LiveRaster
 from wadi2d.io.progress import Progress
@@ -23,23 +24,23 @@ from wadi2d.solver.state import state_index
 from wadi2d.solver.stepper import Stepper
 from wadi2d.tables import GridTables
 
+ZERO_WATER = 1e-9
+"""Below this volume, m3, a relative error means nothing."""
+
 
 class StopRequested(RuntimeError):
-    """The stop file appeared."""
+    """A stop file appeared."""
 
 
 @dataclass
 class Balance:
-    """Water accounts of the interior cells, m3. The boundary is sampled and integrated by the trapezoid rule."""
+    """Water accounts of the interior cells, m3."""
 
     rain: float = 0.0
     inflow: float = 0.0
     outflow: float = 0.0
     storage0: float = 0.0
     storage: float = 0.0
-    last_t: float = 0.0
-    last_q: float = 0.0
-    last_step: int = 0
 
     @property
     def error(self) -> float:
@@ -48,7 +49,7 @@ class Balance:
     @property
     def relative(self) -> float:
         """Error over the water that entered the model."""
-        scale = max(self.rain + self.inflow + max(-self.outflow, 0.0) + self.storage0, 1e-9)
+        scale = max(self.rain + self.inflow + max(-self.outflow, 0.0) + self.storage0, ZERO_WATER)
         return self.error / scale
 
 
@@ -74,22 +75,25 @@ class Monitor:
         progress: Progress,
         out: Path,
         crs,
+        stop_files: Iterable[Path] = (),
     ) -> None:
         o = cfg.outputs
         self.cfg, self.tables, self.model, self.boundary = cfg, tables, model, boundary
         self.results, self.progress, self.out = results, progress, out
         grid = tables.grid
         self.maxima = Maxima(model, o.arrival_depth, o.speed_depth)
+        self.tally = Tally(model, boundary.xfaces, boundary.xsign, boundary.yfaces, boundary.ysign)
         self.balance = Balance()
         self.stop_file = out / "stop"
+        self.stop_files = (self.stop_file, *stop_files)
         self.max_every = o.maxima_every
-        self.bal_every = cfg.run.balance_every
         self.started = time.monotonic()
         self.next_tick = self.started + o.progress_every_s
         self.next_live = self.started
         self.next_check = self.started + cfg.run.checkpoint_every_s
         self.next_series = 0.0
         self.next_map = 0.0
+        self.last_t = 0.0
         self.times: list[float] = []
         self.dt_min = np.inf
         self.checkpoint_due = False
@@ -102,7 +106,6 @@ class Monitor:
         inner = grid.mask & ~boundary.mask
         self.storage_index = np.asarray(state_index(grid, *np.nonzero(inner)), np.int64)
         idx = model.device_index
-        self.bx, self.by = idx(boundary.xfaces), idx(boundary.yfaces)
 
         self.point_cells = []
         self.series: list[Series] = []
@@ -123,6 +126,9 @@ class Monitor:
             self.lines.append((idx(faces.xfaces), faces.xsign, idx(faces.yfaces), faces.ysign))
             self.line_series.append(Series(ln.name, "lines", {"discharge_m3s": []}))
 
+    def stop_requested(self) -> bool:
+        return any(path.exists() for path in self.stop_files)
+
     def open_window(self, t0: float, t1: float, rain: float, inflow: float) -> None:
         """The source of [t0, t1] enters the accounts as the run advances through it."""
         self.window = (t0, t1, rain, inflow)
@@ -137,32 +143,10 @@ class Monitor:
         self.settled = min(t, t1)
 
     def storage(self) -> float:
-        h = self.model.backend.get_field("h")
-        return float(h[self.storage_index].sum(dtype=np.float64)) * self.tables.grid.dx**2
-
-    def boundary_flow(self) -> float:
-        """Flow out of the interior now, m3/s."""
-        b = self.boundary
-        if b.size == 0:
-            return 0.0
-        m = self.model
-        return float(
-            np.dot(m.read_cells("qx", self.bx), b.xsign) + np.dot(m.read_cells("qy", self.by), b.ysign)
-        )
-
-    def sample_balance(self, t: float, step: int) -> None:
-        """Integrate the boundary flow since the last sample.
-
-        A step's stored flow is the flow of that step, so the mean over the M steps since the last sample, taken
-        as linear in the step number, weighs the new sample (M + 1) / 2M and the old (M - 1) / 2M: exact at M = 1,
-        second order above.
-        """
-        q = self.boundary_flow()
-        bal = self.balance
-        m = step - bal.last_step
-        if m > 0:
-            bal.outflow += (t - bal.last_t) * ((m + 1) * q + (m - 1) * bal.last_q) / (2 * m)
-            bal.last_t, bal.last_q, bal.last_step = t, q, step
+        """Water in the interior cells, the rounding residual of each cell included."""
+        get = self.model.backend.get_field
+        held = get("h")[self.storage_index].astype(np.float64) + get("res")[self.storage_index]
+        return float(held.sum()) * self.tables.grid.dx**2
 
     def record(self, t: float) -> None:
         m = self.model
@@ -185,12 +169,15 @@ class Monitor:
         self.results.snapshot(t, {"depth": d, "mean_depth": m.field("h"), "speed": speed})
         self.progress.emit("output", kind="map", t=t)
 
+    def _accounts(self, t: float) -> None:
+        self.settle(t)
+        self.balance.outflow = self.tally.volume()
+        self.balance.storage = self.storage()
+
     def _tick(self, st: Stepper, now: float) -> None:
         o = self.cfg.outputs
         self.next_tick = now + o.progress_every_s
-        self.settle(st.t)
-        self.sample_balance(st.t, st.nsteps)
-        self.balance.storage = self.storage()
+        self._accounts(st.t)
         self.progress.emit(
             "step",
             t=round(st.t, 3),
@@ -201,7 +188,7 @@ class Monitor:
             mass_error=float(f"{self.balance.relative:.3e}"),
             wall=round(now - self.started, 2),
         )
-        if self.stop_file.exists():
+        if self.stop_requested():
             raise StopRequested
         if self.live is not None and now >= self.next_live:
             self.next_live = now + o.live_every_s
@@ -210,12 +197,12 @@ class Monitor:
     def on_step(self, st: Stepper) -> None:
         n = st.nsteps
         t = st.t
+        self.tally.add(t - self.last_t)
+        self.last_t = t
         if st.dt < self.dt_min:
             self.dt_min = st.dt
         if n % self.max_every == 0:
             self.maxima.update(t)
-        if n % self.bal_every == 0:
-            self.sample_balance(t, n)
         if t >= self.next_series:
             self.record(t)
             self.next_series = t + self.cfg.outputs.series_every_s
@@ -230,10 +217,8 @@ class Monitor:
             self.next_check = now + self.cfg.run.checkpoint_every_s
             self.checkpoint_due = True
 
-    def finish(self, t: float, step: int) -> None:
+    def finish(self, t: float) -> None:
         """Final samples at time t."""
-        self.settle(t)
         self.maxima.update(t)
-        self.sample_balance(t, step)
         self.record(t)
-        self.balance.storage = self.storage()
+        self._accounts(t)

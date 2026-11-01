@@ -16,6 +16,8 @@ from importlib import metadata, util
 from pathlib import Path
 
 EXIT_OK = 0
+EXIT_HMS = 2
+"""An HMS project that cannot become a job is an invalid job."""
 PACKAGES = ("numpy", "numba", "rasterio", "h5py", "shapely", "pydantic", "hecdss", "cupy")
 NVIDIA_QUERY = ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"]
 NVIDIA_TIMEOUT_S = 10
@@ -56,7 +58,7 @@ def _load(path: str):
 
 
 def _run(args: argparse.Namespace) -> int:
-    from wadi2d.run import EXIT_DONE, JobError, check_inputs, run_job
+    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError, check_inputs, run_job
 
     try:
         cfg = _load(args.job)
@@ -66,6 +68,9 @@ def _run(args: argparse.Namespace) -> int:
             check_inputs(cfg)
             print(json.dumps(as_dict(estimate(cfg, args.backend)), indent=2))
             return EXIT_DONE
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
     except JobError as error:
         print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
         return error.code
@@ -87,7 +92,11 @@ def _arf(args: argparse.Namespace) -> int:
 def _hms_import(args: argparse.Namespace) -> int:
     from wadi2d.engine.hms_import import write_job
 
-    write_job(Path(args.hms_dir), args.basin, args.met, args.control, Path(args.out))
+    try:
+        write_job(Path(args.hms_dir), args.basin, args.met, args.control, Path(args.out))
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_HMS, "message": str(error)}), file=sys.stderr)
+        return EXIT_HMS
     return EXIT_OK
 
 

@@ -1,9 +1,12 @@
-"""Running maxima on the device: one small kernel over the active tiles, a Numba twin for the CPU.
+"""What the run accumulates on the device: maxima and the boundary flow. Small kernels, a Numba twin for the CPU.
 
 Depth is the level above a cell's lowest point; mean depth is ``V / dx^2``; speed is taken at the cell centre from
 the four face velocities, only above ``speed_depth``, because a thin film's velocity means nothing. Hazard is
 depth x speed. Arrival is the first time the depth reaches ``arrival_depth``. The arrays are tile-major like the
 state, so the cost is one launch and no transfer until the end.
+
+The boundary flow is summed every step, in double precision. A sample every few steps aliases a flow that changes
+from one step to the next, and the water balance then reports an error the run does not have.
 """
 
 from __future__ import annotations
@@ -19,8 +22,10 @@ from wadi2d.solver.state import from_state
 
 NAMES = ("depth", "mean_depth", "speed", "hazard", "arrival")
 NOT_ARRIVED = -1.0
+TALLY_BLOCK = 256
+"""Threads per block of the boundary tally, the size the solver's boundary kernel uses."""
 
-_KERNEL = """
+_KERNELS = """
 extern "C" __global__ void maxima(const int* __restrict__ active, const float time, const float arrive,
                                   const float deep, const float* __restrict__ d, const float* __restrict__ h,
                                   const float* __restrict__ u, const float* __restrict__ v,
@@ -44,7 +49,27 @@ extern "C" __global__ void maxima(const int* __restrict__ active, const float ti
         if (tarr[k] < 0.0f && dk >= arrive) tarr[k] = time;
     }
 }
+
+// One thread per face, each adding to its own total: no atomics, and the cost of the boundary kernel.
+extern "C" __global__ void tally(const int n, const double dt, const int* __restrict__ face,
+                                 const int* __restrict__ axis, const float* __restrict__ sign,
+                                 const float* __restrict__ qx, const float* __restrict__ qy,
+                                 double* __restrict__ total) {
+    const int m = blockIdx.x * blockDim.x + threadIdx.x;
+    if (m >= n) return;
+    const float q = axis[m] ? qy[face[m]] : qx[face[m]];
+    total[m] += dt * (double)(sign[m] * q);
+}
 """
+
+
+def _module(cp):
+    """The compiled kernels; CuPy keeps the binary on disk, so this costs a run once."""
+    head = "".join(
+        f"#define {n} {getattr(layout, n)}\n" for n in ("TILE", "HALO", "STRIDE", "STRIDE2", "TILE2")
+    )
+    head += f"#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
+    return cp.RawModule(code=head + _KERNELS, options=("-std=c++17", "--use_fast_math"))
 
 
 @njit(parallel=True)
@@ -67,6 +92,14 @@ def _update_cpu(active, time, arrive, deep, d, h, u, v, dmax, hmax, smax, zmax, 
                     tarr[k] = time
 
 
+@njit
+def _tally_cpu(face, axis, sign, qx, qy):
+    total = 0.0
+    for m in range(face.size):
+        total += float(sign[m]) * float(qy[face[m]] if axis[m] else qx[face[m]])
+    return total
+
+
 class Maxima:
     """Owns the five arrays on the backend's side."""
 
@@ -80,14 +113,7 @@ class Maxima:
         xp = np if self.cp is None else self.cp
         self.arrays = [xp.zeros(n, xp.float32) for _ in NAMES]
         self.arrays[-1][:] = NOT_ARRIVED
-        self.kernel = None
-        if self.cp is not None:
-            head = "".join(
-                f"#define {n} {getattr(layout, n)}\n" for n in ("TILE", "HALO", "STRIDE", "STRIDE2", "TILE2")
-            )
-            head += f"#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
-            module = self.cp.RawModule(code=head + _KERNEL, options=("-std=c++17", "--use_fast_math"))
-            self.kernel = module.get_function("maxima")
+        self.kernel = None if self.cp is None else _module(self.cp).get_function("maxima")
 
     def update(self, t: float) -> None:
         b = self.backend
@@ -118,3 +144,49 @@ class Maxima:
         """(ny, nx) grids by name."""
         self.backend.synchronize()
         return {n: from_state(self.model.grid, a) for n, a in self.raw().items()}
+
+
+class Tally:
+    """Volume through a set of faces, m3, summed every step; positive along the given signs."""
+
+    def __init__(
+        self, model: Model, xfaces: np.ndarray, xsign: np.ndarray, yfaces: np.ndarray, ysign: np.ndarray
+    ) -> None:
+        self.backend = model.backend
+        self.cp = getattr(self.backend, "cp", None)
+        face = np.concatenate((xfaces, yfaces)).astype(np.int32)
+        axis = np.concatenate((np.zeros(xfaces.size), np.ones(yfaces.size))).astype(np.int32)
+        sign = np.concatenate((xsign, ysign)).astype(np.float32)
+        self.n = int(face.size)
+        self.held = 0.0
+        self.arrays = (face, axis, sign)
+        if self.cp is None or self.n == 0:
+            return
+        cp = self.cp
+        self.arrays = (cp.asarray(face), cp.asarray(axis), cp.asarray(sign))
+        self.total = cp.zeros(self.n, cp.float64)
+        self.kernel = _module(cp).get_function("tally")
+        self.blocks = ((self.n + TALLY_BLOCK - 1) // TALLY_BLOCK,)
+
+    def add(self, dt: float) -> None:
+        if self.n == 0:
+            return
+        b = self.backend
+        face, axis, sign = self.arrays
+        if self.cp is None:
+            self.held += dt * _tally_cpu(face, axis, sign, b.qx, b.qy)
+            return
+        self.kernel(
+            self.blocks, (TALLY_BLOCK,),
+            (self.n, self.cp.float64(dt), face, axis, sign, b.qx, b.qy, self.total),
+        )  # fmt: skip
+
+    def volume(self) -> float:
+        if self.cp is None or self.n == 0:
+            return self.held
+        return self.held + float(self.total.sum())
+
+    def restore(self, value: float) -> None:
+        self.held = value
+        if self.cp is not None and self.n:
+            self.total[:] = 0.0

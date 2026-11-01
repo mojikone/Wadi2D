@@ -167,7 +167,7 @@ def test_lumped_polygon_masks_the_rain_and_hydrograph_enters(tmp_path):
             "subbasins": [{"name": "West", "mode": "lumped"}],
             "inflows": [
                 {
-                    "name": "q",
+                    "name": "West",
                     "x": X0 + 100.0,
                     "y": Y0 - 60.0,
                     "times_s": [0.0, 1200.0],
@@ -272,7 +272,7 @@ def test_stop_file_ends_the_run_with_exit_6_and_resume_finishes_it(valley_dem, t
         time.sleep(0.3)
         (out / "stop").touch()
 
-    thread = threading.Thread(target=stop_soon)
+    thread = threading.Thread(target=stop_soon, daemon=True)
     thread.start()
     summary = run_job(cfg, out)
     thread.join()

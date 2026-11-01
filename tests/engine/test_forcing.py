@@ -20,12 +20,11 @@ def test_injection_goes_to_the_lowest_cell_while_dry_then_with_depth():
 
 
 def test_injection_mean_flow_keeps_the_volume():
-    inj = Injection(
-        "q", np.arange(1), None, 0, np.array([0.0, 100.0, 200.0]), np.array([0.0, 50.0, 200.0]), 0.1
-    )
+    inj = Injection("q", np.arange(1), None, 0, np.array([0.0, 100.0, 200.0]), np.array([0.0, 1.0, 2.0]), 0.1)
     assert inj.mean_flow(0.0, 100.0) == pytest.approx(0.5)
     assert inj.mean_flow(100.0, 200.0) == pytest.approx(1.5)
     assert inj.mean_flow(200.0, 300.0) == 0.0
+    assert inj.mean_flow(-50.0, 0.0) == 0.0
 
 
 def test_storm_builders():

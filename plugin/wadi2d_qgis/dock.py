@@ -17,7 +17,16 @@ from qgis.PyQt.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, Q
 
 from . import settings
 from .engine_process import EngineQuery, EngineRun
-from .job_builder import SchemaView, build_job, hms_import_args, merge_hms, notes, problems, write_job
+from .job_builder import (
+    SchemaView,
+    build_job,
+    hms_import_args,
+    merge_hms,
+    merge_notes,
+    notes,
+    problems,
+    write_job,
+)
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker
 from .progress import run_is_live
 from .protocol import (
@@ -162,7 +171,10 @@ class Wadi2DDock(QgsDockWidget):
                 self._job_failed(f"The HMS project could not be read. {engine_error_text(err)}")
                 return
             data = json.loads(imported.read_text(encoding="utf-8"))
-            then(write_job(merge_hms(job, data, hms), out))
+            complete = merge_hms(job, data, hms)
+            for note in merge_notes(job, complete):
+                self.panel.say(note, "note")
+            then(write_job(complete, out))
 
         self._query = EngineQuery(settings.engine_text(), self)
         self._query.done.connect(merged)
