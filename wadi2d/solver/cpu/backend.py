@@ -49,12 +49,15 @@ class CpuBackend:
             f(num.e_wet),
             f(num.h_cfl),
             f(num.u_max),
+            f(num.lead),
+            f(num.a_min),
             num.second,
             num.sheet,
         )
 
     def set_active(self, active: np.ndarray) -> None:
         self.active = active.astype(np.int32)
+        self.active_tiles = self.active
         self.nact = int(active.size)
 
     def set_field(self, name: str, a: np.ndarray) -> None:
@@ -71,9 +74,11 @@ class CpuBackend:
             kernels.exchange(self.active, self.slot, self.src_map, self.nhalo, a)
 
     def step(self, dt: float, want_wave: bool, want_wet: bool) -> None:
+        if self.nact == 0:
+            return
         dtf = np.float32(dt)
         kernels.faces(
-            self.active, dtf, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
+            self.active, dtf, want_wave, self.om, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
             *self.static_x, self.ftabx, *self.static_y, self.ftaby,
             self.u1, self.v1, self.mx1, self.my1, self.qx1, self.qy1, self.wave, *self._args,
         )  # fmt: skip
@@ -81,13 +86,15 @@ class CpuBackend:
         kernels.limit(self.active, dtf, self.h, self.qx1, self.qy1, self.r, np.float32(self.num.dx))
         self._exch(self.r)
         kernels.update(
-            self.active, dtf, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab, self.h, self.d, self.qx,
+            self.active, dtf, want_wave, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab, self.h, self.d, self.qx,
             self.qy, self.wet, self.rows, np.float32(self.num.dx),
         )  # fmt: skip
         if self.bc.cell.size:
             b = self.bc
             kernels.boundary(b.cell, b.ref, b.kind, b.d0, b.h0, self.h, self.d)
         self._exch(self.h, self.d, self.qx, self.qy)
+        if want_wave:
+            self._exch(self.om)
         self.u, self.u1 = self.u1, self.u
         self.v, self.v1 = self.v1, self.v
         self.mx, self.mx1 = self.mx1, self.mx

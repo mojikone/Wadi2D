@@ -38,8 +38,19 @@ def cell_level(hb, hc, tab, rows):
     if hb >= hc:
         return tab[last] + (hb - hc)
     s = F(np.sqrt(hb / hc)) * F(last)
-    r = int(s)
+    r = min(int(s), last - 1)
     return tab[r] + (s - F(r)) * (tab[r + 1] - tab[r])
+
+
+@njit(inline="always")
+def cell_plan(hb, hc, tab, rows):
+    if hc <= ZERO or hb >= hc:
+        return ONE
+    last = rows - 1
+    s = F(np.sqrt(hb / hc)) * F(last)
+    r = min(int(s), last - 1)
+    m = F(last)
+    return hc * F(2 * r + 1) / (m * m) / max(tab[r + 1] - tab[r], F(1e-12))
 
 
 @njit(inline="always")
@@ -54,7 +65,7 @@ def face_lookup(e, top, tab, rows):
         area = a1 + w * (e - top)
         return area, tab[2 * last + 1] * (area / max(a1, F(1e-12))), w
     s = F(np.sqrt(e / top)) * m
-    r = int(s)
+    r = min(int(s), last - 1)
     c0 = F(r) / m
     c1 = F(r + 1) / m
     e0 = c0 * c0 * top
@@ -68,8 +79,8 @@ def face_lookup(e, top, tab, rows):
 
 @njit
 def face_step(
-    k, fid, dt, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet, h_cfl, u_max,
-    second, sheet,
+    k, fid, dt, want_wave, om, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet,
+    h_cfl, u_max, lead, a_min, second, sheet,
 ):  # fmt: skip
     """One face: s is the array step along the normal, p across it. Returns the wave speed."""
     e_l = d[k - s] - fl[fid]
@@ -97,7 +108,7 @@ def face_step(
         avol = hup * dx
         edown = e_rp if from_left else e_lp
         if avol < area:
-            sub = min(edown / eup, ONE)
+            sub = min(e_lp, e_rp) / max(e_lp, e_rp)
             sub2 = sub * sub
             alpha = sub2 * sub2
             rho = alpha + (ONE - alpha) * avol / area
@@ -158,14 +169,27 @@ def face_step(
     u1[k] = un
     m1[k] = abar * un
     q1[k] = qn
-    dup = d[k - s] if from_left else d[k]
-    return abs(un) + F(np.sqrt(g * dup)) if dup > h_cfl else ZERO
+    if not want_wave:
+        return ZERO
+    if not np.isfinite(un):
+        return F(1e30)
+    d_left = d[k - s]
+    d_right = d[k]
+    dup = d_left if from_left else d_right
+    if dup <= h_cfl:
+        return ZERO
+    plan = om[k - s] if from_left else om[k]
+    dother = d_right if from_left else d_left
+    if dother > h_cfl:
+        plan = min(plan, om[k] if from_left else om[k - s])
+    c2 = g * area * rho / (max(plan, a_min) * dx)
+    return abs(un) + lead * abs(un - uf) + F(np.sqrt(max(c2, ZERO)))
 
 
 @njit(parallel=True)
 def faces(
-    active, dt, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy, cwy, ftaby,
-    u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+    active, dt, want_wave, om, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
+    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
 ):  # fmt: skip
     for a in prange(active.size):
         t = active[a]
@@ -175,15 +199,16 @@ def faces(
                 k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
                 fid = t * TILE2 + j * TILE + i
                 wx = face_step(
-                    k, fid, dt, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx, u1, mx1, qx1,
-                    rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+                    k, fid, dt, want_wave, om, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
                 )  # fmt: skip
                 wy = face_step(
-                    k, fid, dt, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby, v1, my1, qy1,
-                    rows, g, dx, e_wet, h_cfl, u_max, second, sheet,
+                    k, fid, dt, want_wave, om, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
                 )  # fmt: skip
                 w = max(w, max(wx, wy))
-        wave[t] = w
+        if want_wave:
+            wave[t] = w
 
 
 @njit(parallel=True)
@@ -210,7 +235,7 @@ def scaled(q, rl, rr):
 
 
 @njit(parallel=True)
-def update(active, dt, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
+def update(active, dt, want_plan, res, om, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
     area = dx * dx
     for a in prange(active.size):
         t = active[a]
@@ -226,9 +251,16 @@ def update(active, dt, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
                 qs = scaled(qy1[k + STRIDE], rc, r[k + STRIDE])
                 qx[k] = qw
                 qy[k] = qn
-                hn = max(h[k] - dt * (qe - qw + qs - qn) / area + dt * src[k], ZERO)
+                h0 = h[k]
+                inc = res[k] + dt * src[k] - dt * (qe - qw + qs - qn) / area
+                total = h0 + inc
+                hn = max(total, ZERO)
+                res[k] = inc - (total - h0) if total > ZERO else ZERO
                 h[k] = hn
-                d[k] = cell_level(hn, hc[fid], dtab[rows * fid : rows * (fid + 1)], rows)
+                tab = dtab[rows * fid : rows * (fid + 1)]
+                d[k] = cell_level(hn, hc[fid], tab, rows)
+                if want_plan:
+                    om[k] = cell_plan(hn, hc[fid], tab, rows)
                 if hn > ZERO:
                     any_wet = 1
         wet[t] = any_wet

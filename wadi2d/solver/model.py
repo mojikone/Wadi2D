@@ -7,7 +7,7 @@ import numpy as np
 from wadi2d.config.schema import Numerics
 from wadi2d.solver.backend import BoundaryCells, NumericsRecord, select_backend
 from wadi2d.solver.layout import HALO, STRIDE, STRIDE2, TILE, local_index
-from wadi2d.solver.state import HostState, from_state, level_field
+from wadi2d.solver.state import HostState, from_state, level_field, plan_field
 from wadi2d.solver.stepper import Stepper
 from wadi2d.tables.builder import GridTables
 
@@ -29,6 +29,7 @@ class Model:
         d = level_field(self.tables, h)
         self.backend.set_field("h", self.host.to_state(h))
         self.backend.set_field("d", self.host.to_state(d))
+        self.backend.set_field("om", self.host.to_state(plan_field(self.tables, h)))
         self.stepper.backend.wet[:] = self._tile_wet(h)
         self.stepper.rebuild_active()
 
@@ -70,7 +71,8 @@ class Model:
             tj, ti = grid.tiles[t]
             keep[t] = bool(np.any(rate[tj * TILE : (tj + 1) * TILE, ti * TILE : (ti + 1) * TILE] != 0.0))
         keep[self.boundary_tiles] = True
-        self.stepper.rebuild_active()
+        self.stepper.rebuild_active(retain=True)
+        self.stepper.refresh_due = True
 
     def set_source_cells(self, cells: np.ndarray, rate: np.ndarray) -> None:
         """The fast form of ``set_source``: ``rate`` per entry of ``cells``, state indices of own cells."""
@@ -81,7 +83,8 @@ class Model:
         keep[:] = False
         keep[cells[rate != 0.0] // STRIDE2] = True
         keep[self.boundary_tiles] = True
-        self.stepper.rebuild_active()
+        self.stepper.rebuild_active(retain=True)
+        self.stepper.refresh_due = True
 
     def device_index(self, index: np.ndarray):
         """State indices in the form ``read_cells`` takes."""
@@ -98,7 +101,7 @@ class Model:
         self.backend.set_boundary(bc)
         self.boundary_tiles = np.unique(bc.cell // STRIDE2)
         self.stepper.keep_active[self.boundary_tiles] = True
-        self.stepper.rebuild_active()
+        self.stepper.rebuild_active(retain=True)
 
     def advance(self, t_end: float, on_step=None) -> float:
         return self.stepper.advance(t_end, on_step)

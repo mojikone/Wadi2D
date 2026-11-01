@@ -36,8 +36,11 @@ def _plane_model(slope, dx, k, n, length, backend, num):
     cells = [m.cell_state_index(j + 1, nx) for j in range(ny)]
     m.set_boundary(
         BoundaryCells(
-            np.array(cells, np.int32), np.zeros(ny, np.int32), np.ones(ny, np.int32),
-            np.zeros(ny, np.float32), np.zeros(ny, np.float32),
+            np.array(cells, np.int32),
+            np.zeros(ny, np.int32),
+            np.ones(ny, np.int32),
+            np.zeros(ny, np.float32),
+            np.zeros(ny, np.float32),
         )
     )
     return m, i, nx, ny
@@ -76,8 +79,11 @@ def test_thin_crest_passes_critical_flow(backend):
     cells = [m.cell_state_index(j + 1, c) for j in range(ny) for c in (1, 2, 3)]
     m.set_boundary(
         BoundaryCells(
-            np.array(cells, np.int32), np.zeros(n_b, np.int32), np.zeros(n_b, np.int32),
-            np.full(n_b, crest + head, np.float32), np.full(n_b, crest + head, np.float32),
+            np.array(cells, np.int32),
+            np.zeros(n_b, np.int32),
+            np.zeros(n_b, np.int32),
+            np.full(n_b, crest + head, np.float32),
+            np.full(n_b, crest + head, np.float32),
         )
     )
     m.advance(300.0)
@@ -99,7 +105,9 @@ def test_cpu_gpu_parity_on_a_rough_dam_break():
     h0[:, :30] = 2.0
     out = {}
     for name in ("cpu", "gpu"):
-        m = Model(tables, Numerics(dt_every=1), name)
+        m = Model(
+            tables, Numerics(dt_every=1, dt_max=0.2), name
+        )  # a fixed step, so the kernels alone are compared
         m.set_depth(h0)
         m.advance(60.0)
         out[name] = (m.field("h"), m.field("qx"), m.stepper.nsteps)

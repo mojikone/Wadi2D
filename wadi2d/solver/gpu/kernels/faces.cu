@@ -6,7 +6,7 @@
 
 template <int S, int Q_P>
 __device__ __forceinline__ float face_step(
-    const int k, const int id, const float dt,
+    const int k, const int id, const float dt, const int want_wave, const float* __restrict__ om,
     const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ m, const float* __restrict__ q, const float* __restrict__ qp,
     const float* __restrict__ vp, const float* __restrict__ fl, const float* __restrict__ fr,
@@ -41,7 +41,8 @@ __device__ __forceinline__ float face_step(
         const float Avol = hup * dx;
         const float edown = from_left ? eRp : eLp;
         if (Avol < A) {
-            const float s = fminf(edown / eup, 1.0f);
+            // steered by the level drop alone: flow against the gradient must not reopen the section
+            const float s = fminf(eLp, eRp) / fmaxf(eLp, eRp);
             const float s2 = s * s;
             const float alpha = s2 * s2;
             rho = alpha + (1.0f - alpha) * Avol / A;
@@ -103,12 +104,23 @@ __device__ __forceinline__ float face_step(
     u1[k] = un;
     m1[k] = Abar * un;
     q1[k] = qn;
-    const float dup = from_left ? d[k - S] : d[k];
-    return dup > P.h_cfl ? fabsf(un) + sqrtf(P.g * dup) : 0.0f;
+    if (!want_wave) return 0.0f;
+    if (not_finite(un)) return 1e30f;
+    // wave speed for the next refresh: the storage behind the face sets the gravity wave, and the velocity is
+    // carried forward over the steps until then
+    const float dL = d[k - S];
+    const float dR = d[k];
+    const float dup = from_left ? dL : dR;
+    if (dup <= P.h_cfl) return 0.0f;
+    float plan = from_left ? om[k - S] : om[k];
+    const float dother = from_left ? dR : dL;
+    if (dother > P.h_cfl) plan = fminf(plan, from_left ? om[k] : om[k - S]);
+    const float c2 = P.g * A * rho / (fmaxf(plan, P.a_min) * dx);
+    return fabsf(un) + P.lead * fabsf(un - uf) + sqrtf(fmaxf(c2, 0.0f));
 }
 
 extern "C" __global__ void faces(
-    const int* __restrict__ active, const float dt, const int want_wave,
+    const int* __restrict__ active, const float dt, const int want_wave, const float* __restrict__ om,
     const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ v, const float* __restrict__ mx, const float* __restrict__ my,
     const float* __restrict__ qx, const float* __restrict__ qy,
@@ -127,9 +139,9 @@ extern "C" __global__ void faces(
         const int j = threadIdx.y * CELLS_PER_THREAD + r;
         const int k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO;
         const int id = t * TILE2 + j * TILE + i;
-        const float wx = face_step<1, STRIDE>(k, id, dt, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        const float wx = face_step<1, STRIDE>(k, id, dt, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                               u1, mx1, qx1);
-        const float wy = face_step<STRIDE, 1>(k, id, dt, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        const float wy = face_step<STRIDE, 1>(k, id, dt, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                               v1, my1, qy1);
         w = fmaxf(w, fmaxf(wx, wy));
     }

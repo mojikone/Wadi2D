@@ -105,8 +105,17 @@ class Numerics(_Part):
     dt_max: float = Field(5.0, ge=1e-3, le=600.0, description="Largest step, s")
     dt_min: float = Field(1e-3, ge=1e-6, le=1.0, description="Below it the run stops and names the cell, s")
     dt_every: int = Field(8, ge=1, le=64, description="Steps between time-step reductions")
+    wave_floor: float = Field(
+        3.0,
+        ge=0.1,
+        le=30.0,
+        description="Least wave speed in the step rule, so dry ground gets no long step, m/s",
+    )
+    plan_min: float = Field(
+        0.02, ge=1e-4, le=1.0, description="Least wet share of a cell plan in the wave speed"
+    )
     active_every: int = Field(
-        16, ge=1, le=64, description="Steps between active-tile rebuilds; must stay under the tile size"
+        16, ge=1, le=32, description="Steps between active-tile rebuilds; at most the tile size"
     )
 
 

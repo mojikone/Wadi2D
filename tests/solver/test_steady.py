@@ -78,5 +78,3 @@ def test_macdonald(variant, limit):
     err = np.sqrt(np.mean((s.h[1, 2:-2] - exact.h[1, 2:-2]) ** 2))
     assert err < limit
     assert s.qx[1, 2:-2] == pytest.approx(case.solution.q, rel=0.02)
-
-

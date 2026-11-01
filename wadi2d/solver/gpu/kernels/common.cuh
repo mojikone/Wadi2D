@@ -8,6 +8,8 @@ struct Params {
     float e_wet;
     float h_cfl;
     float u_max;
+    float lead;
+    float a_min;
     int rows;
     int second;
     int sheet;
@@ -32,8 +34,23 @@ __device__ __forceinline__ float cell_level(const float hb, const float Hc, cons
     const int last = P.rows - 1;
     if (hb >= Hc) return tab[last] + (hb - Hc);
     const float s = sqrtf(hb / Hc) * (float)last;
-    const int r = (int)s;
+    const int r = min((int)s, last - 1);
     return tab[r] + (s - (float)r) * (tab[r + 1] - tab[r]);
+}
+
+// Wet share of the cell plan: the slope of hbar against level, the cell's storage per unit of level.
+__device__ __forceinline__ float cell_plan(const float hb, const float Hc, const float* __restrict__ tab) {
+    if (Hc <= 0.0f || hb >= Hc) return 1.0f;
+    const int last = P.rows - 1;
+    const float s = sqrtf(hb / Hc) * (float)last;
+    const int r = min((int)s, last - 1);
+    const float m = (float)last;
+    return Hc * (float)(2 * r + 1) / (m * m) / fmaxf(tab[r + 1] - tab[r], 1e-12f);
+}
+
+// True for an infinity or a NaN; a bit test, because fast math may fold a comparison.
+__device__ __forceinline__ bool not_finite(const float v) {
+    return (*reinterpret_cast<const int*>(&v) & 0x7f800000) == 0x7f800000;
 }
 
 // Area A, conveyance^(3/5) T and wet width W at depth e over the face invert. Prismatic above the table top.
@@ -51,7 +68,7 @@ __device__ __forceinline__ void face_lookup(const float e, const float E, const 
         return;
     }
     const float s = sqrtf(e / E) * m;
-    const int r = (int)s;
+    const int r = min((int)s, last - 1);
     const float c0 = (float)r / m;
     const float c1 = (float)(r + 1) / m;
     const float e0 = c0 * c0 * E;

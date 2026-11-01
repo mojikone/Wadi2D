@@ -113,3 +113,19 @@ def level_field(tables: GridTables, h: np.ndarray) -> np.ndarray:
     t = dtab[mid]
     out[mid] = t[idx, r] + (s - r) * (t[idx, r + 1] - t[idx, r])
     return out
+
+
+def plan_field(tables: GridTables, h: np.ndarray) -> np.ndarray:
+    """Wet share of the cell plan for a (ny, nx) mean depth; what the kernels call ``om``."""
+    grid = tables.grid
+    hc = grid.from_tiles(tables.hc)
+    dtab = grid.from_tiles(tables.dtab)
+    last = dtab.shape[-1] - 1
+    out = np.ones(h.shape, np.float64)
+    mid = (hc > 0.0) & (h < hc)
+    s = np.sqrt(h[mid] / hc[mid]) * last
+    r = np.minimum(s.astype(int), last - 1)
+    idx = np.arange(r.size)
+    t = dtab[mid]
+    out[mid] = hc[mid] * (2 * r + 1) / last**2 / np.maximum(t[idx, r + 1] - t[idx, r], 1e-12)
+    return out

@@ -46,9 +46,9 @@ class GpuBackend:
         self._exchange = self.module.get_function("exchange")
         self._boundary = self.module.get_function("boundary")
         record = np.array(
-            [(num.g, num.dx, num.e_wet, num.h_cfl, num.u_max, tables.rows, int(num.second), int(num.sheet))],
+            [(num.g, num.dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, tables.rows, int(num.second), int(num.sheet))],
             dtype=np.dtype(
-                [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"),
+                [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
                  ("rows", "i4"), ("second", "i4"), ("sheet", "i4")]
             ),
         )  # fmt: skip
@@ -81,7 +81,8 @@ class GpuBackend:
         self.set_active(np.arange(1, self.grid.ntiles, dtype=np.int32))
 
     def set_active(self, active: np.ndarray) -> None:
-        self.active = self.cp.asarray(active.astype(np.int32))
+        self.active_tiles = active.astype(np.int32)
+        self.active = self.cp.asarray(self.active_tiles)
         self.nact = int(active.size)
 
     def set_field(self, name: str, a: np.ndarray) -> None:
@@ -108,9 +109,11 @@ class GpuBackend:
         grid = (self.nact, 1)
         if want_wave:
             self.wave[:] = 0.0
+        if self.nact == 0:
+            return
         self._faces(
             grid, BLOCK,
-            (self.active, dtf, int(want_wave), self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
+            (self.active, dtf, int(want_wave), self.om, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
              *self.static_x, self.ftabx, *self.static_y, self.ftaby,
              self.u1, self.v1, self.mx1, self.my1, self.qx1, self.qy1, self.wave),
         )  # fmt: skip
@@ -121,13 +124,15 @@ class GpuBackend:
             self.wet[:] = 0
         self._update(
             grid, BLOCK,
-            (self.active, dtf, int(want_wet), self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab,
+            (self.active, dtf, int(want_wet), int(want_wave), self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab,
              self.h, self.d, self.qx, self.qy, self.wet),
         )  # fmt: skip
         if self.bc is not None and self.bc.cell.size:
             n = self.bc.cell.size
             self._boundary(((n + 255) // 256,), (256,), (n, *self.bc_arrays, self.h, self.d))
         self._exch(self.h, self.d, self.qx, self.qy)
+        if want_wave:
+            self._exch(self.om)
         self.u, self.u1 = self.u1, self.u
         self.v, self.v1 = self.v1, self.v
         self.mx, self.mx1 = self.mx1, self.mx

@@ -22,7 +22,10 @@ __device__ __forceinline__ float scaled(const float q, const float rl, const flo
     return q * (q > 0.0f ? rl : rr);
 }
 
+// The depth keeps a compensated residual: an increment smaller than the rounding of a deep cell is carried to the
+// next step, not lost, so rain on a reservoir is stored in full.
 extern "C" __global__ void update(const int* __restrict__ active, const float dt, const int want_wet,
+                                  const int want_plan, float* __restrict__ res, float* __restrict__ om,
                                   const float* __restrict__ qx1, const float* __restrict__ qy1,
                                   const float* __restrict__ r, const float* __restrict__ src,
                                   const float* __restrict__ Hc, const float* __restrict__ dtab,
@@ -43,9 +46,15 @@ extern "C" __global__ void update(const int* __restrict__ active, const float dt
         const float qs = scaled(qy1[k + STRIDE], rc, r[k + STRIDE]);
         qx[k] = qw;
         qy[k] = qn;
-        const float hn = fmaxf(h[k] - dt * (qe - qw + qs - qn) / area + dt * src[k], 0.0f);
+        const float h0 = h[k];
+        const float inc = res[k] + dt * src[k] - dt * (qe - qw + qs - qn) / area;
+        const float sum = h0 + inc;
+        const float hn = fmaxf(sum, 0.0f);
+        const float kept = sum - h0;
+        res[k] = sum > 0.0f ? inc - kept : 0.0f;
         h[k] = hn;
         d[k] = cell_level(hn, Hc[id], dtab + P.rows * id);
+        if (want_plan) om[k] = cell_plan(hn, Hc[id], dtab + P.rows * id);
         any |= hn > 0.0f;
     }
     if (want_wet && any) wet[t] = 1;

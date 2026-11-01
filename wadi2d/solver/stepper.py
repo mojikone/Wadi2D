@@ -28,14 +28,22 @@ class Stepper:
     def __post_init__(self) -> None:
         self.adaptive_active = True
         self.keep_active = np.zeros(self.grid.ntiles, bool)
+        self.refresh_due = True
+        self.dt = self.num.cfl * self.grid.dx / self.num.wave_floor
         """Tiles that stay active whatever the water does: sources and boundaries."""
 
-    def rebuild_active(self) -> None:
-        """Active: a wet tile, a tile with a source, and all their neighbours; water moves under a cell per step."""
+    def rebuild_active(self, retain: bool = False) -> None:
+        """Active: a wet tile, a tile with a source, and all their neighbours; water moves under a cell per step.
+
+        ``retain`` keeps the tiles already active: the wet flags may be old, and only a step that has just written
+        them may drop a tile. Without this a tile can leave the list with water in it.
+        """
         wet = self.backend.wet_flags().astype(bool) | self.keep_active
         wet[0] = False
         act = wet.copy()
         act[self.grid.nbr[wet].ravel()] = True
+        if retain:
+            act[self.backend.active_tiles] = True
         act[0] = False
         self.backend.set_active(np.nonzero(act)[0].astype(np.int32))
 
@@ -45,7 +53,8 @@ class Stepper:
         num = self.num
         dx = self.grid.dx
         while self.t < t_end - 1e-9:
-            refresh = self.nsteps % num.dt_every == 0
+            refresh = self.refresh_due or self.nsteps % num.dt_every == 0
+            self.refresh_due = False
             activate = self.nsteps % num.active_every == 0
             dt = min(self.dt, t_end - self.t, num.dt_max)
             b.step(dt, refresh, activate)
@@ -55,7 +64,7 @@ class Stepper:
                 w = b.max_wave()
                 if not np.isfinite(w):
                     raise NumericalFailure(f"non-finite wave speed at t = {self.t:.3f} s")
-                self.dt = min(num.cfl * dx / max(w, 1e-3), num.dt_max)
+                self.dt = min(num.cfl * dx / max(w, num.wave_floor), num.dt_max)
                 if self.dt < num.dt_min:
                     raise NumericalFailure(
                         f"time step {self.dt:.2e} s below the minimum at t = {self.t:.3f} s"

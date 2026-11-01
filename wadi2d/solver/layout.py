@@ -25,8 +25,8 @@ TILE2 = TILE * TILE
 STATE_ARRAYS = ("h", "d", "u", "v", "mx", "my", "qx", "qy")
 """Mean depth, level above zmin, face velocities, face momenta, face discharges."""
 
-WORK_ARRAYS = ("u1", "v1", "mx1", "my1", "qx1", "qy1", "r", "src")
-"""Next face state, positivity ratio, net source rate (m/s)."""
+WORK_ARRAYS = ("u1", "v1", "mx1", "my1", "qx1", "qy1", "r", "src", "res", "om")
+"""Next face state, positivity ratio, net source rate (m/s), depth residual, wet share of the cell plan."""
 
 CELL_ARRAYS = ("Hc", "dtab")
 """Top of the hbar axis per cell, level table per cell (rows)."""
