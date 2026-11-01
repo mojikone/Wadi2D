@@ -1,0 +1,5 @@
+grammar_test,HEC-RAS 6.6 September 2024,SWE-EM,4,0,2.6,00:00:00,Unsteady Finished Successfully,0.16227
+ras_20m_n050_em,HEC-RAS 6.6 September 2024,SWE-EM,8,0,724.4,00:11:40,Unsteady Finished Successfully,0.01625
+ras_10m_n050_em,HEC-RAS 6.6 September 2024,SWE-EM,8,0,6996.7,01:55:24,Unsteady Finished Successfully,0.01113
+ras_20m_n100_em,HEC-RAS 6.6 September 2024,SWE-EM,8,0,516.7,00:08:12,Unsteady Finished Successfully,0.01832
+ras_20m_n050_elm,HEC-RAS 6.6 September 2024,SWE-ELM,8,0,691.3,00:11:07,Unsteady Finished Successfully,0.03349

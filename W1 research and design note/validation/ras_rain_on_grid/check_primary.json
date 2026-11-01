@@ -1,0 +1,28 @@
+{
+ "20m_n050_em": {
+  "ras_outlet_peak": 652.3433837890625,
+  "ras_outlet_t_h": 12.350000000000492,
+  "ras_outlet_volume_series": 3530043.7766270316,
+  "ras_outlet_volume_accounting": 3529917.236328125,
+  "wadi_outflow_m3": 3560368.491243458
+ },
+ "10m_n050_em": {
+  "ras_outlet_peak": 644.2013549804688,
+  "ras_outlet_t_h": 12.383333333332551,
+  "ras_outlet_volume_series": 3544534.1016445626,
+  "ras_outlet_volume_accounting": 3544601.5625,
+  "wadi_outflow_m3": 3557341.4045373504
+ },
+ "w20m_no_sheet": {
+  "peak": 677.734,
+  "t_h": 12.225,
+  "ratio_to_ras": 1.0792317031690823,
+  "nse": 0.9576345828906007
+ },
+ "w10m_no_sheet": {
+  "peak": 657.397,
+  "t_h": 12.275,
+  "ratio_to_ras": 1.0570329389681528,
+  "nse": 0.97718418943937
+ }
+}

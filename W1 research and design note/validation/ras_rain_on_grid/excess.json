@@ -1,0 +1,25 @@
+{
+ "storm_depth_mm": 205.4,
+ "storm_area_km2": 20.971,
+ "rain_after_arf_mm": 200.25101226,
+ "arf": 0.9749319000000001,
+ "curve_number": 87.6,
+ "initial_abstraction_mm": 7.2,
+ "lag_min": 53.3,
+ "excess_mm": 162.7415835859133,
+ "excess_ratio": 0.8126879447411454,
+ "first_excess_h": 3.25,
+ "peak_5min_mm": 15.58820613330834,
+ "peak_step_end_h": 11.833333333333334,
+ "hms_equiv_peak": 362.371236974486,
+ "hms_equiv_t_h": 12.75,
+ "hms_equiv_volume_m3": 3412853.7493801876,
+ "lumped_bidah_peak": 362.371236974486,
+ "hms_result_bidah": {
+  "area": 20.971,
+  "peak": 362.371237,
+  "t_h": 12.75,
+  "vol_m3": 3412853.7493802,
+  "depth_mm": 162.7415836
+ }
+}
