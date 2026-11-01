@@ -60,7 +60,8 @@ Layout, in `wadi2d/solver/layout.py`: compact tiles of 32 x 32 with a 2-cell hal
 | Rotated channel, 45 degrees, final code | 2:1 banks: +6.8 % at 1.5 cells wide, +2.0 % at 3, +0.8 % at 6. Vertical walls: +11 % at 3, +2 % at 6. 30 degrees: +4 to 5 % |
 | Speed on the RTX 5080, all cells wet, real tables | 2.2 to 2.9 G cell-updates/s; 1 M cells 0.48 ms per step; 48 h at 1 s step in 1.4 min |
 | Speed on real runs, GPU idle | Block 2, 2.03 M cells, 48 h: 8.9 min, 1.28 ms per step, 1.58 G cell-updates/s. 8.1 M cells, 36 h: 42 min |
-| HEC-RAS 6.6, 3 x 3 km fan, inflow only | 10 m: +2.6 cm, rms 5.5 cm, F 0.936, Q within 0.2 %, 39 x faster. Rain, crests and jumps not compared |
+| HEC-RAS 6.6, 3 x 3 km fan, inflow only | 10 m: +2.6 cm, rms 5.5 cm, F 0.936, Q within 0.2 %, 39 x faster |
+| HEC-RAS 6.6 rain-on-grid, Bidah 22 km2, same excess | 10 m: 622.0 against 621.9 m3/s, NSE 0.999, wadi +6.9 cm, fan F 0.934, 145 x faster. 20 m: 4.2 % low, wadi +14.6 cm. Crests not compared |
 
 ## 4. Module map
 
@@ -112,7 +113,9 @@ one cyclone, not a fixed-area curve (research H06), and the reports must say so.
 - First-order in time; the Thacker limit stands in `tests/solver/test_analytic.py`.
 - Lateral inflow carries no momentum.
 - The hump case is 3 % high on critical discharge.
-- Rain-on-grid over steep hills has no independent check. On Block 2 it responds 2 to 3 x faster than the SCS lags; no gauge there says which is right.
+- Rain-on-grid over steep hills matches HEC-RAS at one section on one catchment, within about 4 %, and it responds 2 to 3 x faster than the SCS lags in both. No gauge says which is right.
+- Steep cells: cells with over 10 m relief hold 2 to 2.6 x less water than in HEC-RAS, unexplained; the hillslope total and the section peak still match.
+- At 20 m a narrow steep gorge runs about 15 cm high and 4 % low on peak against HEC-RAS; both halve or better at 10 m. Run design points at 10 m.
 - A 20 m face takes its lowest pixel, so a thin ridge can leak at a level the DEM does not show: Bidah's dike at 104.4 m at 20 m, gone at 10 m. Draw a crest line.
 - A design line drawn on a spillway reads 4 to 25 % low, because the spillway takes crest faces within one cell. Read the whole dam axis.
 - A domain edge is a wall. A run warns when water stands more than `outputs.edge_depth` against one, because the balance still closes.

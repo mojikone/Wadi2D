@@ -1,6 +1,6 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
-**State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built and committed locally, nothing pushed; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **Open: rain-on-grid (mode c) peaks at 1.4 to 2.1 x HMS and has no independent check of any kind; Block 2 has no gauges (his word), so HMS cannot settle it (decision 20).** The next step is a HEC-RAS rain-on-grid head-to-head on one catchment, and his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
+**State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built; `main` is public on GitHub; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **HEC-RAS rain-on-grid on Bidah agrees with mode (c): 622.0 against 621.9 m3/s at 10 m, read as within about 4 %, and RAS alone gives 1.72 x HMS. So the gap to HMS is method, not a Wadi2D defect. Still open: whether the SCS lag or the 2D response is right; Block 2 has no gauges (his word), so that needs outside evidence (decision 20).** The next step is his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -26,8 +26,8 @@ HEC-HMS 4.1x has a 2D subbasin, but the mesh must be built in HEC-RAS and it run
 
 - Owner: Mojtaba; a personal project, open source (decision 15) with services sold around it (see Product requirements). Data may go on GitHub
   (files of 100 MB and more stay out, listed). No deadline.
-- Repo: `https://github.com/mojikone/Wadi2D.git` (remote `origin` set on 2026-10-29; the initial commit was made locally; **nothing
-  pushed**, pushing needs his explicit word, every time).
+- Repo: `https://github.com/mojikone/Wadi2D.git` (remote `origin` set on 2026-10-29; **public; `main` first pushed on his
+  word on 2026-11-01**; pushing needs his explicit word, every time).
 - Folder: `D:\Mojtaba\Renardet\Wadi2D` (outside the Batinah block folders). Working folders carry a short description in the name:
   `W<n> <what it holds>` (his instruction of 2026-10-29, now rule 15 of his global CLAUDE.md).
 - Stack: his words, "whatever yields the fastest 2D solver possible". My pick, not yet benchmarked or approved: CUDA C++ core as a
@@ -207,8 +207,9 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     that either is right. Mode (c) against HMS is a **disagreement between two uncalibrated models**, not a failure of (c), and not a pass for HMS. Hand check
     [Likely, flow lengths from Hack's law, not measured]: the HMS lags imply a mean velocity of 1.2 to 1.5 m/s over 8 to 18 km, which is slow for a 100-yr
     flood in a steep rock wadi; the 2D response is about 2 to 3 x faster, in line with Manning at flood depth. That is an argument, not evidence. Evidence
-    that does not need a gauge, in order of cost: HEC-RAS rain-on-grid on the same catchment (separates a solver defect from a method difference; not yet
-    run; the existing head-to-head was inflow-driven and never tested rain, hills, crests or jumps); the regional envelope of unit peaks; flood marks with a
+    that does not need a gauge, in order of cost: HEC-RAS rain-on-grid on the same catchment (**done on Bidah 2026-11-01, rule fixed before the run:**
+    622.0 against 621.9 m3/s at 10 m, 1.72 x HMS in RAS alone, so the gap is a method difference and not a Wadi2D defect; `validation/ras_rain_on_grid.md`;
+    one catchment, no crests, and two solvers agreeing does not make either right about a real flood); the regional envelope of unit peaks; flood marks with a
     slope-area estimate from a known event (Shaheen 2021); satellite flood extent with satellite rain; a gauged neighbouring wadi, calibrated there and
     transferred. Until then design flows stay on mode (b), the method reviewers know, and mode (c) is for maps and for sensitivity.
 
@@ -349,14 +350,17 @@ What that implies (my reading, each point open for the design note):
 
 Waiting on him:
 
-1. Run HEC-RAS rain-on-grid on the Bidah catchment against mode (c), and crest and jump cases with it (recommended first; decision 20).
+1. Evidence for Manning n on the hills (field or photographs). 0.05 to 0.1 moves the Bidah peak by 25 %, the solver by 4 % at most.
 2. The datum: confirm GGC sits 2.39 m above NSA for Block 2 W2, and on which datum the dam levels are to be used.
 3. Confirm my edits to the dam shapefiles (gaps joined, spillways centred on the thalweg, `validation/block2_full.md` section 5).
 4. Whether a neighbouring gauged wadi, flood marks or dam level records exist for Batinah.
-5. Permission to download the UK EA 2D benchmark data; the GPL section 7 permission for the NVIDIA libraries; pushing to GitHub.
+5. Permission to download the UK EA 2D benchmark data; the GPL section 7 permission for the NVIDIA libraries; whether the public repo may keep the
+   project data it carries (dam levels, job files with local paths, the datum finding).
 6. Deleting the generated caches under `validation/block2_full/` (`cache`, 3.9 GB; `cache_3f32ca6`, 6.5 GB), which the session's safety check refused.
 
-Then, in no order: `plan_min` 0.05 (9 % faster, peaks within 0.3 %, needs a proper test); the composite ARF maps have been written but not looked at; the
+Then, in no order: the regional envelope of unit peaks (Bidah 30 m3/s/km2 in 2D, 17 in HMS, 100-yr); a second catchment against RAS, the cheapest guard
+against 1.000 being luck; crest lines against RAS; why cells over 10 m relief hold 2 to 2.6 x more water in RAS than here (hillslope total matches, section
+peak unaffected, may matter for a short storm); Wadi2D's 16.5 cm high in the gorge at 20 m, halving at 10 m, so design points run at 10 m; `plan_min` 0.05 (9 % faster, peaks within 0.3 %, needs a proper test); the composite ARF maps have been written but not looked at; the
 plugin has no field for `initial_levels` yet, job.json only; a full-domain run with the dams in place; research topics N04, N06, N07, N08, N10, H05, S01 to S05
 were never run; reviewer acceptance is untested.
 

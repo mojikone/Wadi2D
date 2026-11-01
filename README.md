@@ -11,9 +11,9 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 709 tests pass. Nothing is
-pushed. Fit to try and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2 and nothing
-independent has settled which is right (no gauges there). Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 709 tests pass. Fit to try
+and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
+catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
 
 | Check | Result | Where |
@@ -23,8 +23,9 @@ the open questions are in `CLAUDE.md`.
 | HEC-RAS 6.6, one 3 x 3 km fan, inflow only | +2.6 cm on max level, F 0.94, 39 x faster | `validation/ras_head_to_head.md` |
 | Block 2 lumped hills with 2D plain, five dams, against HMS | within 3 % | `validation/block2_full.md` |
 | Dam routing against Modified Puls | peak outflow within 1.6 % | same |
-| Rain-on-grid over the whole catchment | **open**: no independent check | same, and decision 20 |
-| Crests, jumps and rain against HEC-RAS; UK EA benchmarks; an observed flood | **not done** | |
+| Rain-on-grid against HEC-RAS 6.6, Bidah 21 km2, same excess, 10 m | 622.0 / 621.9 m3/s, read as within about 4 %; 145 x faster | `validation/ras_rain_on_grid.md` |
+| Rain-on-grid against HMS, whole catchment | **open**: 1.4 to 2.1 x; RAS alone gives 1.72 x at Bidah; no gauge says which is right | `validation/block2_full.md`, decision 20 |
+| Crests against HEC-RAS; UK EA benchmarks; an observed flood | **not done** | |
 
 ## Quick start
 

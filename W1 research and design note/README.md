@@ -17,7 +17,8 @@ syntheses. The design note was built on and revised by the prototypes rather tha
 | `benchmarks/` | Micro-benchmarks run on the RTX 5080 (kernel throughput, compile times) with their scripts and outputs |
 | `prototypes/` | The staggered-scheme prototype and its scans, kept as the evidence for decision 19 |
 | `validation/hms_replication.md`, `hms_heldout.md` | Lumped hydrology against HMS on Blocks 2, 4, 6 and Majlas |
-| `validation/ras_head_to_head.md` | HEC-RAS 6.6 on a fan window, scripted end to end |
+| `validation/ras_head_to_head.md` | HEC-RAS 6.6 on a fan window, inflow only, scripted end to end |
+| `validation/ras_rain_on_grid.md` | **Live.** HEC-RAS 6.6 rain-on-grid on Bidah 03: 622.0 against 621.9 m3/s at 10 m, with the rule fixed before the run |
 | `validation/block2_first_run.md` | First real run. **Superseded by** `block2_full.md`; keep for its history |
 | `validation/block2_full.md` | **Live.** Modes (b) and (c) at the five dams, speed, dams against EAV and Modified Puls, grid convergence |
 

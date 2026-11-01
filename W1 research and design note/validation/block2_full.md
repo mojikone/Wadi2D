@@ -133,6 +133,7 @@ Same storm, area 21.0 km2, n 0.05, 30 h. Levels are maxima in m. The fourth wadi
 
 ## 7. Added after review, same day
 
+- **Later test.** HEC-RAS rain-on-grid on Bidah, same terrain and same excess, gives the same peak as Wadi2D at 10 m and 1.72 x HMS on its own: `ras_rain_on_grid.md`. The gap to HMS in this report is a method difference there, not a solver defect.
 - **Checked independently of this report.** Two runs repeated from clean tables on the final engine: Bidah axis 606.4 m3/s and Bidah PMP 1,527.1 m3/s, equal to the figures above, water balance 2e-8. GGC minus NSA resampled at 18,415 random points: median 2.35 m, 2.08 to 2.39 m by elevation band, so the gap is a datum shift and not noise.
 - **Block 2 has no gauges** (his statement). HMS is therefore not a reference for section 1: read "mode (c) against HMS" as a disagreement between two uncalibrated models. The HMS lags imply a mean velocity of 1.2 to 1.5 m/s over 8 to 18 km [Likely, lengths from Hack's law, not measured], slow for a 100-yr flood in a steep rock wadi. Item 1 of section 5 is restated in decision 20 of `CLAUDE.md`.
 - **The domains here are not clean.** The new edge warning, replayed on these maps, finds 20.5 m of water against the west edge of the plain box in every whole-catchment run (1,694 of 5,098 edge cells above 3 m) and 14.6 m at the end of the Bidah wadi domain. No dam reading is downstream of those points, so section 1 stands; a flood map of the plain from these runs would be wrong there. The two dam domains are clean.
