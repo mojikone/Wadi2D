@@ -25,7 +25,13 @@ NO_ROUTING = "None"
 #
 # Cells: N = ceil(L / (c_index dt)), dx = L / N. Every "Delta x" the log prints equals this, and R6 settles that
 # it is a ceiling: L / (c dt) = 9.32, logged dx = L / 10.
+# Sub-steps: the control step is then rounded to the nearest divisor of the travel time of a cell, k = round(N c dt
+# / L) and at least 1. No Block 2 reach is short enough to show it; the "Delta t" and "Delta x" HMS logged for 8,390
+# reach runs on Blocks 2, 4, 6 and Majlas (258 distinct reaches, L / (c dt) from 0.02 to 39) agree with N and k on
+# all but one reach, Block 6's R20 (0.94: logged N = 2, k = 2, against 1 and 1), which no input tells apart from its
+# neighbours; it stays an unexplained exception, up to 0.09 % on the peaks below it.
 CELL_ROUNDING_GUARD = 1.0e-9
+ROUND_HALF_UP = 0.5
 # Stencil: the reference flow starts from the 3-point mean of old inflow, new inflow and old outflow, then iterates
 # on the 4-point mean with the new outflow, up to `Maximum Route Step Iterations`.
 # Tolerance: the iteration stops when the outflow moves by less than this fraction of itself. Against the eight
@@ -89,16 +95,10 @@ class MuskingumCunge:
     depth_iterations: int = 20
 
     def grid(self, dt_seconds: float) -> tuple[int, float, int]:
-        """Cells, cell length and sub-steps per control step.
-
-        When a wave crosses the reach inside one control step, the step is divided and there is one cell. No
-        Block 2 reach does this, so the rule is the documented one (research note H02), not a measured one.
-        """
-        reach_time = self.length_m / self.index_celerity
-        if dt_seconds > reach_time:
-            return 1, self.length_m, math.ceil(dt_seconds / reach_time - CELL_ROUNDING_GUARD)
+        """Cells, cell length and sub-steps per control step, as measured from the HMS logs (see above)."""
         cells = math.ceil(self.length_m / (self.index_celerity * dt_seconds) - CELL_ROUNDING_GUARD)
-        return cells, self.length_m / cells, 1
+        cell_time = self.length_m / (cells * self.index_celerity)
+        return cells, self.length_m / cells, max(1, math.floor(dt_seconds / cell_time + ROUND_HALF_UP))
 
     def route(self, inflow_m3s: FloatArray, dt_minutes: float) -> FloatArray:
         """The outflow at the times of the inflow, m3/s."""

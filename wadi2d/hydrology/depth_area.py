@@ -16,10 +16,10 @@ import numpy as np
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.model import TimeGrid
 from wadi2d.hydrology.network import LumpedEngine, Run
-from wadi2d.storm.base import FloatArray, Storm
+from wadi2d.storm.base import FloatArray, SubbasinRain
 
-StormAtPoint = Callable[[str, float], Storm]
-"""The storm of an analysis point, from its name and drainage area in km2."""
+StormAtPoint = Callable[[str, float], SubbasinRain]
+"""The rain of an analysis point, from its name and drainage area in km2."""
 
 
 @dataclass(frozen=True)
@@ -61,10 +61,10 @@ def analyse(
     return {point: analyse_point(engine, storm, grid, point) for point in points}
 
 
-def point_storm(storm: Storm) -> StormAtPoint:
+def point_storm(storm: SubbasinRain) -> StormAtPoint:
     """The usual case: one storm, its area set to each point's drainage area."""
 
-    def at_point(_point: str, area_km2: float) -> Storm:
+    def at_point(_point: str, area_km2: float) -> SubbasinRain:
         return storm.at_area(area_km2)
 
     return at_point

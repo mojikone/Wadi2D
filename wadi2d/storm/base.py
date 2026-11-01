@@ -1,7 +1,7 @@
 """What a storm is to the hydrology: a cumulative depth curve in time.
 
-Interface: :class:`Storm`, :class:`CumulativeStorm`, :data:`STORM_METHODS`. All depths are mm, all times are
-minutes from the start of the storm. An increment is period-ending: element ``k`` of :meth:`Storm.increments`
+Interface: :class:`Storm`, :class:`SubbasinRain`, :class:`CumulativeStorm`, :data:`STORM_METHODS`. All depths are
+mm, all times are minutes from the start of the storm. An increment is period-ending: element ``k`` of :meth:`Storm.increments`
 is the depth that falls between ``k dt`` and ``(k + 1) dt``, stamped at the end of that period as HEC-HMS does.
 """
 
@@ -41,8 +41,24 @@ class Storm(Protocol):
         ...
 
 
+class SubbasinRain(Protocol):
+    """What falls on each subbasin; a :class:`Storm` is the case where every subbasin gets the same."""
+
+    def over(self, subbasin: str) -> Storm:
+        """The storm over one subbasin."""
+        ...
+
+    def at_area(self, area_km2: float) -> Self:
+        """The same rain with its storm area set to ``area_km2``."""
+        ...
+
+
 class CumulativeStorm(ABC):
     """Gives a storm its increments from its cumulative curve, so they sum to the curve exactly."""
+
+    def over(self, subbasin: str) -> Self:
+        """The same storm falls on every subbasin."""
+        return self
 
     @abstractmethod
     def cumulative_depth(self, minutes: ArrayLike) -> FloatArray:

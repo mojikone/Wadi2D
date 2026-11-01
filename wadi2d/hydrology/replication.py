@@ -2,11 +2,15 @@
 
 Interface: :func:`replicate`, :func:`render`, :class:`Replication`, :class:`Comparison`. Reads the project's own
 depth-area analyses and their results files, reruns each analysis here, and compares the peak at every analysis
-point. Nothing is written to the project.
+point. Nothing is written to the project. Whatever cannot be compared is left out with its reason, never guessed
+at: an analysis with no results file or with an element the engine does not implement, a point the results do
+not hold.
 """
 
 from __future__ import annotations
 
+import math
+import re
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,6 +24,8 @@ from wadi2d.hms import (
     load_project,
     load_results,
 )
+from wadi2d.hms import Basin as HmsBasin
+from wadi2d.hms.nals import Analysis
 from wadi2d.hydrology.constants import PERCENT, SECONDS_PER_MINUTE
 from wadi2d.hydrology.depth_area import StormAtPoint, analyse, point_storm
 from wadi2d.hydrology.from_hms import (
@@ -38,12 +44,19 @@ from wadi2d.storm.grid_depth import DepthGrid
 RESULTS_FOLDER = "results"
 RESULTS_PREFIX = "DAA_"
 RESULTS_SUFFIX = ".results"
+NOT_IN_A_RESULTS_NAME = re.compile(r"[^0-9A-Za-z]")
 GRID_METHOD = "Precipitation-Frequency Grid"
 DSS_SUFFIX = ".dss"
 PAIRED_SUFFIX = ".pdata"
 GRID_SUFFIX = ".grid"
 NALS_SUFFIX = ".nals"
 SQLITE_SUFFIX = ".sqlite"
+NO_UNIFORM_DEPTH = "No"
+
+
+def results_file_name(analysis: str) -> str:
+    """HMS replaces every character that is not a letter or a digit: `DA 10yr 1D DAM - All`."""
+    return f"{RESULTS_PREFIX}{NOT_IN_A_RESULTS_NAME.sub('_', analysis)}{RESULTS_SUFFIX}"
 
 
 @dataclass(frozen=True)
@@ -60,7 +73,9 @@ class Comparison:
 
     @property
     def error_percent(self) -> float:
-        """Peak error against HMS, %."""
+        """Peak error against HMS, %; a dam that spills nothing has a peak of zero."""
+        if self.hms_peak == 0.0:
+            return 0.0 if self.peak == 0.0 else math.inf
         return PERCENT * (self.peak / self.hms_peak - 1.0)
 
     @property
@@ -71,10 +86,11 @@ class Comparison:
 
 @dataclass(frozen=True)
 class Replication:
-    """All comparisons, in project order, and any analysis left out with the reason."""
+    """All comparisons in project order, any analysis left out with the reason, any point the results lack."""
 
     comparisons: list[Comparison] = field(default_factory=list)
     left_out: dict[str, str] = field(default_factory=dict)
+    points_without_results: dict[str, list[str]] = field(default_factory=dict)
 
     @property
     def analyses(self) -> list[str]:
@@ -108,7 +124,7 @@ def _compare(
     grid: TimeGrid,
     points: list[str],
 ) -> list[Comparison]:
-    computed = analyse(engine, storm, grid, points)
+    computed = analyse(engine, storm, grid, [point for point in points if point in results.points])
     rows: list[Comparison] = []
     for point, result in computed.items():
         reference = results.element(point)
@@ -124,7 +140,7 @@ def _compare(
 
 
 def _point_storm(
-    met_path: Path, tables: ProjectTables, basin: Basin, basin_path: Path, stem: str
+    met_path: Path, tables: ProjectTables, hms_basin: HmsBasin, basin: Basin, basin_path: Path, stem: str
 ) -> StormAtPoint:
     """The storm of a met model; a grid storm reads its raster, which raises when it cannot be found."""
     met = load_met(met_path)
@@ -139,38 +155,77 @@ def _point_storm(
         folder / f"{stem}{GRID_SUFFIX}", met.storm.precip_freq_grid_name, (folder, folder.parent)
     )
     storm = storm_from_hms(met.storm, tables, depth_mm=0.0)
-    return grid_storm(storm, DepthGrid.load(raster), basin, basin_path.with_suffix(SQLITE_SUFFIX))
+    crs = hms_basin.spatial.coordinate_system if hms_basin.spatial is not None else None
+    return grid_storm(
+        storm,
+        DepthGrid.load(raster, crs),
+        basin,
+        basin_path.with_suffix(SQLITE_SUFFIX),
+        by_subbasin=met.storm.uniform_depth == NO_UNIFORM_DEPTH,
+    )
 
 
-def replicate(project_file: str | Path) -> Replication:
-    """Rerun every depth-area analysis of a project; an analysis whose grid cannot be read is left out."""
+class _Project:
+    """One project during a replication: its files, its tables, and one engine per basin model."""
+
+    def __init__(self, source: Path) -> None:
+        self.source = source
+        self.folder = source.parent
+        self.project = load_project(source)
+        pdata = load_pdata(self.folder / f"{source.stem}{PAIRED_SUFFIX}")
+        self.tables = load_project_tables(pdata, self.folder / f"{source.stem}{DSS_SUFFIX}")
+        self._models: dict[str, tuple[HmsBasin, LumpedEngine] | ValueError] = {}
+
+    def model(self, basin_name: str) -> tuple[HmsBasin, LumpedEngine]:
+        """The basin model and its engine; a model the engine cannot build raises the same error each time."""
+        if basin_name not in self._models:
+            try:
+                hms_basin = load_basin(self.project.path_of(self.project.basins[basin_name]))
+                engine = LumpedEngine(basin_from_hms(hms_basin, self.tables))
+                self._models[basin_name] = (hms_basin, engine)
+            except ValueError as error:
+                self._models[basin_name] = error
+        found = self._models[basin_name]
+        if isinstance(found, ValueError):
+            raise found
+        return found
+
+
+def _run_analysis(project: _Project, analysis: Analysis) -> tuple[list[Comparison], list[str]]:
+    """The comparisons of one analysis, and the points its results lack; what stops it raises."""
+    if analysis.met_model_name is None or analysis.basin_model_name is None:
+        raise ValueError("no met or basin model")
+    results_path = project.folder / RESULTS_FOLDER / results_file_name(analysis.name)
+    if not results_path.is_file():
+        raise FileNotFoundError(f"no results file {results_path.name}")
+    hms_basin, engine = project.model(analysis.basin_model_name)
+    basin_path = project.project.path_of(project.project.basins[analysis.basin_model_name])
+    met_path = project.project.path_of(project.project.mets[analysis.met_model_name])
+    storm = _point_storm(met_path, project.tables, hms_basin, engine.basin, basin_path, project.source.stem)
+    results = load_results(results_path)
+    points = list(analysis.points)
+    rows = _compare(analysis.name, results, engine, storm, grid_from_hms(analysis), points)
+    return rows, [point for point in points if point not in results.points]
+
+
+def replicate(project_file: str | Path, analyses: Iterable[str] | None = None) -> Replication:
+    """Rerun the depth-area analyses of a project, all or the named ones; what cannot run is left out."""
     source = Path(project_file)
-    folder = source.parent
-    project = load_project(source)
-    pdata = load_pdata(folder / f"{source.stem}{PAIRED_SUFFIX}")
-    tables = load_project_tables(pdata, folder / f"{source.stem}{DSS_SUFFIX}")
-    engines: dict[str, LumpedEngine] = {}
-    comparisons: list[Comparison] = []
-    left_out: dict[str, str] = {}
-    for analysis in load_nals(folder / f"{source.stem}{NALS_SUFFIX}").analyses:
-        if analysis.met_model_name is None or analysis.basin_model_name is None:
-            left_out[analysis.name] = "no met or basin model"
+    project = _Project(source)
+    wanted = None if analyses is None else set(analyses)
+    replication = Replication()
+    for analysis in load_nals(source.with_suffix(NALS_SUFFIX)).analyses:
+        if wanted is not None and analysis.name not in wanted:
             continue
-        basin_path = project.path_of(project.basins[analysis.basin_model_name])
-        if analysis.basin_model_name not in engines:
-            engines[analysis.basin_model_name] = LumpedEngine(basin_from_hms(load_basin(basin_path)))
-        engine = engines[analysis.basin_model_name]
-        met_path = project.path_of(project.mets[analysis.met_model_name])
         try:
-            storm = _point_storm(met_path, tables, engine.basin, basin_path, source.stem)
-        except (OSError, KeyError) as error:
-            left_out[analysis.name] = f"grid not readable: {error}"
+            rows, lacking = _run_analysis(project, analysis)
+        except (OSError, KeyError, ValueError) as error:
+            replication.left_out[analysis.name] = f"{type(error).__name__}: {error}"
             continue
-        results_name = f"{RESULTS_PREFIX}{analysis.name.replace(' ', '_')}{RESULTS_SUFFIX}"
-        results = load_results(folder / RESULTS_FOLDER / results_name)
-        grid = grid_from_hms(analysis)
-        comparisons += _compare(analysis.name, results, engine, storm, grid, list(analysis.points))
-    return Replication(comparisons, left_out)
+        replication.comparisons.extend(rows)
+        if lacking:
+            replication.points_without_results[analysis.name] = lacking
+    return replication
 
 
 def _summary_row(replication: Replication, analysis: str, dams: list[str]) -> str:

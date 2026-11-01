@@ -1,35 +1,66 @@
 """Adapters from the :mod:`wadi2d.hms` file models to the engine's objects.
 
 Interface: :func:`basin_from_hms`, :func:`grid_from_hms`, :func:`storm_from_hms`, :func:`load_project_tables`,
-:class:`ProjectTables`, :func:`find_grid_file`, :func:`grid_storm`. The engine never sees an HMS model: this module is the whole coupling, and a selector it
-cannot map raises instead of running something else.
+:class:`ProjectTables`, :func:`find_grid_file`, :func:`grid_storm`. The engine never sees an HMS model: this module
+is the whole coupling, and a selector or an option it cannot map raises instead of running something else.
 """
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
+import numpy as np
+
 from wadi2d.hms import PairedDataFile, load_document, open_dss
 from wadi2d.hms.basin import Basin as HmsBasin
+from wadi2d.hms.basin import Diversion as HmsDiversion
 from wadi2d.hms.basin import Junction as HmsJunction
 from wadi2d.hms.basin import Reach as HmsReach
+from wadi2d.hms.basin import Reservoir as HmsReservoir
+from wadi2d.hms.basin import Sink as HmsSink
 from wadi2d.hms.basin import Subbasin as HmsSubbasin
+from wadi2d.hms.dss import DssFile, DssLookupError
 from wadi2d.hms.met import HypotheticalStorm as HmsStorm
 from wadi2d.hms.methods import ClarkTransform as HmsClark
-from wadi2d.hms.methods import LagRoute, MuskingumCungeRoute, RecessionBaseflow, ScsLoss, ScsTransform
+from wadi2d.hms.methods import (
+    LagRoute,
+    MuskingumCungeRoute,
+    RecessionBaseflow,
+    ReservoirRoute,
+    ScsLoss,
+    ScsTransform,
+)
+from wadi2d.hms.pdata import Table
 from wadi2d.hms.sqlite import subbasin_polygons
-from wadi2d.hms.typed import Method, TimeWindowModel
+from wadi2d.hms.typed import Method, RawBlock, TimeWindowModel
 from wadi2d.hydrology.baseflow import BASEFLOW_METHODS, NO_BASEFLOW, RECESSION
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.depth_area import StormAtPoint
+from wadi2d.hydrology.diversion import INFLOW_DIVERSION
 from wadi2d.hydrology.losses import LOSS_METHODS, NO_LOSS, SCS_CN
-from wadi2d.hydrology.model import Basin, Element, Junction, Reach, Subbasin, TimeGrid
+from wadi2d.hydrology.model import (
+    Basin,
+    Diversion,
+    Element,
+    Junction,
+    Reach,
+    Reservoir,
+    Subbasin,
+    TimeGrid,
+)
+from wadi2d.hydrology.reservoir import (
+    AUXILIARY_OUTLET,
+    MAIN_OUTLET,
+    RESERVOIR_OUTFLOW_CURVE,
+    RESERVOIR_OUTFLOW_STRUCTURES,
+    Spillway,
+)
 from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS
 from wadi2d.hydrology.transforms import CLARK_UH, SCS_UH, TRANSFORM_METHODS
-from wadi2d.storm import ArfTable, HypotheticalStorm, PercentPattern, Storm
+from wadi2d.storm import ArfTable, HypotheticalStorm, PercentPattern, StormBySubbasin, SubbasinRain
 from wadi2d.storm.grid_depth import DepthGrid
 
 METRIC = "Metric"
@@ -44,6 +75,25 @@ USER_REDUCTION = "User-Specified"
 NO_METHOD = "None"
 GRID_KIND = "Grid"
 GRID_FILE_KEY = "Filename"
+ELEVATION_AREA = "Elevation-Area"
+STAGE_FLOW = "Stage-Flow"
+INFLOW_DIVERSION_TABLE = "Inflow-Diversion"
+AREA_OUTFLOW_CURVE = "Elevation-Area-Outflow"
+OUTFLOW_CURVE_ROUTE = "Modified Puls"
+STRUCTURES_ROUTE = "Controlled Outflow"
+SPILLWAY_BLOCK = "Spillway"
+EVAPORATION_BLOCK = "Evaporation Method"
+BROAD_CRESTED = "Broad-Crested Spillway"
+ZERO_EVAPORATION = "Zero Evaporation"
+DIVERTER_BLOCK = "Diverter"
+DIVERTER_TABLE_KEY = "Inflow Diversion Table Name"
+SPILLWAY_OUTLETS = {"Main": MAIN_OUTLET, "Auxiliary": AUXILIARY_OUTLET}
+NO_TAILWATER = "None"
+ADAPTIVE_ON = "On"
+ELEVATION_UNITS = "M"
+AREA_UNITS = "M2"
+FLOW_UNITS = "M3/S"
+NO_UNIFORM_DEPTH = "No"
 
 
 def _scs_loss(method: ScsLoss) -> dict[str, Any]:
@@ -139,8 +189,109 @@ def _reach(element: HmsReach) -> Reach:
     return Reach(name=element.name, downstream=element.downstream or None, routing=routing)
 
 
-def basin_from_hms(basin: HmsBasin) -> Basin:
-    """The engine's basin of an HMS basin model; metric only, as nothing here converts units."""
+def _table(tables: ProjectTables | None, name: str | None, element: str) -> PairedColumns:
+    """A paired table of a reservoir or a diversion; one missing raises."""
+    if tables is None or name is None or name not in tables.paired:
+        raise ValueError(f"{element}: paired table {name!r} is not available")
+    return tables.paired[name]
+
+
+def _outflow_curve(element: HmsReservoir, route: ReservoirRoute, tables: ProjectTables | None) -> Any:
+    if route.routing_curve != AREA_OUTFLOW_CURVE or route.primary_table != ELEVATION_AREA:
+        raise ValueError(
+            f"{element.name}: outflow curve {route.routing_curve}, {route.primary_table} primary"
+        )
+    if element.blocks:
+        raise ValueError(f"{element.name}: outlets on an outflow curve are not supported")
+    area = _table(tables, route.elevation_area_table, element.name)
+    outflow = _table(tables, route.elevation_outflow_table, element.name)
+    return ROUTING_METHODS.build(
+        RESERVOIR_OUTFLOW_CURVE,
+        elevations_m=area.x,
+        areas_m2=area.y,
+        outflow_elevations_m=outflow.x,
+        outflows_m3s=outflow.y,
+        initial_elevation_m=route.initial_elevation,
+    )
+
+
+def _spillway(element: str, block: RawBlock) -> Spillway:
+    if block.name != BROAD_CRESTED:
+        raise ValueError(f"{element}: spillway {block.name!r} is not supported")
+    return Spillway(
+        crest_elevation_m=float(block.get("Spillway Crest Elevation") or "nan"),
+        crest_length_m=float(block.get("Spillway Crest Length") or "nan"),
+        coefficient=float(block.get("Spillway Coefficient") or "nan"),
+        outlet=SPILLWAY_OUTLETS[block.get("Spillway Outlet") or ""],
+    )
+
+
+def _outflow_structures(element: HmsReservoir, route: ReservoirRoute, tables: ProjectTables | None) -> Any:
+    if route.routing_curve != ELEVATION_AREA:
+        raise ValueError(f"{element.name}: storage method {route.routing_curve} is not supported")
+    if route.adaptive_control != ADAPTIVE_ON:
+        raise ValueError(f"{element.name}: only Adaptive Control On was measured against HMS")
+    tailwater = {route.main_tailwater_condition, route.auxiliary_tailwater_condition}
+    if tailwater - {NO_TAILWATER, None}:
+        raise ValueError(f"{element.name}: tailwater {tailwater} is not supported")
+    spillways: list[Spillway] = []
+    for block in element.blocks:
+        if block.kind == SPILLWAY_BLOCK:
+            spillways.append(_spillway(element.name, block))
+        elif block.kind != EVAPORATION_BLOCK or block.name != ZERO_EVAPORATION:
+            raise ValueError(f"{element.name}: outlet or option {block.kind} {block.name} is not supported")
+    area = _table(tables, route.elevation_area_table, element.name)
+    return ROUTING_METHODS.build(
+        RESERVOIR_OUTFLOW_STRUCTURES,
+        elevations_m=area.x,
+        areas_m2=area.y,
+        spillways=tuple(spillways),
+        initial_elevation_m=route.initial_elevation,
+    )
+
+
+ReservoirBuilder = Callable[[HmsReservoir, ReservoirRoute, "ProjectTables | None"], Any]
+RESERVOIR_ROUTES: dict[str, ReservoirBuilder] = {
+    OUTFLOW_CURVE_ROUTE: _outflow_curve,
+    STRUCTURES_ROUTE: _outflow_structures,
+}
+
+
+def _reservoir(element: HmsReservoir, tables: ProjectTables | None) -> Reservoir:
+    route = element.route
+    if not isinstance(route, ReservoirRoute) or route.method not in RESERVOIR_ROUTES:
+        raise ValueError(f"reservoir {element.name}: HMS method {route} has no engine implementation")
+    if element.unknown:
+        raise ValueError(f"reservoir {element.name}: options not read: {[f.key for f in element.unknown]}")
+    if route.initial_elevation is None:
+        raise ValueError(f"reservoir {element.name}: only an initial elevation is supported")
+    builder = RESERVOIR_ROUTES[route.method]
+    return Reservoir(
+        name=element.name,
+        downstream=element.downstream or None,
+        routing=builder(element, route, tables),
+        branch=route.auxiliary_flow_to or None,
+    )
+
+
+def _diversion(element: HmsDiversion, tables: ProjectTables | None) -> Diversion:
+    diverters = [block for block in element.blocks if block.kind == DIVERTER_BLOCK]
+    if len(diverters) != 1 or diverters[0].name != INFLOW_DIVERSION or len(element.blocks) != 1:
+        raise ValueError(f"diversion {element.name}: only one {INFLOW_DIVERSION} is supported")
+    table = _table(tables, diverters[0].get(DIVERTER_TABLE_KEY), element.name)
+    return Diversion(
+        name=element.name,
+        downstream=element.downstream or None,
+        routing=ROUTING_METHODS.build(INFLOW_DIVERSION, inflows_m3s=table.x, diverted_m3s=table.y),
+        branch=element.divert_to,
+    )
+
+
+def basin_from_hms(basin: HmsBasin, tables: ProjectTables | None = None) -> Basin:
+    """The engine's basin of an HMS basin model; metric only, as nothing here converts units.
+
+    ``tables`` holds the paired data of reservoirs and diversions; a model with neither needs none.
+    """
     if basin.unit_system != METRIC:
         raise ValueError(f"unit system {basin.unit_system!r}: only {METRIC} basin models are read")
     elements: list[Element] = []
@@ -149,8 +300,12 @@ def basin_from_hms(basin: HmsBasin) -> Basin:
             elements.append(_subbasin(element))
         elif isinstance(element, HmsReach):
             elements.append(_reach(element))
-        elif isinstance(element, HmsJunction):
+        elif isinstance(element, HmsJunction | HmsSink):
             elements.append(Junction(name=element.name, downstream=element.downstream or None))
+        elif isinstance(element, HmsReservoir):
+            elements.append(_reservoir(element, tables))
+        elif isinstance(element, HmsDiversion):
+            elements.append(_diversion(element, tables))
         else:
             raise ValueError(f"element {element.name} of type {type(element).__name__} is not supported")
     return Basin(basin.name, elements)
@@ -164,18 +319,45 @@ def grid_from_hms(window: TimeWindowModel) -> TimeGrid:
     return TimeGrid(window.time_interval, round(span / window.time_interval))
 
 
+@dataclass(frozen=True, eq=False)
+class PairedColumns:
+    """The two columns of a reservoir or diversion table, in SI."""
+
+    x: np.ndarray
+    y: np.ndarray
+
+
 @dataclass(frozen=True)
 class ProjectTables:
-    """The paired tables a project's storms refer to, by table name."""
+    """The paired tables of a project, by table name: storms in the first two, the network in ``paired``."""
 
     patterns: dict[str, PercentPattern]
     area_reductions: dict[str, ArfTable]
+    paired: dict[str, PairedColumns] = field(default_factory=dict)
+
+
+def _read_si(dss: DssFile, table: Table, units: dict[str, tuple[str, str]]) -> PairedColumns | None:
+    """A network table in the units nothing here has to convert; another unit or a missing record leaves it out."""
+    expected = units[table.table_type or ""]
+    if table.pathname is None or (table.x_units, table.y_units) != expected:
+        return None
+    try:
+        record = dss.read_paired(table.pathname)
+    except DssLookupError:
+        return None
+    return PairedColumns(np.asarray(record.x), np.asarray(record.y))
 
 
 def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> ProjectTables:
-    """Read the percent graphs and area-reduction tables from the project DSS file."""
+    """Read the paired tables from the project DSS file; an ARF table follows HMS below its smallest area."""
     patterns: dict[str, PercentPattern] = {}
     reductions: dict[str, ArfTable] = {}
+    paired: dict[str, PairedColumns] = {}
+    units = {
+        ELEVATION_AREA: (ELEVATION_UNITS, AREA_UNITS),
+        STAGE_FLOW: (ELEVATION_UNITS, FLOW_UNITS),
+        INFLOW_DIVERSION_TABLE: (FLOW_UNITS, FLOW_UNITS),
+    }
     with open_dss(project_dss) as dss:
         for name, table in pdata.of_type(PERCENT_GRAPH).items():
             if table.pathname is not None:
@@ -184,8 +366,13 @@ def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> Proje
         for name, table in pdata.of_type(AREA_REDUCTION).items():
             if table.pathname is not None:
                 record = dss.read_paired(table.pathname)
-                reductions[name] = ArfTable(record.x, record.y)
-    return ProjectTables(patterns, reductions)
+                reductions[name] = ArfTable(record.x, record.y, reduces_below_table=False)
+        for kind in units:
+            for name, table in pdata.of_type(kind).items():
+                columns = _read_si(dss, table, units)
+                if columns is not None:
+                    paired[name] = columns
+    return ProjectTables(patterns, reductions, paired)
 
 
 def storm_from_hms(
@@ -197,6 +384,8 @@ def storm_from_hms(
     depth = depth_mm if depth_mm is not None else storm.storm_depth
     if depth is None:
         raise ValueError("a precipitation-frequency grid storm needs its depth from the grid")
+    if storm.uniform_depth == NO_UNIFORM_DEPTH and depth_mm is None:
+        raise ValueError("a point depth by subbasin is not supported")
     method = storm.depth_area_reduction_method
     if method not in (USER_REDUCTION, NO_METHOD, None):
         raise ValueError(f"area reduction {method!r} is not supported")
@@ -224,13 +413,27 @@ def find_grid_file(grid_manager: str | Path, grid_name: str, roots: Iterable[Pat
     raise FileNotFoundError(relative)
 
 
-def grid_storm(storm: HypotheticalStorm, depths: DepthGrid, basin: Basin, sqlite: str | Path) -> StormAtPoint:
-    """The storm of a precipitation-frequency grid: its depth is the grid mean above each analysis point."""
-    shapes = {polygon.name: polygon.shape() for polygon in subbasin_polygons(sqlite)}
+def grid_storm(
+    storm: HypotheticalStorm,
+    depths: DepthGrid,
+    basin: Basin,
+    sqlite: str | Path,
+    by_subbasin: bool = False,
+) -> StormAtPoint:
+    """The storm of a precipitation-frequency grid.
 
-    def at_point(point: str, area_km2: float) -> Storm:
+    Its depth is the grid mean above each analysis point (`Uniform Depth: Yes`), or the grid mean over each
+    subbasin on its own (``by_subbasin``, `Uniform Depth: No`).
+    """
+    cells = {polygon.name: depths.cells_in(polygon.shape()) for polygon in subbasin_polygons(sqlite)}
+    if by_subbasin:
+        means = {name: depths.mean_of([cells[name]]) for name in basin.subbasins}
+        rain = StormBySubbasin(storm, means)
+        return lambda _point, area_km2: rain.at_area(area_km2)
+
+    def at_point(point: str, area_km2: float) -> SubbasinRain:
         upstream = basin.upstream_of(point)
-        depth = depths.mean_over(shape for name, shape in shapes.items() if name in upstream)
+        depth = depths.mean_of(indices for name, indices in cells.items() if name in upstream)
         return replace(storm, depth_mm=depth).at_area(area_km2)
 
     return at_point

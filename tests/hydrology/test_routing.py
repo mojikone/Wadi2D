@@ -49,7 +49,7 @@ def test_cell_length_is_what_the_hms_log_prints(length: float, logged_dx: float)
 
 def test_a_reach_shorter_than_a_step_of_wave_travel_divides_the_step() -> None:
     cells, dx, substeps = reach(200.0).grid(BLOCK2_STEP_SECONDS)
-    assert (cells, dx, substeps) == (1, 200.0, 3)
+    assert (cells, dx, substeps) == (1, 200.0, 2)
     outflow = reach(200.0).route(flood(), 5.0)
     assert len(outflow) == len(flood())
 
