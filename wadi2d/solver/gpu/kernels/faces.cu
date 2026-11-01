@@ -61,19 +61,23 @@ __device__ __forceinline__ float face_step(
     }
 
     // [3] upwinded momentum fluxes at the two cell centres, then the transverse pair
-    const float um = u[k - S];
-    const float up = u[k + S];
+    const float um = gated(u[k - S], uf);
+    const float up = gated(u[k + S], uf);
+    const float umm = gated(u[k - 2 * S], um);
+    const float upp = gated(u[k + 2 * S], up);
     const float QcL = 0.5f * (q[k - S] + q[k]);
     const float QcR = 0.5f * (q[k] + q[k + S]);
-    const float sL = QcL > 0.0f ? ustar(um, u[k - 2 * S], uf) : ustar(uf, up, um);
-    const float sR = QcR > 0.0f ? ustar(uf, um, up) : ustar(up, u[k + 2 * S], uf);
+    const float sL = QcL > 0.0f ? ustar(um, umm, uf) : ustar(uf, up, um);
+    const float sR = QcR > 0.0f ? ustar(uf, um, up) : ustar(up, upp, uf);
     float flux = QcR * sR - QcL * sL;
     const float QyS = 0.5f * (qp[k - S] + qp[k]);
     const float QyN = 0.5f * (qp[k - S + Q_P] + qp[k + Q_P]);
-    const float uS = u[k - Q_P];
-    const float uN = u[k + Q_P];
-    const float usS = QyS > 0.0f ? ustar(uS, u[k - 2 * Q_P], uf) : ustar(uf, uN, uS);
-    const float usN = QyN > 0.0f ? ustar(uf, uS, uN) : ustar(uN, u[k + 2 * Q_P], uf);
+    const float uS = gated(u[k - Q_P], uf);
+    const float uN = gated(u[k + Q_P], uf);
+    const float uSS = gated(u[k - 2 * Q_P], uS);
+    const float uNN = gated(u[k + 2 * Q_P], uN);
+    const float usS = QyS > 0.0f ? ustar(uS, uSS, uf) : ustar(uf, uN, uS);
+    const float usN = QyN > 0.0f ? ustar(uf, uS, uN) : ustar(uN, uNN, uf);
     flux += QyN * usN - QyS * usS;
 
     // [4] momentum and pressure

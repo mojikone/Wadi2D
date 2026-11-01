@@ -24,12 +24,14 @@ class NumericsRecord:
     a_min: float
     second: bool
     sheet: bool
+    mirror: bool
 
     @classmethod
     def from_config(cls, num: Numerics, dx: float) -> NumericsRecord:
         return cls(
             G, dx, num.e_wet, num.h_cfl, num.u_max, float(num.dt_every), num.plan_min, num.limiter != "none",
             num.sheet_flow,
+            num.mirror_dry_faces,
         )  # fmt: skip
 
 

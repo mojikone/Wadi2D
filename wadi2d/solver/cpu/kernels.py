@@ -31,6 +31,12 @@ def ustar(uc, uup, udown, second):
 
 
 @njit(inline="always")
+def gated(neighbour, own, mirror):
+    """A neighbour face that carries nothing (dry or closed, u exactly 0) has no velocity to give: read this one instead."""
+    return own if mirror and neighbour == ZERO else neighbour
+
+
+@njit(inline="always")
 def cell_level(hb, hc, tab, rows):
     if hc <= ZERO:
         return hb
@@ -80,7 +86,7 @@ def face_lookup(e, top, tab, rows):
 @njit
 def face_step(
     k, fid, dt, want_wave, om, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet,
-    h_cfl, u_max, lead, a_min, second, sheet,
+    h_cfl, u_max, lead, a_min, second, sheet, mirror,
 ):  # fmt: skip
     """One face: s is the array step along the normal, p across it. Returns the wave speed."""
     e_l = d[k - s] - fl[fid]
@@ -123,19 +129,23 @@ def face_step(
             d_eta = -drive if from_left else drive
 
     # [3] momentum fluxes
-    um = u[k - s]
-    up = u[k + s]
+    um = gated(u[k - s], uf, mirror)
+    up = gated(u[k + s], uf, mirror)
+    umm = gated(u[k - 2 * s], um, mirror)
+    upp = gated(u[k + 2 * s], up, mirror)
     qc_l = HALF * (q[k - s] + q[k])
     qc_r = HALF * (q[k] + q[k + s])
-    s_l = ustar(um, u[k - 2 * s], uf, second) if qc_l > ZERO else ustar(uf, up, um, second)
-    s_r = ustar(uf, um, up, second) if qc_r > ZERO else ustar(up, u[k + 2 * s], uf, second)
+    s_l = ustar(um, umm, uf, second) if qc_l > ZERO else ustar(uf, up, um, second)
+    s_r = ustar(uf, um, up, second) if qc_r > ZERO else ustar(up, upp, uf, second)
     flux = qc_r * s_r - qc_l * s_l
     qy_s = HALF * (qp[k - s] + qp[k])
     qy_n = HALF * (qp[k - s + p] + qp[k + p])
-    u_s = u[k - p]
-    u_n = u[k + p]
-    us_s = ustar(u_s, u[k - 2 * p], uf, second) if qy_s > ZERO else ustar(uf, u_n, u_s, second)
-    us_n = ustar(uf, u_s, u_n, second) if qy_n > ZERO else ustar(u_n, u[k + 2 * p], uf, second)
+    u_s = gated(u[k - p], uf, mirror)
+    u_n = gated(u[k + p], uf, mirror)
+    uss = gated(u[k - 2 * p], u_s, mirror)
+    unn = gated(u[k + 2 * p], u_n, mirror)
+    us_s = ustar(u_s, uss, uf, second) if qy_s > ZERO else ustar(uf, u_n, u_s, second)
+    us_n = ustar(uf, u_s, u_n, second) if qy_n > ZERO else ustar(u_n, unn, uf, second)
     flux += qy_n * us_n - qy_s * us_s
 
     # [4] momentum and pressure
@@ -189,7 +199,7 @@ def face_step(
 @njit(parallel=True)
 def faces(
     active, dt, want_wave, om, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
-    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
+    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
 ):  # fmt: skip
     for a in prange(active.size):
         t = active[a]
@@ -200,11 +210,11 @@ def faces(
                 fid = t * TILE2 + j * TILE + i
                 wx = face_step(
                     k, fid, dt, want_wave, om, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
-                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
+                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
                 )  # fmt: skip
                 wy = face_step(
                     k, fid, dt, want_wave, om, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
-                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet,
+                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
                 )  # fmt: skip
                 w = max(w, max(wx, wy))
         if want_wave:

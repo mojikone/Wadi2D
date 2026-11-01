@@ -13,6 +13,7 @@ struct Params {
     int rows;
     int second;
     int sheet;
+    int mirror;
 };
 
 __constant__ Params P;
@@ -26,6 +27,11 @@ __device__ __forceinline__ float minmod(const float a, const float b) {
 __device__ __forceinline__ float ustar(const float uc, const float uup, const float udown) {
     if (!P.second) return uc;
     return uc + 0.5f * minmod(uc - uup, udown - uc);
+}
+
+// A neighbour face that carries nothing (dry or closed, u exactly 0) has no velocity to give: read this one instead.
+__device__ __forceinline__ float gated(const float neighbour, const float own) {
+    return (P.mirror && neighbour == 0.0f) ? own : neighbour;
 }
 
 // Level above zmin from the mean depth; linear in the row coordinate, which is exact on a plane.

@@ -46,10 +46,10 @@ class GpuBackend:
         self._exchange = self.module.get_function("exchange")
         self._boundary = self.module.get_function("boundary")
         record = np.array(
-            [(num.g, num.dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, tables.rows, int(num.second), int(num.sheet))],
+            [(num.g, num.dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, tables.rows, int(num.second), int(num.sheet), int(num.mirror))],
             dtype=np.dtype(
                 [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
-                 ("rows", "i4"), ("second", "i4"), ("sheet", "i4")]
+                 ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
             ),
         )  # fmt: skip
         self.module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)

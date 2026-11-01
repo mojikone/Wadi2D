@@ -53,6 +53,7 @@ class CpuBackend:
             f(num.a_min),
             num.second,
             num.sheet,
+            num.mirror,
         )
 
     def set_active(self, active: np.ndarray) -> None:

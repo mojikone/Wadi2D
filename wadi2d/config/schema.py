@@ -117,6 +117,9 @@ class Numerics(_Part):
     sheet_flow: bool = Field(
         True, description="Volume-based section and mean-surface drive for thin flow on slopes"
     )
+    mirror_dry_faces: bool = Field(
+        True, description="A dry or closed neighbour face gives no velocity to momentum advection"
+    )
     e_wet: float = Field(
         1e-4, ge=1e-6, le=0.1, description="Depth over the face invert below which a face is dry, m"
     )
