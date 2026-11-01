@@ -8,12 +8,10 @@ in the core changes.
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
-from typing import Any, Generic, TypeVar
-
-T = TypeVar("T")
+from typing import Any
 
 
-class Registry(Generic[T]):
+class Registry[T]:
     """Maps a method name to the callable that builds it."""
 
     def __init__(self, family: str) -> None:

@@ -16,6 +16,7 @@ from numpy.typing import ArrayLike, NDArray
 from wadi2d.storm.registry import Registry
 
 FloatArray = NDArray[np.float64]
+PERCENT = 100.0
 
 
 @runtime_checkable

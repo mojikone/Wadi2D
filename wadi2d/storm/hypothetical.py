@@ -14,9 +14,8 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from wadi2d.storm.arf import ArfTable
-from wadi2d.storm.base import STORM_METHODS, CumulativeStorm, FloatArray
+from wadi2d.storm.base import PERCENT, STORM_METHODS, CumulativeStorm, FloatArray
 
-PERCENT = 100.0
 MINUTES_PER_HOUR = 60.0
 HYPOTHETICAL_STORM = "Hypothetical Storm"
 
