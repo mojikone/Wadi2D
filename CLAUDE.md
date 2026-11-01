@@ -1,9 +1,6 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
-**State line (2026-11-01): building, on his word of 2026-10-29 ("go ahead, and come back with the software"). Done and committed: toolchain
-gate (CUDA kernels through CuPy and NVRTC, no toolkit needed), HMS readers, analytic validation cases, solver core on GPU and CPU (staggered
-scheme, see decision 19 and `W1 research and design note/design_note.md`). In progress: lumped hydrology with HMS replication, engine pipeline
-(IO, forcing, run, ARF, CLI), QGIS plugin. Nothing pushed.**
+**State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built and committed locally, nothing pushed; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **Open: rain-on-grid (mode c) peaks at 1.4 to 2.1 x HMS and has no independent check of any kind; Block 2 has no gauges (his word), so HMS cannot settle it (decision 20).** The next step is a HEC-RAS rain-on-grid head-to-head on one catchment, and his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -36,7 +33,9 @@ HEC-HMS 4.1x has a 2D subbasin, but the mesh must be built in HEC-RAS and it run
 - Stack: his words, "whatever yields the fastest 2D solver possible". My pick, not yet benchmarked or approved: CUDA C++ core as a
   DLL, Python/Qt UI on top (his PyQGIS habits carry over). To be decided in the design note with a micro-benchmark.
   **2026-10-29**: the hardware-adaptive requirement is in tension with CUDA-only; single-source performance-portable layers (Kokkos, as
-  SERGHEI uses) and portable GPU APIs join the candidates. See Product requirements.
+  SERGHEI uses) and portable GPU APIs join the candidates. See Product requirements. **Decided by the build, 2026-11-01**: CUDA C++ kernels compiled at
+  run time by NVRTC through CuPy, so no CUDA toolkit or MSVC is needed; a Numba CPU twin with the same statement order; a Python engine process; pydantic
+  configuration. Licence in practice GPL-3.0-or-later.
 - Machine: NVIDIA GeForce RTX 5080 16 GB (Blackwell, needs CUDA 12.8+), AMD Ryzen 9 9950X3D 16 cores / 32 threads, 126 GB RAM,
   Windows 11 Pro. [Certain, read on 2026-10-29]
 - Test data and reference: Block 2 of the Batinah project, `D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2` (read its `CLAUDE.md`):
@@ -98,7 +97,9 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
    anyone else asks. If (c) matches HMS, his stated preference is the single full-2D model. **Version 1 (2026-10-29)**: mode (c) runs on
    the uniform grid, so the hill wadis get the plain's cell size: full catchment at 20 m, 1.5 M cells, minutes; at 10 m, 6 M cells, 30-60 min
    [Guessing]; the fine-wadi full-catchment map waits for the quadtree. Mode (b) loses nothing: plain and fans at 10 m, ~2 M cells, ~10 min
-   [Guessing].
+   [Guessing]. **Measured 2026-11-01 (`validation/block2_full.md`)**: (a) within 0.002 %; (b) within 3 % at the five dams with HMS's own reach n 0.1,
+   up to +26 % at wadi n 0.04; (c) right volume, peaks 1.39 to 2.08 x HMS and 0.2 to 2.0 h early, with no defensible Manning closing it. (b) saved
+   no run time on that domain, because rain on the plain keeps the tiles active. See decision 20 for what this does and does not mean.
 7. **Delineation is preprocessing, not run-time load.** Flow direction and accumulation on the 2 m or 5 m raster (599 km² at 5 m =
    24 M cells, seconds), once per terrain, cached on disk. **Catchment area at any point is one lookup in the accumulation grid**;
    catchment polygons only on demand (display). Wall and burn objects shared with terrain modification, as HMS does. **Version 1
@@ -198,9 +199,18 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     which agreed independently). Level per cell, conservative momentum per face, friction implicit, crest faces limited by critical flow, thin
     sheet flow read by volume over length with a mean-surface drive. Reasons: sub-grid tables sit exactly on these unknowns; still water is exact by
     construction; TUFLOW HPC works this way. Measured: a plain flat-surface sub-grid holds 14 % of the correct storage on a 5 % plane, this one
-    100 %; thin crest 0.996 of critical flow; Stoker plateau exact; 2.2 to 2.9 G cell-updates/s with real tables on the RTX 5080. Weakness: a
-    channel with vertical walls at 45 degrees runs 12 to 30 % too deep at 6 to 3 cells wide. `design_note.md` carries the equations and the list
-    of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
+    100 %; thin crest 0.996 of critical flow; Stoker plateau exact; 2.2 to 2.9 G cell-updates/s with real tables on the RTX 5080. Weakness, final code:
+    a channel with vertical walls at 45 degrees runs +11 % at 3 cells wide and +2 % at 6; 2:1 banks +2 % and +0.8 %. `design_note.md` carries the equations
+    and the list of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
+20. **Validation without gauges** (his statement, 2026-11-01: Block 2 has no hydrometric station with matching rainfall and hydrographs for one event, so
+    HMS is not the thing to validate the outputs). Consequences. HMS replication stays as a **code check**: it proves our hydrology does what HMS does, not
+    that either is right. Mode (c) against HMS is a **disagreement between two uncalibrated models**, not a failure of (c), and not a pass for HMS. Hand check
+    [Likely, flow lengths from Hack's law, not measured]: the HMS lags imply a mean velocity of 1.2 to 1.5 m/s over 8 to 18 km, which is slow for a 100-yr
+    flood in a steep rock wadi; the 2D response is about 2 to 3 x faster, in line with Manning at flood depth. That is an argument, not evidence. Evidence
+    that does not need a gauge, in order of cost: HEC-RAS rain-on-grid on the same catchment (separates a solver defect from a method difference; not yet
+    run; the existing head-to-head was inflow-driven and never tested rain, hills, crests or jumps); the regional envelope of unit peaks; flood marks with a
+    slope-area estimate from a known event (Shaheen 2021); satellite flood extent with satellite rain; a gauged neighbouring wadi, calibrated there and
+    transferred. Until then design flows stay on mode (b), the method reviewers know, and mode (c) is for maps and for sensitivity.
 
 ## Engineering rules for the code (his instruction, 2026-10-29)
 
@@ -307,6 +317,8 @@ What that implies (my reading, each point open for the design note):
   and the standalone UI are version 2.
 - Version 1 as cut: 3-4 months of focused work [Guessing]; the full list, 9-12 months. Full-catchment maps in version 1 are on the
   uniform grid; the fine-wadi map is version 2.
+- **Measured 2026-11-01**, RTX 5080: Block 2 at 20 m, 2.03 M cells, 48 h, 8.9 min; at 10 m, 8.1 M cells, 36 h, 42 min; one ARF study of 13 storms and 5
+  areas, 7.2 h; a 3 x 3 km fan at 10 m against HEC-RAS 6.6, 13.5 s against 8:42, 39 x. Steps cost 0.6 ns per cell.
 - A saleable product is a different scale of work from a prototype: QA, installer, licence audit, documentation, support, and validation
   evidence that reviewers accept. Months becomes years. The prototype must be built so none of it is thrown away: the engine as a library
   with a stable API from the first stage, the UI as a separate client.
@@ -335,24 +347,18 @@ What that implies (my reading, each point open for the design note):
 
 ## Next steps (for the next session)
 
-1. Create `W1 research and design note\` with its own `README.md`.
-2. Deep research (Workflow, multi-agent, several phases): TUFLOW HPC and SGS papers; HEC-RAS sub-grid (Casulli 2009 and the RAS 2D
-   reference manual); 3Di; Iber+; LISFLOOD-FP DG2; TRITON, HiPIMS, SERGHEI; GPU SWE kernels and memory layouts; quadtree meshers;
-   local time stepping; well-balanced wet/dry schemes; mixed precision; the EA 2D benchmark report; HMS technical reference (SCS CN,
-   lag, Clark, Muskingum-Cunge 8-point, depth-area analysis, frequency storm); ARF guidance (ARR 2019 Book 2, HMS, NOAA); rain-on-grid
-   vs lumped comparisons; gridded rainfall formats and GCC radar products. Added 2026-10-29: UI patterns of the simplest competent
-   engineering tools; backend-UI wiring templates and repos (Tauri, Electron, PySide6/QML, local-API patterns); performance-portable
-   backends (Kokkos, alpaka, SYCL, Vulkan, wgpu) and their Windows support; licences of toolkits and libraries for a closed product;
-   installers, code signing, hardware detection and adaptive execution; competitor pricing and licence models. Added later the same day:
-   licences, governance and business models of open engineering software (SWMM, EPANET, QGIS, OpenFOAM, Delft3D, LISFLOOD-FP, SERGHEI,
-   TRITON); job queues and node services on a LAN; multi-GPU and multi-node domain decomposition for explicit shallow-water solvers
-   (TRITON, SERGHEI, NCCL, MPI on Windows) and LAN latency figures. **Scaled the same day to the version-1 scope (decision 17)**: meshing
-   and distributed execution one agent each, to keep the version-2 doors open in the design; the UI track aimed at QGIS plugin patterns
-   (TUFLOW's plugin, processing providers, long-running tasks, canvas refresh from a plugin); about 200 agents. Added after his
-   engineering-rules message: sub-grid on steep slopes (flat vs sloped free surface per cell, Volp 2013 and later), tile-level local
-   time stepping on GPU (Dazzi 2018, Hu 2019), thin-cell velocity desingularisation; module layouts and configuration schemas of
-   open hydraulic engines (SWMM, Delft3D, SERGHEI, LISFLOOD-FP) as patterns for rules 1-4.
-3. Design note for his approval before any code; then the build in the stated order, each stage verified.
+Waiting on him:
+
+1. Run HEC-RAS rain-on-grid on the Bidah catchment against mode (c), and crest and jump cases with it (recommended first; decision 20).
+2. The datum: confirm GGC sits 2.39 m above NSA for Block 2 W2, and on which datum the dam levels are to be used.
+3. Confirm my edits to the dam shapefiles (gaps joined, spillways centred on the thalweg, `validation/block2_full.md` section 5).
+4. Whether a neighbouring gauged wadi, flood marks or dam level records exist for Batinah.
+5. Permission to download the UK EA 2D benchmark data; the GPL section 7 permission for the NVIDIA libraries; pushing to GitHub.
+6. Deleting the generated caches under `validation/block2_full/` (`cache`, 3.9 GB; `cache_3f32ca6`, 6.5 GB), which the session's safety check refused.
+
+Then, in no order: `plan_min` 0.05 (9 % faster, peaks within 0.3 %, needs a proper test); the composite ARF maps have been written but not looked at; the
+plugin has no field for `initial_levels` yet, job.json only; a full-domain run with the dams in place; research topics N04, N06, N07, N08, N10, H05, S01 to S05
+were never run; reviewer acceptance is untested.
 
 ## Iterations
 

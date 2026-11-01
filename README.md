@@ -11,8 +11,40 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): building. Solver core runs on the RTX 5080 and on the CPU and passes its analytic tests; the hydrology, the engine pipeline and the QGIS plugin are in progress. Not yet usable end to end.** The profile, the decisions with their reasons,
-the product requirements and the open questions are in `CLAUDE.md`.
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 709 tests pass. Nothing is
+pushed. Fit to try and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2 and nothing
+independent has settled which is right (no gauges there). Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
+the open questions are in `CLAUDE.md`.
+
+| Check | Result | Where |
+|---|---|---|
+| Analytic: still water, dam break, jump, supercritical channel, rain on planes, crest | pass, within 1 to 3 % | `tests/solver`, design note section 3 |
+| Same code as HMS: 26,889 peaks on four projects | within 0.12 % | `validation/hms_replication.md`, `hms_heldout.md` |
+| HEC-RAS 6.6, one 3 x 3 km fan, inflow only | +2.6 cm on max level, F 0.94, 39 x faster | `validation/ras_head_to_head.md` |
+| Block 2 lumped hills with 2D plain, five dams, against HMS | within 3 % | `validation/block2_full.md` |
+| Dam routing against Modified Puls | peak outflow within 1.6 % | same |
+| Rain-on-grid over the whole catchment | **open**: no independent check | same, and decision 20 |
+| Crests, jumps and rain against HEC-RAS; UK EA benchmarks; an observed flood | **not done** | |
+
+## Quick start
+
+```
+python -m venv .venv
+.venv\Scripts\pip install -e .[gpu]
+.venv\Scripts\wadi2d doctor
+.venv\Scripts\python tools\install_plugin.py
+```
+
+Enable Wadi2D in QGIS and follow the dock from top to bottom; `plugin/wadi2d_qgis/README.md` is the walk-through. From the command line:
+
+```
+wadi2d hms-import <hms folder> --basin B --met M --control C --out job.json
+wadi2d run job.json --dry-run --out run1
+wadi2d run job.json --out run1
+wadi2d arf job.json --out study1
+```
+
+To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [[x, y], ...], "level": 100.0}]`, on the datum of the DEM.
 
 ## Iterations
 

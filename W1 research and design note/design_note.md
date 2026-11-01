@@ -57,8 +57,10 @@ Layout, in `wadi2d/solver/layout.py`: compact tiles of 32 x 32 with a 2-cell hal
 | Rain on planes of 1, 5, 20 %, dx 20-40 m | storage within 1 % of the kinematic wave; a plain flat-surface sub-grid holds 14 % of it |
 | Thin crest | 0.996 of critical flow |
 | Aligned channel, 3 cells wide | normal depth within 1 % |
-| **Diagonal channel with vertical walls, 45 degrees** | **too deep: +30 % at 3 cells wide, +12 % at 6.** Known limitation, see section 8 |
+| Rotated channel, 45 degrees, final code | 2:1 banks: +6.8 % at 1.5 cells wide, +2.0 % at 3, +0.8 % at 6. Vertical walls: +11 % at 3, +2 % at 6. 30 degrees: +4 to 5 % |
 | Speed on the RTX 5080, all cells wet, real tables | 2.2 to 2.9 G cell-updates/s; 1 M cells 0.48 ms per step; 48 h at 1 s step in 1.4 min |
+| Speed on real runs, GPU idle | Block 2, 2.03 M cells, 48 h: 8.9 min, 1.28 ms per step, 1.58 G cell-updates/s. 8.1 M cells, 36 h: 42 min |
+| HEC-RAS 6.6, 3 x 3 km fan, inflow only | 10 m: +2.6 cm, rms 5.5 cm, F 0.936, Q within 0.2 %, 39 x faster. Rain, crests and jumps not compared |
 
 ## 4. Module map
 
@@ -103,11 +105,15 @@ one cyclone, not a fixed-area curve (research H06), and the reports must say so.
 
 ## 8. Known limits
 
-- Diagonal channels with vertical walls run too deep (section 3). Friction alone gives +7 % at 6 cells; inertia at the staircase adds the rest.
-  Natural banks are less severe than the test [Guessing, to be measured on Block 2].
+- Rotated channels narrower than about 3 cells run deep (section 3). Natural banks are less severe than vertical walls. Keep a wadi at 3 cells or more.
 - No eddy viscosity. Recirculation behind obstacles is under-resolved.
 - A ridge inside a cell, parallel to its faces, is invisible unless a crest line marks it (TUFLOW has the same limit; its breakline detection is
   a version-2 item).
-- First-order in time. Thacker error is 0.4 % of h0 per ... see tests.
+- First-order in time; the Thacker limit stands in `tests/solver/test_analytic.py`.
 - Lateral inflow carries no momentum.
 - The hump case is 3 % high on critical discharge.
+- Rain-on-grid over steep hills has no independent check. On Block 2 it responds 2 to 3 x faster than the SCS lags; no gauge there says which is right.
+- A 20 m face takes its lowest pixel, so a thin ridge can leak at a level the DEM does not show: Bidah's dike at 104.4 m at 20 m, gone at 10 m. Draw a crest line.
+- A design line drawn on a spillway reads 4 to 25 % low, because the spillway takes crest faces within one cell. Read the whole dam axis.
+- A domain edge is a wall. A run warns when water stands more than `outputs.edge_depth` against one, because the balance still closes.
+- Rain falls only on the cell it hits: no transmission loss into the wadi bed, in 2D as in HMS.
