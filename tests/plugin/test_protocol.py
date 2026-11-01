@@ -1,0 +1,142 @@
+# Wadi2D QGIS plugin tests. Copyright (C) 2026 Mojtaba.
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Engine commands, exit codes, the clean environment, without QGIS."""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+import pytest
+from wadi2d_qgis.protocol import (
+    DEFAULT_ENGINE,
+    ENGINE_MODULE,
+    EXIT_MESSAGES,
+    clean_env,
+    engine_error_text,
+    estimate_text,
+    exit_message,
+    next_run_dir,
+    parse_engine,
+    parse_estimate,
+    pid_alive,
+    run_args,
+)
+
+
+@pytest.mark.parametrize("code", [0, 1, 2, 3, 4, 5, 6, 7])
+def test_every_exit_code_of_the_protocol_has_a_sentence(code: int) -> None:
+    assert code in EXIT_MESSAGES
+    assert exit_message(code).endswith(".")
+
+
+def test_unknown_and_missing_exit_codes_still_read_plainly() -> None:
+    assert "unknown code (42)" in exit_message(42)
+    assert "without reporting" in exit_message(None)
+
+
+def test_the_default_engine_splits_into_python_and_module() -> None:
+    assert parse_engine(DEFAULT_ENGINE)[1:] == list(ENGINE_MODULE)
+    assert parse_engine(DEFAULT_ENGINE)[0].endswith("python.exe")
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        (r"C:\venv\Scripts\wadi2d.exe", [r"C:\venv\Scripts\wadi2d.exe"]),
+        (r"C:\venv\Scripts\python.exe", [r"C:\venv\Scripts\python.exe", *ENGINE_MODULE]),
+        (r"C:\Program Files\w\wadi2d.exe", [r"C:\Program Files\w\wadi2d.exe"]),
+        (r"C:\Program Files\w\python.exe -m wadi2d", [r"C:\Program Files\w\python.exe", "-m", "wadi2d"]),
+        (
+            r'"C:\Program Files\w\python.exe" "D:\a b\fake.py"',
+            [r"C:\Program Files\w\python.exe", r"D:\a b\fake.py"],
+        ),
+        ("  wadi2d  ", ["wadi2d"]),
+    ],
+)
+def test_parse_engine(text: str, expected: list[str]) -> None:
+    assert parse_engine(text) == expected
+
+
+def test_an_empty_engine_path_is_refused() -> None:
+    with pytest.raises(ValueError, match="empty"):
+        parse_engine("   ")
+
+
+def test_run_arguments() -> None:
+    assert run_args("j.json", "out") == ["run", "j.json", "--out", "out"]
+    assert run_args("j.json", "out", dry_run=True)[-1] == "--dry-run"
+    assert run_args("j.json", "out", resume=True)[-1] == "--resume"
+
+
+def test_clean_env_removes_what_qgis_added_and_keeps_the_rest() -> None:
+    root = r"C:\PROGRA~1\QGIS34~1.8"
+    env = {
+        "OSGEO4W_ROOT": root,
+        "PYTHONHOME": rf"{root}\apps\Python312",
+        "PYTHONPATH": rf"{root}\apps\qgis-ltr\python;",
+        "GDAL_DATA": rf"{root}\apps\gdal\share\gdal",
+        "GDAL_DRIVER_PATH": rf"{root}\apps\gdal\lib\gdalplugins",
+        "PROJ_DATA": rf"{root}\share\proj",
+        "QGIS_PREFIX_PATH": f"{root}/apps/qgis-ltr".replace("\\", "/"),
+        "QT_PLUGIN_PATH": rf"{root}\apps\qt5\plugins",
+        "VSI_CACHE": "TRUE",
+        "Path": rf"{root}\apps\qgis-ltr\bin;{root}\bin;C:\Windows\system32;D:\tools",
+        "SystemRoot": r"C:\Windows",
+        "CUDA_VISIBLE_DEVICES": "0",
+    }
+    clean = clean_env(env)
+    assert clean == {
+        "Path": r"C:\Windows\system32;D:\tools",
+        "SystemRoot": r"C:\Windows",
+        "CUDA_VISIBLE_DEVICES": "0",
+    }
+
+
+def test_clean_env_leaves_a_plain_environment_alone() -> None:
+    env = {"PATH": r"C:\Windows;D:\x", "TEMP": r"C:\t"}
+    assert clean_env(env) == env
+
+
+def test_pid_alive() -> None:
+    assert pid_alive(os.getpid())
+    assert not pid_alive(None)
+    assert not pid_alive(0)
+    assert not pid_alive(2**22 - 3)
+
+
+def test_a_used_folder_gets_a_numbered_sibling_and_the_old_one_stays(tmp_path: Path) -> None:
+    base = tmp_path / "run"
+    assert next_run_dir(base) == base
+    base.mkdir()
+    assert next_run_dir(base) == base
+    (base / "progress.jsonl").write_text("x", "utf-8")
+    assert next_run_dir(base) == tmp_path / "run_2"
+    (tmp_path / "run_2").mkdir()
+    (tmp_path / "run_2" / "progress.jsonl").write_text("x", "utf-8")
+    assert next_run_dir(base) == tmp_path / "run_3"
+
+
+def test_estimate_reads_what_the_dry_run_prints() -> None:
+    assert parse_estimate('{\n "cells": 7\n}\n') == {"cells": 7}
+    assert parse_estimate("no json here") is None
+    assert parse_estimate("[1]") is None
+
+
+@pytest.mark.parametrize(
+    ("seconds", "words"), [(40.0, "about 40 s"), (240.0, "about 4 min"), (7200.0, "about 2.0 h")]
+)
+def test_estimate_text(seconds: float, words: str) -> None:
+    estimate = {"cells": 1497120, "device_gb": 0.687, "wall_s": seconds}
+    assert estimate_text(estimate) == f"1,497,120 cells, 0.69 GB, {words}"
+
+
+def test_the_engines_own_sentence_is_taken_from_its_json_error_line() -> None:
+    stderr = 'some warning\n{"ev": "error", "code": 3, "message": "terrain.dem not found: x.tif"}\n'
+    assert engine_error_text(stderr) == "terrain.dem not found: x.tif"
+
+
+def test_a_python_traceback_comes_through_as_its_tail() -> None:
+    stderr = "Traceback (most recent call last):\n  File x\nValueError: no\n"
+    assert engine_error_text(stderr).endswith("ValueError: no")
+    assert engine_error_text("  ") == ""
