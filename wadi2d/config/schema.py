@@ -192,6 +192,9 @@ class Outputs(_Part):
     wet_depth: float = Field(
         0.1, ge=0.0, le=10.0, description="Mean depth that counts a cell as wet in the wet area, m"
     )
+    edge_depth: float = Field(
+        3.0, ge=0.0, le=100.0, description="Depth against a closed domain edge that draws a warning, m"
+    )
     progress_every_s: float = Field(
         2.0, ge=0.05, le=600.0, description="Wall seconds between progress events and stop checks"
     )

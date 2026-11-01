@@ -20,6 +20,7 @@ import shapely
 from pydantic import ValidationError
 from rasterio import features
 from rasterio.transform import Affine
+from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import RunConfig
@@ -42,6 +43,8 @@ from wadi2d.terrain.vector import read_features
 
 EXIT_DONE, EXIT_UNEXPECTED, EXIT_INVALID, EXIT_INPUT, EXIT_BACKEND = 0, 1, 2, 3, 4
 EXIT_NUMERICAL, EXIT_STOPPED, EXIT_MEMORY = 5, 6, 7
+EDGE_REACH = 2
+"""Cells around a boundary that do not count as a closed edge."""
 
 
 class JobError(Exception):
@@ -353,6 +356,21 @@ def status_tags(summary: RunSummary, t: float, cfg: RunConfig) -> dict[str, str]
     }
 
 
+def edge_ponding(grid: TileGrid, depth: np.ndarray, open_cells: np.ndarray) -> tuple[float, float, float]:
+    """Deepest water on the domain edge away from any boundary: (depth, x, y).
+
+    An edge is a wall. Water deep against one is a domain drawn too tight or a gap between polygons, and the
+    balance closes all the same, so nothing else would tell.
+    """
+    edge = grid.mask & ~ndimage.binary_erosion(grid.mask, border_value=0)
+    closed = edge & ~ndimage.binary_dilation(open_cells, iterations=EDGE_REACH)
+    if not closed.any():
+        return 0.0, 0.0, 0.0
+    j, i = (int(a) for a in np.unravel_index(np.argmax(np.where(closed, depth, -1.0)), depth.shape))
+    x, y = grid.xy_of(j, i)
+    return float(depth[j, i]), float(x), float(y)
+
+
 def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, crs, progress, tags) -> None:
     fields_ = monitor.maxima.fields()
     grid = tables.grid
@@ -369,6 +387,13 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     for name, (data, valid) in maps.items():
         write_map(out / "maps" / f"{name}.tif", data, grid, crs, valid, tags)
     results.maxima(fields_)
+    deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask)
+    if deep > cfg.outputs.edge_depth:
+        progress.emit(
+            "warn",
+            message=f"water stood {deep:.1f} m deep against the domain edge at ({x:.0f}, {y:.0f}): "
+            "an edge is a wall, so check the domain polygon there",
+        )
     t = np.asarray(monitor.times)
     for s in monitor.series + monitor.line_series:
         columns = {k: np.asarray(v) for k, v in s.columns.items()}
