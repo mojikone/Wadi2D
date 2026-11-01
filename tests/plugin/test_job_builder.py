@@ -216,3 +216,10 @@ def test_a_failed_reprojection_is_seen_at_any_depth() -> None:
     assert finite([[[1.0, 2.0], [3.0, 4.0]]])
     assert not finite([[[1.0, 2.0], [inf, inf]]])
     assert not finite([float("nan"), 2.0])
+
+
+def test_an_hms_run_with_no_curve_number_is_said() -> None:
+    base = {"boundaries": [1], "hms": {"folder": "x"}}
+    assert "no losses" in " ".join(notes(base))
+    assert notes({**base, "curve_number": 85.0}) == []
+    assert notes({**base, "cn_raster": "cn.tif"}) == []

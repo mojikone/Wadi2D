@@ -182,6 +182,8 @@ def notes(values: dict) -> list[str]:
         found.append("No boundary set: every edge is a wall, so water cannot leave the domain.")
     if not values.get("hms") and values.get("rain_hours", 0.0) > values.get("duration_h", 0.0):
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
+    if values.get("hms") and not values.get("curve_number") and not values.get("cn_raster"):
+        found.append("No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses.")
     dx, pixel = values.get("dx"), values.get("pixel", 0.0)
     if dx and snap_dx(dx, pixel) != dx:
         found.append(
