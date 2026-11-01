@@ -38,7 +38,7 @@ def _plane_model(slope, dx, k, n, length, backend, num):
         BoundaryCells(
             np.array(cells, np.int32), np.zeros(ny, np.int32), np.ones(ny, np.int32),
             np.zeros(ny, np.float32), np.zeros(ny, np.float32),
-        )  # fmt: skip
+        )
     )
     return m, i, nx, ny
 
@@ -78,7 +78,7 @@ def test_thin_crest_passes_critical_flow(backend):
         BoundaryCells(
             np.array(cells, np.int32), np.zeros(n_b, np.int32), np.zeros(n_b, np.int32),
             np.full(n_b, crest + head, np.float32), np.full(n_b, crest + head, np.float32),
-        )  # fmt: skip
+        )
     )
     m.advance(300.0)
     q = float(m.field("qx")[2, i_crest]) / dx

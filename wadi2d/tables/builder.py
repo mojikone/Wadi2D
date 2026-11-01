@@ -100,7 +100,7 @@ def build_tables(
     edit=None,
 ) -> GridTables:
     """Build all tables. ``manning`` is one value or a (ny, nx) grid; ``edit(z, row0, col0)`` edits pixels in place."""
-    k = int(round(grid.dx / bed.pixel))
+    k = round(grid.dx / bed.pixel)
     if abs(k * bed.pixel - grid.dx) > 1e-6 * grid.dx:
         raise ValueError(f"cell size {grid.dx} is not a multiple of the pixel {bed.pixel}")
     ny, nx = grid.shape

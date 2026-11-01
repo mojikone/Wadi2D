@@ -65,6 +65,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "NPY", "RUF", "SIM"]
+ignore = ["E501", "SIM108", "RUF005"]  # black owns code length; comments and tables stay readable
 
 [tool.black]
 line-length = 110
