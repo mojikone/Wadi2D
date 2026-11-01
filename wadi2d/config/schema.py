@@ -150,6 +150,13 @@ class Boundary(_Part):
     slope: float = Field(0.005, ge=1e-5, le=0.5, description="Energy slope for kind 'normal'")
 
 
+class InitialLevel(_Part):
+    """Water standing at a level when the run starts: a reservoir at its full supply level, say."""
+
+    coordinates: list[tuple[float, float]] = Field(description="Polygon ring, m", min_length=3)
+    level: float = Field(description="Water level on the datum of the DEM, m")
+
+
 class DesignPoint(_Part):
     """A point where depth and level are recorded."""
 
@@ -342,6 +349,7 @@ class RunConfig(_Part):
     storm: Storm = Storm()
     hydrology: Hydrology = Hydrology()
     boundaries: list[Boundary] = []
+    initial_levels: list[InitialLevel] = []
     outputs: Outputs = Outputs()
     run: Run = Run()
     arf: ArfStudy = ArfStudy()

@@ -17,7 +17,7 @@ from rasterio import features
 from scipy.integrate import cumulative_trapezoid
 
 from wadi2d.config.constants import MM_PER_M
-from wadi2d.config.schema import Boundary, Hydrology, RunConfig
+from wadi2d.config.schema import Boundary, Hydrology, InitialLevel, RunConfig
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hms import load_basin
 from wadi2d.hms import sqlite as hms_sqlite
@@ -148,6 +148,26 @@ class BoundarySet:
     @property
     def size(self) -> int:
         return int(self.cells.cell.size)
+
+
+def initial_depth(levels: list[InitialLevel], tables: GridTables) -> np.ndarray:
+    """Mean depth at the start: each polygon fills its cells to its level, later polygons on top of earlier ones."""
+    grid = tables.grid
+    out = np.zeros(grid.shape)
+    if not levels:
+        return out
+    jj, ii = np.nonzero(grid.mask)
+    x, y = grid.xy_of(jj, ii)
+    hc = grid.from_tiles(tables.hc)[jj, ii]
+    dtab = grid.from_tiles(tables.dtab)[jj, ii]
+    zmin = tables.zmin[jj, ii]
+    for item in levels:
+        inside = shapely.contains_xy(shapely.Polygon(item.coordinates), x, y)
+        depth = np.asarray(hbar_at_level(item.level, zmin[inside], hc[inside], dtab[inside]))
+        if not (depth > 0.0).any():
+            raise ValueError(f"initial level {item.level} m wets no cell of its polygon: check the datum")
+        out[jj[inside], ii[inside]] = depth
+    return out
 
 
 def cells_along(

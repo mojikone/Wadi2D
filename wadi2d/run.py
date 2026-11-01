@@ -24,7 +24,7 @@ from rasterio.transform import Affine
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import RunConfig
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
-from wadi2d.forcing import Forcing, boundary_set, build_storm, load_polygons, manning_grid
+from wadi2d.forcing import Forcing, boundary_set, build_storm, initial_depth, load_polygons, manning_grid
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
@@ -428,7 +428,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         with rasterio.open(cfg.terrain.dem) as dem:
             crs = dem.crs.to_wkt() if dem.crs is not None else ""
     storm, polygons, flows = preflight(cfg, crs)
-    if storm is None and not flows and not any(b.kind == "stage" for b in cfg.boundaries):
+    still = storm is None and not flows and not cfg.initial_levels
+    if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
     if cfg.storm.depth_grid is not None:
         progress.emit(
@@ -451,7 +452,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
     bset = boundary_set(cfg.boundaries, tables, cfg.grid.line_samples)
-    model.set_depth(np.zeros(grid.shape))
+    model.set_depth(initial_depth(cfg.initial_levels, tables))
     if bset.size:
         model.set_boundary(bset.cells)
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs)
