@@ -33,6 +33,8 @@ BLOCK = 256
 REACH_MARGIN = 1.1
 """The level range comes from a decimated read: a peak between its samples must not shorten the reach."""
 EPS_CHANGE = 1e-9
+SECTION_MARGIN = 1.3
+"""A previewed section shows this much more than the ground that changed."""
 
 
 @dataclass
@@ -76,7 +78,9 @@ def _rasters(folder: Path, grid: TileGrid, pixel: float, k: int, crs):
         "compress": "deflate", "predictor": 2, "tiled": True, "blockxsize": BLOCK, "blockysize": BLOCK,
         "sparse_ok": True, "BIGTIFF": "IF_SAFER",
     }  # fmt: skip
-    return rasterio.open(folder / MODIFIED_TIF, "w", **profile), rasterio.open(folder / CHANGE_TIF, "w", **profile)
+    return rasterio.open(folder / MODIFIED_TIF, "w", **profile), rasterio.open(
+        folder / CHANGE_TIF, "w", **profile
+    )
 
 
 def _near_tiles(grid: TileGrid, tallies: list[Tally], shapes: dict, levels: tuple[float, float]) -> set[int]:
@@ -159,9 +163,16 @@ def _write_tables(tallies: list[Tally], folder: Path) -> list[dict]:
             name = tally.title(index)
             for b in range(tally.cut.size):
                 top = min((b + 1) * tally.step, tally.line.length)
-                rows.writerow((name, tally.obj.kind, b * tally.step, top, f"{tally.cut[b]:.3f}", f"{tally.fill[b]:.3f}"))
+                rows.writerow(
+                    (name, tally.obj.kind, b * tally.step, top, f"{tally.cut[b]:.3f}", f"{tally.fill[b]:.3f}")
+                )
             totals.append(
-                {"object": name, "kind": tally.obj.kind, "cut_m3": float(tally.cut.sum()), "fill_m3": float(tally.fill.sum())}
+                {
+                    "object": name,
+                    "kind": tally.obj.kind,
+                    "cut_m3": float(tally.cut.sum()),
+                    "fill_m3": float(tally.fill.sum()),
+                }
             )
     with (folder / VOLUMES_CSV).open("w", newline="", encoding="utf-8") as stream:
         rows = csv.writer(stream)
@@ -184,20 +195,31 @@ def _state(shape: Shape, s: np.ndarray, side: str, ground: Sampler, cfg: Terrain
     return [str(v) for v in state]
 
 
-def _cross_section(shape: Shape, station: float, ground: Sampler, half: float, points: int) -> dict:
+def _across(shape: Shape, station: float, ground: Sampler, half: float, points: int):
     offsets = np.linspace(-half, half, points)
-    s = np.full(offsets.shape, station)
-    x, y = shape.line.offset_at(s, offsets)
+    x, y = shape.line.offset_at(np.full(offsets.shape, station), offsets)
     g = ground(x, y)
+    return offsets, g, shape.surface(x, y, g)
+
+
+def _cross_section(shape: Shape, station: float, ground: Sampler, reach: float, points: int) -> dict:
+    """A section framed on what changed: the reach allows for the highest ground anywhere, far wider than this."""
+    offsets, g, new = _across(shape, station, ground, reach, points)
+    changed = offsets[np.abs(new - g) > EPS_CHANGE]
+    if changed.size:
+        frame = SECTION_MARGIN * float(np.abs(changed).max())
+        offsets, g, new = _across(shape, station, ground, frame, points)
     return {
         "station": station,
         "offset": np.round(offsets, 3).tolist(),
         "ground": np.round(g, 3).tolist(),
-        "new": np.round(shape.surface(x, y, g), 3).tolist(),
+        "new": np.round(new, 3).tolist(),
     }
 
 
-def preview_data(objects: list[TerrainObject], ground: Sampler, dx: float, cfg: Terrain, shapes: dict) -> list[dict]:
+def preview_data(
+    objects: list[TerrainObject], ground: Sampler, dx: float, cfg: Terrain, shapes: dict
+) -> list[dict]:
     """Long profile and cross-sections of every shaped object, for the plugin to draw."""
     out = []
     for index, obj in enumerate(o for o in objects if o.kind in SHAPED_KINDS):
@@ -209,22 +231,23 @@ def preview_data(objects: list[TerrainObject], ground: Sampler, dx: float, cfg: 
         left, right = shape.section(s, False), shape.section(s, True)
         band = float(shape.reach(float(g.min()), float(g.max())))
         stations = np.linspace(0.0, shape.line.length, cfg.preview_sections)
-        out.append(
-            {
-                "name": obj.name or f"{obj.kind} {index + 1}",
-                "kind": obj.kind,
-                "length": shape.line.length,
-                "station": np.round(s, 3).tolist(),
-                "ground": np.round(g, 3).tolist(),
-                "new": np.round(new, 3).tolist(),
-                "bed": np.round(left.bed, 3).tolist(),
-                "left_top": np.round(left.top, 3).tolist(),
-                "right_top": np.round(right.top, 3).tolist(),
-                "left_state": _state(shape, s, "left", ground, cfg),
-                "right_state": _state(shape, s, "right", ground, cfg),
-                "sections": [_cross_section(shape, float(v), ground, band, cfg.preview_points) for v in stations],
-            }
-        )
+        item = {
+            "name": obj.name or f"{obj.kind} {index + 1}",
+            "kind": obj.kind,
+            "length": shape.line.length,
+            "station": np.round(s, 3).tolist(),
+            "ground": np.round(g, 3).tolist(),
+            "new": np.round(new, 3).tolist(),
+            "left_state": _state(shape, s, "left", ground, cfg),
+            "right_state": _state(shape, s, "right", ground, cfg),
+            "sections": [_cross_section(shape, float(v), ground, band, cfg.preview_points) for v in stations],
+        }
+        if shape.cuts:  # an embankment has no bed
+            item["bed"] = np.round(left.bed, 3).tolist()
+        if shape.fills:  # the banks of a plain channel are the ground
+            item["left_top"] = np.round(left.top, 3).tolist()
+            item["right_top"] = np.round(right.top, 3).tolist()
+        out.append(item)
     return out
 
 

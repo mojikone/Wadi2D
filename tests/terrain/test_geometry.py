@@ -35,7 +35,9 @@ def test_a_cut_section_pixel_by_pixel():
 
 def test_a_fill_section_pixel_by_pixel():
     # crest 103, 6 m wide, right slope 3 (west), left slope 2 (east), ground 100
-    bank = obj("embankment", SOUTH, z_constant=103.0, section={"width": 6.0, "left_slope": 2.0, "right_slope": 3.0})
+    bank = obj(
+        "embankment", SOUTH, z_constant=103.0, section={"width": 6.0, "left_slope": 2.0, "right_slope": 3.0}
+    )
     z, grid = edited([bank])
     xs = [147.5, 148.5, 151.5, 156.5, 157.5, 162.5, 163.5, 165.5, 168.5, 169.5]
     # west: 103 - (a - 3) / 3, toe at a = 12; east: 103 - (a - 3) / 2, toe at a = 9
@@ -50,10 +52,44 @@ def test_a_mixed_section_is_dyke_on_one_bank_and_cut_on_the_other():
         "right_crest_width": 3.0, "right_outer_slope": 2.0, "left_crest_width": 2.0, "left_outer_slope": 2.0,
     }  # fmt: skip
     z, grid = edited([obj("channel_dyke", SOUTH, z_constant=97.0, section=section)])
-    xs = [140.5, 141.5, 144.5, 145.5, 147.5, 148.5, 150.5, 155.5, 157.5, 159.5, 160.5, 162.5, 163.5, 164.5, 165.5, 170.5]
+    xs = [
+        140.5,
+        141.5,
+        144.5,
+        145.5,
+        147.5,
+        148.5,
+        150.5,
+        155.5,
+        157.5,
+        159.5,
+        160.5,
+        162.5,
+        163.5,
+        164.5,
+        165.5,
+        170.5,
+    ]
     # west: inner 97 + (a - 2) / 2 to 102 at a = 12, crest to a = 15, outer 102 - (a - 15) / 2, toe at a = 19
     # east: 97 + (a - 2) up to the ground at a = 5; its top of 99 at a = 4 is below ground, so nothing is built
-    expected = [100.0, 100.25, 101.75, 102.0, 102.0, 101.75, 100.75, 98.25, 97.25, 97.0, 97.0, 97.5, 98.5, 99.5, 100.0, 100.0]
+    expected = [
+        100.0,
+        100.25,
+        101.75,
+        102.0,
+        102.0,
+        101.75,
+        100.75,
+        98.25,
+        97.25,
+        97.0,
+        97.0,
+        97.5,
+        98.5,
+        99.5,
+        100.0,
+        100.0,
+    ]
     assert across(z, grid, xs) == pytest.approx(expected, abs=1e-3)
 
 
@@ -70,8 +106,12 @@ def test_a_bank_turns_from_dyke_to_cut_where_the_ground_passes_its_top():
     assert at(z, grid, 170.5, 240.5) == pytest.approx(100.0, abs=1e-6)
     south_ground = at(ground, grid, 170.5, 80.5)
     assert south_ground > 101.0
-    assert at(z, grid, 180.5, 80.5) == pytest.approx(south_ground, abs=1e-6)  # cut bank: untouched ground beyond it
-    assert at(z, grid, 170.5, 80.5) == pytest.approx(97.0 + (10.5 - 2.0) / 2.0, abs=1e-6)  # the inner slope, carried up
+    assert at(z, grid, 180.5, 80.5) == pytest.approx(
+        south_ground, abs=1e-6
+    )  # cut bank: untouched ground beyond it
+    assert at(z, grid, 170.5, 80.5) == pytest.approx(
+        97.0 + (10.5 - 2.0) / 2.0, abs=1e-6
+    )  # the inner slope, carried up
 
 
 @pytest.mark.parametrize("angle", [30.0, 45.0, 72.0])
@@ -79,7 +119,9 @@ def test_a_section_is_the_same_at_any_angle(angle):
     ux, uy = math.cos(math.radians(angle)), -math.sin(math.radians(angle))
     a = (160.0 - 120.0 * ux, 160.0 - 120.0 * uy)
     b = (160.0 + 120.0 * ux, 160.0 + 120.0 * uy)
-    channel = obj("channel", [a, b], z_constant=98.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0})
+    channel = obj(
+        "channel", [a, b], z_constant=98.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0}
+    )
     z, grid = edited([channel])
     for offset, expected in ((0.0, 98.0), (1.5, 98.0), (3.0, 98.5), (4.0, 99.0), (5.5, 99.75), (7.0, 100.0)):
         x, y = 160.0 - uy * offset, 160.0 + ux * offset
@@ -122,7 +164,13 @@ def test_openings_take_the_raised_part_out_and_end_in_a_slope():
 
 def test_an_opening_on_one_bank_leaves_the_other_alone():
     section = {"width": 4.0, "crest_z": 102.0, "left_crest_width": 2.0, "right_crest_width": 2.0}
-    dyke = obj("channel_dyke", SOUTH, z_constant=99.0, section=section, openings=[{"start": 100.0, "end": 180.0, "side": "left"}])
+    dyke = obj(
+        "channel_dyke",
+        SOUTH,
+        z_constant=99.0,
+        section=section,
+        openings=[{"start": 100.0, "end": 180.0, "side": "left"}],
+    )
     z, grid = edited([dyke])
     y = 300.0 - 140.5
     # crest edge at a = 2 + 2 * 3 = 8: the right bank stands at x = 152, the left is gone at x = 168
@@ -144,7 +192,9 @@ def test_an_open_channel_end_is_square_and_a_closed_end_wraps_round():
 
 
 def test_an_embankment_ends_in_a_cone_without_being_asked():
-    bank = obj("embankment", SOUTH, z_constant=103.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0})
+    bank = obj(
+        "embankment", SOUTH, z_constant=103.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0}
+    )
     z, grid = edited([bank])
     assert at(z, grid, 160.5, 20.0 - 2.5) == pytest.approx(103.0 - 2.5 / 2.0, abs=1e-6)
     assert at(z, grid, 160.5, 20.0 - 6.5) == pytest.approx(GROUND)
@@ -161,14 +211,18 @@ def test_a_tapered_end_fades_to_the_ground():
 
 
 def test_vertical_sides_are_a_wall_of_ground_not_a_division_by_zero():
-    channel = obj("channel", SOUTH, z_constant=98.0, section={"width": 4.0, "left_slope": 0.0, "right_slope": 0.0})
+    channel = obj(
+        "channel", SOUTH, z_constant=98.0, section={"width": 4.0, "left_slope": 0.0, "right_slope": 0.0}
+    )
     z, grid = edited([channel])
     assert across(z, grid, [156.5, 158.5, 161.5, 163.5]) == [100.0, 98.0, 98.0, 100.0]
 
 
 def test_a_bend_keeps_its_offset_round_the_outside():
     line = [(60.0, 160.0), (160.0, 160.0), (160.0, 60.0)]
-    channel = obj("channel", line, z_constant=98.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0})
+    channel = obj(
+        "channel", line, z_constant=98.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0}
+    )
     z, grid = edited([channel])
     # outside of the bend: 4 m out along the diagonal from the vertex
     offset = 4.0 / math.sqrt(2.0)
@@ -180,7 +234,9 @@ def test_a_bend_keeps_its_offset_round_the_outside():
 def test_objects_stack_in_order_so_a_channel_can_pass_through_a_dam():
     across_valley = [(40.0, 160.0), (280.0, 160.0)]
     dam = obj("embankment", across_valley, z_constant=105.0, section={"width": 6.0})
-    drain = obj("channel", SOUTH, z_constant=98.0, section={"width": 4.0, "left_slope": 1.0, "right_slope": 1.0})
+    drain = obj(
+        "channel", SOUTH, z_constant=98.0, section={"width": 4.0, "left_slope": 1.0, "right_slope": 1.0}
+    )
     z, grid = edited([dam, drain])
     assert at(z, grid, 160.5, 160.5) == pytest.approx(98.0)
     assert at(z, grid, 100.5, 160.5) == pytest.approx(105.0)
@@ -212,6 +268,8 @@ def test_existing_objects_have_no_section(tmp_path):
 
 
 def test_a_flat_bed_outside_the_reach_is_untouched():
-    bank = obj("embankment", SOUTH, z_constant=103.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0})
+    bank = obj(
+        "embankment", SOUTH, z_constant=103.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0}
+    )
     z, _grid = edited([bank])
     assert (z != flat_bed().z).sum() == pytest.approx(280 * 16 + 60, rel=0.15)

@@ -28,9 +28,13 @@ def check_table(shape: Shape) -> list[str]:
         return []
     last, length = rows[-1].station, shape.line.length
     if last > length + 1.0:
-        return [f"{shape.title}: the section table runs to station {last:.0f}, but the line is only {length:.0f} m long."]
+        return [
+            f"{shape.title}: the section table runs to station {last:.0f}, but the line is only {length:.0f} m long."
+        ]
     if last < length - 1.0:
-        return [f"{shape.title}: the section table stops at station {last:.0f} of {length:.0f} m; the last section holds to the end."]
+        return [
+            f"{shape.title}: the section table stops at station {last:.0f} of {length:.0f} m; the last section holds to the end."
+        ]
     return []
 
 
@@ -109,7 +113,9 @@ def check_openings(shape: Shape, dx: float) -> list[str]:
     notes = []
     for opening in shape.obj.openings:
         if opening.start >= shape.line.length:
-            notes.append(f"{shape.title}: the opening at station {opening.start:.0f} lies past the end of the line.")
+            notes.append(
+                f"{shape.title}: the opening at station {opening.start:.0f} lies past the end of the line."
+            )
         elif opening.end - opening.start < dx:
             notes.append(
                 f"{shape.title}: the opening at station {opening.start:.0f} is narrower than one {dx:g} m cell "
@@ -118,7 +124,9 @@ def check_openings(shape: Shape, dx: float) -> list[str]:
     return notes
 
 
-def check_ends(shape: Shape, ground: Sampler, others: list[shapely.LineString], dx: float, cfg: Terrain) -> list[str]:
+def check_ends(
+    shape: Shape, ground: Sampler, others: list[shapely.LineString], dx: float, cfg: Terrain
+) -> list[str]:
     """Raised parts with nothing to tie into, and channels ending in a face of ground."""
     notes = []
     length = shape.line.length

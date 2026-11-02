@@ -22,7 +22,13 @@ def tables_of(objects):
 
 
 def channel(**fields):
-    return obj("channel", SOUTH, z_constant=98.0, section={"width": 40.0, "left_slope": 2.0, "right_slope": 2.0}, **fields)
+    return obj(
+        "channel",
+        SOUTH,
+        z_constant=98.0,
+        section={"width": 40.0, "left_slope": 2.0, "right_slope": 2.0},
+        **fields,
+    )
 
 
 def test_an_all_lined_face_conveys_the_ratio_of_the_two_n():

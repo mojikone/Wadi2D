@@ -36,7 +36,14 @@ class SectionAt:
     outer: np.ndarray
 
     def pick(self, mask: np.ndarray) -> SectionAt:
-        return SectionAt(self.bed[mask], self.half[mask], self.top[mask], self.inner[mask], self.crest[mask], self.outer[mask])
+        return SectionAt(
+            self.bed[mask],
+            self.half[mask],
+            self.top[mask],
+            self.inner[mask],
+            self.crest[mask],
+            self.outer[mask],
+        )
 
 
 @dataclass(frozen=True)
@@ -207,7 +214,9 @@ def build_profile(obj: TerrainObject, length: float) -> Profile:
             raise ValueError(f"{title}: the section gives no top elevation on both banks")
         top = np.array(tops)
     if obj.kind == "embankment":
-        return Profile(stations, top.min(axis=0), half, top, np.zeros_like(inner), np.array([half, half]), inner)
+        return Profile(
+            stations, top.min(axis=0), half, top, np.zeros_like(inner), np.array([half, half]), inner
+        )
     below = np.flatnonzero((top < bed).any(axis=0))
     if below.size:
         raise ValueError(f"{title}: the top is below the bed at station {stations[below[0]]:g}")

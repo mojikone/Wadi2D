@@ -203,7 +203,9 @@ class Shape:
             right = side == "right"
             sec, offset = self.crest_offsets(s, right)
             x, y = self.line.offset_at(s, offset)
-            real = self.line.distance(x, y) >= np.abs(offset) - 0.5 * dx  # past the centre of a tight bend: a loop
+            real = (
+                self.line.distance(x, y) >= np.abs(offset) - 0.5 * dx
+            )  # past the centre of a tight bend: a loop
             g = ground(x, y) if ground is not None else np.full(s.shape, -np.inf)
             closed = np.zeros(s.shape, bool)
             for opening in self.obj.openings:
@@ -231,7 +233,9 @@ class Shape:
             ends = [run for run in runs if run.joins[index]]
             if kind == "closed" and self.cuts and len(ends) == 2:
                 points = np.array([ends[0].coordinates[index], ends[1].coordinates[index]])
-                found.append(CrestRun(points, np.array([ends[0].z[index], ends[1].z[index]]), (False, False), "both"))
+                found.append(
+                    CrestRun(points, np.array([ends[0].z[index], ends[1].z[index]]), (False, False), "both")
+                )
         return found
 
 
@@ -311,7 +315,9 @@ class ShapeEdit:
         if xmax < west or xmin > west + nx * self.pixel or ymin > north or ymax < north - ny * self.pixel:
             return None
         transform = Affine(self.pixel, 0.0, west, 0.0, -self.pixel, north)
-        hit = features.rasterize([(strip, 1)], out_shape=z.shape, transform=transform, all_touched=True, dtype="uint8")
+        hit = features.rasterize(
+            [(strip, 1)], out_shape=z.shape, transform=transform, all_touched=True, dtype="uint8"
+        )
         r, c = np.nonzero(hit)
         if r.size == 0:
             return None

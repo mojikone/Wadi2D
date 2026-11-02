@@ -72,7 +72,9 @@ def test_a_step_between_two_stations():
             {"station": 280.0, "bed_z": 96.5},
         ],
     }  # fmt: skip
-    assert "the bed changes 1.90 m in 1.0 m at station 100, which is a step" in said([channel(z=None, section=section)])
+    assert "the bed changes 1.90 m in 1.0 m at station 100, which is a step" in said(
+        [channel(z=None, section=section)]
+    )
 
 
 def test_a_bottom_finer_than_the_dem():
@@ -107,7 +109,9 @@ def test_a_dyke_tied_to_a_dam_or_high_ground_says_nothing():
 
 def test_a_channel_dyke_names_the_bank():
     section = {"width": 40.0, "left_top_z": 102.0, "right_top_z": 99.5}
-    dyke = obj("channel_dyke", SOUTH, z_constant=99.0, name="M", section=section, start_end="taper", end_end="taper")
+    dyke = obj(
+        "channel_dyke", SOUTH, z_constant=99.0, name="M", section=section, start_end="taper", end_end="taper"
+    )
     open_ended = obj("channel_dyke", SOUTH, z_constant=99.0, name="M", section=section)
     assert "the left dyke" not in said([dyke])
     text = said([open_ended])
@@ -137,11 +141,15 @@ def test_an_opening_past_the_end_or_narrower_than_a_cell():
 
 def test_a_line_leaving_the_grid():
     wide = [(160.0, 900.0), (160.0, 20.0)]
-    assert "part of the line lies outside the grid" in said([obj("channel", wide, z=[99.0, 98.0], name="C", section=WIDE)])
+    assert "part of the line lies outside the grid" in said(
+        [obj("channel", wide, z=[99.0, 98.0], name="C", section=WIDE)]
+    )
 
 
 def test_ground_above_the_top_needs_no_dyke_warning():
     grid = grid_of()
     z = flat_bed(GROUND + 5.0).z
-    assert "tie" not in said([obj("embankment", SOUTH, z_constant=103.0, section={"width": 4.0})], ArrayBed(z, 1.0))
+    assert "tie" not in said(
+        [obj("embankment", SOUTH, z_constant=103.0, section={"width": 4.0})], ArrayBed(z, 1.0)
+    )
     assert np.isfinite(grid.dx)
