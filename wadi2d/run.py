@@ -40,6 +40,7 @@ from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
 from wadi2d.terrain.checks import terrain_notes
 from wadi2d.terrain.crest import line_lengths
+from wadi2d.terrain.report import TerrainReport, survey
 from wadi2d.terrain.sections import with_tables
 from wadi2d.terrain.vector import read_features
 
@@ -47,6 +48,10 @@ EXIT_DONE, EXIT_UNEXPECTED, EXIT_INVALID, EXIT_INPUT, EXIT_BACKEND = 0, 1, 2, 3,
 EXIT_NUMERICAL, EXIT_STOPPED, EXIT_MEMORY = 5, 6, 7
 EDGE_REACH = 2
 """Cells around a boundary that do not count as a closed edge."""
+TERRAIN_DIR = "terrain"
+"""Folder of a run that holds what the terrain objects did."""
+PIXEL_KINDS = (*SHAPED_KINDS, "burn_line")
+"""Terrain objects that change the ground, not only faces."""
 
 
 class JobError(Exception):
@@ -242,6 +247,15 @@ def check_terrain(cfg: RunConfig) -> list[str]:
         bounds = (window.x0, window.y0 - window.ny * dx, window.x0 + window.nx * dx, window.y0)
         ground = Ground(bed, window.x0, window.y0)
         return terrain_notes(cfg.terrain.objects, ground, dx, bed.pixel, cfg.terrain, bounds)
+
+
+def survey_terrain(cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool) -> TerrainReport:
+    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it."""
+    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+        bed.bind(grid.x0, grid.y0)
+        ground = Ground(bed, grid.x0, grid.y0)
+        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+        return survey(cfg.terrain, grid, bed, edits, folder, bed.crs, whole, maps)
 
 
 def _project_tables(h, hms_basin):
@@ -510,6 +524,10 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = int(grid.mask.sum())
+    if any(o.kind in PIXEL_KINDS for o in cfg.terrain.objects):
+        wanted = cfg.outputs.terrain_map
+        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
+        progress.emit("terrain", volumes=report.volumes, files=report.files)
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
@@ -647,6 +665,7 @@ __all__ = [
     "InvalidJob",
     "JobError",
     "RunSummary",
+    "check_terrain",
     "load_job",
     "preflight",
     "prepare_grid",

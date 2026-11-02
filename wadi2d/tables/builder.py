@@ -42,6 +42,9 @@ class ArrayBed:
         c = np.clip(np.arange(col0, col0 + ncols) + self.col_offset, 0, self.z.shape[1] - 1)
         return self.z[np.ix_(r, c)].astype(np.float64)
 
+    def levels(self) -> tuple[float, float]:
+        return float(self.z.min()), float(self.z.max())
+
 
 @dataclass
 class CrestFaces:
