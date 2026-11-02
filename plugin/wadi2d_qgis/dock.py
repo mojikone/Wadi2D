@@ -65,6 +65,8 @@ from .sections.terrain import TerrainSection
 LOG_TAG = "Wadi2D"
 HMS_JOB = "hms_import.json"
 
+FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
+
 
 class Wadi2DDock(QgsDockWidget):
     def __init__(self, iface, parent=None) -> None:
@@ -223,6 +225,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.set_running(False)
         self._set_ready(self.schema is not None)
         self.panel.estimate_label.clear()
+        self.panel.status.clear()
         self.panel.say(text, "bad")
         self._drop_scratch()
 
@@ -233,6 +236,7 @@ class Wadi2DDock(QgsDockWidget):
         if values is None:
             return
         self.panel.estimate_label.setText("Estimating...")
+        self.panel.status.setText(FIRST_START_NOTE)
         self.panel.estimate_button.setEnabled(False)
         self._scratch = tempfile.mkdtemp(prefix="wadi2d_estimate_")
         values["output"] = self._scratch
@@ -244,6 +248,7 @@ class Wadi2DDock(QgsDockWidget):
         self._query.start(run_args(job, self._scratch, dry_run=True))
 
     def _estimated(self, code: int, out: str, err: str) -> None:
+        self.panel.status.clear()
         self.panel.estimate_button.setEnabled(self.schema is not None)
         estimate = parse_estimate(out) if code == 0 else None
         if estimate is None:
