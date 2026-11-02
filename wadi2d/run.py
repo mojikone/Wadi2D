@@ -25,7 +25,15 @@ from scipy import ndimage
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
-from wadi2d.forcing import Forcing, boundary_set, build_storm, initial_depth, load_polygons, manning_grid
+from wadi2d.forcing import (
+    Forcing,
+    boundary_notes,
+    boundary_set,
+    build_storm,
+    initial_depth,
+    load_polygons,
+    manning_grid,
+)
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
@@ -184,8 +192,14 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "dx": cfg.grid.dx,
             "objects": [_object_key(o) for o in t.objects],
             "object_settings": [
-                t.join_cells, t.spillway_snap_cells, t.burn_pixels, t.dyke_min_height, t.crest_thin_ratio,
-                t.crest_eased_ratio, t.crest_resolved_ratio, t.crest_eased_coefficient,
+                t.join_cells,
+                t.spillway_snap_cells,
+                t.burn_pixels,
+                t.dyke_min_height,
+                t.crest_thin_ratio,
+                t.crest_eased_ratio,
+                t.crest_resolved_ratio,
+                t.crest_eased_coefficient,
             ],
             "tables": cfg.tables.model_dump(),
             "manning": t.manning,
@@ -543,6 +557,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
     bset = boundary_set(cfg.boundaries, tables, cfg.grid.line_samples)
+    for note in boundary_notes(cfg.boundaries, bset, grid.dx):
+        progress.emit("warn", message=note)
     model.set_depth(initial_depth(cfg.initial_levels, tables))
     if bset.size:
         model.set_boundary(bset.cells)

@@ -39,6 +39,8 @@ from wadi2d.terrain.vector import read_features
 UNIT_DEPTH = 1.0
 """A depth-grid storm is built on 1 mm: it gives each time's share of the depth, the ARF included."""
 NAME_FIELD = "name"
+SNAP_DEPTH = 1.5
+"""Cells behind the nearest one that a line off the domain still opens."""
 
 KIND_FIXED, KIND_FREE, KIND_FOLLOW = 0, 1, 2
 
@@ -144,6 +146,8 @@ class BoundarySet:
     xsign: np.ndarray
     yfaces: np.ndarray
     ysign: np.ndarray
+    opened: tuple[int, ...] = ()
+    """Cells each boundary opened, in order."""
 
     @property
     def size(self) -> int:
@@ -170,16 +174,41 @@ def initial_depth(levels: list[InitialLevel], tables: GridTables) -> np.ndarray:
     return out
 
 
+def _nearest_active(grid: TileGrid, j: int, i: int, reach: int) -> list[tuple[int, int]]:
+    """The active cells nearest to (j, i) within ``reach`` cells.
+
+    The edge of a domain is a staircase, and the single nearest cell of each sample would open only the corners that
+    stick out: the steps behind them, up to one ``SNAP_DEPTH`` further, open too.
+    """
+    ny, nx = grid.shape
+    if j + reach < 0 or i + reach < 0 or j - reach >= ny or i - reach >= nx:
+        return []
+    top, left = max(j - reach, 0), max(i - reach, 0)
+    rows, cols = np.nonzero(grid.mask[top : j + reach + 1, left : i + reach + 1])
+    if rows.size == 0:
+        return []
+    rows, cols = rows + top, cols + left
+    gaps = np.hypot(rows - j, cols - i)
+    nearest = gaps.min()
+    if nearest > reach:
+        return []
+    near = gaps <= nearest + SNAP_DEPTH
+    return list(zip(rows[near].tolist(), cols[near].tolist(), strict=True))
+
+
 def cells_along(
-    grid: TileGrid, coordinates: list[tuple[float, float]], samples: int = 4
+    grid: TileGrid, coordinates: list[tuple[float, float]], samples: int = 4, snap_m: float = 0.0
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Active cells a polyline crosses; a sample just off the domain takes the nearest active cell in reach."""
+    """Active cells a polyline crosses. A sample off the domain takes an active cell next to it, or failing that the
+    nearest one within ``snap_m``: a line drawn along the edge of the domain seldom lies exactly on its cells.
+    """
     line = shapely.LineString(coordinates)
     n = max(int(np.ceil(line.length / grid.dx * samples)), 2)
     pts = shapely.line_interpolate_point(line, np.linspace(0.0, line.length, n))
     jj = np.floor((grid.y0 - shapely.get_y(pts)) / grid.dx).astype(np.int64)
     ii = np.floor((shapely.get_x(pts) - grid.x0) / grid.dx).astype(np.int64)
     ny, nx = grid.shape
+    reach = int(snap_m / grid.dx)
     found: set[tuple[int, int]] = set()
     for j, i in zip(jj, ii, strict=True):
         for dj, di in ((0, 0), (0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)):
@@ -187,6 +216,8 @@ def cells_along(
             if 0 <= a < ny and 0 <= b < nx and grid.mask[a, b]:
                 found.add((int(a), int(b)))
                 break
+        else:
+            found.update(_nearest_active(grid, int(j), int(i), reach))
     if not found:
         raise ValueError(f"line from {coordinates[0]} does not touch the domain")
     cells = np.array(sorted(found), np.int64)
@@ -233,7 +264,7 @@ def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 
     """All boundary cells, and the faces between them and the interior with the sign of an outflow."""
     grid = tables.grid
     taken = np.zeros(grid.shape, bool)
-    picked = [cells_along(grid, b.coordinates, samples) for b in boundaries]
+    picked = [cells_along(grid, b.coordinates, samples, b.snap_m) for b in boundaries]
     for j, i in picked:
         taken[j, i] = True
     parts = []
@@ -263,7 +294,22 @@ def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 
         index = np.concatenate((state_index(grid, j, i), state_index(grid, ja, ia))).astype(np.int64)
         sign = np.concatenate((np.ones(j.size), -np.ones(ja.size)))
         faces.append((index, sign))
-    return BoundarySet(cells, taken, faces[0][0], faces[0][1], faces[1][0], faces[1][1])
+    opened = tuple(j.size for j, _i in picked)
+    return BoundarySet(cells, taken, faces[0][0], faces[0][1], faces[1][0], faces[1][1], opened)
+
+
+def boundary_notes(boundaries: list[Boundary], bset: BoundarySet, dx: float) -> list[str]:
+    """A line that opens much less than its length holds the water back, and the balance closes all the same."""
+    notes = []
+    for n, (b, cells) in enumerate(zip(boundaries, bset.opened, strict=True), start=1):
+        length = shapely.LineString(b.coordinates).length
+        if cells * dx < b.min_share * length:
+            notes.append(
+                f"Open boundary {n}: the line is {length / 1000.0:.1f} km long but opens only "
+                f"{cells * dx / 1000.0:.1f} km of the domain: much of it lies more than {b.snap_m:g} m off the "
+                "active cells. Water will pond against the rest of it. Draw it on or just inside the domain edge."
+            )
+    return notes
 
 
 @dataclass

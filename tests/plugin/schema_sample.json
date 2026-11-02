@@ -153,6 +153,22 @@
           "minimum": 1e-05,
           "title": "Slope",
           "type": "number"
+        },
+        "snap_m": {
+          "default": 150.0,
+          "description": "A line this far off the active cells still opens the nearest of them, m",
+          "maximum": 5000.0,
+          "minimum": 0.0,
+          "title": "Snap M",
+          "type": "number"
+        },
+        "min_share": {
+          "default": 0.6,
+          "description": "A line opening less of the domain than this share of its length draws a warning",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Share",
+          "type": "number"
         }
       },
       "required": [

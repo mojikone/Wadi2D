@@ -324,6 +324,18 @@ class Boundary(_Part):
     coordinates: list[tuple[float, float]] = Field(description="Polyline along the boundary cells, m")
     stage: float = Field(0.0, description="Level for kind 'stage', m")
     slope: float = Field(0.005, ge=1e-5, le=0.5, description="Energy slope for kind 'normal'")
+    snap_m: float = Field(
+        150.0,
+        ge=0.0,
+        le=5000.0,
+        description="A line this far off the active cells still opens the nearest of them, m",
+    )
+    min_share: float = Field(
+        0.6,
+        ge=0.0,
+        le=1.0,
+        description="A line opening less of the domain than this share of its length draws a warning",
+    )
 
 
 class InitialLevel(_Part):
