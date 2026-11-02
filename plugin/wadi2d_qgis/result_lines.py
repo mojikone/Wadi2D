@@ -169,8 +169,8 @@ class ResultLinesPanel(QgsDockWidget):
     def _failed(self, text: str) -> None:
         self.say(text)
         entry = self._current()
-        if entry is not None and entry.kind == UPFRONT_LINE:
-            self.plot.show_view(record_view(entry, self.frames_s), self.frame)
+        upfront = entry is not None and entry.kind == UPFRONT_LINE
+        self.plot.show_view(record_view(entry, self.frames_s) if upfront else None, self.frame)
 
     def _listed(self) -> None:
         listing = json.loads(Path(self._file(LINES_LIST)).read_text(encoding="utf-8"))

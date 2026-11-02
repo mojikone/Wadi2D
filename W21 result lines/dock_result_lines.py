@@ -16,6 +16,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsMapMouseEvent
 from qgis.PyQt.QtCore import QEvent, QPoint, Qt
+from qgis.PyQt.QtGui import QKeyEvent
 from qgis.utils import iface
 
 ACROSS = [[438431.5, 2727194.4], [438720.5, 2726786.4]]
@@ -173,6 +174,19 @@ def scenario(h):
     h.check("in the run's CRS", scratch.crs() == ground.crs, scratch.crs().authid())
     h.check("the panel does not offer it as a layer", scratch not in [lines.layer.layer(i) for i in range(lines.layer.count())])
 
+    h.log("=== 3b a line dropped")
+    count = lines.choice.count()
+    lines.draw_button.click()
+    tool = lines.canvas.mapTool()
+    click(lines.canvas, tool, *DRAWN[0], Qt.LeftButton)
+    tool.keyPressEvent(QKeyEvent(QEvent.KeyPress, Qt.Key_Escape, Qt.NoModifier))
+    h.check("Escape drops it", lines.canvas.mapTool() is not lines.tool and lines.choice.count() == count, lines.choice.count())
+    lines.draw_button.click()
+    tool = lines.canvas.mapTool()
+    click(lines.canvas, tool, *DRAWN[0], Qt.LeftButton)
+    click(lines.canvas, tool, *DRAWN[0], Qt.RightButton)
+    h.check("one point is no line", lines.canvas.mapTool() is not lines.tool and lines.choice.count() == count, lines.choice.count())
+
     h.log("=== 4 a line picked from a layer")
     lines.layer.setLayer(other)
     h.check("its lines are listed", lines.feature.count() == 1 and lines.feature.currentText() == "Upstream", lines.feature.currentText())
@@ -259,6 +273,7 @@ def scenario(h):
     draw(lines, [[extent.xMinimum() - 3000.0, extent.yMinimum()], [extent.xMinimum() - 500.0, extent.yMinimum()]])
     yield settled(lines)
     h.check("off the model says so", "does not cross the model" in lines.message.text(), lines.message.text())
+    h.check("and shows no other line's plot", lines.plot.view is None)
     h.check("two lines on the scratch layer", scratch.featureCount() == 2, scratch.featureCount())
     h.check("named on", lines.choice.currentText() == "Temporary line: Line 3", lines.choice.currentText())
     lines.remove_button.click()
