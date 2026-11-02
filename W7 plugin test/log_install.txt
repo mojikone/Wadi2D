@@ -1,0 +1,9 @@
+available ['wadi2d_qgis', 'db_manager', 'grassprovider', 'MetaSearch', 'processing']
+loaded True
+started True
+menu action True
+engine label on a fresh profile: Engine ready.
+default engine text: "D:\Mojtaba\Renardet\Wadi2D\.venv\Scripts\python.exe" -m wadi2d.engine.cli
+after setting the engine: Engine ready., run enabled True
+unload True
+DONE

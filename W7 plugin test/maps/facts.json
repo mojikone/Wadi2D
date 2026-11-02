@@ -1,0 +1,40 @@
+{
+ "water": "Water: 103.3 Mm3 from the lumped hills, 39.1 Mm3 of rain on the 2D area after losses, 139.0 Mm3 out. Mass error 2e-08.",
+ "depth": "Peak flow at the dam sections\n\nFaydh 01: 849 m3/s at hour 13.3\nBidah 03: 668 m3/s at hour 12.3\nR5A: 1,030 m3/s at hour 14.1\nR2A: 1,545 m3/s at hour 13.7\nZ4C: 2,040 m3/s at hour 14.9\n\nWater: 103.3 Mm3 from the lumped hills, 39.1 Mm3 of rain on the 2D area after losses, 139.0 Mm3 out. Mass error 2e-08.\n\nNot a design result. No gauge, no culverts, 20 m cells.",
+ "hazard": "Area by class, 47.6 km2 in all\n\nH1: 14.4 km2\nH2: 6.4 km2\nH3: 1.0 km2\nH4: 4.0 km2\nH5: 11.6 km2\nH6: 10.1 km2\n\nAIDR limits and rule as the Majlas dam-break study: a pixel takes the highest class any limit gives.\n\nNot a design result. No gauge, no culverts, 20 m cells.",
+ "warnings": [
+  "water stood 20.9 m deep against the domain edge at (430701, 2727390): an edge is a wall, so check the domain polygon there"
+ ],
+ "peaks": {
+  "Faydh 01": [
+   849,
+   13.3
+  ],
+  "Bidah 03": [
+   668,
+   12.3
+  ],
+  "R5A": [
+   1030,
+   14.1
+  ],
+  "R2A": [
+   1545,
+   13.7
+  ],
+  "Z4C": [
+   2040,
+   14.9
+  ]
+ },
+ "balance": {
+  "rain_m3": 39097745.70778413,
+  "inflow_m3": 103278824.5765738,
+  "outflow_m3": 139033759.03108194,
+  "storage_start_m3": 0.0,
+  "storage_end_m3": 3342807.937963572,
+  "error_m3": 3.3153124186210334,
+  "relative_error": 2.328551960480303e-08
+ },
+ "loop_s": 317.81
+}

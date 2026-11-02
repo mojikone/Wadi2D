@@ -1,0 +1,54 @@
+    0.0 script loaded
+    5.1 dam objects ['crest_line', 'spillway']; boundaries 2
+    5.3 dock says:  | 
+    5.5 PASS engine found Engine ready.
+    5.5 === 1 hybrid
+    5.5 PASS hms files listed ['Basin_1.basin', 'FM_200yr.met', 'Control_1.control']
+    5.5 PASS hms subbasins listed 18
+    5.5 PASS mode choices ['lumped', '2d']
+    5.8 dock says:  | Estimating...
+    6.8 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | Estimating...
+    8.6 PASS hybrid estimate 506,615 cells, 0.28 GB, about 64 s / The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+    8.6 dock says: Starting... | 
+    9.4 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
+   83.4 PASS hybrid finished Finished. water stood 23.2 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+   83.4 PASS hybrid job modes 17
+   83.4 PASS hybrid storm 251.0
+   83.4 PASS hybrid control sets time 172800.0
+   83.4 PASS hybrid note on the time Finished. water stood 23.2 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+   83.4 PASS hybrid mass 1.1296029095194241e-08
+   83.4 PASS hybrid inflow reached 2D 103278824.5436838
+   83.4 hybrid peaks {'Bidah_03': 654.9, 'Bidah_03_ring': 670.6, 'Faydh_01': 898.1, 'Faydh_01_ring': 899.7, 'R2A': 1426.4, 'R2A_ring': 1426.2, 'R5A': 1003.4, 'R5A_ring': 1005.8, 'S11_ring': 345.0, 'S14_ring': 2.5, 'S1_ring': 1238.9, 'S2_ring': 1236.0, 'S5_ring': 595.9, 'S6_ring': 213.6, 'Z4C': 2021.0, 'Z4C_ring': 2020.8}; warnings ['water stood 23.2 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain p']
+   83.5 PASS hybrid hydrographs {'Bidah_03': 654.9, 'Bidah_03_ring': 670.6, 'Faydh_01': 898.1, 'Faydh_01_ring': 899.7, 'R2A': 1426.4, 'R2A_ring': 1426.2, 'R5A': 1003.4, 'R5A_ring': 1005.8, 'S11_ring': 345.0, 'S14_ring': 2.5, 'S1_ring': 1238.9, 'S2_ring': 1236.0, 'S5_ring': 595.9, 'S6_ring': 
+   83.5 PASS hybrid maps loaded ['max_depth', 'max_mean_depth']
+   83.5 PASS results button 
+   83.5 === 2 structures
+   83.5 dock says: Starting... | 
+   87.0 PASS objects finished Finished. water stood 9.2 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   87.0 PASS objects in the job ['burn_line', 'crest_line', 'spillway', 'wall']
+   87.0 PASS rasters in the job D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\HEC_HMS_Block_02\Hydrology Data\CN_Include_Hill_Area.tif
+   87.0 PASS live layer seen 
+   87.0 === 3 stop
+   90.6 dock says: Stopping: the engine finishes the step and writes its maps. | 
+   92.6 PASS stopped Stopped on request. water stood 9.2 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   92.6 PASS stop wrote maps 
+   92.6 === 4 occupied folder
+   92.6 PASS occupied folder is not overwritten That folder already holds a run; this one goes to objects_2. The rain outlasts the simulated time, so the run ends while it is still raining.
+   92.6 dock says: That folder already holds a run; this one goes to objects_2. The rain outlasts the simulated time, so the run ends while it is still raining. | 
+   94.2 PASS second run in its own folder objects_2
+   94.2 === 5 reload in mid run
+   94.3 dock says: Starting... | 
+   98.0 PASS run picked up after reload reload
+   98.0 dock says: Following the run in reload. | 
+  100.5 PASS reloaded run finished Finished. water stood 9.2 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+  100.5 === 6 errors
+  100.5 PASS no output folder Choose an output folder.
+  100.5 PASS no rain Set the rain, or choose an HMS project.
+  100.5 PASS empty HMS folder The HMS folder needs a basin, a meteorologic and a control file.
+  100.6 PASS geographic DEM The DEM must be in a projected CRS, in metres.
+  100.6 PASS domain with no CRS Layer "no crs" lands nowhere in the DEM coordinate system. Check the CRS set on that layer: a GeoJSON that names no CRS is read as degrees.
+  100.6 PASS bad engine path Engine not found. Press Engine... to set its path.
+  100.6 dock says: Layer "no crs" lands nowhere in the DEM coordinate system. Check the CRS set on that layer: a GeoJSON that names no CRS is read as degrees. | 
+  101.4 PASS engine back 
+  101.5 SUMMARY 32 passed, 0 failed 
+  101.5 DONE

@@ -1,0 +1,16 @@
+{
+ "lumped_n": 17,
+ "two_d": [
+  "S13"
+ ],
+ "lumped_km2": 578.4,
+ "two_d_subbasin_km2": 21.0,
+ "inflow_points": 12,
+ "boundaries": 3,
+ "dx": 20.0,
+ "storm_mm": 251.0,
+ "storm_area": 300.0,
+ "duration_h": 48.0,
+ "manning": 0.04,
+ "cn_raster": true
+}
