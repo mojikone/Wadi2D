@@ -1,0 +1,93 @@
+[
+ {
+  "case": "Lag 10 min, re-entry",
+  "exit": 0,
+  "entered_m3": 4799.999994635583,
+  "crossed_m3": 4791.973106981956,
+  "came_back_m3": 4789.863056098805,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 2.110050883151416,
+  "on_grid_m3": 4797.890127877161,
+  "routing_defect_m3": 0.0,
+  "grid_relative": -1.919993314646292e-08,
+  "whole_relative": -3.8359318679918874e-08
+ },
+ {
+  "case": "Lag 30 min, stopped at 25 min with the flood inside",
+  "exit": 0,
+  "entered_m3": 4799.999994635582,
+  "crossed_m3": 4590.088660182151,
+  "came_back_m3": 0.0,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 4590.088660182151,
+  "on_grid_m3": 209.9113432788834,
+  "routing_defect_m3": 0.0,
+  "grid_relative": -1.8386359714563536e-09,
+  "whole_relative": -1.8386359714563536e-09
+ },
+ {
+  "case": "Muskingum-Cunge 3 km, re-entry",
+  "exit": 0,
+  "entered_m3": 4799.999994635579,
+  "crossed_m3": 4795.102332341859,
+  "came_back_m3": 5011.010162411249,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 2.5955220795367495,
+  "on_grid_m3": 5015.908034980642,
+  "routing_defect_m3": -218.50335214892675,
+  "grid_relative": -2.1432622041724303e-08,
+  "whole_relative": -0.04552157555599921
+ },
+ {
+  "case": "Reservoir, dead storage below a sill",
+  "exit": 0,
+  "entered_m3": 4799.999994635582,
+  "crossed_m3": 4796.612931274421,
+  "came_back_m3": 3796.5112805797253,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 1000.1016506946951,
+  "on_grid_m3": 3799.8984962050986,
+  "routing_defect_m3": 2.2737367544323206e-13,
+  "grid_relative": -1.7712326203633634e-08,
+  "whole_relative": -3.172171080471311e-08
+ },
+ {
+  "case": "Lag 10 min, no re-entry: leaves at the end",
+  "exit": 0,
+  "entered_m3": 4799.999994635582,
+  "crossed_m3": 4791.973106981956,
+  "came_back_m3": 0.0,
+  "left_at_end_m3": 4789.863059853978,
+  "in_network_m3": 2.11004712797876,
+  "on_grid_m3": 8.02688838134889,
+  "routing_defect_m3": 0.0,
+  "grid_relative": -1.5160901144056545e-10,
+  "whole_relative": -1.5160901144056545e-10
+ },
+ {
+  "case": "Lag 10 min on a mesh (4 m and 8 m cells)",
+  "exit": 0,
+  "entered_m3": 4799.999991953373,
+  "crossed_m3": 4791.971767446482,
+  "came_back_m3": 4789.861181462797,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 2.1105859836852687,
+  "on_grid_m3": 4797.889434069657,
+  "routing_defect_m3": 0.0,
+  "grid_relative": -2.9301747757396313e-09,
+  "whole_relative": -5.854160283394826e-09
+ },
+ {
+  "case": "Lag 10 min, GPU",
+  "exit": 0,
+  "entered_m3": 4799.999994635582,
+  "crossed_m3": 4791.9731181309,
+  "came_back_m3": 4789.863111894541,
+  "left_at_end_m3": 0.0,
+  "in_network_m3": 2.110006236359368,
+  "on_grid_m3": 4797.890181795283,
+  "routing_defect_m3": -9.094947017729282e-13,
+  "grid_relative": -2.0166717416316575e-08,
+  "whole_relative": -4.029084592837176e-08
+ }
+]
