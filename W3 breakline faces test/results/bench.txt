@@ -1,0 +1,11 @@
+kernel                               cells   faces  ns/cell  ns/face x base/cell x base/step
+a lattice port                       16384   32768    144.0     72.0        1.00        1.00
+m mirror                             16384   32768    146.2     73.1        1.02        1.02
+ms3 mirror + plan section            16384   32768    146.7     73.3        1.02        1.02
+a again, drift check                 16384   32768    143.6     71.8        1.00        1.00
+P polygons on lattice, no skew       16384   32512    132.5     66.8        0.92        0.92
+P polygons on lattice, skew          16384   32512    149.2     75.2        1.04        1.04
+b snapped, skew                      16384   32512    130.8     65.9        0.91        0.91
+c cut, 2452 split                    18836   37274    125.1     63.2        0.87        1.00
+e tri h20                            33120   49448    127.3     85.3        0.88        1.79
+e tri h26.3                          18818   28051    116.1     77.9        0.81        0.93

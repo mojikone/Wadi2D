@@ -1,0 +1,8 @@
+frozen 3f32ca6 GPU level mean  +7.24 cm rms  11.47 cm  p5   -3.2 p95  +21.0  F(0.1 m) 0.954  n 1775
+port baseline      level mean  +7.23 cm rms  11.47 cm  p5   -3.2 p95  +21.0  F(0.1 m) 0.956  n 1775
+  steps 25198
+port mirror        level mean  +7.16 cm rms  11.48 cm  p5   -3.5 p95  +21.2  F(0.1 m) 0.956  n 1775
+  steps 25530
+port mirror s3     level mean  +4.07 cm rms   8.45 cm  p5   -5.7 p95  +14.5  F(0.1 m) 0.925  n 1773
+  steps 26081
+mirror minus baseline, wet cells: mean -0.08 cm, largest 57.9 cm

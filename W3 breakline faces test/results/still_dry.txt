@@ -1,0 +1,37 @@
+still water: option, largest speed m/s, largest depth change m, dry share
+{'option': 'a', 'umax': 9.697511329333303e-15, 'dvol': 3.552713678800501e-15, 'dry': 0.8352888086642599}
+{'option': 'm', 'umax': 9.697511329333271e-15, 'dvol': 3.552713678800501e-15, 'dry': 0.8352888086642599}
+{'option': 'ms3', 'umax': 9.697511329333394e-15, 'dvol': 3.552713678800501e-15, 'dry': 0.8352888086642599}
+{'option': 'b', 'umax': 0.0, 'dvol': 0.0, 'dry': 0.8840252707581228}
+{'option': 'c', 'umax': 1.2640965225847509e-15, 'dvol': 2.498001805406602e-16, 'dry': 0.8597771801767192}
+{'option': 't20', 'umax': 1.3273909060588218e-15, 'dvol': 4.683753385137379e-17, 'dry': 0.8950990615224191}
+{'option': 't26', 'umax': 6.474769913645668e-16, 'dvol': 8.673617379884035e-19, 'dry': 0.9031037093111279}
+dyke: option theta offset | far side volume m3, far largest mean depth m, near level m, overtopping ratio
+{'option': 'a', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7326713382241032, 'q_ratio': 0.9983536448859592}
+{'option': 'a', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7156721070805636, 'q_ratio': 1.0076423871976323}
+{'option': 'a', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7143414389501532, 'q_ratio': 0.934422323511091}
+{'option': 'a', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.710714551355141, 'q_ratio': 0.934422323511091}
+{'option': 'm', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7326731196686675, 'q_ratio': 1.0003677909506454}
+{'option': 'm', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.715672574429696, 'q_ratio': 1.0096855619651492}
+{'option': 'm', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.714341609463426, 'q_ratio': 0.9361113890084557}
+{'option': 'm', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7107153023951307, 'q_ratio': 0.9361113890084557}
+{'option': 'ms3', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7326731196686675, 'q_ratio': 1.0003677909506454}
+{'option': 'ms3', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.715672574429696, 'q_ratio': 1.0096855619651492}
+{'option': 'ms3', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.714341609463426, 'q_ratio': 0.9361113890084557}
+{'option': 'ms3', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7107153023951307, 'q_ratio': 0.9361113890084557}
+{'option': 'b', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.668763979391147, 'q_ratio': 0.9832903286132479}
+{'option': 'b', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.6695708583740116, 'q_ratio': 0.9832867187884914}
+{'option': 'b', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.654379686981394, 'q_ratio': 1.0037572804978758}
+{'option': 'b', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.678831590378582, 'q_ratio': 1.0038084928555584}
+{'option': 'c', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.5751873460378327, 'q_ratio': 0.9804302203602965}
+{'option': 'c', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.5726295794510077, 'q_ratio': 0.9823978567389131}
+{'option': 'c', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.655420015845317, 'q_ratio': 0.9905273039446021}
+{'option': 'c', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.644836407513113, 'q_ratio': 0.9998090803330724}
+{'option': 't20', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.6718214225122434, 'q_ratio': 0.9952324764325554}
+{'option': 't20', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.6884957302516836, 'q_ratio': 0.995207670413776}
+{'option': 't20', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.6806080556159873, 'q_ratio': 0.9952840337429935}
+{'option': 't20', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.680660872959406, 'q_ratio': 0.9952790328242677}
+{'option': 't26', 'theta': 30.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.7022115220294376, 'q_ratio': 1.018490354813351}
+{'option': 't26', 'theta': 30.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.6617687715910323, 'q_ratio': 1.0186241339329527}
+{'option': 't26', 'theta': 45.0, 'offset': 0.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.678036354649229, 'q_ratio': 0.9943280237380193}
+{'option': 't26', 'theta': 45.0, 'offset': 5.0, 'far_vol': 0.0, 'far_dmax': 0.0, 'near_level': 2.675311661680895, 'q_ratio': 0.9701179844988876}

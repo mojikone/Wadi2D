@@ -1,0 +1,5 @@
+mesh                                 cells   x ref    Q %   Qw %  tpk h  d1000 %  d300 % share10 share40
+quad by change of slope               3950   0.011   -0.3  -18.2   0.81    -26.7   -26.0    0.02    0.93
+quad by change of slope max20        11600   0.032   +0.9   -9.2   0.88    -27.5   -19.9    0.02    0.00
+quad by change of slope eps05         3950   0.011   -0.3  -18.2   0.81    -26.7   -26.0    0.02    0.93
+quad by slope max20                  26300   0.073   +1.4   -6.5   0.88    -27.3   -17.8    0.46    0.00

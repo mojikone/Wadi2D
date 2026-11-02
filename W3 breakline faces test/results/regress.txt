@@ -1,0 +1,8 @@
+base    Ritter  L1/h0 0.00288
+base    Stoker  L1/h0 0.00194 plateau 2.206 analytic 2.207
+base    plane 5 % storage / kinematic wave 1.0216, section s3 0.0537
+base    valley 20 m: peak 26.588 m3/s, wadi depth 0.2527 m, steps 2983
+mirror  Ritter  L1/h0 0.00287
+mirror  Stoker  L1/h0 0.00188 plateau 2.206 analytic 2.207
+mirror  plane 5 % storage / kinematic wave 1.0216, section s3 0.0535
+mirror  valley 20 m: peak 26.588 m3/s, wadi depth 0.2527 m, steps 2983
