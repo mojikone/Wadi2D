@@ -177,8 +177,92 @@ class DesignLine(_Part):
     drainage_area_km2: float | None = Field(None, gt=0.0, description="For the depth-area study, km2")
 
 
+class Pixels(_Part):
+    """The post-run product: depth and hazard at the terrain pixel, from the saved maps of the run.
+
+    A pixel takes the highest class any limit gives, and H1 where it is wet but under every limit. The engine's
+    cell hazard (``maps/hazard.tif``) stays as it is; this is a second, finer reading of the same run.
+    """
+
+    enabled: bool = Field(True, description="Make the pixel maps when a run finishes")
+    pixel_m: float = Field(
+        0.0, ge=0.0, le=1000.0, description="Pixel of the maps, a multiple of the DEM pixel, m; 0 means the DEM's"
+    )
+    cell_depth: float = Field(
+        0.05, ge=0.0, le=10.0, description="A cell whose mean depth never reaches this is left out, m"
+    )
+    depth_floor: float = Field(
+        0.05, ge=0.0, le=10.0, description="Below this a pixel is dry and takes no class, m"
+    )
+    hazard_limits: list[tuple[float, float, float]] = Field(
+        [(0.3, 0.3, 2.0), (0.6, 0.5, 2.0), (0.6, 1.2, 2.0), (1.0, 2.0, 2.0), (4.0, 4.0, 4.0)],
+        min_length=1,
+        description="Depth x speed m2/s, depth m, speed m/s: above any of these a pixel leaves H1, then H2, ...",
+    )
+    link_margin: float = Field(
+        0.01, ge=0.0, le=1.0, description="Water must stand this far above the ground of a shared face, m"
+    )
+    link_ratio: float = Field(
+        0.5,
+        gt=0.0,
+        le=1.0,
+        description="Two cells stepping down a slope are one flow if the shallower is this share of the deeper",
+    )
+    peak_lift: float = Field(
+        3.0,
+        ge=1.0,
+        le=100.0,
+        description="Most a cell's depth x speed is scaled up to the peak the run saw between saved maps",
+    )
+    batch_pixels: int = Field(
+        50_000_000, ge=1_000_000, le=2_000_000_000, description="Pixels handled at a time on the GPU"
+    )
+
+    @model_validator(mode="after")
+    def _rising(self) -> Pixels:
+        for low, high in zip(self.hazard_limits, self.hazard_limits[1:], strict=False):
+            if any(b < a for a, b in zip(low, high, strict=True)):
+                raise ValueError("hazard_limits must not fall from one class to the next")
+        return self
+
+
+class Smooth(_Part):
+    """The smooth drawing of the pixel maps. The pixel rasters stay the numbers of record."""
+
+    enabled: bool = Field(True, description="Make smooth class polygons and the depth drawing")
+    sigma_px: float = Field(
+        1.0, ge=0.25, le=8.0, description="Width of the soft class masks, Gaussian sigma in pixels"
+    )
+    speckle_m2: float = Field(
+        250.0, ge=0.0, le=1.0e6, description="A patch or a hole of a class smaller than this goes, m2"
+    )
+    simplify_px: float = Field(
+        0.1, ge=0.0, le=2.0, description="Polygon vertices closer than this to the line go, pixels"
+    )
+    block_px: int = Field(
+        8192, ge=256, le=32768, description="Pixels along a block, so memory stays bounded on any domain"
+    )
+    domain_sigma_cells: float = Field(
+        0.8, ge=0.1, le=8.0, description="Width of the soft domain mask, Gaussian sigma in cells"
+    )
+    depth_scale: int = Field(
+        2, ge=1, le=8, description="Drawing pixels per terrain pixel in the depth drawing"
+    )
+    depth_sigma_px: float = Field(
+        0.7, ge=0.0, le=8.0, description="Width of the blur of the depth drawing, in terrain pixels"
+    )
+    wet_edge_px: float = Field(
+        1.0, gt=0.0, le=8.0, description="Width of the soft wet edge of the depth drawing, in terrain pixels"
+    )
+
+
 class Outputs(_Part):
-    map_every_s: float = Field(900.0, ge=0.0, le=86400.0, description="0 disables time maps, s")
+    map_every_s: float = Field(
+        900.0,
+        ge=0.0,
+        le=86400.0,
+        description="Seconds between saved maps; 900 for design work, 300 for an animation; 0 disables",
+    )
     series_every_s: float = Field(60.0, ge=1.0, le=3600.0, description="Point and line series step, s")
     live_every_s: float = Field(
         5.0, ge=0.0, le=3600.0, description="Wall seconds between live rasters; 0 disables"
@@ -201,6 +285,14 @@ class Outputs(_Part):
     progress_every_s: float = Field(
         2.0, ge=0.05, le=600.0, description="Wall seconds between progress events and stop checks"
     )
+    frame_bytes_per_cell: float = Field(
+        10.0,
+        gt=0.0,
+        le=100.0,
+        description="Disk per cell per saved map, for the estimate, B; the full extent at 30 m gave 10",
+    )
+    pixels: Pixels = Pixels()
+    smooth: Smooth = Smooth()
     points: list[DesignPoint] = []
     lines: list[DesignLine] = []
 

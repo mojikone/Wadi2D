@@ -684,7 +684,7 @@
       "properties": {
         "map_every_s": {
           "default": 900.0,
-          "description": "0 disables time maps, s",
+          "description": "Seconds between saved maps; 900 for design work, 300 for an animation; 0 disables",
           "maximum": 86400.0,
           "minimum": 0.0,
           "title": "Map Every S",
@@ -768,6 +768,68 @@
           "title": "Progress Every S",
           "type": "number"
         },
+        "frame_bytes_per_cell": {
+          "default": 10.0,
+          "description": "Disk per cell per saved map, for the estimate, B; the full extent at 30 m gave 10",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Frame Bytes Per Cell",
+          "type": "number"
+        },
+        "pixels": {
+          "$ref": "#/$defs/Pixels",
+          "default": {
+            "enabled": true,
+            "pixel_m": 0.0,
+            "cell_depth": 0.05,
+            "depth_floor": 0.05,
+            "hazard_limits": [
+              [
+                0.3,
+                0.3,
+                2.0
+              ],
+              [
+                0.6,
+                0.5,
+                2.0
+              ],
+              [
+                0.6,
+                1.2,
+                2.0
+              ],
+              [
+                1.0,
+                2.0,
+                2.0
+              ],
+              [
+                4.0,
+                4.0,
+                4.0
+              ]
+            ],
+            "link_margin": 0.01,
+            "link_ratio": 0.5,
+            "peak_lift": 3.0,
+            "batch_pixels": 50000000
+          }
+        },
+        "smooth": {
+          "$ref": "#/$defs/Smooth",
+          "default": {
+            "enabled": true,
+            "sigma_px": 1.0,
+            "speckle_m2": 250.0,
+            "simplify_px": 0.1,
+            "block_px": 8192,
+            "domain_sigma_cells": 0.8,
+            "depth_scale": 2,
+            "depth_sigma_px": 0.7,
+            "wet_edge_px": 1.0
+          }
+        },
         "points": {
           "default": [],
           "items": {
@@ -786,6 +848,125 @@
         }
       },
       "title": "Outputs",
+      "type": "object"
+    },
+    "Pixels": {
+      "additionalProperties": false,
+      "description": "The post-run product: depth and hazard at the terrain pixel, from the saved maps of the run.\n\nA pixel takes the highest class any limit gives, and H1 where it is wet but under every limit. The engine's\ncell hazard (``maps/hazard.tif``) stays as it is; this is a second, finer reading of the same run.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Make the pixel maps when a run finishes",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "pixel_m": {
+          "default": 0.0,
+          "description": "Pixel of the maps, a multiple of the DEM pixel, m; 0 means the DEM's",
+          "maximum": 1000.0,
+          "minimum": 0.0,
+          "title": "Pixel M",
+          "type": "number"
+        },
+        "cell_depth": {
+          "default": 0.05,
+          "description": "A cell whose mean depth never reaches this is left out, m",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Cell Depth",
+          "type": "number"
+        },
+        "depth_floor": {
+          "default": 0.05,
+          "description": "Below this a pixel is dry and takes no class, m",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Depth Floor",
+          "type": "number"
+        },
+        "hazard_limits": {
+          "default": [
+            [
+              0.3,
+              0.3,
+              2.0
+            ],
+            [
+              0.6,
+              0.5,
+              2.0
+            ],
+            [
+              0.6,
+              1.2,
+              2.0
+            ],
+            [
+              1.0,
+              2.0,
+              2.0
+            ],
+            [
+              4.0,
+              4.0,
+              4.0
+            ]
+          ],
+          "description": "Depth x speed m2/s, depth m, speed m/s: above any of these a pixel leaves H1, then H2, ...",
+          "items": {
+            "maxItems": 3,
+            "minItems": 3,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 1,
+          "title": "Hazard Limits",
+          "type": "array"
+        },
+        "link_margin": {
+          "default": 0.01,
+          "description": "Water must stand this far above the ground of a shared face, m",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Link Margin",
+          "type": "number"
+        },
+        "link_ratio": {
+          "default": 0.5,
+          "description": "Two cells stepping down a slope are one flow if the shallower is this share of the deeper",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Link Ratio",
+          "type": "number"
+        },
+        "peak_lift": {
+          "default": 3.0,
+          "description": "Most a cell's depth x speed is scaled up to the peak the run saw between saved maps",
+          "maximum": 100.0,
+          "minimum": 1.0,
+          "title": "Peak Lift",
+          "type": "number"
+        },
+        "batch_pixels": {
+          "default": 50000000,
+          "description": "Pixels handled at a time on the GPU",
+          "maximum": 2000000000,
+          "minimum": 1000000,
+          "title": "Batch Pixels",
+          "type": "integer"
+        }
+      },
+      "title": "Pixels",
       "type": "object"
     },
     "Project": {
@@ -889,6 +1070,84 @@
         }
       },
       "title": "Run",
+      "type": "object"
+    },
+    "Smooth": {
+      "additionalProperties": false,
+      "description": "The smooth drawing of the pixel maps. The pixel rasters stay the numbers of record.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Make smooth class polygons and the depth drawing",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "sigma_px": {
+          "default": 1.0,
+          "description": "Width of the soft class masks, Gaussian sigma in pixels",
+          "maximum": 8.0,
+          "minimum": 0.25,
+          "title": "Sigma Px",
+          "type": "number"
+        },
+        "speckle_m2": {
+          "default": 250.0,
+          "description": "A patch or a hole of a class smaller than this goes, m2",
+          "maximum": 1000000.0,
+          "minimum": 0.0,
+          "title": "Speckle M2",
+          "type": "number"
+        },
+        "simplify_px": {
+          "default": 0.1,
+          "description": "Polygon vertices closer than this to the line go, pixels",
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Simplify Px",
+          "type": "number"
+        },
+        "block_px": {
+          "default": 8192,
+          "description": "Pixels along a block, so memory stays bounded on any domain",
+          "maximum": 32768,
+          "minimum": 256,
+          "title": "Block Px",
+          "type": "integer"
+        },
+        "domain_sigma_cells": {
+          "default": 0.8,
+          "description": "Width of the soft domain mask, Gaussian sigma in cells",
+          "maximum": 8.0,
+          "minimum": 0.1,
+          "title": "Domain Sigma Cells",
+          "type": "number"
+        },
+        "depth_scale": {
+          "default": 2,
+          "description": "Drawing pixels per terrain pixel in the depth drawing",
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Depth Scale",
+          "type": "integer"
+        },
+        "depth_sigma_px": {
+          "default": 0.7,
+          "description": "Width of the blur of the depth drawing, in terrain pixels",
+          "maximum": 8.0,
+          "minimum": 0.0,
+          "title": "Depth Sigma Px",
+          "type": "number"
+        },
+        "wet_edge_px": {
+          "default": 1.0,
+          "description": "Width of the soft wet edge of the depth drawing, in terrain pixels",
+          "exclusiveMinimum": 0.0,
+          "maximum": 8.0,
+          "title": "Wet Edge Px",
+          "type": "number"
+        }
+      },
+      "title": "Smooth",
       "type": "object"
     },
     "Storm": {
@@ -1429,6 +1688,55 @@
         "wet_depth": 0.1,
         "edge_depth": 3.0,
         "progress_every_s": 2.0,
+        "frame_bytes_per_cell": 10.0,
+        "pixels": {
+          "batch_pixels": 50000000,
+          "cell_depth": 0.05,
+          "depth_floor": 0.05,
+          "enabled": true,
+          "hazard_limits": [
+            [
+              0.3,
+              0.3,
+              2.0
+            ],
+            [
+              0.6,
+              0.5,
+              2.0
+            ],
+            [
+              0.6,
+              1.2,
+              2.0
+            ],
+            [
+              1.0,
+              2.0,
+              2.0
+            ],
+            [
+              4.0,
+              4.0,
+              4.0
+            ]
+          ],
+          "link_margin": 0.01,
+          "link_ratio": 0.5,
+          "peak_lift": 3.0,
+          "pixel_m": 0.0
+        },
+        "smooth": {
+          "block_px": 8192,
+          "depth_scale": 2,
+          "depth_sigma_px": 0.7,
+          "domain_sigma_cells": 0.8,
+          "enabled": true,
+          "sigma_px": 1.0,
+          "simplify_px": 0.1,
+          "speckle_m2": 250.0,
+          "wet_edge_px": 1.0
+        },
         "points": [],
         "lines": []
       }
