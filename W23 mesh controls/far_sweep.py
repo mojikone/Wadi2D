@@ -4,6 +4,9 @@ hides it. One straight line at several positions on a large synthetic lattice, n
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 
 from wadi2d.config.schema import RefineLine
@@ -26,12 +29,30 @@ def cells(y: float, rows: int, far: float) -> int:
     return QuadGrid.from_levels(np.ones((SIDE * TILE, SIDE * TILE), bool), 0.0, size, DX, wanted).cell_count
 
 
+def cells_on_the_wadi(coordinates: list, shift: float, rows: int, far: float) -> int:
+    """The real main stem of Bidah, on the same lattice, moved so that it lands differently on the tiles."""
+    size = SIDE * TILE * DX
+    box = np.array(coordinates)
+    moved = box - box.mean(axis=0) + size / 2.0 + shift
+    line = RefineLine(coordinates=[tuple(p) for p in moved], near_dx=DX, rows=rows, far_dx=far)
+    wanted = band_levels([line], Lattice(0.0, size, DX, SIDE, SIDE), TOP)
+    return QuadGrid.from_levels(np.ones((SIDE * TILE, SIDE * TILE), bool), 0.0, size, DX, wanted).cell_count
+
+
 def main() -> None:
     middle = SIDE * TILE * DX / 2.0
     print("cells, thousand, mean of six line positions; last column: share of positions where far 40 differs from far 10")
-    print("rows  " + "  ".join(f"far {far:>3g}" for far in FARS))
+    print("straight line\nrows  " + "  ".join(f"far {far:>3g}" for far in FARS))
     for rows in ROWS:
         row = {far: [cells(middle + off, rows, far) for off in OFFSETS] for far in FARS}
+        means = "  ".join(f"{np.mean(row[far]) / 1e3:7.0f}" for far in FARS)
+        moved = np.mean([a != b for a, b in zip(row[10.0], row[40.0], strict=True)])
+        print(f"{rows:>4}  {means}   {moved:.2f}")
+    stored = json.loads((Path(__file__).parent / "wadi_line.geojson").read_text(encoding="utf-8"))
+    wadi = stored["features"][0]["geometry"]["coordinates"]
+    print("the Bidah main stem, 5.8 km\nrows  " + "  ".join(f"far {far:>3g}" for far in FARS))
+    for rows in ROWS:
+        row = {far: [cells_on_the_wadi(wadi, off, rows, far) for off in OFFSETS] for far in FARS}
         means = "  ".join(f"{np.mean(row[far]) / 1e3:7.0f}" for far in FARS)
         moved = np.mean([a != b for a, b in zip(row[10.0], row[40.0], strict=True)])
         print(f"{rows:>4}  {means}   {moved:.2f}")
