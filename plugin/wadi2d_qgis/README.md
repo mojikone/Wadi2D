@@ -36,7 +36,7 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
 4. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
    Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
    shows the result on the map in seconds, without a run.
-5. **Boundaries.** A line layer with one kind and value. If it has fields named `kind` and `value`, each line uses its own.
+5. **Boundaries.** One line layer holds them all. The table lists each line with its kind and value, editable, and needs no fields in the layer; a value starts from the default of its kind. Kind and Value above it set every line you have not touched. If the layer has fields named `kind` and `value`, each line starts from its own; a `name` field names the row. Click a row to flash its line on the map.
 6. **Results points.** Points record depth and level; lines across the flow record discharge.
 7. **Run.** Estimate gives cells, memory, time and the disk of the saved maps; on a mesh it counts the mesh, and its time is rough. **Save maps** is every 15 minutes for design
    work, or every 5 for an animation, three times the disk; peak depth and hazard hardly move between the two, because the
@@ -108,6 +108,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 |---|---|---|
 | `protocol.py` | commands, file names, exit codes, the clean environment | no |
 | `progress.py` | progress tail, run state, where the live raster is | no |
+| `boundary_rows.py` | the rows of the Boundaries table: who set what | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
 | `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |

@@ -473,8 +473,11 @@ def finite(coordinates) -> bool:
     return math.isfinite(coordinates)
 
 
-def layer_features(layer, crs, fields: dict[str, str] | None = None) -> list[Feature]:
-    """Every feature of a layer, one per part, reprojected to ``crs``; ``fields`` maps property to field."""
+def layer_features(layer, crs, fields: dict[str, str] | None = None, with_id: bool = False) -> list[Feature]:
+    """Every feature of a layer, one per part, reprojected to ``crs``; ``fields`` maps property to field.
+
+    ``with_id`` adds the feature id as the property ``fid``, for a table that keeps its rows by feature.
+    """
     from qgis.core import QgsCoordinateTransform, QgsGeometry, QgsProject, QgsWkbTypes
 
     transform = QgsCoordinateTransform(layer.crs(), crs, QgsProject.instance())
@@ -485,6 +488,8 @@ def layer_features(layer, crs, fields: dict[str, str] | None = None) -> list[Fea
             continue
         geometry.transform(transform)
         properties = {key: _plain(source[name]) for key, name in (fields or {}).items() if name}
+        if with_id:
+            properties["fid"] = source.id()
         for part in geometry.asGeometryCollection():
             kind = part.type()
             if kind == QgsWkbTypes.PointGeometry:
