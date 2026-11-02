@@ -46,7 +46,7 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
 During a run the depth appears as a blue layer. When the simulation ends the bar restarts for the pixel maps, unless the
 box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons, a depth drawing with a soft wet edge. At
 the end the layers load into a group named after the run: **Model setup**, **Flood maps**, **Pixel rasters, the numbers of
-record**, **Cell maps**. If the run fails, the message says why and a red cross marks the cell.
+record**, **Cell maps**. Model setup also holds the **Cell grid**, the cells the solver really stepped, coarse tiles coarse, on every run even with pixel maps off; it draws once you are near enough for a cell to reach 1 mm on screen, and its name says the scale. If the run fails, the message says why and a red cross marks the cell.
 
 **Make map** writes three A3 sheets to `pixels/<run>_maps.pdf`, setup, depth and hazard, over a hillshade of the DEM or
 satellite imagery, and keeps the layout in the project to edit. It works on the last run, or on any finished run whose
@@ -95,6 +95,8 @@ A run writes `terrain/volumes.csv` and `terrain/volumes_by_station.csv`, gives t
 hold only the tiles the objects reach.
 
 ## In a run folder, written by the plugin
+
+The engine writes `cell_grid.gpkg` at the start of a run, one line feature per tile with `cell_m`, `level` and `cells`.
 
 `job.json`, `inputs/*.geojson` (every vector layer, in the DEM CRS, as sent), `plugin_run.json` (pid, CRS, end time, for a
 later session), `engine.out`, `engine.err`. The schema carries structures, boundaries and design points inline in

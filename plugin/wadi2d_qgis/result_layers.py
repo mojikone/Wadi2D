@@ -18,6 +18,8 @@ from . import style
 from .map_notes import class_labels, read_facts
 from .protocol import (
     BOUNDARY_LAYER,
+    CELL_GRID_FILE,
+    CELL_GRID_LAYER,
     DEPTH_DRAWING,
     DOMAIN_LAYER,
     HAZARD_LAYER,
@@ -31,6 +33,8 @@ from .protocol import (
     PIXEL_SPEED,
     REACH_LAYER,
     SUBBASIN_LAYER,
+    cell_grid_scale,
+    cell_grid_title,
 )
 
 GROUP_MAPS = "Flood maps"
@@ -143,6 +147,33 @@ def _add(group, layers: list, shown: tuple = ()) -> None:
         node.setExpanded(False)
         if isinstance(layer, QgsRasterLayer):
             hide_band_name(node)
+
+
+def open_cell_grid(run: Path | str):
+    """The real grid of a run, styled, or None for a run from before it was written."""
+    uri = f"{Path(run) / CELL_GRID_FILE}|layername={CELL_GRID_LAYER}"
+    options = QgsVectorLayer.LayerOptions()
+    options.forceReadOnly = True
+    layer = QgsVectorLayer(uri, "Cell grid", "ogr", options)
+    if not layer.isValid() or layer.featureCount() == 0:
+        return None
+    size = layer.fields().indexOf("cell_m")
+    finest, coarsest = float(layer.minimumValue(size)), float(layer.maximumValue(size))
+    layer.setName(cell_grid_title(finest, coarsest))
+    style.style_cell_grid(layer, cell_grid_scale(finest))
+    return layer
+
+
+def load_cell_grid(run: Path | str, group_name: str):
+    """Under Model setup, with or without pixel maps: a run that made none has the grid all the same."""
+    layer = open_cell_grid(run)
+    if layer is None:
+        return None
+    root = QgsProject.instance().layerTreeRoot()
+    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
+    setup = top.findGroup(GROUP_SETUP) or top.insertGroup(0, GROUP_SETUP)
+    _add(setup, [layer], (layer,))
+    return layer
 
 
 def load_products(run: Path | str, group_name: str) -> RunLayers | None:

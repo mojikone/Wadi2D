@@ -199,6 +199,13 @@ def style_domain(layer) -> None:
     layer.setRenderer(QgsSingleSymbolRenderer(symbol))
 
 
+def style_cell_grid(layer, largest_scale: int) -> None:
+    """Thin orange: it has to read on dark ground, pale ground and blue water alike. Drawn only near enough to read as cells."""
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "255,140,0,200", "width": "0.1"})))
+    layer.setScaleBasedVisibility(True)
+    layer.setMinimumScale(largest_scale)
+
+
 def style_boundaries(layer) -> None:
     layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#e0001b", "width": "1.4"})))
     _labels(layer, "label", 8.5, "#a00014", Qgis.LabelPlacement.Line, bold=True)

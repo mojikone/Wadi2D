@@ -14,6 +14,8 @@ from wadi2d_qgis.protocol import (
     EXIT_MESSAGES,
     FALLBACK_ENGINE,
     SHARED_ENGINE_FOLDER,
+    cell_grid_scale,
+    cell_grid_title,
     clean_env,
     default_engine,
     engine_error_text,
@@ -169,6 +171,12 @@ def test_a_plugin_installed_from_zip_finds_the_engine_the_installer_recorded(tmp
     assert default_engine(plugin) == '"C:/shared/python.exe" -m wadi2d.engine.cli'
     (plugin / ENGINE_FILE).write_text('"C:/beside/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
     assert default_engine(plugin) == '"C:/beside/python.exe" -m wadi2d.engine.cli'
+
+
+def test_the_cell_grid_says_its_sizes_and_the_scale_it_draws_from() -> None:
+    assert cell_grid_scale(20.0) == 20000
+    assert cell_grid_title(20.0, 20.0) == "Cell grid, 20 m, drawn from 1:20,000 in"
+    assert cell_grid_title(10.0, 40.0) == "Cell grid, 10 to 40 m, drawn from 1:10,000 in"
 
 
 def test_estimate_says_the_disk_of_the_saved_maps() -> None:

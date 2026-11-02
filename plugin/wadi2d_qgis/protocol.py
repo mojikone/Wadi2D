@@ -32,6 +32,9 @@ INFLOW_LAYER = "inflows"
 BOUNDARY_LAYER = "boundaries"
 LINE_LAYER = "design_lines"
 REACH_LAYER = "reaches"
+CELL_GRID_FILE = "cell_grid.gpkg"  # in the run folder itself: written at the start of every run
+CELL_GRID_LAYER = "cell_grid"
+CELL_GRID_SEEN_MM = 1.0  # a cell this big on the screen before its lines are drawn
 CACHE_DIR = "wadi2d_cache"  # beside the run folders: the tables are the one expensive artefact
 RUN_FILE = "plugin_run.json"  # written by the plugin: lets a later QGIS session find and stop the process
 STDOUT_FILE = "engine.out"
@@ -62,6 +65,16 @@ def default_engine(folder: Path | None = None) -> str:
         if text:
             return text
     return FALLBACK_ENGINE
+
+
+def cell_grid_scale(finest_m: float) -> int:
+    """The scale at which the finest cell reaches ``CELL_GRID_SEEN_MM``; further out the lines would merge into a tint."""
+    return round(finest_m * 1000.0 / CELL_GRID_SEEN_MM)
+
+
+def cell_grid_title(finest_m: float, coarsest_m: float) -> str:
+    size = f"{finest_m:g} m" if finest_m == coarsest_m else f"{finest_m:g} to {coarsest_m:g} m"
+    return f"Cell grid, {size}, drawn from 1:{cell_grid_scale(finest_m):,} in"
 
 
 EXIT_FINISHED = 0

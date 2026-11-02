@@ -98,6 +98,14 @@ def test_a_full_job_passes_the_engine_validation(tmp_path: Path) -> None:
     assert parsed.outputs.points[0].name == "Dam"
 
 
+def test_the_cell_grid_names_are_the_engines() -> None:
+    from wadi2d.products import cell_grid
+    from wadi2d_qgis import protocol
+
+    assert protocol.CELL_GRID_FILE == cell_grid.CELL_GRID_FILE
+    assert protocol.CELL_GRID_LAYER == cell_grid.CELL_GRID_LAYER
+
+
 def test_every_shaped_kind_the_dock_offers_is_an_engine_kind() -> None:
     kinds = config.TerrainObject.model_fields["kind"].annotation.__args__
     assert set(SHAPED_KINDS) == set(config.SHAPED_KINDS)

@@ -53,7 +53,7 @@ from .protocol import (
     parse_mesh,
     run_args,
 )
-from .result_layers import has_products, load_products
+from .result_layers import has_products, load_cell_grid, load_products
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
@@ -399,6 +399,7 @@ class Wadi2DDock(QgsDockWidget):
         loaded = load_maps(run.out_dir, run.out_dir.name, tucked=products)
         if products:
             load_products(run.out_dir, run.out_dir.name)
+        load_cell_grid(run.out_dir, run.out_dir.name)
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
         if state.succeeded:
