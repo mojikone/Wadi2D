@@ -18,6 +18,7 @@ HERE = Path(__file__).parent
 ROOT = HERE.parent
 QUERY = ["nvidia-smi", "--query-gpu=utilization.gpu,memory.used", "--format=csv,noheader,nounits"]
 SAMPLE_S = 2.0
+LOG = "speed.jsonl"
 
 
 def sampler(stop: threading.Event, out: list[tuple[int, int]]) -> None:
@@ -46,7 +47,7 @@ def run(name: str, path: str, extra: list[str]) -> dict:
         wall_s=round(wall, 1), before=before, use_mean=round(sum(u for u, _m in samples) / max(len(samples), 1), 1),
         memory_peak=max((m for _u, m in samples), default=0),
     )  # fmt: skip
-    with open(HERE / "speed.jsonl", "a", encoding="utf-8") as f:
+    with open(HERE / LOG, "a", encoding="utf-8") as f:
         f.write(json.dumps({"case": name, **row}) + "\n")
     print(name, {k: row.get(k) for k in ("steps", "loop_s", "mass", "peaks", "use_mean", "memory_peak", "before", "error")}, flush=True)
     return row
