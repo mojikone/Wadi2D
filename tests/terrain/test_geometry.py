@@ -14,6 +14,8 @@ from wadi2d.terrain.alignment import Alignment
 from wadi2d.terrain.earthworks import Shape
 
 SOUTH = [(160.0, 300.0), (160.0, 20.0)]
+FLOAT32_AT_100_M = 1e-5
+"""New ground is held as a DEM holds it, so a hand number is met to this, m."""
 Y = 160.5
 
 
@@ -103,14 +105,14 @@ def test_a_bank_turns_from_dyke_to_cut_where_the_ground_passes_its_top():
     section = {"width": 4.0, "crest_z": 100.0, "left_crest_width": 3.0, "right_crest_width": 3.0}
     z, grid = edited([obj("channel_dyke", SOUTH, z_constant=97.0, section=section)], bed)
     # crest edge at a = 2 + 2 * 3 = 8, so x = 170: north of y = 160 the ground is under 100
-    assert at(z, grid, 170.5, 240.5) == pytest.approx(100.0, abs=1e-6)
+    assert at(z, grid, 170.5, 240.5) == pytest.approx(100.0, abs=FLOAT32_AT_100_M)
     south_ground = at(ground, grid, 170.5, 80.5)
     assert south_ground > 101.0
     assert at(z, grid, 180.5, 80.5) == pytest.approx(
-        south_ground, abs=1e-6
+        south_ground, abs=FLOAT32_AT_100_M
     )  # cut bank: untouched ground beyond it
     assert at(z, grid, 170.5, 80.5) == pytest.approx(
-        97.0 + (10.5 - 2.0) / 2.0, abs=1e-6
+        97.0 + (10.5 - 2.0) / 2.0, abs=FLOAT32_AT_100_M
     )  # the inner slope, carried up
 
 
@@ -130,7 +132,7 @@ def test_a_section_is_the_same_at_any_angle(angle):
         along = (px - 160.0) * ux + (py - 160.0) * uy
         true = math.hypot(px - 160.0 - along * ux, py - 160.0 - along * uy)
         hand = min(98.0 + max(true - 2.0, 0.0) / 2.0, 100.0)
-        assert z[row, col] == pytest.approx(hand, abs=1e-6), (offset, expected)
+        assert z[row, col] == pytest.approx(hand, abs=FLOAT32_AT_100_M), (offset, expected)
 
 
 def test_values_read_linearly_between_stations_with_no_step():
@@ -145,7 +147,7 @@ def test_values_read_linearly_between_stations_with_no_step():
     assert mid.inner[0] == pytest.approx(2.5)
     z, grid = edited([obj("channel", SOUTH, section={"rows": rows})])
     along = np.array([at(z, grid, 160.5, y + 0.5) for y in range(40, 280)])
-    assert np.abs(np.diff(along)).max() < 2.0 / 280.0 + 1e-9
+    assert np.abs(np.diff(along)).max() < 2.0 / 280.0 + FLOAT32_AT_100_M
 
 
 def test_openings_take_the_raised_part_out_and_end_in_a_slope():
@@ -156,10 +158,10 @@ def test_openings_take_the_raised_part_out_and_end_in_a_slope():
     z, grid = edited([bank])
     assert at(z, grid, 160.5, 300.0 - 130.5) == pytest.approx(GROUND)
     # 4 m into the gap the crest has fallen 2 m: a slope, not a cliff
-    assert at(z, grid, 160.5, 300.0 - 104.5) == pytest.approx(103.0 - 4.5 / 2.0, abs=1e-6)
+    assert at(z, grid, 160.5, 300.0 - 104.5) == pytest.approx(103.0 - 4.5 / 2.0, abs=FLOAT32_AT_100_M)
     assert at(z, grid, 160.5, 300.0 - 90.5) == pytest.approx(103.0)
     profile = np.array([at(z, grid, 160.5, 300.0 - s - 0.5) for s in range(40, 240)])
-    assert np.abs(np.diff(profile)).max() <= 0.5 + 1e-9
+    assert np.abs(np.diff(profile)).max() <= 0.5 + FLOAT32_AT_100_M
 
 
 def test_an_opening_on_one_bank_leaves_the_other_alone():
@@ -177,7 +179,7 @@ def test_an_opening_on_one_bank_leaves_the_other_alone():
     assert at(z, grid, 151.5, y) == pytest.approx(102.0)
     assert at(z, grid, 169.5, y) == pytest.approx(GROUND)
     # the left inner slope still cuts down to the bed, and daylights at the ground, a = 4
-    assert at(z, grid, 162.5, y) == pytest.approx(99.0 + 0.5 / 2.0, abs=1e-6)
+    assert at(z, grid, 162.5, y) == pytest.approx(99.0 + 0.5 / 2.0, abs=FLOAT32_AT_100_M)
     assert at(z, grid, 164.5, y) == pytest.approx(GROUND)
 
 
@@ -187,7 +189,7 @@ def test_an_open_channel_end_is_square_and_a_closed_end_wraps_round():
     closed, _ = edited([obj("channel", SOUTH, z_constant=98.0, section=section, end_end="closed")])
     past = 20.0 - 2.5  # 2.5 m past the last station
     assert at(square, grid, 160.5, past) == pytest.approx(GROUND)
-    assert at(closed, grid, 160.5, past) == pytest.approx(98.0 + 2.5 / 2.0, abs=1e-6)
+    assert at(closed, grid, 160.5, past) == pytest.approx(98.0 + 2.5 / 2.0, abs=FLOAT32_AT_100_M)
     assert at(closed, grid, 160.5, 20.0 - 5.5) == pytest.approx(GROUND)
 
 
@@ -196,7 +198,7 @@ def test_an_embankment_ends_in_a_cone_without_being_asked():
         "embankment", SOUTH, z_constant=103.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 2.0}
     )
     z, grid = edited([bank])
-    assert at(z, grid, 160.5, 20.0 - 2.5) == pytest.approx(103.0 - 2.5 / 2.0, abs=1e-6)
+    assert at(z, grid, 160.5, 20.0 - 2.5) == pytest.approx(103.0 - 2.5 / 2.0, abs=FLOAT32_AT_100_M)
     assert at(z, grid, 160.5, 20.0 - 6.5) == pytest.approx(GROUND)
 
 
@@ -205,7 +207,7 @@ def test_a_tapered_end_fades_to_the_ground():
         "channel", SOUTH, z_constant=96.0, section={"width": 4.0}, start_end="taper", taper_length=40.0
     )
     z, grid = edited([channel])
-    assert at(z, grid, 160.5, 300.0 - 10.5) == pytest.approx(GROUND - 4.0 * 10.5 / 40.0, abs=1e-6)
+    assert at(z, grid, 160.5, 300.0 - 10.5) == pytest.approx(GROUND - 4.0 * 10.5 / 40.0, abs=FLOAT32_AT_100_M)
     assert at(z, grid, 160.5, 300.0 - 60.5) == pytest.approx(96.0)
     assert at(z, grid, 160.5, 300.0 + 2.5) == pytest.approx(GROUND)
 
@@ -259,6 +261,15 @@ def test_ground_samples_read_the_pixel_under_the_point():
     x = np.array([grid.x0 + 0.5, grid.x0 + 600.5, grid.x0 + 3.2])
     y = np.array([grid.y0 - 0.5, grid.y0 - 2.5, grid.y0 - 600.5])
     assert ground(x, y).tolist() == [0.0, 600002.0, 3600.0]
+
+
+def test_new_ground_is_float32_as_a_dem_is_so_still_water_cancels_at_every_face():
+    bank = obj(
+        "embankment", SOUTH, z_constant=103.3, section={"width": 4.0, "left_slope": 3.0, "right_slope": 3.0}
+    )
+    channel = obj("channel", [(40.0, 100.0), (280.0, 90.0)], z_constant=98.7, section={"width": 7.0})
+    z, _grid = edited([bank, channel])
+    assert np.array_equal(z, z.astype(np.float32).astype(np.float64))
 
 
 def test_existing_objects_have_no_section(tmp_path):

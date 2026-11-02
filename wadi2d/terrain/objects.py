@@ -28,7 +28,15 @@ from wadi2d.grid.tiles import TileGrid
 from wadi2d.storm.registry import Registry
 from wadi2d.tables.builder import CrestFaces
 from wadi2d.terrain.crest import NORTH, Staircase, elevations_along, join_ends, line_lengths, staircase
-from wadi2d.terrain.earthworks import CrestRun, Sampler, Shape, ShapeEdit, crest_coefficient, notch_shapes
+from wadi2d.terrain.earthworks import (
+    CrestRun,
+    Sampler,
+    Shape,
+    ShapeEdit,
+    as_dem,
+    crest_coefficient,
+    notch_shapes,
+)
 
 PixelEdit = Callable[[np.ndarray, int, int], None]
 
@@ -208,7 +216,7 @@ class Shaped:
 
     def faces(self, obj: TerrainObject, target: FaceSet) -> None:
         for st, run in target.runs[id(obj)]:
-            z = np.interp(st.s, line_lengths(run.coordinates), run.z)
+            z = as_dem(np.interp(st.s, line_lengths(run.coordinates), run.z))
             c = crest_coefficient(run.width, target.grid.dx, target.cfg)
             _set(target, st, z, st.factor, c, keep_max=True)
             target.lines.append(st)

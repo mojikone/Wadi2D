@@ -41,8 +41,6 @@ RUN_SAMPLES_PER_CELL = 2
 """Points per cell along a crest line."""
 RUN_OVERLAP_CELLS = 1.0
 """A crest line runs this far past the end of its stretch, into the ground it ties to, cells."""
-LINED_TOLERANCE = 1e-6
-"""A pixel this close to the cut surface lies on the channel section, m."""
 BOTH = ("left", "right")
 
 
@@ -173,7 +171,7 @@ class Shape:
     def on_section(self, x: np.ndarray, y: np.ndarray, ground: np.ndarray) -> np.ndarray:
         """Which points of finished ground lie on the channel section: they take its lining."""
         _low, high = self._limits(self.line.locate(x, y))
-        return ground >= high - LINED_TOLERANCE
+        return ground >= as_dem(high)
 
     def reach(self, lowest: float, highest: float) -> float:
         """How far from the line this object can change ground that lies between these two levels, m."""
@@ -237,6 +235,13 @@ class Shape:
                     CrestRun(points, np.array([ends[0].z[index], ends[1].z[index]]), (False, False), "both")
                 )
         return found
+
+
+def as_dem(z: np.ndarray) -> np.ndarray:
+    """Elevations as a DEM file holds them. The solver's tables are float32 differences of pixels: those of float32
+    pixels are exact, so still water cancels at every face, and those of float64 pixels round to a false head.
+    """
+    return np.asarray(z, dtype=np.float32).astype(np.float64)
 
 
 def crest_coefficient(width: float, dx: float, cfg: Terrain) -> float:
@@ -327,7 +332,7 @@ class ShapeEdit:
         found = self._pixels(z, row0, col0)
         if found is not None:
             r, c, x, y = found
-            z[r, c] = self.shape.surface(x, y, z[r, c])
+            z[r, c] = as_dem(self.shape.surface(x, y, z[r, c]))
 
     def line_pixels(self, z: np.ndarray, n: np.ndarray, row0: int, col0: int) -> None:
         """Write the lining into ``n`` where finished ground ``z`` lies on the channel section."""

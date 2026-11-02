@@ -275,6 +275,10 @@ def test_a_diagonal_dyke_overtopped_passes_critical_flow_along_its_true_length(t
     assert q[-40:].mean() == pytest.approx(CRITICAL_WEIR_COEFF * reach * HEAD**1.5, rel=0.05)
 
 
+PARTLY_WET_SPEED = 2e-6
+"""Water below the crests touches wet and dry cells; an old burn line on this ground gives 1.2e-6 m/s."""
+
+
 def bumpy(nx: int, ny: int, pixel: float) -> np.ndarray:
     x = (np.arange(nx) + 0.5) * pixel
     y = (np.arange(ny) + 0.5) * pixel
@@ -324,8 +328,8 @@ def test_still_water_stays_still_over_every_object(tmp_path, level):
     assert run.exit_code == 0, run.message
     with h5py.File(out / "results.h5", "r") as f:
         speed = f["maxima"]["speed"][()]
-    assert speed.max() < 1e-3
-    assert abs(run.balance.storage - run.balance.storage0) <= 1e-5 * run.balance.storage0
+    assert speed.max() == 0.0 if level > 103.0 else speed.max() < PARTLY_WET_SPEED
+    assert abs(run.balance.storage - run.balance.storage0) <= 1e-12 * run.balance.storage0
 
 
 def test_a_spillway_on_a_real_embankment_passes_its_rating(tmp_path):
