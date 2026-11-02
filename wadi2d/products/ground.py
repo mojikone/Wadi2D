@@ -1,7 +1,8 @@
 """The ground of every kept cell, pixel by pixel, and the ground of every face, from what built the tables.
 
 Pixels come through the same ``RasterBed`` and the same pixel edits as the tables, so a burned line is burned here
-too. Elevations are held over the lowest cell of the domain, so float32 keeps its resolution at any datum.
+too, a channel is cut and a dyke stands: a depth read on the raw DEM would be wrong in both. Elevations are held over
+the lowest cell of the domain, so float32 keeps its resolution at any datum.
 """
 
 from __future__ import annotations
@@ -14,7 +15,8 @@ import numpy as np
 from wadi2d.config.schema import RunConfig
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import GridTables
-from wadi2d.terrain import RasterBed, apply_objects
+from wadi2d.terrain import Ground, RasterBed, apply_objects
+from wadi2d.terrain.sections import with_tables
 
 
 @dataclass
@@ -61,7 +63,8 @@ def read_cells(
     with RasterBed(cfg.terrain.dem, bed_stride(cfg, native)) as bed:
         k = bed.pixels_per_cell(grid.dx)
         bed.bind(grid.x0, grid.y0)
-        edit = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain).edit
+        objects = with_tables(cfg).terrain.objects
+        edit = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
         rows, cols = np.nonzero(keep)
         datum = float(tables.zmin[keep].min()) if rows.size else 0.0
         ground = np.empty((rows.size, k * k), np.float32)

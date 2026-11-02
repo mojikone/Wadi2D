@@ -23,9 +23,17 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import RunConfig
+from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
-from wadi2d.forcing import Forcing, boundary_set, build_storm, initial_depth, load_polygons, manning_grid
+from wadi2d.forcing import (
+    Forcing,
+    boundary_notes,
+    boundary_set,
+    build_storm,
+    initial_depth,
+    load_polygons,
+    manning_grid,
+)
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
@@ -38,14 +46,21 @@ from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.tables import GridTables, build_tables
-from wadi2d.terrain import GridWindow, RasterBed, apply_objects
+from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
+from wadi2d.terrain.checks import terrain_notes
 from wadi2d.terrain.crest import line_lengths
+from wadi2d.terrain.report import TerrainReport, survey
+from wadi2d.terrain.sections import with_tables
 from wadi2d.terrain.vector import read_features
 
 EXIT_DONE, EXIT_UNEXPECTED, EXIT_INVALID, EXIT_INPUT, EXIT_BACKEND = 0, 1, 2, 3, 4
 EXIT_NUMERICAL, EXIT_STOPPED, EXIT_MEMORY = 5, 6, 7
 EDGE_REACH = 2
 """Cells around a boundary that do not count as a closed edge."""
+TERRAIN_DIR = "terrain"
+"""Folder of a run that holds what the terrain objects did."""
+PIXEL_KINDS = (*SHAPED_KINDS, "burn_line")
+"""Terrain objects that change the ground, not only faces."""
 
 
 class JobError(Exception):
@@ -106,12 +121,26 @@ def load_job(path: str | Path) -> RunConfig:
 
 def resolve_paths(cfg: RunConfig, base: Path) -> RunConfig:
     """The same job with every path absolute."""
-    updates: dict[str, dict[str, str]] = {}
+    updates: dict[str, dict] = {}
     for part, name in PATH_FIELDS:
         value = getattr(getattr(cfg, part), name)
         if value is not None and not Path(value).is_absolute():
             updates.setdefault(part, {})[name] = str((base / value).resolve())
+    if any(_table(o) for o in cfg.terrain.objects):
+        updates.setdefault("terrain", {})["objects"] = [_absolute_table(o, base) for o in cfg.terrain.objects]
     return cfg.model_copy(update={p: getattr(cfg, p).model_copy(update=u) for p, u in updates.items()})
+
+
+def _table(obj: TerrainObject) -> str | None:
+    return obj.section.table if obj.section is not None else None
+
+
+def _absolute_table(obj: TerrainObject, base: Path) -> TerrainObject:
+    table = _table(obj)
+    if table is None or Path(table).is_absolute():
+        return obj
+    section = obj.section.model_copy(update={"table": str((base / table).resolve())})
+    return obj.model_copy(update={"section": section})
 
 
 def check_inputs(cfg: RunConfig) -> None:
@@ -124,6 +153,10 @@ def check_inputs(cfg: RunConfig) -> None:
         value = getattr(getattr(cfg, part), name)
         if value is not None and (part, name) not in OPTIONAL_INPUT and not Path(value).exists():
             raise InputMissing(f"{part}.{name} not found: {value}")
+    for obj in cfg.terrain.objects:
+        table = _table(obj)
+        if table is not None and not Path(table).exists():
+            raise InputMissing(f"section table of {obj.name or obj.kind} not found: {table}")
 
 
 def _domain_polygon(path: str | None, crs: str) -> shapely.Geometry | None:
@@ -167,13 +200,30 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "dem": bed.identity(limit),
             "window": [window.x0, window.y0, window.ny, window.nx],
             "dx": cfg.grid.dx,
-            "objects": [o.model_dump() for o in t.objects],
-            "object_settings": [t.join_cells, t.spillway_snap_cells, t.burn_pixels],
+            "objects": [_object_key(o) for o in t.objects],
+            "object_settings": [
+                t.join_cells,
+                t.spillway_snap_cells,
+                t.burn_pixels,
+                t.dyke_min_height,
+                t.crest_thin_ratio,
+                t.crest_eased_ratio,
+                t.crest_resolved_ratio,
+                t.crest_eased_coefficient,
+            ],
             "tables": cfg.tables.model_dump(),
             "manning": t.manning,
             "extras": extras,
         }
     )
+
+
+def _object_key(obj: TerrainObject) -> dict:
+    """An object as the cache sees it: a section table's numbers, not where the file lies."""
+    data = obj.model_dump()
+    if data["section"] is not None:
+        data["section"]["table"] = None
+    return data
 
 
 def job_hash(cfg: RunConfig) -> str:
@@ -194,6 +244,7 @@ def job_hash(cfg: RunConfig) -> str:
 def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = None) -> tuple[GridTables, str]:
     """The tables and the CRS as WKT, from the cache when nothing changed."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
+    cfg = with_tables(cfg)
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
@@ -208,11 +259,35 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             raise InvalidJob("the domain holds no active cell")
         grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
         bed.bind(grid.x0, grid.y0)
-        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain)
-        tables = build_tables(grid, bed, cfg.tables, manning_grid(cfg, grid, crs), edits.crest, edits.edit)
+        ground = Ground(bed, grid.x0, grid.y0)
+        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+        n = manning_grid(cfg, grid, crs)
+        tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
     save_tables(path, tables, key)
     emit("output", kind="grid_cache_saved", path=str(path))
     return tables, crs
+
+
+def check_terrain(cfg: RunConfig) -> list[str]:
+    """What the shaped objects look like against the ground, in plain words; no table is built."""
+    if not any(o.kind in SHAPED_KINDS for o in cfg.terrain.objects):
+        return []
+    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+        window = grid_window(cfg, bed)
+        bed.bind(window.x0, window.y0)
+        dx = cfg.grid.dx
+        bounds = (window.x0, window.y0 - window.ny * dx, window.x0 + window.nx * dx, window.y0)
+        ground = Ground(bed, window.x0, window.y0)
+        return terrain_notes(cfg.terrain.objects, ground, dx, bed.pixel, cfg.terrain, bounds)
+
+
+def survey_terrain(cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool) -> TerrainReport:
+    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it."""
+    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+        bed.bind(grid.x0, grid.y0)
+        ground = Ground(bed, grid.x0, grid.y0)
+        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+        return survey(cfg.terrain, grid, bed, edits, folder, bed.crs, whole, maps)
 
 
 def _project_tables(h, hms_basin):
@@ -456,6 +531,7 @@ def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Prog
 def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files):
     """The simulation. Returns (tables, CRS WKT) for the step after it; the model is gone by then, GPU memory too."""
     check_inputs(cfg)
+    cfg = with_tables(cfg)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
     (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
@@ -475,7 +551,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             message="depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; "
             "HMS with Uniform Depth: Yes uses the mean above each analysis point instead",
         )
-    for note in spillway_notes(cfg):
+    for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
@@ -483,6 +559,10 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = int(grid.mask.sum())
+    if any(o.kind in PIXEL_KINDS for o in cfg.terrain.objects):
+        wanted = cfg.outputs.terrain_map
+        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
+        progress.emit("terrain", volumes=report.volumes, files=report.files)
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
@@ -490,6 +570,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
     bset = boundary_set(cfg.boundaries, tables, cfg.grid.line_samples)
+    for note in boundary_notes(cfg.boundaries, bset, grid.dx):
+        progress.emit("warn", message=note)
     model.set_depth(initial_depth(cfg.initial_levels, tables))
     if bset.size:
         model.set_boundary(bset.cells)
@@ -624,6 +706,7 @@ __all__ = [
     "InvalidJob",
     "JobError",
     "RunSummary",
+    "check_terrain",
     "load_job",
     "preflight",
     "prepare_grid",

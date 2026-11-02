@@ -19,6 +19,7 @@ from .protocol import (
     pid_alive,
     read_run_info,
 )
+from .shaped import volumes_text
 
 PRODUCT_STAGES = {
     "ground": "Pixel maps: reading the terrain",
@@ -74,6 +75,7 @@ class RunState:
     wet_area_km2: float | None = None
     mass_error: float | None = None
     warnings: list[str] = field(default_factory=list)
+    volumes: list[dict] = field(default_factory=list)
     error: str | None = None
     error_xy: tuple[float, float] | None = None
     finished: bool = False
@@ -101,6 +103,8 @@ class RunState:
             self.product_of = event.get("of", 0)
         elif kind == "warn":
             self.warnings.append(str(event.get("message", "")))
+        elif kind == "terrain":
+            self.volumes = list(event.get("volumes") or [])
         elif kind == "error":  # a numerical failure still writes its maps: only "done" or the exit ends a run
             self.error = str(event.get("message", ""))
             self.error_xy = event_xy(event)
@@ -150,6 +154,8 @@ class RunState:
             words.append(self.error.rstrip(". ") + ".")
         if self.error_xy:
             words.append(f"At x {self.error_xy[0]:,.1f}, y {self.error_xy[1]:,.1f} (marked on the map).")
+        if self.volumes and volumes_text(self.volumes):
+            words.append(volumes_text(self.volumes))
         words.extend(warning.rstrip(". ") + "." for warning in dict.fromkeys(self.warnings))
         return " ".join(words)
 

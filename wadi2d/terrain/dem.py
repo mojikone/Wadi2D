@@ -23,6 +23,8 @@ ALIGN_TOLERANCE = 1e-6
 """Relative tolerance on 'a whole number of pixels'."""
 HUGE_ELEVATION = 1e30
 """Anything above this is a nodata the file did not flag."""
+LEVEL_SAMPLES = 1024
+"""Samples along each side of the raster when asking its level range."""
 
 
 @dataclass(frozen=True)
@@ -128,6 +130,12 @@ class RasterBed:
             return z
         nearest = ndimage.distance_transform_edt(mask, return_distances=False, return_indices=True)
         return z[tuple(nearest)]
+
+    def levels(self) -> tuple[float, float]:
+        """Lowest and highest ground, from a decimated read."""
+        a = self.src.read(1, out_shape=(LEVEL_SAMPLES, LEVEL_SAMPLES), masked=True)
+        values = np.ma.masked_greater(a, HUGE_ELEVATION).compressed().astype(np.float64)
+        return float(values.min()), float(values.max())
 
     def active_mask(self, w: GridWindow, dx: float) -> np.ndarray:
         """True on cells whose centre pixel holds data. One pixel per cell: fast, and enough for an edge."""

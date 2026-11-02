@@ -7,11 +7,14 @@ never written twice. Numerics reach the kernels through ``wadi2d.solver.params``
 
 from __future__ import annotations
 
+import itertools
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 FORMAT_VERSION = "1.0"
+SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
+"""Terrain objects with a cross-section: they reshape the ground along an alignment."""
 
 
 class _Part(BaseModel):
@@ -42,10 +45,90 @@ class GridConfig(_Part):
     )
 
 
+EndKind = Literal["open", "closed", "taper"]
+
+
+class Opening(_Part):
+    """A station range where the raised part of an object is left out: a side inflow or a culvert gap."""
+
+    start: float = Field(ge=0.0, description="Station where the opening starts, m")
+    end: float = Field(gt=0.0, description="Station where the opening ends, m")
+    side: Literal["left", "right", "both"] = Field("both", description="Bank, looking along the stations")
+
+    @model_validator(mode="after")
+    def _order(self) -> Opening:
+        if self.end <= self.start:
+            raise ValueError(f"an opening ends at station {self.end:g}, before it starts at {self.start:g}")
+        return self
+
+
+class SectionRow(_Part):
+    """One row of a section table; an empty value is read between its neighbours in the column."""
+
+    station: float = Field(ge=0.0, description="Distance along the alignment, m")
+    bed_z: float | None = Field(None, description="Bed elevation, m")
+    width: float | None = Field(None, ge=0.0, le=2000.0, description="Bottom or crest width, m")
+    crest_z: float | None = Field(None, description="Top on both sides, m")
+    left_top_z: float | None = Field(None, description="Top of the left bank, m")
+    right_top_z: float | None = Field(None, description="Top of the right bank, m")
+    left_slope: float | None = Field(None, ge=0.0, le=50.0, description="Left inner slope, H:V")
+    right_slope: float | None = Field(None, ge=0.0, le=50.0, description="Right inner slope, H:V")
+    left_crest_width: float | None = Field(None, ge=0.0, le=200.0, description="Left dyke crest, m")
+    right_crest_width: float | None = Field(None, ge=0.0, le=200.0, description="Right dyke crest, m")
+    left_outer_slope: float | None = Field(None, ge=0.0, le=50.0, description="Left outer slope, H:V")
+    right_outer_slope: float | None = Field(None, ge=0.0, le=50.0, description="Right outer slope, H:V")
+    water_z: float | None = Field(None, description="Design water level, for a top set by freeboard, m")
+
+
+class Section(_Part):
+    """The cross-section of an embankment, channel or channel_dyke.
+
+    Three ways in, which may be mixed: these constants; ``table`` or ``rows`` by station; or the bed from
+    ``bed_start_z`` and ``bed_slope`` with the top ``freeboard`` above the water. Left and right are looking
+    along increasing station, which runs from the first vertex.
+    """
+
+    width: float = Field(
+        5.0, ge=0.0, le=2000.0, description="Bottom width of a channel, crest width of an embankment, m"
+    )
+    left_slope: float = Field(
+        2.0, ge=0.0, le=50.0, description="Left side slope, H:V; the inner slope of a channel with dykes"
+    )
+    right_slope: float = Field(
+        2.0, ge=0.0, le=50.0, description="Right side slope, H:V; the inner slope of a channel with dykes"
+    )
+    left_crest_width: float = Field(3.0, ge=0.0, le=200.0, description="Crest of the left dyke, m")
+    right_crest_width: float = Field(3.0, ge=0.0, le=200.0, description="Crest of the right dyke, m")
+    left_outer_slope: float = Field(2.0, ge=0.0, le=50.0, description="Outer slope of the left dyke, H:V")
+    right_outer_slope: float = Field(2.0, ge=0.0, le=50.0, description="Outer slope of the right dyke, H:V")
+    bed_z: float | None = Field(None, description="Constant bed elevation, m")
+    crest_z: float | None = Field(None, description="Constant top on both banks, m")
+    left_top_z: float | None = Field(None, description="Constant top of the left bank, m")
+    right_top_z: float | None = Field(None, description="Constant top of the right bank, m")
+    table: str | None = Field(None, description="CSV section table: station, then any section row column")
+    rows: list[SectionRow] = Field([], description="The table inline; filled from ``table`` when that is set")
+    bed_start_z: float | None = Field(None, description="Bed at station 0, m")
+    bed_slope: float | None = Field(
+        None, ge=-1.0, le=1.0, description="Fall of the bed per metre of station, m/m; with bed_start_z"
+    )
+    water_depth: float | None = Field(None, ge=0.0, le=100.0, description="Design depth above the bed, m")
+    freeboard: float | None = Field(None, ge=0.0, le=20.0, description="Top above the design water, m")
+
+    @model_validator(mode="after")
+    def _stations(self) -> Section:
+        for before, after in itertools.pairwise(self.rows):
+            if after.station <= before.station:
+                raise ValueError(
+                    f"section stations must increase: station {after.station:g} comes after {before.station:g}"
+                )
+        return self
+
+
 class TerrainObject(_Part):
     """A vector edit of the terrain, applied when the tables are built; the DEM file never changes."""
 
-    kind: Literal["crest_line", "wall", "burn_line", "spillway"]
+    kind: Literal["crest_line", "wall", "burn_line", "spillway", "embankment", "channel", "channel_dyke"]
+    name: str = Field("", description="Name in reports and messages")
     coordinates: list[tuple[float, float]] = Field(description="Polyline vertices in the DEM CRS, m")
     z: list[float] | None = Field(None, description="Crest or invert elevation per vertex, m")
     z_constant: float | None = Field(None, description="Constant crest or invert elevation, m")
@@ -53,6 +136,20 @@ class TerrainObject(_Part):
     depth: float = Field(0.0, ge=0.0, le=50.0, description="Burn depth below ground, m")
     coefficient: float = Field(2.1, ge=0.5, le=4.0, description="Spillway C in Q = C L H^1.5, m^0.5/s")
     length: float | None = Field(None, ge=0.1, le=2000.0, description="Spillway crest length, m")
+    section: Section | None = Field(None, description="Cross-section of a shaped object")
+    openings: list[Opening] = Field([], description="Stretches with the raised part left out")
+    lining_n: float | None = Field(
+        None, ge=0.008, le=0.5, description="Manning n of the pixels on the channel section, s/m^(1/3)"
+    )
+    start_end: EndKind = Field(
+        "open",
+        description="Station 0: open stops the cut square, closed wraps the section round the end, taper fades it to the ground",
+    )
+    end_end: EndKind = Field(
+        "open",
+        description="Last station: open stops the cut square, closed wraps the section round the end, taper fades it to the ground",
+    )
+    taper_length: float = Field(30.0, gt=0.0, le=2000.0, description="Length of a tapered end, m")
 
     @model_validator(mode="after")
     def _heights(self) -> TerrainObject:
@@ -64,7 +161,33 @@ class TerrainObject(_Part):
             raise ValueError(f"{self.kind} needs z or z_constant")
         if self.kind == "burn_line" and self.z is None and self.z_constant is None and self.depth <= 0.0:
             raise ValueError("burn_line needs z, z_constant or depth")
+        if self.kind in SHAPED_KINDS:
+            self._check_shaped()
+        elif self.section is not None or self.openings or self.lining_n is not None:
+            raise ValueError(f"{self.kind} takes no section, openings or lining")
         return self
+
+    def _check_shaped(self) -> None:
+        section = self.section or Section()
+        if self.kind == "channel" and self.openings:
+            raise ValueError("a channel has no raised part to open: use channel_dyke")
+        if self.kind == "embankment" and self.lining_n is not None:
+            raise ValueError("an embankment has no channel section to line")
+        if section.table is not None or section.rows:
+            return  # checked when the table is read
+        profile = self.z is not None or self.z_constant is not None
+        bed = section.bed_z is not None or (section.bed_start_z is not None and section.bed_slope is not None)
+        banks = section.left_top_z is not None and section.right_top_z is not None
+        top = section.crest_z is not None or banks
+        designed = section.freeboard is not None and section.water_depth is not None
+        if self.kind == "embankment" and not (profile or top):
+            raise ValueError("an embankment needs a crest: z, z_constant or section.crest_z")
+        if self.kind != "embankment" and not (profile or bed):
+            raise ValueError(
+                f"{self.kind} needs a bed: z, z_constant, section.bed_z, or bed_start_z with bed_slope"
+            )
+        if self.kind == "channel_dyke" and not (top or designed):
+            raise ValueError("channel_dyke needs a top: crest_z, both tops, or freeboard with water_depth")
 
 
 class Terrain(_Part):
@@ -84,6 +207,56 @@ class Terrain(_Part):
     burn_pixels: int = Field(2, ge=1, le=64, description="Burn width when an object gives none, DEM pixels")
     spillway_stretch: float = Field(
         1.5, ge=1.0, le=20.0, description="A spillway longer than its drawn line by this ratio gets a warning"
+    )
+    dyke_min_height: float = Field(
+        0.05, ge=0.0, le=5.0, description="Ground this far below the top makes a stretch stand as a dyke, m"
+    )
+    crest_thin_ratio: float = Field(
+        0.4, ge=0.0, le=8.0, description="Crest over cell size up to which a raised crest is a thin weir"
+    )
+    crest_eased_ratio: float = Field(
+        1.5, ge=0.0, le=8.0, description="Crest over cell size at which the weir limit has eased fully"
+    )
+    crest_resolved_ratio: float = Field(
+        2.0,
+        ge=0.0,
+        le=16.0,
+        description="Crest over cell size from which the cells resolve it: no weir limit",
+    )
+    crest_eased_coefficient: float = Field(
+        2.0, ge=1.0, le=4.0, description="Weir limit at crest_eased_ratio, on the energy head, m^0.5/s"
+    )
+    crest_accurate_ratio: float = Field(
+        0.5, ge=0.0, le=8.0, description="Crest over cell size past which overtopping draws a warning"
+    )
+    volume_step: float = Field(
+        50.0, gt=0.0, le=10000.0, description="Stations between rows of the cut and fill table, m"
+    )
+    preview_sections: int = Field(11, ge=2, le=101, description="Cross-sections per object in the preview")
+    preview_points: int = Field(101, ge=11, le=2001, description="Points across a previewed cross-section")
+    check_bed_length: float = Field(
+        50.0, ge=0.0, le=10000.0, description="A bed above ground for this long draws a warning, m"
+    )
+    check_rise: float = Field(
+        0.05, ge=0.0, le=10.0, description="A bed rising more than this along the stations is adverse, m"
+    )
+    check_grade: float = Field(
+        0.5, ge=0.0, le=10.0, description="Bed or top changing faster than this is a step, m per m of station"
+    )
+    check_cells: float = Field(
+        3.0,
+        ge=0.0,
+        le=64.0,
+        description="A channel narrower than this between its banks draws a warning, cells",
+    )
+    check_pixels: float = Field(
+        2.0, ge=0.0, le=64.0, description="A width below this cannot be seen in the DEM, pixels"
+    )
+    check_tie_height: float = Field(
+        0.3,
+        ge=0.0,
+        le=20.0,
+        description="A section ending this far off the ground has nothing to tie into, m",
     )
     objects: list[TerrainObject] = []
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
@@ -151,6 +324,18 @@ class Boundary(_Part):
     coordinates: list[tuple[float, float]] = Field(description="Polyline along the boundary cells, m")
     stage: float = Field(0.0, description="Level for kind 'stage', m")
     slope: float = Field(0.005, ge=1e-5, le=0.5, description="Energy slope for kind 'normal'")
+    snap_m: float = Field(
+        150.0,
+        ge=0.0,
+        le=5000.0,
+        description="A line this far off the active cells still opens the nearest of them, m",
+    )
+    min_share: float = Field(
+        0.6,
+        ge=0.0,
+        le=1.0,
+        description="A line opening less of the domain than this share of its length draws a warning",
+    )
 
 
 class InitialLevel(_Part):
@@ -294,6 +479,7 @@ class Outputs(_Part):
     )
     pixels: Pixels = Pixels()
     smooth: Smooth = Smooth()
+    terrain_map: bool = Field(False, description="Write the modified terrain as a GeoTIFF with the run")
     points: list[DesignPoint] = []
     lines: list[DesignLine] = []
 

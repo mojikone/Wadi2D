@@ -95,6 +95,21 @@ def _products(args: argparse.Namespace) -> int:
     return remake(Path(args.run), args.backend, echo=True)
 
 
+def _terrain(args: argparse.Namespace) -> int:
+    from wadi2d.engine.terrain_preview import preview_terrain
+    from wadi2d.run import EXIT_INVALID, JobError
+
+    try:
+        print(json.dumps(preview_terrain(_load(args.job), args.out), indent=2))
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    return EXIT_OK
+
+
 def _hms_import(args: argparse.Namespace) -> int:
     from wadi2d.engine.hms_import import write_job
 
@@ -132,6 +147,11 @@ def parser() -> argparse.ArgumentParser:
     products.add_argument("run", metavar="RUN_DIR")
     products.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     products.set_defaults(call=_products)
+
+    terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
+    terrain.add_argument("job")
+    terrain.add_argument("--out", required=True)
+    terrain.set_defaults(call=_terrain)
 
     hms = sub.add_parser("hms-import", help="job.json from an HMS project")
     hms.add_argument("hms_dir", metavar="HMS_DIR")

@@ -38,6 +38,8 @@ from .job_builder import (
 )
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker
 from .map_sheets import build_book, export_pdf, sheets_file
+from .preview import TerrainPreview
+from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
     EXIT_STOPPED,
@@ -111,6 +113,10 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.map_button.clicked.connect(self.make_map)
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
+        self.preview = TerrainPreview(iface.mapCanvas(), self)
+        self.preview.finished.connect(self._previewed)
+        self.structures.preview_button.clicked.connect(self.preview_terrain)
+        self.structures.profile_button.clicked.connect(self.show_profile)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -305,6 +311,29 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.stop_button.setEnabled(False)
             self.panel.say("Stopping: the engine finishes the step and writes its maps.")
             self.run.stop()
+
+    # Preview: the terrain as the objects leave it, with no run.
+
+    def preview_terrain(self) -> None:
+        box = self.structures
+        try:
+            values = self._collect()
+        except LayerError as error:
+            box.preview_label.setText(str(error))
+            return
+        box.preview_button.setEnabled(False)
+        box.profile_button.hide()
+        box.preview_label.setText("Working out the terrain...")
+        self.preview.start(values)
+
+    def _previewed(self, text: str, worked: bool) -> None:
+        box = self.structures
+        box.preview_button.setEnabled(True)
+        box.preview_label.setText(text)
+        box.profile_button.setVisible(worked and bool(self.preview.data))
+
+    def show_profile(self) -> None:
+        ProfileDialog(self.preview.data, self).exec_()
 
     def _ended(self, state) -> None:
         run, self.run = self.run, None

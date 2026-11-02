@@ -2,14 +2,25 @@
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pytest
 
 from tests.engine.conftest import X0, Y0, job, tilted_box, write_dem
 from wadi2d.config.schema import Boundary
-from wadi2d.forcing import Forcing, Injection, boundary_set, build_storm, cells_along, line_faces
+from wadi2d.forcing import (
+    BoundarySet,
+    Forcing,
+    Injection,
+    boundary_notes,
+    boundary_set,
+    build_storm,
+    cells_along,
+    line_faces,
+)
 from wadi2d.grid import TileGrid
-from wadi2d.run import prepare_grid
+from wadi2d.run import prepare_grid, run_job
 from wadi2d.solver.model import Model
 
 
@@ -105,6 +116,66 @@ def test_boundary_on_the_domain_edge_finds_its_cells(tmp_path):
     assert grid.mask[j, i].all()
     with pytest.raises(ValueError, match="does not touch"):
         cells_along(grid, [(X0 + 900.0, Y0), (X0 + 950.0, Y0)])
+
+
+def _triangle() -> TileGrid:
+    """Active below the diagonal: an edge no straight line lies on, 4 m cells."""
+    return TileGrid.from_mask(np.tril(np.ones((64, 64), bool)), X0, Y0, 4.0)
+
+
+def test_a_line_within_a_cell_of_the_domain_keeps_its_cells():
+    grid = TileGrid.from_mask(np.ones((16, 16), bool), X0, Y0, 4.0)
+    line = [(X0, Y0 - 64.0), (X0 + 64.0, Y0 - 64.0)]
+    np.testing.assert_array_equal(cells_along(grid, line), cells_along(grid, line, snap_m=150.0))
+
+
+def test_a_line_off_the_domain_opens_the_cells_nearest_to_it():
+    grid = _triangle()
+    line = [(X0 + 40.0, Y0 + 8.0), (X0 + 264.0, Y0 - 216.0)]  # along the diagonal, 32 m off it
+    with pytest.raises(ValueError, match="does not touch"):
+        cells_along(grid, line, snap_m=8.0)
+    j, i = cells_along(grid, line, snap_m=150.0)
+    assert grid.mask[j, i].all()
+    assert j.size > 50
+
+
+def test_a_line_too_far_off_is_named_and_a_good_one_is_not():
+    mask = np.ones((32, 32), bool)
+    grid = TileGrid.from_mask(mask, X0, Y0, 4.0)
+    near = Boundary(kind="free", coordinates=[(X0 + 2.0, Y0), (X0 + 2.0, Y0 - 128.0)])
+    far = Boundary(
+        kind="free", coordinates=[(X0 + 126.0, Y0), (X0 + 126.0, Y0 - 128.0), (X0 + 2000.0, Y0 - 128.0)]
+    )
+    cells = [cells_along(grid, b.coordinates, 4, b.snap_m)[0].size for b in (near, far)]
+    bset = BoundarySet(None, None, None, None, None, None, tuple(cells))
+    notes = boundary_notes([near, far], bset, grid.dx)
+    assert len(notes) == 1
+    assert notes[0].startswith("Open boundary 2: the line is 2.0 km long but opens only 0.2 km of the domain")
+
+
+def _sloped_outlet_outflow(dem, tmp_path, name: str, off: float) -> tuple[float, int]:
+    """Rain on a plane falling east, a domain with a slanted east edge, one outlet ``off`` metres east of that edge."""
+    path = tmp_path / f"{name}.geojson"
+    ring = [[X0, Y0], [X0 + 170.0, Y0], [X0 + 110.0, Y0 - 96.0], [X0, Y0 - 96.0], [X0, Y0]]
+    path.write_text(json.dumps({"type": "Polygon", "coordinates": [ring]}), "utf-8")
+    outlet = [(X0 + 170.0 + off, Y0), (X0 + 110.0 + off, Y0 - 96.0)]
+    cfg = job(
+        dem, 50, 24, 4.0,
+        grid={"dx": 4.0, "extent": None, "domain": str(path)},
+        storm={"kind": "uniform", "depth_mm": 60.0, "duration_min": 10.0},
+        boundaries=[{"kind": "free", "coordinates": outlet}],
+        run={"duration_s": 1500.0, "source_every_s": 30.0},
+    )  # fmt: skip
+    run = run_job(cfg, tmp_path / name)
+    assert run.exit_code == 0, run.message
+    return run.balance.outflow, run.balance.rain
+
+
+def test_an_outlet_drawn_off_the_domain_drains_like_one_drawn_on_it(tilted_dem, tmp_path):
+    inside, rain = _sloped_outlet_outflow(tilted_dem, tmp_path, "on", -4.0)
+    outside, _ = _sloped_outlet_outflow(tilted_dem, tmp_path, "off", 40.0)
+    assert inside > 0.5 * rain
+    assert outside == pytest.approx(inside, rel=0.05)
 
 
 def test_line_faces_sign_follows_the_right_hand_of_the_line():

@@ -171,8 +171,14 @@ def face_step(
     # [6] crest face
     qn = area * rho * un
     c = cw[fid]
-    if c > ZERO:
-        qc = c * area * F(np.sqrt(area / max(w, F(1e-9))))
+    if c != ZERO:
+        area_c, w_c = area, w
+        if c < ZERO:
+            # a shaped object's crest may be resolved: the cell before the face has already spent its velocity head
+            c = -c
+            ua = um if from_left else up
+            area_c, _t, w_c = face_lookup(eup + HALF * ua * ua / g, ef[fid], ftab[start : start + 2 * rows], rows)
+        qc = c * area_c * F(np.sqrt(area_c / max(w_c, F(1e-9))))
         if abs(qn) > qc:
             qn = qc if qn > ZERO else -qc
             un = qn / max(area * rho, F(1e-12))

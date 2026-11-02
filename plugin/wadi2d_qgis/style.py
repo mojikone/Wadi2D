@@ -52,6 +52,13 @@ OVERSAMPLING = 4.0
 SEAM_MM = "0.05"
 """A hairline of a class's own colour, so no viewer shows a seam between two polygons."""
 LABEL_BUFFER_MM = 0.8
+CHANGE_STOPS = (  # change in the ground m, then red, green, blue, alpha; untouched ground stays clear
+    (-5.0, (30, 80, 170, 235)),
+    (-0.01, (150, 195, 240, 170)),
+    (0.0, (255, 255, 255, 0)),
+    (0.01, (240, 205, 150, 170)),
+    (5.0, (150, 75, 20, 235)),
+)
 MAP_ORDER = ("max_depth", "hazard", "max_speed", "max_level", "arrival", "max_mean_depth")
 """Layer order inside a run's group, top first; only the first is switched on."""
 
@@ -69,6 +76,14 @@ def style_depth(layer) -> None:
     """A transparent blue ramp: dry ground stays visible, deep water goes dark."""
     items = [
         QgsColorRampShader.ColorRampItem(depth, QColor(*rgba), f"{depth:g} m") for depth, rgba in DEPTH_STOPS
+    ]
+    _pseudocolor(layer, QgsColorRampShader.Interpolated, items)
+
+
+def style_change(layer) -> None:
+    """Blue where the ground is cut, brown where it is filled."""
+    items = [
+        QgsColorRampShader.ColorRampItem(change, QColor(*rgba), f"{change:g} m") for change, rgba in CHANGE_STOPS
     ]
     _pseudocolor(layer, QgsColorRampShader.Interpolated, items)
 
