@@ -60,10 +60,12 @@ CPU and GPU agree to four decimals on three overtopping cases (`crest_sweep.py g
 
 With the old limit, an earlier sweep of the same kind ran from 0.75 to 0.98. The spread left is real: at one R the result depends on how much of the crest falls upstream of the face, which also changes with flow direction, so one coefficient cannot remove it. The coefficients are fitted to this sweep at 0.6 m head, on a straight dyke. They are not a physical law. Do not use a design discharge over a wide crest at finer cells than R = 0.5 without a check.
 
+**Other heads, checked at review.** `crest_heads.csv`: the same box at 0.3, 0.6 and 1.2 m, five crest and cell pairs, two snaps, 30 runs on the CPU backend. Crest up to half a cell: 0.941 to 1.011, so about 6 %, one point over the 5 % bar. R 0.75: 0.913 to 1.049. R 1.5: 0.912 to 1.065. R 2: 0.938 to 0.970. The head adds no new failure to the sweep above. The run now warns in plain words when a crest passes `crest_accurate_ratio`, 0.5 of a cell, because a limit that lives only in this file does not reach the person in the dock.
+
 ## Not done, not tested
 
 - A `normal` boundary drawn wider than a channel ponds badly: 2.5 x normal depth in the first test. This is existing behaviour, not fixed here. Draw it across the channel, or use a stage.
-- Overtopping at other heads: 0.3 m and 1.2 m only at one geometry, an early build. Tailwater submergence of a shaped crest is untested.
+- Tailwater submergence of a shaped crest is untested.
 - Flow round a bend in a channel. Bends are tested for geometry only.
 - Crests against HEC-RAS: still not run.
 - Preview rasters hold only the tiles the objects reach; a run's modified terrain holds the whole domain.
