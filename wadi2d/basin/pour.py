@@ -20,7 +20,7 @@ import numpy as np
 import shapely
 
 from wadi2d.basin.delineate import Surface
-from wadi2d.basin.kernels import NONE, accumulate, upstream_first
+from wadi2d.basin.kernels import NONE, above, accumulate, upstream_first
 from wadi2d.config.schema import BasinSettings, RunConfig, TerrainObject
 from wadi2d.terrain.vector import read_features
 
@@ -42,6 +42,8 @@ class PourPoint:
     """The crest line of a dam."""
     line: str | None = None
     """The design line this node is one crossing of."""
+    line_km2: float | None = None
+    """All that crosses that line, streams under the threshold included."""
 
 
 def crossing(surface: Surface, coordinates: list[tuple[float, float]]) -> int:
@@ -59,6 +61,16 @@ def crossings(surface: Surface, coordinates: list[tuple[float, float]], limit: f
     ranked = leaving[np.argsort(-surface.count[leaving], kind="stable")].tolist()
     best = crossing(surface, coordinates)
     return [best, *(pixel for pixel in ranked if pixel != best)]
+
+
+def line_area(surface: Surface, coordinates: list[tuple[float, float]]) -> float:
+    """The area draining across a line, km2."""
+    seeds = np.zeros(surface.down.size, dtype=bool)
+    seeds[surface.line_pixels(coordinates)] = True
+    return (
+        float(np.count_nonzero(above(surface.down, surface.order, seeds) & surface.valid))
+        * surface.km2_per_pixel
+    )
 
 
 def stream_limit(surface: Surface, settings: BasinSettings) -> float | None:
@@ -161,10 +173,11 @@ def _design(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: li
         pixels = crossings(surface, line.coordinates, limit)
         if not pixels:
             notes.append(f"design line {line.name} is off the ground: dropped")
+        whole = line_area(surface, line.coordinates)
         for number, pixel in enumerate(pixels, 1):
             name = line.name if number == 1 else f"{line.name} {number}"
             x, y = map(float, surface.xy(pixel))
-            found.append(PourPoint(name, KIND_LINE, pixel, x, y, line=line.name))
+            found.append(PourPoint(name, KIND_LINE, pixel, x, y, line=line.name, line_km2=whole))
     for point in cfg.outputs.points:
         pixel = snapped(surface, point.x, point.y, settings)
         if pixel == NONE:
@@ -172,6 +185,15 @@ def _design(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: li
         else:
             found.append(PourPoint(point.name, KIND_POINT, pixel, point.x, point.y))
     return found
+
+
+def _unique(name: str, taken: set[str]) -> str:
+    """Two points with one name at two places stay two elements."""
+    candidate, number = name, 1
+    while candidate in taken:
+        number += 1
+        candidate = f"{name} {number}"
+    return candidate
 
 
 def gather(
@@ -184,9 +206,12 @@ def gather(
         found += _layer(layer, surface, settings, notes)
     found += _design(cfg, surface, settings, notes)
     points: dict[int, PourPoint] = {}
+    names: set[str] = set()
     for point in found:
         held = points.get(point.pixel)
         if held is None:
+            point.name = _unique(point.name, names)
+            names.add(point.name)
             points[point.pixel] = point
         elif point.name != held.name:
             held.aliases.append(point.name)

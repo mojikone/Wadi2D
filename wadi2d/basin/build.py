@@ -19,6 +19,7 @@ from wadi2d.basin.contract import (
     RESERVOIR,
     SUBBASIN,
     Model,
+    check_model,
     refresh,
     write_model,
 )
@@ -96,7 +97,7 @@ def assemble(
         "elements": built.elements,
         "notes": notes,
     }
-    return Assembly(refresh(model), surface, network, built)
+    return Assembly(refresh(check_model(model)), surface, network, built)
 
 
 def _counts(model: Model) -> dict[str, int]:

@@ -41,6 +41,8 @@ from wadi2d.config.schema import BasinSettings, RunConfig
 PREFIXES = {SUBBASIN: "S", REACH: "R", JUNCTION: "J"}
 LAYERS = {SUBBASIN: "subbasins", REACH: "reaches", JUNCTION: "junctions", RESERVOIR: "junctions"}
 AREA_DIGITS, LENGTH_DIGITS, SLOPE_DIGITS, TABLE_DIGITS = 4, 2, 6, 3
+TEN_85_FROM_TOP = (0.15, 0.9)
+"""The 10-85 points as shares of the longest path from its top, as HMS's statistics take them."""
 
 
 class Namer:
@@ -116,6 +118,16 @@ def _curve_numbers(
     return np.full(labels, np.nan), SOURCE_MISSING
 
 
+def _slope_10_85(surface: Surface, start: int, end: int) -> float:
+    """Fall between 10 % and 85 % of the longest path, over that length."""
+    pixels, along = path_to(surface.down, start, end, surface.nx, surface.pixel)
+    length = float(along[-1])
+    if length <= 0.0:
+        return float("nan")
+    high, low = np.interp(np.array(TEN_85_FROM_TOP) * length, along, surface.breached.ravel()[pixels])
+    return float(high - low) / ((TEN_85_FROM_TOP[1] - TEN_85_FROM_TOP[0]) * length)
+
+
 def _subbasin_parameters(
     cfg: RunConfig, surface: Surface, net: Network, settings: BasinSettings, notes: list[str]
 ) -> dict[int, dict[str, Any]]:
@@ -136,6 +148,10 @@ def _subbasin_parameters(
             "slope": parameter(_number(slopes[link], SLOPE_DIGITS), SOURCE_TERRAIN),
             "flow_path_slope": parameter(
                 _number(drop / max(longest[link], surface.pixel), SLOPE_DIGITS), SOURCE_TERRAIN
+            ),
+            "slope_10_85": parameter(
+                _number(_slope_10_85(surface, int(start[link]), int(net.end_node[link])), SLOPE_DIGITS),
+                SOURCE_TERRAIN,
             ),
             "curve_number": parameter(_number(curve[link], 2), curve_source),
             "lag_minutes": parameter(None, SOURCE_DERIVED),
@@ -282,6 +298,7 @@ def build_elements(
                 "x": point.x,
                 "y": point.y,
                 "line": point.line,
+                "line_km2": None if point.line_km2 is None else round(point.line_km2, AREA_DIGITS),
                 "aliases": point.aliases,
             }
         built.elements.append(element)

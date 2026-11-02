@@ -8,6 +8,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import rasterio
+from rasterio.transform import Affine
 
 from tests.basin.conftest import (
     BED_SLOPE,
@@ -35,7 +37,7 @@ from wadi2d.engine.cli import main
 from wadi2d.hydrology import LumpedEngine, TimeGrid
 from wadi2d.hydrology.model import Junction, Reach, Reservoir, Subbasin
 from wadi2d.hydrology.reservoir import ReservoirOutflowStructures
-from wadi2d.run import load_job
+from wadi2d.run import EXIT_INVALID, load_job
 from wadi2d.storm import HypotheticalStorm, PercentPattern
 
 SETTINGS = BasinSettings(
@@ -116,6 +118,11 @@ def test_the_longest_path_of_a_straight_valley(tmp_path: Path) -> None:
     assert value_of(subbasin, "flow_length_m") == pytest.approx(across + along, rel=0.02)
     drop = across * SIDE_SLOPE + along * BED_SLOPE
     assert value_of(subbasin, "flow_path_slope") == pytest.approx(drop / (across + along), rel=0.02)
+    # the top 10 % of the length is on the bank, the rest of the 10-85 stretch on the thalweg
+    length = across + along
+    bank_share = (across - 0.15 * length) / (0.75 * length)
+    expected = bank_share * SIDE_SLOPE + (1.0 - bank_share) * BED_SLOPE
+    assert value_of(subbasin, "slope_10_85") == pytest.approx(expected, rel=0.03)
 
 
 def test_missing_names_exactly_what_is_absent(valley: Valley) -> None:
@@ -136,6 +143,38 @@ def test_a_single_cn_of_the_job_counts_and_says_so(tmp_path: Path, valley: Valle
     subbasin = by_kind(model_of(job), "subbasin")[0]
     assert subbasin["parameters"]["curve_number"] == {"value": 70.0, "source": SOURCE_JOB}
     assert subbasin["missing"] == []
+
+
+def test_a_raster_in_another_crs_is_warped_onto_the_analysis_pixels(tmp_path: Path, valley: Valley) -> None:
+    west, north, size = 56.9, 22.65, 0.0005
+    path = tmp_path / "cn_geographic.tif"
+    with rasterio.open(
+        path, "w", driver="GTiff", height=400, width=400, count=1, dtype="float32", nodata=-1.0,
+        crs="EPSG:4326", transform=Affine(size, 0.0, west, 0.0, -size, north),
+    ) as dst:  # fmt: skip
+        dst.write(np.full((400, 400), 77.0, dtype=np.float32), 1)
+    job = write_job(tmp_path, valley.dem, terrain={"cn_raster": str(path)})
+    subbasin = by_kind(model_of(job, SETTINGS), "subbasin")[0]
+    assert value_of(subbasin, "curve_number") == pytest.approx(77.0)
+
+
+def test_a_raster_that_covers_too_little_leaves_cn_missing_and_says_so(
+    tmp_path: Path, valley: Valley
+) -> None:
+    partial = np.full((NY, NX), 85.0)
+    partial[:, : NX // 2 + 40] = -9999.0
+    cn = write_raster(tmp_path / "cn.tif", partial)
+    model = model_of(write_job(tmp_path, valley.dem, terrain={"cn_raster": str(cn)}))
+    assert "curve_number" in by_kind(model, "subbasin")[0]["missing"]
+    assert any("CN raster" in note for note in model["notes"])
+
+
+def test_manning_comes_from_a_raster_before_the_job(tmp_path: Path, valley: Valley) -> None:
+    n = write_raster(tmp_path / "n.tif", np.full((NY, NX), 0.07))
+    job = complete_job(tmp_path, valley.dem, terrain={"manning_raster": str(n)})
+    reach = by_kind(model_of(job), "reach")[0]
+    assert reach["parameters"]["manning_n"]["source"] == SOURCE_RASTER
+    assert value_of(reach, "manning_n") == pytest.approx(0.07)
 
 
 def test_filling_a_value_by_hand_refreshes_what_follows_and_keeps_numbers(valley: Valley) -> None:
@@ -357,6 +396,13 @@ def test_the_command_reports_a_bad_job_with_the_invalid_code(tmp_path: Path, cap
     job = tmp_path / "job.json"
     job.write_text('{"terrain": {"dem": "none.tif"}, "grid": {"extent": [0, 0, 1, 1]}}', encoding="utf-8")
     assert main(["basin", str(job), "--out", str(tmp_path / "b")]) != 0
+
+
+def test_threshold_zero_means_pour_points_only(tmp_path: Path, capsys) -> None:
+    dem = write_raster(tmp_path / "dem.tif", valley_dem())
+    argv = ["basin", str(complete_job(tmp_path, dem)), "--out", str(tmp_path / "b"), "--threshold-km2", "0"]
+    assert main(argv) == EXIT_INVALID
+    assert "no stream" in capsys.readouterr().err
 
 
 def test_names_stay_when_a_pour_point_is_added(tmp_path: Path) -> None:

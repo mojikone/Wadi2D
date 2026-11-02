@@ -12,7 +12,7 @@ from tests.basin.conftest import ARM_OFFSET, FORK_ROW, NX, NY, PIXEL, Valley, co
 from wadi2d.basin.delineate import flow_surface, read_surface
 from wadi2d.basin.kernels import NONE, accumulate, trace_links, upstream_first
 from wadi2d.basin.network import build_network
-from wadi2d.basin.pour import PourPoint, collect_at_dams, crossing, crossings, gather, snapped
+from wadi2d.basin.pour import PourPoint, collect_at_dams, crossing, crossings, gather, line_area, snapped
 from wadi2d.config.schema import BasinSettings, DesignLine, DesignPoint, Outputs, TerrainObject
 from wadi2d.mesh.streams import drainage_area
 from wadi2d.run import load_job
@@ -161,6 +161,14 @@ def test_gather_settles_shared_pixels_and_reports_what_it_drops(valley: Valley) 
     assert any("Off" in note for note in notes)
 
 
+def test_two_points_of_one_name_stay_two_elements(valley: Valley) -> None:
+    surface = surface_of(valley.job)
+    points = [DesignPoint(name="Site", x=col_x(NX // 2), y=row_y(row)) for row in (200, 280)]
+    cfg = load_job(valley.job).model_copy(update={"outputs": Outputs(points=points)})
+    _surface, found = gather(cfg, surface, SETTINGS, None, [])
+    assert sorted(p.name for p in found.values()) == ["Site", "Site 2"]
+
+
 def test_a_design_line_across_two_arms_gets_one_node_on_each(valley: Valley) -> None:
     surface = surface_of(valley.job)
     y = row_y(FORK_ROW // 2)
@@ -173,6 +181,11 @@ def test_a_design_line_across_two_arms_gets_one_node_on_each(valley: Valley) -> 
     _surface, points = gather(cfg, surface, SETTINGS, None, [])
     assert sorted(p.name for p in points.values()) == ["Across", "Across 2"]
     assert {p.line for p in points.values()} == {"Across"}
+    assert next(iter(points.values())).line_km2 == pytest.approx(line_area(surface, line))
+    assert (
+        sum(surface.count[p.pixel] * KM2_PER_PIXEL for p in points.values())
+        <= line_area(surface, line) + 1e-9
+    )
 
 
 def test_a_dam_stops_every_stream_across_its_line(valley: Valley) -> None:
