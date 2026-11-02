@@ -467,7 +467,7 @@ def smoke() -> None:
     (hms / "C.control").write_text("x", "utf-8")
     dock.hydrology.folder.setFilePath(str(hms))
     check(dock.hydrology.table.rowCount() == 2, "subbasin table read from the basin file")
-    check(not dock.hydrology.rain_box.isVisibleTo(dock.hydrology), "plain rain hides for an HMS project")
+    check(dock.storm.kind.currentData() == "hms", "an HMS project brings its storm")
     dock.hydrology.table.cellWidget(1, 1).setCurrentText("2d")
     dock.hydrology.setCollapsed(True)
     values = dock._collect()

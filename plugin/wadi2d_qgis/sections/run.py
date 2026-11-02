@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""7. Run: where the results go, estimate, run, stop, and what is happening now."""
+"""8. Run: where the results go, estimate, run, stop, and what is happening now."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ SECONDS_PER_MINUTE = 60.0
 
 
 class RunSection(Section):
-    heading = "7. Run"
+    heading = "8. Run"
 
     def build(self) -> None:
         self.folder = QgsFileWidget()

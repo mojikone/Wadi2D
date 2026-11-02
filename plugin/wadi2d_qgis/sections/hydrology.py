@@ -1,46 +1,37 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""3. Hydrology: an HMS project with a mode per subbasin, or plain rain; the curve number either way."""
+"""3. Hydrology: an HMS project with a mode per subbasin; the curve number either way. The rain is section 4."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
 from qgis.gui import QgsFileWidget
+from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import QComboBox, QFormLayout, QHeaderView, QTableWidget, QTableWidgetItem, QWidget
 
 from ..job_builder import (
     CURVE_NUMBER,
     HMS_KEYS,
-    MINUTES_PER_HOUR,
-    RAIN_DEPTH,
-    RAIN_DURATION,
     SUBBASIN_MODE,
     hms_files,
     hms_subbasins,
 )
-from .common import Section, ValueOrRaster, bind, number_box
+from .common import Section, ValueOrRaster, bind
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
 
 
 class HydrologySection(Section):
     heading = "3. Hydrology"
+    hms_changed = pyqtSignal(bool)
+    """Whether an HMS project is in use."""
 
     def build(self) -> None:
         self.folder = QgsFileWidget()
         self.folder.setStorageMode(QgsFileWidget.GetDirectory)
         self.folder.setDialogTitle("HEC-HMS project folder")
         self.form.addRow("HMS project (optional)", self.folder)
-
-        self.rain_box = QWidget()
-        rain = QFormLayout(self.rain_box)
-        rain.setContentsMargins(0, 0, 0, 0)
-        self.rain = number_box(1)
-        self.hours = number_box(2)
-        rain.addRow("Rain, mm/h", self.rain)
-        rain.addRow("Lasting, hours", self.hours)
-        self.form.addRow(self.rain_box)
 
         self.hms_box = QWidget()
         hms = QFormLayout(self.hms_box)
@@ -65,8 +56,6 @@ class HydrologySection(Section):
         self.files["basin"].currentTextChanged.connect(self._basin_changed)
 
     def apply_schema(self, schema) -> None:
-        bind(self.rain, schema, RAIN_DEPTH)
-        bind(self.hours, schema, RAIN_DURATION, scale=1.0 / MINUTES_PER_HOUR)
         bind(self.cn.box, schema, CURVE_NUMBER)
         self._modes = schema.enum(SUBBASIN_MODE)
         self._basin_changed(self.files["basin"].currentText())
@@ -78,7 +67,7 @@ class HydrologySection(Section):
     def _folder_changed(self, path: str) -> None:
         use_hms = self._use_hms()
         self.hms_box.setVisible(use_hms)
-        self.rain_box.setVisible(not use_hms)
+        self.hms_changed.emit(use_hms)
         found = hms_files(path) if use_hms else {}
         for key, combo in self.files.items():
             combo.clear()
@@ -105,7 +94,4 @@ class HydrologySection(Section):
         if self._use_hms():
             hms = {key: combo.currentText() for key, combo in self.files.items()}
             values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}
-        else:
-            values["rain_mm_h"] = self.rain.value()
-            values["rain_hours"] = self.hours.value()
         return values

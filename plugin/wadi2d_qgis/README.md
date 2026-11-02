@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin
 
-One dock, one workflow from top to bottom: terrain, mesh, hydrology, structures, boundaries, results points, run. GPL-3.0-or-later.
+One dock, one workflow from top to bottom: terrain, mesh, hydrology, storm, structures, boundaries, results points, run. GPL-3.0-or-later.
 
 The plugin never imports the engine. It writes `job.json`, starts a process, tails `progress.jsonl` and loads rasters
 (design note section 5), so either side can change alone. Defaults, bounds and tooltips come from `wadi2d schema`.
@@ -31,14 +31,19 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    layer of cell sizes on the map and says how many cells it comes to. Needs the `whitebox` package (`pip install wadi2d[mesh]`).
    Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh. It saves no time on a uniform
    grid and helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
-3. **Hydrology.** Rain in mm/h and hours, or an HMS project folder: choose the basin, met and control files and set each
-   subbasin to lumped or 2d. The storm and the simulated time then come from the project through `wadi2d hms-import`.
-4. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
+3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
+   lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
+4. **Storm.** Steady rain, a hyetograph table, a design storm with its pattern and area reduction, or gridded rain from a
+   NetCDF file, a DSS file or a folder of GeoTIFFs. An HMS project starts on its own storm, and any of these replaces it.
+   The same rain reaches the 2D cells and the lumped subbasins: a cell reads the pixel it stands in, a subbasin the
+   area-weighted mean of the pixels under its polygon. Tables paste from a spreadsheet. Pick a rain file and the dock says
+   what it holds. Area reduction belongs to design storms: a hyetograph or gridded rain is the rain itself.
+5. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
    Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
    shows the result on the map in seconds, without a run.
-5. **Boundaries.** One line layer holds them all. The table lists each line with its kind and value, editable, and needs no fields in the layer; a value starts from the default of its kind. Kind and Value above it set every line you have not touched. If the layer has fields named `kind` and `value`, each line starts from its own; a `name` field names the row. Click a row to flash its line on the map.
-6. **Results points.** Points record depth and level; lines across the flow record discharge.
-7. **Run.** Estimate gives cells, memory, time and the disk of the saved maps; on a mesh it counts the mesh, and its time is rough. **Save maps** is every 15 minutes for design
+6. **Boundaries.** One line layer holds them all. The table lists each line with its kind and value, editable, and needs no fields in the layer; a value starts from the default of its kind. Kind and Value above it set every line you have not touched. If the layer has fields named `kind` and `value`, each line starts from its own; a `name` field names the row. Click a row to flash its line on the map.
+7. **Results points.** Points record depth and level; lines across the flow record discharge.
+8. **Run.** Estimate gives cells, memory, time and the disk of the saved maps; on a mesh it counts the mesh, and its time is rough. **Save maps** is every 15 minutes for design
    work, or every 5 for an animation, three times the disk; peak depth and hazard hardly move between the two, because the
    run keeps its own peaks. A folder that already holds a run is never overwritten: the new run goes to `<folder>_2`, and
    all runs share `wadi2d_cache` beside them, so tables are built once.
@@ -111,6 +116,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `protocol.py` | commands, file names, exit codes, the clean environment | no |
 | `progress.py` | progress tail, run state, where the live raster is | no |
 | `boundary_rows.py` | the rows of the Boundaries table: who set what | no |
+| `storm_rows.py` | the Storm section as plain values: pasted tables, problems, the job's storm block | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
 | `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |

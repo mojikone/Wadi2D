@@ -27,6 +27,8 @@ class RunFacts:
     dx: float = 0.0
     manning: float = 0.0
     storm_mm: float = 0.0
+    storm_text: str = ""
+    """What fell, where a depth alone would not say."""
     storm_area: float | None = None
     duration_h: float = 0.0
     lumped: list[str] = field(default_factory=list)
@@ -56,6 +58,14 @@ def _peak_flows(run: Path, leave_out: str) -> list[tuple[str, float, float]]:
     return sorted(peaks, key=lambda row: -row[1])[:BIGGEST_LINES]
 
 
+def _storm_text(storm: dict) -> str:
+    if storm.get("kind") == "hyetograph":
+        return f"{sum(storm['hyetograph_mm']):g} mm in a hyetograph"
+    if storm.get("kind") == "gridded":
+        return f"gridded rain from {Path(storm['rain_file']).name}"
+    return ""
+
+
 def _done_event(run: Path) -> dict:
     found: dict = {}
     for line in (run / PROGRESS_FILE).read_text(encoding="utf-8").splitlines():
@@ -78,6 +88,7 @@ def read_facts(run: Path | str, leave_out: str = "") -> RunFacts:
         dx=cfg["grid"]["dx"],
         manning=cfg["terrain"]["manning"],
         storm_mm=storm["depth_mm"],
+        storm_text=_storm_text(storm),
         storm_area=storm.get("storm_area_km2"),
         duration_h=cfg["run"]["duration_s"] / SECONDS_PER_HOUR,
         lumped=[s["name"] for s in subs if s["mode"] == "lumped"],
@@ -119,7 +130,7 @@ def setup_notes(facts: RunFacts) -> str:
     )
     parts.append(f"Water leaves through {facts.boundaries} open boundaries. Every other edge is a closed wall.")
     area = f", storm area {facts.storm_area:g} km2" if facts.storm_area else ""
-    parts.append(f"Storm: {facts.storm_mm:g} mm{area}. Simulated {facts.duration_h:g} h.")
+    parts.append(f"Storm: {facts.storm_text or f'{facts.storm_mm:g} mm'}{area}. Simulated {facts.duration_h:g} h.")
     if facts.balance:
         parts.append(water_note(facts))
     return "\n\n".join(parts)
