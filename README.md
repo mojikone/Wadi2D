@@ -27,6 +27,7 @@ the open questions are in `CLAUDE.md`.
 | Rain-on-grid against HMS, whole catchment | **open**: 1.4 to 2.1 x; RAS alone gives 1.72 x at Bidah; no gauge says which is right | `validation/block2_full.md`, decision 20 |
 | Full project boundary, 15,398 km2, 17.1 M cells at 30 m, 36 h | 68 min on the RTX 5080, mass error 4e-8; extent against his 200-yr layer F 0.40, cause unknown | `W2 full extent run/README.md` |
 | QGIS plugin through the real dock: hybrid HMS into 2D, structures, stop, reload, mistakes | 32 of 32, one bug found and fixed on the branch | `W7 plugin test/README.md` |
+| Pixel depth and hazard after every run, smooth maps, A3 sheets from the dock | see the folder; a 10 % channel on the solver's own water reads to 1 mm, no false bank pixel | `W9 pixel outputs/README.md` |
 | Crests against HEC-RAS; UK EA benchmarks; an observed flood | **not done** | |
 
 ## Quick start
@@ -45,7 +46,10 @@ wadi2d hms-import <hms folder> --basin B --met M --control C --out job.json
 wadi2d run job.json --dry-run --out run1
 wadi2d run job.json --out run1
 wadi2d arf job.json --out study1
+wadi2d products run1
 ```
+
+A run makes its pixel maps by itself; `wadi2d products` makes them again on any run folder that saved maps.
 
 To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [[x, y], ...], "level": 100.0}]`, on the datum of the DEM.
 
@@ -54,6 +58,7 @@ To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [
 | Folder | Date | What it holds | Status |
 |---|---|---|---|
 | `W1 research and design note` | 2026-10-29 | Toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note | live |
+| `W9 pixel outputs` | 2026-11-01 | Pixel depth and hazard in the engine, sloped surface, smooth maps, Make map | live; replaces the map scripts of `W2` and `W7` |
 
 ## Test case
 
