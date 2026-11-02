@@ -131,6 +131,7 @@ def hide_band_name(tree_layer) -> None:
     count = len(tree_layer.layer().legend().createLayerTreeModelLegendNodes(tree_layer))
     if count > 1:
         QgsMapLayerLegendUtils.setLegendNodeOrder(tree_layer, list(range(1, count)))
+        tree_layer.layer().legendChanged.emit()  # the layer panel has already drawn this legend
 
 
 def _add(group, layers: list, shown: tuple = ()) -> None:
