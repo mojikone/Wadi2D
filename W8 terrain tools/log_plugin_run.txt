@@ -1,0 +1,79 @@
+    0.0 script loaded
+    5.3 PASS plugin is this branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a06775d68767cde4c\plugin\wadi2d_qgis\__init__.py
+    5.4 dock says:  | 
+    5.9 PASS engine found Engine ready.
+    5.9 PASS rows hidden until a layer is chosen 
+    5.9 PASS defaults from the engine 5.0
+    5.9 PASS tooltips from the engine Outer slope of the left dyke, H:V
+    5.9 PASS ends from the engine 
+    5.9 PASS no lining by default none
+    5.9 === 1 what a run needs is not asked of a preview
+    5.9 PASS preview needs an object Choose an embankment, a channel or a burn line layer to preview.
+    5.9 === 2 three objects, three ways of giving a section
+    5.9 PASS rows shown when a layer is chosen 
+    5.9 PASS a dyke with no levels is refused in words Every channel with dykes needs a bed: a field, a section table, Z values, or a start level with a slope.
+    6.2 PASS preview says it is working Working out the terrain...
+   10.2 preview took 4.1 s; said: Earthworks. North dyke: fill 1,289,521 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. North dyke: it ends at station 1318 standing 18.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. South drain: the bed is above the ground for 449 m from station 80 to 529, by up to 6.3 m; nothing is cut there. South drain: the bed is above the ground for 269 m from station 649 to 918, by up to 10.9 m; nothing is cut there. South drain: the bed is above the ground for 529 m from station 1148 to 1677, by up to 18.9 m; nothing is cut there. South drain: its start is cut 2.0 m below the ground with a square face. Tie it to something, or use a closed o
+   10.2 PASS preview gives the volumes Earthworks. North dyke: fill 1,289,521 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground 
+   10.2 PASS preview gives the checks Earthworks. North dyke: fill 1,289,521 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground 
+   10.2 PASS preview loads both rasters ['bad opening', 'bank', 'burn', 'domain', 'drain', 'mixed', 'outlet', 'spill', 'terrain', 'terrain change', 'terrain modified', 'wall']
+   10.2 PASS preview has its group 
+   10.2 PASS the change layer holds the cut or fill on the line -1.8787155151367188
+   10.2 PASS the volumes table has every object ['Mixed channel', 'North dyke', 'South drain']
+   10.2 PASS the plain channel cut ground {'object': 'South drain', 'kind': 'channel', 'cut_m3': '133828.777', 'fill_m3': '0.000'}
+   10.2 PASS the mixed channel cut and filled {'object': 'Mixed channel', 'kind': 'channel_dyke', 'cut_m3': '305290.432', 'fill_m3': '217029.874'}
+   10.2 PASS the profile button appears 
+   10.2 PASS the map went to the preview 435242,2725770 : 439250,2728010
+   10.3 PASS the dialog lists the objects 3
+   10.3 PASS the slider steps through the sections Station 659 m
+   10.3 PASS the left bank is cut, dyke and open along one line 14 changes
+   10.4 === 3 a second preview replaces the first
+   14.2 PASS one preview group ['Wadi2D terrain preview']
+   14.2 === 4 mistakes
+   15.8 PASS stations out of order are refused in words The engine refused the job: a setting is invalid. 1 validation error for Section
+  Value error, section stations must increase: station 100 comes after 500 [type=value_error, input_value={'width': 5.0, 'left_slop...None, 'freeboard': None}, input_type=dict]
+  
+   15.8 PASS no profile after a refusal 
+   15.8 PASS a missing table is said The section table of a channel with dykes is not there: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\terrain_tools\plug\data\not_there.csv
+   15.8 PASS a bad opening is said Openings: "nine to ten" is not a range such as 120-180 or 120-180 left.
+   15.8 === 5 a real run, the modified terrain asked for
+   15.8 dock says:  | Estimating...
+   19.3 PASS estimate works with the objects 68,000 cells, 0.04 GB, about 12 s
+   19.4 dock says: Starting... | 
+   20.9 dock says: Mixed channel: the bed is above the ground for 439 m from station 1956 to 2395, by up to 2.1 m; it stands on fill there. | 
+   50.5 PASS run finished Finished. Earthworks. North dyke: fill 1,426,279 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to hi
+   50.5 final message: Finished. Earthworks. North dyke: fill 1,426,279 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. North dyke: it ends at station 1318 standing 18.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. South drain: the bed is above the ground for 449 m from station 80 to 529, by up to 6.3 m; nothing is cut there. South drain: the bed is above the ground for 269 m from station 649 to 918, by up to 10.9 m; nothing is cut there. South drain: the bed is above the ground for 529 m from station 1148 to 1677, by up to 18.9 m; nothing is cut there. South drain: its start is cut 2.0 m below the ground with a square face. Tie it to something, or use a closed or tapered end. South drain: its end is cut 2.1 m below the ground with a square face. Tie it to something, or use a closed or tapered end. Mixed channel: the section table stops at station 2700 of 2864 m; the last section holds to the end. Mixed channel: the bed is above the ground for 90 
+   50.5 PASS the final message has the volumes Finished. Earthworks. North dyke: fill 1,426,279 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to hi
+   50.5 PASS the final message has the checks Finished. Earthworks. North dyke: fill 1,426,279 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to hi
+   50.5 PASS mass balance closes -5.106500980991114e-09
+   50.5 PASS which device gpu
+   50.5 objects in the job: ['Mixed channel', 'North dyke', 'South drain']
+   50.5 PASS the table is copied into the run C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\terrain_tools\plug\runs\full\inputs\channel_dyke_1_sections.csv
+   50.5 PASS lining, opening and ends in the job {'lining_n': 0.02, 'openings': [{'start': 900.0, 'end': 1000.0, 'side': 'left'}], 'start_end': 'taper', 'taper_length': 100.0}
+   50.5 PASS a field wins over the number {'width': 7.0, 'left_slope': 3.0, 'right_slope': 2.0}
+   50.5 PASS the number stands where no field is chosen {'width': 7.0, 'left_slope': 3.0, 'right_slope': 2.0}
+   50.5 PASS a text field gives the opening [{'start': 400.0, 'end': 460.0, 'side': 'both'}]
+   50.5 PASS the design rule reaches the job {'width': 36.0, 'left_slope': 1.5, 'right_slope': 1.5, 'bed_start_z': 122.4, 'bed_slope': 0.0009}
+   50.5 PASS the saved job holds the table's numbers 10
+   50.5 PASS run wrote volumes.csv 
+   50.5 PASS run wrote volumes_by_station.csv 
+   50.5 PASS run wrote terrain_modified.tif 
+   50.5 PASS run wrote terrain_change.tif 
+   50.5 PASS the modified terrain opens and covers the domain 435486,2725770 : 439006,2728010
+   50.6 === 6 no map unless asked
+   50.6 dock says: Starting... | 
+   52.1 dock says: Mixed channel: the bed is above the ground for 439 m from station 1956 to 2395, by up to 2.1 m; it stands on fill there. | 
+   66.1 PASS the cached grid is used 
+   66.1 PASS volumes without the map 
+   66.1 PASS no map unasked 
+   66.1 === 7 a spillway on the embankment, with the old kinds beside it
+   66.2 dock says: Starting... | 
+   68.2 dock says: Mixed channel: the bed is above the ground for 439 m from station 1956 to 2395, by up to 2.1 m; it stands on fill there. | 
+   95.8 PASS old and new kinds run together Finished. Earthworks. burn_line 1: cut 38,505 m3; North dyke: fill 1,341,923 m3; South drain: cut 133,829 m3; Mixed channel: cut 305,290 m3, fill 217,030 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes
+   95.8 PASS all six kinds in the job ['burn_line', 'channel', 'channel_dyke', 'embankment', 'spillway', 'wall']
+   95.8 === 8 old kinds alone, as before
+   95.9 dock says: Starting... | 
+  125.9 PASS old kinds still run Finished. Earthworks. burn_line 1: cut 38,505 m3.
+  125.9 PASS a burn line alone reports its cut Finished. Earthworks. burn_line 1: cut 38,505 m3.
+  125.9 SUMMARY 54 passed, 0 failed 
+  125.9 DONE
