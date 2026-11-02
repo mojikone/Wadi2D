@@ -18,7 +18,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from wadi2d.basin.parameters import index_celerity, nrcs_lag_minutes
+from wadi2d.basin.parameters import hms_kirpich_lag_minutes, index_celerity, nrcs_lag_minutes
+from wadi2d.config.schema import LAG_HMS_KIRPICH, LAG_NRCS
 
 FORMAT = "wadi2d-basin"
 FORMAT_VERSION = "1.0"
@@ -62,12 +63,24 @@ def _fill(element: Element, key: str, value: float) -> None:
     element["parameters"][key] = parameter(value, SOURCE_DERIVED)
 
 
-def _derive(element: Element, section_depth_m: float) -> None:
+def _lag(element: Element, method: str) -> float | None:
+    """The lag by the model's method, or None while a parameter it needs is absent."""
+    length = value_of(element, "flow_length_m")
+    if method == LAG_HMS_KIRPICH:
+        slope = value_of(element, "slope_10_85")
+        return hms_kirpich_lag_minutes(length, slope) if length and slope else None
+    if method != LAG_NRCS:
+        raise ValueError(f"unknown lag method {method!r}")
+    curve, slope = value_of(element, "curve_number"), value_of(element, "slope")
+    return nrcs_lag_minutes(length, curve, slope) if length and curve and slope else None
+
+
+def _derive(element: Element, section_depth_m: float, lag_method: str) -> None:
     """Fill what follows from the rest."""
     if element["kind"] == SUBBASIN and value_of(element, "lag_minutes") is None:
-        length, curve, slope = (value_of(element, key) for key in ("flow_length_m", "curve_number", "slope"))
-        if length and curve and slope:
-            _fill(element, "lag_minutes", round(nrcs_lag_minutes(length, curve, slope), 2))
+        lag = _lag(element, lag_method)
+        if lag is not None:
+            _fill(element, "lag_minutes", round(lag, 2))
     if element["kind"] == REACH and value_of(element, "index_celerity") is None:
         names = ("manning_n", "slope", "bottom_width_m", "side_slope")
         manning, slope, width, side = (value_of(element, key) for key in names)
@@ -82,11 +95,12 @@ def _derive(element: Element, section_depth_m: float) -> None:
 def refresh(model: Model) -> Model:
     """Bring ``missing`` and what can be derived up to date with the values, in place."""
     depth = model["settings"]["section_depth_m"]
+    method = model["settings"].get("lag_method", LAG_NRCS)  # a file written before the setting existed is NRCS
     for element in model["elements"]:
         for entry in element["parameters"].values():
             if entry["value"] is not None and entry["source"] == SOURCE_MISSING:
                 entry["source"] = SOURCE_USER
-        _derive(element, depth)
+        _derive(element, depth, method)
         element["missing"] = missing_of(element)
     return model
 

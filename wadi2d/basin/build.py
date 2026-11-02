@@ -6,7 +6,7 @@ Interface: :class:`Assembly`, :func:`assemble`, :func:`build_basin`, :data:`BASI
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import numpy as np
@@ -29,6 +29,7 @@ from wadi2d.basin.kernels import NONE
 from wadi2d.basin.layers import write_layers
 from wadi2d.basin.network import Network, build_network
 from wadi2d.basin.pour import gather
+from wadi2d.basin.routes import junction_routes
 from wadi2d.config.schema import BasinSettings, RunConfig
 
 BASIN_FILE = "basin.json"
@@ -97,7 +98,9 @@ def assemble(
         "elements": built.elements,
         "notes": notes,
     }
-    return Assembly(refresh(check_model(model)), surface, network, built)
+    refresh(check_model(model))
+    model["routes"] = [asdict(route) for route in junction_routes(model).values()]
+    return Assembly(model, surface, network, built)
 
 
 def _counts(model: Model) -> dict[str, int]:

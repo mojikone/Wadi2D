@@ -129,7 +129,9 @@ def _basin(args: argparse.Namespace) -> int:
     try:
         cfg = _load(args.job)
         check_inputs(cfg)
-        chosen = {} if args.settings is None else json.loads(Path(args.settings).read_text(encoding="utf-8"))
+        chosen = cfg.basin.model_dump()  # the job's own settings; a settings file and the flags override them
+        if args.settings is not None:
+            chosen.update(json.loads(Path(args.settings).read_text(encoding="utf-8")))
         if args.threshold_km2 is not None:
             chosen["stream_threshold_km2"] = args.threshold_km2 or None
         if args.pixel is not None:

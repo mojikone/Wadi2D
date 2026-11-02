@@ -97,6 +97,7 @@ PATH_FIELDS = (
     ("hydrology", "hms_basin"),
     ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
+    ("hydrology", "basin_json"),
     ("hydrology", "polygons"),
     ("transmission", "area"),
     ("arf", "accumulation"),
@@ -239,6 +240,7 @@ def job_hash(cfg: RunConfig) -> str:
     for part, name in NOT_WATER:
         data[part].pop(name)
     data.pop("project")
+    data.pop("basin")  # how basin.json was made; the file's own bytes are hashed below
     if not cfg.hydrology.handbacks:
         data["hydrology"].pop("handbacks")
     if not cfg.transmission.enabled:
