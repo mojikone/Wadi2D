@@ -11,7 +11,7 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 709 tests pass. Fit to try
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 862 tests pass on branch `feature/terrain-tools`. Fit to try
 and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
 catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
@@ -27,6 +27,7 @@ the open questions are in `CLAUDE.md`.
 | Rain-on-grid against HMS, whole catchment | **open**: 1.4 to 2.1 x; RAS alone gives 1.72 x at Bidah; no gauge says which is right | `validation/block2_full.md`, decision 20 |
 | Full project boundary, 15,398 km2, 17.1 M cells at 30 m, 36 h | 68 min on the RTX 5080, mass error 4e-8; extent against his 200-yr layer F 0.40, cause unknown | `W2 full extent run/README.md` |
 | QGIS plugin through the real dock: hybrid HMS into 2D, structures, stop, reload, mistakes | 32 of 32, one bug found and fixed on the branch | `W7 plugin test/README.md` |
+| Terrain tools through the real dock: embankment, channel, channel with dykes, Preview, volumes | 54 of 54 on Block 2 ground. Normal depth and overtopping within 5 % for a crest up to half a cell wide; wider crests -13 % to +8 % | `W8 terrain tools/README.md` |
 | Crests against HEC-RAS; UK EA benchmarks; an observed flood | **not done** | |
 
 ## Quick start
@@ -54,6 +55,7 @@ To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [
 | Folder | Date | What it holds | Status |
 |---|---|---|---|
 | `W1 research and design note` | 2026-10-29 | Toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note | live |
+| `W8 terrain tools` | 2026-11-01 | Embankments, channels, channels with dykes in engine and plugin; the crest sweep; dock check | live, branch `feature/terrain-tools`, not merged |
 
 ## Test case
 
