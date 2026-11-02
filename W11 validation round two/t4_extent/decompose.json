@@ -1,0 +1,32 @@
+{
+ "A cell mean 30 m, his frame (the 0.40)": {
+  "F": 0.407,
+  "both": 151.9,
+  "his_only": 73.4,
+  "wadi_only": 147.7
+ },
+ "B same, inside his model perimeter only": {
+  "F": 0.598,
+  "both": 151.9,
+  "his_only": 73.3,
+  "wadi_only": 28.9
+ },
+ "C pixel depth averaged to 30 m, his frame": {
+  "F": 0.413,
+  "both": 154.2,
+  "his_only": 71.0,
+  "wadi_only": 148.6
+ },
+ "D pixel depth averaged to 30 m, perimeter": {
+  "F": 0.608,
+  "both": 154.2,
+  "his_only": 71.0,
+  "wadi_only": 28.6
+ },
+ "E 5 m pixels, perimeter": {
+  "F": 0.612,
+  "both": 141.5,
+  "his_only": 58.2,
+  "wadi_only": 31.7
+ }
+}

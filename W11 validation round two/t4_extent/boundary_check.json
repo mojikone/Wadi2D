@@ -1,0 +1,80 @@
+{
+ "c_t0_base": {
+  "dx": 30.0,
+  "active_cells": 1203760,
+  "lines": [
+   {
+    "length_km": 37.16,
+    "cells": 1499,
+    "cells_x_dx_over_length": 1.21,
+    "largest_gap_m": 42.4
+   }
+  ],
+  "pass": true
+ },
+ "c_t1_rain228": {
+  "dx": 30.0,
+  "active_cells": 1203760,
+  "lines": [
+   {
+    "length_km": 37.16,
+    "cells": 1499,
+    "cells_x_dx_over_length": 1.21,
+    "largest_gap_m": 42.4
+   }
+  ],
+  "pass": true
+ },
+ "c_t2_n060": {
+  "dx": 30.0,
+  "active_cells": 1203760,
+  "lines": [
+   {
+    "length_km": 37.16,
+    "cells": 1499,
+    "cells_x_dx_over_length": 1.21,
+    "largest_gap_m": 42.4
+   }
+  ],
+  "pass": true
+ },
+ "c_t3_ggc": {
+  "dx": 30.0,
+  "active_cells": 1203748,
+  "lines": [
+   {
+    "length_km": 37.16,
+    "cells": 1473,
+    "cells_x_dx_over_length": 1.189,
+    "largest_gap_m": 46.7
+   }
+  ],
+  "pass": true
+ },
+ "c_t4_dx15": {
+  "dx": 15.0,
+  "active_cells": 4814457,
+  "lines": [
+   {
+    "length_km": 37.33,
+    "cells": 3003,
+    "cells_x_dx_over_length": 1.207,
+    "largest_gap_m": 21.8
+   }
+  ],
+  "pass": true
+ },
+ "c_t5_all": {
+  "dx": 15.0,
+  "active_cells": 4814361,
+  "lines": [
+   {
+    "length_km": 37.33,
+    "cells": 2973,
+    "cells_x_dx_over_length": 1.195,
+    "largest_gap_m": 26.3
+   }
+  ],
+  "pass": true
+ }
+}

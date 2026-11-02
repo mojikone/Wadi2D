@@ -1,0 +1,36 @@
+{
+ "area_km2": 197.51,
+ "obs_peak": 2540.0,
+ "obs_t_peak_min": 240.0,
+ "obs_volume_Mm3": 29.75893545,
+ "obs_depth_mm": 150.67052528985874,
+ "rain_mm": 458.7999999999991,
+ "phi": {
+  "lag_min": 86.0,
+  "shift_min": -10.0,
+  "peak": 2032.5687293132105,
+  "t_peak_min": 200.0,
+  "nse": 0.8810307005308037
+ },
+ "fraction": {
+  "lag_min": 44.0,
+  "shift_min": 30.0,
+  "peak": 1547.2095402556401,
+  "t_peak_min": 190.0,
+  "nse": 0.7786495660029825
+ },
+ "first_peak_phi": {
+  "lag_min": 78.0,
+  "shift_min": 10.0,
+  "peak": 2116.500269994737
+ },
+ "first_peak_fraction": {
+  "lag_min": 52.0,
+  "shift_min": 30.0,
+  "peak": 1494.930844927386
+ },
+ "lag140_phi_peak": 1558.8118564669132,
+ "lag140_fraction_peak": 1124.6733241922325,
+ "centroid_lag_phi": 91.65146296796854,
+ "centroid_lag_fraction": 88.01860941985603
+}

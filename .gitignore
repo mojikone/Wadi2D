@@ -70,3 +70,15 @@ Wadi2D_results.qgz
 **/W12 full extent rerun/s02.log
 **/W13 time step test/runs/
 **/W12 full extent rerun/chain.log
+**/W11 validation round two/**/ras_*/
+**/W11 validation round two/**/wadi_runs/
+**/W11 validation round two/**/rep/
+**/W11 validation round two/**/pptx/
+**/W11 validation round two/engine_f976c23/
+**/W11 validation round two/**/*.npy
+**/W11 validation round two/**/*.npz
+**/W11 validation round two/**/*.hdf
+**/W11 validation round two/**/*.tif
+**/W11 validation round two/**/*.log
+**/W11 validation round two/**/jica*
+**/W11 validation round two/**/report2331*
