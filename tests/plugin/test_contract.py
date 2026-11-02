@@ -31,6 +31,9 @@ PATHS = (
     job_builder.MESH_FINE_AREA,
     job_builder.MESH_MID_AREA,
     job_builder.MESH_ZONE_DX,
+    job_builder.MESH_LINE_NEAR,
+    job_builder.MESH_LINE_ROWS,
+    job_builder.MESH_LINE_FAR,
     job_builder.LOCAL_STEPS,
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
@@ -96,6 +99,50 @@ def test_a_full_job_passes_the_engine_validation(tmp_path: Path) -> None:
     assert parsed.storm.kind == "uniform"
     assert parsed.storm.depth_mm == 150.0
     assert parsed.outputs.points[0].name == "Dam"
+
+
+def test_the_table_s_ladder_is_the_engines() -> None:
+    """The table answers at every key press, so it does the sum itself; this is what keeps it the engine's sum."""
+    from wadi2d_qgis.mesh_rows import rung_size
+
+    from wadi2d.mesh.build import line_sizes
+
+    ladders = [(10.0, 40.0), (10.0, 80.0), (5.0, 40.0), (0.5, 8.0), (20.0, 20.0), (7.0, 56.0), (2.5, 160.0)]
+    fractions = (0.1, 0.5, 0.99, 1.0, 1.01, 1.5, 1.999, 2.0, 2.5, 3.0, 4.0, 7.9, 8.0, 15.0, 16.0, 33.0, 100.0)
+    for finest, coarsest in ladders:
+        for fraction in fractions:
+            near = min(finest * fraction, 300.0)
+            far = near * 3.0
+            job = {
+                "grid": {"dx": finest},
+                "mesh": {
+                    "enabled": True, "coarse_dx": coarsest,
+                    "lines": [{"coordinates": [(0.0, 0.0), (1.0, 1.0)], "near_dx": near, "far_dx": far}],
+                },
+            }  # fmt: skip
+            got = line_sizes(config.RunConfig.model_validate(job))[0]
+            assert rung_size(near, finest, coarsest) == got["near"], (finest, coarsest, near)
+            assert rung_size(far, finest, coarsest) == got["far"], (finest, coarsest, far)
+
+
+def test_the_note_on_tiles_is_the_engines() -> None:
+    from wadi2d.solver.layout import TILE
+
+    assert job_builder.TILE_CELLS == TILE
+
+
+def test_the_rows_in_a_job_pass_the_engine_validation(tmp_path: Path) -> None:
+    line = Feature("LineString", [[0.0, 0.0], [10.0, 0.0]], {"name": "Wadi", "near_dx": 15.0, "rows": 6, "far_dx": 30.0})
+    mesh = {"coarse_dx": 80.0, "fine_km2": 10.0, "mid_km2": 1.0, "zones": [], "lines": [line]}
+    parsed = config.RunConfig.model_validate(build_job(full_values(tmp_path, mesh=mesh), tmp_path / "out"))
+    assert parsed.mesh.lines[0].rows == 6
+    assert parsed.mesh.lines[0].near_dx == 15.0
+
+
+def test_a_mesh_without_lines_from_the_dock_is_what_the_engine_had_before(tmp_path: Path) -> None:
+    mesh = {"coarse_dx": 80.0, "fine_km2": 10.0, "mid_km2": 1.0, "zones": [], "lines": []}
+    parsed = config.RunConfig.model_validate(build_job(full_values(tmp_path, mesh=mesh), tmp_path / "out"))
+    assert parsed.mesh.lines == []
 
 
 def test_the_cell_grid_names_are_the_engines() -> None:

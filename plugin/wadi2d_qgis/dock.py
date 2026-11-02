@@ -34,6 +34,7 @@ from .job_builder import (
     merge_notes,
     notes,
     problems,
+    snap_dx,
     write_job,
 )
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
@@ -94,7 +95,7 @@ class Wadi2DDock(QgsDockWidget):
         self._book = None
 
         self.terrain = TerrainSection(iface.mapCanvas())
-        self.mesh = MeshSection()
+        self.mesh = MeshSection(iface.mapCanvas())
         self.hydrology = HydrologySection()
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
@@ -124,6 +125,8 @@ class Wadi2DDock(QgsDockWidget):
         self.engine_button.clicked.connect(self.open_settings)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
+        self.terrain.dx.valueChanged.connect(self._finest_changed)
+        self.terrain.dem.layerChanged.connect(self._finest_changed)
         self.panel.run_button.clicked.connect(self.start_run)
         self.panel.stop_button.clicked.connect(self.stop_run)
         self.panel.open_button.clicked.connect(self.open_results)
@@ -160,8 +163,15 @@ class Wadi2DDock(QgsDockWidget):
         self.schema = schema
         for section in self.sections:
             section.apply_schema(schema)
+        self._finest_changed()
         self.engine_label.setText("Engine ready.")
         self._set_ready(True)
+
+    def _finest_changed(self, *_) -> None:
+        """The mesh's finest cell is the Terrain section's, snapped as the job will snap it."""
+        dem = self.terrain.dem_layer()
+        pixel = dem.rasterUnitsPerPixelX() if dem is not None else 0.0
+        self.mesh.set_finest(snap_dx(self.terrain.dx.value(), pixel))
 
     def _set_ready(self, ready: bool) -> None:
         idle = self.run is None
