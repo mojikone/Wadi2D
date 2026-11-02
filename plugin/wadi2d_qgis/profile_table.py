@@ -37,7 +37,8 @@ SEPARATORS = ";,\t"
 NUMBER_FORMAT = ".10g"
 STATION_DECIMALS = 3
 """Stations are compared at this many decimals, so a row of the table is one station for every series."""
-SAME_VERTEX = 1e-6
+SAME_VERTEX = 2 * 10.0**-STATION_DECIMALS
+"""A profile station this close to a vertex is that vertex: stations are rounded, a line's length is not."""
 
 EDGE_KINDS = ("crest_line", "spillway", "burn_line")
 """Kinds with one elevation per vertex and no section table."""
@@ -274,12 +275,8 @@ def _other_columns(rows: list[dict]) -> dict[float, dict[str, float]]:
 def with_levels(coordinates: list, points: list) -> list[list[float]]:
     """Each vertex with its level, plus a vertex on the line at every profile station between two vertices."""
     stations = vertex_stations(coordinates)
-    length = stations[-1]
-    wanted = sorted({*stations, *(s for s, _z in points if 0.0 < s < length)})
-    merged: list[float] = []
-    for s in wanted:
-        if not merged or s - merged[-1] > SAME_VERTEX:
-            merged.append(s)
+    between = [s for s, _z in points if all(abs(s - vertex) > SAME_VERTEX for vertex in stations)]
+    merged = sorted({*stations, *(s for s in between if 0.0 < s < stations[-1])})
     return [[*point_at(coordinates, stations, s), interp(points, s)] for s in merged]
 
 

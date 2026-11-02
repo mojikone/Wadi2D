@@ -235,6 +235,14 @@ def test_a_profile_on_the_vertices_adds_no_vertex_and_one_past_the_end_is_held()
     assert [point[2] for point in done] == [100.0, 90.0, 80.0]
 
 
+def test_a_last_station_rounded_short_of_the_end_adds_no_vertex_there() -> None:
+    line_end = [[0.0, 0.0], [600.0, 100.0]]
+    length = vertex_stations(line_end)[-1]
+    done = with_levels(line_end, [(0.0, 122.0), (200.0, 123.2), (round(length, 3), 122.0)])
+    assert len(done) == 3
+    assert done[-1] == [600.0, 100.0, 122.0]
+
+
 def test_a_saved_elevation_outranks_the_field_on_the_feature(tmp_path) -> None:
     table = csv_file(tmp_path / "p.csv", "station,crest_z\n0,100\n1000,98\n")
     feature = Feature("LineString", COORDS, {"crest_z": 50.0, "length": 12.0})
