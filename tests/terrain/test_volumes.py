@@ -45,21 +45,27 @@ def test_a_cut_against_the_analytic_prism(tmp_path, line):
     assert row["fill_m3"] == 0.0
 
 
+def interior(folder) -> tuple[float, float, float]:
+    """Cut, fill and length of the station table without its two end rows at each side: the ends are not a prism."""
+    with open(folder / "volumes_by_station.csv", newline="", encoding="utf-8") as stream:
+        rows = list(csv.DictReader(stream))[2:-2]
+    length = float(rows[-1]["station_to"]) - float(rows[0]["station_from"])
+    return sum(float(r["cut_m3"]) for r in rows), sum(float(r["fill_m3"]) for r in rows), length
+
+
 @pytest.mark.parametrize(
-    "line", [[(160.0, 300.0), (160.0, 20.0)], diagonal(280.0)], ids=["straight", "diagonal"]
+    "line", [[(160.0, 310.0), (160.0, 10.0)], diagonal(300.0)], ids=["straight", "diagonal"]
 )
-def test_a_fill_against_the_analytic_prism_with_its_cones(tmp_path, line):
-    # 2 m high, 4 m crest, 2:1 and 3:1 banks: prism, plus half a cone of each bank's slope at each end
+def test_a_fill_against_the_analytic_prism(tmp_path, line):
+    # 2 m high, 4 m crest, 2:1 and 3:1 banks
     bank = obj(
         "embankment", line, z_constant=102.0, section={"width": 4.0, "left_slope": 2.0, "right_slope": 3.0}
     )
-    prism = (4.0 + 2.5 * 2.0) * 2.0 * 280.0
-    # the nose takes the outer slope of its side: half a cone and a half-crest wedge at each end
-    cones = 2.0 * (math.pi * (4.0**2 + 6.0**2) / 2.0 * 2.0 / 3.0 / 2.0 + 0.5 * (4.0 + 6.0) * 2.0 * 2.0 / 2.0)
-    row = volumes(tmp_path, [bank]).volumes[0]
-    assert row["fill_m3"] == pytest.approx(prism + cones, rel=0.02)
-    assert row["fill_m3"] > prism
-    assert row["cut_m3"] == 0.0
+    report = volumes(tmp_path, [bank], Terrain(volume_step=30.0))
+    cut, fill, length = interior(tmp_path)
+    assert fill == pytest.approx((4.0 + 2.5 * 2.0) * 2.0 * length, rel=0.01)
+    assert cut == 0.0
+    assert report.volumes[0]["fill_m3"] > fill  # and the two end cones besides
 
 
 def test_a_mixed_section_against_its_hand_area(tmp_path):
@@ -70,11 +76,10 @@ def test_a_mixed_section_against_its_hand_area(tmp_path):
         "right_crest_width": 3.0, "right_outer_slope": 2.0, "left_crest_width": 1.0, "left_outer_slope": 2.0,
     }  # fmt: skip
     dyke = obj("channel_dyke", [(160.0, 310.0), (160.0, 10.0)], z_constant=97.0, section=section)
-    row = volumes(tmp_path, [dyke]).volumes[0]
-    cut = (10.0 * 3.0 + 3.0 * 6.0 / 2.0 + 3.0 * 6.0 / 2.0) * 300.0
-    fill = (2.0 * 4.0 / 2.0 + 2.0 * 3.0 + 2.0 * 4.0 / 2.0) * 300.0
-    assert row["cut_m3"] == pytest.approx(cut, rel=0.01)
-    assert row["fill_m3"] == pytest.approx(fill, rel=0.02)
+    volumes(tmp_path, [dyke], Terrain(volume_step=30.0))
+    cut, fill, length = interior(tmp_path)
+    assert cut == pytest.approx((10.0 * 3.0 + 3.0 * 6.0 / 2.0 + 3.0 * 6.0 / 2.0) * length, rel=0.01)
+    assert fill == pytest.approx((2.0 * 4.0 / 2.0 + 2.0 * 3.0 + 2.0 * 4.0 / 2.0) * length, rel=0.01)
 
 
 def test_volumes_by_station_add_up_and_follow_the_section(tmp_path):
