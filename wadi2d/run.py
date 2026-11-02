@@ -23,7 +23,7 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import RunConfig
+from wadi2d.config.schema import RunConfig, TerrainObject
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.forcing import Forcing, boundary_set, build_storm, initial_depth, load_polygons, manning_grid
 from wadi2d.grid.tiles import TileGrid
@@ -37,8 +37,9 @@ from wadi2d.io.results import Results, safe_name, write_series_csv
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.tables import GridTables, build_tables
-from wadi2d.terrain import GridWindow, RasterBed, apply_objects
+from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
 from wadi2d.terrain.crest import line_lengths
+from wadi2d.terrain.sections import with_tables
 from wadi2d.terrain.vector import read_features
 
 EXIT_DONE, EXIT_UNEXPECTED, EXIT_INVALID, EXIT_INPUT, EXIT_BACKEND = 0, 1, 2, 3, 4
@@ -96,12 +97,26 @@ def load_job(path: str | Path) -> RunConfig:
 
 def resolve_paths(cfg: RunConfig, base: Path) -> RunConfig:
     """The same job with every path absolute."""
-    updates: dict[str, dict[str, str]] = {}
+    updates: dict[str, dict] = {}
     for part, name in PATH_FIELDS:
         value = getattr(getattr(cfg, part), name)
         if value is not None and not Path(value).is_absolute():
             updates.setdefault(part, {})[name] = str((base / value).resolve())
+    if any(_table(o) for o in cfg.terrain.objects):
+        updates.setdefault("terrain", {})["objects"] = [_absolute_table(o, base) for o in cfg.terrain.objects]
     return cfg.model_copy(update={p: getattr(cfg, p).model_copy(update=u) for p, u in updates.items()})
+
+
+def _table(obj: TerrainObject) -> str | None:
+    return obj.section.table if obj.section is not None else None
+
+
+def _absolute_table(obj: TerrainObject, base: Path) -> TerrainObject:
+    table = _table(obj)
+    if table is None or Path(table).is_absolute():
+        return obj
+    section = obj.section.model_copy(update={"table": str((base / table).resolve())})
+    return obj.model_copy(update={"section": section})
 
 
 def check_inputs(cfg: RunConfig) -> None:
@@ -114,6 +129,10 @@ def check_inputs(cfg: RunConfig) -> None:
         value = getattr(getattr(cfg, part), name)
         if value is not None and (part, name) not in OPTIONAL_INPUT and not Path(value).exists():
             raise InputMissing(f"{part}.{name} not found: {value}")
+    for obj in cfg.terrain.objects:
+        table = _table(obj)
+        if table is not None and not Path(table).exists():
+            raise InputMissing(f"section table of {obj.name or obj.kind} not found: {table}")
 
 
 def _domain_polygon(path: str | None, crs: str) -> shapely.Geometry | None:
@@ -158,7 +177,10 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "window": [window.x0, window.y0, window.ny, window.nx],
             "dx": cfg.grid.dx,
             "objects": [o.model_dump() for o in t.objects],
-            "object_settings": [t.join_cells, t.spillway_snap_cells, t.burn_pixels],
+            "object_settings": [
+                t.join_cells, t.spillway_snap_cells, t.burn_pixels, t.dyke_min_height, t.crest_thin_ratio,
+                t.crest_eased_ratio, t.crest_resolved_ratio, t.crest_eased_coefficient,
+            ],
             "tables": cfg.tables.model_dump(),
             "manning": t.manning,
             "extras": extras,
@@ -184,6 +206,7 @@ def job_hash(cfg: RunConfig) -> str:
 def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = None) -> tuple[GridTables, str]:
     """The tables and the CRS as WKT, from the cache when nothing changed."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
+    cfg = with_tables(cfg)
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
@@ -198,8 +221,10 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             raise InvalidJob("the domain holds no active cell")
         grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
         bed.bind(grid.x0, grid.y0)
-        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain)
-        tables = build_tables(grid, bed, cfg.tables, manning_grid(cfg, grid, crs), edits.crest, edits.edit)
+        ground = Ground(bed, grid.x0, grid.y0)
+        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+        n = manning_grid(cfg, grid, crs)
+        tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
     save_tables(path, tables, key)
     emit("output", kind="grid_cache_saved", path=str(path))
     return tables, crs
@@ -443,6 +468,7 @@ def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Prog
 
 def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files) -> None:
     check_inputs(cfg)
+    cfg = with_tables(cfg)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
     (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
