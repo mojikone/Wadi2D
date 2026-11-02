@@ -24,7 +24,9 @@ def write(path, text, encoding="utf-8"):
 
 
 def test_constants_on_the_object():
-    p = profile(z_constant=95.0, section={"width": 8.0, "left_top_z": 99.0, "right_top_z": 100.0, "left_slope": 1.5})
+    p = profile(
+        z_constant=95.0, section={"width": 8.0, "left_top_z": 99.0, "right_top_z": 100.0, "left_slope": 1.5}
+    )
     assert p.bed.tolist() == [95.0, 95.0]
     assert p.half.tolist() == [4.0, 4.0]
     assert p.top[0].tolist() == [99.0, 99.0]
@@ -107,7 +109,9 @@ def test_a_wrong_table_is_refused_in_plain_words(tmp_path, text, words):
 
 def test_stations_out_of_order_are_refused(tmp_path):
     table = write(tmp_path / "s.csv", "station,bed_z\n0,100\n300,99\n200,98\n")
-    cfg = RunConfig(terrain={"objects": [{"kind": "channel", "coordinates": LINE, "section": {"table": str(table)}}]})
+    cfg = RunConfig(
+        terrain={"objects": [{"kind": "channel", "coordinates": LINE, "section": {"table": str(table)}}]}
+    )
     with pytest.raises(ValueError, match="stations must increase: station 200 comes after 300"):
         with_tables(cfg)
 
@@ -135,7 +139,24 @@ def test_an_object_short_of_a_value_is_refused(kind, fields, words):
 
 def test_an_opening_that_ends_before_it_starts_is_refused():
     with pytest.raises(ValidationError, match="before it starts"):
-        TerrainObject(kind="embankment", coordinates=LINE, z_constant=1.0, openings=[{"start": 50.0, "end": 10.0}])
+        TerrainObject(
+            kind="embankment", coordinates=LINE, z_constant=1.0, openings=[{"start": 50.0, "end": 10.0}]
+        )
+
+
+def test_the_same_table_in_another_folder_reuses_the_grid(tmp_path):
+    # the plugin copies a table into each run folder: its path changes and its numbers do not
+    dem = write_dem(tmp_path / "d.tif", np.full((48, 48), 100.0), 2.0)
+    line = [(X0 + 10.0, Y0 - 40.0), (X0 + 70.0, Y0 - 40.0)]
+    keys = []
+    for name in ("one", "two"):
+        (tmp_path / name).mkdir()
+        table = write(tmp_path / name / "s.csv", "station,bed_z\n0,99\n60,98\n")
+        obj = {"kind": "channel", "coordinates": line, "section": {"table": str(table), "width": 8.0}}
+        prepare_grid(job(dem, 12, 12, 8.0, terrain={"objects": [obj]}), tmp_path / "cache")
+        keys.append(sorted(p.name for p in (tmp_path / "cache").glob("grid_*.h5")))
+    assert len(keys[1]) == 1
+    assert keys[0] == keys[1]
 
 
 def test_a_relative_table_is_found_beside_the_job_and_its_numbers_key_the_cache(tmp_path):

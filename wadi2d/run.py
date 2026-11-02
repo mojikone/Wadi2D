@@ -182,7 +182,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "dem": bed.identity(limit),
             "window": [window.x0, window.y0, window.ny, window.nx],
             "dx": cfg.grid.dx,
-            "objects": [o.model_dump() for o in t.objects],
+            "objects": [_object_key(o) for o in t.objects],
             "object_settings": [
                 t.join_cells, t.spillway_snap_cells, t.burn_pixels, t.dyke_min_height, t.crest_thin_ratio,
                 t.crest_eased_ratio, t.crest_resolved_ratio, t.crest_eased_coefficient,
@@ -192,6 +192,14 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "extras": extras,
         }
     )
+
+
+def _object_key(obj: TerrainObject) -> dict:
+    """An object as the cache sees it: a section table's numbers, not where the file lies."""
+    data = obj.model_dump()
+    if data["section"] is not None:
+        data["section"]["table"] = None
+    return data
 
 
 def job_hash(cfg: RunConfig) -> str:
