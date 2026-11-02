@@ -9,7 +9,7 @@ from importlib import metadata
 
 RUNTIME = (
     "numpy", "scipy", "h5py", "rasterio", "shapely", "pyproj", "pydantic", "pydantic-core", "numba", "llvmlite",
-    "hecdss", "affine", "cupy-cuda12x", "fastrlock", "nvidia-cuda-runtime-cu12", "nvidia-cuda-nvrtc-cu12",
+    "hecdss", "affine", "contourpy", "cupy-cuda12x", "fastrlock", "nvidia-cuda-runtime-cu12", "nvidia-cuda-nvrtc-cu12",
     "nvidia-cublas-cu12", "nvidia-cufft-cu12", "nvidia-curand-cu12", "nvidia-cusolver-cu12", "nvidia-cusparse-cu12",
     "nvidia-nvjitlink-cu12",
 )  # fmt: skip
