@@ -101,6 +101,7 @@ class ProfileRow(QWidget):
         self.button = QPushButton("Edit profile...")
         self.button.setToolTip("Bed, tops or elevations along each line: drag points, type a table, undo, preview.")
         self.button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)  # the dock is narrow: the label gives way, not this
+        self.button.setMinimumWidth(self.button.sizeHint().width())  # Minimum alone lets a scrollbar shave the text
         self.saved = QLabel()
         self.saved.setToolTip("For its line, a saved profile outranks the fields and the section table.")
         row = QHBoxLayout(self)
