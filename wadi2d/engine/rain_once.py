@@ -34,6 +34,11 @@ def _cells(grid: TileGrid, geometry: shapely.Geometry) -> int:
     return int(np.count_nonzero(burned.astype(bool) & grid.mask))
 
 
+def _valid(geometry: shapely.Geometry) -> shapely.Geometry:
+    """Digitised polygons self-touch now and then, and GEOS refuses to intersect them: made valid, the area is the same."""
+    return geometry if geometry.is_valid else shapely.make_valid(geometry)
+
+
 def _overlap(a: shapely.Geometry, b: shapely.Geometry) -> shapely.Geometry | None:
     """The area two polygons share, or None when they only touch."""
     if not a.intersects(b):
@@ -55,14 +60,15 @@ def check_rain_once(
     held = [name for name in lumped if name in polygons]
     pairs = [(a, b) for n, a in enumerate(held) for b in held[n + 1 :]]
     pairs += [(name, other) for name in two_d if name in polygons for other in held]
+    valid = {name: _valid(polygons[name]) for name in {*held, *(n for n in two_d if n in polygons)}}
     for a, b in pairs:
-        shared = _overlap(polygons[a], polygons[b])
+        shared = _overlap(valid[a], valid[b])
         if shared is None:
             continue
         cells = _cells(grid, shared)
         if cells == 0:
             continue
-        fraction = shared.area / min(polygons[a].area, polygons[b].area)
+        fraction = shared.area / min(valid[a].area, valid[b].area)
         if a in two_d:
             what = f"{cells} cells of 2D subbasin {a} lie under lumped {b}"
             harm = "the rain there is masked for the one and counted for the other"

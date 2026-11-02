@@ -60,6 +60,17 @@ def test_a_name_without_a_polygon_is_not_the_checks_business() -> None:
     assert check_rain_once(grid(), {"A": box(0.0, 200.0, 0.0, 200.0)}, ["A", "Nowhere"], ["Elsewhere"], SHARE) == []
 
 
+def test_a_self_touching_polygon_as_digitised_ones_are_is_made_valid_first() -> None:
+    """A bow tie: GEOS refuses to intersect it as it is; Block 2's own HMS polygons have such a spot."""
+    bow = shapely.Polygon([(X0, Y0), (X0 + 200.0, Y0 - 200.0), (X0 + 200.0, Y0), (X0, Y0 - 200.0), (X0, Y0)])
+    assert not bow.is_valid
+    polygons = {"A": bow, "B": box(200.0, 400.0, 0.0, 200.0)}
+    assert check_rain_once(grid(), polygons, ["A", "B"], [], SHARE) == []
+    polygons["B"] = box(100.0, 400.0, 0.0, 200.0)
+    with pytest.raises(ValueError, match="lie under both lumped subbasins A and B"):
+        check_rain_once(grid(), polygons, ["A", "B"], [], SHARE)
+
+
 def test_cells_outside_the_domain_do_not_count() -> None:
     mask = np.ones((NY, NX), bool)
     mask[:, 20:] = False
