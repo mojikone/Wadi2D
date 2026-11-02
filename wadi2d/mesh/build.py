@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -13,7 +13,16 @@ import shapely
 from wadi2d.config.schema import SHAPED_KINDS, RunConfig
 from wadi2d.grid.quad import QuadGrid, balance, pad_to_lattice
 from wadi2d.io.geotiff import write_map
-from wadi2d.mesh.refine import Lattice, break_levels, line_levels, squares, stream_levels, zone_levels
+from wadi2d.mesh.refine import (
+    Lattice,
+    band_levels,
+    break_levels,
+    line_levels,
+    rung,
+    squares,
+    stream_levels,
+    zone_levels,
+)
 from wadi2d.mesh.streams import Terrain, drainage_area, read_coarse
 from wadi2d.solver.layout import TILE
 from wadi2d.terrain.earthworks import Shape
@@ -51,6 +60,39 @@ def worth_refining(cfg: RunConfig) -> list[list[tuple[float, float]]]:
     return [o.coordinates for o in cfg.terrain.objects if o.kind in (*SHAPED_KINDS, "burn_line")]
 
 
+def line_sizes(cfg: RunConfig) -> list[dict]:
+    """What each mesh line asked and what the ladder gives it; the dock works out the same numbers before a run."""
+    dx = cfg.grid.dx
+    top = levels_above(cfg)
+    out = []
+    for number, item in enumerate(cfg.mesh.lines, start=1):
+        near = dx * (1 << rung(item.near_dx, dx, top))
+        far = dx * (1 << rung(item.far_dx, dx, top))
+        out.append(
+            {
+                "name": item.name or f"Line {number}",
+                "near_asked": item.near_dx,
+                "near": near,
+                "rows": item.rows,
+                "far_asked": item.far_dx,
+                "far": far,
+                "reach": item.rows * (2.0 * far - near),
+                "rounded": near != item.near_dx or far != item.far_dx,
+            }
+        )
+    return out
+
+
+def rounding_notes(cfg: RunConfig) -> list[str]:
+    """One sentence per mesh line whose sizes moved, for a run to say."""
+    return [
+        f"mesh line {s['name']}: near {s['near_asked']:g} m runs at {s['near']:g} m, far {s['far_asked']:g} m at "
+        f"{s['far']:g} m: sizes are rounded down to {cfg.grid.dx:g} m times a power of two"
+        for s in line_sizes(cfg)
+        if s["rounded"]
+    ]
+
+
 @dataclass
 class MeshReport:
     """What a preview shows."""
@@ -60,6 +102,7 @@ class MeshReport:
     ratio: float
     tiles_by_size: dict[str, int]
     interfaces: int
+    lines: list[dict] = field(default_factory=list)
 
 
 def lattice_levels(cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, crs, ground=None) -> np.ndarray:
@@ -80,6 +123,7 @@ def lattice_levels(cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, crs, 
         stream_levels(surface, inside, m, per_square, top), break_levels(surface, inside, m, per_square, top)
     )
     level = np.minimum(level, zone_levels(m, lat, top))
+    level = np.minimum(level, band_levels(m.lines, lat, top))
     if m.refine_lines:
         reach = (cfg.terrain.join_cells + LINE_SPARE_CELLS) * dx
         lines = must_be_fine(cfg, ground) + worth_refining(cfg)
@@ -96,7 +140,26 @@ def build_grid(cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, crs, grou
     padded, rows, cols = pad_to_lattice(mask, top)
     px, py = x0 - cols * cfg.grid.dx, y0 + rows * cfg.grid.dx
     level = lattice_levels(cfg, padded, px, py, crs, ground)
-    return QuadGrid.from_levels(padded, px, py, cfg.grid.dx, level)
+    grid = QuadGrid.from_levels(padded, px, py, cfg.grid.dx, level)
+    missed = lines_off_the_cells(cfg, grid)
+    if missed:
+        raise ValueError(f"mesh line {', '.join(missed)} touches no cell of the domain, so it would refine nothing")
+    return grid
+
+
+def lines_off_the_cells(cfg: RunConfig, grid: QuadGrid) -> list[str]:
+    """Names of the mesh lines that touch no active cell: a band there would be nothing, with nothing to say so."""
+    names = []
+    ny, nx = grid.shape
+    for size, item in zip(line_sizes(cfg), cfg.mesh.lines, strict=True):
+        line = shapely.LineString(item.coordinates)
+        points = shapely.line_interpolate_point(line, np.arange(0.0, line.length, 0.5 * grid.dx))
+        j = np.floor((grid.y0 - shapely.get_y(points)) / grid.dx).astype(np.int64)
+        i = np.floor((shapely.get_x(points) - grid.x0) / grid.dx).astype(np.int64)
+        keep = (j >= 0) & (j < ny) & (i >= 0) & (i < nx)
+        if not grid.mask[j[keep], i[keep]].any():
+            names.append(size["name"])
+    return names
 
 
 def lines_on_coarse_tiles(cfg: RunConfig, grid: QuadGrid, ground=None) -> int:
@@ -114,11 +177,11 @@ def lines_on_coarse_tiles(cfg: RunConfig, grid: QuadGrid, ground=None) -> int:
     return found
 
 
-def report(grid: QuadGrid, cells_uniform: int, dx: float) -> MeshReport:
+def report(grid: QuadGrid, cells_uniform: int, dx: float, lines: list[dict] | None = None) -> MeshReport:
     counts = np.bincount(grid.level[1:], minlength=int(grid.level.max()) + 1)
     return MeshReport(
         grid.cell_count, cells_uniform, round(cells_uniform / max(grid.cell_count, 1), 3),
-        {f"{dx * (1 << s):g} m": int(n) for s, n in enumerate(counts)}, int(grid.interfaces.shape[0]),
+        {f"{dx * (1 << s):g} m": int(n) for s, n in enumerate(counts)}, int(grid.interfaces.shape[0]), lines or [],
     )  # fmt: skip
 
 
@@ -144,4 +207,14 @@ def crs_of(dem: str | Path):
         return src.crs
 
 
-__all__ = ["MeshReport", "balance", "build_grid", "lattice_levels", "report", "squares", "write_preview"]
+__all__ = [
+    "MeshReport",
+    "balance",
+    "build_grid",
+    "lattice_levels",
+    "line_sizes",
+    "report",
+    "rounding_notes",
+    "squares",
+    "write_preview",
+]

@@ -100,7 +100,7 @@ def _mesh(args: argparse.Namespace) -> int:
     try:
         cfg = with_tables(_load(args.job))
         check_inputs(cfg)
-        from wadi2d.mesh.build import build_grid, report, write_preview
+        from wadi2d.mesh.build import build_grid, line_sizes, report, write_preview
 
         with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
             window = grid_window(cfg, bed)
@@ -108,7 +108,7 @@ def _mesh(args: argparse.Namespace) -> int:
             crs = bed.crs.to_wkt() if bed.crs is not None else ""
             bed.bind(window.x0, window.y0)
             grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
-        summary = report(grid, int(mask.sum()), cfg.grid.dx)
+        summary = report(grid, int(mask.sum()), cfg.grid.dx, line_sizes(cfg))
         written = write_preview(grid, crs, args.out, summary)
     except ValueError as error:
         print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)

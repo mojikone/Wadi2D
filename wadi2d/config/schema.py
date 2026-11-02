@@ -52,6 +52,27 @@ class RefineZone(_Part):
     dx: float = Field(gt=0.0, le=1000.0, description="Wanted cell size inside it, m")
 
 
+class RefineLine(_Part):
+    """Cells of a size on a band around a line, set as a HEC-RAS breakline is: near size, rows, far size.
+
+    It only refines: no wall, and no faces on the line. Sizes go down to the ladder ``grid.dx`` x 2^n.
+    """
+
+    name: str = Field("", description="Name in reports; empty gives its number")
+    coordinates: list[tuple[float, float]] = Field(description="Line, m", min_length=2)
+    near_dx: float = Field(gt=0.0, le=1000.0, description="Cell size beside the line, m")
+    rows: int = Field(
+        4, ge=1, le=1000, description="Rows of near cells each side; each doubling out to far holds as many rows"
+    )
+    far_dx: float = Field(gt=0.0, le=1000.0, description="Cell size the band grades out to, 2:1; past it the other rules apply, m")
+
+    @model_validator(mode="after")
+    def _order(self) -> RefineLine:
+        if self.near_dx > self.far_dx:
+            raise ValueError(f"mesh line {self.name}: near_dx {self.near_dx} m must not exceed far_dx {self.far_dx} m")
+        return self
+
+
 class Mesh(_Part):
     """The quadtree. Off keeps the uniform grid of ``grid.dx``; on, that is the finest cell and tiles coarsen from it."""
 
@@ -89,6 +110,7 @@ class Mesh(_Part):
         True, description="Barriers, boundaries and design lines sit on the finest cells; faces must lie on them"
     )
     zones: list[RefineZone] = []
+    lines: list[RefineLine] = []
 
     @model_validator(mode="after")
     def _sizes(self) -> Mesh:
