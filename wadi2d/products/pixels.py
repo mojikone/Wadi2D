@@ -15,6 +15,7 @@ import numpy as np
 from wadi2d.config.schema import Pixels
 from wadi2d.products.ground import CellPixels
 from wadi2d.products.surface import (
+    Neighbours,
     at_pixels,
     corner_basis,
     corner_groups,
@@ -25,8 +26,8 @@ from wadi2d.products.surface import (
 
 GPU_SHARE = 0.8
 """Share of the card's free memory the maxima may fill before they go back to the host between maps."""
-GRID_ARRAYS = 16
-"""Grids held on the device while a map is worked on."""
+LIST_ARRAYS = 48
+"""Arrays over the kept cells held on the device while a map is worked on, neighbour tables included."""
 PIXEL_ARRAYS = 4
 """Ground and the three maxima, per pixel."""
 WORK_SCALE = 3
@@ -65,71 +66,76 @@ def device_room(xp) -> float:
 
 @dataclass
 class Batch:
-    """A run of kept cells. On the device the whole time, or only while a map is worked on."""
+    """A run of kept cells, ``first`` to ``last``. On the device the whole time, or only while a map is worked on."""
 
-    rows: object
-    cols: object
+    first: int
+    last: int
     ground: object
     maxima: list
 
 
 class PixelMaxima:
-    """Owns the maxima of one product step."""
+    """Owns the maxima of one product step. Maps arrive as grids and are reduced to the kept cells at once."""
 
     def __init__(self, xp, cells: CellPixels, zmin, sill_x, sill_y, keep, rule: Pixels, flat: bool = False) -> None:
         self.xp, self.rule, self.k, self.flat = xp, rule, cells.k, flat
-        self.zmin, self.sill_x, self.sill_y = (xp.asarray(a) for a in (zmin, sill_x, sill_y))
-        self.keep = xp.asarray(keep)
-        self.cell_dv = xp.zeros(keep.shape, xp.float32)
+        self.rows, self.cols = cells.rows, cells.cols
+        self.near = Neighbours(xp, keep)
+        self.zmin = self._cells(zmin)
+        self.sill_x, self.sill_y = self._cells(sill_x, np.inf), self._cells(sill_y, np.inf)
         self.basis_t = corner_basis(xp, cells.k).T
         n = cells.rows.size
+        self.cell_dv = xp.zeros(n + 1, xp.float32)
         per_cell = cells.k**2
         step = max(rule.batch_pixels // per_cell, 1)
-        grids = GRID_ARRAYS * float(np.prod(keep.shape)) * BYTES
+        lists = LIST_ARRAYS * float(n) * BYTES
         need = PIXEL_ARRAYS * n * per_cell * BYTES + WORK_SCALE * rule.batch_pixels * BYTES
-        self.resident = need + grids < GPU_SHARE * device_room(xp)
+        self.resident = need + lists < GPU_SHARE * device_room(xp)
         self.batches = []
         for a in range(0, n, step):
             b = min(a + step, n)
             shape = (b - a, per_cell)
             self.batches.append(
                 Batch(
-                    xp.asarray(cells.rows[a:b]),
-                    xp.asarray(cells.cols[a:b]),
+                    a,
+                    b,
                     self._rest(xp.asarray(cells.ground[a:b])),
                     [self._rest(xp.zeros(shape, xp.float32)) for _ in range(3)],
                 )
             )
+
+    def _cells(self, grid, left_out: float = 0.0):
+        """A grid reduced to the kept cells, on the host, where the map already is, and then moved."""
+        return self.xp.asarray(np.append(grid[self.rows, self.cols], left_out).astype(np.float32))
 
     def _rest(self, a):
         """Where an array waits between maps."""
         return a if self.resident else to_host(a)
 
     def add(self, depth, mean_depth, speed, moment: bool = True) -> None:
-        """One map. ``moment`` says depth and speed are of the same instant."""
-        xp, rule = self.xp, self.rule
-        d = xp.asarray(depth)
-        h = xp.asarray(mean_depth)
-        wet = (d > 0.0) & self.keep
+        """One map, as grids. ``moment`` says depth and speed are of the same instant."""
+        xp, rule, near = self.xp, self.rule, self.near
+        d, h, s = self._cells(depth), self._cells(mean_depth), self._cells(speed)
+        wet = d > 0.0
         level = self.zmin + d
         if self.flat:
             nothing = xp.zeros_like(wet)
-            groups = corner_groups(xp, nothing, nothing)
+            groups = corner_groups(near, nothing, nothing)
         else:
-            lx = face_links(xp, level, d, wet, self.sill_x, 1, rule.link_margin, rule.link_ratio)
-            ly = face_links(xp, level, d, wet, self.sill_y, 0, rule.link_margin, rule.link_ratio)
-            groups = corner_groups(xp, lx, ly)
-        s = xp.asarray(speed) * self.keep * (d > rule.depth_floor)
-        levels = corner_means(xp, level, wet, groups)
-        speeds = corner_means(xp, s, s > 0.0, groups)
+            lx = face_links(near, level, d, wet, self.sill_x, 1, rule.link_margin, rule.link_ratio)
+            ly = face_links(near, level, d, wet, self.sill_y, 0, rule.link_margin, rule.link_ratio)
+            groups = corner_groups(near, lx, ly)
+        s = s * (d > rule.depth_floor)
+        levels = corner_means(near, level, wet, groups)
+        speeds = corner_means(near, s, s > 0.0, groups)
         for batch in self.batches:
-            on = xp.nonzero(wet[batch.rows, batch.cols])[0]
+            on = xp.nonzero(wet[batch.first : batch.last])[0]
             if on.size == 0:
                 continue
-            rows, cols = batch.rows[on], batch.cols[on]
-            surface = at_pixels(xp, levels, rows, cols, self.basis_t)
-            pixel_depth = fill_cells(xp, surface, xp.asarray(batch.ground)[on], h[rows, cols])
-            pixel_speed = at_pixels(xp, speeds, rows, cols, self.basis_t) * (pixel_depth >= rule.depth_floor)
+            cells = on + batch.first
+            surface = at_pixels(xp, levels, cells, self.basis_t)
+            pixel_depth = fill_cells(xp, surface, xp.asarray(batch.ground)[on], h[cells])
+            pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
             store = [xp.asarray(a) for a in batch.maxima]
             new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed]
             for held, value in zip(store[: 3 if moment else 2], new, strict=False):
@@ -141,11 +147,11 @@ class PixelMaxima:
     def lift_dv(self, run_hazard) -> None:
         """Depth x speed peaks between saved maps. The run watched every cell's peak: scale each cell up to it."""
         xp = self.xp
-        run = xp.asarray(run_hazard)
+        run = self._cells(run_hazard)
         missed = xp.clip(run / xp.maximum(self.cell_dv, TINY), 1.0, self.rule.peak_lift)
         for batch in self.batches:
             held = xp.asarray(batch.maxima[2])
-            batch.maxima[2] = self._rest(held * missed[batch.rows, batch.cols][:, None])
+            batch.maxima[2] = self._rest(held * missed[batch.first : batch.last][:, None])
 
     def result(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """(cells, k * k) depth, speed and depth x speed on the host."""

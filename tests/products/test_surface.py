@@ -6,7 +6,25 @@ import numpy as np
 import pytest
 
 from tests.products.conftest import channel_case, marks, surface_of
-from wadi2d.products.surface import corner_basis, corner_groups, corner_means, face_links, fill_cells
+from wadi2d.products.surface import (
+    Neighbours,
+    corner_basis,
+    corner_groups,
+    corner_means,
+    face_links,
+    fill_cells,
+)
+
+
+class Rolled:
+    """Neighbours on a whole small grid, for reading the rules by hand."""
+
+    xp = np
+
+    @staticmethod
+    def at(a, dj: int, di: int):
+        return np.roll(a, (-dj, -di), axis=(0, 1))
+
 
 HALF_CELL_LESS_HALF_PIXEL = 12.5
 """Largest distance from a pixel centre to the centre of its 30 m cell along the channel, m."""
@@ -34,7 +52,7 @@ def links(level, depth, sill, wet=None, axis=1):
     level = np.asarray(level, np.float32)
     depth = np.asarray(depth, np.float32)
     wet = depth > 0.0 if wet is None else wet
-    return face_links(np, level, depth, wet, np.asarray(sill, np.float32), axis, 0.01, 0.5)
+    return face_links(Rolled, level, depth, wet, np.asarray(sill, np.float32), axis, 0.01, 0.5)
 
 
 def test_water_either_side_above_the_face_is_one_body() -> None:
@@ -69,10 +87,10 @@ def test_a_bank_standing_above_a_neighbouring_wet_cell_stays_dry() -> None:
     depth = np.array([[0.0, 2.0, 0.2, 0.0]], np.float32)
     sill = np.array([[0.0, 0.0, 103.1, 0.0]], np.float32)
     wet = depth > 0.0
-    lx = face_links(np, level, depth, wet, sill, 1, 0.01, 0.5)
+    lx = face_links(Rolled, level, depth, wet, sill, 1, 0.01, 0.5)
     none = np.zeros_like(lx)
-    groups = corner_groups(np, lx, none)
-    corners = corner_means(np, level, wet, groups)
+    groups = corner_groups(Rolled, lx, none)
+    corners = corner_means(Rolled, level, wet, groups)
     surface = np.stack([c[0, 1:2] for c in corners], axis=1) @ corner_basis(np, k).T
     pixel_depth = fill_cells(np, surface, ground, np.array([1.0], np.float32))
     assert not lx.any()
@@ -88,7 +106,7 @@ def test_corners_mean_only_what_is_joined() -> None:
     ly = np.zeros((4, 4), bool)
     lx[1, 2] = True  # (1, 1) with (1, 2)
     ly[2, 2] = True  # (1, 2) with (2, 2)
-    corners = corner_means(np, level, wet, corner_groups(np, lx, ly))
+    corners = corner_means(Rolled, level, wet, corner_groups(Rolled, lx, ly))
     south_east_of_nw, south_west_of_ne, north_west_of_se = corners[3][1, 1], corners[2][1, 2], corners[0][2, 2]
     assert south_east_of_nw == pytest.approx(11.0)  # through (1, 2) to (2, 2)
     assert south_west_of_ne == pytest.approx(11.0)
@@ -121,3 +139,27 @@ def test_a_thin_sheet_on_a_plane_reads_its_own_depth_not_a_wedge() -> None:
     parallel = fill_cells(np, ground - 0.3, ground, np.array([0.1], np.float32))
     assert flat.max() > 0.5
     assert parallel.max() == pytest.approx(0.1, abs=1e-5)
+
+
+def test_the_flat_list_of_cells_reads_the_same_as_the_grid() -> None:
+    rng = np.random.default_rng(2)
+    keep = np.zeros((12, 14), bool)
+    keep[2:10, 3:12] = rng.random((8, 9)) > 0.2
+    level = rng.uniform(10.0, 11.0, keep.shape).astype(np.float32) * keep
+    depth = rng.uniform(0.2, 2.0, keep.shape).astype(np.float32) * keep
+    sill = rng.uniform(9.0, 12.0, keep.shape).astype(np.float32)
+    wet = depth > 0.0
+
+    def means(near, cut):
+        lx = face_links(near, cut(level), cut(depth), cut(wet), cut(sill), 1, 0.01, 0.5)
+        ly = face_links(near, cut(level), cut(depth), cut(wet), cut(sill), 0, 0.01, 0.5)
+        return corner_means(near, cut(level), cut(wet), corner_groups(near, lx, ly))
+
+    grid = means(Rolled, lambda a: a)
+
+    def flat(a):
+        return np.append(a[keep], 0).astype(a.dtype)
+
+    listed = means(Neighbours(np, keep), flat)
+    for one, other in zip(grid, listed, strict=True):
+        np.testing.assert_allclose(one[keep], other[:-1], rtol=1e-6)

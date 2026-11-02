@@ -42,34 +42,34 @@ names = frame_names(results)
 print(len(names), "maps", xp.__name__, flush=True)
 
 
-def maxima() -> PixelMaxima:
-    return PixelMaxima(xp, cells, zmin, sill_x, sill_y, keep, rule)
-
-
-every = maxima()
-third = maxima()
-for index, (depth, mean_depth, speed) in enumerate(read_frames(results, names)):
-    every.add(depth, mean_depth, speed)
-    if index % 3 == 0:
-        third.add(depth, mean_depth, speed)
-    if index % 20 == 0:
-        print(f"map {index}, {time.time() - t0:.0f} s", flush=True)
 km2 = cells.pixel**2 / 1e6
 out = {"cells": int(cells.rows.size), "pixels": int(cells.rows.size * cells.k**2)}
 saved = {}
-for name, held in (("300 s", every), ("900 s", third)):
+
+
+def areas(classes: np.ndarray) -> dict:
+    return {f"H{k}": round(float((classes == k).sum()) * km2, 1) for k in range(1, 7)}
+
+
+for name, step in (("300 s", 1), ("900 s", 3)):
+    held = PixelMaxima(xp, cells, zmin, sill_x, sill_y, keep, rule)
+    for index, (depth, mean_depth, speed) in enumerate(read_frames(results, names[::step])):
+        held.add(depth, mean_depth, speed)
+        if index % 20 == 0:
+            print(f"{name}, map {index}, {time.time() - t0:.0f} s", flush=True)
     d, v, dv = held.result()
-    classes = classify(d, v, dv, rule)
-    saved[name] = classes
-    out[name] = {f"H{k}": round(float((classes == k).sum()) * km2, 1) for k in range(1, 7)}
+    saved[name] = classify(d, v, dv, rule)
+    out[name] = areas(saved[name])
     print(name, out[name], flush=True)
     held.add(peak["depth"], peak["mean_depth"], peak["speed"], moment=False)
     held.lift_dv(peak["hazard"])
     d, v, dv = held.result()
-    classes = classify(d, v, dv, rule)
-    saved[f"{name} with maxima"] = classes
-    out[f"{name} with maxima"] = {f"H{k}": round(float((classes == k).sum()) * km2, 1) for k in range(1, 7)}
+    saved[f"{name} with maxima"] = classify(d, v, dv, rule)
+    out[f"{name} with maxima"] = areas(saved[f"{name} with maxima"])
+    out[f"{name} wall s"] = round(time.time() - t0)
     print(name, "with maxima", out[f"{name} with maxima"], flush=True)
+    del held
+    xp.get_default_memory_pool().free_all_blocks()
 base = saved["300 s"]
 for name, classes in saved.items():
     both = (base > 0) | (classes > 0)
