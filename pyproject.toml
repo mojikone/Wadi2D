@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wadi2d"
-version = "0.1.0.dev0"
+dynamic = ["version"]
 description = "GPU 2D shallow-water solver with sub-grid terrain and HEC-HMS-style hydrology inside, for wadi flood work"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -48,6 +48,9 @@ wadi2d = "wadi2d.engine.cli:main"
 
 [project.urls]
 Repository = "https://github.com/mojikone/Wadi2D"
+
+[tool.setuptools.dynamic]
+version = { attr = "wadi2d.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["wadi2d*"]

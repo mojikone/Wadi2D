@@ -44,17 +44,24 @@ STDERR_TAIL_CHARS = 600
 RECENT_S = 300  # a progress file touched this recently, with no process known, counts as a live run
 
 ENGINE_MODULE = ("-m", "wadi2d.engine.cli")
-ENGINE_FILE = "engine.txt"  # written beside this module by tools/install_plugin.py
+ENGINE_FILE = "engine.txt"  # written beside this module by the installers, and in SHARED_ENGINE_FOLDER by the release one
+SHARED_ENGINE_FOLDER = "Wadi2D"  # under %LOCALAPPDATA%: a plugin added by QGIS's Install from ZIP has no file beside it
 FALLBACK_ENGINE = "python -m wadi2d.engine.cli"
 
 
 def default_engine(folder: Path | None = None) -> str:
-    """The engine the installer found, or a plain python on the PATH."""
-    path = (folder or Path(__file__).resolve().parent) / ENGINE_FILE
-    try:
-        return path.read_text(encoding="utf-8").strip() or FALLBACK_ENGINE
-    except OSError:
-        return FALLBACK_ENGINE
+    """The engine the installer found, beside the plugin or in the user's folder, or a plain python on the PATH."""
+    places = [(folder or Path(__file__).resolve().parent) / ENGINE_FILE]
+    if os.environ.get("LOCALAPPDATA"):
+        places.append(Path(os.environ["LOCALAPPDATA"]) / SHARED_ENGINE_FOLDER / ENGINE_FILE)
+    for path in places:
+        try:
+            text = path.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if text:
+            return text
+    return FALLBACK_ENGINE
 
 
 EXIT_FINISHED = 0

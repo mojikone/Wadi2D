@@ -13,6 +13,7 @@ from wadi2d_qgis.protocol import (
     ENGINE_MODULE,
     EXIT_MESSAGES,
     FALLBACK_ENGINE,
+    SHARED_ENGINE_FOLDER,
     clean_env,
     default_engine,
     engine_error_text,
@@ -149,11 +150,25 @@ def test_a_python_traceback_comes_through_as_its_tail() -> None:
     assert engine_error_text("  ") == ""
 
 
-def test_the_default_engine_comes_from_the_installer_not_from_this_machine(tmp_path) -> None:
+def test_the_default_engine_comes_from_the_installer_not_from_this_machine(tmp_path, monkeypatch) -> None:
+    monkeypatch.delenv("LOCALAPPDATA", raising=False)
     assert default_engine(tmp_path) == FALLBACK_ENGINE
     (tmp_path / ENGINE_FILE).write_text('"C:/x y/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
     assert default_engine(tmp_path) == '"C:/x y/python.exe" -m wadi2d.engine.cli'
     assert "Mojtaba" not in FALLBACK_ENGINE
+
+
+def test_a_plugin_installed_from_zip_finds_the_engine_the_installer_recorded(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    plugin = tmp_path / "plugin"
+    plugin.mkdir()
+    assert default_engine(plugin) == FALLBACK_ENGINE
+    shared = tmp_path / SHARED_ENGINE_FOLDER
+    shared.mkdir()
+    (shared / ENGINE_FILE).write_text('"C:/shared/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
+    assert default_engine(plugin) == '"C:/shared/python.exe" -m wadi2d.engine.cli'
+    (plugin / ENGINE_FILE).write_text('"C:/beside/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
+    assert default_engine(plugin) == '"C:/beside/python.exe" -m wadi2d.engine.cli'
 
 
 def test_estimate_says_the_disk_of_the_saved_maps() -> None:

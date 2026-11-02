@@ -7,13 +7,19 @@ The plugin never imports the engine. It writes `job.json`, starts a process, tai
 
 ## Install
 
+From a release: unzip `Wadi2D-<version>-windows.zip` and double-click `install_wadi2d.bat`. It sets up the engine and copies
+the plugin into the default QGIS profile. `wadi2d_qgis-<version>.zip` alone also works through Plugins > Install from ZIP,
+for another profile; it finds the engine the installer recorded.
+
+From the repository:
+
 ```
 python tools/install_plugin.py          copy into the default QGIS profile; repeat freely
 python tools/install_plugin.py --link   a directory junction, so edits in the repo are live
 ```
 
 Then enable Wadi2D in Plugins > Manage and Install Plugins. The installer records the Python that ran it as the engine. If the engine is not found, press **Engine...** in the dock:
-one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The default is the project venv.
+one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The default is the engine the installer recorded.
 
 ## Use
 
@@ -114,7 +120,7 @@ interpreter, and a child that inherits them loads QGIS's standard library instea
 
 The depth and hazard colours are display choices and live in `style.py`; the hazard limits of the pixel maps are the
 engine's, in the schema, and the legend reads them from `pixels/pixels.json`. The only other number near a
-default is `PREFERRED_DX` (20 m), the dock's first cell size, which he asked for; the engine's own default is finer.
+default is `PREFERRED_DX` (20 m), the dock's first cell size; the engine's own default is finer.
 
 ## Tests
 

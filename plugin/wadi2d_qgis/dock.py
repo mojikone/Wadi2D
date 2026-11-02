@@ -145,7 +145,7 @@ class Wadi2DDock(QgsDockWidget):
         except ValueError:
             schema = None
         if code != 0 or schema is None:
-            self.engine_label.setText("Engine not found. Press Engine... to set its path.")
+            self.engine_label.setText("Engine not found. Run install_wadi2d.bat from the release, or press Engine... to set its path.")
             QgsMessageLog.logMessage(f"wadi2d schema: exit {code}. {err}", LOG_TAG, Qgis.Warning)
             return
         self.schema = schema
