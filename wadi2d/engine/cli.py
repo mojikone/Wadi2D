@@ -150,6 +150,24 @@ def _frames(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _lines(args: argparse.Namespace) -> int:
+    from wadi2d.products.result_lines import catalogue, read_line
+
+    run = Path(args.run)
+    try:
+        if args.line:
+            request = json.loads(Path(args.line).read_text(encoding="utf-8"))
+            found = read_line(run, request["coordinates"], request.get("name", ""))
+        else:
+            found = catalogue(run)
+        Path(args.out).write_text(json.dumps(found), encoding="utf-8")
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_FRAMES, "message": str(error)}), file=sys.stderr)
+        return EXIT_FRAMES
+    print(json.dumps({"ev": "done", "path": str(args.out)}))
+    return EXIT_OK
+
+
 def _terrain(args: argparse.Namespace) -> int:
     from wadi2d.engine.terrain_preview import preview_terrain
     from wadi2d.run import EXIT_INVALID, JobError
@@ -211,6 +229,12 @@ def parser() -> argparse.ArgumentParser:
     frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
     frames.add_argument("run", metavar="RUN_DIR")
     frames.set_defaults(call=_frames)
+
+    lines = sub.add_parser("lines", help="a finished run's upfront lines and points, or any line read from its saved maps")
+    lines.add_argument("run", metavar="RUN_DIR")
+    lines.add_argument("--line", default=None, help="JSON file with name and coordinates; without it, what the run holds")
+    lines.add_argument("--out", required=True)
+    lines.set_defaults(call=_lines)
 
     terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
     terrain.add_argument("job")
