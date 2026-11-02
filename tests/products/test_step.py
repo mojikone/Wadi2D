@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import subprocess
+import sys
+import threading
 from pathlib import Path
 
 import h5py
@@ -16,6 +19,7 @@ from wadi2d.config.schema import RunConfig
 from wadi2d.engine.cli import main as cli
 from wadi2d.engine.estimate import saved_maps
 from wadi2d.products import runner, step
+from wadi2d.products.frames import frame_names
 from wadi2d.products.pixels import array_module
 from wadi2d.products.step import PIXEL_DIR, ProductsStopped, Watch, make_products
 from wadi2d.run import job_hash, prepare_grid, run_job
@@ -189,6 +193,38 @@ def test_the_command_line_remakes_them_on_a_run_folder(tmp_path) -> None:
     assert cli(["products", str(tmp_path / "run"), "--backend", "cpu"]) == 0
     assert (tmp_path / "run" / PIXEL_DIR / step.HAZARD_FILE).exists()
     assert (tmp_path / "run" / runner.PRODUCTS_LOG).exists()
+
+
+def test_stop_ends_the_process_at_once(tmp_path) -> None:
+    """The dock kills an engine that lingers: a reader thread left behind kept the process from exiting."""
+    cfg = wadi_job(tmp_path, map_every_s=60.0)
+    run_job(cfg.model_copy(update={"outputs": _pixels_off(cfg)}), tmp_path / "run")
+    (tmp_path / "run" / "stop").touch()
+    code = (
+        "import sys\n"
+        f"sys.path.insert(0, {str(Path(__file__).resolve().parents[2])!r})\n"
+        "from wadi2d.engine.cli import main\n"
+        "sys.exit(main(sys.argv[1:]))\n"
+    )
+    arguments = ("products", str(tmp_path / "run"), "--backend", "cpu")
+    done = subprocess.run((sys.executable, "-c", code, *arguments), capture_output=True, timeout=60, check=False)
+    assert done.returncode == runner.EXIT_STOPPED, done.stderr
+
+
+def test_stopping_between_maps_lets_the_reader_go(tmp_path) -> None:
+    cfg = wadi_job(tmp_path, map_every_s=60.0)
+    tables, crs = prepare_grid(cfg, tmp_path / "cache")
+    run_job(cfg.model_copy(update={"outputs": _pixels_off(cfg)}), tmp_path / "run", tables=(tables, crs))
+    before = threading.active_count()
+    calls = []
+
+    def after_three_maps() -> bool:
+        calls.append(1)
+        return len(calls) > len(frame_names(tmp_path / "run" / "results.h5")) // 2
+
+    with pytest.raises(ProductsStopped):
+        make_products(cfg, tables, crs, tmp_path / "run", Watch(lambda *_a, **_k: None, after_three_maps), "cpu")
+    assert threading.active_count() == before
 
 
 def test_the_command_line_refuses_a_folder_with_no_run(tmp_path) -> None:

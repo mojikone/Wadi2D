@@ -60,5 +60,6 @@ def read_frames(results: Path, names: list[str]) -> Iterator[tuple[np.ndarray, n
             yield item
     finally:
         done.set()
+        thread.join()  # a reader left running holds h5py's lock, and the process then cannot exit
     if failed:
         raise failed[0]

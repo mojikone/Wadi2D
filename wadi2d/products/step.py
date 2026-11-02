@@ -10,6 +10,7 @@ from __future__ import annotations
 import gc
 import json
 from collections.abc import Callable
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -87,9 +88,10 @@ def pixel_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp
     maxima = PixelMaxima(xp, cells, zmin, sill_x, sill_y, keep, rule)
     names = frame_names(results)
     total = len(names) + 1
-    for index, (depth, mean_depth, speed) in enumerate(read_frames(results, names)):
-        watch.tick("maps", index, total)
-        maxima.add(depth, mean_depth, speed)
+    with closing(read_frames(results, names)) as frames:
+        for index, (depth, mean_depth, speed) in enumerate(frames):
+            watch.tick("maps", index, total)
+            maxima.add(depth, mean_depth, speed)
     maxima.add(peak["depth"], peak["mean_depth"], peak["speed"], moment=False)
     maxima.lift_dv(peak["hazard"])
     watch.tick("maps", total, total)
