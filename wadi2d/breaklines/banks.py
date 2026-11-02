@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import shapely
 
 from wadi2d.breaklines.pixels import length_of, simplify, smooth
 from wadi2d.breaklines.settings import LEFT, RIGHT, Settings
@@ -19,6 +20,9 @@ from wadi2d.breaklines.thalweg import Thalweg
 from wadi2d.breaklines.window import Window
 from wadi2d.config.schema import Mesh
 from wadi2d.mesh.streams import incision
+
+CLEAR_PASSES = 5
+"""Pushes of a bank point away from a bend of its thalweg; a sharper bend than that breaks the line."""
 
 
 @dataclass
@@ -93,7 +97,15 @@ def split_runs(points: np.ndarray, jump: float) -> list[np.ndarray]:
     return [np.array(run) for run in out if len(run) >= 2]
 
 
-def banks_of(win: Window, cut: np.ndarray, thalweg: Thalweg, mesh: Mesh, settings: Settings) -> list[Bank]:
+def banks_of(
+    win: Window,
+    cut: np.ndarray,
+    thalweg: Thalweg,
+    others: list[shapely.LineString],
+    mesh: Mesh,
+    settings: Settings,
+) -> list[Bank]:
+    """The banks of one thalweg; ``others`` are the other thalwegs, so a bank breaks where it meets a tributary's mouth."""
     centres, normals = sections(thalweg.xy, settings.section_step_m)
     if len(centres) == 0:
         return []
@@ -103,18 +115,105 @@ def banks_of(win: Window, cut: np.ndarray, thalweg: Thalweg, mesh: Mesh, setting
     reach = 0.5 * mesh.incision_width
     offset = settings.bank_offset_cells * win.dx
     jump = settings.bank_jump_steps * settings.section_step_m
+    own = shapely.LineString(thalweg.xy)
+    tree = shapely.STRtree(others) if others else None
     out = []
     for side, sign in ((LEFT, 1.0), (RIGHT, -1.0)):
         points = bank_points(win, centres, normals, bed, sign, mesh.incision_depth, reach, offset)
+        points = clear_of(points, sign * normals, own, offset)
         points[~keep] = np.nan
+        if others:
+            points[near_thalweg(points, others, offset)] = np.nan
         for run in split_runs(points, jump):
-            xy = simplify(smooth(points[run], settings.smooth_vertices), settings.simplify_pixels * win.pixel)
-            if length_of(xy) < settings.min_length_m:
-                continue
-            out.append(Bank(xy, side, float(np.nanmean(incised[run])), thalweg.area_km2))
+            line = simplify(
+                smooth(points[run], settings.smooth_vertices), settings.simplify_pixels * win.pixel
+            )
+            for xy in clear_vertices(line, own, tree, offset):
+                if length_of(xy) < settings.min_length_m:
+                    continue
+                out.append(Bank(xy, side, float(np.nanmean(incised[run])), thalweg.area_km2))
+    return out
+
+
+def clear_vertices(
+    xy: np.ndarray, own: shapely.LineString, others: shapely.STRtree | None, offset: float
+) -> list[np.ndarray]:
+    """The smoothed line's vertices pushed ``offset`` clear of the own thalweg, and the line broken at a tributary.
+
+    Smoothing cuts chords inside a bend, so a vertex can land nearer the thalweg than the points it came from. Each
+    vertex moves straight away from the nearest point of the thalweg; one that cannot clear, or that lies within
+    ``offset`` of another thalweg, ends the line there.
+    """
+    out = np.asarray(xy, np.float64).copy()
+    for _pass in range(CLEAR_PASSES):
+        nearest = shapely.get_coordinates(shapely.shortest_line(shapely.points(out), own))[1::2]
+        away = out - nearest
+        dist = np.hypot(*away.T)
+        gap = offset - dist
+        push = (gap > 1e-9) & (dist > 0.0)
+        if not push.any():
+            break
+        out[push] += away[push] * (gap[push] / dist[push])[:, None]
+    bad = shapely.distance(shapely.points(out), own) < offset - 1e-6
+    if others is not None:
+        bad[np.unique(others.query(shapely.points(out), predicate="dwithin", distance=offset)[0])] = True
+    pieces, current = [], []
+    for vertex, drop in zip(out, bad, strict=True):
+        if drop:
+            if len(current) >= 2:
+                pieces.append(np.array(current))
+            current = []
+        else:
+            current.append(vertex)
+    if len(current) >= 2:
+        pieces.append(np.array(current))
+    return pieces
+
+
+def clear_of(
+    points: np.ndarray, outward: np.ndarray, thalweg: shapely.LineString, offset: float
+) -> np.ndarray:
+    """Points pushed outward until each stands ``offset`` from the thalweg line, not only from its own section.
+
+    At a bend the next reach of the line comes nearer than the section's centre did. Each push moves a point by what
+    it lacks; one still short after the last is dropped, and its line breaks there.
+    """
+    out = points.copy()
+    for _pass in range(CLEAR_PASSES):
+        finite = np.all(np.isfinite(out), axis=1)
+        if not finite.any():
+            break
+        gap = offset - shapely.distance(shapely.points(out[finite]), thalweg)
+        short = gap > 1e-9
+        rows = np.flatnonzero(finite)[short]
+        out[rows] += outward[rows] * gap[short][:, None]
+    finite = np.all(np.isfinite(out), axis=1)
+    still = np.zeros(len(out), bool)
+    still[finite] = shapely.distance(shapely.points(out[finite]), thalweg) < offset - 1e-6
+    out[still] = np.nan
+    return out
+
+
+def near_thalweg(points: np.ndarray, thalwegs: list[shapely.LineString], offset: float) -> np.ndarray:
+    """Which points lie within ``offset`` of one of ``thalwegs``: a bank there would close a tributary with a crest face.
+
+    The bank's own thalweg is not among them: a meander brings its own bank within a cell of the next bend.
+    """
+    finite = np.all(np.isfinite(points), axis=1)
+    out = np.zeros(len(points), bool)
+    if finite.any():
+        shapes = shapely.points(points[finite])
+        tree = shapely.STRtree(thalwegs)
+        hit = np.unique(tree.query(shapes, predicate="dwithin", distance=offset)[0])
+        out[np.flatnonzero(finite)[hit]] = True
     return out
 
 
 def all_banks(win: Window, thalwegs: list[Thalweg], mesh: Mesh, settings: Settings) -> list[Bank]:
     cut = incision(win.z, win.pixel, mesh.incision_width)
-    return [bank for t in thalwegs for bank in banks_of(win, cut, t, mesh, settings)]
+    lines = [shapely.LineString(t.xy) if len(t.xy) >= 2 else None for t in thalwegs]
+    out = []
+    for n, t in enumerate(thalwegs):
+        others = [ln for m, ln in enumerate(lines) if m != n and ln is not None]
+        out += banks_of(win, cut, t, others, mesh, settings)
+    return out

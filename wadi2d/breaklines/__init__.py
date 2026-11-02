@@ -3,9 +3,10 @@
 ``suggest`` reads the job's ground at the mesher's analysis pixel, walks its streams, places a bank line either
 side of every defined wadi, finds raised crests by the top-hat, and writes one editable line layer with a kind, a
 height, a score and a plain reason per line, the ones that matter most first. Every vertex carries the ground
-elevation at the line, so the user feeds the layer to the Structures section as crest lines as it is: a crest at
-ground level only makes the faces under the line watertight, it raises nothing. The thalwegs go to a second layer
-for reference; they are never breaklines (his rule of 2026-11-01).
+elevation at the line, so the user feeds the layer to the Structures section as crest lines as it is. A crest face
+is not free: it passes at most critical flow and sets the time step, so a line the flood crosses along its length
+costs the peak (W26: Bidah 7 to 15 %). The thalwegs go to a second layer for reference; they are never breaklines
+(his rule of 2026-11-01).
 """
 
 from __future__ import annotations

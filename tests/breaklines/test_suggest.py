@@ -36,17 +36,29 @@ AXIS_Y = Y0 - AXIS
 ROAD_X = X0 + 1200.0
 
 
-def _ground(valley: bool = True, channel: bool = True, road_gap: float = 40.0, one_bank: bool = False) -> np.ndarray:
+def _ground(
+    valley: bool = True,
+    channel: bool = True,
+    road_gap: float = 40.0,
+    one_bank: bool = False,
+    tributary: bool = False,
+    meander: float = 0.0,
+) -> np.ndarray:
     x = (np.arange(NX) + 0.5) * PIXEL
     y = (np.arange(NY) + 0.5) * PIXEL
     xx, yy = np.meshgrid(x, y)
-    off = yy - AXIS
+    off = yy - AXIS - meander * np.sin(2.0 * np.pi * xx / 400.0)
     plain = 200.0 - 0.01 * xx
     z = plain + 0.05 * np.abs(off) if valley else plain
     if channel:
         z = np.where(np.abs(off) < 30.0, plain - 3.0 + 0.01 * np.abs(off), z)
-    if one_bank:  # the south wall stands; the north side is open ground at bed level, falling gently to the thalweg
+    if (
+        one_bank
+    ):  # the south wall stands; the north side is open ground at bed level, falling gently to the thalweg
         z = np.where(off < 30.0, plain - 3.0 + 0.001 * np.abs(off), plain + 0.05 * off)
+    if tributary:  # a side channel from the north joining at x = 800, as deep as the main one
+        side = (np.abs(xx - 800.0) < 15.0) & (off < 0.0)
+        z = np.where(side, np.minimum(z, plain - 3.0 + 0.004 * np.abs(off)), z)
     road = (np.abs(xx - 1200.0) < 10.0) & (np.abs(off) > road_gap)
     return np.where(road, z + 1.0, z)
 
@@ -146,7 +158,9 @@ def test_a_crest_across_the_wadi_reads_as_a_dam(tmp_path):
 
 
 def test_a_plain_has_no_banks_and_no_crest_along_its_edge(tmp_path):
-    summary = _suggest(tmp_path, _ground(valley=False, channel=False, road_gap=0.0), replace(DEFAULTS, road_length_m=300.0))
+    summary = _suggest(
+        tmp_path, _ground(valley=False, channel=False, road_gap=0.0), replace(DEFAULTS, road_length_m=300.0)
+    )
     lines = _lines(summary["path"])
     assert summary["banks"] == 0 and summary["crests"] == 1
     assert all(r["kind"] == ROAD for _g, r in lines)
@@ -157,6 +171,33 @@ def test_one_bank_only_where_one_bank_exists(tmp_path):
     summary = _suggest(tmp_path, _ground(one_bank=True))
     banks = [r for _g, r in _lines(summary["path"]) if r["kind"] == BANK]
     assert {r["side"] for r in banks} == {RIGHT}, banks  # the wall is south: the right bank, looking east
+
+
+@pytest.mark.parametrize("meander", [50.0, 90.0])
+def test_a_bank_keeps_a_cell_clear_of_a_meandering_thalweg(tmp_path, meander):
+    summary = _suggest(tmp_path, _ground(meander=meander))
+    union = shapely.union_all([g for g, _r in _lines(summary["path"], THALWEG_LAYER)])
+    banks = [(g, r) for g, r in _lines(summary["path"]) if r["kind"] == BANK]
+    assert sum(r["length_m"] for _g, r in banks) > 2500.0, banks
+    for g, r in banks:
+        assert min(union.distance(shapely.Point(p[:2])) for p in _coords(g)) >= DX - 1e-6, r
+
+
+def test_a_bank_breaks_at_the_mouth_of_a_tributary(tmp_path):
+    summary = _suggest(tmp_path, _ground(tributary=True))
+    lines = _lines(summary["path"])
+    union = shapely.union_all([g for g, _r in _lines(summary["path"], THALWEG_LAYER)])
+    left = [
+        g
+        for g, r in lines
+        if r["kind"] == BANK and r["side"] == LEFT and _coords(g)[:, 1].max() < AXIS_Y + 80.0
+    ]
+    assert len(left) >= 2, [r for _g, r in lines if r["kind"] == BANK]
+    mouth = shapely.Point(X0 + 800.0, AXIS_Y + 40.0)
+    assert min(g.distance(mouth) for g in left) > DX
+    for g, r in lines:
+        if r["kind"] == BANK:
+            assert g.distance(union) >= DX - 1e-6, r
 
 
 def test_the_top_hat_sees_no_crest_on_a_plane_up_to_its_edge():
@@ -196,4 +237,3 @@ def test_the_command_writes_the_file_and_says_what_it_holds(tmp_path, capsys):
     assert event["ev"] == "breaklines"
     assert Path(event["path"]).is_file() and event["layer"] == LAYER
     assert event["banks"] == 2 and event["crests"] == 2 and event["pixel_m"] == 5.0
-
