@@ -1,18 +1,18 @@
     0.0 script loaded
     5.0 PASS no engine setting in this profile 
-    5.2 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel test\\cpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
-    5.2 PASS QGIS loads it 
-    5.2 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\cpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
-    5.2 PASS metadata reads 0.1.0
-    5.2 dock says:  | 
-    5.5 PASS engine found with nothing set by hand Engine ready.
-    5.5 === small rain, cpu
-    5.5 dock says: Starting... | 
-   18.6 dock says: water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there | 
-   20.9 PASS run finished Finished. water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
-   20.9 PASS on the CPU cpu
-   20.9 PASS mass 3.913687097131675e-09
-   20.9 loop 11.55 s on cpu
-   20.9 PASS pixel maps written 
-   21.0 SUMMARY 10 passed, 0 failed 
-   21.0 DONE
+    5.4 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel test\\cpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
+    5.4 PASS QGIS loads it 
+    5.4 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\cpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
+    5.4 PASS metadata reads 0.1.1
+    5.6 dock says:  | 
+    6.2 PASS engine found with nothing set by hand Engine ready.
+    6.2 === small rain, cpu
+    6.2 dock says: Starting... | 
+   22.4 dock says: water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there | 
+   25.6 PASS run finished Finished. water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   25.6 PASS on the CPU cpu
+   25.6 PASS mass 3.913687097131675e-09
+   25.6 loop 14.39 s on cpu
+   25.6 PASS pixel maps written 
+   25.7 SUMMARY 10 passed, 0 failed 
+   25.7 DONE

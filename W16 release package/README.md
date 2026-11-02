@@ -49,16 +49,20 @@ His laptop, driven by a separate Claude session from the published zip, reported
 | Synthetic valley through the dock, 20 m, 8,100 cells, 1 h of rain | pass on the GPU; mass -2.6e-08; about 67 s, of which the solver 0.45 s |
 | Depth and hazard maps, Make map | pass; PDF of 3 A3 pages in 1.3 s |
 
-Found there, to fix in the next package:
+Found there, fixed in 0.1.1 where the line says so:
 
-- The `.bat` always exits 0, whatever the installer returned.
-- `README.txt` stops at the tick box: it does not say the dock opens from the toolbar button or Plugins > Wadi2D, nor that QGIS must be closed during the install or restarted after it.
-- Estimate shows nothing for 15 to 45 s on a cold start. The bar restarts from 0 for about a minute of pixel maps.
-- CuPy's `CUDA_PATH` warning lands in `engine.err` on every run, though the GPU works.
-- `constraints.txt` pins the whole build environment, tools that have nothing to do with the engine among them.
-- The engine always goes on C:, 3.1 GB, unless the user gives `-EngineRoot`, which `README.txt` does not mention.
+- The `.bat` always exits 0, whatever the installer returned. Fixed.
+- `README.txt` stops at the tick box: it does not say the dock opens from the toolbar button or Plugins > Wadi2D, nor that QGIS must be closed during the install or restarted after it. Fixed, in the file and in the installer's last lines.
+- Estimate shows nothing for 15 to 45 s on a cold start. Fixed: the status line says the first one can take a minute. The bar restarts from 0 for about a minute of pixel maps; left, the status line already says "Pixel maps".
+- CuPy's `CUDA_PATH` warning lands in `engine.err` on every run, though the GPU works. Fixed, at the engine's start.
+- `constraints.txt` pins the whole build environment, tools that have nothing to do with the engine among them. Fixed: 36 pins, not 179.
+- The engine always goes on C:, 3.1 GB, unless the user gives `-EngineRoot`, which `README.txt` does not mention. Fixed; the shared record now stays in `%LOCALAPPDATA%\Wadi2D` wherever the engine goes, or Install from ZIP would miss it.
 
-**PROJ, checked here.** That PC sets `PROJ_LIB` and `GDAL_DATA` for another program's GDAL, and a test script's `CRS.from_epsg` failed on them. The session reported the engine's command line fails the same way. Rechecked with a foreign PROJ folder: the lookup fails as reported, but a real engine run, fresh tables and pixel maps, finished with exit 0, and printed one PROJ error line. The dock is not exposed at all, because it strips those variables. So this is noise on that job, not a failure; whether the written rasters kept their CRS was not read.
+**PROJ, checked here.** That PC sets `PROJ_LIB` and `GDAL_DATA` for another program's GDAL, and a test script's `CRS.from_epsg` failed on them. The session reported the engine's command line fails the same way. Rechecked with a foreign PROJ folder: the lookup fails as reported, but a real engine run, fresh tables and pixel maps, finished with exit 0, and printed one PROJ error line. The dock is not exposed at all, because it strips those variables. So this is noise on that job, not a failure; whether the written rasters kept their CRS was not read. In 0.1.1 the engine's command line drops those variables at its start, as the dock does. The engine's Python used directly in a script of one's own is still exposed.
+
+## 0.1.1
+
+Built and checked here from `edf3c39`, the same way as 0.1.0: 35 of 35 through three QGIS profiles (`log_gpu.txt`, `log_zip.txt`, `log_cpu.txt` are this run's), the five Block 2 peaks equal to the record, `engine.err` empty, a failing install now returns 1 through the `.bat`, 1,126 tests. Not on the laptop yet. Solver and job format did not change.
 
 ## Not tested
 

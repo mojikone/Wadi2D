@@ -2,15 +2,15 @@
     5.0 PASS no engine setting in this profile 
     5.5 PASS QGIS installed the zip ['db_manager', 'grassprovider', 'MetaSearch', 'processing', 'wadi2d_qgis']
     5.5 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\zip\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
-    5.5 PASS metadata reads 0.1.0
+    5.5 PASS metadata reads 0.1.1
     5.7 dock says:  | 
     6.3 PASS engine found with nothing set by hand Engine ready.
     6.3 === small rain, zip
     6.3 dock says: Starting... | 
     8.4 dock says: water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there | 
-   12.0 PASS run finished Finished. water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
-   12.0 PASS mass -4.668371408648083e-10
-   12.0 loop 0.22 s on gpu
-   12.0 PASS pixel maps written 
-   12.2 SUMMARY 8 passed, 0 failed 
-   12.2 DONE
+   11.9 PASS run finished Finished. water stood 5.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   11.9 PASS mass -4.668371408648083e-10
+   11.9 loop 0.2 s on gpu
+   11.9 PASS pixel maps written 
+   12.0 SUMMARY 8 passed, 0 failed 
+   12.0 DONE
