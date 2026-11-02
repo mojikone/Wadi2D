@@ -7,9 +7,10 @@ https://github.com/mojikone/Wadi2D
 You need
   - Windows 10 or 11, 64 bit
   - QGIS 3.34 or later (Qt5 builds; the LTR is fine)
-  - Python 3.12 from https://www.python.org/downloads/
+  - Python 3.12 or 3.13. Your own if you have one, otherwise the one inside QGIS. If neither fits, install Python 3.12
+    from https://www.python.org/downloads/
   - An NVIDIA card with a current driver for the fast engine. Without one the engine runs on the CPU, tens of times slower.
-  - About 4 GB of disk, and the internet during installation (about 2.5 GB to download)
+  - About 4 GB of disk, and the internet during installation (about 2 GB to download)
 
 Install
   1. Unzip this whole folder anywhere.

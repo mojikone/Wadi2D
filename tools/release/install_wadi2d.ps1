@@ -44,7 +44,18 @@ function Find-Interpreter {
         $found = Test-Interpreter @('py', "-$version")
         if ($found) { return $found }
     }
-    return Test-Interpreter @('python')
+    $found = Test-Interpreter @('python')
+    if ($found) { return $found }
+    # QGIS carries its own Python, newest QGIS first: engineers have QGIS and often nothing else.
+    $qgis = @(Get-ChildItem -LiteralPath $env:ProgramFiles -Filter 'QGIS*' -Directory -ErrorAction SilentlyContinue) +
+        @(Get-Item 'C:\OSGeo4W*' -ErrorAction SilentlyContinue)
+    foreach ($folder in ($qgis | Sort-Object Name -Descending)) {
+        foreach ($python in @(Get-ChildItem (Join-Path $folder.FullName 'apps\Python3*\python.exe') -ErrorAction SilentlyContinue)) {
+            $found = Test-Interpreter @($python.FullName)
+            if ($found) { return $found }
+        }
+    }
+    return $null
 }
 
 function Invoke-Checked([string]$Failure, [string]$Program, [string[]]$Arguments) {
@@ -95,7 +106,7 @@ if (-not $CpuOnly) {
     $smi = Get-Command 'nvidia-smi' -ErrorAction SilentlyContinue
     $Gpu = [bool]$smi
 }
-$Extras = if ($Gpu) { 'gpu,mesh' } else { 'mesh' }
+$Extras = if ($Gpu) { 'gpu,mesh,vector' } else { 'mesh,vector' }
 Write-Host ("      {0}" -f $(if ($Gpu) { 'NVIDIA card found: GPU engine' } else { 'No NVIDIA card: CPU engine, tens of times slower' }))
 
 Write-Host "[2/5] Making the engine's environment in $EngineRoot"
@@ -109,7 +120,7 @@ if (-not (Test-Path -LiteralPath $EnginePython)) {
     Invoke-Checked 'The environment could not be made.' $Base @('-m', 'venv', $Venv)
 }
 
-Write-Host '[3/5] Installing the engine, up to 2.5 GB to download on the first run'
+Write-Host '[3/5] Installing the engine, about 2 GB to download on the first run'
 $Log = Join-Path $EngineRoot 'install.log'
 $Spec = $Wheel + '[' + $Extras + ']'
 $Pip = @('-m', 'pip', 'install', '--disable-pip-version-check', '--log', $Log)
