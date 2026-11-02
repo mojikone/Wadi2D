@@ -11,7 +11,7 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 862 tests pass on branch `feature/terrain-tools`. Fit to try
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,100 tests pass on `main`. Fit to try
 and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
 catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
@@ -61,7 +61,11 @@ To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [
 | `W1 research and design note` | 2026-10-29 | Toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note | live |
 | `W9 pixel outputs` | 2026-11-01 | Pixel depth and hazard in the engine, sloped surface, smooth maps, Make map | live; replaces the map scripts of `W2` and `W7` |
 | `W8 terrain tools` | 2026-11-01 | Embankments, channels, channels with dykes in engine and plugin; the crest sweep; dock check | live, merged |
-| `W10 mesher` | 2026-11-01 | Quadtree, local time stepping, the mesher, the Mesh section of the dock; off by default | live, on `stage/d-plugin`; accepted for `main`, off by default. Local stepping gains nothing on a uniform grid: that gate stays failed, the mesh's gain is taken instead |
+| `W10 mesher` | 2026-11-01 | Quadtree, local time stepping, the mesher, the Mesh section of the dock | live, merged, off by default. Local stepping gains nothing on a uniform grid; a mesh saves time above about 1 M cells, memory below |
+| `W11 validation round two` | 2026-11-01 | Crest lines against RAS, a second catchment, the regional envelope, the extent F | live, running |
+| `W12 full extent rerun` | 2026-11-01 | W2's job on the merged engine | live; quote this, not `W2`, for current numbers. Passes its rule |
+| `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
+| `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 
 ## Test case
 
