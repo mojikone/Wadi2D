@@ -143,6 +143,8 @@ class PixelMaxima:
             batch.maxima = [self._rest(a) for a in store]
         if moment:
             self.cell_dv = xp.maximum(self.cell_dv, d * s)
+        if xp is not np:  # the wet set changes with every map: left alone, the pool fills the card, and Windows pages it
+            xp.get_default_memory_pool().free_all_blocks()
 
     def lift_dv(self, run_hazard) -> None:
         """Depth x speed peaks between saved maps. The run watched every cell's peak: scale each cell up to it."""
