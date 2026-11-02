@@ -23,7 +23,7 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import RunConfig, TerrainObject
+from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.forcing import Forcing, boundary_set, build_storm, initial_depth, load_polygons, manning_grid
 from wadi2d.grid.tiles import TileGrid
@@ -38,6 +38,7 @@ from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
+from wadi2d.terrain.checks import terrain_notes
 from wadi2d.terrain.crest import line_lengths
 from wadi2d.terrain.sections import with_tables
 from wadi2d.terrain.vector import read_features
@@ -228,6 +229,19 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
     save_tables(path, tables, key)
     emit("output", kind="grid_cache_saved", path=str(path))
     return tables, crs
+
+
+def check_terrain(cfg: RunConfig) -> list[str]:
+    """What the shaped objects look like against the ground, in plain words; no table is built."""
+    if not any(o.kind in SHAPED_KINDS for o in cfg.terrain.objects):
+        return []
+    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+        window = grid_window(cfg, bed)
+        bed.bind(window.x0, window.y0)
+        dx = cfg.grid.dx
+        bounds = (window.x0, window.y0 - window.ny * dx, window.x0 + window.nx * dx, window.y0)
+        ground = Ground(bed, window.x0, window.y0)
+        return terrain_notes(cfg.terrain.objects, ground, dx, bed.pixel, cfg.terrain, bounds)
 
 
 def _project_tables(h, hms_basin):
@@ -488,7 +502,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             message="depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; "
             "HMS with Uniform Depth: Yes uses the mean above each analysis point instead",
         )
-    for note in spillway_notes(cfg):
+    for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
