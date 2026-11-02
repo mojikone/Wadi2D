@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -43,30 +43,54 @@ class LumpedEngine:
         self.basin = basin
         self._unit_hydrographs: dict[tuple[str, float], FloatArray] = {}
 
-    def run(self, storm: SubbasinRain, grid: TimeGrid, only: Iterable[str] | None = None) -> Run:
-        """Compute every element, or the given sub-network."""
+    def run(
+        self,
+        storm: SubbasinRain | None,
+        grid: TimeGrid,
+        only: Iterable[str] | None = None,
+        external: Mapping[str, FloatArray] | None = None,
+        cut: Collection[tuple[str, str]] = (),
+    ) -> Run:
+        """Compute every element, or the given sub-network.
+
+        ``external`` adds a series to the inflow of an element, and ``cut`` holds (parent, element) links that carry
+        no water. A hand-back uses both; without them the arithmetic is the plain network's. ``storm`` may be None
+        when no subbasin is computed.
+        """
         result = Run(grid)
         depths: dict[Storm, FloatArray] = {}
         for name in self.basin.topological_order(only):
-            self._compute(self.basin.elements[name], storm, depths, result)
+            self._compute(self.basin.elements[name], storm, depths, result, external or {}, cut)
         return result
 
-    def _inflow(self, name: str, result: Run) -> FloatArray:
+    def _inflow(
+        self, name: str, result: Run, external: Mapping[str, FloatArray], cut: Collection[tuple[str, str]]
+    ) -> FloatArray:
         inflow = np.zeros(result.grid.n_times, dtype=np.float64)
         for parent in self.basin.upstream[name]:
-            if parent in result.outflow:
+            if parent in result.outflow and (parent, name) not in cut:
                 flows = result.outflow if self.basin.elements[parent].downstream == name else result.branched
                 inflow = inflow + flows[parent]
+        if name in external:
+            inflow = inflow + external[name]
         return inflow
 
     def _compute(
-        self, element: Element, storm: SubbasinRain, depths: dict[Storm, FloatArray], result: Run
+        self,
+        element: Element,
+        storm: SubbasinRain | None,
+        depths: dict[Storm, FloatArray],
+        result: Run,
+        external: Mapping[str, FloatArray],
+        cut: Collection[tuple[str, str]],
     ) -> None:
         grid = result.grid
         name = element.name
-        inflow = self._inflow(name, result)
+        inflow = self._inflow(name, result, external, cut)
         result.inflow[name] = inflow
         if isinstance(element, Subbasin):
+            if storm is None:
+                raise ValueError(f"subbasin {name} needs a storm")
             over = storm.over(name)
             if over not in depths:
                 depths[over] = over.increments(grid.dt_minutes, grid.n_intervals)
