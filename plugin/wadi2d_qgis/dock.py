@@ -413,7 +413,8 @@ class Wadi2DDock(QgsDockWidget):
     def open_results(self) -> None:
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.results_dir)))
 
-    # The map sheets. QGIS's layout export belongs to the main thread, so this waits; a sheet takes seconds.
+    # The map sheets. QGIS's layout export belongs to the main thread, so this waits: seconds on a small run, about
+    # 2 min on 15,000 km2.
 
     def make_map(self) -> None:
         if self.results_dir is None:

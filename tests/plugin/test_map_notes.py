@@ -67,6 +67,14 @@ def test_sheet_notes_say_it_in_words(tmp_path: Path) -> None:
     assert "3.5 km2 in all" in map_notes.hazard_notes(facts)
 
 
+def test_a_full_2d_run_has_no_lumped_hills_in_its_water_note(tmp_path: Path) -> None:
+    facts = map_notes.read_facts(run_folder(tmp_path))
+    assert "from the lumped hills" in map_notes.water_note(facts)
+    facts.balance = {**BALANCE, "inflow_m3": 0.0}
+    assert "lumped" not in map_notes.water_note(facts)
+    assert "1.0 Mm3 of rain" in map_notes.water_note(facts)
+
+
 def test_class_labels_follow_the_limits_of_the_run() -> None:
     labels = map_notes.class_labels([[0.3, 0.3, 2.0], [0.6, 0.5, 2.0]])
     assert len(labels) == 3

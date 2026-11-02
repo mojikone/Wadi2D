@@ -97,8 +97,9 @@ def water_note(facts: RunFacts) -> str:
     b = facts.balance
     if not b:
         return ""
+    hills = f"{b['inflow_m3'] / MILLIONS:,.1f} Mm3 from the lumped hills, " if b["inflow_m3"] > 0.0 else ""
     return (
-        f"Water: {b['inflow_m3'] / MILLIONS:,.1f} Mm3 from the lumped hills, {b['rain_m3'] / MILLIONS:,.1f} Mm3 of "
+        f"Water: {hills}{b['rain_m3'] / MILLIONS:,.1f} Mm3 of "
         f"rain on the 2D area after losses, {b['outflow_m3'] / MILLIONS:,.1f} Mm3 out. "
         f"Mass error {abs(b['relative_error']):.0e}."
     )
