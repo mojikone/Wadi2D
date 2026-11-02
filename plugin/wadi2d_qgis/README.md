@@ -92,6 +92,20 @@ modified` into a group. It also says cut and fill per object and everything the 
 profile** draws ground, bed and tops along the line with what each bank is at each station, and any section. Nothing
 here needs rain, boundaries or an output folder.
 
+**Edit profile...** opens the profile editor for one kind, a line at a time. It draws the ground from the DEM along the line
+and the bed, tops or elevations with their points, from whatever the line has now: table, Z, field or design rule. A line
+with no level starts on the ground. Drag a point; Shift holds its station; double-click adds one to the nearest series;
+right-click or Delete takes one away. Or type the table, or paste from a spreadsheet; type a station in the last row to
+add a row. Ctrl+Z and Ctrl+Y undo and redo. The wheel zooms along the line, Ctrl and the wheel zoom the levels, the middle
+button pans. **Both tops together** moves the points the two tops share. **Preview terrain** in the editor runs the same
+engine command on the unsaved points and shows the same long profile and sections, and the map. **Save** writes one CSV
+section table for that line, in the columns above, into `<layer>_profiles` beside the layer or the folder you choose.
+Other columns of a table it started from stay. For that line a saved profile outranks the fields and the Section table,
+and the table file is not touched; a reopened project finds the file by itself. **Drop saved profile** sets the line back and
+renames the file `.dropped`. Crest lines, spillways and burn lines have the same editor: the engine takes no table for
+them, so a saved profile goes to the job as Z on the vertices, with a vertex added at each point between two vertices.
+A feature id names the file, so on a shapefile deleting a line and packing it renumbers the lines after it.
+
 A run writes `terrain/volumes.csv` and `terrain/volumes_by_station.csv`, gives the volumes in its final message, and with
 **Write the modified terrain** also `terrain/terrain_modified.tif` and `terrain_change.tif`, whole domain. A preview's rasters
 hold only the tiles the objects reach.
@@ -114,6 +128,9 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
 | `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |
+| `profile_table.py` | a saved profile on disk, what a line starts from, where its file lives | no |
+| `profile_model.py` | the points of a profile: edits, undo, what cannot be built | no |
+| `profile_canvas.py`, `profile_editor.py` | the profile editor: the plot you take hold of, and the dialog | yes |
 | `engine_process.py` | `QProcess` wrappers: short commands and runs, start, attach, stop | yes |
 | `live_layer.py`, `result_layers.py`, `style.py` | layers on the map, grouped and styled | yes |
 | `time_layer.py` | the frames file as a mesh layer, and the Temporal Controller | yes |
@@ -137,6 +154,8 @@ default is `PREFERRED_DX` (20 m), the dock's first cell size; the engine's own d
 `test_job_builder`, `test_progress`, `test_protocol`, `test_fake_engine` and `test_install_plugin` need no QGIS.
 `test_contract` holds the plugin against the real schema and validates its jobs with `RunConfig`. `test_smoke_qgis` starts
 `smoke_qgis.py` on QGIS's Python with `QT_QPA_PLATFORM=offscreen`: the real dock and process wrapper, once on the fake engine
-in `fake_engine.py` and once on the real CLI. `test_sheets_qgis` makes a real run, then its layers and PDF on QGIS's Python,
+in `fake_engine.py` and once on the real CLI. `test_profile_table`, `test_profile_model` and `test_profile_route` hold a
+saved profile against the engine's own reader and tables; `test_editor_qgis` starts `editor_qgis.py` the same way, with real
+mouse and key events on the editor. `test_sheets_qgis` makes a real run, then its layers and PDF on QGIS's Python,
 without offscreen, whose fonts draw every letter as a box. When the schema changes, `test_contract` fails until `schema_sample.json` is
 dumped again.
