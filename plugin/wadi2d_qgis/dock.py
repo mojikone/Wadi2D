@@ -55,7 +55,6 @@ from .protocol import (
     run_args,
 )
 from .result_layers import has_products, load_cell_grid, load_products
-from .time_layer import has_results, load_frames
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
@@ -63,6 +62,7 @@ from .sections.points import PointsSection
 from .sections.run import RunSection
 from .sections.structures import StructuresSection
 from .sections.terrain import TerrainSection
+from .time_layer import has_results, load_frames
 
 LOG_TAG = "Wadi2D"
 HMS_JOB = "hms_import.json"
