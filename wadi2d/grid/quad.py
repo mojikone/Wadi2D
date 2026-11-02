@@ -198,12 +198,21 @@ class QuadGrid:
         return t * STRIDE2 + (oj + HALO) * STRIDE + oi + HALO
 
     def cells_of(self, chosen: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-        """One raster cell for each cell under a raster selection: (rows, columns, state indices, areas in m2)."""
+        """The cells under a raster selection: (rows, columns, state indices, areas in m2).
+
+        A cell's row and column are the raster cell at its centre, so a polygon or a raster sampled there reads the cell
+        and not its north-west corner.
+        """
         jj, ii = np.nonzero(chosen)
         index = np.asarray(self.state_index(jj, ii), np.int64)
         unique, first = np.unique(index, return_index=True)
         tiles = unique // STRIDE2
-        return jj[first], ii[first], unique, self.tile_dx[tiles] ** 2
+        half = self.tile_scale[tiles] // 2
+        t, oj, oi = self.locate_raster(jj[first], ii[first])
+        scale = self.tile_scale[t]
+        rows = self.tiles[t, 0] * TILE + oj * scale + half
+        cols = self.tiles[t, 1] * TILE + oi * scale + half
+        return rows, cols, unique, self.tile_dx[tiles] ** 2
 
     def from_tiles(self, a: np.ndarray, fill: float = 0.0) -> np.ndarray:
         """Paint (ntiles, TILE, TILE, ...) onto the finest raster."""

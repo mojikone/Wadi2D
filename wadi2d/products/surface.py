@@ -42,10 +42,12 @@ class Neighbours:
     the grid. Arrays hold one entry per kept cell plus a last one, which stands for every cell left out.
     """
 
-    def __init__(self, xp, keep: np.ndarray) -> None:
+    def __init__(self, xp, keep: np.ndarray, order: tuple[np.ndarray, np.ndarray] | None = None) -> None:
+        """``order`` lists the cells when they must stand in another order than ``keep``'s."""
         self.xp = xp
-        rows, cols = np.nonzero(keep)
-        index = np.full(keep.shape, rows.size, np.int32)
+        rows, cols = np.nonzero(keep) if order is None else order
+        index = np.full((keep.shape[0] + 2, keep.shape[1] + 2), rows.size, np.int32)
+        rows, cols = rows + 1, cols + 1  # a margin, because on a coarse lattice a kept cell can touch the edge
         index[rows, cols] = np.arange(rows.size, dtype=np.int32)
         self.table = {
             (dj, di): xp.asarray(np.append(index[rows + dj, cols + di], rows.size))

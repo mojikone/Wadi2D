@@ -167,8 +167,7 @@ class Monitor:
     def snapshot(self, t: float) -> None:
         m = self.model
         d = m.field("d")
-        u, v = m.field("u"), m.field("v")
-        speed = np.hypot(0.5 * (u + np.roll(u, -1, axis=1)), 0.5 * (v + np.roll(v, -1, axis=0)))
+        speed = m.cell_speed()
         self.results.snapshot(t, {"depth": d, "mean_depth": m.field("h"), "speed": speed})
         self.progress.emit("output", kind="map", t=t)
 

@@ -54,19 +54,28 @@ def bed_stride(cfg: RunConfig, native: float) -> int:
 
 
 def read_cells(
-    cfg: RunConfig, tables: GridTables, keep: np.ndarray, tick: Callable[[int, int], None] = lambda _a, _b: None
+    cfg: RunConfig,
+    tables: GridTables,
+    keep: np.ndarray,
+    tick: Callable[[int, int], None] = lambda _a, _b: None,
+    scale: int = 1,
+    datum: float | None = None,
 ) -> CellPixels:
-    """The pixels of the cells in ``keep``, a strip of tiles at a time. ``tick`` may raise to stop the read."""
+    """The pixels of the cells in ``keep``, a strip of tiles at a time. ``tick`` may raise to stop the read.
+
+    On a mesh ``keep`` is on a lattice of cells ``scale`` finest cells wide, and ``datum`` is shared by every size.
+    """
     grid = tables.grid
     with RasterBed(cfg.terrain.dem) as probe:
         native = probe.native
     with RasterBed(cfg.terrain.dem, bed_stride(cfg, native)) as bed:
-        k = bed.pixels_per_cell(grid.dx)
+        k = bed.pixels_per_cell(grid.dx * scale)
         bed.bind(grid.x0, grid.y0)
         objects = with_tables(cfg).terrain.objects
         edit = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
         rows, cols = np.nonzero(keep)
-        datum = float(tables.zmin[keep].min()) if rows.size else 0.0
+        if datum is None:
+            datum = float(tables.zmin[keep].min()) if rows.size else 0.0
         ground = np.empty((rows.size, k * k), np.float32)
         strips = rows // TILE
         first = np.searchsorted(strips, np.arange(strips.max() + 2 if rows.size else 1))

@@ -77,15 +77,24 @@ class Batch:
 class PixelMaxima:
     """Owns the maxima of one product step. Maps arrive as grids and are reduced to the kept cells at once."""
 
-    def __init__(self, xp, cells: CellPixels, zmin, sill_x, sill_y, keep, rule: Pixels, flat: bool = False) -> None:
+    def __init__(
+        self, xp, cells: CellPixels, zmin, sill_x, sill_y, keep, rule: Pixels, flat: bool = False, ghosts=None
+    ) -> None:
+        """``ghosts`` are (rows, columns) of cells that shape the surface and take no pixels: another size on a mesh."""
         self.xp, self.rule, self.k, self.flat = xp, rule, cells.k, flat
         self.rows, self.cols = cells.rows, cells.cols
-        self.near = Neighbours(xp, keep)
+        order = None
+        if ghosts is not None:
+            self.rows = np.concatenate((cells.rows, ghosts[0]))
+            self.cols = np.concatenate((cells.cols, ghosts[1]))
+            order = (self.rows, self.cols)
+        self.near = Neighbours(xp, keep, order)
         self.zmin = self._cells(zmin)
         self.sill_x, self.sill_y = self._cells(sill_x, np.inf), self._cells(sill_y, np.inf)
         self.basis_t = corner_basis(xp, cells.k).T
         n = cells.rows.size
-        self.cell_dv = xp.zeros(n + 1, xp.float32)
+        self.cell_dv = xp.zeros(self.rows.size + 1, xp.float32)
+        self.corners: tuple = ()
         per_cell = cells.k**2
         step = max(rule.batch_pixels // per_cell, 1)
         lists = LIST_ARRAYS * float(n) * BYTES
@@ -112,12 +121,12 @@ class PixelMaxima:
         """Where an array waits between maps."""
         return a if self.resident else to_host(a)
 
-    def add(self, depth, mean_depth, speed, moment: bool = True) -> None:
-        """One map, as grids. ``moment`` says depth and speed are of the same instant."""
+    def add(self, depth, mean_depth, speed, moment: bool = True, level=None) -> None:
+        """One map, as grids. ``moment`` says depth and speed are of the same instant. ``level`` replaces ground + depth."""
         xp, rule, near = self.xp, self.rule, self.near
         d, h, s = self._cells(depth), self._cells(mean_depth), self._cells(speed)
         wet = d > 0.0
-        level = self.zmin + d
+        level = self.zmin + d if level is None else self._cells(level)
         if self.flat:
             nothing = xp.zeros_like(wet)
             groups = corner_groups(near, nothing, nothing)
@@ -128,6 +137,7 @@ class PixelMaxima:
         s = s * (d > rule.depth_floor)
         levels = corner_means(near, level, wet, groups)
         speeds = corner_means(near, s, s > 0.0, groups)
+        self.corners = (levels, speeds)
         for batch in self.batches:
             on = xp.nonzero(wet[batch.first : batch.last])[0]
             if on.size == 0:

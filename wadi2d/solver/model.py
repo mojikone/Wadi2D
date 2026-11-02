@@ -147,6 +147,16 @@ class Model:
         self.backend.synchronize()
         return from_state(self.grid, self.backend.get_field(name))
 
+    def cell_speed(self) -> np.ndarray:
+        """Speed at the cell centres, from the four faces, as a (ny, nx) grid."""
+        if not getattr(self.grid, "quad", False):
+            u, v = self.field("u"), self.field("v")
+            return np.hypot(0.5 * (u + np.roll(u, -1, axis=1)), 0.5 * (v + np.roll(v, -1, axis=0)))
+        self.backend.synchronize()
+        u, v = self.backend.get_field("u"), self.backend.get_field("v")
+        # a raster neighbour inside a coarse cell is the same cell: the east and south faces are read in the tile
+        return from_state(self.grid, np.hypot(0.5 * (u + np.roll(u, -1)), 0.5 * (v + np.roll(v, -STRIDE))))
+
     def discharge_x(self) -> np.ndarray:
         """Discharge through west faces, m3/s, positive eastward."""
         return self.field("qx")

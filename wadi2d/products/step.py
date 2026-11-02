@@ -22,6 +22,8 @@ from wadi2d.io.geotiff import raster_profile, write_band
 from wadi2d.products.frames import frame_names, read_frames, run_maxima
 from wadi2d.products.ground import CellPixels, face_sills, read_cells
 from wadi2d.products.hazard import DRY, class_names, classify
+from wadi2d.products.mesh import MeshMaxima, MeshResult, classes_of, mesh_sills, read_parts, write_mesh_pixels
+from wadi2d.products.mesh import spread as mesh_spread
 from wadi2d.products.pixels import PixelMaxima, array_module
 from wadi2d.tables import GridTables
 
@@ -146,32 +148,69 @@ def write_pixels(cfg: RunConfig, tables: GridTables, crs, found: PixelResult, fo
     return {"stats": stats, "classes": classes, "profile": profile}
 
 
+def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp) -> MeshResult:
+    """``pixel_maxima`` for a run on a mesh: the same maps through one pass per cell size."""
+    rule = cfg.outputs.pixels
+    results = out / "results.h5"
+    peak = run_maxima(results)
+    keep = peak["mean_depth"] > rule.cell_depth
+    parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b))
+    if not parts:
+        return MeshResult({}, {}, {}, {}, {}, 0)
+    datum = next(iter(parts.values())).datum
+    zmin = (tables.zmin - datum).astype(np.float32)
+    maxima = MeshMaxima(xp, tables.grid, parts, keep, zmin, mesh_sills(tables, datum), rule)
+    names = frame_names(results)
+    total = len(names) + 1
+    with closing(read_frames(results, names)) as frames:
+        for index, (depth, mean_depth, speed) in enumerate(frames):
+            watch.tick("maps", index, total)
+            maxima.add(depth, mean_depth, speed)
+    maxima.add(peak["depth"], peak["mean_depth"], peak["speed"], moment=False)
+    maxima.lift_dv(peak["hazard"])
+    watch.tick("maps", total, total)
+    held = maxima.result()
+    del maxima
+    _free_device(xp)
+    depth, speed, dv = ({s: v[n] for s, v in held.items()} for n in range(3))
+    return MeshResult(parts, classes_of(depth, speed, dv, rule), depth, speed, dv, len(names))
+
+
 def make_products(
     cfg: RunConfig, tables: GridTables, crs, out: Path, watch: Watch, backend: str, tags: dict | None = None
 ) -> dict:
     """The whole step; returns the statistics. ``ProductsStopped`` leaves nothing half-written behind."""
     from wadi2d.products.smooth import make_drawings
 
+    on_mesh = getattr(tables.grid, "quad", False)
+    maxima_of = mesh_maxima if on_mesh else pixel_maxima
     xp = array_module(backend)
     _free_device(xp)
     try:
-        found = pixel_maxima(cfg, tables, out, watch, xp)
+        found = maxima_of(cfg, tables, out, watch, xp)
     except Exception as error:
         if xp is np or type(error).__name__ != "OutOfMemoryError":
             raise
         watch.emit("warn", message="The pixel maps did not fit on the GPU, so they run on the CPU, more slowly.")
         _free_device(xp)
-        found = pixel_maxima(cfg, tables, out, watch, np)
+        found = maxima_of(cfg, tables, out, watch, np)
     folder = out / PIXEL_DIR
     folder.mkdir(parents=True, exist_ok=True)
-    if found.cells.rows.size == 0:
+    if (found.kept if on_mesh else found.cells.rows.size) == 0:
         (folder / STATS_FILE).write_text(json.dumps({"class_km2": {}, "maps": found.maps}), encoding="utf-8")
         return {"class_km2": {}}
     watch.tick("rasters", 0, 1)
-    written = write_pixels(cfg, tables, crs, found, folder, tags)
+    if on_mesh:
+        files = {"hazard": HAZARD_FILE, "depth": DEPTH_FILE, "speed": SPEED_FILE, "dv": DV_FILE, "nodata": NO_DEPTH}
+        written = write_mesh_pixels(cfg, tables, crs, found, folder, tags, files)
+    else:
+        written = write_pixels(cfg, tables, crs, found, folder, tags)
     stats = written["stats"]
     if cfg.outputs.smooth.enabled:
-        depth = spread(found.cells, found.depth, 0.0, np.float32)
+        if on_mesh:
+            depth = mesh_spread(found.cells, found.depth, 0.0, np.float32)
+        else:
+            depth = spread(found.cells, found.depth, 0.0, np.float32)
         del found
         stats["smooth"] = make_drawings(cfg, tables, written, depth, folder, crs, watch)
     (folder / STATS_FILE).write_text(json.dumps(stats, indent=1), encoding="utf-8")
