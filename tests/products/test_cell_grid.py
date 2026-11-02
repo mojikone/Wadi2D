@@ -74,7 +74,8 @@ def test_a_mesh_shows_each_tile_at_its_own_size() -> None:
     assert sum(row[2] for row in layer.rows) == grid.cell_count
     assert {row[0] for row in layer.rows} == {float(v) for v in grid.tile_dx[1:]}
     assert {row[1] for row in layer.rows} == {int(v) for v in grid.level[1:]}
-    for (size, _, _), shape in zip(layer.rows, layer.geometries, strict=True):
+    for row, shape in zip(layer.rows, layer.geometries, strict=True):
+        size = row[0]
         assert shapely.length(shape) == pytest.approx(2 * (TILE + 1) * TILE * size)
 
 

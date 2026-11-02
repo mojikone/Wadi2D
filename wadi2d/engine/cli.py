@@ -19,6 +19,7 @@ from pathlib import Path
 
 EXIT_OK = 0
 EXIT_HMS = 2
+EXIT_FRAMES = 3
 """An HMS project that cannot become a job is an invalid job."""
 PACKAGES = ("numpy", "numba", "rasterio", "h5py", "shapely", "pydantic", "hecdss", "cupy")
 NVIDIA_QUERY = ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"]
@@ -137,6 +138,18 @@ def _products(args: argparse.Namespace) -> int:
     return remake(Path(args.run), args.backend, echo=True)
 
 
+def _frames(args: argparse.Namespace) -> int:
+    from wadi2d.products.time_slider import write_frames
+
+    try:
+        path = write_frames(Path(args.run))
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_FRAMES, "message": str(error)}), file=sys.stderr)
+        return EXIT_FRAMES
+    print(json.dumps({"ev": "done", "path": str(path)}))
+    return EXIT_OK
+
+
 def _terrain(args: argparse.Namespace) -> int:
     from wadi2d.engine.terrain_preview import preview_terrain
     from wadi2d.run import EXIT_INVALID, JobError
@@ -194,6 +207,10 @@ def parser() -> argparse.ArgumentParser:
     products.add_argument("run", metavar="RUN_DIR")
     products.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     products.set_defaults(call=_products)
+
+    frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
+    frames.add_argument("run", metavar="RUN_DIR")
+    frames.set_defaults(call=_frames)
 
     terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
     terrain.add_argument("job")

@@ -65,8 +65,8 @@ def cell_grid_layer(grid) -> VectorLayer:
         corner = np.array((grid.x0 + ti * TILE * grid.dx, grid.y0 - tj * TILE * grid.dx))
         lines.append(corner + drawn * (size, -size))
         owner.append(np.full(drawn.shape[0], n))
-        rows.append((size, level, count))
-    columns = {"cell_m": float, "level": int, "cells": int}
+        rows.append((size, level, count, tj, ti))
+    columns = {"cell_m": float, "level": int, "cells": int, "tile_row": int, "tile_column": int}
     if not rows:
         return VectorLayer(CELL_GRID_LAYER, columns, [], [], LINES)
     shapes = shapely.multilinestrings(shapely.linestrings(np.concatenate(lines)), indices=np.concatenate(owner))
