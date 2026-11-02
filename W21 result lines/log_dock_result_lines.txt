@@ -1,0 +1,107 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98710282c06bc492\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    6.1 PASS engine from this worktree D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98710282c06bc492\wadi2d\__init__.py
+    6.1 PASS engine.py names this worktree import sys
+sys.path.insert(0, r'D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a987102
+    6.2 === 1 a run with upfront lines; the button and the panel
+    6.2 PASS no button before a run 
+    6.2 dock says: Starting...
+   11.3 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   11.6 PASS finished Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   11.6 PASS button after a run 
+   11.6 PASS nothing new in the run folder 
+   11.6 PASS the panel opened 
+   11.6 dock says: Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   14.6 PASS a run's upfront lines are listed 3
+   14.6 PASS the first line shows Upfront line: Across. Flow computed during the run; depth and water surface read from saved frames.
+   14.6 PASS both kinds in the flow chart 
+   14.6 PASS each labelled in the plot ['Upfront, computed in the run: number of record', 'Saved frames, every 5 min: estimated']
+   14.6 PASS the limit is stated Saved frames, every 5 min: a peak between two frames is not seen. Flow is estimated from depth and speed, turned by the slope of the water: not a number of record. Across the flow it read 0.6 to 1.0 of upfront lines, lowest on coarse cells. A line along the fl
+   14.6 PASS depth and a section 
+   14.6 PASS nothing added to the run folder 
+   14.6 PASS a frame per saved map (24, 23)
+   14.6 === 2 flow from frames against the record, the limit that is stated
+   14.7 PASS Across: the plot holds the record of the run 314.313
+   14.7 Across: record peak 314.3, frames 294.4, ratio 0.936
+   16.2 PASS Oblique: the plot holds the record of the run 325.149
+   16.2 Oblique: record peak 325.1, frames 326.3, ratio 1.004
+   17.7 PASS Axis: the plot holds the record of the run 327.129
+   17.7 Axis: record peak 327.1, frames 306.6, ratio 0.937
+   17.7 PASS a line square to the flow stands within 10 % 0.9364900592721268
+   17.7 PASS the long axis stands within 10 % 0.9373886142775479
+   17.7 PASS an oblique line stands within 30 % 1.0036690870954545
+   17.8 === 3 a temporary line, drawn through the real map tool
+   17.8 PASS no temporary layer yet 
+   17.9 PASS the map tool let go 
+   19.4 drawn line on the plot in 1.5 s, a quarter second of it this check's own wait
+   19.4 PASS the drawn line is chosen Temporary line: Line 1
+   19.4 PASS labelled temporary Temporary line: Line 1. Read from saved frames.
+   19.4 PASS no record on a temporary line 
+   19.4 PASS the limit is on it too 
+   19.4 PASS water on it 276.358
+   19.4 PASS the line went where it was clicked [[437369.086222233, 2726713.71829301], [437369.086222233, 2726472.9568739804], [437369.086222233, 2726172.0051001944]]
+   19.4 PASS the layer sits on top of the run's group 
+   19.4 PASS it is a scratch layer 
+   19.4 PASS in the run's CRS EPSG:32640
+   19.4 PASS the panel does not offer it as a layer 
+   19.4 === 3b a line dropped
+   19.4 PASS Escape drops it 4
+   19.4 PASS one point is no line 4
+   19.4 === 4 a line picked from a layer
+   19.4 PASS its lines are listed Upstream
+   20.7 PASS it is a temporary line Temporary line: Upstream, from other lines
+   20.7 PASS read from frames 
+   20.7 PASS flow on it 161.37
+   20.7 PASS not added to the scratch layer 1
+   20.7 === 4b another CRS, on a layer and on the map
+   22.3 PASS a layer in another CRS reads the same line 161.37
+   23.8 PASS a map in another CRS draws in the run's Temporary line: Line 2
+   23.8 PASS in metres, where it was clicked (437386.3892887742, 2726712.1031668005, 121.55181440325221)
+   23.8 === 5 it moves with the time slider
+   23.8 PASS the panel works before the Time slider button 
+   23.8 dock says: Writing the saved frames to one file...
+   26.0 PASS the controller is set 
+   26.0 PASS at every step the plot shows the frame the map shows 0
+   26.0 PASS the water surface changes as it moves 23
+   26.0 PASS the cursor and the clock move ((3, 3, '15 min, frame 4 of 24'), (14, 14, '1 h 10 min, frame 15 of 24'))
+   26.2 PASS the panel's own slider moves the map 14
+   26.2 PASS each frame of the panel's slider shows on the map 0
+   26.2 PASS and the canvas with it 
+   26.6 === 6 a line that misses the model, and removing a line
+   26.6 dock says: Use the Temporal Controller to step through the flood. These are cells; the pixel rasters stay the numbers of record. The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run.
+   28.1 PASS off the model says so This line does not cross the model.
+   28.1 PASS and shows no other line's plot 
+   28.1 PASS two lines on the scratch layer 2
+   28.1 PASS named on Temporary line: Line 3
+   28.1 PASS removed from the list and the layer 1
+   28.1 PASS an upfront line has no remove 
+   28.1 === 7 upfront points
+   28.2 dock says: Starting...
+   31.2 dock says: water stood 5.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   31.5 dock says: Finished. water stood 5.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   32.8 PASS the panel follows the new run C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_result_lines\runs\points
+   32.8 PASS the point is listed, and the temporary lines stay ['Upfront point: Pool', 'Temporary line: Line 1', 'Temporary line: Upstream, from other lines', 'Temporary line: Degrees, from degrees']
+   32.8 PASS labelled upfront Upfront point: Pool.
+   32.8 PASS depth and level, no section 
+   32.8 PASS the record of the run 
+   34.3 PASS a temporary line reads the new run Temporary line: Line 1. Read from saved frames.
+   34.3 === 8 too few frames
+   34.3 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   36.9 dock says: Finished.
+   40.0 PASS the upfront line still shows its record This run saved 1 map(s), and a line needs two. Save maps more often, or run longer.
+   40.0 PASS and says why there is no reading from frames This run saved 1 map(s), and a line needs two. Save maps more often, or run longer.
+   40.0 === 9 a finished run chosen by its folder
+   43.0 PASS back on the first run Upfront line: Across
+   43.0 PASS reads it again 
+   43.0 === 10 a mesh
+   43.1 dock says: Starting...
+   53.8 dock says: Finished. water stood 5.8 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there.
+   57.9 PASS the mesh run is read C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_result_lines\runs\mesh
+   57.9 mesh, Across: ratio 0.994
+   57.9 PASS on a mesh the line stands near its record 0.9939752181059552
+   58.0 === 11 the panel goes with the plugin
+   58.0 PASS released 
+   58.0 PASS its files are gone C:\Users\mojtaba\AppData\Local\Temp\wadi2d_lines_l757sy3_
+   58.0 SUMMARY 73 passed, 0 failed 
+   58.0 DONE

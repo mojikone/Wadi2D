@@ -56,6 +56,7 @@ from .protocol import (
     run_args,
 )
 from .result_layers import has_products, load_cell_grid, load_products
+from .result_lines import ResultLinesPanel
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
@@ -96,6 +97,7 @@ class Wadi2DDock(QgsDockWidget):
         self._mesh_folder: str | None = None
         self._mesh_folder_next = ""
         self._book = None
+        self.line_panel: ResultLinesPanel | None = None
 
         self.terrain = TerrainSection(iface.mapCanvas())
         self.mesh = MeshSection()
@@ -138,6 +140,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.open_button.clicked.connect(self.open_results)
         self.panel.map_button.clicked.connect(self.make_map)
         self.panel.frames_button.clicked.connect(self.time_slider)
+        self.panel.lines_button.clicked.connect(self.result_lines)
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
         self.preview = TerrainPreview(iface.mapCanvas(), self)
@@ -387,6 +390,7 @@ class Wadi2DDock(QgsDockWidget):
         if folder and has_results(folder):
             self.results_dir = Path(folder)
             self.panel.frames_button.setEnabled(True)
+            self.panel.lines_button.setEnabled(True)
 
     def _updated(self, state) -> None:
         self.panel.show_state(state)
@@ -490,6 +494,9 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
         self.panel.frames_button.setEnabled(has_results(run.out_dir))
+        self.panel.lines_button.setEnabled(has_results(run.out_dir))
+        if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
+            self.line_panel.open_run(run.out_dir)
         if state.succeeded:
             self.panel.bar.setValue(100)
         calm = state.succeeded and not state.warnings
@@ -559,6 +566,13 @@ class Wadi2DDock(QgsDockWidget):
         else:
             self.panel.say(FRAMES_NOTE, "good")
 
+    def result_lines(self) -> None:
+        if self.results_dir is None:
+            return
+        if self.line_panel is None:
+            self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
+        self.line_panel.open_run(self.results_dir)
+
     def _drop_book(self) -> None:
         """The last sheets and the layers that only they use; layouts of the same name go too."""
         if self._book is None:
@@ -579,3 +593,6 @@ class Wadi2DDock(QgsDockWidget):
         self.live.clear()
         self._clear_last_run()
         self._drop_book()
+        if self.line_panel is not None:
+            self.line_panel.release()
+            self.line_panel = None

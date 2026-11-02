@@ -34,6 +34,10 @@ LINE_LAYER = "design_lines"
 REACH_LAYER = "reaches"
 FRAMES_FILE = "frames.nc"
 FRAMES_TIMEOUT_S = 3600  # the full extent takes minutes
+FRAMES_EPOCH = (2000, 1, 1)  # the date in the frames file that stands for the start of a run
+LINES_LIST = "lines.json"
+LINE_REQUEST = "line_request.json"
+LINE_RESULT = "line_result.json"
 CELL_GRID_FILE = "cell_grid.gpkg"  # in the run folder itself: written at the start of every run
 CELL_GRID_LAYER = "cell_grid"
 CELL_GRID_SEEN_MM = 1.0  # a cell this big on the screen before its lines are drawn
@@ -135,6 +139,12 @@ def run_args(job: Path | str, out_dir: Path | str, dry_run: bool = False, resume
 def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:
     """The arguments of ``wadi2d mesh``."""
     return ["mesh", str(job), "--out", str(out_dir)]
+
+
+def lines_args(run: Path | str, out_file: Path | str, line_file: Path | str | None = None) -> list[str]:
+    """The arguments of ``wadi2d lines``: what the run holds, or one line read from its saved frames."""
+    args = ["lines", str(run), "--out", str(out_file)]
+    return [*args, "--line", str(line_file)] if line_file else args
 
 
 def parse_mesh(out: str) -> dict | None:
