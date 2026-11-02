@@ -1,0 +1,70 @@
+    0.0 script loaded
+    5.2 PASS plugin from this branch D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    5.3 dock says:  | 
+    6.0 PASS engine found Engine ready.
+    6.0 PASS mesh section is second 2. Mesh (optional)
+    6.0 PASS mesh off by default 
+    6.0 PASS local steps off by default 
+    6.0 PASS coarse cell from the schema 40.0
+    6.0 PASS wadi areas from the schema 
+    6.0 PASS preview waits for the tick 
+    6.0 === 1 the default stays the uniform grid
+    6.1 dock says: Starting... | 
+   20.3 dock says: water stood 3.2 m deep against the domain edge at (430971, 2725645): an edge is a wall, so check the domain polygon there | 
+   20.8 PASS uniform finished Finished. water stood 3.2 m deep against the domain edge at (430971, 2725645): an edge is a wall, so check the domain polygon there.
+   20.8 PASS uniform job has no mesh ['boundaries', 'grid', 'hydrology', 'outputs', 'project', 'run', 'storm', 'terrain']
+   20.8 PASS uniform cell count 220006
+   20.8 uniform peaks {'axis': 167.32, 's13_edge': 174.8}; loop 6.48 s
+   20.8 === 2 a coarse cell off the ladder
+   20.9 PASS ticking the mesh turns on local steps 
+   20.9 PASS preview ready after the tick 
+   20.9 PASS bad coarse cell refused The coarsest cell must be 10 m times 1, 2, 4 or 8.
+   20.9 PASS refused run did not start 
+   20.9 === 3 preview
+   20.9 dock says: The coarsest cell must be 10 m times 1, 2, 4 or 8. | Reading the ground and the streams...
+   33.8 PASS preview summary 68,564 cells, 3.209 x fewer than the uniform grid. Tiles: 32 of 10 m, 46 of 20 m, 10 of 40 m.
+   33.8 PASS preview layer on the map ['Wadi2D mesh, cell size in m']
+   33.8 PASS preview three sizes 68,564 cells, 3.209 x fewer than the uniform grid. Tiles: 32 of 10 m, 46 of 20 m, 10 of 40 m.
+   33.8 PASS preview at least 3 x fewer 68564
+   33.8 PASS preview raster holds cell sizes (10.0, 40.0)
+   33.8 === 4 a zone refines, and the old preview goes
+   33.9 PASS zone without a field refused Refinement zones need a cell size: choose the field that holds it.
+   33.9 dock says: Refinement zones need a cell size: choose the field that holds it. | Reading the ground and the streams...
+   46.8 PASS zone adds cells (68564, 99461)
+   46.8 PASS one preview layer only 1
+   46.8 === 5 a run on the mesh
+   46.8 dock says: Refinement zones need a cell size: choose the field that holds it. | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+   61.0 PASS estimate counts the mesh and says its time is rough 68,564 cells, 0.04 GB, about 4 s. 17 saved maps, at most 0.0 GB of disk. On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces.
+   61.0 dock says: Starting... | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+   93.6 dock says: water stood 7.3 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+   94.2 PASS mesh finished Finished. water stood 7.3 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there.
+   94.2 PASS mesh in the job {'enabled': True, 'coarse_dx': 40.0, 'stream_area_fine_km2': 10.0, 'stream_area_mid_km2': 1.0, 'zones': []}
+   94.2 PASS local steps in the job {'local_time_stepping': True}
+   94.2 PASS mesh cell count 68564
+   94.2 PASS mesh mass -1.4130138256458254e-08
+   94.2 mesh peaks {'axis': 168.55, 's13_edge': 176.04}; uniform {'axis': 167.32, 's13_edge': 174.8}; loop 15.98 s; warnings ['water stood 7.3 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the']
+   94.2 PASS mesh peak axis within 10 % (168.55, 167.32)
+   94.2 PASS mesh peak s13_edge within 10 % (176.04, 174.8)
+   94.2 PASS mesh maps loaded ['max_depth', 'max_depth', 'max_mean_depth', 'max_mean_depth']
+   94.2 PASS results button 
+   94.2 PASS max depth written 
+   94.2 === 6 stop in mid run on the mesh
+   94.2 dock says: Starting... | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  112.9 dock says: Stopping: the engine finishes the step and writes its maps. | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  114.9 dock says: water stood 6.0 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  115.2 PASS stopped on request Stopped on request. water stood 6.0 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there.
+  115.2 PASS maps of a stopped mesh run 
+  115.2 === 7 an embankment on the mesh, through the Structures section
+  115.4 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  116.4 dock says: embankment: it ends at station 1000 standing 52.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  142.4 dock says: water stood 5.6 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  142.9 PASS embankment on the mesh finished Finished. Earthworks. embankment 1: fill 1,235,530 m3. embankment: it ends at station 0 standing 3.0 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. embankment: it ends at station 1000 standing 
+  142.9 PASS embankment in the job ['embankment']
+  142.9 PASS embankment refined the mesh 79535
+  142.9 PASS embankment run mass -1.2626972119945449e-11
+  142.9 PASS embankment volumes reported [{'object': 'embankment 1', 'kind': 'embankment', 'cut_m3': 0.0, 'fill_m3': 1235529.6942901611}]
+  142.9 === 8 unticking returns to the uniform grid
+  143.0 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. | 99,461 cells, 2.212 x fewer than the uniform grid. Tiles: 68 of 10 m, 46 of 20 m, 7 of 40 m.
+  145.3 PASS back to uniform 
+  145.4 SUMMARY 42 passed, 0 failed 
+  145.4 DONE
