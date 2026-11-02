@@ -69,6 +69,21 @@ def test_levels_hold_while_the_step_barely_moves():
     assert np.array_equal(first, again)
 
 
+def test_a_level_drops_at_once_but_climbs_only_when_allowed():
+    nbr = _row_grid(4)
+    active = np.arange(1, 5)
+    none = np.zeros(5, bool)
+    slow = np.array([0.0, 8.0, 1.0, 1.0, 1.0])
+    level = np.array([0, 0, 0, 0, 0], np.int32)
+    held, _dt = assign_levels(slow, active, nbr, 10.0, RULE, none, level, None, False)
+    assert held.max() == 0
+    climbed, _dt = assign_levels(slow, active, nbr, 10.0, RULE, none, level, None, True)
+    assert climbed.max() > 0
+    fast = np.array([0.0, 8.0, 8.0, 8.0, 8.0])
+    dropped, _dt = assign_levels(fast, active, nbr, 10.0, RULE, none, climbed, None, False)
+    assert dropped.max() == 0
+
+
 def test_plan_lists_each_edge_once_with_its_owner():
     nbr = _row_grid(3)
     level = np.array([0, 0, 1, 1], np.int32)

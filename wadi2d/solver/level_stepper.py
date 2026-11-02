@@ -16,6 +16,10 @@ from wadi2d.solver.levels import SIDES, LevelRule, Plan, assign_levels, graded, 
 from wadi2d.solver.stepper import NumericalFailure, Stepper
 
 
+CLIMB_EVERY = 16
+"""Cycles between chances for a tile to climb a level: a new set of lists costs more than a late climb."""
+
+
 def trailing_level(n: int, top: int) -> int:
     """The coarsest level due at smallest step ``n``."""
     if n == 0:
@@ -59,6 +63,7 @@ class LevelStepper(Stepper):
         self.since_active = 0
         self.fresh_wave = False
         self.tile_steps = 0
+        self.cycles = 0
 
     def pin(self, tiles: np.ndarray) -> None:
         self.pinned[tiles] = True
@@ -94,8 +99,10 @@ class LevelStepper(Stepper):
         active = np.asarray(self.backend.active_tiles)
         keep = self.level.copy()
         pinned = self.pinned & np.isin(np.arange(self.pinned.size), active)
+        self.cycles += 1
+        may_climb = self.cycles % CLIMB_EVERY == 0
         self.level, self.dt = assign_levels(
-            wave, active, self.grid.nbr, self.tile_dx, self.rule, pinned, keep, self.interfaces
+            wave, active, self.grid.nbr, self.tile_dx, self.rule, pinned, keep, self.interfaces, may_climb
         )
         if self.dt < self.num.dt_min:
             raise NumericalFailure(f"time step {self.dt:.2e} s below the minimum at t = {self.t:.3f} s")

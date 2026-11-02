@@ -46,13 +46,15 @@ def assign_levels(
     pinned: np.ndarray,
     previous: np.ndarray | None = None,
     interfaces: np.ndarray | None = None,
+    may_climb: bool = True,
 ) -> tuple[np.ndarray, float]:
     """(level per tile, smallest step). ``wave`` is the fastest wave seen in each tile.
 
     A tile also respects its neighbours' waves, scaled by ``rule.buffer``: a front can enter it within the cycle. A
     pinned tile stays at level 0, because the boundary tally counts every smallest step. Levels are sticky: a tile
     keeps its level while the smallest step need not fall below ``hold`` of what the fastest tile allows, and climbs
-    only ``climb`` of a level past the mark, because every change costs a new set of lists.
+    only ``climb`` of a level past the mark, because every change costs a new set of lists. Dropping a level is safety and
+    happens at once; climbing is only thrift, so a caller can allow it now and then with ``may_climb``.
     """
     n = nbr.shape[0]
     speed = np.zeros(n)
@@ -67,7 +69,9 @@ def assign_levels(
     best = np.clip(np.floor(room), 0, rule.top).astype(np.int32)
     if previous is not None:
         old = previous[active]
-        keep = (old <= room - np.log2(rule.hold)) & (room < old + 1 + rule.climb)
+        keep = old <= room - np.log2(rule.hold)
+        if may_climb:
+            keep = keep & (room < old + 1 + rule.climb)
         best = np.where(keep, old, best)
     level = np.zeros(n, np.int32)
     level[active] = best
