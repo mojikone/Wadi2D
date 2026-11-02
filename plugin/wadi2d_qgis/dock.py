@@ -24,10 +24,12 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from . import settings
+from .basin_layers import load_basin_layers
 from .engine_process import EngineQuery, EngineRun
 from .job_builder import (
     LayerError,
     SchemaView,
+    basin_job,
     build_job,
     hms_import_args,
     merge_hms,
@@ -35,29 +37,35 @@ from .job_builder import (
     notes,
     problems,
     snap_dx,
+    write_geojson,
     write_job,
 )
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
-from .preview import TerrainPreview
+from .preview import TerrainPreview, zoom_to
 from .profile_editor import ProfileEditor
 from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
+    BASIN_DIR,
     EXIT_STOPPED,
     FRAMES_TIMEOUT_S,
+    POUR_POINTS_FILE,
+    basin_args,
     engine_error_text,
     estimate_text,
     exit_message,
     mesh_args,
     mesh_text,
     next_run_dir,
+    parse_basin,
     parse_estimate,
     parse_mesh,
     run_args,
 )
 from .result_layers import has_products, load_cell_grid, load_products
 from .result_lines import ResultLinesPanel
+from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
@@ -133,6 +141,8 @@ class Wadi2DDock(QgsDockWidget):
 
         self.engine_button.clicked.connect(self.open_settings)
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
+        self.hydrology.basin.generate_requested.connect(self.generate_basin)
+        self._basin_query: EngineQuery | None = None
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
@@ -410,6 +420,56 @@ class Wadi2DDock(QgsDockWidget):
     def _received(self, event: dict) -> None:
         if event.get("ev") == "warn":
             self.panel.say(str(event.get("message", "")), "note")
+        elif event.get("ev") == "basin":  # the run's own word on each junction of a generated basin
+            self.hydrology.basin.show_routes(event)
+
+    # The basin from the DEM: the engine delineates, this side keeps the files beside the runs and shows them.
+
+    def generate_basin(self) -> None:
+        box = self.hydrology.basin
+        try:
+            values = self._collect()
+        except LayerError as error:
+            box.say(str(error))
+            return
+        found = basin_problems(values)
+        if found:
+            box.say(" ".join(found))
+            return
+        out = Path(values["output"]) / BASIN_DIR
+        pour = None
+        try:
+            job = write_job(basin_job(values, out), out)
+            points = values["basin"]["pour_points"]
+            if points:
+                pour = write_geojson(out / POUR_POINTS_FILE, points, values["crs"])
+        except (OSError, ValueError) as problem:
+            box.say(f"The basin job could not be written: {problem}")
+            return
+        box.set_busy(True)
+        box.say("Reading the ground and the streams...")
+        self._basin_query = EngineQuery(settings.engine_text(), self)
+        self._basin_query.done.connect(self._basin_made)
+        self._basin_query.start(basin_args(job, out, pour))
+
+    def _basin_made(self, code: int, out: str, err: str) -> None:
+        box = self.hydrology.basin
+        box.set_busy(True)
+        self._basin_query = None
+        event = parse_basin(out) if code == 0 else None
+        if event is None:
+            box.set_busy(False)
+            box.say(f"{exit_message(code)} {engine_error_text(err)}".strip())
+            return
+        try:
+            box.take(event)
+            layers = load_basin_layers(event["geometry"])
+        finally:
+            box.set_busy(False)
+        if layers:
+            zoom_to(self.iface.mapCanvas(), layers[0])
+        else:
+            box.say(f"{box.summary.text()} The layers of basin.gpkg could not be loaded.")
 
     def stop_run(self) -> None:
         if self.run is not None:

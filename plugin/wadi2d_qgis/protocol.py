@@ -42,6 +42,11 @@ CELL_GRID_FILE = "cell_grid.gpkg"  # in the run folder itself: written at the st
 CELL_GRID_LAYER = "cell_grid"
 CELL_GRID_SEEN_MM = 1.0  # a cell this big on the screen before its lines are drawn
 CACHE_DIR = "wadi2d_cache"  # beside the run folders: the tables are the one expensive artefact
+BASIN_DIR = "wadi2d_basin"  # beside the run folders too: basin.json and basin.gpkg, kept so the runs can read them
+BASIN_FILE = "basin.json"
+BASIN_GEOMETRY = "basin.gpkg"
+BASIN_LAYERS = ("subbasins", "reaches", "junctions")
+POUR_POINTS_FILE = "pour_points.geojson"
 RUN_FILE = "plugin_run.json"  # written by the plugin: lets a later QGIS session find and stop the process
 STDOUT_FILE = "engine.out"
 STDERR_FILE = "engine.err"
@@ -174,6 +179,26 @@ def mesh_text(summary: dict) -> str:
 def terrain_args(job: Path | str, out_dir: Path | str) -> list[str]:
     """The arguments of ``wadi2d terrain``."""
     return ["terrain", str(job), "--out", str(out_dir)]
+
+
+def basin_args(job: Path | str, out_dir: Path | str, pour_points: Path | str | None = None) -> list[str]:
+    """The arguments of ``wadi2d basin``; the threshold and the lag method travel in the job's ``basin`` part."""
+    args = ["basin", str(job), "--out", str(out_dir)]
+    if pour_points is not None:
+        args += ["--pour-points", str(pour_points)]
+    return args
+
+
+def parse_basin(out: str) -> dict | None:
+    """The event ``wadi2d basin`` prints last, or None."""
+    for line in reversed(out.strip().splitlines()):
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict) and event.get("ev") == "basin":
+            return event
+    return None
 
 
 def clean_env(env: dict[str, str]) -> dict[str, str]:

@@ -276,6 +276,29 @@ def style_reaches(layer) -> None:
     layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#00b7e0", "width": "0.5"})))
 
 
+def style_basin_subbasins(layer) -> None:
+    """A generated subbasin: complete ones in one tone, those lacking a parameter in another, named."""
+    complete = QgsFillSymbol.createSimple({"color": "120,170,230,60", "outline_color": "#1f4e8c", "outline_width": "0.4"})
+    lacking = QgsFillSymbol.createSimple({"color": "230,150,60,90", "outline_color": "#9a4a00", "outline_width": "0.6"})
+    categories = [
+        QgsRendererCategory("complete", complete, "Subbasin, parameters complete (lumped by default)"),
+        QgsRendererCategory("lacking", lacking, "Subbasin lacking a parameter (runs as rain-on-grid)"),
+    ]
+    layer.setRenderer(QgsCategorizedSymbolRenderer("if(\"missing\" = '', 'complete', 'lacking')", categories))
+    _labels(layer, "name", 8.0, "#1f3a66", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+def style_basin_reaches(layer) -> None:
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#0060c0", "width": "0.9"})))
+    _labels(layer, "name", 7.5, "#003c80", Qgis.LabelPlacement.Line)
+
+
+def style_basin_junctions(layer) -> None:
+    marker = {"name": "square", "color": "#ffffff", "outline_color": "#003c80", "outline_width": "0.5", "size": "2.6"}
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol.createSimple(marker)))
+    _labels(layer, "name", 7.5, "#003c80", Qgis.LabelPlacement.OrderedPositionsAroundPoint, bold=True)
+
+
 def style_subbasins(layer) -> None:
     lumped = QgsFillSymbol.createSimple({"color": "255,170,60,70", "outline_color": "#b35a00", "outline_width": "0.5"})
     two_d = QgsFillSymbol.createSimple({"color": "40,190,90,110", "outline_color": "#0a7a30", "outline_width": "0.8"})
