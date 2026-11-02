@@ -158,6 +158,8 @@ class BoundarySet:
     ysign: np.ndarray
     opened: tuple[int, ...] = ()
     """Cells each boundary opened, in order."""
+    picked: tuple[tuple[np.ndarray, np.ndarray], ...] = ()
+    """The (j, i) cells of each boundary, in order."""
 
     @property
     def size(self) -> int:
@@ -270,25 +272,8 @@ def _one_boundary(b: Boundary, j: np.ndarray, i: np.ndarray, tables: GridTables,
     return kind, ref, d0, h0
 
 
-def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 4) -> BoundarySet:
-    """All boundary cells, and the faces between them and the interior with the sign of an outflow."""
-    grid = tables.grid
-    taken = np.zeros(grid.shape, bool)
-    picked = [cells_along(grid, b.coordinates, samples, b.snap_m) for b in boundaries]
-    for j, i in picked:
-        taken[j, i] = True
-    parts = []
-    for b, (j, i) in zip(boundaries, picked, strict=True):
-        kind, ref, d0, h0 = _one_boundary(b, j, i, tables, taken)
-        parts.append((np.array(state_index(grid, j, i), np.int32), ref.astype(np.int32), kind, d0, h0))
-    if not parts:
-        cells = BoundaryCells.empty()
-    else:
-        cat = [np.concatenate(a) for a in zip(*parts, strict=True)]
-        cells = BoundaryCells(
-            cat[0], cat[1], cat[2].astype(np.int32), cat[3].astype(np.float32), cat[4].astype(np.float32)
-        )
-    inner = grid.mask & ~taken
+def open_faces(grid: TileGrid, inner: np.ndarray, taken: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
+    """The x and y faces between ``inner`` cells and ``taken`` cells, with the sign of a flow into ``taken``."""
     faces = []
     for axis in (1, 0):
         out_low = inner & np.roll(taken, -1, axis=axis)  # the interior cell is on the face's low side
@@ -308,18 +293,45 @@ def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 
             index, first = np.unique(index, return_index=True)
             sign = sign[first]
         faces.append((index, sign))
+    return faces
+
+
+def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 4) -> BoundarySet:
+    """All boundary cells, and the faces between them and the interior with the sign of an outflow."""
+    grid = tables.grid
+    taken = np.zeros(grid.shape, bool)
+    picked = [cells_along(grid, b.coordinates, samples, b.snap_m) for b in boundaries]
+    for j, i in picked:
+        taken[j, i] = True
+    parts = []
+    for b, (j, i) in zip(boundaries, picked, strict=True):
+        kind, ref, d0, h0 = _one_boundary(b, j, i, tables, taken)
+        parts.append((np.array(state_index(grid, j, i), np.int32), ref.astype(np.int32), kind, d0, h0))
+    if not parts:
+        cells = BoundaryCells.empty()
+    else:
+        cat = [np.concatenate(a) for a in zip(*parts, strict=True)]
+        cells = BoundaryCells(
+            cat[0], cat[1], cat[2].astype(np.int32), cat[3].astype(np.float32), cat[4].astype(np.float32)
+        )
+    faces = open_faces(grid, grid.mask & ~taken, taken)
     opened = tuple(j.size for j, _i in picked)
-    return BoundarySet(cells, taken, faces[0][0], faces[0][1], faces[1][0], faces[1][1], opened)
+    return BoundarySet(
+        cells, taken, faces[0][0], faces[0][1], faces[1][0], faces[1][1], opened, tuple(picked)
+    )
 
 
-def boundary_notes(boundaries: list[Boundary], bset: BoundarySet, dx: float) -> list[str]:
+def boundary_notes(
+    boundaries: list[Boundary], bset: BoundarySet, dx: float, labels: list[str] | None = None
+) -> list[str]:
     """A line that opens much less than its length holds the water back, and the balance closes all the same."""
     notes = []
     for n, (b, cells) in enumerate(zip(boundaries, bset.opened, strict=True), start=1):
         length = shapely.LineString(b.coordinates).length
         if cells * dx < b.min_share * length:
+            label = labels[n - 1] if labels is not None else f"Open boundary {n}"
             notes.append(
-                f"Open boundary {n}: the line is {length / 1000.0:.1f} km long but opens only "
+                f"{label}: the line is {length / 1000.0:.1f} km long but opens only "
                 f"{cells * dx / 1000.0:.1f} km of the domain: much of it lies more than {b.snap_m:g} m off the "
                 "active cells. Water will pond against the rest of it. Draw it on or just inside the domain edge."
             )
@@ -365,6 +377,8 @@ class Injection:
     times: np.ndarray
     flows: np.ndarray
     min_depth: float
+    window: float = 0.0
+    """Volume this injection put into the last window, as the single-precision source carries it, m3."""
 
     def __post_init__(self) -> None:
         if np.any(np.diff(self.times) <= 0.0):
@@ -554,16 +568,18 @@ class Forcing:
                 rain = float(np.dot(out.astype(np.float64), self.areas)) * step
         inflow = 0.0
         for inj in self.injections:
+            inj.window = 0.0
             q = inj.mean_flow(t0, t1)
             if q <= 0.0:
                 continue
             if self.areas is None:
                 added = q * inj.share(self.model.read_cells("d", inj.index)) / self.area
                 out[inj.cells] += added.astype(np.float32)
-                inflow += float(np.float32(added).sum(dtype=np.float64)) * self.area * step
+                inj.window = float(np.float32(added).sum(dtype=np.float64)) * self.area * step
             else:
                 held = self.areas[inj.cells]
                 added = q * inj.share(self.model.read_cells("d", inj.index)) / held
                 out[inj.cells] += added.astype(np.float32)
-                inflow += float(np.dot(np.float32(added).astype(np.float64), held)) * step
+                inj.window = float(np.dot(np.float32(added).astype(np.float64), held)) * step
+            inflow += inj.window
         return out, rain, inflow

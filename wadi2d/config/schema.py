@@ -667,6 +667,27 @@ class Inflow(_Part):
         return self
 
 
+class Handback(_Part):
+    """A line where 2D flow leaves the grid and enters a lumped element, whose route runs during the 2D run.
+
+    Inside the grid the line is a sink: its cells stay dry and take what reaches them from either side. A boundary
+    that follows the level would pass water on to the cells beyond it, and that water would miss the reach.
+    """
+
+    name: str
+    coordinates: list[tuple[float, float]] = Field(description="Polyline across the flow, m", min_length=2)
+    element: str = Field(description="Lumped element that receives what crosses the line")
+    snap_m: float = Field(
+        150.0, ge=0.0, le=5000.0, description="A line this far off the active cells still opens the nearest, m"
+    )
+    min_share: float = Field(
+        0.6,
+        ge=0.0,
+        le=1.0,
+        description="A line opening less of the domain than this share of its length draws a warning",
+    )
+
+
 class Hydrology(_Part):
     """Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none."""
 
@@ -682,6 +703,7 @@ class Hydrology(_Part):
     )
     subbasins: list[Subbasin] = []
     inflows: list[Inflow] = []
+    handbacks: list[Handback] = []
     inject_radius: float = Field(
         30.0, ge=0.0, le=1000.0, description="Cells this close to an inflow point receive it, m"
     )
@@ -694,6 +716,13 @@ class Hydrology(_Part):
         le=5000.0,
         description="An inflow point farther than this from the domain is refused, m",
     )
+
+    @model_validator(mode="after")
+    def _handback_names(self) -> Hydrology:
+        names = [h.name for h in self.handbacks]
+        if len(set(names)) != len(names):
+            raise ValueError("hand-back names must differ: results are kept by name")
+        return self
 
 
 class ArfStudy(_Part):

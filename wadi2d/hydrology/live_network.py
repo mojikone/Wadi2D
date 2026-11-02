@@ -94,6 +94,16 @@ def plan_routes(basin: Basin, entries: Iterable[str], exits: Iterable[str]) -> R
     return Routes(tuple(basin.topological_order(live)), frozenset(cut), tuple(ends), above)
 
 
+class NoRain:
+    """The storm of a job with no rain: a network still has its subbasins, and they give nothing."""
+
+    def over(self, _subbasin: str) -> NoRain:
+        return self
+
+    def increments(self, _dt_minutes: float, n_intervals: int) -> FloatArray:
+        return np.zeros(n_intervals)
+
+
 def _padded(series: FloatArray, n: int) -> FloatArray:
     """The first n ordinates, with zeros after the end of the series."""
     if series.size >= n:
@@ -116,11 +126,15 @@ class Accounts:
 
 
 class LiveNetwork:
-    """``base`` is the network run once before the 2D run, with the routes' links cut and nothing from the grid."""
+    """``base`` is the network run once before the 2D run, with the routes' links cut and nothing from the grid.
 
-    def __init__(self, basin: Basin, routes: Routes, base: Run) -> None:
+    ``reentries`` holds the inflows where the routes end, by name: element.
+    """
+
+    def __init__(self, basin: Basin, routes: Routes, base: Run, reentries: Mapping[str, str]) -> None:
         self.basin = basin
         self.routes = routes
+        self.reentries = dict(reentries)
         self.grid = base.grid
         self.engine = LumpedEngine(basin)
         self.lateral = self._frozen(base)
@@ -153,10 +167,10 @@ class LiveNetwork:
         grid = TimeGrid(self.grid.dt_minutes, n - 1)
         return self.engine.run(None, grid, self.routes.live, external, self.routes.cut)
 
-    def _exits(self, run: Run, reentries: Iterable[str]) -> FloatArray:
+    def _exits(self, run: Run) -> FloatArray:
         """Everything leaving the live part at each ordinate."""
         total = np.zeros(run.grid.n_times)
-        for name in reentries:
+        for name in self.reentries.values():
             total = total + run.outflow[name]
         for name, second in self.routes.ends:
             total = total + (run.branched if second else run.outflow)[name]
@@ -188,7 +202,7 @@ class LiveNetwork:
         return kept
 
     def settle(
-        self, inflow: Mapping[str, FloatArray], line_m3: float, through: int, left_m3: float, reentries: Iterable[str]
+        self, inflow: Mapping[str, FloatArray], line_m3: float, through: int, left_m3: float
     ) -> Accounts:
         """The books at the end of a run. ``line_m3`` crossed the lines, ``left_m3`` has left the network so far.
 
@@ -198,7 +212,7 @@ class LiveNetwork:
         """
         run, drained = self._drain(inflow, through)
         dt = run.grid.dt_seconds
-        total_out = float(self._exits(run, reentries).sum()) * dt
+        total_out = float(self._exits(run).sum()) * dt
         kept = self._kept(run)
         lateral = sum(float(flow[: through + 1].sum()) * dt for flow in self.lateral.values())
         storage = total_out - left_m3 + kept
