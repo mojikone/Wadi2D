@@ -13,6 +13,8 @@ $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PluginName = 'wadi2d_qgis'
 $PythonVersions = @('3.12', '3.13')
 $NeededGB = 4
+$WindowsPathLimit = 260
+$DeepestFile = 145  # characters from the engine root to the deepest file CuPy ships, with a margin
 $Encoding = New-Object System.Text.UTF8Encoding $false  # no byte-order mark: the plugin reads this file as plain text
 
 function Stop-Install([string]$Text) {
@@ -80,7 +82,11 @@ if (-not $Base) {
 }
 Write-Host "      $Base"
 
-$Drive = [IO.Path]::GetPathRoot([IO.Path]::GetFullPath($EngineRoot))
+$FullRoot = [IO.Path]::GetFullPath($EngineRoot)
+if ($FullRoot.Length + $DeepestFile -ge $WindowsPathLimit) {
+    Stop-Install "This folder is too long for Windows: $FullRoot. Give a shorter one: install_wadi2d.bat -EngineRoot C:\Wadi2D"
+}
+$Drive = [IO.Path]::GetPathRoot($FullRoot)
 $FreeGB = (New-Object IO.DriveInfo $Drive).AvailableFreeSpace / 1GB
 if ($FreeGB -lt $NeededGB) { Stop-Install ("{0:N1} GB free on {1}, about {2} GB needed." -f $FreeGB, $Drive, $NeededGB) }
 
