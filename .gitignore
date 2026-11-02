@@ -65,3 +65,6 @@ Wadi2D_results.qgz
 **/W9 pixel outputs/runs/
 **/W9 pixel outputs/maps/sheet*.png
 /W10 mesher/runs/
+**/W12 full extent rerun/runs/
+**/W12 full extent rerun/run.log
+**/W13 time step test/runs/
