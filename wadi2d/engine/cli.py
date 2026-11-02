@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import shutil
 import subprocess
 import sys
+import warnings
 from importlib import metadata, util
 from pathlib import Path
 
@@ -21,6 +23,10 @@ EXIT_HMS = 2
 PACKAGES = ("numpy", "numba", "rasterio", "h5py", "shapely", "pydantic", "hecdss", "cupy")
 NVIDIA_QUERY = ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"]
 NVIDIA_TIMEOUT_S = 10
+FOREIGN_ENV = ("PROJ_LIB", "PROJ_DATA", "GDAL_DATA", "GDAL_DRIVER_PATH")
+"""Set for a whole user account by another program's GDAL. The engine reads the data in its own packages."""
+CUPY_NOISE = "CUDA path could not be detected"
+"""CuPy finds its libraries through the pip packages; the warning is about a toolkit the engine does not need."""
 
 
 def _schema(_args: argparse.Namespace) -> int:
@@ -204,7 +210,15 @@ def parser() -> argparse.ArgumentParser:
     return top
 
 
+def own_environment() -> None:
+    """Before anything heavy is imported: the same cleaning the plugin gives the engine, for a run from a plain shell."""
+    for name in FOREIGN_ENV:
+        os.environ.pop(name, None)
+    warnings.filterwarnings("ignore", message=CUPY_NOISE)
+
+
 def main(argv: list[str] | None = None) -> int:
+    own_environment()
     args = parser().parse_args(argv)
     return args.call(args)
 
