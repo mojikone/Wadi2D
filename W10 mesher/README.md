@@ -121,6 +121,11 @@ Bidah at 2 m pixels, 3 h after a 30 mm storm, through the dock: 68,564 cells, th
 pixels 85 % are wet on both, there the median difference is 2 mm and 95 % lie within 0.175 m. Small ponds and side wadis under 1 km2 sit in coarse
 cells and read shallower: that is the mesh's resolution, not the step (`pixels_mesh_vs_uniform.png`).
 
+At the DEM's own 0.5 m (`pixels_05m.py`), Bidah through the peak, 10 to 40 m cells, 28 maps: 248 s in all, 79 s of it the loop, mass -2e-8, 10,700 x 16,720
+pixels. H1 to H6 0.90, 0.45, 0.05, 0.35, 1.28, 0.20 km2. Two things it showed, neither from the mesh: a straight 0.75 m step in the ground at
+about 438,890 / 2,727,425 that reads as a seam in the DEM; and cell-sized blocks in narrow wadis, as strong on uniform 20 m (445 jumps over 0.5 m in one
+crop, 366 on the mesh). The blocks reach the depth drawing; the fix is its own change.
+
 ## Tested on a mesh, against an answer known without it
 
 All in `tests/engine/test_mesh_paths.py`, cells of both sizes.
