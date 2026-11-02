@@ -50,7 +50,8 @@ LINES_NOTE = (
     "The mesh only doubles a cell, so each size goes down to the finest cell times 1, 2, 4 or 8, never coarser than "
     f"you asked: the Actual columns show what you get. Bands are whole tiles of {TILE_CELLS} cells, so a band is usually "
     f"wider than its rows, and up to {TILE_CELLS} rows the 2:1 grading alone sets the sizes outside it, so Far changes "
-    "nothing. A line only refines: it blocks no flow. For a wall use Structures."
+    "nothing. A line only refines: it blocks no flow. For a wall use Structures. A band does not replace the wadi areas "
+    "above: on one wadi alone it left the side wadis coarse and lost more of the peak than the two together."
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"

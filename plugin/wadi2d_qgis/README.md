@@ -31,7 +31,8 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    lines**, a table as in HEC-RAS: near cell, rows each side, far cell, with the actual sizes beside them, because the mesh only
    doubles a cell, so a size goes down to the finest cell times a power of two. Each doubling out to the far cell holds as
    many rows, so a band reaches rows x (2 far - near); up to 32 rows the 2:1 grading sets the sizes by itself and Far changes
-   nothing. Fields `near_dx`, `rows` and `far_dx` in the layer fill the table. A line only refines: it blocks no flow.
+   nothing. Fields `near_dx`, `rows` and `far_dx` in the layer fill the table. A line only refines: it blocks no flow. A band
+   does not replace the wadi areas: on Bidah 8 rows on the main wadi alone read 7.8 % low, with the wadi areas on 4.1 %.
    **Preview tile sizes** puts a layer of cell sizes on the map and says how many cells it comes to and what each line got.
    Needs the `whitebox` package (`pip install wadi2d[mesh]`).
    Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh. It saves no time on a uniform
