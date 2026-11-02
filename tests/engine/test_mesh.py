@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import json
+import shutil
+import sys
+from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import rasterio
 
-from tests.engine.conftest import X0, Y0, job, write_dem
+from tests.engine.conftest import CRS, X0, Y0, job, write_dem
 from tests.engine.test_run import full_job, valley
 from wadi2d.config.schema import Mesh, RefineZone, RunConfig
 from wadi2d.engine.cli import main
+from wadi2d.mesh import streams
 from wadi2d.mesh.build import levels_above, must_be_fine
 from wadi2d.mesh.refine import Lattice, break_levels, line_levels, squares, stream_levels, zone_levels
 from wadi2d.mesh.streams import Terrain, incision
@@ -240,3 +245,38 @@ def test_the_preview_writes_the_cell_sizes_and_the_counts(big_valley, tmp_path, 
 
 def test_the_default_job_has_no_mesh():
     assert RunConfig().mesh.enabled is False
+
+
+class _SilentWhitebox:
+    """Exits 0 and writes nothing, ``silent`` times; what two meshers at once can do to each other."""
+
+    silent = 0
+
+    def set_verbose_mode(self, _on: bool) -> None:
+        pass
+
+    def breach_depressions_least_cost(self, _in: str, _out: str, dist: int, fill: bool) -> int:
+        return 0
+
+    def d8_flow_accumulation(self, _in: str, out: str, out_type: str) -> int:
+        if type(self).silent > 0:
+            type(self).silent -= 1
+            return 0
+        shutil.copy(Path(out).with_name("z.tif"), out)
+        return 0
+
+
+def _analysis(monkeypatch, silent: int) -> np.ndarray:
+    _SilentWhitebox.silent = silent
+    monkeypatch.setitem(sys.modules, "whitebox", SimpleNamespace(WhiteboxTools=_SilentWhitebox))
+    monkeypatch.setattr(streams, "ANALYSIS_WAIT_S", 0.0)
+    return streams.drainage_area(np.ones((8, 8)), 2.0, X0, Y0, CRS)
+
+
+def test_a_stream_analysis_that_wrote_nothing_is_tried_again(monkeypatch):
+    assert _analysis(monkeypatch, 1).shape == (8, 8)
+
+
+def test_a_stream_analysis_that_never_writes_says_so_in_plain_words(monkeypatch):
+    with pytest.raises(RuntimeError, match="wrote no result"):
+        _analysis(monkeypatch, streams.ANALYSIS_TRIES)

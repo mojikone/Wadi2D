@@ -11,6 +11,7 @@ on any plane, so a stream on open sloping ground scores zero however steep the g
 from __future__ import annotations
 
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -25,6 +26,9 @@ NODATA = -9999.0
 BREACH_DISTANCE_PIXELS = 40
 """Longest cut through a depression barrier, in analysis pixels."""
 BIG_ELEVATION = 1e30
+ANALYSIS_TRIES = 3
+ANALYSIS_WAIT_S = 2.0
+"""WhiteboxTools can exit 0 with nothing written; see _accumulate."""
 
 
 @dataclass
@@ -58,6 +62,27 @@ def read_coarse(
     return np.where(np.abs(z) > BIG_ELEVATION, np.nan, z)
 
 
+def _accumulate(tool, tmp: Path) -> None:
+    """z.tif to a.tif. WhiteboxTools keeps one settings file: two meshers at once can leave it exit 0 with nothing written."""
+    code = 0
+    for attempt in range(ANALYSIS_TRIES):
+        if attempt:
+            time.sleep(ANALYSIS_WAIT_S)
+        code = tool.breach_depressions_least_cost(
+            str(tmp / "z.tif"), str(tmp / "b.tif"), dist=BREACH_DISTANCE_PIXELS, fill=True
+        )
+        if code == 0:
+            code = tool.d8_flow_accumulation(
+                str(tmp / "b.tif"), str(tmp / "a.tif"), out_type="catchment area"
+            )
+        if code == 0 and (tmp / "a.tif").exists():
+            return
+    raise RuntimeError(
+        f"the stream analysis wrote no result after {ANALYSIS_TRIES} tries (WhiteboxTools code {code}): "
+        "if another mesh is being built, wait for it and run again"
+    )
+
+
 def drainage_area(z: np.ndarray, pixel: float, x0: float, y0: float, crs) -> np.ndarray:
     """D8 catchment area in m2 at every pixel of ``z``, through breached depressions."""
     try:
@@ -74,15 +99,7 @@ def drainage_area(z: np.ndarray, pixel: float, x0: float, y0: float, crs) -> np.
         tmp = Path(folder)
         with rasterio.open(tmp / "z.tif", "w", **profile) as dst:
             dst.write(np.nan_to_num(z, nan=NODATA).astype(np.float32), 1)
-        code = tool.breach_depressions_least_cost(
-            str(tmp / "z.tif"), str(tmp / "b.tif"), dist=BREACH_DISTANCE_PIXELS, fill=True
-        )
-        if code == 0:
-            code = tool.d8_flow_accumulation(
-                str(tmp / "b.tif"), str(tmp / "a.tif"), out_type="catchment area"
-            )
-        if code != 0:
-            raise RuntimeError(f"WhiteboxTools failed with code {code}")
+        _accumulate(tool, tmp)
         with rasterio.open(tmp / "a.tif") as src:
             return np.maximum(src.read(1, masked=True).filled(0.0), 0.0).astype(np.float64)
 
