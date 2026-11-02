@@ -373,7 +373,7 @@ What that implies (my reading, each point open for the design note):
 
 His rules for all of it: each item its own branch, tests, and a `W#` folder where it is an engineering iteration; **a feature is done only when it is in the plugin and tested through the real dock**; the [PRESERVE-CHECK] and [BROAD] rule applies; never push or publish without his word. In this order:
 
-1. **D2, see the mesh.** After every run, the real cell grid as a vector layer in Model setup.
+1. **D2, see the mesh.** After every run, the real cell grid as a vector layer in Model setup. **Done, `W17 cell grid layer`.**
 2. **D8, boundaries.** One line layer holds all boundaries. The dock lists each line in a table with kind and value editable, defaults filled by kind, no fields needed in the layer. The kind and value field route stays.
 3. **D1, time slider.** The engine exports the saved frames as one CF NetCDF file; one dock button loads it as a QGIS mesh layer with depth, speed and hazard datasets, working with the Temporal Controller. Cell frames first; per-frame pixel maps only for small areas, if at all. **Check first that QGIS really reads the file with its time axis; untested.**
 4. **D5, rainfall.** A Storm section: hyetograph table, hypothetical design patterns with ARF, gridded rain and DSS first, plus NetCDF; radar and satellite later. The rain feeds rain-on-grid and lumped alike.
@@ -435,6 +435,7 @@ were never run; reviewer acceptance is untested.
 - `W14 cell edge steps` (live, merged): why depth maps drew as cell-sized blocks, the edge blend.
 - `W13 time step test` (done): a quarter of the step moves Bidah's peak 0.23 %.
 - `W12 full extent rerun` (live): W2's job on the merged engine, the rule, the five dams, why the peaks rose, maps with the edge fix. Quote this and not W2 for current numbers.
+- `W17 cell grid layer` (done): D2, the real cell grid in Model setup after every run, 21 of 21 through the real dock.
 - `W16 release package` (live): the Windows package and installer, tested from a fresh environment on this PC; another PC not yet.
 - `W15 final plugin test` (done): the five dock checks on merged `main`, 207 of 207, small areas, throwaway QGIS profiles.
 - `W11 validation round two` (live, one RAS run left): crest lines against RAS, a second catchment, the envelope, the extent F, the Fizh gauge, Shaheen at Lihban. The headline numbers were recomputed from the raw series on 2026-11-02; the rest are the agent's.

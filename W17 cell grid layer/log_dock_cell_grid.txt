@@ -1,0 +1,39 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.0 === 1 a uniform run
+    5.1 dock says: Starting...
+    8.1 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   13.1 PASS finished Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   13.1 PASS cell grid under Model setup 
+   13.1 PASS name says the size and the scale Cell grid, 20 m, drawn from 1:20,000 in
+   13.1 PASS the cells are the solver's (71934, 71934)
+   13.1 PASS one feature per tile (95, 95)
+   13.1 PASS ticked on 
+   13.1 PASS draws only near enough 20000.0
+   13.1 PASS the layer is in the DEM's CRS EPSG:32640
+   13.1 PASS covers the domain 430586,2722500 : 440306,2728700
+   13.2 PASS on no map sheet 
+   13.5 === 2 pixel maps off: no products, the grid all the same
+   13.5 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   15.4 PASS no pixel maps 
+   15.4 PASS grid without products 
+   15.4 === 3 stopped in mid run
+   15.4 dock says: Starting...
+   19.0 dock says: Stopping: the engine finishes the step and writes its maps.
+   21.0 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   21.3 PASS stopped Stopped on request. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   21.3 PASS grid of a stopped run 
+   21.3 === 4 a mesh: tiles at their own sizes
+   21.4 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   25.0 dock says: water stood 3.3 m deep against the domain edge at (432341, 2727225): an edge is a wall, so check the domain polygon there
+   25.2 PASS the job is a mesh {'enabled': True, 'coarse_dx': 40.0, 'stream_area_fine_km2': 10.0, 'stream_area_mid_km2': 1.0, 'zones': []}
+   25.2 PASS mesh name gives the range Cell grid, 10 to 40 m, drawn from 1:10,000 in
+   25.3 PASS mesh cells are the solver's (103792, 103792)
+   25.3 PASS three sizes [10.0, 20.0, 40.0]
+   25.4 === 5 Make map still works beside it
+   25.4 dock says: Starting...
+   28.0 dock says: water stood 7.4 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   35.0 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_cell_grid\runs\sheets\pixels\sheets_maps.pdf
+   35.0 SUMMARY 21 passed, 0 failed 
+   35.0 DONE
