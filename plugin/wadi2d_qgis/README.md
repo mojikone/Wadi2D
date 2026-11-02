@@ -48,6 +48,8 @@ box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons,
 the end the layers load into a group named after the run: **Model setup**, **Flood maps**, **Pixel rasters, the numbers of
 record**, **Cell maps**. Model setup also holds the **Cell grid**, the cells the solver really stepped, coarse tiles coarse, on every run even with pixel maps off; it draws once you are near enough for a cell to reach 1 mm on screen, and its name says the scale. If the run fails, the message says why and a red cross marks the cell.
 
+**Time slider** steps through the saved frames: it writes `frames.nc`, loads it as a mesh layer with depth, speed and hazard on the real cells, and sets up the Temporal Controller, one step per saved frame. The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run. It switches the Flood maps group off, since the run's maximum under a rising flood would read as the flood; tick it back on. These are cell values and show how the flood moves; the pixel rasters stay the numbers of record. A large run takes minutes to read, and QGIS waits meanwhile. It needs two saved maps. Speed and hazard are in the layer's own styling panel.
+
 **Make map** writes three A3 sheets to `pixels/<run>_maps.pdf`, setup, depth and hazard, over a hillshade of the DEM or
 satellite imagery, and keeps the layout in the project to edit. It works on the last run, or on any finished run whose
 folder is chosen above. The satellite background needs the internet, and its imagery has its own licence.
@@ -114,6 +116,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |
 | `engine_process.py` | `QProcess` wrappers: short commands and runs, start, attach, stop | yes |
 | `live_layer.py`, `result_layers.py`, `style.py` | layers on the map, grouped and styled | yes |
+| `time_layer.py` | the frames file as a mesh layer, and the Temporal Controller | yes |
 | `map_notes.py` | the words on a sheet, from the run folder | no |
 | `map_sheets.py` | the A3 layout and its PDF; also runs on QGIS's Python alone | `qgis.core` only |
 | `dock.py`, `sections/*.py`, `settings.py`, `plugin.py` | the interface | yes |

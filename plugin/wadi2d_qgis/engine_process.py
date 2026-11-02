@@ -65,7 +65,7 @@ class EngineQuery(QObject):
         self._timeout.setSingleShot(True)
         self._timeout.timeout.connect(self._give_up)
 
-    def start(self, args: list[str]) -> None:
+    def start(self, args: list[str], timeout_s: int = QUERY_TIMEOUT_S) -> None:
         try:
             program, *base = parse_engine(self._engine_text)
         except ValueError as problem:
@@ -76,7 +76,7 @@ class EngineQuery(QObject):
         self._process.setProcessEnvironment(engine_environment())
         self._process.finished.connect(self._finished)
         self._process.errorOccurred.connect(self._failed)
-        self._timeout.start(QUERY_TIMEOUT_S * MILLISECONDS)
+        self._timeout.start(timeout_s * MILLISECONDS)
         self._process.start(program, [*base, *args])
 
     def _text(self, data) -> str:

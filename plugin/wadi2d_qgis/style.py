@@ -13,6 +13,8 @@ from qgis.core import (
     QgsFillSymbol,
     QgsLineSymbol,
     QgsMarkerSymbol,
+    QgsMeshDatasetIndex,
+    QgsMeshRendererScalarSettings,
     QgsPalettedRasterRenderer,
     QgsPalLayerSettings,
     QgsRasterShader,
@@ -46,6 +48,7 @@ DEPTH_BLUES = (
     (0.0, "#f7fbff"), (0.75, "#a2cae5"), (1.5, "#73b2d8"), (2.25, "#2979b9"), (3.0, "#08306b"),
 )  # fmt: skip
 """Depth m and colour of the final depth maps."""
+SPEED_STOPS = ((0.0, "#2c7bb6"), (1.0, "#abd9e9"), (2.0, "#ffffbf"), (3.5, "#fdae61"), (5.0, "#d7191c"))
 WET_EDGE_M = 0.03
 """The drawing fades in up to this depth, so a wet edge is soft, whatever lies under it."""
 OVERSAMPLING = 4.0
@@ -204,6 +207,53 @@ def style_cell_grid(layer, largest_scale: int) -> None:
     layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "255,140,0,200", "width": "0.1"})))
     layer.setScaleBasedVisibility(True)
     layer.setMinimumScale(largest_scale)
+
+
+def _frame_shader(kind, items) -> QgsColorRampShader:
+    shader = QgsColorRampShader(items[0].value, items[-1].value)
+    shader.setColorRampType(kind)
+    shader.setColorRampItemList(items)
+    return shader
+
+
+def _depth_frames() -> QgsColorRampShader:
+    items = [QgsColorRampShader.ColorRampItem(depth, QColor(*colour), f"{depth:g} m") for depth, colour in DEPTH_STOPS]
+    return _frame_shader(QgsColorRampShader.Interpolated, items)
+
+
+def _speed_frames() -> QgsColorRampShader:
+    items = [QgsColorRampShader.ColorRampItem(speed, QColor(colour), f"{speed:g} m/s") for speed, colour in SPEED_STOPS]
+    return _frame_shader(QgsColorRampShader.Interpolated, items)
+
+
+def _hazard_frames() -> QgsColorRampShader:
+    items = [
+        QgsColorRampShader.ColorRampItem(index + 0.5, QColor(colour), f"H{index}")
+        for index, colour in enumerate(AIDR_COLOURS, start=1)
+    ]
+    return _frame_shader(QgsColorRampShader.Discrete, items)
+
+
+def style_frames(layer) -> None:
+    """Depth shows first; speed and hazard are one click away in the layer's own styling panel. Each cell draws flat."""
+    shaders = {"depth": _depth_frames, "speed": _speed_frames, "hazard": _hazard_frames}
+    settings = layer.rendererSettings()
+    active = None
+    for group in range(layer.datasetGroupCount()):
+        name = layer.datasetGroupMetadata(QgsMeshDatasetIndex(group, 0)).name().lower()
+        made = next((make for key, make in shaders.items() if name.startswith(key)), None)
+        if made is None:
+            continue
+        shader = made()
+        scalar = QgsMeshRendererScalarSettings()
+        scalar.setClassificationMinimumMaximum(shader.minimumValue(), shader.maximumValue())  # first: it crashes QGIS
+        scalar.setColorRampShader(shader)  # once it has a shader with no source ramp to reclassify
+        scalar.setDataResamplingMethod(QgsMeshRendererScalarSettings.NoResampling)
+        settings.setScalarSettings(group, scalar)
+        if name.startswith("depth"):
+            active = group
+    settings.setActiveScalarDatasetGroup(active if active is not None else 0)
+    layer.setRendererSettings(settings)
 
 
 def style_boundaries(layer) -> None:

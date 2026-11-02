@@ -43,6 +43,7 @@ from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
     EXIT_STOPPED,
+    FRAMES_TIMEOUT_S,
     engine_error_text,
     estimate_text,
     exit_message,
@@ -54,6 +55,7 @@ from .protocol import (
     run_args,
 )
 from .result_layers import has_products, load_cell_grid, load_products
+from .time_layer import has_results, load_frames
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
@@ -66,6 +68,10 @@ LOG_TAG = "Wadi2D"
 HMS_JOB = "hms_import.json"
 
 FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
+FRAMES_NOTE = (
+    "Use the Temporal Controller to step through the flood. These are cells; the pixel rasters stay the numbers of record. "
+    "The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run."
+)
 
 
 class Wadi2DDock(QgsDockWidget):
@@ -122,6 +128,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.stop_button.clicked.connect(self.stop_run)
         self.panel.open_button.clicked.connect(self.open_results)
         self.panel.map_button.clicked.connect(self.make_map)
+        self.panel.frames_button.clicked.connect(self.time_slider)
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
         self.preview = TerrainPreview(iface.mapCanvas(), self)
@@ -349,6 +356,9 @@ class Wadi2DDock(QgsDockWidget):
         if folder and has_products(folder):  # a finished run: its sheets can be made at any time
             self.results_dir = Path(folder)
             self.panel.map_button.setEnabled(True)
+        if folder and has_results(folder):
+            self.results_dir = Path(folder)
+            self.panel.frames_button.setEnabled(True)
 
     def _updated(self, state) -> None:
         self.panel.show_state(state)
@@ -402,6 +412,7 @@ class Wadi2DDock(QgsDockWidget):
         load_cell_grid(run.out_dir, run.out_dir.name)
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
+        self.panel.frames_button.setEnabled(has_results(run.out_dir))
         if state.succeeded:
             self.panel.bar.setValue(100)
         calm = state.succeeded and not state.warnings
@@ -442,6 +453,34 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.say(f"Map written: {path}", "good")
         finally:
             QApplication.restoreOverrideCursor()
+
+    # The time slider: the engine writes the file, QGIS reads it. Reading a large mesh holds QGIS up, so that says so first.
+
+    def time_slider(self) -> None:
+        if self.results_dir is None:
+            return
+        self.panel.frames_button.setEnabled(False)
+        self.panel.say("Writing the saved frames to one file...")
+        self._query = EngineQuery(settings.engine_text(), self)
+        self._query.done.connect(self._frames_written)
+        self._query.start(["frames", str(self.results_dir)], FRAMES_TIMEOUT_S)
+
+    def _frames_written(self, code: int, _out: str, err: str) -> None:
+        self.panel.frames_button.setEnabled(True)
+        if code != 0:
+            self.panel.say(f"{exit_message(code)} {engine_error_text(err)}", "bad")
+            return
+        self.panel.say("Reading the frames into QGIS. A large run takes minutes, and QGIS waits meanwhile.")
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+        try:
+            layer = load_frames(self.results_dir, self.iface.mapCanvas(), self.iface.mainWindow())
+        finally:
+            QApplication.restoreOverrideCursor()
+        if layer is None:
+            self.panel.say("QGIS could not read the frames file.", "bad")
+        else:
+            self.panel.say(FRAMES_NOTE, "good")
 
     def _drop_book(self) -> None:
         """The last sheets and the layers that only they use; layouts of the same name go too."""

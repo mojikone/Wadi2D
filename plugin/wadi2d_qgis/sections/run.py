@@ -63,6 +63,9 @@ class RunSection(Section):
         self.map_button = QPushButton("Make map")
         self.map_button.setEnabled(False)
         self.map_button.setToolTip("Three A3 sheets from the last finished run: setup, depth, hazard, as a PDF")
+        self.frames_button = QPushButton("Time slider")
+        self.frames_button.setEnabled(False)
+        self.frames_button.setToolTip("The saved frames of the last finished run as one layer that moves with the Temporal Controller")
 
         buttons = QWidget()
         row = QHBoxLayout(buttons)
@@ -83,6 +86,7 @@ class RunSection(Section):
         self.form.addRow("Map title", self.map_title)
         self.form.addRow("Map background", self.background)
         self.form.addRow(self.map_button)
+        self.form.addRow(self.frames_button)
 
     @staticmethod
     def _text_label() -> QLabel:
@@ -114,6 +118,8 @@ class RunSection(Section):
         self.estimate_button.setEnabled(not running)
         self.folder.setEnabled(not running)
         self.stop_button.setEnabled(running)
+        if running:
+            self.frames_button.setEnabled(False)
         self.maps.setEnabled(not running)
         self.pixels.setEnabled(not running)
         if running:
