@@ -51,6 +51,7 @@ def must_be_fine(cfg: RunConfig, ground=None) -> list[list[tuple[float, float]]]
             runs = Shape.of(obj).crest_runs(cfg.grid.dx, cfg.terrain, ground)
             lines += [[tuple(point) for point in run.coordinates] for run in runs]
     lines += [b.coordinates for b in cfg.boundaries]
+    lines += [h.coordinates for h in cfg.hydrology.handbacks]
     lines += [ln.coordinates for ln in cfg.outputs.lines]
     return lines
 

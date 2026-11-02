@@ -41,10 +41,35 @@ class Balance:
     outflow: float = 0.0
     storage0: float = 0.0
     storage: float = 0.0
+    transmission: float = 0.0
+    """Taken by dry beds."""
+    handback: float = 0.0
+    """Part of ``outflow`` that crossed hand-back lines into the network."""
+    reentry: float = 0.0
+    """Part of ``inflow`` that came back from the network."""
+    lateral: float = 0.0
+    """What lumped subbasins put into the live network."""
+    network_out: float = 0.0
+    """What left the network at its end."""
+    network_storage: float = 0.0
+    """What is in the network at the end of the run: in reaches and reservoirs, not on the grid."""
+    routing_defect: float = 0.0
+    """What the network took in and neither gave back nor holds: the routing method's own mass error."""
 
     @property
     def error(self) -> float:
-        return self.rain + self.inflow - self.outflow - (self.storage - self.storage0)
+        return self.rain + self.inflow - self.transmission - self.outflow - (self.storage - self.storage0)
+
+    @property
+    def whole_error(self) -> float:
+        """Grid and network together: the two internal transfers cancel, and what is left is the true books."""
+        return self.error + self.routing_defect
+
+    @property
+    def whole_relative(self) -> float:
+        """Whole error over the water that entered the model from outside."""
+        outer = self.rain + self.inflow - self.reentry + self.lateral + self.storage0
+        return self.whole_error / max(outer, ZERO_WATER)
 
     @property
     def relative(self) -> float:
@@ -86,6 +111,10 @@ class Monitor:
         self.counted_inside = hasattr(model.stepper, "substep_hook")
         if self.counted_inside:
             model.stepper.substep_hook = self.tally.add
+        self.more_tallies: list[Tally] = []
+        """Tallies of single lines, which have to see every step as the boundary tally does."""
+        self.parts: list = []
+        """What keeps state of its own in a checkpoint: ``save(file)`` and ``load(file)``."""
         self.balance = Balance()
         self.stop_file = out / "stop"
         self.stop_files = (self.stop_file, *stop_files)
@@ -100,7 +129,7 @@ class Monitor:
         self.times: list[float] = []
         self.dt_min = np.inf
         self.checkpoint_due = False
-        self.window = (0.0, 1.0, 0.0, 0.0)
+        self.window = (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)
         self.settled = 0.0
         self.live = None
         if o.live_every_s > 0.0:
@@ -132,17 +161,32 @@ class Monitor:
     def stop_requested(self) -> bool:
         return any(path.exists() for path in self.stop_files)
 
-    def open_window(self, t0: float, t1: float, rain: float, inflow: float) -> None:
+    def watch(self, tallies: list[Tally]) -> None:
+        """Count these every step too."""
+        self.more_tallies = tallies
+        if self.counted_inside:
+            self.model.stepper.substep_hook = self._count_all
+
+    def _count_all(self, dt: float) -> None:
+        self.tally.add(dt)
+        for tally in self.more_tallies:
+            tally.add(dt)
+
+    def open_window(
+        self, t0: float, t1: float, rain: float, inflow: float, reentry: float = 0.0, loss: float = 0.0
+    ) -> None:
         """The source of [t0, t1] enters the accounts as the run advances through it."""
-        self.window = (t0, t1, rain, inflow)
+        self.window = (t0, t1, rain, inflow, reentry, loss)
         self.settled = t0
 
     def settle(self, t: float) -> None:
         """Credit the source up to time t."""
-        t0, t1, rain, inflow = self.window
+        t0, t1, rain, inflow, reentry, loss = self.window
         share = (min(t, t1) - self.settled) / (t1 - t0)
         self.balance.rain += rain * share
         self.balance.inflow += inflow * share
+        self.balance.reentry += reentry * share
+        self.balance.transmission += loss * share
         self.settled = min(t, t1)
 
     def storage(self) -> float:
@@ -201,6 +245,8 @@ class Monitor:
         t = st.t
         if not self.counted_inside:
             self.tally.add(t - self.last_t)
+            for tally in self.more_tallies:
+                tally.add(t - self.last_t)
         self.last_t = t
         if st.dt < self.dt_min:
             self.dt_min = st.dt

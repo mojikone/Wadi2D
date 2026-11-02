@@ -24,7 +24,9 @@ from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
+from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
     Forcing,
     boundary_notes,
@@ -96,6 +98,7 @@ PATH_FIELDS = (
     ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
     ("hydrology", "polygons"),
+    ("transmission", "area"),
     ("arf", "accumulation"),
 )
 """Every path in a job; relative paths are relative to the job file."""
@@ -236,6 +239,10 @@ def job_hash(cfg: RunConfig) -> str:
     for part, name in NOT_WATER:
         data[part].pop(name)
     data.pop("project")
+    if not cfg.hydrology.handbacks:
+        data["hydrology"].pop("handbacks")
+    if not cfg.transmission.enabled:
+        data.pop("transmission")
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for part, name in PATH_FIELDS:
@@ -366,17 +373,27 @@ def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
     return rain("", cfg.storm.storm_area_km2)
 
 
-def _check_routes(h, basin, wanted) -> None:
+def _above(basin, element: str, cut) -> set[str]:
+    """What sends an element water; a cut link sends none, because the grid carries that water instead."""
+    if not cut:
+        return basin.upstream_of(element)
+    links = {name: [p for p in parents if (p, name) not in cut] for name, parents in basin.upstream.items()}
+    return basin._walk(links, element)
+
+
+def _check_routes(h, basin, wanted, routes=None) -> None:
     """Every lumped subbasin's water enters once: dropped water and doubled water both end in exit 0."""
     lumped = {s.name: s for s in h.subbasins if s.mode == "lumped"}
     known = set(basin.subbasins) if basin is not None else set()
     carried: dict[str, str] = {}
-    for name, _point, element in wanted:
+    cut = routes.cut if routes is not None else ()
+    ends = [(f"the route to {name}", None, name) for name, _second in routes.ends] if routes else []
+    for name, _point, element in [*wanted, *ends]:
         if basin is None or element not in basin.elements:
             raise InvalidJob(f"inflow {name}: element {element} is not in the basin")
         if element in lumped and lumped[element].outlet is not None and name == element:
             continue
-        for sub in basin.upstream_of(element) & known:
+        for sub in _above(basin, element, cut) & known:
             carried[sub] = name
     tabled = {i.name for i in h.inflows if i.element is None}
     for name, sub in lumped.items():
@@ -394,10 +411,24 @@ def _check_routes(h, basin, wanted) -> None:
             )
 
 
+def _live_reentries(routes, wanted) -> dict[str, str]:
+    """The inflows a hand-back's route ends at, by name; two on one element would send the same water twice."""
+    live = {name: element for name, _point, element in wanted if element in routes.live}
+    twice = {element for element in live.values() if list(live.values()).count(element) > 1}
+    if twice:
+        raise InvalidJob(f"two inflows take the outflow of {sorted(twice)}: the same water would enter twice")
+    return live
+
+
 def hydrographs(
     cfg: RunConfig, storm, crs: str = ""
 ) -> list[tuple[str, tuple[float, float], np.ndarray, np.ndarray]]:
     """Every (name, point, times, flows) that enters the 2D domain; the lumped engine runs here if needed."""
+    return _network(cfg, storm, crs)[0]
+
+
+def _network(cfg: RunConfig, storm, crs: str = ""):
+    """``hydrographs``, and the live network of a job with hand-backs, None otherwise."""
     h = cfg.hydrology
     table = [
         (i.name, (i.x, i.y), np.asarray(i.times_s, np.float64), np.asarray(i.flows, np.float64))
@@ -406,28 +437,36 @@ def hydrographs(
     ]
     wanted = [(i.name, (i.x, i.y), i.element) for i in h.inflows if i.element is not None]
     wanted += [(s.name, s.outlet, s.name) for s in h.subbasins if s.mode == "lumped" and s.outlet is not None]
-    if not wanted:
+    if not wanted and not h.handbacks:
         _check_routes(h, None, [])
-        return table
+        return table, None
     if h.hms_basin is None:
-        raise InvalidJob("a lumped inflow needs hydrology.hms_basin")
-    if storm is None:
+        raise InvalidJob(f"a {'hand-back' if h.handbacks else 'lumped inflow'} needs hydrology.hms_basin")
+    if storm is None and not h.handbacks:
         raise InvalidJob("a lumped inflow needs a storm")
     from wadi2d.hms import load_basin
     from wadi2d.hydrology.from_hms import basin_from_hms
+    from wadi2d.hydrology.live_network import LiveNetwork, NoRain, plan_routes
     from wadi2d.hydrology.model import TimeGrid
     from wadi2d.hydrology.network import LumpedEngine
 
     hms_basin = load_basin(h.hms_basin)
     basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin))
-    _check_routes(h, basin, wanted)
+    routes = None
+    if h.handbacks:
+        leaving = [element for _name, _point, element in wanted]
+        routes = plan_routes(basin, [line.element for line in h.handbacks], leaving)
+    _check_routes(h, basin, wanted, routes)
     steps = int(np.ceil(cfg.run.duration_s / SECONDS_PER_MINUTE / h.time_step_min))
     grid = TimeGrid(h.time_step_min, steps)
-    run = LumpedEngine(basin).run(_lumped_rain(cfg, storm, basin, hms_basin, crs), grid)
+    rain = NoRain() if storm is None else _lumped_rain(cfg, storm, basin, hms_basin, crs)
+    run = LumpedEngine(basin).run(rain, grid, cut=routes.cut if routes is not None else ())
     times = grid.minutes * SECONDS_PER_MINUTE
     for name, point, element in wanted:
         table.append((name, point, times, run.outflow[element]))
-    return table
+    if routes is None:
+        return table, None
+    return table, LiveNetwork(basin, routes, run, _live_reentries(routes, wanted))
 
 
 @dataclass
@@ -530,11 +569,15 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     progress.emit("output", kind="maps", path=str(out / "maps"))
 
 
-def preflight(cfg: RunConfig, crs: str):
-    """Everything that can refuse a job without a grid; it comes before the tables, which can take minutes."""
+def _preflight(cfg: RunConfig, crs: str):
     storm = build_storm(cfg)
     polygons = load_polygons(cfg.hydrology, crs)
-    return storm, polygons, hydrographs(cfg, storm, crs)
+    return (storm, polygons, *_network(cfg, storm, crs))
+
+
+def preflight(cfg: RunConfig, crs: str):
+    """Everything that can refuse a job without a grid; it comes before the tables, which can take minutes."""
+    return _preflight(cfg, crs)[:3]
 
 
 def spillway_notes(cfg: RunConfig) -> list[str]:
@@ -582,7 +625,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     else:
         with rasterio.open(cfg.terrain.dem) as dem:
             crs = dem.crs.to_wkt() if dem.crs is not None else ""
-    storm, polygons, flows = preflight(cfg, crs)
+    storm, polygons, flows, network = _preflight(cfg, crs)
     still = storm is None and not flows and not cfg.initial_levels
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
@@ -622,8 +665,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     except (RuntimeError, ImportError, OSError) as error:
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
-    bset = boundary_set(cfg.boundaries, tables, cfg.grid.line_samples)
-    for note in boundary_notes(cfg.boundaries, bset, grid.dx):
+    lines = [*cfg.boundaries, *sink_lines(cfg.hydrology.handbacks)]
+    bset = boundary_set(lines, tables, cfg.grid.line_samples)
+    for note in boundary_notes(lines, bset, grid.dx, line_labels(cfg)):
         progress.emit("warn", message=note)
     model.set_depth(initial_depth(cfg.initial_levels, tables))
     if bset.size:
@@ -637,6 +681,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         )
     monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs, stop_files)
     monitor.balance.storage0 = monitor.storage()
+    link = HandBackLink(cfg, tables, model, bset, forcing, network, monitor) if network is not None else None
+    bed = BedLoss(cfg, tables, model, forcing, crs, monitor) if cfg.transmission.enabled else None
+    for part in (link, bed):
+        for note in part.notes() if part is not None else ():
+            progress.emit("warn", message=note)
     if continuing:
         load_checkpoint(checkpoint, model, monitor)
     key = job_hash(cfg)
@@ -654,11 +703,16 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             raise StopRequested
         while t < end - 1e-9:
             t_next = min(t + cfg.run.source_every_s, end)
+            if link is not None:
+                link.exchange(t)
+                t_next = link.window_end(t, t_next)
             rate, rain, inflow = forcing.rate(t, t_next)
-            if rain + inflow > 0.0 or not dry:
+            loss = bed.apply(rate, t, t_next) if bed is not None else 0.0
+            if rain + inflow + loss > 0.0 or not dry:
                 model.set_source_cells(forcing.state, rate)
-            dry = rain + inflow <= 0.0
-            monitor.open_window(t, t_next, rain, inflow)
+            dry = rain + inflow + loss <= 0.0
+            back = link.reentry_volume() if link is not None else 0.0
+            monitor.open_window(t, t_next, rain, inflow, back, loss)
             model.advance(t_next, monitor.on_step)
             monitor.settle(t_next)
             t = t_next
@@ -686,6 +740,9 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
     st = model.stepper
     monitor.finish(st.t)
     monitor.stop_file.unlink(missing_ok=True)
+    for part in monitor.parts:
+        part.finish(st.t, monitor.balance)
+        part.write(results, out)
     tags = {**arf_tags(cfg), **status_tags(summary, st.t, cfg)}
     _write_outputs(cfg, tables, monitor, results, out, crs, progress, tags)
     summary.loop_s = time.monotonic() - t1
@@ -704,6 +761,8 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
         "rain_m3": b.rain, "inflow_m3": b.inflow, "outflow_m3": b.outflow, "storage_start_m3": b.storage0,
         "storage_end_m3": b.storage, "error_m3": b.error, "relative_error": b.relative,
     }  # fmt: skip
+    for part in monitor.parts:
+        balance.update(part.figures(b))
     results.attributes({"status": summary.status, "t_end_s": st.t, "steps": st.nsteps, **balance, **tags})
     results.close()
     summary.done = dict(

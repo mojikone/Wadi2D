@@ -1,0 +1,27 @@
+test reach 3 km    dt   1 min peak      8: out/in 1.04389 tail 0.00e+00
+test reach 3 km    dt   1 min peak     80: out/in 0.98738 tail 0.00e+00
+test reach 3 km    dt   1 min peak    800: out/in 0.97475 tail 0.00e+00
+test reach 3 km    dt   2 min peak      8: out/in 1.10110 tail 0.00e+00
+test reach 3 km    dt   2 min peak     80: out/in 1.01315 tail 0.00e+00
+test reach 3 km    dt   2 min peak    800: out/in 0.98815 tail 0.00e+00
+test reach 3 km    dt   5 min peak      8: out/in 1.19090 tail 1.00e-217
+test reach 3 km    dt   5 min peak     80: out/in 1.01992 tail 5.86e-218
+test reach 3 km    dt   5 min peak    800: out/in 1.00095 tail 2.13e-219
+Block 2 R1 26 km   dt   1 min peak      8: out/in 1.26754 tail 0.00e+00
+Block 2 R1 26 km   dt   1 min peak     80: out/in 1.10287 tail 0.00e+00
+Block 2 R1 26 km   dt   1 min peak    800: out/in 0.83873 tail 0.00e+00
+Block 2 R1 26 km   dt   2 min peak      8: out/in 1.42533 tail 0.00e+00
+Block 2 R1 26 km   dt   2 min peak     80: out/in 1.41831 tail 0.00e+00
+Block 2 R1 26 km   dt   2 min peak    800: out/in 1.00552 tail 0.00e+00
+Block 2 R1 26 km   dt   5 min peak      8: out/in 1.57112 tail 1.02e-144
+Block 2 R1 26 km   dt   5 min peak     80: out/in 1.91449 tail 3.92e-144
+Block 2 R1 26 km   dt   5 min peak    800: out/in 1.18396 tail 3.70e-144
+Block 2 R6 4.3 km  dt   1 min peak      8: out/in 1.11093 tail 0.00e+00
+Block 2 R6 4.3 km  dt   1 min peak     80: out/in 0.93030 tail 0.00e+00
+Block 2 R6 4.3 km  dt   1 min peak    800: out/in 0.93715 tail 0.00e+00
+Block 2 R6 4.3 km  dt   2 min peak      8: out/in 1.21187 tail 0.00e+00
+Block 2 R6 4.3 km  dt   2 min peak     80: out/in 1.02631 tail 0.00e+00
+Block 2 R6 4.3 km  dt   2 min peak    800: out/in 0.98578 tail 0.00e+00
+Block 2 R6 4.3 km  dt   5 min peak      8: out/in 1.35951 tail 2.25e-207
+Block 2 R6 4.3 km  dt   5 min peak     80: out/in 1.06453 tail 5.47e-207
+Block 2 R6 4.3 km  dt   5 min peak    800: out/in 1.01974 tail 2.33e-208

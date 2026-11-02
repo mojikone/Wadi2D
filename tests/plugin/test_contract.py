@@ -245,3 +245,17 @@ def test_the_map_interval_and_the_pixel_switch_reach_a_valid_job(tmp_path: Path,
 def test_pixel_maps_stay_on_unless_switched_off(tmp_path: Path) -> None:
     job = build_job(full_values(tmp_path, pixels=True), tmp_path / "run")
     assert "pixels" not in job["outputs"]
+
+
+def test_handbacks_and_the_bed_loss_pass_through_the_dock_untouched() -> None:
+    """D6c and D6d have no dock rows yet: a job that carries them keeps them, and the engine takes it."""
+    line = {"name": "Line", "coordinates": [[0.0, 0.0], [0.0, 100.0]], "element": "R1"}
+    bed = {"enabled": True, "rate_mm_h": 25.0}
+    job = {"hydrology": {"handbacks": [line]}, "transmission": bed, "run": {"duration_s": 60.0}}
+    imported = {"hydrology": {"hms_basin": "x.basin"}, "run": {"duration_s": 3600.0}}
+    merged = merge_hms(job, imported, {"modes": {}})
+    assert merged["hydrology"]["handbacks"] == [line]
+    assert merged["transmission"] == bed
+    cfg = config.RunConfig.model_validate(merged)
+    assert cfg.hydrology.handbacks[0].element == "R1"
+    assert cfg.transmission.enabled

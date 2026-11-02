@@ -1,0 +1,29 @@
+[
+ {
+  "step_min": 1.0,
+  "link_lag_s": 60.0,
+  "grid_total_lag_s": 106.4768337006019,
+  "peak_before_m3s": 7.421028912067413,
+  "peak_after_m3s": 7.258468077459838,
+  "peak_ratio": 0.9780945692930487,
+  "whole_relative_error": -3.8359318679918874e-08
+ },
+ {
+  "step_min": 2.0,
+  "link_lag_s": 119.99999999999989,
+  "grid_total_lag_s": 166.15315277010245,
+  "peak_before_m3s": 7.421028912067413,
+  "peak_after_m3s": 7.241053699981421,
+  "peak_ratio": 0.9757479435508825,
+  "whole_relative_error": -3.466143145268867e-08
+ },
+ {
+  "step_min": 5.0,
+  "link_lag_s": 299.9999999999998,
+  "grid_total_lag_s": 344.3857487435537,
+  "peak_before_m3s": 7.421028912067413,
+  "peak_after_m3s": 6.797788240015507,
+  "peak_ratio": 0.9160169459738328,
+  "whole_relative_error": -3.9735905040434605e-08
+ }
+]

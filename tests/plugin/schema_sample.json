@@ -355,6 +355,63 @@
       "title": "GridConfig",
       "type": "object"
     },
+    "Handback": {
+      "additionalProperties": false,
+      "description": "A line where 2D flow leaves the grid and enters a lumped element, whose route runs during the 2D run.\n\nInside the grid the line is a sink: its cells stay dry and take what reaches them from either side. A boundary\nthat follows the level would pass water on to the cells beyond it, and that water would miss the reach.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "coordinates": {
+          "description": "Polyline across the flow, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "element": {
+          "description": "Lumped element that receives what crosses the line",
+          "title": "Element",
+          "type": "string"
+        },
+        "snap_m": {
+          "default": 150.0,
+          "description": "A line this far off the active cells still opens the nearest, m",
+          "maximum": 5000.0,
+          "minimum": 0.0,
+          "title": "Snap M",
+          "type": "number"
+        },
+        "min_share": {
+          "default": 0.6,
+          "description": "A line opening less of the domain than this share of its length draws a warning",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Min Share",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "coordinates",
+        "element"
+      ],
+      "title": "Handback",
+      "type": "object"
+    },
     "Hydrology": {
       "additionalProperties": false,
       "description": "Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none.",
@@ -448,6 +505,14 @@
             "$ref": "#/$defs/Inflow"
           },
           "title": "Inflows",
+          "type": "array"
+        },
+        "handbacks": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Handback"
+          },
+          "title": "Handbacks",
           "type": "array"
         },
         "inject_radius": {
@@ -2575,6 +2640,71 @@
       ],
       "title": "TerrainObject",
       "type": "object"
+    },
+    "Transmission": {
+      "additionalProperties": false,
+      "description": "Dry-bed transmission loss on 2D routing cells: a rate over the wetted bed, as HEC-HMS's percolation method.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "description": "Off leaves every number as it was",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "rate_mm_h": {
+          "default": 25.0,
+          "description": "Infiltration into the wetted bed, mm/h",
+          "exclusiveMinimum": 0.0,
+          "maximum": 2000.0,
+          "title": "Rate Mm H",
+          "type": "number"
+        },
+        "max_depth_mm": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total a square metre of bed can take, mm; None means no limit",
+          "title": "Max Depth Mm"
+        },
+        "min_depth_m": {
+          "default": 0.1,
+          "description": "Level above a cell's lowest point that makes it a channel cell, m; thin sheet flow keeps its CN",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Min Depth M",
+          "type": "number"
+        },
+        "water_share": {
+          "default": 0.5,
+          "description": "Most of a cell's water one source window may take",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Water Share",
+          "type": "number"
+        },
+        "area": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Polygons of the bed it applies to; None means every cell",
+          "title": "Area"
+        }
+      },
+      "title": "Transmission",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -2711,9 +2841,21 @@
         "curve_number": null,
         "subbasins": [],
         "inflows": [],
+        "handbacks": [],
         "inject_radius": 30.0,
         "inject_min_depth": 0.1,
         "inject_max_offset": 200.0
+      }
+    },
+    "transmission": {
+      "$ref": "#/$defs/Transmission",
+      "default": {
+        "enabled": false,
+        "rate_mm_h": 25.0,
+        "max_depth_mm": null,
+        "min_depth_m": 0.1,
+        "water_share": 0.5,
+        "area": null
       }
     },
     "boundaries": {

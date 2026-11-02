@@ -42,6 +42,8 @@ def save_checkpoint(path: str | Path, model, monitor, job_hash: str) -> Path:
         for n, s in enumerate(monitor.series + monitor.line_series):
             for key, values in s.columns.items():
                 f.create_dataset(f"series/{n}/{key}", data=np.asarray(values, np.float64))
+        for part in monitor.parts:
+            part.save(f)
     tmp.replace(out)
     return out
 
@@ -75,6 +77,8 @@ def load_checkpoint(path: str | Path, model, monitor) -> None:
         for n, s in enumerate(monitor.series + monitor.line_series):
             for key in s.columns:
                 s.columns[key] = list(f[f"series/{n}/{key}"][()])
+        for part in monitor.parts:
+            part.load(f)
     wet = model._tile_wet(model.field("h"))
     model.backend.wet[:] = wet
     model.stepper.rebuild_active()
