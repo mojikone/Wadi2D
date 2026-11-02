@@ -9,11 +9,19 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from qgis.core import Qgis, QgsMessageLog
+from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.gui import QgsDockWidget
-from qgis.PyQt.QtCore import QUrl
+from qgis.PyQt.QtCore import Qt, QUrl
 from qgis.PyQt.QtGui import QDesktopServices
-from qgis.PyQt.QtWidgets import QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from qgis.PyQt.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
 
 from . import settings
 from .engine_process import EngineQuery, EngineRun
@@ -29,6 +37,7 @@ from .job_builder import (
     write_job,
 )
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker
+from .map_sheets import build_book, export_pdf, sheets_file
 from .progress import run_is_live
 from .protocol import (
     EXIT_STOPPED,
@@ -39,6 +48,7 @@ from .protocol import (
     parse_estimate,
     run_args,
 )
+from .result_layers import has_products, load_products
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
 from .sections.points import PointsSection
@@ -64,6 +74,7 @@ class Wadi2DDock(QgsDockWidget):
         self._query: EngineQuery | None = None
         self._schema_query: EngineQuery | None = None
         self._scratch: str | None = None
+        self._book = None
 
         self.terrain = TerrainSection(iface.mapCanvas())
         self.hydrology = HydrologySection()
@@ -97,6 +108,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.run_button.clicked.connect(self.start_run)
         self.panel.stop_button.clicked.connect(self.stop_run)
         self.panel.open_button.clicked.connect(self.open_results)
+        self.panel.map_button.clicked.connect(self.make_map)
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
 
@@ -273,7 +285,11 @@ class Wadi2DDock(QgsDockWidget):
         run.ended.connect(self._ended)
 
     def _folder_chosen(self, folder: str) -> None:
-        self.attach_if_live(folder)
+        if self.attach_if_live(folder) or self.run is not None:
+            return
+        if folder and has_products(folder):  # a finished run: its sheets can be made at any time
+            self.results_dir = Path(folder)
+            self.panel.map_button.setEnabled(True)
 
     def _updated(self, state) -> None:
         self.panel.show_state(state)
@@ -297,8 +313,12 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.show_state(state)
         self.live.clear()
         self.results_dir = run.out_dir
-        loaded = load_maps(run.out_dir, run.out_dir.name)
+        products = has_products(run.out_dir)
+        loaded = load_maps(run.out_dir, run.out_dir.name, tucked=products)
+        if products:
+            load_products(run.out_dir, run.out_dir.name)
         self.panel.open_button.setVisible(bool(loaded))
+        self.panel.map_button.setEnabled(products)
         if state.succeeded:
             self.panel.bar.setValue(100)
         calm = state.succeeded and not state.warnings
@@ -316,6 +336,41 @@ class Wadi2DDock(QgsDockWidget):
     def open_results(self) -> None:
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.results_dir)))
 
+    # The map sheets. QGIS's layout export belongs to the main thread, so this waits; a sheet takes seconds.
+
+    def make_map(self) -> None:
+        if self.results_dir is None:
+            return
+        self.panel.say("Making the map...")
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+        try:
+            self._drop_book()
+            self._book = build_book(
+                self.results_dir, self.panel.map_title.text(), self.panel.background.currentData()
+            )
+            path = export_pdf(self._book, sheets_file(self.results_dir))
+            self._book.layout.setName(f"Wadi2D {self.results_dir.name}")
+            QgsProject.instance().layoutManager().addLayout(self._book.layout)
+        except (OSError, ValueError, RuntimeError, KeyError) as problem:
+            self.panel.say(f"The map could not be made: {problem}", "bad")
+        else:
+            self.panel.say(f"Map written: {path}", "good")
+        finally:
+            QApplication.restoreOverrideCursor()
+
+    def _drop_book(self) -> None:
+        """The last sheets and the layers that only they use; layouts of the same name go too."""
+        if self._book is None:
+            return
+        project = QgsProject.instance()
+        manager = project.layoutManager()
+        for layout in manager.printLayouts():
+            if layout is self._book.layout or layout.name() == self._book.layout.name():
+                manager.removeLayout(layout)
+        project.removeMapLayers([layer.id() for layer in self._book.layers])
+        self._book = None
+
     def release(self) -> None:
         """Leave a running engine alone: QGIS is closing or the plugin is being reloaded."""
         if self.run is not None:
@@ -323,3 +378,4 @@ class Wadi2DDock(QgsDockWidget):
             self.run = None
         self.live.clear()
         self._clear_last_run()
+        self._drop_book()

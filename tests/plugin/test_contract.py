@@ -25,6 +25,8 @@ PATHS = (
     job_builder.BOUNDARY_STAGE,
     job_builder.BOUNDARY_SLOPE,
     job_builder.SPILLWAY_C,
+    job_builder.MAP_EVERY,
+    job_builder.PIXELS_ON,
 )
 
 
@@ -134,3 +136,18 @@ def test_the_block_2_project_goes_through_the_real_import_into_a_valid_job(
     assert parsed.hydrology.subbasins[0].outlet is not None
     assert parsed.hydrology.curve_number == 80.0
     assert parsed.terrain.manning == 0.04
+
+
+def test_the_map_interval_and_the_pixel_switch_reach_a_valid_job(tmp_path: Path, real: SchemaView) -> None:
+    values = full_values(tmp_path, map_every_s=300.0, pixels=False)
+    job = build_job(values, tmp_path / "run")
+    assert job["outputs"]["map_every_s"] == 300.0
+    assert job["outputs"]["pixels"]["enabled"] is False
+    config.RunConfig.model_validate(job)
+    assert real.default(job_builder.MAP_EVERY) == 900.0
+    assert real.default(job_builder.PIXELS_ON) is True
+
+
+def test_pixel_maps_stay_on_unless_switched_off(tmp_path: Path) -> None:
+    job = build_job(full_values(tmp_path, pixels=True), tmp_path / "run")
+    assert "pixels" not in job["outputs"]

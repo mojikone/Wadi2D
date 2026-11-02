@@ -16,6 +16,22 @@ LIVE_DEPTH = "live/depth.tif"
 LIVE_LATEST = "live/latest.json"
 MAPS_DIR = "maps"
 INPUTS_DIR = "inputs"
+CONFIG_FILE = "config.resolved.json"
+PIXEL_DIR = "pixels"
+PIXEL_STATS = "pixels.json"
+PIXEL_DEPTH = "pixel_depth.tif"
+PIXEL_HAZARD = "pixel_hazard.tif"
+PIXEL_SPEED = "pixel_speed.tif"
+PIXEL_DV = "pixel_dv.tif"
+DEPTH_DRAWING = "depth_drawing.tif"
+LAYERS_FILE = "map_layers.gpkg"
+HAZARD_LAYER = "hazard_classes"
+DOMAIN_LAYER = "domain"
+SUBBASIN_LAYER = "subbasins"
+INFLOW_LAYER = "inflows"
+BOUNDARY_LAYER = "boundaries"
+LINE_LAYER = "design_lines"
+REACH_LAYER = "reaches"
 CACHE_DIR = "wadi2d_cache"  # beside the run folders: the tables are the one expensive artefact
 RUN_FILE = "plugin_run.json"  # written by the plugin: lets a later QGIS session find and stop the process
 STDOUT_FILE = "engine.out"
@@ -188,7 +204,10 @@ def estimate_text(estimate: dict) -> str:
         time_text = "1 s"
     if seconds >= 5400:
         time_text = f"{seconds / 3600:.1f} h"
-    return f"{estimate['cells']:,} cells, {estimate['device_gb']:.2f} GB, about {time_text}"
+    words = f"{estimate['cells']:,} cells, {estimate['device_gb']:.2f} GB, about {time_text}"
+    if estimate.get("maps"):
+        return f"{words}. {estimate['maps']} saved maps, at most {estimate['maps_gb']:.1f} GB of disk"
+    return words
 
 
 def engine_error_text(stderr: str) -> str:

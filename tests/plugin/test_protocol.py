@@ -149,3 +149,8 @@ def test_the_default_engine_comes_from_the_installer_not_from_this_machine(tmp_p
     (tmp_path / ENGINE_FILE).write_text('"C:/x y/python.exe" -m wadi2d.engine.cli\n', encoding="utf-8")
     assert default_engine(tmp_path) == '"C:/x y/python.exe" -m wadi2d.engine.cli'
     assert "Mojtaba" not in FALLBACK_ENGINE
+
+
+def test_estimate_says_the_disk_of_the_saved_maps() -> None:
+    estimate = {"cells": 100, "device_gb": 0.5, "wall_s": 60.0, "maps": 193, "maps_gb": 3.84}
+    assert estimate_text(estimate).endswith("193 saved maps, at most 3.8 GB of disk")
