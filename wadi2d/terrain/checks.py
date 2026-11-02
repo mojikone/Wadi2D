@@ -109,6 +109,20 @@ def check_resolution(shape: Shape, ground: Sampler, dx: float, pixel: float, cfg
     return notes
 
 
+def check_crest(shape: Shape, dx: float, cfg: Terrain) -> list[str]:
+    """A crest wider than its weir limit holds: overtopping then depends on where the line falls in the cell."""
+    if not shape.fills:
+        return []
+    widest = float(shape.profile.crest.max()) * (1.0 if shape.cuts else 2.0)
+    if widest / dx <= cfg.crest_accurate_ratio:
+        return []
+    return [
+        f"{shape.title}: a crest {widest:g} m wide on {dx:g} m cells is over {cfg.crest_accurate_ratio:g} of a cell: "
+        "overtopping can read up to 13 % low or 8 % high, depending on where the line falls in the cell. "
+        "Check any design discharge over this crest with a weir calculation."
+    ]
+
+
 def check_openings(shape: Shape, dx: float) -> list[str]:
     notes = []
     for opening in shape.obj.openings:
@@ -189,6 +203,7 @@ def terrain_notes(
         notes += check_bed(shape, ground, dx, cfg)
         notes += check_steps(shape, cfg)
         notes += check_resolution(shape, ground, dx, pixel, cfg)
+        notes += check_crest(shape, dx, cfg)
         notes += check_openings(shape, dx)
         notes += check_ends(shape, ground, _barrier_lines(objects, obj), dx, cfg)
     return notes

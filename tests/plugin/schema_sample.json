@@ -1617,6 +1617,14 @@
           "title": "Crest Eased Coefficient",
           "type": "number"
         },
+        "crest_accurate_ratio": {
+          "default": 0.5,
+          "description": "Crest over cell size past which overtopping draws a warning",
+          "maximum": 8.0,
+          "minimum": 0.0,
+          "title": "Crest Accurate Ratio",
+          "type": "number"
+        },
         "volume_step": {
           "default": 50.0,
           "description": "Stations between rows of the cut and fill table, m",
@@ -1953,6 +1961,7 @@
         "crest_eased_ratio": 1.5,
         "crest_resolved_ratio": 2.0,
         "crest_eased_coefficient": 2.0,
+        "crest_accurate_ratio": 0.5,
         "volume_step": 50.0,
         "preview_sections": 11,
         "preview_points": 101,

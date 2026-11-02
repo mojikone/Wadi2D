@@ -141,8 +141,14 @@ class TerrainObject(_Part):
     lining_n: float | None = Field(
         None, ge=0.008, le=0.5, description="Manning n of the pixels on the channel section, s/m^(1/3)"
     )
-    start_end: EndKind = Field("open", description="Station 0: open stops the cut square, closed wraps the section round the end, taper fades it to the ground")
-    end_end: EndKind = Field("open", description="Last station: open stops the cut square, closed wraps the section round the end, taper fades it to the ground")
+    start_end: EndKind = Field(
+        "open",
+        description="Station 0: open stops the cut square, closed wraps the section round the end, taper fades it to the ground",
+    )
+    end_end: EndKind = Field(
+        "open",
+        description="Last station: open stops the cut square, closed wraps the section round the end, taper fades it to the ground",
+    )
     taper_length: float = Field(30.0, gt=0.0, le=2000.0, description="Length of a tapered end, m")
 
     @model_validator(mode="after")
@@ -177,7 +183,9 @@ class TerrainObject(_Part):
         if self.kind == "embankment" and not (profile or top):
             raise ValueError("an embankment needs a crest: z, z_constant or section.crest_z")
         if self.kind != "embankment" and not (profile or bed):
-            raise ValueError(f"{self.kind} needs a bed: z, z_constant, section.bed_z, or bed_start_z with bed_slope")
+            raise ValueError(
+                f"{self.kind} needs a bed: z, z_constant, section.bed_z, or bed_start_z with bed_slope"
+            )
         if self.kind == "channel_dyke" and not (top or designed):
             raise ValueError("channel_dyke needs a top: crest_z, both tops, or freeboard with water_depth")
 
@@ -210,10 +218,16 @@ class Terrain(_Part):
         1.5, ge=0.0, le=8.0, description="Crest over cell size at which the weir limit has eased fully"
     )
     crest_resolved_ratio: float = Field(
-        2.0, ge=0.0, le=16.0, description="Crest over cell size from which the cells resolve it: no weir limit"
+        2.0,
+        ge=0.0,
+        le=16.0,
+        description="Crest over cell size from which the cells resolve it: no weir limit",
     )
     crest_eased_coefficient: float = Field(
         2.0, ge=1.0, le=4.0, description="Weir limit at crest_eased_ratio, on the energy head, m^0.5/s"
+    )
+    crest_accurate_ratio: float = Field(
+        0.5, ge=0.0, le=8.0, description="Crest over cell size past which overtopping draws a warning"
     )
     volume_step: float = Field(
         50.0, gt=0.0, le=10000.0, description="Stations between rows of the cut and fill table, m"
@@ -230,13 +244,19 @@ class Terrain(_Part):
         0.5, ge=0.0, le=10.0, description="Bed or top changing faster than this is a step, m per m of station"
     )
     check_cells: float = Field(
-        3.0, ge=0.0, le=64.0, description="A channel narrower than this between its banks draws a warning, cells"
+        3.0,
+        ge=0.0,
+        le=64.0,
+        description="A channel narrower than this between its banks draws a warning, cells",
     )
     check_pixels: float = Field(
         2.0, ge=0.0, le=64.0, description="A width below this cannot be seen in the DEM, pixels"
     )
     check_tie_height: float = Field(
-        0.3, ge=0.0, le=20.0, description="A section ending this far off the ground has nothing to tie into, m"
+        0.3,
+        ge=0.0,
+        le=20.0,
+        description="A section ending this far off the ground has nothing to tie into, m",
     )
     objects: list[TerrainObject] = []
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")

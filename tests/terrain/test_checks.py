@@ -153,3 +153,10 @@ def test_ground_above_the_top_needs_no_dyke_warning():
         [obj("embankment", SOUTH, z_constant=103.0, section={"width": 4.0})], ArrayBed(z, 1.0)
     )
     assert np.isfinite(grid.dx)
+
+
+def test_a_crest_too_wide_for_its_weir_limit():
+    section = {"width": 5.0, "left_slope": 2.0, "right_slope": 2.0}
+    dyke = obj("embankment", SOUTH, name="D", z_constant=102.0, section=section)
+    assert "D: a crest 5 m wide on 10 m cells" not in said([dyke])
+    assert "D: a crest 5 m wide on 8 m cells is over 0.5 of a cell" in said([dyke], dx=8.0)
