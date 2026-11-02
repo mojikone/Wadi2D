@@ -59,7 +59,21 @@ def test_a_wheel_that_drops_a_kernel_is_caught(tmp_path: Path) -> None:
 
 def test_pins_keep_plain_versions_only() -> None:
     freeze = "numpy==2.4.6\n-e git+https://x/y#egg=z\nfoo @ file:///C:/a/b\nwadi2d==0.1.0\nWadi2D-x==1\n"
-    assert build_release.pinned_versions(freeze) == "numpy==2.4.6\nWadi2D-x==1\n"
+    assert build_release.pinned_versions(freeze, {"numpy", "wadi2d-x"}) == "numpy==2.4.6\nWadi2D-x==1\n"
+
+
+def test_pins_leave_out_what_the_engine_never_loads() -> None:
+    assert build_release.pinned_versions("numpy==2.4.6\npytest==9.0\n", {"numpy"}) == "numpy==2.4.6\n"
+
+
+def test_the_runtime_follows_dependencies_and_extras_down() -> None:
+    found = build_release.runtime_packages(REPO)
+    assert {"numpy", "rasterio", "cupy-cuda12x", "whitebox", "fiona", "affine"} <= found
+    assert "pytest" not in found
+
+
+def test_the_bat_passes_on_what_the_installer_returned() -> None:
+    assert "exit /b %WADI2D_EXIT%" in (REPO / build_release.TEMPLATES / "install_wadi2d.bat").read_text("utf-8")
 
 
 def test_windows_text_never_doubles_a_carriage_return(tmp_path: Path) -> None:

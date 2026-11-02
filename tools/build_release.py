@@ -11,14 +11,20 @@ and the double-click installer. Only committed files go in, so nothing local or 
 from __future__ import annotations
 
 import configparser
+import contextlib
 import io
 import re
 import subprocess
 import sys
 import tarfile
 import tempfile
+import tomllib
 import zipfile
+from importlib import metadata
 from pathlib import Path
+
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
 
 REPO = Path(__file__).resolve().parent.parent
 PLUGIN = "wadi2d_qgis"
@@ -26,7 +32,8 @@ PACKAGE = "wadi2d"
 TEMPLATES = Path("tools") / "release"
 INSTALLER_FILES = ("install_wadi2d.bat", "install_wadi2d.ps1", "README.txt")
 CONSTRAINTS = "constraints.txt"
-PINNED = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*==\S+$")
+EXTRAS = ("gpu", "mesh", "vector")  # what the installer asks for
+PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)==\S+$")
 LEFT_OUT = ("__pycache__", ".pyc", "engine.txt")
 
 
@@ -77,10 +84,29 @@ def plugin_zip(tree: Path, destination: Path) -> Path:
     return destination
 
 
-def pinned_versions(freeze: str) -> str:
-    """Name==version lines of a pip freeze, without the engine: what a new install is held to."""
-    keep = (s.strip() for s in freeze.splitlines())
-    return "\n".join(s for s in keep if PINNED.match(s) and not s.lower().startswith(f"{PACKAGE}==")) + "\n"
+def runtime_packages(tree: Path) -> set[str]:
+    """Every package a release can load: the engine's dependencies and extras, followed down through what is installed."""
+    project = tomllib.loads((tree / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    wanted = list(project["dependencies"])
+    for extra in EXTRAS:
+        wanted += project["optional-dependencies"][extra]
+    found: set[str] = set()
+    while wanted:
+        requirement = Requirement(wanted.pop())
+        name = canonicalize_name(requirement.name)
+        if name in found or (requirement.marker and not requirement.marker.evaluate({"extra": ""})):
+            continue
+        found.add(name)
+        with contextlib.suppress(metadata.PackageNotFoundError):
+            wanted += metadata.requires(name) or []
+    return found
+
+
+def pinned_versions(freeze: str, packages: set[str]) -> str:
+    """The name==version lines of a pip freeze for these packages: what a new install is held to."""
+    lines = (s.strip() for s in freeze.splitlines())
+    matches = ((s, PINNED.match(s)) for s in lines)
+    return "\n".join(s for s, m in matches if m and canonicalize_name(m.group(1)) in packages) + "\n"
 
 
 def windows_text(path: Path) -> bytes:
@@ -109,7 +135,7 @@ def main() -> int:
                 archive.write(path, f"{name}/{path.name}")
             for file in INSTALLER_FILES:
                 archive.writestr(f"{name}/{file}", windows_text(tree / TEMPLATES / file))
-            archive.writestr(f"{name}/{CONSTRAINTS}", pinned_versions(freeze))
+            archive.writestr(f"{name}/{CONSTRAINTS}", pinned_versions(freeze, runtime_packages(tree)))
             archive.write(tree / "LICENSE", f"{name}/LICENSE.txt")
             archive.write(tree / "LICENSES.md", f"{name}/LICENSES.md")
             archive.writestr(f"{name}/BUILD.txt", f"Wadi2D {version}, commit {commit}\n")

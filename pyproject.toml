@@ -41,7 +41,7 @@ gpu = [
 vector = ["fiona>=1.9"]
 # the mesher's streams: breach and D8 accumulation through WhiteboxTools. Only a job with mesh.enabled needs it.
 mesh = ["whitebox>=2.3"]
-dev = ["pytest>=8", "pytest-cov", "ruff>=0.5", "mypy>=1.10", "black>=24"]
+dev = ["packaging", "pytest>=8", "pytest-cov", "ruff>=0.5", "mypy>=1.10", "black>=24"]
 
 [project.scripts]
 wadi2d = "wadi2d.engine.cli:main"
