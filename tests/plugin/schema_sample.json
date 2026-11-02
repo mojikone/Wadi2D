@@ -1799,7 +1799,9 @@
           "enum": [
             "none",
             "uniform",
-            "hypothetical"
+            "hypothetical",
+            "hyetograph",
+            "gridded"
           ],
           "title": "Kind",
           "type": "string"
@@ -1889,6 +1891,113 @@
             }
           ],
           "default": null
+        },
+        "hyetograph_min": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "End of each period, minutes from the start",
+          "title": "Hyetograph Min"
+        },
+        "hyetograph_mm": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Depth in each period, mm",
+          "title": "Hyetograph Mm"
+        },
+        "rain_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "NetCDF file, DSS file, or folder of one GeoTIFF per period",
+          "title": "Rain File"
+        },
+        "rain_variable": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "NetCDF variable, or B/C/F of a DSS pathname; None takes the only one there is",
+          "title": "Rain Variable"
+        },
+        "rain_units": {
+          "default": "auto",
+          "description": "What the rain values are; auto reads the file, and a GeoTIFF has no units so it is mm",
+          "enum": [
+            "auto",
+            "mm",
+            "mm/h",
+            "m"
+          ],
+          "title": "Rain Units",
+          "type": "string"
+        },
+        "rain_interval_min": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Length of a period, for a file that does not say; a GeoTIFF folder always needs it",
+          "title": "Rain Interval Min"
+        },
+        "rain_stamp": {
+          "default": "end",
+          "description": "Whether a time with no bounds closes its period or opens it",
+          "enum": [
+            "end",
+            "start"
+          ],
+          "title": "Rain Stamp",
+          "type": "string"
+        },
+        "rain_start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date and time the run starts at; None takes the start of the first period",
+          "title": "Rain Start"
         }
       },
       "title": "Storm",
@@ -2511,7 +2620,15 @@
         "time_percent": null,
         "depth_percent": null,
         "storm_area_km2": null,
-        "arf": null
+        "arf": null,
+        "hyetograph_min": null,
+        "hyetograph_mm": null,
+        "rain_file": null,
+        "rain_variable": null,
+        "rain_units": "auto",
+        "rain_interval_min": null,
+        "rain_stamp": "end",
+        "rain_start": null
       }
     },
     "hydrology": {

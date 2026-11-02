@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""5. Boundaries: one line layer holds them all. A table gives each line its kind and value, with no fields in the layer.
+"""6. Boundaries: one line layer holds them all. A table gives each line its kind and value, with no fields in the layer.
 
 A layer with fields "kind" and "value" fills the table by itself. Kind and Value set every line the table has not pinned.
 """
@@ -34,7 +34,7 @@ SHOWN_ROWS = 6
 
 
 class BoundariesSection(Section):
-    heading = "5. Boundaries"
+    heading = "6. Boundaries"
     start_collapsed = True
 
     def build(self) -> None:

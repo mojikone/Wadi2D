@@ -20,6 +20,7 @@ from pathlib import Path
 EXIT_OK = 0
 EXIT_HMS = 2
 EXIT_FRAMES = 3
+EXIT_RAIN = 4
 """An HMS project that cannot become a job is an invalid job."""
 PACKAGES = ("numpy", "numba", "rasterio", "h5py", "shapely", "pydantic", "hecdss", "cupy")
 NVIDIA_QUERY = ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"]
@@ -150,6 +151,17 @@ def _frames(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _rain(args: argparse.Namespace) -> int:
+    from wadi2d.engine.rain_info import rain_info
+
+    try:
+        print(json.dumps(rain_info(args.source, args.variable, args.units, args.interval_min, args.stamp, args.start)))
+    except (ValueError, KeyError, OSError, NotImplementedError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_RAIN, "message": str(error)}), file=sys.stderr)
+        return EXIT_RAIN
+    return EXIT_OK
+
+
 def _terrain(args: argparse.Namespace) -> int:
     from wadi2d.engine.terrain_preview import preview_terrain
     from wadi2d.run import EXIT_INVALID, JobError
@@ -211,6 +223,15 @@ def parser() -> argparse.ArgumentParser:
     frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
     frames.add_argument("run", metavar="RUN_DIR")
     frames.set_defaults(call=_frames)
+
+    rain = sub.add_parser("rain", help="what a rain file holds, as JSON")
+    rain.add_argument("source")
+    rain.add_argument("--variable", default=None)
+    rain.add_argument("--units", default="auto")
+    rain.add_argument("--interval-min", type=float, default=None)
+    rain.add_argument("--stamp", default="end")
+    rain.add_argument("--start", default=None)
+    rain.set_defaults(call=_rain)
 
     terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
     terrain.add_argument("job")

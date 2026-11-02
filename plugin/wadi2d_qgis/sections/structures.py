@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""4. Structures: line layers for crests, walls, spillways, burn lines, embankments and channels, each with its fields."""
+"""5. Structures: line layers for crests, walls, spillways, burn lines, embankments and channels, each with its fields."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ RELATED = {
 
 
 class StructuresSection(Section):
-    heading = "4. Structures (optional)"
+    heading = "5. Structures (optional)"
     start_collapsed = True
 
     def build(self) -> None:

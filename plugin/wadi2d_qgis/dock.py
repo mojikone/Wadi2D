@@ -60,8 +60,10 @@ from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
 from .sections.run import RunSection
+from .sections.storm import StormSection
 from .sections.structures import StructuresSection
 from .sections.terrain import TerrainSection
+from .storm_rows import rain_args, rain_reply
 from .time_layer import has_results, load_frames
 
 LOG_TAG = "Wadi2D"
@@ -87,6 +89,7 @@ class Wadi2DDock(QgsDockWidget):
         self._crs = ""
         self._query: EngineQuery | None = None
         self._schema_query: EngineQuery | None = None
+        self._rain_query: EngineQuery | None = None
         self._scratch: str | None = None
         self._mesh_layer: str | None = None
         self._mesh_folder: str | None = None
@@ -96,12 +99,15 @@ class Wadi2DDock(QgsDockWidget):
         self.terrain = TerrainSection(iface.mapCanvas())
         self.mesh = MeshSection()
         self.hydrology = HydrologySection()
+        self.storm = StormSection()
+        self.hydrology.rain, self.hydrology.hours = self.storm.rain, self.storm.hours  # older dock checks reach them here
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
         self.panel = RunSection()
         self.sections = (
-            self.terrain, self.mesh, self.hydrology, self.structures, self.boundaries, self.points, self.panel,
+            self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
+            self.panel,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -122,6 +128,8 @@ class Wadi2DDock(QgsDockWidget):
         self.setWidget(scroll)
 
         self.engine_button.clicked.connect(self.open_settings)
+        self.hydrology.hms_changed.connect(self.storm.hms_changed)
+        self.storm.rain_file_changed.connect(self.read_rain_file)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.panel.run_button.clicked.connect(self.start_run)
@@ -173,6 +181,23 @@ class Wadi2DDock(QgsDockWidget):
         dialog = settings.EngineDialog(self)
         if dialog.exec_():
             self.load_engine()
+
+    # What a rain file holds, from the engine: QGIS does not load a second HDF5 library.
+
+    def read_rain_file(self) -> None:
+        if self._rain_query is not None:
+            self._rain_query.done.disconnect(self._rain_read)  # an older answer must not overwrite this one
+        self._rain_query = EngineQuery(settings.engine_text(), self)
+        self._rain_query.done.connect(self._rain_read)
+        self._rain_query.start(rain_args(self.storm.grid_values()))
+
+    def _rain_read(self, code: int, out: str, err: str) -> None:
+        try:
+            if code != 0:
+                raise ValueError(engine_error_text(err))
+            self.storm.show_rain(rain_reply(out))
+        except ValueError as problem:
+            self.storm.show_rain_problem(f"The rain file could not be read. {problem}")
 
     # From the widgets to a job.
 

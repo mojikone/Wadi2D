@@ -17,6 +17,7 @@ from pathlib import Path
 
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
+from .storm_rows import storm_job, storm_notes, storm_problems
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -180,15 +181,22 @@ def problems(values: dict) -> list[str]:
     if not values.get("output"):
         found.append("Choose an output folder.")
     hms = values.get("hms")
-    rain = values.get("rain_mm_h", 0.0)
-    if not hms and rain <= 0.0:
-        found.append("Set the rain, or choose an HMS project.")
-    if not hms and rain > 0.0 and values.get("rain_hours", 0.0) <= 0.0:
-        found.append("Set how many hours the rain lasts.")
+    found.extend(_rain_problems(values))
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
     found.extend(_structure_problems(values.get("structures", {})))
     return found + _mesh_problems(values)
+
+
+def _rain_problems(values: dict) -> list[str]:
+    if values.get("storm"):
+        return storm_problems(values["storm"])
+    if values.get("hms"):
+        return []
+    rain = values.get("rain_mm_h", 0.0)
+    if rain <= 0.0:
+        return ["Set the rain, or choose an HMS project."]
+    return [] if values.get("rain_hours", 0.0) > 0.0 else ["Set how many hours the rain lasts."]
 
 
 def _structure_problems(structures: dict) -> list[str]:
@@ -244,6 +252,8 @@ def notes(values: dict) -> list[str]:
         found.append("No boundary set: every edge is a wall, so water cannot leave the domain.")
     if not values.get("hms") and values.get("rain_hours", 0.0) > values.get("duration_h", 0.0):
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
+    if values.get("storm"):
+        found.extend(storm_notes(values["storm"], values.get("duration_h", 0.0)))
     if values.get("hms") and not values.get("curve_number") and not values.get("cn_raster"):
         found.append(
             "No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses."
@@ -342,7 +352,9 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             job["terrain"][key] = str(Path(values[key]).resolve())
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
-    if not values.get("hms"):
+    if values.get("storm"):
+        job["storm"] = storm_job(values["storm"])
+    elif not values.get("hms"):
         hours = values["rain_hours"]
         job["storm"] = {
             "kind": "uniform",
@@ -418,11 +430,12 @@ def hms_import_args(hms: dict, out_file: Path | str) -> list[str]:
 def merge_hms(job: dict, imported: dict, hms: dict) -> dict:
     """The hydrology and storm of an imported HMS project, inside the job the dock built.
 
-    The import owns the storm, the network and the simulated time. The dock owns the mode of each subbasin.
+    The import owns the network and the simulated time, and the storm unless the dock's Storm section replaced it.
+    The dock owns the mode of each subbasin.
     """
     merged = {**job}
     for key in ("storm", "arf"):
-        if key in imported:
+        if key in imported and key not in job:
             merged[key] = imported[key]
     if "duration_s" in imported.get("run", {}):
         merged["run"] = {**job["run"], "duration_s": imported["run"]["duration_s"]}

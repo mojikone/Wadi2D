@@ -564,6 +564,10 @@ class Outputs(_Part):
     lines: list[DesignLine] = []
 
 
+OBSERVED_STORMS = ("hyetograph", "gridded")
+"""Rain given as it falls: no area reduction applies."""
+
+
 class ArfTableConfig(_Part):
     """An area-reduction table, read linearly in area."""
 
@@ -583,7 +587,7 @@ class ArfTableConfig(_Part):
 class Storm(_Part):
     """Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``."""
 
-    kind: Literal["none", "uniform", "hypothetical"] = "none"
+    kind: Literal["none", "uniform", "hypothetical", "hyetograph", "gridded"] = "none"
     depth_mm: float = Field(0.0, ge=0.0, le=5000.0, description="Point depth, mm")
     depth_grid: str | None = Field(
         None, description="Raster of depths in mm, replacing depth_mm; each 2D cell takes its own value"
@@ -593,12 +597,45 @@ class Storm(_Part):
     depth_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of depth")
     storm_area_km2: float | None = Field(None, gt=0.0, description="Area at which the ARF table is read")
     arf: ArfTableConfig | None = None
+    hyetograph_min: list[float] | None = Field(None, description="End of each period, minutes from the start")
+    hyetograph_mm: list[float] | None = Field(None, description="Depth in each period, mm")
+    rain_file: str | None = Field(None, description="NetCDF file, DSS file, or folder of one GeoTIFF per period")
+    rain_variable: str | None = Field(
+        None, description="NetCDF variable, or B/C/F of a DSS pathname; None takes the only one there is"
+    )
+    rain_units: Literal["auto", "mm", "mm/h", "m"] = Field(
+        "auto", description="What the rain values are; auto reads the file, and a GeoTIFF has no units so it is mm"
+    )
+    rain_interval_min: float | None = Field(
+        None, gt=0.0, description="Length of a period, for a file that does not say; a GeoTIFF folder always needs it"
+    )
+    rain_stamp: Literal["end", "start"] = Field(
+        "end", description="Whether a time with no bounds closes its period or opens it"
+    )
+    rain_start: str | None = Field(
+        None, description="Date and time the run starts at; None takes the start of the first period"
+    )
 
     @model_validator(mode="after")
     def _pattern(self) -> Storm:
         if self.kind == "hypothetical" and (self.time_percent is None or self.depth_percent is None):
             raise ValueError("a hypothetical storm needs time_percent and depth_percent")
+        if self.kind in OBSERVED_STORMS and (self.arf is not None or self.depth_grid is not None):
+            raise ValueError(f"a {self.kind} storm takes no area reduction and no depth grid: it is the rain itself")
+        if self.kind == "hyetograph":
+            self._check_hyetograph()
+        if self.kind == "gridded" and self.rain_file is None:
+            raise ValueError("a gridded storm needs rain_file")
         return self
+
+    def _check_hyetograph(self) -> None:
+        ends, depths = self.hyetograph_min, self.hyetograph_mm
+        if not ends or not depths or len(ends) != len(depths):
+            raise ValueError("a hyetograph needs hyetograph_min and hyetograph_mm, one depth per period")
+        if ends[0] <= 0.0 or any(b <= a for a, b in itertools.pairwise(ends)):
+            raise ValueError("hyetograph_min must rise from above zero: each value closes a period")
+        if min(depths) < 0.0 or sum(depths) <= 0.0:
+            raise ValueError("hyetograph_mm cannot go below zero and must hold some rain")
 
 
 class Subbasin(_Part):
