@@ -249,6 +249,68 @@ def test_a_smooth_wave_crosses_forced_levels_as_in_the_uniform_run(backend):
     assert float(np.sqrt((diff**2).mean())) < 1.6e-3
 
 
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_a_tile_that_wakes_beside_slow_tiles_keeps_the_levels_graded(backend):
+    """A front reaches dry tiles while tiles behind it have slowed. Edges hold exactly two fine steps per coarse one."""
+    nx, ny, dx = 254, 30, 2.0
+    tg = TileGrid.from_mask(np.ones((ny, nx), bool), 0.0, 0.0, dx)
+    z = np.zeros((tg.shape[0] + 2, tg.shape[1] + 2))
+    num = Numerics(lts_wave_floor=0.5, lts_buffer=0.5, h_cfl=1e-3, **LEVELS)
+    m = Model(build_tables(tg, ArrayBed(z, dx), Tables(), 0.03), num, backend)
+    h = np.zeros(tg.shape)
+    h[:, 8:30] = 2.0
+    h[:, 30:60] = 0.03
+    m.set_depth(h * tg.mask)
+    v0 = _total(m)
+    st = m.stepper
+    worst = [0]
+    woke = [int(st.backend.nact)]
+
+    def watch(s):
+        woke[0] = max(woke[0], int(s.backend.nact))
+        p = s.plan
+        if p is None:
+            s._set_plan()
+            p = s.plan
+        active = np.asarray(s.backend.active_tiles)
+        on = np.zeros(s.level.size, bool)
+        on[active] = True
+        for side in range(4):
+            other = s.same[active, side]
+            keep = on[other]
+            gap = np.abs(s.level[other[keep]] - s.level[active[keep]])
+            worst[0] = max(worst[0], int(gap.max()) if gap.size else 0)
+
+    start = int(st.backend.nact)
+    m.advance(120.0, watch)
+    assert woke[0] > start
+    assert worst[0] <= 1
+    assert abs(_total(m) / v0 - 1.0) < 1e-6
+
+
+def test_a_plan_grades_a_tile_that_woke_at_level_zero_among_slow_ones():
+    """Edges hold exactly two fine steps per coarse one; a gap of two would overwrite a live estimate and lose water."""
+    m, tg = _rough_model("cpu")
+    m.set_depth(np.where(tg.mask, 1.0, 0.0))
+    st = m.stepper
+    st.level = np.full(tg.ntiles, 2, np.int32)
+    st.level[0] = 0
+    st.level[1] = 0
+    st.plan = None
+    st._set_plan()
+    for side in range(4):
+        other = st.same[1:, side]
+        keep = other > 0
+        assert np.abs(st.level[other[keep]] - st.level[1:][keep]).max() <= 1
+
+
+def test_the_first_cycle_keeps_to_the_largest_step():
+    m, tg = _rough_model("cpu", Numerics(dt_max=0.05, **LEVELS))
+    m.set_depth(np.where(tg.mask, 1.0, 0.0))
+    m.advance(0.2)
+    assert m.stepper.nsteps >= 4
+
+
 @pytest.mark.gpu
 def test_cpu_gpu_parity_across_forced_levels():
     out = {}

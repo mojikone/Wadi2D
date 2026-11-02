@@ -60,6 +60,7 @@ def main() -> None:
         run("main", base, extra)
         run("branch", str(ROOT), extra)
         run("levels", str(ROOT), [*extra, *lts])
+        run("levels_half", str(ROOT), [*extra, *lts, "numerics.lts_buffer=0.5"])
 
 
 if __name__ == "__main__":

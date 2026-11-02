@@ -72,12 +72,12 @@ def assign_levels(
     level = np.zeros(n, np.int32)
     level[active] = best
     level[pinned] = 0
-    level = _graded(level, active, nbr, interfaces)
+    level = graded(level, active, nbr, interfaces)
     dt0 = float((want[active] / (1 << level[active])).min()) if active.size else rule.dt_max
     return level, dt0
 
 
-def _graded(
+def graded(
     level: np.ndarray, active: np.ndarray, nbr: np.ndarray, interfaces: np.ndarray | None = None
 ) -> np.ndarray:
     """Lower levels until neighbours differ by at most one; inactive neighbours do not count.

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from wadi2d.solver.levels import SIDES, LevelRule, Plan, assign_levels, plan_cycle
+from wadi2d.solver.levels import SIDES, LevelRule, Plan, assign_levels, graded, plan_cycle
 from wadi2d.solver.stepper import NumericalFailure, Stepper
 
 
@@ -71,6 +71,7 @@ class LevelStepper(Stepper):
 
     def _set_plan(self) -> None:
         active = np.asarray(self.backend.active_tiles)
+        self.level = graded(self.level, active, self.grid.nbr, self.interfaces)
         p = plan_cycle(self.level, active, self.same, self.size, self.interfaces)
         self.plan = p
         to = self.ops.lists
@@ -174,7 +175,7 @@ class LevelStepper(Stepper):
             span = 1 << self.plan.top
             first = not self.fresh_wave
             cycle = 1 if first else span * ((max(num.dt_every, span) + span - 1) // span)
-            dt0 = min(self.dt, (t_end - self.t) / cycle)
+            dt0 = min(self.dt, num.dt_max, (t_end - self.t) / cycle)
             self.since_active += cycle
             wet_due = self.since_active >= num.active_every
             for n in range(cycle):
