@@ -65,7 +65,10 @@ def test_the_title_and_the_message_say_what_was_found():
 
 
 def test_every_kind_the_engine_writes_has_a_colour_and_the_file_name_is_the_engines():
+    from wadi2d_qgis.mesh_rows import LINE_FIELDS
+
     from wadi2d.breaklines import settings as engine
 
     assert {kind for kind, _colour, _legend in KINDS} == {engine.BANK, engine.DAM, engine.OTHER, engine.ROAD}
     assert FILE == engine.FILE
+    assert LINE_FIELDS == engine.LINE_FIELDS

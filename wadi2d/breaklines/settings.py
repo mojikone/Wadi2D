@@ -15,7 +15,10 @@ BANK, ROAD, DAM, OTHER = "stream bank", "road", "dam", "other crest"
 """The ``kind`` of a line: banks of defined wadis; crests by shape, a guess the user corrects."""
 LEFT, RIGHT = "left", "right"
 """Side of a bank, looking downstream."""
+LINE_FIELDS = ("near_dx", "rows", "far_dx")
+"""What the Mesh section's table of refinement lines reads from a layer by itself: the same layer serves it."""
 COLUMNS = {
+    "name": str,
     "kind": str,
     "side": str,
     "height_m": float,
@@ -24,10 +27,14 @@ COLUMNS = {
     "slope": float,
     "score": float,
     "why": str,
+    "near_dx": float,
+    "rows": int,
+    "far_dx": float,
 }
 """``height_m`` is how far a crest stands above its surroundings, or a channel below them; ``slope`` the ground
 under a crest, m/m; ``score`` is height times length, m2, the face of the line above the ground: the lines that
-matter most come first."""
+matter most come first. ``near_dx``, ``rows`` and ``far_dx`` fill the Mesh section's table: the job's cell beside
+the line, the schema's rows, the job's coarsest cell."""
 THALWEG_COLUMNS = {"area_km2": float, "incised_m": float, "length_m": float}
 
 

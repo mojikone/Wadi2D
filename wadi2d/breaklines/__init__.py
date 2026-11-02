@@ -33,7 +33,7 @@ from wadi2d.breaklines.settings import (
 )
 from wadi2d.breaklines.thalweg import Thalweg, thalwegs
 from wadi2d.breaklines.window import Window, flow_fields, read_window
-from wadi2d.config.schema import RunConfig
+from wadi2d.config.schema import RefineLine, RunConfig
 from wadi2d.io.geopackage import LINES, VectorLayer, write_geopackage
 
 TOP_PIXELS = 3
@@ -64,7 +64,9 @@ def _with_z(xy: np.ndarray, z: np.ndarray) -> shapely.LineString:
     return shapely.LineString(np.column_stack((xy[:, 0], xy[:, 1], z)))
 
 
-def _rows(win: Window, banks: list[Bank], crests: list[Crest]) -> tuple[list[tuple], list[shapely.Geometry]]:
+def _rows(
+    win: Window, banks: list[Bank], crests: list[Crest], band: tuple[float, int, float]
+) -> tuple[list[tuple], list[shapely.Geometry]]:
     ground = _filled(win.z)
     ridge = ndimage.maximum_filter(ground, TOP_PIXELS, mode="nearest")
     rows, shapes = [], []
@@ -79,11 +81,28 @@ def _rows(win: Window, banks: list[Bank], crests: list[Crest]) -> tuple[list[tup
                      _why(crest.kind, crest.height_m, length, crest.crossed_km2, "", crest.slope)))  # fmt: skip
         shapes.append(_with_z(crest.xy, win.sample(ridge, crest.xy, order=0)))
     order = sorted(range(len(rows)), key=lambda n: -rows[n][6])
-    return [rows[n] for n in order], [shapes[n] for n in order]
+    counts: dict[str, int] = {}
+    named = []
+    for n in order:
+        kind = rows[n][0]
+        counts[kind] = counts.get(kind, 0) + 1
+        named.append((f"{kind} {counts[kind]}", *rows[n], *band))
+    return named, [shapes[n] for n in order]
 
 
-def layers(win: Window, streams: list[Thalweg], banks: list[Bank], crests: list[Crest]) -> list[VectorLayer]:
-    rows, shapes = _rows(win, banks, crests)
+def band_of(cfg: RunConfig) -> tuple[float, int, float]:
+    """What the Mesh table reads from the layer: the finest cell beside the line, the schema's rows, the coarsest cell."""
+    return cfg.grid.dx, int(RefineLine.model_fields["rows"].default), cfg.mesh.coarse_dx
+
+
+def layers(
+    win: Window,
+    streams: list[Thalweg],
+    banks: list[Bank],
+    crests: list[Crest],
+    band: tuple[float, int, float],
+) -> list[VectorLayer]:
+    rows, shapes = _rows(win, banks, crests, band)
     lines = VectorLayer(LAYER, dict(COLUMNS), rows, shapes, LINES, has_z=True)
     ref = VectorLayer(
         THALWEG_LAYER,
@@ -106,7 +125,7 @@ def suggest(cfg: RunConfig, out: str | Path, settings: Settings = DEFAULTS) -> d
     crests = crests_of(win, streams, cfg.mesh.incision_depth, settings)
     folder = Path(out)
     folder.mkdir(parents=True, exist_ok=True)
-    path = write_geopackage(folder / FILE, layers(win, streams, banks, crests), win.crs)
+    path = write_geopackage(folder / FILE, layers(win, streams, banks, crests, band_of(cfg)), win.crs)
     kinds = {}
     for crest in crests:
         kinds[crest.kind] = kinds.get(crest.kind, 0) + 1

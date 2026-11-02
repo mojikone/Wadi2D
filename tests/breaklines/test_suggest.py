@@ -146,6 +146,18 @@ def test_the_lines_come_scored_and_the_biggest_first(wadi):
     scores = [r["score"] for _g, r in lines]
     assert scores == sorted(scores, reverse=True)
     assert lines[0][1]["kind"] == BANK
+    assert [r["name"] for _g, r in lines] == ["stream bank 1", "stream bank 2", "road 1", "road 2"]
+
+
+def test_the_layer_fills_the_mesh_table_by_itself(wadi):
+    from wadi2d.breaklines.settings import LINE_FIELDS
+    from wadi2d.config.schema import RefineLine
+
+    _summary, lines, _thalwegs = wadi
+    assert set(LINE_FIELDS) <= set(RefineLine.model_fields)
+    for _g, r in lines:
+        assert (r["near_dx"], r["rows"], r["far_dx"]) == (DX, 4, 40.0)
+        RefineLine(coordinates=[(0.0, 0.0), (1.0, 1.0)], **{k: r[k] for k in LINE_FIELDS})
 
 
 def test_a_crest_across_the_wadi_reads_as_a_dam(tmp_path):

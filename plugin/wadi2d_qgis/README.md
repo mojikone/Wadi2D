@@ -44,7 +44,8 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    so no field is needed. **A crest line is not free**: its faces pass at most critical flow and set the time step, so a
    bank line the design flood crosses along its length costs the peak (Bidah: 7 to 15 %, three times the steps, `W26`). Use
    the lines a flood overtops rarely, roads, dams and dykes, and delete the rest. The thalwegs come beneath it as a
-   read-only reference. The file sits beside the run folder. Needs `whitebox`, like the mesh.
+   read-only reference. The layer also carries `near_dx`, `rows` and `far_dx`, so it fills the Refinement lines table as
+   it is. The file sits beside the run folder. Needs `whitebox`, like the mesh.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
    lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
 4. **Storm.** Steady rain, a hyetograph table, a design storm with its pattern and area reduction, or gridded rain from a
