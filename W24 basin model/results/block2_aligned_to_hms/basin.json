@@ -1,0 +1,5129 @@
+{
+ "format": "wadi2d-basin",
+ "format_version": "1.0",
+ "name": "block2",
+ "crs": "PROJCS[\"WGS 84 / UTM zone 40N\",GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AUTHORITY[\"EPSG\",\"4326\"]],PROJECTION[\"Transverse_Mercator\"],PARAMETER[\"latitude_of_origin\",0],PARAMETER[\"central_meridian\",57],PARAMETER[\"scale_factor\",0.9996],PARAMETER[\"false_easting\",500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH],AUTHORITY[\"EPSG\",\"32640\"]]",
+ "geometry_file": "basin.gpkg",
+ "inputs": {
+  "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\GGC_2_MERGE_HDSM_5.tif",
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a42cdd1c55d70953a\\W1 research and design note\\validation\\block2_full\\domain.geojson",
+  "extent": null,
+  "cn_raster": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Hydrology Data\\CN_Include_Hill_Area.tif",
+  "manning_raster": null,
+  "pour_points": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a42cdd1c55d70953a\\W24 basin model\\results\\hms_outlets.geojson"
+ },
+ "settings": {
+  "stream_threshold_km2": null,
+  "analysis_pixel": null,
+  "max_pixels": 400000000,
+  "snap_m": 0.0,
+  "min_reach_m": 100.0,
+  "min_subbasin_km2": 0.05,
+  "min_slope": 0.0001,
+  "min_raster_share": 0.9,
+  "section_spacing_m": 100.0,
+  "section_half_width_m": 500.0,
+  "section_depth_m": 4.0,
+  "section_depths": 9,
+  "section_search_m": 30.0,
+  "reservoir_step_m": 0.5,
+  "reservoir_top_m": 10.0,
+  "dam_min_km2": 1.0,
+  "dam_join_m": 50.0
+ },
+ "analysis": {
+  "pixel_m": 5.0,
+  "x0": 413390.98973783385,
+  "y0": 2736200.393463373,
+  "ny": 7244,
+  "nx": 6022,
+  "ground_km2": 810.4593,
+  "unassigned_km2": 127.6612
+ },
+ "elements": [
+  {
+   "kind": "subbasin",
+   "name": "S1",
+   "downstream": "J1",
+   "outlet": [
+    443498.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S1"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 5.4152,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 6019.35,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.313171,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.017984,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.008772,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.18,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 29.03,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S2",
+   "downstream": "at S4",
+   "outlet": [
+    440978.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S2"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 5.0,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.021639,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": null,
+     "source": "missing"
+    },
+    "curve_number": {
+     "value": 86.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 0.4,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S3",
+   "downstream": "Z4C",
+   "outlet": [
+    440973.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S3"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 20.3772,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 11558.28,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.253473,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.022567,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.013908,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.72,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 55.32,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S4",
+   "downstream": "at S3",
+   "outlet": [
+    434683.49,
+    2707602.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S4"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 87.6303,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 36685.99,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.605941,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.026067,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.013915,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.01,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 79.35,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S5",
+   "downstream": "J2",
+   "outlet": [
+    443498.49,
+    2719162.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S5"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 5.1417,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 7863.58,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.110474,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.015973,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.010144,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.29,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 62.55,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S6",
+   "downstream": "at S10",
+   "outlet": [
+    439958.49,
+    2715887.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S6"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 5.0,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.010763,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": null,
+     "source": "missing"
+    },
+    "curve_number": {
+     "value": 86.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 0.56,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S7",
+   "downstream": "R2A",
+   "outlet": [
+    439953.49,
+    2715882.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S7"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 3.2897,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 4514.31,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.063631,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.019515,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.014116,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.06,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 53.31,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S8",
+   "downstream": "J3",
+   "outlet": [
+    443498.49,
+    2720767.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S8"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 7.4335,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 7088.32,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.135766,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.015485,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.008786,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.34,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 51.83,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S9",
+   "downstream": "at S18",
+   "outlet": [
+    439043.49,
+    2721062.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S9"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0001,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 25.0,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.032475,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.032681,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.043057,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 1.17,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S10",
+   "downstream": "R5A",
+   "outlet": [
+    439038.49,
+    2721062.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S10"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 10.625,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 7752.87,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.210178,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.037783,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.018569,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.54,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 44.43,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S11",
+   "downstream": "at S9",
+   "outlet": [
+    439908.49,
+    2715852.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S11"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 30.7803,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 21603.71,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.440869,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.030433,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.015385,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.97,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 66.02,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S12",
+   "downstream": "J4",
+   "outlet": [
+    424978.49,
+    2705532.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S12"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 7.07,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.012249,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.0,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": null,
+     "source": "missing"
+    },
+    "curve_number": {
+     "value": 94.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 0.5,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S13",
+   "downstream": "at S17",
+   "outlet": [
+    439008.49,
+    2721067.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S13"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 11.8894,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 11364.99,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.373939,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.045028,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.02242,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.47,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 43.7,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S14",
+   "downstream": "J5",
+   "outlet": [
+    438233.49,
+    2736197.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S14"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 8.7015,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 11692.16,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.200377,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.020186,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.013005,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.13,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 61.85,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S15",
+   "downstream": "at S15",
+   "outlet": [
+    433253.49,
+    2723572.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S15"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 38.8931,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 19390.14,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.603479,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.038708,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.018741,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.31,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 47.16,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S16",
+   "downstream": "J6",
+   "outlet": [
+    443498.49,
+    2730512.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S16"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 57.0116,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 17016.02,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.212555,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.028694,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.012527,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.97,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 81.56,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S17",
+   "downstream": "Faydh 01",
+   "outlet": [
+    431033.49,
+    2733427.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S17"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.5721,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 1246.75,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.382,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.21322,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.15244,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 88.91,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 6.98,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S18",
+   "downstream": "at S5",
+   "outlet": [
+    429888.49,
+    2713482.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S18"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 73.8738,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 32298.46,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.784574,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.03451,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.018472,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.85,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 60.82,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S19",
+   "downstream": "at S12",
+   "outlet": [
+    431018.49,
+    2733417.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S19"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 32.3904,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 16917.08,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.619522,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.048478,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.026131,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.51,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 41.38,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S20",
+   "downstream": "R2A",
+   "outlet": [
+    439423.49,
+    2716512.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S20"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.603,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 2750.49,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.049797,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.015836,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.017402,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 40.63,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S21",
+   "downstream": "J7",
+   "outlet": [
+    438933.49,
+    2716112.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S21"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0002,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 24.14,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.351506,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.236268,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.280769,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 0.35,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S22",
+   "downstream": "at S1",
+   "outlet": [
+    424973.49,
+    2705537.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S22"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 59.1119,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 26342.87,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.683003,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.03394,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.016887,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.68,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 55.77,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S23",
+   "downstream": "at S2",
+   "outlet": [
+    424973.49,
+    2705532.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S23"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 44.4174,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 22933.86,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.718248,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.029523,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.016579,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.89,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 48.25,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S24",
+   "downstream": "at S14",
+   "outlet": [
+    425993.49,
+    2724317.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S24"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 42.2983,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 21606.12,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.802252,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.040344,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.018529,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 91.05,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 43.23,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S25",
+   "downstream": "at S11",
+   "outlet": [
+    428613.49,
+    2731952.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S25"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 41.4649,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 19752.51,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.779148,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.041944,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.024313,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.83,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 41.21,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S26",
+   "downstream": "at S7",
+   "outlet": [
+    438928.49,
+    2716112.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S26"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 37.6562,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 14837.78,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.412356,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.032964,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.015422,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.55,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 51.35,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S27",
+   "downstream": "at S8",
+   "outlet": [
+    438928.49,
+    2716117.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S27"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 5.0817,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 9970.61,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.288472,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.021159,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.014931,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 86.84,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 45.87,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S28",
+   "downstream": "at S6",
+   "outlet": [
+    432063.49,
+    2719027.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S28"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 24.6326,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 16573.36,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.648514,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.041284,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.027489,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 90.53,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 39.76,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S29",
+   "downstream": "at S13",
+   "outlet": [
+    438593.49,
+    2727057.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S29"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 0.0028,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 90.71,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.030101,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.013965,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.018134,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 91.0,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 2.81,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S30",
+   "downstream": "Bidah 03",
+   "outlet": [
+    438548.49,
+    2726997.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S30"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 20.086,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 11799.99,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.359677,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.064355,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.024181,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.65,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 45.61,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "subbasin",
+   "name": "S31",
+   "downstream": "at S16",
+   "outlet": [
+    439143.49,
+    2719997.89
+   ],
+   "geometry": {
+    "layer": "subbasins",
+    "name": "S31"
+   },
+   "parameters": {
+    "area_km2": {
+     "value": 13.4184,
+     "source": "terrain"
+    },
+    "flow_length_m": {
+     "value": 12685.24,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.356625,
+     "source": "terrain"
+    },
+    "flow_path_slope": {
+     "value": 0.03779,
+     "source": "terrain"
+    },
+    "slope_10_85": {
+     "value": 0.016911,
+     "source": "terrain"
+    },
+    "curve_number": {
+     "value": 87.28,
+     "source": "raster"
+    },
+    "lag_minutes": {
+     "value": 49.21,
+     "source": "derived"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R1",
+   "downstream": "J5",
+   "outlet": [
+    438233.49,
+    2736197.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R1"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 10208.36,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.011974,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 19.73,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 6.31,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.394,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       20.0,
+       30.0,
+       40.0,
+       52.5,
+       57.5,
+       60.0,
+       60.0,
+       65.0
+      ],
+      "stations": 102,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R2",
+   "downstream": "at S12",
+   "outlet": [
+    431018.49,
+    2733417.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R2"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 4227.89,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.014952,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 12.05,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 5.863,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.634,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       15.0,
+       25.0,
+       30.0,
+       37.5,
+       40.0,
+       50.0,
+       55.0,
+       55.0
+      ],
+      "stations": 42,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R3",
+   "downstream": "J6",
+   "outlet": [
+    443498.49,
+    2730512.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R3"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 7748.29,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.008344,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 5.0,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 56.225,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.434,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       35.0,
+       90.0,
+       190.0,
+       275.0,
+       300.0,
+       350.0,
+       395.0,
+       425.0
+      ],
+      "stations": 77,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R4",
+   "downstream": "at S15",
+   "outlet": [
+    433253.49,
+    2723572.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R4"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 16999.28,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.015217,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 16.61,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 6.31,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.759,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       20.0,
+       30.0,
+       35.0,
+       45.0,
+       50.0,
+       55.0,
+       60.0,
+       65.0
+      ],
+      "stations": 170,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R5",
+   "downstream": "at S17",
+   "outlet": [
+    439008.49,
+    2721067.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R5"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 7751.72,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.011036,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 25.98,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 7.143,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.317,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       25.0,
+       40.0,
+       52.5,
+       60.0,
+       65.0,
+       70.0,
+       75.0,
+       77.5
+      ],
+      "stations": 78,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R6",
+   "downstream": "J3",
+   "outlet": [
+    443498.49,
+    2720767.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R6"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 5589.73,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.008479,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 57.5,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 18.542,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.869,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       40.0,
+       95.0,
+       140.0,
+       155.0,
+       160.0,
+       170.0,
+       177.5,
+       190.0
+      ],
+      "stations": 56,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R7",
+   "downstream": "J2",
+   "outlet": [
+    443498.49,
+    2719162.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R7"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 6224.14,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.008766,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 43.13,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 44.375,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.652,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       47.5,
+       142.5,
+       200.0,
+       240.0,
+       270.0,
+       305.0,
+       367.5,
+       370.0
+      ],
+      "stations": 62,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R8",
+   "downstream": "R2A",
+   "outlet": [
+    439423.49,
+    2716512.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R8"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 694.97,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.007439,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 12.32,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 23.512,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.373,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       40.0,
+       50.0,
+       95.0,
+       110.0,
+       115.0,
+       150.0,
+       180.0,
+       205.0
+      ],
+      "stations": 7,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R9",
+   "downstream": "at S8",
+   "outlet": [
+    438928.49,
+    2716117.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R9"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 9428.27,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.014833,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 37.05,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 16.28,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.678,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       30.0,
+       60.0,
+       100.0,
+       125.0,
+       135.0,
+       142.5,
+       145.0,
+       145.0
+      ],
+      "stations": 94,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R10",
+   "downstream": "at S9",
+   "outlet": [
+    439908.49,
+    2715852.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R10"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 14490.69,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.011709,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 21.25,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 3.75,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.559,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       20.0,
+       30.0,
+       35.0,
+       40.0,
+       40.0,
+       45.0,
+       45.0,
+       50.0
+      ],
+      "stations": 145,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R11",
+   "downstream": "Z4C",
+   "outlet": [
+    440973.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R11"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 8359.63,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.009286,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 21.96,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 8.869,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.927,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       25.0,
+       40.0,
+       50.0,
+       62.5,
+       70.0,
+       77.5,
+       80.0,
+       90.0
+      ],
+      "stations": 84,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R12",
+   "downstream": "J1",
+   "outlet": [
+    443498.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R12"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 3429.07,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.008036,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 16.7,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 20.179,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 2.516,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       30.0,
+       55.0,
+       72.5,
+       107.5,
+       130.0,
+       142.5,
+       155.0,
+       167.5
+      ],
+      "stations": 34,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reach",
+   "name": "R13",
+   "downstream": "at S3",
+   "outlet": [
+    434683.49,
+    2707602.89
+   ],
+   "geometry": {
+    "layer": "reaches",
+    "name": "R13"
+   },
+   "parameters": {
+    "length_m": {
+     "value": 25947.19,
+     "source": "terrain"
+    },
+    "slope": {
+     "value": 0.012437,
+     "source": "terrain"
+    },
+    "manning_n": {
+     "value": 0.1,
+     "source": "job"
+    },
+    "bottom_width_m": {
+     "value": 18.04,
+     "source": "terrain"
+    },
+    "side_slope": {
+     "value": 5.714,
+     "source": "terrain"
+    },
+    "index_celerity": {
+     "value": 3.459,
+     "source": "derived"
+    },
+    "section": {
+     "value": {
+      "depth_m": [
+       0.5,
+       1.0,
+       1.5,
+       2.0,
+       2.5,
+       3.0,
+       3.5,
+       4.0
+      ],
+      "width_m": [
+       20.0,
+       30.0,
+       35.0,
+       45.0,
+       50.0,
+       50.0,
+       60.0,
+       60.0
+      ],
+      "stations": 259,
+      "open_ground": false
+     },
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "J1",
+   "downstream": null,
+   "outlet": [
+    443498.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J1"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 216.952,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S4",
+   "downstream": "R12",
+   "outlet": [
+    440978.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S4"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 211.5368,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 440978.48973783385,
+    "y": 2710482.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "reservoir",
+   "name": "Z4C",
+   "downstream": "at S4",
+   "outlet": [
+    440973.49,
+    2710482.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "Z4C"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 211.5368,
+     "source": "terrain"
+    },
+    "crest_elevation_m": {
+     "value": 188.84246826171875,
+     "source": "job"
+    },
+    "elevation_m": {
+     "value": [
+      149.414,
+      149.914,
+      150.414,
+      150.914,
+      151.414,
+      151.914,
+      152.414,
+      152.914,
+      153.414,
+      153.914,
+      154.414,
+      154.914,
+      155.414,
+      155.914,
+      156.414,
+      156.914,
+      157.414,
+      157.914,
+      158.414,
+      158.914,
+      159.414,
+      159.914,
+      160.414,
+      160.914,
+      161.414,
+      161.914,
+      162.414,
+      162.914,
+      163.414,
+      163.914,
+      164.414,
+      164.914,
+      165.414,
+      165.914,
+      166.414,
+      166.914,
+      167.414,
+      167.914,
+      168.414,
+      168.914,
+      169.414,
+      169.914,
+      170.414,
+      170.914,
+      171.414,
+      171.914,
+      172.414,
+      172.914,
+      173.414,
+      173.914,
+      174.414,
+      174.914,
+      175.414,
+      175.914,
+      176.414,
+      176.914,
+      177.414,
+      177.914,
+      178.414,
+      178.914,
+      179.414,
+      179.914,
+      180.414,
+      180.914,
+      181.414,
+      181.914,
+      182.414,
+      182.914,
+      183.414,
+      183.914,
+      184.414,
+      184.914,
+      185.414,
+      185.914,
+      186.414,
+      186.914,
+      187.414,
+      187.914,
+      188.414,
+      188.914,
+      189.414,
+      189.914,
+      190.414,
+      190.914,
+      191.414,
+      191.914,
+      192.414,
+      192.914,
+      193.414,
+      193.914,
+      194.414,
+      194.914,
+      195.414,
+      195.914,
+      196.414,
+      196.914,
+      197.414,
+      197.914,
+      198.414,
+      198.914
+     ],
+     "source": "terrain"
+    },
+    "area_m2": {
+     "value": [
+      25.0,
+      1450.0,
+      4950.0,
+      15500.0,
+      26300.0,
+      34400.0,
+      48875.0,
+      62500.0,
+      67375.0,
+      73000.0,
+      79550.0,
+      89450.0,
+      101750.0,
+      114050.0,
+      126775.0,
+      144550.0,
+      162650.0,
+      182675.0,
+      201925.0,
+      224150.0,
+      246850.0,
+      270800.0,
+      295900.0,
+      329200.0,
+      362225.0,
+      400725.0,
+      436200.0,
+      477750.0,
+      521625.0,
+      565850.0,
+      615950.0,
+      669900.0,
+      726875.0,
+      785075.0,
+      849550.0,
+      920275.0,
+      984025.0,
+      1046775.0,
+      1102025.0,
+      1159450.0,
+      1218950.0,
+      1278000.0,
+      1331175.0,
+      1387475.0,
+      1444450.0,
+      1506700.0,
+      1559225.0,
+      1615500.0,
+      1666550.0,
+      1709725.0,
+      1747800.0,
+      1786550.0,
+      1825725.0,
+      1869825.0,
+      1917125.0,
+      1965975.0,
+      2018525.0,
+      2077725.0,
+      2141050.0,
+      2205525.0,
+      2268825.0,
+      2335350.0,
+      2404375.0,
+      2478450.0,
+      2549600.0,
+      2629525.0,
+      2708050.0,
+      2790675.0,
+      2875100.0,
+      2952550.0,
+      3026275.0,
+      3101750.0,
+      3175875.0,
+      3247300.0,
+      3317400.0,
+      3382425.0,
+      3448700.0,
+      3514825.0,
+      3579100.0,
+      3644150.0,
+      3704425.0,
+      3768650.0,
+      3833375.0,
+      3904625.0,
+      3972200.0,
+      4040250.0,
+      4110850.0,
+      4185000.0,
+      4260100.0,
+      4341400.0,
+      4422475.0,
+      4495675.0,
+      4570275.0,
+      4643950.0,
+      4722100.0,
+      4804175.0,
+      4889200.0,
+      4975625.0,
+      5060525.0,
+      5134625.0
+     ],
+     "source": "terrain"
+    },
+    "volume_m3": {
+     "value": [
+      0.0,
+      266.9,
+      1776.5,
+      6693.2,
+      17374.7,
+      32615.2,
+      53828.8,
+      82512.6,
+      115103.6,
+      150184.1,
+      188296.3,
+      230320.0,
+      278151.0,
+      331968.3,
+      392098.1,
+      459697.1,
+      536323.2,
+      622587.6,
+      718920.4,
+      825381.0,
+      943087.1,
+      1072591.5,
+      1214085.8,
+      1370209.0,
+      1542648.4,
+      1733650.6,
+      1943135.9,
+      2171284.9,
+      2420780.0,
+      2692712.8,
+      2988290.6,
+      3309054.8,
+      3658069.5,
+      4035855.1,
+      4444801.7,
+      4887378.7,
+      5363291.8,
+      5870687.1,
+      6408161.4,
+      6973463.8,
+      7567812.6,
+      8191810.6,
+      8844577.8,
+      9523758.0,
+      10231829.0,
+      10971627.2,
+      11737915.4,
+      12531730.1,
+      13352280.6,
+      14196662.2,
+      15061013.9,
+      15944442.6,
+      16847270.8,
+      17772095.4,
+      18719066.5,
+      19689732.4,
+      20685533.5,
+      21709117.1,
+      22764034.4,
+      23850397.2,
+      24968898.1,
+      26119663.6,
+      27304507.1,
+      28524957.2,
+      29781620.4,
+      31076159.7,
+      32410837.2,
+      33785366.9,
+      35201310.5,
+      36658633.9,
+      38153385.7,
+      39685212.9,
+      41254392.7,
+      42859759.2,
+      44501474.0,
+      46176186.3,
+      47883222.0,
+      49624027.4,
+      51397696.9,
+      53203617.1,
+      55041005.1,
+      56909247.7,
+      58810038.2,
+      60744363.0,
+      62713343.5,
+      64716240.0,
+      66754349.6,
+      68827806.4,
+      70938580.8,
+      73088935.1,
+      75280867.7,
+      77510438.5,
+      79776598.8,
+      82080118.8,
+      84421731.3,
+      86803265.4,
+      89226070.9,
+      91691745.1,
+      94201449.7,
+      96752914.8
+     ],
+     "source": "terrain"
+    },
+    "spillways": {
+     "value": null,
+     "source": "missing"
+    },
+    "initial_elevation_m": {
+     "value": null,
+     "source": "missing"
+    }
+   },
+   "missing": [
+    "spillways",
+    "initial_elevation_m"
+   ],
+   "pour_point": {
+    "kind": "dam",
+    "x": 440973.48973783385,
+    "y": 2710482.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S3",
+   "downstream": "R11",
+   "outlet": [
+    434683.49,
+    2707602.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S3"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 191.1596,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 434683.48973783385,
+    "y": 2707602.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J2",
+   "downstream": null,
+   "outlet": [
+    443498.49,
+    2719162.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J2"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 181.0591,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S10",
+   "downstream": "R7",
+   "outlet": [
+    439958.49,
+    2715887.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S10"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 175.9175,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 439958.48973783385,
+    "y": 2715887.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "reservoir",
+   "name": "R2A",
+   "downstream": "at S10",
+   "outlet": [
+    439953.49,
+    2715882.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "R2A"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 175.9174,
+     "source": "terrain"
+    },
+    "crest_elevation_m": {
+     "value": 191.7151336669922,
+     "source": "job"
+    },
+    "elevation_m": {
+     "value": [
+      140.453,
+      140.953,
+      141.453,
+      141.953,
+      142.453,
+      142.953,
+      143.453,
+      143.953,
+      144.453,
+      144.953,
+      145.453,
+      145.953,
+      146.453,
+      146.953,
+      147.453,
+      147.953,
+      148.453,
+      148.953,
+      149.453,
+      149.953,
+      150.453,
+      150.953,
+      151.453,
+      151.953,
+      152.453,
+      152.953,
+      153.453,
+      153.953,
+      154.453,
+      154.953,
+      155.453,
+      155.953,
+      156.453,
+      156.953,
+      157.453,
+      157.953,
+      158.453,
+      158.953,
+      159.453,
+      159.953,
+      160.453,
+      160.953,
+      161.453,
+      161.953,
+      162.453,
+      162.953,
+      163.453,
+      163.953,
+      164.453,
+      164.953,
+      165.453,
+      165.953,
+      166.453,
+      166.953,
+      167.453,
+      167.953,
+      168.453,
+      168.953,
+      169.453,
+      169.953,
+      170.453,
+      170.953,
+      171.453,
+      171.953,
+      172.453,
+      172.953,
+      173.453,
+      173.953,
+      174.453,
+      174.953,
+      175.453,
+      175.953,
+      176.453,
+      176.953,
+      177.453,
+      177.953,
+      178.453,
+      178.953,
+      179.453,
+      179.953,
+      180.453,
+      180.953,
+      181.453,
+      181.953,
+      182.453,
+      182.953,
+      183.453,
+      183.953,
+      184.453,
+      184.953,
+      185.453,
+      185.953,
+      186.453,
+      186.953,
+      187.453,
+      187.953,
+      188.453,
+      188.953,
+      189.453,
+      189.953,
+      190.453,
+      190.953,
+      191.453,
+      191.953,
+      192.453,
+      192.953,
+      193.453,
+      193.953,
+      194.453,
+      194.953,
+      195.453,
+      195.953,
+      196.453,
+      196.953,
+      197.453,
+      197.953,
+      198.453,
+      198.953,
+      199.453,
+      199.953,
+      200.453,
+      200.953,
+      201.453,
+      201.953
+     ],
+     "source": "terrain"
+    },
+    "area_m2": {
+     "value": [
+      25.0,
+      2000.0,
+      5350.0,
+      11250.0,
+      20750.0,
+      34075.0,
+      49475.0,
+      66150.0,
+      88750.0,
+      110875.0,
+      140600.0,
+      170975.0,
+      196025.0,
+      223875.0,
+      246575.0,
+      268100.0,
+      293125.0,
+      317725.0,
+      346025.0,
+      378275.0,
+      412575.0,
+      447050.0,
+      484425.0,
+      523375.0,
+      569900.0,
+      624450.0,
+      682625.0,
+      750725.0,
+      828350.0,
+      911400.0,
+      997600.0,
+      1083950.0,
+      1169275.0,
+      1258675.0,
+      1355275.0,
+      1446850.0,
+      1536300.0,
+      1625450.0,
+      1715750.0,
+      1805550.0,
+      1898100.0,
+      1996600.0,
+      2089375.0,
+      2176775.0,
+      2270900.0,
+      2365025.0,
+      2464900.0,
+      2577575.0,
+      2692500.0,
+      2805875.0,
+      2923600.0,
+      3044150.0,
+      3165425.0,
+      3279275.0,
+      3398075.0,
+      3517425.0,
+      3633050.0,
+      3744850.0,
+      3857250.0,
+      3974825.0,
+      4093700.0,
+      4215075.0,
+      4327575.0,
+      4437475.0,
+      4550800.0,
+      4671300.0,
+      4794850.0,
+      4917275.0,
+      5032275.0,
+      5144975.0,
+      5256425.0,
+      5368325.0,
+      5483675.0,
+      5602850.0,
+      5730050.0,
+      5855575.0,
+      5989700.0,
+      6137850.0,
+      6286450.0,
+      6437225.0,
+      6595675.0,
+      6768200.0,
+      6937150.0,
+      7113625.0,
+      7288600.0,
+      7459875.0,
+      7623200.0,
+      7785650.0,
+      7951650.0,
+      8124025.0,
+      8291700.0,
+      8455625.0,
+      8619775.0,
+      8781350.0,
+      8943175.0,
+      9096275.0,
+      9253250.0,
+      9415225.0,
+      9573500.0,
+      9735025.0,
+      9892925.0,
+      10049675.0,
+      10201925.0,
+      10356000.0,
+      10505650.0,
+      10655750.0,
+      10806875.0,
+      10958525.0,
+      11100350.0,
+      11249950.0,
+      11398075.0,
+      11544575.0,
+      11692075.0,
+      11837975.0,
+      12044525.0,
+      12196500.0,
+      12350575.0,
+      12504550.0,
+      12658325.0,
+      12809200.0,
+      12959025.0,
+      13105275.0,
+      13249525.0,
+      13328025.0
+     ],
+     "source": "terrain"
+    },
+    "volume_m3": {
+     "value": [
+      0.0,
+      420.4,
+      2200.9,
+      6104.0,
+      13938.5,
+      27634.2,
+      48439.2,
+      77296.7,
+      116292.9,
+      165970.5,
+      228551.6,
+      306955.3,
+      399076.0,
+      504316.6,
+      622108.3,
+      750707.7,
+      891438.7,
+      1044098.6,
+      1209772.7,
+      1390807.9,
+      1590138.8,
+      1804874.9,
+      2037588.9,
+      2289462.2,
+      2562716.2,
+      2861031.6,
+      3187700.4,
+      3545521.1,
+      3940948.6,
+      4375642.7,
+      4853011.9,
+      5373281.3,
+      5937724.2,
+      6544882.2,
+      7201271.7,
+      7902172.2,
+      8649573.4,
+      9440292.0,
+      10275478.3,
+      11155879.6,
+      12082747.2,
+      13056977.3,
+      14078991.3,
+      15145559.4,
+      16257929.9,
+      17417157.8,
+      18624754.4,
+      19885333.1,
+      21203769.2,
+      22579043.4,
+      24011806.5,
+      25504094.7,
+      27057627.7,
+      28668979.8,
+      30338279.4,
+      32067674.6,
+      33856396.9,
+      35701165.3,
+      37602431.4,
+      39560923.9,
+      41580652.1,
+      43657696.5,
+      45793884.6,
+      47985233.5,
+      50233103.7,
+      52538372.6,
+      54904944.0,
+      57333947.8,
+      59822871.5,
+      62367348.3,
+      64968239.0,
+      67624562.1,
+      70338341.5,
+      73110178.0,
+      75943847.1,
+      78840192.3,
+      81802274.0,
+      84834804.4,
+      87941336.9,
+      91122605.4,
+      94381816.2,
+      97722735.1,
+      101149738.5,
+      104662658.8,
+      108265787.5,
+      111953454.3,
+      115724716.4,
+      119577635.5,
+      123513558.9,
+      127533033.6,
+      131637326.9,
+      135824849.7,
+      140095099.8,
+      144445871.5,
+      148877525.4,
+      153388147.5,
+      157976700.9,
+      162644224.1,
+      167391873.9,
+      172219107.0,
+      177127607.7,
+      182113371.7,
+      187177380.1,
+      192317318.7,
+      197533806.6,
+      202824555.0,
+      208193539.9,
+      213635081.4,
+      219150700.4,
+      224738204.6,
+      230400778.9,
+      236136753.5,
+      241951243.1,
+      247834186.5,
+      255416392.2,
+      261476453.9,
+      267614317.5,
+      273828354.6,
+      280121102.2,
+      286488574.1,
+      292931930.5,
+      299448240.5,
+      306037339.3,
+      312691142.3
+     ],
+     "source": "terrain"
+    },
+    "spillways": {
+     "value": null,
+     "source": "missing"
+    },
+    "initial_elevation_m": {
+     "value": null,
+     "source": "missing"
+    }
+   },
+   "missing": [
+    "spillways",
+    "initial_elevation_m"
+   ],
+   "pour_point": {
+    "kind": "dam",
+    "x": 439953.48973783385,
+    "y": 2715882.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J3",
+   "downstream": null,
+   "outlet": [
+    443498.49,
+    2720767.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J3"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 124.5578,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S18",
+   "downstream": "R6",
+   "outlet": [
+    439043.49,
+    2721062.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S18"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 117.1243,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 439043.48973783385,
+    "y": 2721062.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "reservoir",
+   "name": "R5A",
+   "downstream": "at S18",
+   "outlet": [
+    439038.49,
+    2721062.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "R5A"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 117.1242,
+     "source": "terrain"
+    },
+    "crest_elevation_m": {
+     "value": 197.4929656982422,
+     "source": "job"
+    },
+    "elevation_m": {
+     "value": [
+      126.534,
+      127.034,
+      127.534,
+      128.034,
+      128.534,
+      129.034,
+      129.534,
+      130.034,
+      130.534,
+      131.034,
+      131.534,
+      132.034,
+      132.534,
+      133.034,
+      133.534,
+      134.034,
+      134.534,
+      135.034,
+      135.534,
+      136.034,
+      136.534,
+      137.034,
+      137.534,
+      138.034,
+      138.534,
+      139.034,
+      139.534,
+      140.034,
+      140.534,
+      141.034,
+      141.534,
+      142.034,
+      142.534,
+      143.034,
+      143.534,
+      144.034,
+      144.534,
+      145.034,
+      145.534,
+      146.034,
+      146.534,
+      147.034,
+      147.534,
+      148.034,
+      148.534,
+      149.034,
+      149.534,
+      150.034,
+      150.534,
+      151.034,
+      151.534,
+      152.034,
+      152.534,
+      153.034,
+      153.534,
+      154.034,
+      154.534,
+      155.034,
+      155.534,
+      156.034,
+      156.534,
+      157.034,
+      157.534,
+      158.034,
+      158.534,
+      159.034,
+      159.534,
+      160.034,
+      160.534,
+      161.034,
+      161.534,
+      162.034,
+      162.534,
+      163.034,
+      163.534,
+      164.034,
+      164.534,
+      165.034,
+      165.534,
+      166.034,
+      166.534,
+      167.034,
+      167.534,
+      168.034,
+      168.534,
+      169.034,
+      169.534,
+      170.034,
+      170.534,
+      171.034,
+      171.534,
+      172.034,
+      172.534,
+      173.034,
+      173.534,
+      174.034,
+      174.534,
+      175.034,
+      175.534,
+      176.034,
+      176.534,
+      177.034,
+      177.534,
+      178.034,
+      178.534,
+      179.034,
+      179.534,
+      180.034,
+      180.534,
+      181.034,
+      181.534,
+      182.034,
+      182.534,
+      183.034,
+      183.534,
+      184.034,
+      184.534,
+      185.034,
+      185.534,
+      186.034,
+      186.534,
+      187.034,
+      187.534,
+      188.034,
+      188.534,
+      189.034,
+      189.534,
+      190.034,
+      190.534,
+      191.034,
+      191.534,
+      192.034,
+      192.534,
+      193.034,
+      193.534,
+      194.034,
+      194.534,
+      195.034,
+      195.534,
+      196.034,
+      196.534,
+      197.034,
+      197.534,
+      198.034,
+      198.534,
+      199.034,
+      199.534,
+      200.034,
+      200.534,
+      201.034,
+      201.534,
+      202.034,
+      202.534,
+      203.034,
+      203.534,
+      204.034,
+      204.534,
+      205.034,
+      205.534,
+      206.034,
+      206.534,
+      207.034,
+      207.534
+     ],
+     "source": "terrain"
+    },
+    "area_m2": {
+     "value": [
+      25.0,
+      1075.0,
+      5000.0,
+      12725.0,
+      23475.0,
+      42275.0,
+      69525.0,
+      97600.0,
+      127425.0,
+      165675.0,
+      198750.0,
+      236100.0,
+      276975.0,
+      318475.0,
+      357450.0,
+      398325.0,
+      444050.0,
+      486100.0,
+      526575.0,
+      570175.0,
+      617400.0,
+      672300.0,
+      737875.0,
+      806525.0,
+      881100.0,
+      965850.0,
+      1056875.0,
+      1145725.0,
+      1229975.0,
+      1314475.0,
+      1398725.0,
+      1489625.0,
+      1612775.0,
+      1752850.0,
+      1887700.0,
+      2021275.0,
+      2165850.0,
+      2314550.0,
+      2452200.0,
+      2592275.0,
+      2720850.0,
+      2852325.0,
+      2970925.0,
+      3083475.0,
+      3197600.0,
+      3318650.0,
+      3437350.0,
+      3555875.0,
+      3670525.0,
+      3778425.0,
+      3891275.0,
+      4004375.0,
+      4117175.0,
+      4234450.0,
+      4351500.0,
+      4472475.0,
+      4591325.0,
+      4718550.0,
+      4849175.0,
+      4977175.0,
+      5104150.0,
+      5232900.0,
+      5364625.0,
+      5502425.0,
+      5641300.0,
+      5779225.0,
+      5916475.0,
+      6059500.0,
+      6196000.0,
+      6333275.0,
+      6465275.0,
+      6602400.0,
+      6733500.0,
+      6867400.0,
+      7009650.0,
+      7147375.0,
+      7284475.0,
+      7427300.0,
+      7562150.0,
+      7696600.0,
+      7832575.0,
+      7970300.0,
+      8112575.0,
+      8252325.0,
+      8388150.0,
+      8530625.0,
+      8674200.0,
+      8818225.0,
+      8949125.0,
+      9079400.0,
+      9200000.0,
+      9323850.0,
+      9441950.0,
+      9564025.0,
+      9680575.0,
+      9800800.0,
+      9921900.0,
+      10045150.0,
+      10164000.0,
+      10285525.0,
+      10413725.0,
+      10539675.0,
+      10668675.0,
+      10798650.0,
+      10926150.0,
+      11047550.0,
+      11162800.0,
+      11276825.0,
+      11385200.0,
+      11498475.0,
+      11613675.0,
+      11725850.0,
+      11835475.0,
+      11950850.0,
+      12064425.0,
+      12178500.0,
+      12293175.0,
+      12409950.0,
+      12528325.0,
+      12645300.0,
+      12758675.0,
+      12871800.0,
+      12986975.0,
+      13102475.0,
+      13215050.0,
+      13326875.0,
+      13440275.0,
+      13546150.0,
+      13649075.0,
+      13755225.0,
+      13856175.0,
+      13956325.0,
+      14053275.0,
+      14149725.0,
+      14247625.0,
+      14344600.0,
+      14435450.0,
+      14527875.0,
+      14624775.0,
+      14718200.0,
+      14806000.0,
+      14899175.0,
+      14990250.0,
+      15077800.0,
+      15160725.0,
+      15244825.0,
+      15329900.0,
+      15419825.0,
+      15501625.0,
+      15581925.0,
+      15660200.0,
+      15734950.0,
+      15813375.0,
+      15889175.0,
+      15966250.0,
+      16041275.0,
+      16116400.0,
+      16192600.0,
+      16270275.0,
+      16348550.0,
+      16427300.0,
+      16511100.0,
+      16584725.0
+     ],
+     "source": "terrain"
+    },
+    "volume_m3": {
+     "value": [
+      0.0,
+      272.5,
+      1529.3,
+      5804.1,
+      14690.5,
+      30801.1,
+      58517.7,
+      100449.3,
+      156998.4,
+      231157.5,
+      321927.7,
+      430198.8,
+      558999.5,
+      708438.9,
+      877427.0,
+      1066120.7,
+      1277207.9,
+      1510039.1,
+      1763066.5,
+      2037311.0,
+      2333863.1,
+      2655864.2,
+      3008157.9,
+      3394066.6,
+      3816078.4,
+      4277606.5,
+      4783167.9,
+      5334651.1,
+      5929494.8,
+      6566007.3,
+      7244130.4,
+      7965631.5,
+      8741614.1,
+      9582779.5,
+      10492624.8,
+      11469903.2,
+      12516545.9,
+      13637694.9,
+      14828576.0,
+      16089128.8,
+      17418458.2,
+      18811917.7,
+      20268306.8,
+      21782028.5,
+      23353166.3,
+      24982112.3,
+      26671058.4,
+      28418733.4,
+      30226584.5,
+      32089232.0,
+      34006048.1,
+      35979949.6,
+      38010753.9,
+      40098927.8,
+      42245301.9,
+      44450922.9,
+      46717378.2,
+      49045085.8,
+      51436375.5,
+      53893189.2,
+      56413930.7,
+      58998220.8,
+      61647211.9,
+      64363432.1,
+      67150420.0,
+      70005574.9,
+      72929513.5,
+      75923533.4,
+      78988078.8,
+      82120904.1,
+      85320459.9,
+      88587034.3,
+      91921973.2,
+      95321762.6,
+      98790247.5,
+      102329690.7,
+      105938250.0,
+      109616357.3,
+      113364048.5,
+      117179008.4,
+      121061736.7,
+      125012431.2,
+      129032839.3,
+      133123813.9,
+      137284528.7,
+      141514173.8,
+      145815298.8,
+      150188362.6,
+      154630829.5,
+      159138547.4,
+      163708734.9,
+      168339728.6,
+      173031580.1,
+      177782744.4,
+      182594015.3,
+      187463833.8,
+      192394901.4,
+      197387140.1,
+      202439224.4,
+      207551160.8,
+      212726332.4,
+      217964549.2,
+      223266641.4,
+      228633253.0,
+      234065671.4,
+      239559596.9,
+      245112462.2,
+      250722341.5,
+      256388260.9,
+      262109084.8,
+      267887592.8,
+      273722413.2,
+      279612633.4,
+      285559264.5,
+      291563271.0,
+      297623946.9,
+      303742567.8,
+      309918290.4,
+      316153077.1,
+      322446158.1,
+      328797682.0,
+      335205818.6,
+      341670344.6,
+      348192699.4,
+      354772531.0,
+      361407825.5,
+      368099573.9,
+      374846526.0,
+      381645877.1,
+      388497462.4,
+      395400551.2,
+      402353793.4,
+      409356435.8,
+      416407190.1,
+      423506443.6,
+      430654524.0,
+      437849786.3,
+      445090502.8,
+      452378957.0,
+      459714816.5,
+      467095925.1,
+      474522768.9,
+      481995097.8,
+      489511806.0,
+      497071451.4,
+      504672377.7,
+      512315829.4,
+      520003326.0,
+      527733935.4,
+      535504954.2,
+      543315823.0,
+      551164446.7,
+      559051517.2,
+      566977010.6,
+      574940809.3,
+      582942947.2,
+      590982270.2,
+      599059455.8,
+      607174921.7,
+      615329898.4,
+      623523981.7,
+      631758481.2,
+      640034080.7
+     ],
+     "source": "terrain"
+    },
+    "spillways": {
+     "value": null,
+     "source": "missing"
+    },
+    "initial_elevation_m": {
+     "value": null,
+     "source": "missing"
+    }
+   },
+   "missing": [
+    "spillways",
+    "initial_elevation_m"
+   ],
+   "pour_point": {
+    "kind": "dam",
+    "x": 439038.48973783385,
+    "y": 2721062.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S9",
+   "downstream": "R2A",
+   "outlet": [
+    439908.49,
+    2715852.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S9"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 104.6541,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 439908.48973783385,
+    "y": 2715852.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J4",
+   "downstream": "R13",
+   "outlet": [
+    424978.49,
+    2705532.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J4"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 103.5293,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S17",
+   "downstream": "R5A",
+   "outlet": [
+    439008.49,
+    2721067.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S17"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 93.0808,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 439008.48973783385,
+    "y": 2721067.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J5",
+   "downstream": null,
+   "outlet": [
+    438233.49,
+    2736197.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J5"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 83.1289,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S15",
+   "downstream": "R5",
+   "outlet": [
+    433253.49,
+    2723572.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S15"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 81.1914,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 433253.48973783385,
+    "y": 2723572.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J6",
+   "downstream": null,
+   "outlet": [
+    443498.49,
+    2730512.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J6"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 77.1003,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "reservoir",
+   "name": "Faydh 01",
+   "downstream": "R1",
+   "outlet": [
+    431033.49,
+    2733427.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "Faydh 01"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 74.4275,
+     "source": "terrain"
+    },
+    "crest_elevation_m": {
+     "value": 258.98681640625,
+     "source": "job"
+    },
+    "elevation_m": {
+     "value": [
+      177.636,
+      178.136,
+      178.636,
+      179.136,
+      179.636,
+      180.136,
+      180.636,
+      181.136,
+      181.636,
+      182.136,
+      182.636,
+      183.136,
+      183.636,
+      184.136,
+      184.636,
+      185.136,
+      185.636,
+      186.136,
+      186.636,
+      187.136,
+      187.636,
+      188.136,
+      188.636,
+      189.136,
+      189.636,
+      190.136,
+      190.636,
+      191.136,
+      191.636,
+      192.136,
+      192.636,
+      193.136,
+      193.636,
+      194.136,
+      194.636,
+      195.136,
+      195.636,
+      196.136,
+      196.636,
+      197.136,
+      197.636,
+      198.136,
+      198.636,
+      199.136,
+      199.636,
+      200.136,
+      200.636,
+      201.136,
+      201.636,
+      202.136,
+      202.636,
+      203.136,
+      203.636,
+      204.136,
+      204.636,
+      205.136,
+      205.636,
+      206.136,
+      206.636,
+      207.136,
+      207.636,
+      208.136,
+      208.636,
+      209.136,
+      209.636,
+      210.136,
+      210.636,
+      211.136,
+      211.636,
+      212.136,
+      212.636,
+      213.136,
+      213.636,
+      214.136,
+      214.636,
+      215.136,
+      215.636,
+      216.136,
+      216.636,
+      217.136,
+      217.636,
+      218.136,
+      218.636,
+      219.136,
+      219.636,
+      220.136,
+      220.636,
+      221.136,
+      221.636,
+      222.136,
+      222.636,
+      223.136,
+      223.636,
+      224.136,
+      224.636,
+      225.136,
+      225.636,
+      226.136,
+      226.636,
+      227.136,
+      227.636,
+      228.136,
+      228.636,
+      229.136,
+      229.636,
+      230.136,
+      230.636,
+      231.136,
+      231.636,
+      232.136,
+      232.636,
+      233.136,
+      233.636,
+      234.136,
+      234.636,
+      235.136,
+      235.636,
+      236.136,
+      236.636,
+      237.136,
+      237.636,
+      238.136,
+      238.636,
+      239.136,
+      239.636,
+      240.136,
+      240.636,
+      241.136,
+      241.636,
+      242.136,
+      242.636,
+      243.136,
+      243.636,
+      244.136,
+      244.636,
+      245.136,
+      245.636,
+      246.136,
+      246.636,
+      247.136,
+      247.636,
+      248.136,
+      248.636,
+      249.136,
+      249.636,
+      250.136,
+      250.636,
+      251.136,
+      251.636,
+      252.136,
+      252.636,
+      253.136,
+      253.636,
+      254.136,
+      254.636,
+      255.136,
+      255.636,
+      256.136,
+      256.636,
+      257.136,
+      257.636,
+      258.136,
+      258.636,
+      259.136,
+      259.636,
+      260.136,
+      260.636,
+      261.136,
+      261.636,
+      262.136,
+      262.636,
+      263.136,
+      263.636,
+      264.136,
+      264.636,
+      265.136,
+      265.636,
+      266.136,
+      266.636,
+      267.136,
+      267.636,
+      268.136,
+      268.636,
+      269.136
+     ],
+     "source": "terrain"
+    },
+    "area_m2": {
+     "value": [
+      25.0,
+      550.0,
+      1000.0,
+      1475.0,
+      1925.0,
+      2225.0,
+      2775.0,
+      3250.0,
+      4175.0,
+      5375.0,
+      6700.0,
+      8425.0,
+      11025.0,
+      13375.0,
+      15925.0,
+      19675.0,
+      23000.0,
+      25750.0,
+      29400.0,
+      32750.0,
+      35900.0,
+      38825.0,
+      41525.0,
+      44575.0,
+      48000.0,
+      51875.0,
+      55050.0,
+      58900.0,
+      62050.0,
+      65275.0,
+      68200.0,
+      70675.0,
+      73350.0,
+      75900.0,
+      78625.0,
+      81625.0,
+      87925.0,
+      91750.0,
+      95850.0,
+      100975.0,
+      105600.0,
+      112525.0,
+      119025.0,
+      124150.0,
+      130050.0,
+      136450.0,
+      142400.0,
+      149100.0,
+      156025.0,
+      162850.0,
+      169325.0,
+      175650.0,
+      182850.0,
+      190375.0,
+      198200.0,
+      206750.0,
+      215325.0,
+      225025.0,
+      235100.0,
+      244800.0,
+      254625.0,
+      266450.0,
+      276750.0,
+      288025.0,
+      298150.0,
+      308900.0,
+      319725.0,
+      331800.0,
+      343600.0,
+      356225.0,
+      370250.0,
+      383050.0,
+      396700.0,
+      410175.0,
+      423875.0,
+      439550.0,
+      455900.0,
+      472675.0,
+      489375.0,
+      505350.0,
+      520875.0,
+      535400.0,
+      549750.0,
+      564425.0,
+      577950.0,
+      593075.0,
+      607400.0,
+      621350.0,
+      635275.0,
+      649575.0,
+      663025.0,
+      677350.0,
+      691725.0,
+      706050.0,
+      719625.0,
+      734025.0,
+      748300.0,
+      762025.0,
+      776225.0,
+      790475.0,
+      805300.0,
+      820225.0,
+      835150.0,
+      851100.0,
+      866925.0,
+      883950.0,
+      901550.0,
+      919825.0,
+      938900.0,
+      959600.0,
+      981150.0,
+      1002900.0,
+      1023800.0,
+      1043050.0,
+      1063900.0,
+      1084600.0,
+      1105600.0,
+      1127250.0,
+      1149125.0,
+      1171225.0,
+      1193800.0,
+      1216875.0,
+      1239875.0,
+      1262150.0,
+      1285300.0,
+      1309050.0,
+      1334025.0,
+      1358475.0,
+      1381400.0,
+      1405575.0,
+      1428300.0,
+      1454100.0,
+      1476750.0,
+      1498200.0,
+      1519925.0,
+      1542950.0,
+      1565950.0,
+      1588725.0,
+      1612275.0,
+      1636075.0,
+      1659600.0,
+      1682400.0,
+      1706575.0,
+      1729900.0,
+      1753300.0,
+      1778025.0,
+      1803400.0,
+      1828725.0,
+      1855300.0,
+      1881450.0,
+      1907425.0,
+      1937025.0,
+      1965825.0,
+      1995325.0,
+      2022825.0,
+      2050450.0,
+      2077650.0,
+      2106650.0,
+      2136200.0,
+      2164600.0,
+      2194000.0,
+      2225800.0,
+      2255650.0,
+      2286625.0,
+      2317875.0,
+      2349875.0,
+      2380450.0,
+      2413200.0,
+      2444800.0,
+      2478325.0,
+      2512775.0,
+      2547550.0,
+      2579600.0,
+      2612400.0,
+      2645975.0,
+      2678775.0,
+      2711875.0,
+      2744325.0,
+      2776075.0,
+      2808875.0,
+      2842200.0,
+      2876725.0,
+      2909650.0,
+      2934275.0
+     ],
+     "source": "terrain"
+    },
+    "volume_m3": {
+     "value": [
+      0.0,
+      146.2,
+      538.5,
+      1167.5,
+      2008.1,
+      3044.8,
+      4270.0,
+      5778.0,
+      7656.2,
+      10016.3,
+      13062.2,
+      16832.1,
+      22027.8,
+      28172.7,
+      35449.3,
+      44372.1,
+      55097.5,
+      67284.2,
+      81145.2,
+      96740.3,
+      113970.6,
+      132646.2,
+      152774.2,
+      174267.1,
+      197391.4,
+      222370.6,
+      249106.6,
+      277670.3,
+      307919.6,
+      339754.1,
+      373126.9,
+      407846.3,
+      443860.3,
+      481158.3,
+      519699.5,
+      559610.1,
+      603607.5,
+      648514.4,
+      695407.5,
+      744544.0,
+      796201.2,
+      850651.6,
+      908646.2,
+      969426.5,
+      1032999.9,
+      1099582.1,
+      1169311.4,
+      1242158.0,
+      1318421.3,
+      1398156.3,
+      1481114.6,
+      1567390.1,
+      1656962.1,
+      1750223.0,
+      1847376.0,
+      1948701.8,
+      2054244.8,
+      2164348.2,
+      2279385.7,
+      2399397.7,
+      2524335.3,
+      2654404.7,
+      2790293.1,
+      2931608.6,
+      3078249.0,
+      3229949.3,
+      3387103.0,
+      3549952.6,
+      3718713.2,
+      3893739.8,
+      4075299.3,
+      4263664.5,
+      4458569.1,
+      4660265.2,
+      4868858.8,
+      5084743.4,
+      5308669.9,
+      5540953.1,
+      5781575.4,
+      6030222.9,
+      6286822.9,
+      6551085.3,
+      6822422.0,
+      7100921.9,
+      7386611.5,
+      7680242.7,
+      7980185.7,
+      8287490.0,
+      8601657.4,
+      8922769.6,
+      9250991.3,
+      9586136.0,
+      9928402.1,
+      10277839.1,
+      10634173.7,
+      10997614.3,
+      11368168.8,
+      11745858.0,
+      12130485.5,
+      12522165.9,
+      12921171.9,
+      13327535.3,
+      13741233.9,
+      14162769.8,
+      14592372.1,
+      15030098.9,
+      15476404.3,
+      15931848.7,
+      16396478.1,
+      16871299.0,
+      17356453.2,
+      17852540.9,
+      18359365.7,
+      18876150.7,
+      19403025.0,
+      19940103.2,
+      20487833.5,
+      21046022.8,
+      21615004.0,
+      22195169.1,
+      22786504.6,
+      23389069.4,
+      24003254.8,
+      24628886.4,
+      25265926.2,
+      25914728.5,
+      26575527.2,
+      27248524.5,
+      27933526.4,
+      28630270.7,
+      29338887.2,
+      30059543.9,
+      30792150.7,
+      31535891.2,
+      32290444.6,
+      33056119.8,
+      33834393.1,
+      34623210.5,
+      35423501.2,
+      36235591.1,
+      37059384.2,
+      37894675.2,
+      38742088.8,
+      39601159.0,
+      40471972.2,
+      41354611.4,
+      42249779.0,
+      43157800.7,
+      44079135.7,
+      45013381.0,
+      45960604.0,
+      46922180.5,
+      47897836.4,
+      48888231.5,
+      49892796.2,
+      50910945.0,
+      51942873.1,
+      52988761.5,
+      54049282.0,
+      55124361.8,
+      56214172.7,
+      57319364.6,
+      58439537.1,
+      59575000.2,
+      60725966.9,
+      61893026.2,
+      63075434.2,
+      64273861.3,
+      65488353.4,
+      66719138.8,
+      67967457.1,
+      69232644.7,
+      70514263.7,
+      71812191.5,
+      73126672.2,
+      74457913.7,
+      75805549.8,
+      77169754.9,
+      78549839.2,
+      79946091.5,
+      81359024.3,
+      82788861.6,
+      84235373.6,
+      85698237.6
+     ],
+     "source": "terrain"
+    },
+    "spillways": {
+     "value": null,
+     "source": "missing"
+    },
+    "initial_elevation_m": {
+     "value": null,
+     "source": "missing"
+    }
+   },
+   "missing": [
+    "spillways",
+    "initial_elevation_m"
+   ],
+   "pour_point": {
+    "kind": "dam",
+    "x": 431033.48973783385,
+    "y": 2733427.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S5",
+   "downstream": "R10",
+   "outlet": [
+    429888.49,
+    2713482.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S5"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 73.8738,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 429888.48973783385,
+    "y": 2713482.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S12",
+   "downstream": "Faydh 01",
+   "outlet": [
+    431018.49,
+    2733417.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S12"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 73.8554,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 431018.48973783385,
+    "y": 2733417.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "J7",
+   "downstream": "R8",
+   "outlet": [
+    438933.49,
+    2716112.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "J7"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 67.3706,
+     "source": "terrain"
+    }
+   },
+   "missing": []
+  },
+  {
+   "kind": "junction",
+   "name": "at S1",
+   "downstream": "J4",
+   "outlet": [
+    424973.49,
+    2705537.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S1"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 59.1119,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 424973.48973783385,
+    "y": 2705537.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S2",
+   "downstream": "J4",
+   "outlet": [
+    424973.49,
+    2705532.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S2"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 44.4174,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 424973.48973783385,
+    "y": 2705532.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S14",
+   "downstream": "R4",
+   "outlet": [
+    425993.49,
+    2724317.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S14"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 42.2983,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 425993.48973783385,
+    "y": 2724317.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S11",
+   "downstream": "R2",
+   "outlet": [
+    428613.49,
+    2731952.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S11"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 41.4649,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 428613.48973783385,
+    "y": 2731952.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S7",
+   "downstream": "J7",
+   "outlet": [
+    438928.49,
+    2716112.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S7"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 37.6562,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 438928.48973783385,
+    "y": 2716112.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S8",
+   "downstream": "J7",
+   "outlet": [
+    438928.49,
+    2716117.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S8"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 29.7142,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 438928.48973783385,
+    "y": 2716117.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S6",
+   "downstream": "R9",
+   "outlet": [
+    432063.49,
+    2719027.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S6"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 24.6326,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 432063.48973783385,
+    "y": 2719027.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S13",
+   "downstream": "R3",
+   "outlet": [
+    438593.49,
+    2727057.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S13"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 20.0887,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 438593.48973783385,
+    "y": 2727057.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "reservoir",
+   "name": "Bidah 03",
+   "downstream": "at S13",
+   "outlet": [
+    438548.49,
+    2726997.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "Bidah 03"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 20.086,
+     "source": "terrain"
+    },
+    "crest_elevation_m": {
+     "value": 109.8042984008789,
+     "source": "job"
+    },
+    "elevation_m": {
+     "value": [
+      86.964,
+      87.464,
+      87.964,
+      88.464,
+      88.964,
+      89.464,
+      89.964,
+      90.464,
+      90.964,
+      91.464,
+      91.964,
+      92.464,
+      92.964,
+      93.464,
+      93.964,
+      94.464,
+      94.964,
+      95.464,
+      95.964,
+      96.464,
+      96.964,
+      97.464,
+      97.964,
+      98.464,
+      98.964,
+      99.464,
+      99.964,
+      100.464,
+      100.964,
+      101.464,
+      101.964,
+      102.464,
+      102.964,
+      103.464,
+      103.964,
+      104.464,
+      104.964,
+      105.464,
+      105.964,
+      106.464,
+      106.964,
+      107.464,
+      107.964,
+      108.464,
+      108.964,
+      109.464,
+      109.964,
+      110.464,
+      110.964,
+      111.464,
+      111.964,
+      112.464,
+      112.964,
+      113.464,
+      113.964,
+      114.464,
+      114.964,
+      115.464,
+      115.964,
+      116.464,
+      116.964,
+      117.464,
+      117.964,
+      118.464,
+      118.964,
+      119.464,
+      119.964
+     ],
+     "source": "terrain"
+    },
+    "area_m2": {
+     "value": [
+      25.0,
+      1050.0,
+      10050.0,
+      27475.0,
+      46325.0,
+      65100.0,
+      85675.0,
+      106625.0,
+      130925.0,
+      156450.0,
+      184200.0,
+      210800.0,
+      242600.0,
+      271825.0,
+      305900.0,
+      341150.0,
+      378825.0,
+      411000.0,
+      440675.0,
+      467975.0,
+      493325.0,
+      521800.0,
+      551625.0,
+      583575.0,
+      622375.0,
+      658825.0,
+      690175.0,
+      722625.0,
+      756625.0,
+      789425.0,
+      821450.0,
+      855075.0,
+      892675.0,
+      928925.0,
+      963275.0,
+      996425.0,
+      1028350.0,
+      1059675.0,
+      1090475.0,
+      1122925.0,
+      1155675.0,
+      1191625.0,
+      1227375.0,
+      1265975.0,
+      1307450.0,
+      1349750.0,
+      1391675.0,
+      1431775.0,
+      1472250.0,
+      1510675.0,
+      1549775.0,
+      1587275.0,
+      1623525.0,
+      1659050.0,
+      1696025.0,
+      1730350.0,
+      1767800.0,
+      1805050.0,
+      1842825.0,
+      1883525.0,
+      1927450.0,
+      1970700.0,
+      2016700.0,
+      2060725.0,
+      2106775.0,
+      2157125.0,
+      2191650.0
+     ],
+     "source": "terrain"
+    },
+    "volume_m3": {
+     "value": [
+      0.0,
+      149.2,
+      2423.1,
+      12056.2,
+      30681.2,
+      58651.4,
+      96209.3,
+      144504.7,
+      204070.0,
+      276035.8,
+      361308.5,
+      460498.8,
+      573987.8,
+      702560.5,
+      847066.2,
+      1009326.2,
+      1189623.1,
+      1387841.8,
+      1601099.5,
+      1828641.4,
+      2068987.2,
+      2322864.3,
+      2591302.3,
+      2875302.6,
+      3176897.2,
+      3497682.4,
+      3835221.6,
+      4188677.3,
+      4558705.0,
+      4945329.1,
+      5348353.9,
+      5767630.5,
+      6204795.9,
+      6660272.0,
+      7133546.1,
+      7623965.9,
+      8130147.3,
+      8652380.7,
+      9189845.8,
+      9743528.9,
+      10313187.5,
+      10900068.4,
+      11504829.1,
+      12128194.0,
+      12771481.0,
+      13436001.0,
+      14121570.6,
+      14827812.5,
+      15554021.7,
+      16299785.4,
+      17065088.7,
+      17849859.7,
+      18652698.2,
+      19473358.5,
+      20312363.6,
+      21169399.0,
+      22044137.2,
+      22937166.2,
+      23849252.6,
+      24780867.7,
+      25733906.8,
+      26708787.4,
+      27705917.9,
+      28725549.8,
+      29767502.8,
+      30833007.4,
+      31922940.2
+     ],
+     "source": "terrain"
+    },
+    "spillways": {
+     "value": null,
+     "source": "missing"
+    },
+    "initial_elevation_m": {
+     "value": null,
+     "source": "missing"
+    }
+   },
+   "missing": [
+    "spillways",
+    "initial_elevation_m"
+   ],
+   "pour_point": {
+    "kind": "dam",
+    "x": 438548.48973783385,
+    "y": 2726997.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  },
+  {
+   "kind": "junction",
+   "name": "at S16",
+   "downstream": "R5A",
+   "outlet": [
+    439143.49,
+    2719997.89
+   ],
+   "geometry": {
+    "layer": "junctions",
+    "name": "at S16"
+   },
+   "parameters": {
+    "drainage_area_km2": {
+     "value": 13.4184,
+     "source": "terrain"
+    }
+   },
+   "missing": [],
+   "pour_point": {
+    "kind": "layer",
+    "x": 439143.48973783385,
+    "y": 2719997.893463373,
+    "line": null,
+    "line_km2": null,
+    "aliases": []
+   }
+  }
+ ],
+ "notes": []
+}

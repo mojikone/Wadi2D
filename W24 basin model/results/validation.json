@@ -1,0 +1,1116 @@
+{
+ "hms_subbasin_area_km2": 599.3311,
+ "hms_lag_over_kirpich": {
+  "min": 0.4729268093469432,
+  "max": 0.4757551954045466,
+  "mean": 0.4741583700161518
+ },
+ "as_a_user_would": {
+  "5.0": {
+   "subbasins": 87,
+   "reaches": 39,
+   "nodes": 50,
+   "areas": {
+    "Faydh 01": {
+     "hms": 74.304,
+     "generated": 74.428,
+     "raster": 74.4275
+    },
+    "Bidah 03": {
+     "hms": 20.971,
+     "generated": 20.086,
+     "raster": 20.086
+    },
+    "R5A": {
+     "hms": 117.1046,
+     "generated": 117.124,
+     "raster": 117.1242
+    },
+    "R2A": {
+     "hms": 175.8665,
+     "generated": 175.918,
+     "raster": 175.9174
+    },
+    "Z4C": {
+     "hms": 211.085,
+     "generated": 211.537,
+     "raster": 211.5368
+    }
+   },
+   "peaks": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1396.1,
+     "time_h": 12.67,
+     "ratio": 1.405
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 440.4,
+     "time_h": 12.67,
+     "ratio": 1.215
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1139.9,
+     "time_h": 13.42,
+     "ratio": 1.285
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2211.9,
+     "time_h": 13.25,
+     "ratio": 1.631
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2004.9,
+     "time_h": 15.17,
+     "ratio": 1.203
+    }
+   },
+   "unassigned_km2": 58.6337
+  },
+  "10.0": {
+   "subbasins": 41,
+   "reaches": 18,
+   "nodes": 26,
+   "areas": {
+    "Faydh 01": {
+     "hms": 74.304,
+     "generated": 74.427,
+     "raster": 74.4275
+    },
+    "Bidah 03": {
+     "hms": 20.971,
+     "generated": 20.086,
+     "raster": 20.086
+    },
+    "R5A": {
+     "hms": 117.1046,
+     "generated": 117.124,
+     "raster": 117.1242
+    },
+    "R2A": {
+     "hms": 175.8665,
+     "generated": 175.917,
+     "raster": 175.9174
+    },
+    "Z4C": {
+     "hms": 211.085,
+     "generated": 211.537,
+     "raster": 211.5368
+    }
+   },
+   "peaks": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1443.2,
+     "time_h": 12.67,
+     "ratio": 1.453
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 382.1,
+     "time_h": 12.58,
+     "ratio": 1.055
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1291.2,
+     "time_h": 13.33,
+     "ratio": 1.456
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2148.3,
+     "time_h": 13.25,
+     "ratio": 1.584
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 1957.9,
+     "time_h": 15.25,
+     "ratio": 1.175
+    }
+   },
+   "unassigned_km2": 80.4057
+  },
+  "20.0": {
+   "subbasins": 17,
+   "reaches": 8,
+   "nodes": 13,
+   "areas": {
+    "Faydh 01": {
+     "hms": 74.304,
+     "generated": 74.427,
+     "raster": 74.4275
+    },
+    "Bidah 03": {
+     "hms": 20.971,
+     "generated": 20.086,
+     "raster": 20.086
+    },
+    "R5A": {
+     "hms": 117.1046,
+     "generated": 117.124,
+     "raster": 117.1242
+    },
+    "R2A": {
+     "hms": 175.8665,
+     "generated": 175.917,
+     "raster": 175.9174
+    },
+    "Z4C": {
+     "hms": 211.085,
+     "generated": 211.537,
+     "raster": 211.5368
+    }
+   },
+   "peaks": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1308.2,
+     "time_h": 12.67,
+     "ratio": 1.317
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 382.1,
+     "time_h": 12.58,
+     "ratio": 1.055
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1279.1,
+     "time_h": 13.5,
+     "ratio": 1.442
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2075.5,
+     "time_h": 13.08,
+     "ratio": 1.53
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2046.4,
+     "time_h": 15.17,
+     "ratio": 1.228
+    }
+   },
+   "unassigned_km2": 127.6612
+  },
+  "40.0": {
+   "subbasins": 15,
+   "reaches": 7,
+   "nodes": 12,
+   "areas": {
+    "Faydh 01": {
+     "hms": 74.304,
+     "generated": 74.427,
+     "raster": 74.4275
+    },
+    "Bidah 03": {
+     "hms": 20.971,
+     "generated": 20.086,
+     "raster": 20.086
+    },
+    "R5A": {
+     "hms": 117.1046,
+     "generated": 117.124,
+     "raster": 117.1242
+    },
+    "R2A": {
+     "hms": 175.8665,
+     "generated": 175.917,
+     "raster": 175.9174
+    },
+    "Z4C": {
+     "hms": 211.085,
+     "generated": 211.537,
+     "raster": 211.5368
+    }
+   },
+   "peaks": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1308.2,
+     "time_h": 12.67,
+     "ratio": 1.317
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 382.1,
+     "time_h": 12.58,
+     "ratio": 1.055
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1279.1,
+     "time_h": 13.5,
+     "ratio": 1.442
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2018.1,
+     "time_h": 13.25,
+     "ratio": 1.488
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2046.4,
+     "time_h": 15.17,
+     "ratio": 1.228
+    }
+   },
+   "unassigned_km2": 127.6612
+  }
+ },
+ "design_lines": {
+  "Faydh 01": {
+   "nodes": 1,
+   "sum_km2": 73.859,
+   "line_km2": 74.4275,
+   "hms": 74.304
+  },
+  "Bidah 03": {
+   "nodes": 1,
+   "sum_km2": 19.307,
+   "line_km2": 20.086,
+   "hms": 20.971
+  },
+  "R5A": {
+   "nodes": 2,
+   "sum_km2": 106.501,
+   "line_km2": 117.1242,
+   "hms": 117.1046
+  },
+  "R2A": {
+   "nodes": 2,
+   "sum_km2": 172.633,
+   "line_km2": 175.9174,
+   "hms": 175.8665
+  },
+  "Z4C": {
+   "nodes": 1,
+   "sum_km2": 210.276,
+   "line_km2": 211.5368,
+   "hms": 211.085
+  }
+ },
+ "aligned": {
+  "areas": {
+   "Faydh 01": {
+    "hms": 74.304,
+    "generated": 74.427,
+    "raster": 74.4275
+   },
+   "Bidah 03": {
+    "hms": 20.971,
+    "generated": 20.086,
+    "raster": 20.086
+   },
+   "R5A": {
+    "hms": 117.1046,
+    "generated": 117.124,
+    "raster": 117.1242
+   },
+   "R2A": {
+    "hms": 175.8665,
+    "generated": 175.917,
+    "raster": 175.9174
+   },
+   "Z4C": {
+    "hms": 211.085,
+    "generated": 211.537,
+    "raster": 211.5368
+   }
+  },
+  "subbasins": [
+   {
+    "name": "S1",
+    "twin": "S22",
+    "shared": 1.0,
+    "iou": 0.999,
+    "area_hms": 59.078,
+    "area": 59.1119,
+    "cn_hms": 90.7,
+    "cn": 90.68,
+    "lag_hms": 112.0,
+    "lag": 55.77,
+    "length_hms": 26164,
+    "length": 26343,
+    "path_slope_hms": 0.0342,
+    "path_slope": 0.03394,
+    "slope_10_85_hms": 0.01707,
+    "slope_10_85": 0.016887,
+    "land_slope_hms": 0.689,
+    "land_slope": 0.683
+   },
+   {
+    "name": "S2",
+    "twin": "S23",
+    "shared": 1.0,
+    "iou": 0.999,
+    "area_hms": 44.392,
+    "area": 44.4174,
+    "cn_hms": 90.9,
+    "cn": 90.89,
+    "lag_hms": 102.0,
+    "lag": 48.25,
+    "length_hms": 22926,
+    "length": 22934,
+    "path_slope_hms": 0.0295,
+    "path_slope": 0.029523,
+    "slope_10_85_hms": 0.01655,
+    "slope_10_85": 0.016579,
+    "land_slope_hms": 0.723,
+    "land_slope": 0.718
+   },
+   {
+    "name": "S3",
+    "twin": "S4",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 87.597,
+    "area": 87.6303,
+    "cn_hms": 90.0,
+    "cn": 90.01,
+    "lag_hms": 157.0,
+    "lag": 79.35,
+    "length_hms": 36721,
+    "length": 36686,
+    "path_slope_hms": 0.026,
+    "path_slope": 0.026067,
+    "slope_10_85_hms": 0.01388,
+    "slope_10_85": 0.013915,
+    "land_slope_hms": 0.606,
+    "land_slope": 0.606
+   },
+   {
+    "name": "S4",
+    "twin": "S3",
+    "shared": 0.998,
+    "iou": 0.979,
+    "area_hms": 20.018,
+    "area": 20.3772,
+    "cn_hms": 86.7,
+    "cn": 86.72,
+    "lag_hms": 64.4,
+    "lag": 55.32,
+    "length_hms": 11551,
+    "length": 11558,
+    "path_slope_hms": 0.0226,
+    "path_slope": 0.022567,
+    "slope_10_85_hms": 0.0139,
+    "slope_10_85": 0.013908,
+    "land_slope_hms": 0.253,
+    "land_slope": 0.253
+   },
+   {
+    "name": "S5",
+    "twin": "S18",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 73.869,
+    "area": 73.8738,
+    "cn_hms": 90.8,
+    "cn": 90.85,
+    "lag_hms": 127.0,
+    "lag": 60.82,
+    "length_hms": 32260,
+    "length": 32298,
+    "path_slope_hms": 0.0346,
+    "path_slope": 0.03451,
+    "slope_10_85_hms": 0.01848,
+    "slope_10_85": 0.018472,
+    "land_slope_hms": 0.791,
+    "land_slope": 0.785
+   },
+   {
+    "name": "S6",
+    "twin": "S28",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 24.633,
+    "area": 24.6326,
+    "cn_hms": 90.5,
+    "cn": 90.53,
+    "lag_hms": 65.5,
+    "lag": 39.76,
+    "length_hms": 16586,
+    "length": 16573,
+    "path_slope_hms": 0.0413,
+    "path_slope": 0.041284,
+    "slope_10_85_hms": 0.02745,
+    "slope_10_85": 0.027489,
+    "land_slope_hms": 0.646,
+    "land_slope": 0.649
+   },
+   {
+    "name": "S7",
+    "twin": "S26",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 37.656,
+    "area": 37.6562,
+    "cn_hms": 87.5,
+    "cn": 87.55,
+    "lag_hms": 75.1,
+    "lag": 51.35,
+    "length_hms": 14859,
+    "length": 14838,
+    "path_slope_hms": 0.0329,
+    "path_slope": 0.032964,
+    "slope_10_85_hms": 0.01543,
+    "slope_10_85": 0.015422,
+    "land_slope_hms": 0.41,
+    "land_slope": 0.412
+   },
+   {
+    "name": "S8",
+    "twin": "S27",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 5.0816,
+    "area": 5.0817,
+    "cn_hms": 86.8,
+    "cn": 86.84,
+    "lag_hms": 55.9,
+    "lag": 45.87,
+    "length_hms": 9965,
+    "length": 9971,
+    "path_slope_hms": 0.0212,
+    "path_slope": 0.021159,
+    "slope_10_85_hms": 0.01493,
+    "slope_10_85": 0.014931,
+    "land_slope_hms": 0.287,
+    "land_slope": 0.288
+   },
+   {
+    "name": "S9",
+    "twin": "S11",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 30.781,
+    "area": 30.7803,
+    "cn_hms": 88.0,
+    "cn": 87.97,
+    "lag_hms": 101.0,
+    "lag": 66.02,
+    "length_hms": 21651,
+    "length": 21604,
+    "path_slope_hms": 0.0304,
+    "path_slope": 0.030433,
+    "slope_10_85_hms": 0.01533,
+    "slope_10_85": 0.015385,
+    "land_slope_hms": 0.439,
+    "land_slope": 0.441
+   },
+   {
+    "name": "S10",
+    "twin": "S7",
+    "shared": 0.843,
+    "iou": 0.833,
+    "area_hms": 3.8459,
+    "area": 3.2897,
+    "cn_hms": 86.1,
+    "cn": 86.06,
+    "lag_hms": 37.3,
+    "lag": 53.31,
+    "length_hms": 5105,
+    "length": 4514,
+    "path_slope_hms": 0.0173,
+    "path_slope": 0.019515,
+    "slope_10_85_hms": 0.01123,
+    "slope_10_85": 0.014116,
+    "land_slope_hms": 0.061,
+    "land_slope": 0.064
+   },
+   {
+    "name": "S11",
+    "twin": "S25",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 41.465,
+    "area": 41.4649,
+    "cn_hms": 90.8,
+    "cn": 90.83,
+    "lag_hms": 78.2,
+    "lag": 41.21,
+    "length_hms": 19738,
+    "length": 19753,
+    "path_slope_hms": 0.042,
+    "path_slope": 0.041944,
+    "slope_10_85_hms": 0.02452,
+    "slope_10_85": 0.024313,
+    "land_slope_hms": 0.783,
+    "land_slope": 0.779
+   },
+   {
+    "name": "S12",
+    "twin": "S19",
+    "shared": 0.986,
+    "iou": 0.986,
+    "area_hms": 32.839,
+    "area": 32.3904,
+    "cn_hms": 90.5,
+    "cn": 90.51,
+    "lag_hms": 67.8,
+    "lag": 41.38,
+    "length_hms": 16940,
+    "length": 16917,
+    "path_slope_hms": 0.0484,
+    "path_slope": 0.048478,
+    "slope_10_85_hms": 0.02615,
+    "slope_10_85": 0.026131,
+    "land_slope_hms": 0.613,
+    "land_slope": 0.62
+   },
+   {
+    "name": "S13",
+    "twin": "S30",
+    "shared": 0.958,
+    "iou": 0.957,
+    "area_hms": 20.971,
+    "area": 20.086,
+    "cn_hms": 87.6,
+    "cn": 87.65,
+    "lag_hms": 53.3,
+    "lag": 45.61,
+    "length_hms": 11874,
+    "length": 11800,
+    "path_slope_hms": 0.064,
+    "path_slope": 0.064355,
+    "slope_10_85_hms": 0.02405,
+    "slope_10_85": 0.024181,
+    "land_slope_hms": 0.344,
+    "land_slope": 0.36
+   },
+   {
+    "name": "S14",
+    "twin": "S24",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 42.298,
+    "area": 42.2983,
+    "cn_hms": 91.1,
+    "cn": 91.05,
+    "lag_hms": 93.5,
+    "lag": 43.23,
+    "length_hms": 21621,
+    "length": 21606,
+    "path_slope_hms": 0.0403,
+    "path_slope": 0.040344,
+    "slope_10_85_hms": 0.01851,
+    "slope_10_85": 0.018529,
+    "land_slope_hms": 0.81,
+    "land_slope": 0.802
+   },
+   {
+    "name": "S15",
+    "twin": "S15",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 38.894,
+    "area": 38.8931,
+    "cn_hms": 90.3,
+    "cn": 90.31,
+    "lag_hms": 85.5,
+    "lag": 47.16,
+    "length_hms": 19384,
+    "length": 19390,
+    "path_slope_hms": 0.0387,
+    "path_slope": 0.038708,
+    "slope_10_85_hms": 0.01878,
+    "slope_10_85": 0.018741,
+    "land_slope_hms": 0.601,
+    "land_slope": 0.603
+   },
+   {
+    "name": "S16",
+    "twin": "S31",
+    "shared": 0.6,
+    "iou": 0.6,
+    "area_hms": 22.355,
+    "area": 13.4184,
+    "cn_hms": 87.0,
+    "cn": 87.28,
+    "lag_hms": 70.0,
+    "lag": 49.21,
+    "length_hms": 13772,
+    "length": 12685,
+    "path_slope_hms": 0.0349,
+    "path_slope": 0.03779,
+    "slope_10_85_hms": 0.01596,
+    "slope_10_85": 0.016911,
+    "land_slope_hms": 0.3,
+    "land_slope": 0.357
+   },
+   {
+    "name": "S17",
+    "twin": "S13",
+    "shared": 1.0,
+    "iou": 1.0,
+    "area_hms": 11.888,
+    "area": 11.8894,
+    "cn_hms": 87.5,
+    "cn": 87.47,
+    "lag_hms": 53.0,
+    "lag": 43.7,
+    "length_hms": 11373,
+    "length": 11365,
+    "path_slope_hms": 0.045,
+    "path_slope": 0.045028,
+    "slope_10_85_hms": 0.02237,
+    "slope_10_85": 0.02242,
+    "land_slope_hms": 0.369,
+    "land_slope": 0.374
+   },
+   {
+    "name": "S18",
+    "twin": "S10",
+    "shared": 1.0,
+    "iou": 0.157,
+    "area_hms": 1.6696,
+    "area": 10.625,
+    "cn_hms": 86.4,
+    "cn": 86.54,
+    "lag_hms": 31.5,
+    "lag": 44.43,
+    "length_hms": 4242,
+    "length": 7753,
+    "path_slope_hms": 0.025,
+    "path_slope": 0.037783,
+    "slope_10_85_hms": 0.01206,
+    "slope_10_85": 0.018569,
+    "land_slope_hms": 0.136,
+    "land_slope": 0.21
+   }
+  ],
+  "reaches": [
+   {
+    "name": "R1",
+    "twins": [
+     "R13"
+    ],
+    "length_hms": 26008.98,
+    "length": 25947.2,
+    "slope_hms": 0.01241,
+    "slope": 0.01244,
+    "width_hms": 60.0,
+    "width": [
+     18.04
+    ],
+    "side_hms": 0.7,
+    "side": [
+     5.714
+    ]
+   },
+   {
+    "name": "R2",
+    "twins": [
+     "R11"
+    ],
+    "length_hms": 8347.98,
+    "length": 8359.6,
+    "slope_hms": 0.00931,
+    "slope": 0.00929,
+    "width_hms": 100.0,
+    "width": [
+     21.96
+    ],
+    "side_hms": 1.5,
+    "side": [
+     8.869
+    ]
+   },
+   {
+    "name": "R3",
+    "twins": [
+     "R10"
+    ],
+    "length_hms": 14552.26,
+    "length": 14490.7,
+    "slope_hms": 0.01162,
+    "slope": 0.01171,
+    "width_hms": 60.0,
+    "width": [
+     21.25
+    ],
+    "side_hms": 1.5,
+    "side": [
+     3.75
+    ]
+   },
+   {
+    "name": "R4",
+    "twins": [
+     "R9"
+    ],
+    "length_hms": 9427.58,
+    "length": 9428.3,
+    "slope_hms": 0.01485,
+    "slope": 0.01483,
+    "width_hms": 100.0,
+    "width": [
+     37.05
+    ],
+    "side_hms": 2.0,
+    "side": [
+     16.28
+    ]
+   },
+   {
+    "name": "R5",
+    "twins": [],
+    "length_hms": 659.62,
+    "length": 0,
+    "slope_hms": 0.00945,
+    "slope": null,
+    "width_hms": 100.0,
+    "width": [],
+    "side_hms": 5.0,
+    "side": []
+   },
+   {
+    "name": "R6",
+    "twins": [
+     "R2"
+    ],
+    "length_hms": 4259.46,
+    "length": 4227.9,
+    "slope_hms": 0.01474,
+    "slope": 0.01495,
+    "width_hms": 50.0,
+    "width": [
+     12.05
+    ],
+    "side_hms": 1.0,
+    "side": [
+     5.863
+    ]
+   },
+   {
+    "name": "R7",
+    "twins": [
+     "R4"
+    ],
+    "length_hms": 17006.85,
+    "length": 16999.3,
+    "slope_hms": 0.01523,
+    "slope": 0.01522,
+    "width_hms": 50.0,
+    "width": [
+     16.61
+    ],
+    "side_hms": 1.0,
+    "side": [
+     6.31
+    ]
+   },
+   {
+    "name": "R8",
+    "twins": [
+     "R5"
+    ],
+    "length_hms": 7765.33,
+    "length": 7751.7,
+    "slope_hms": 0.011,
+    "slope": 0.01104,
+    "width_hms": 70.0,
+    "width": [
+     25.98
+    ],
+    "side_hms": 3.0,
+    "side": [
+     7.143
+    ]
+   }
+  ],
+  "attribution": {
+   "generated": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1389.3,
+     "time_h": 12.75,
+     "ratio": 1.398
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 382.1,
+     "time_h": 12.58,
+     "ratio": 1.055
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1128.7,
+     "time_h": 13.17,
+     "ratio": 1.272
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2070.2,
+     "time_h": 13.58,
+     "ratio": 1.527
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2055.4,
+     "time_h": 15.17,
+     "ratio": 1.233
+    }
+   },
+   "HMS lag": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 975.9,
+     "time_h": 13.25,
+     "ratio": 0.982
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 347.7,
+     "time_h": 12.75,
+     "ratio": 0.96
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 780.8,
+     "time_h": 15.25,
+     "ratio": 0.88
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 1332.0,
+     "time_h": 14.25,
+     "ratio": 0.982
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 1586.5,
+     "time_h": 16.17,
+     "ratio": 0.952
+    }
+   },
+   "HMS CN": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1388.9,
+     "time_h": 12.75,
+     "ratio": 1.398
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 381.9,
+     "time_h": 12.58,
+     "ratio": 1.054
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1128.0,
+     "time_h": 13.17,
+     "ratio": 1.272
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2069.0,
+     "time_h": 13.58,
+     "ratio": 1.526
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2055.7,
+     "time_h": 15.17,
+     "ratio": 1.234
+    }
+   },
+   "HMS reaches": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 1422.1,
+     "time_h": 12.67,
+     "ratio": 1.431
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 382.1,
+     "time_h": 12.58,
+     "ratio": 1.055
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 1258.0,
+     "time_h": 14.08,
+     "ratio": 1.418
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 2166.1,
+     "time_h": 13.5,
+     "ratio": 1.597
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 2378.1,
+     "time_h": 14.5,
+     "ratio": 1.427
+    }
+   },
+   "HMS lag and reaches": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 989.4,
+     "time_h": 13.25,
+     "ratio": 0.996
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 347.7,
+     "time_h": 12.75,
+     "ratio": 0.96
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 866.8,
+     "time_h": 14.83,
+     "ratio": 0.977
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 1369.4,
+     "time_h": 14.25,
+     "ratio": 1.01
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 1667.6,
+     "time_h": 15.58,
+     "ratio": 1.001
+    }
+   },
+   "HMS lag, CN, reaches": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 989.1,
+     "time_h": 13.25,
+     "ratio": 0.996
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 347.5,
+     "time_h": 12.75,
+     "ratio": 0.959
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 867.0,
+     "time_h": 14.83,
+     "ratio": 0.977
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 1368.6,
+     "time_h": 14.33,
+     "ratio": 1.009
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 1667.7,
+     "time_h": 15.58,
+     "ratio": 1.001
+    }
+   },
+   "Kirpich rule on generated terrain, diagnosis": {
+    "Faydh 01": {
+     "hms": 993.5,
+     "hms_time_h": 13.25,
+     "generated": 973.3,
+     "time_h": 13.25,
+     "ratio": 0.98
+    },
+    "Bidah 03": {
+     "hms": 362.4,
+     "hms_time_h": 12.75,
+     "generated": 349.0,
+     "time_h": 12.75,
+     "ratio": 0.963
+    },
+    "R5A": {
+     "hms": 887.1,
+     "hms_time_h": 14.75,
+     "generated": 779.8,
+     "time_h": 15.25,
+     "ratio": 0.879
+    },
+    "R2A": {
+     "hms": 1356.1,
+     "hms_time_h": 14.25,
+     "generated": 1325.1,
+     "time_h": 14.25,
+     "ratio": 0.977
+    },
+    "Z4C": {
+     "hms": 1666.4,
+     "hms_time_h": 15.58,
+     "generated": 1581.7,
+     "time_h": 16.17,
+     "ratio": 0.949
+    }
+   }
+  },
+  "elements": 74,
+  "notes": []
+ }
+}

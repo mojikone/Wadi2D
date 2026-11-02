@@ -1,0 +1,87 @@
+{
+ "project": {
+  "name": "dam_Faydh01",
+  "description": "W24 basin model"
+ },
+ "grid": {
+  "dx": 5.0,
+  "domain": "..\\..\\W1 research and design note\\validation\\block2_full\\domain_Faydh01.geojson"
+ },
+ "mesh": {
+  "analysis_pixel": 5.0
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\NSA_Batinah_5m.tif",
+  "cn_raster": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Hydrology Data\\CN_Include_Hill_Area.tif",
+  "manning": 0.1,
+  "objects": [
+   {
+    "kind": "crest_line",
+    "coordinates": [
+     [
+      431003.28,
+      2734233.93
+     ],
+     [
+      431235.24,
+      2733997.1
+     ],
+     [
+      431244.34,
+      2733873.98
+     ],
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431054.16,
+      2733225.76
+     ],
+     [
+      431069.8,
+      2733186.8
+     ],
+     [
+      431061.7,
+      2733137.8
+     ]
+    ],
+    "z_constant": 235.0
+   },
+   {
+    "kind": "crest_line",
+    "coordinates": [
+     [
+      430983.8,
+      2733612.6
+     ],
+     [
+      430983.6,
+      2733580.1
+     ]
+    ],
+    "z_constant": 235.0
+   },
+   {
+    "kind": "spillway",
+    "coordinates": [
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431043.4275548163,
+      2733318.7037866996
+     ]
+    ],
+    "z_constant": 230.0,
+    "coefficient": 2.1,
+    "length": 207.0
+   }
+  ]
+ },
+ "outputs": {
+  "lines": []
+ }
+}
