@@ -213,7 +213,7 @@ def test_two_overlapping_lumped_polygons_stop_the_run_by_name_and_count(valley: 
     }
     run = run_job(RunConfig.model_validate(data), tmp_path / "run")
     assert run.exit_code == EXIT_INVALID
-    assert "5000 cells lie under two lumped subbasins (West, East)" in run.message
+    assert "5000 cells lie under both lumped subbasins West and East (50.00 % of the smaller" in run.message
     data["hydrology"]["subbasins"][1]["mode"] = "2d"
     data["hydrology"]["inflows"].pop()
     run = run_job(RunConfig.model_validate(data), tmp_path / "run2")

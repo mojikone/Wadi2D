@@ -749,6 +749,13 @@ class Hydrology(_Part):
         le=5000.0,
         description="An inflow point farther than this from the domain is refused, m",
     )
+    overlap_share: float = Field(
+        0.01,
+        ge=0.0,
+        le=1.0,
+        description="Two subbasin polygons sharing more than this share of the smaller stop the run: a cell never "
+        "gets two rainfalls. Less is a sliver along a digitised edge, warned and masked once",
+    )
 
     @model_validator(mode="after")
     def _handback_names(self) -> Hydrology:

@@ -731,6 +731,14 @@
           "minimum": 0.0,
           "title": "Inject Max Offset",
           "type": "number"
+        },
+        "overlap_share": {
+          "default": 0.01,
+          "description": "Two subbasin polygons sharing more than this share of the smaller stop the run: a cell never gets two rainfalls. Less is a sliver along a digitised edge, warned and masked once",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Overlap Share",
+          "type": "number"
         }
       },
       "title": "Hydrology",
@@ -3054,7 +3062,8 @@
         "handbacks": [],
         "inject_radius": 30.0,
         "inject_min_depth": 0.1,
-        "inject_max_offset": 200.0
+        "inject_max_offset": 200.0,
+        "overlap_share": 0.01
       }
     },
     "transmission": {

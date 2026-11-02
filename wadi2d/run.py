@@ -112,6 +112,7 @@ NOT_WATER = (
     ("outputs", "pixels"),
     ("outputs", "smooth"),
     ("outputs", "frame_bytes_per_cell"),
+    ("hydrology", "overlap_share"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""
 
@@ -694,9 +695,10 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
         progress.emit("terrain", volumes=report.volumes, files=report.files)
     subs = cfg.hydrology.subbasins
-    check_rain_once(
-        grid, polygons, [s.name for s in subs if s.mode == "lumped"], [s.name for s in subs if s.mode == "2d"]
-    )
+    lumped_names = [s.name for s in subs if s.mode == "lumped"]
+    two_d_names = [s.name for s in subs if s.mode == "2d"]
+    for note in check_rain_once(grid, polygons, lumped_names, two_d_names, cfg.hydrology.overlap_share):
+        progress.emit("warn", message=note)
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
