@@ -15,6 +15,7 @@ import traceback
 from pathlib import Path
 
 from qgis.core import (
+    QgsDateTimeRange,
     QgsMapRendererSequentialJob,
     QgsMapSettings,
     QgsPointXY,
@@ -65,7 +66,7 @@ def widget_shot(name, widget):
     widget.grab().save(str(P / f"widget_{name}.png"))
 
 
-def render(name, layers, centre, scale, size=(1000, 700), dpi=96):
+def render(name, layers, centre, scale, size=(1000, 700), dpi=96, temporal=None):
     """What a user sees at this scale, drawn to the end, off the screen: a minimized window's canvas shows nothing."""
     settings = QgsMapSettings()
     settings.setLayers(layers)
@@ -76,6 +77,9 @@ def render(name, layers, centre, scale, size=(1000, 700), dpi=96):
     half = (size[0] / 2.0 / dpi * 0.0254 * scale, size[1] / 2.0 / dpi * 0.0254 * scale)
     point = QgsPointXY(centre)
     settings.setExtent(QgsRectangle(point.x() - half[0], point.y() - half[1], point.x() + half[0], point.y() + half[1]))
+    if temporal is not None:
+        settings.setIsTemporal(True)
+        settings.setTemporalRange(QgsDateTimeRange(temporal, temporal.addSecs(60)))
     job = QgsMapRendererSequentialJob(settings)
     job.start()
     job.waitForFinished()
