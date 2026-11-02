@@ -1,5 +1,7 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
+**On `stage/d-plugin`, not merged (2026-11-01, W10, decision 22): quadtree, local time stepping, mesher and Mesh section, 976 tests, 42 of 42 through the dock. Waiting on his word: local stepping gains nothing on a uniform grid, the gate it had to pass, though the mesh with it ran Block 2 at 10 m 2.9 x faster.**
+
 **State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built; `main` is public on GitHub; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **HEC-RAS rain-on-grid on Bidah agrees with mode (c): 622.0 against 621.9 m3/s at 10 m, read as within about 4 %, and RAS alone gives 1.72 x HMS. So the gap to HMS is method, not a Wadi2D defect. Still open: whether the SCS lag or the 2D response is right; Block 2 has no gauges (his word), so that needs outside evidence (decision 20).** **Full project boundary run on 2026-11-01 (`W2 full extent run`): 15,398 km2, 17.1 M cells at 30 m, 68 min, Block 2's 200-yr storm, mass error 4e-8; against his 200-yr layer, depth agrees where both are wet (median -0.11 m) but extent does not (F 0.40 at 0.3 m), cause unknown.** The next step is his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
 **2026-11-01, branch `feature/terrain-tools`, not merged, not pushed: embankment, channel and channel with dykes in engine and plugin (decision 21); 54 of 54 through the real dock on Block 2 ground. Overtopping is within 5 % only for a crest up to half a cell wide.**
 
@@ -218,6 +220,13 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
 21. **Shaped terrain objects** (his requirement, 2026-11-01: the options HEC-RAS has, plus "the channel with dykes", which HEC-RAS cannot do when a channel mixes burn and dykes, with profiles for bed and top and side slopes each side). Built in
     `W8 terrain tools`. Embankment, channel and channel_dyke are one object: the new ground is the old ground clamped between a cut surface and a fill surface, so each pixel settles itself and a bank turns from dyke to cut where the ground passes its top, with no step. Stretches standing above the ground also run as crest faces, one line per stretch and bank. Three things the code must keep: **object pixels are float32**, as a DEM is, or still water gains a false head at every face; **crest faces of shaped objects carry a negative coefficient**, which reads the energy head in both kernels, because the plain limit read Q down to 0.78 of critical on a resolved crest, and positive coefficients run the old path, so crest lines, spillways and natural crests did not move; **a spillway on a raised part takes the fill out of its pixels**, since a face is closed up to the higher of crest and ground. The eased coefficient is fitted to a sweep at 0.6 m head, not a law: within 5 % up to crest / dx 0.5, -13 % to +8 % above that, depending on where the line falls in the cell. See `W8 terrain tools/README.md`.
 
+22. **The mesh and local time stepping** (2026-11-01, `W10 mesher`, on the stacked branch `stage/d-plugin`, **not merged**: see the gate). Built after all
+    though deferred by decision 17, on his word. Block-uniform quadtree, 32 x 32 cells per tile, 2:1, no lists inside a tile; tiles step powers of two of the
+    smallest step; both off by default, and the uniform path gives `main`'s numbers to the last digit. **Local stepping saves no time on a uniform grid**: 2 M cells,
+    161.98 s uniform, 190.73 s at buffer 1.0, 160.25 s at buffer 0.5, though tile-steps halve; that fails the stage's gate, which is why nothing is merged. **The gain
+    is on the mesh at scale**: Block 2 at 10 m, 4.7 M cells against 8.1 M, 523 s against 1,538 s at buffer 0.5, peaks within 2.4 %. On Bidah's 90 tiles the mesh is slower than
+    uniform, launches swamp the kernels, so below about 1 M cells it saves memory, not time [Likely]. Buffer 1.0 stays the default: 0.5 misses a dry front by 3.7 %.
+
 ## Engineering rules for the code (his instruction, 2026-10-29)
 
 His words: code in a standard way, so that changing one part never destroys the rest or forces a rewrite of hundreds or thousands of
@@ -355,6 +364,7 @@ What that implies (my reading, each point open for the design note):
 
 Waiting on him:
 
+0. W10: accept the mesh with local stepping on the mesh's gain, though it gains nothing on a uniform grid? Yes merges `stage/d-plugin` into `feature/mesher`.
 1. Evidence for Manning n on the hills (field or photographs). 0.05 to 0.1 moves the Bidah peak by 25 %, the solver by 4 % at most.
 2. The datum: confirm GGC sits 2.39 m above NSA for Block 2 W2, and on which datum the dam levels are to be used.
 3. Confirm my edits to the dam shapefiles (gaps joined, spillways centred on the thalweg, `validation/block2_full.md` section 5).
@@ -387,6 +397,7 @@ were never run; reviewer acceptance is untested.
 ## Iterations
 
 - `W2 full extent run` (live): the actual project boundary at 30 m on NSA 5 m blended with Copernicus 30 m, Block 2's 200-yr storm. Its `README.md` holds inputs and results.
+- `W10 mesher` (live, not merged, branch `stage/d-plugin`): quadtree, local time stepping, the mesher, the Mesh section; decision 22.
 - `W8 terrain tools` (live, merged): shaped terrain objects, the crest sweep, the dock check.
 - `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
   the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.

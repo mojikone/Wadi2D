@@ -12,7 +12,9 @@ from pathlib import Path
 import speed
 from speed import ROOT, run
 
-BLOCK2 = r"D:\Mojtaba\Renardet\Wadi2D\W1 research and design note\validation\block2_full\jobs\c20_A74_h100.json"
+BLOCK2 = (
+    r"D:\Mojtaba\Renardet\Wadi2D\W1 research and design note\validation\block2_full\jobs\c20_A74_h100.json"
+)
 CACHE = str(Path(__file__).parent / "runs" / "cache")
 MESH = ["mesh.enabled=true", "mesh.coarse_dx=40.0"]
 LEVELS = ["numerics.local_time_stepping=true"]

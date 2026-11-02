@@ -1,0 +1,113 @@
+# W10 mesher
+
+Status: finished 2026-11-01. Block-uniform quadtree, tile-level local time stepping, a mesher from DEM and streams, and a Mesh
+section in the dock. All off by default; the uniform path gives the same numbers as `main` to the last digit.
+
+**Verdict: stages B, C and D pass. Stage A passes on accuracy and fails on speed: on a uniform grid, local time stepping saves no
+time. The gain is on the mesh, and only at scale: Block 2 at 10 m ran 2.9 x faster at buffer 0.5. On a job of Bidah's size the mesh
+is slower than the uniform grid, because launches cost more than the kernels. Stage A's gate says "a real speed gain", so by the
+rule set for this work the stages are not merged into `feature/mesher`; they stand stacked on `stage/d-plugin` for the owner to decide.**
+
+## The gates
+
+| Stage | Gate | Result | |
+|---|---|---|---|
+| A Local stepping, uniform grid | Tests with it off, numbers identical | `main` and this branch: same steps, same peaks to the last digit, Bidah and Block 2 | pass |
+| | Stoker, Ritter, thin crest, still water | Within the uniform limits, both backends. `lts_levels = 0` is bit-identical to the uniform step | pass |
+| | Bidah peak within 1 % | -0.03 % axis, -0.02 % s13 | pass |
+| | Mass under 1e-6 | 2e-8 | pass |
+| | Real speed gain, idle GPU | **None on a uniform grid.** Table below | **fail** |
+| B Quadtree, synthetic ground | Still water | 7e-6 m/s on a rough bed at 1,500 m | pass |
+| | Dam break, planar flow within 3 % | Dam break 1.4 to 1.6 % at most off the front, rms 0.1 %; a shock begun in coarse cells rms 2 %; planar 1.8 % at most | pass |
+| | Mass under 1e-6 | 2e-10 | pass |
+| C Mesher | Bidah within 5 %, 3 x fewer cells | 68,564 cells against 220,006, **3.21 x**; peaks -3.54 and -3.46 %, 1 min late | pass |
+| D Plugin | End to end through the real dock | 42 of 42 on the merged code, in QGIS 3.44.8, throwaway profile | pass |
+| Fast path | Not over 3 % slower | Block 2, idle GPU: 162.94 s against 161.98 s, +0.6 % | pass |
+
+976 tests pass on the merged code. Ruff is clean on everything added here; `tests/conftest.py` keeps its three old notes.
+
+## Speed, the numbers to read
+
+Uniform grid, Block 2 at 20 m, 2,025,556 cells, first 14 h through the peak. **Clean**: only our own memory on the card.
+
+| Run | Loop, s | Worst peak of 16 lines | Tile-steps |
+|---|---|---|---|
+| `main` | 161.98 | | |
+| This branch, uniform | 162.94 | identical | |
+| Local stepping, buffer 1.0 (default) | 190.73 | 0.42 % | |
+| Local stepping, buffer 0.5 | 160.25 | 0.26 % | about half |
+
+Tile-steps halve and the wall clock does not move: each substep runs about twice the kernels of a uniform step, and all that is saved
+goes to launches, lists and copies. Bidah (262 tiles): 35.4 s uniform, 55.8 s local stepping, other jobs on the card part of the time.
+
+Mesh, Block 2, 14 h, `grid.dx` 10 m, coarse 40 m. Peaks against uniform 10 m at the five dams.
+
+| Run | Cells | Steps | Tile-steps, M | Loop, s | Peaks | GPU |
+|---|---|---|---|---|---|---|
+| Uniform 10 m | 8,104,054 | 149,582 | | 1,538 | | others on it at the start |
+| Mesh, one step | 4,718,245 | 174,449 | 841 | 1,165 | -0.2 to -2.7 % | shared with the tests and QGIS: **not clean** |
+| Mesh, local stepping, buffer 1.0 | 4,718,245 | 198,121 | 498 | 946 | -0.2 to -2.5 % | others on it: **not clean** |
+| Mesh, local stepping, buffer 0.5 | 4,718,245 | 171,161 | 343 | **523** | -0.2 to -2.4 % | idle at the start, 30 % mean use |
+
+Tile-steps are the same whatever else the card is doing: on the mesh, local stepping cuts them to 59 % at buffer 1.0 and 41 % at 0.5. Only the
+523 s is near clean, so 2.9 x stands against 1,538 s, which ran with others on the card, and may flatter a little. The three mesh runs ran before
+the merge of `main`, on the frozen code of `ab7f98c`. A clean run of all four, on one idle card, is still wanted.
+
+Bidah on the mesh: 88 to 269 s against 36 s uniform, not clean. A mesh substep runs about 25 kernels over three cell sizes and two
+axes, against 9 on the uniform path, at about 8 microseconds each, so at 90 tiles the launches swamp the kernels. **Below about
+1 M cells the mesh saves memory, not time.** [Likely; the crossover itself was not measured.]
+
+Buffer 0.5 is an option, not the default: it misses Stage B's 3 % at a front running onto dry coarse cells (3.7 %, against 1.3 %).
+
+## What was built
+
+- **Local stepping** (`solver/levels.py`, `solver/level_stepper.py`, `cpu/levels.py`, `gpu/levels.py`, `kernels/levels.cu`). A level is a
+  list of tiles and a dt run through the kernels as they are, which is why the uniform path cannot move. Coarse tiles go first; the
+  edge between levels steps at the finer rate; the fine tile reads the coarse level interpolated in time; what the fine steps carried
+  beyond the coarse estimate goes into the coarse cell's residual, so volume is exact. Neighbours differ by one level.
+- **Quadtree** (`grid/quad.py`, `tables/quad.py`, `kernels/quad.cu`, `cpu/quad.py`). 32 x 32 cells of one size per tile, 2:1, no lists
+  inside a tile. A side of a fine tile that faces a coarser one is 32 fine faces with their own ground, through the same `face_step`
+  with the true distance between centres. The coarse face is closed and takes their sum, so fine fluxes add up to it exactly.
+- **Mesher** (`mesh/`). Streams through WhiteboxTools as in `create_streams.py`: breach, D8, accumulate. A stream counts only where it lies
+  below the ground around it, which reads zero on any plane, so a stream on an open plain forces nothing. Wadis over 10 km2 stay at
+  the finest cell, over 1 km2 one step coarser. Barriers, shaped crests, boundaries and design lines stay fine. Slope breaks are in
+  the code and off by default: on Bidah's hills they would refine nearly everything.
+- **Plugin**: section 2, Mesh. Cell sizes, zones, a preview raster of tile sizes (`preview_on_map.png`), local stepping.
+- **`wadi2d mesh JOB --out DIR`**: the preview from the command line.
+
+## With the terrain tools
+
+`main` 020ea37 is merged. Tested on the new grids:
+
+- **A negative `cw` reads the energy head.** Both kernels already did, because an interface face runs the same `face_step`. The table
+  builder did not: it kept only positive coefficients, so a shaped crest would have become a plain one in silence. Fixed and tested.
+- **Embankment and channel_dyke stay watertight across cell sizes**: dry past the crest at 0.3 m below it, both backends; overtopped at
+  0.4 m, within 8 % of the uniform grid; dykes hold a channel across cell sizes, with the plain dry on both sides.
+- **A crest, wall, boundary or design line that reaches a coarse tile is refused**, exit 2, in plain words. It can only happen with
+  `mesh.refine_lines` off or on a tile-edge face; there is no way to run it wrong.
+- **Cut and fill equal the uniform grid's.** The survey walked one finest tile per tile; it now walks every square of a coarse one.
+
+## Found on the way, for the owner
+
+1. **The uniform engine depends on its step on thin rain sheets.** Valley job, 900 s: outflow 142.8 m3 at a step of about 1.2 s, 125.7 m3 at
+   0.05 s, 14 %. Not caused by this work. It bears on every rain-on-grid peak and was not known. [Certain on that job.]
+2. **CuPy hands one loaded module to identical source**, constants included. Two live models with different numerics in one process
+   overwrite each other's constants on the GPU. Nothing does that today; the mesh gets round it with a tag per cell size.
+3. **Coarse edge cells add 0.48 % to Bidah's rain** (3,593,302 against 3,576,149 m3): a coarse cell counts when half of it is inside.
+4. **On a slope a coarse cell reads shallower** without sheet flow: the same -10 % as a uniform 20 m grid, to four figures. With production
+   numerics 1.8 %. The interface adds nothing of its own.
+
+Mutation checks, recorded because a first clean pass proved nothing: 16 faults put into the edge and interface code, one at a time. 14 are
+caught, four of them only after new tests were written for them. Two are not: coarse-rate edge faces, and halos frozen in time, read within
+noise on the smooth wave. Their job is at fast fronts, and no test shows that yet.
+
+## Not tested
+
+Levels at a real front on a mesh at full scale; an observed event; another PC; the CPU backend through the dock; a mesh with an ARF study,
+HMS lumped subbasins or a depth grid (the code paths exist, no test runs them); resume on a mesh with GPU; `--dry-run` for a mesh, which
+reports the uniform grid and says so. Table cache: a mesh rebuilds its tables each run. Slope breaks are unit-tested only.
+
+## Files
+
+`bidah.py` one run with changed settings. `speed.py`, `speed_mesh.py` timing with GPU use sampled; results in `speed_*.jsonl`.
+`plug_mesh.py`, `run_plug.ps1` the dock check; `log_plugin_run.txt` its record. `runs/` is not in git.

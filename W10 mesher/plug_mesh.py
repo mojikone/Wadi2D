@@ -300,7 +300,41 @@ def scenario():
     check("stopped on request", done and done[-1].get("status") == "stopped", dock.panel.message.text())
     check("maps of a stopped mesh run", (RUNS / "stopped" / "maps" / "max_depth.tif").is_file())
 
-    log("=== 7 unticking returns to the uniform grid")
+    log("=== 7 an embankment on the mesh, through the Structures section")
+    sample = dem.dataProvider().sample
+    from qgis.core import QgsPointXY
+
+    west, east = (x - 500.0, y), (x + 500.0, y)
+    level = max(sample(QgsPointXY(px, y), 1)[0] for px in (x - 500.0, x, x + 500.0)) + 3.0
+    bank = add_vector(geojson("bank", [line([list(west), list(east)], crest=level)]), "bank", crs)
+    s = dock.structures
+    s.setCollapsed(False)
+    s.layers["embankment"].setLayer(bank)
+    s.shaped["embankment"].fields["crest_z"].setField("crest")
+    yield lambda: True
+    dock.panel.duration.setValue(1.0)
+    dock.panel.folder.setFilePath(str(RUNS / "bank"))
+    dock.panel.run_button.click()
+    yield lambda: dock.run is not None or "must" in dock.panel.message.text()
+    yield lambda: finished(dock)
+    done = events(RUNS / "bank", "done")
+    check("embankment on the mesh finished", done and done[-1].get("code") == 0, dock.panel.message.text())
+    written = json.loads((RUNS / "bank" / "job.json").read_text(encoding="utf-8"))
+    kinds = [o["kind"] for o in written["terrain"]["objects"]]
+    check("embankment in the job", kinds == ["embankment"], kinds)
+    start = events(RUNS / "bank", "start")[-1]
+    check("embankment refined the mesh", start["cells"] > first_cells, start["cells"])
+    relative = done[-1]["balance"]["relative_error"] if done else 1.0
+    check("embankment run mass", abs(relative) < 1e-5, relative)
+    volumes = events(RUNS / "bank", "terrain")
+    check(
+        "embankment volumes reported",
+        volumes and volumes[-1]["volumes"][0]["fill_m3"] > 0.0,
+        volumes[-1]["volumes"] if volumes else None,
+    )
+    s.layers["embankment"].setLayer(None)
+
+    log("=== 8 unticking returns to the uniform grid")
     m.enabled.setChecked(False)
     m.local_steps.setChecked(False)
     dock.panel.duration.setValue(0.25)
