@@ -203,12 +203,14 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
     kind = table_type(cfg)
     progress.emit("start", areas_km2=summary.areas_km2, arf_table_type=kind)
     folders = []
+    # a study reads peaks from the cell maps, and its runs are many: the pixel maps belong to the run chosen after it
+    outputs = cfg.outputs.model_copy(update={"pixels": cfg.outputs.pixels.model_copy(update={"enabled": False})})
     for area in summary.areas_km2:
         if stop.exists():
             _stopped(summary, progress, stop)
             return
         storm = cfg.storm.model_copy(update={"storm_area_km2": area})
-        one = cfg.model_copy(update={"storm": storm})
+        one = cfg.model_copy(update={"storm": storm, "outputs": outputs})
         run_dir = folder / "runs" / run_name(area)
         folders.append(run_dir)
         result = run_job(one, run_dir, backend, tables=(tables, crs), stop_files=(stop,))

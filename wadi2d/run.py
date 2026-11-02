@@ -34,6 +34,7 @@ from wadi2d.io.geotiff import write_map
 from wadi2d.io.identity import file_identity
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
+from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.tables import GridTables, build_tables
@@ -80,6 +81,15 @@ PATH_FIELDS = (
 )
 """Every path in a job; relative paths are relative to the job file."""
 OPTIONAL_INPUT = {("grid", "cache_dir")}
+NOT_WATER = (
+    ("run", "backend"),
+    ("run", "checkpoint_every_s"),
+    ("grid", "cache_dir"),
+    ("outputs", "pixels"),
+    ("outputs", "smooth"),
+    ("outputs", "frame_bytes_per_cell"),
+)
+"""Settings a checkpoint need not match: none of them changes the water."""
 
 
 def load_job(path: str | Path) -> RunConfig:
@@ -169,7 +179,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
 def job_hash(cfg: RunConfig) -> str:
     """What a checkpoint must match: everything that changes the water, the input files included."""
     data = cfg.model_dump(mode="json")
-    for part, name in (("run", "backend"), ("run", "checkpoint_every_s"), ("grid", "cache_dir")):
+    for part, name in NOT_WATER:
         data[part].pop(name)
     data.pop("project")
     limit = cfg.grid.content_hash_limit_mb
@@ -321,6 +331,8 @@ class RunSummary:
     peaks: dict[str, tuple[float, float]] = field(default_factory=dict)
     backend: str = ""
     cells: int = 0
+    products: str = PRODUCTS_NONE
+    done: dict = field(default_factory=dict)
 
 
 def _failed_cell(model: Model) -> dict[str, float]:
@@ -441,7 +453,8 @@ def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Prog
     return True
 
 
-def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files) -> None:
+def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files):
+    """The simulation. Returns (tables, CRS WKT) for the step after it; the model is gone by then, GPU memory too."""
     check_inputs(cfg)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
@@ -529,8 +542,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         summary.message = f"{error} at cell {where}"
         progress.emit("error", code=EXIT_NUMERICAL, message=str(error), cell=where)
         _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1)
-        return
+        return tables, crs
     _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1)
+    return tables, crs
 
 
 def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1) -> None:
@@ -557,8 +571,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
     }  # fmt: skip
     results.attributes({"status": summary.status, "t_end_s": st.t, "steps": st.nsteps, **balance, **tags})
     results.close()
-    progress.emit(
-        "done",
+    summary.done = dict(
         status=summary.status, code=summary.exit_code, partial=summary.status != "finished", t=st.t,
         duration_s=cfg.run.duration_s, steps=st.nsteps, loop_s=round(summary.loop_s, 2),
         tables_s=round(summary.tables_s, 2), wet_area_km2=round(summary.wet_area_km2, 4),
@@ -584,7 +597,11 @@ def run_job(
     summary = RunSummary()
     with Progress(folder / "progress.jsonl", echo=echo, append=resume) as progress:
         try:
-            _run(cfg, folder, backend, tables, resume, progress, summary, tuple(stop_files))
+            made = _run(cfg, folder, backend, tables, resume, progress, summary, tuple(stop_files))
+            if summary.status == "finished":
+                tags = {**arf_tags(cfg), **status_tags(summary, summary.t_end, cfg)}
+                summary.products = make_after_run(cfg, *made, folder, backend, progress, stop_files, tags)
+            progress.emit("done", **summary.done, products=summary.products)
         except JobError as error:
             summary.exit_code, summary.message = error.code, str(error)
             progress.emit("error", code=error.code, message=str(error))

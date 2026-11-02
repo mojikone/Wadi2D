@@ -89,6 +89,12 @@ def _arf(args: argparse.Namespace) -> int:
         return error.code
 
 
+def _products(args: argparse.Namespace) -> int:
+    from wadi2d.products.runner import remake
+
+    return remake(Path(args.run), args.backend, echo=True)
+
+
 def _hms_import(args: argparse.Namespace) -> int:
     from wadi2d.engine.hms_import import write_job
 
@@ -121,6 +127,11 @@ def parser() -> argparse.ArgumentParser:
     arf.add_argument("--out", required=True)
     arf.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     arf.set_defaults(call=_arf)
+
+    products = sub.add_parser("products", help="pixel depth, hazard and their drawing, for a finished run")
+    products.add_argument("run", metavar="RUN_DIR")
+    products.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
+    products.set_defaults(call=_products)
 
     hms = sub.add_parser("hms-import", help="job.json from an HMS project")
     hms.add_argument("hms_dir", metavar="HMS_DIR")
