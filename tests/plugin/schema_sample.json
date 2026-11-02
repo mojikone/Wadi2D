@@ -998,6 +998,8 @@
             ],
             "link_margin": 0.01,
             "link_ratio": 0.5,
+            "edge_band": 0.3,
+            "edge_passes": 3,
             "peak_lift": 3.0,
             "batch_pixels": 50000000
           }
@@ -1141,6 +1143,22 @@
           "maximum": 1.0,
           "title": "Link Ratio",
           "type": "number"
+        },
+        "edge_band": {
+          "default": 0.3,
+          "description": "Width beside a cell edge over which two joined cells ease into one surface, share of a cell",
+          "exclusiveMinimum": 0.0,
+          "maximum": 0.5,
+          "title": "Edge Band",
+          "type": "number"
+        },
+        "edge_passes": {
+          "default": 3,
+          "description": "Refills that remove the step at joined cell edges; 0 leaves each cell a block",
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Edge Passes",
+          "type": "integer"
         },
         "peak_lift": {
           "default": 3.0,
@@ -2547,6 +2565,8 @@
           "batch_pixels": 50000000,
           "cell_depth": 0.05,
           "depth_floor": 0.05,
+          "edge_band": 0.3,
+          "edge_passes": 3,
           "enabled": true,
           "hazard_limits": [
             [

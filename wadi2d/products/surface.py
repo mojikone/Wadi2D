@@ -12,6 +12,10 @@ crest lines and walls included) and not from a fixed jump in level, so it follow
 
 Anything else keeps its own level, so a surface is never carried over a bank. ``xp`` is NumPy or CuPy, and ``near`` a
 :class:`Neighbours` built on either: one source for both backends, in float32.
+
+Filling a cell to its own water moves its surface by one number, which differs from the neighbour's and draws the cell as
+a block, though the surface itself is continuous. So the offset is blended across each joined edge, in a band beside it,
+and the cell refilled: see :func:`edge_basis`. Water stays exact, because the last fill sets it.
 """
 
 from __future__ import annotations
@@ -21,6 +25,9 @@ import numpy as np
 NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST = (-1, -1), (-1, 1), (1, -1), (1, 1)
 CORNERS = (NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST)
 """(row, column) side of each corner, in the order of :func:`corner_basis`."""
+AROUND = tuple((dj, di) for dj in (-1, 0, 1) for di in (-1, 0, 1))
+"""(row, column) of a cell and its eight neighbours, in the order of :func:`edge_basis`."""
+OWN = (0, 0)
 FILL_STEPS = 12
 """Newton steps at most; a thin sheet over strong relief takes the most."""
 FILL_TOLERANCE = 1e-4
@@ -33,6 +40,23 @@ def corner_basis(xp, k: int):
     fy, fx = xp.meshgrid(f, f, indexing="ij")
     weights = xp.stack([(1 - fy) * (1 - fx), (1 - fy) * fx, fy * (1 - fx), fy * fx], axis=-1)
     return weights.reshape(-1, 4)
+
+
+def edge_basis(xp, k: int, band: float):
+    """Weights of a cell and its eight neighbours at the k x k pixel centres of a cell, (k * k, 9), float32.
+
+    A pixel further than ``band`` of a cell from every edge reads its own cell alone. Nearer, it eases to half and half at
+    the edge, so two cells read the same value there. A band and not a wide kernel, because a wide one barely moves a
+    checkerboard of offsets: the cell's own share of its mean is what makes the refill converge, 0.72 at a band of 0.3
+    against 0.44 for a quadratic spline.
+    """
+    f = (xp.arange(k, dtype=xp.float32) + 0.5) / k
+    x = xp.clip(xp.minimum(f, 1.0 - f) / band, 0.0, 1.0)
+    own = 0.5 + 0.5 * x * x * (3.0 - 2.0 * x)
+    other = 1.0 - own
+    along = xp.stack([other * (f < 0.5), own, other * (f >= 0.5)])  # the cell before, this one, the cell after
+    weights = [xp.outer(along[dj + 1], along[di + 1]).ravel() for dj, di in AROUND]
+    return xp.stack(weights, axis=-1).astype(xp.float32)
 
 
 class Neighbours:
@@ -87,6 +111,20 @@ def corner_groups(near, lx, ly) -> list[tuple]:
     return groups
 
 
+def around_links(groups) -> dict:
+    """Which neighbours share the water with a cell, per entry of ``AROUND``, from :func:`corner_groups`."""
+    links = {}
+    for (sy, sx), (side_x, side_y, diagonal) in zip(CORNERS, groups, strict=True):
+        links[(0, sx)], links[(sy, 0)], links[(sy, sx)] = side_x, side_y, diagonal
+    return links
+
+
+def offsets_around(near, offset, links) -> list:
+    """The nine offsets a cell's pixels read: its own, and a neighbour's where the two share the water."""
+    xp = near.xp
+    return [offset if key == OWN else xp.where(links[key], near.at(offset, *key), offset) for key in AROUND]
+
+
 def corner_means(near, value, weight, groups) -> list:
     """Each corner's mean of ``value`` over this cell and the neighbours that share the water there."""
     xp = near.xp
@@ -111,8 +149,8 @@ def at_pixels(xp, corners: list, cells, basis_t):
     return xp.stack([c[cells] for c in corners], axis=1) @ basis_t
 
 
-def fill_cells(xp, surface, ground, mean_depth):
-    """Pixel depth under a surface of this shape, raised or lowered until it holds the cell's water exactly.
+def fill_offset(xp, surface, ground, mean_depth):
+    """How far a surface of this shape must move, per cell, to hold the cell's water exactly.
 
     A level is the height of a flat fill, so on a slope with thin flow it stands well under the true surface. The
     water itself is known: the mean depth. The offset c of each cell solves ``sum(max(0, c - g)) = k * k * mean_depth``
@@ -136,4 +174,10 @@ def fill_cells(xp, surface, ground, mean_depth):
         if not bool(going.any()):
             break
         moving, left = moving[going], left[going]
-    return xp.maximum(offset[:, None] - relief, 0.0)
+    return offset
+
+
+def fill_cells(xp, surface, ground, mean_depth):
+    """Pixel depth under a surface of this shape, moved until it holds the cell's water exactly."""
+    offset = fill_offset(xp, surface, ground, mean_depth)
+    return xp.maximum(offset[:, None] - (ground - surface), 0.0)

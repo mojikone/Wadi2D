@@ -464,6 +464,15 @@ class Pixels(_Part):
         le=1.0,
         description="Two cells stepping down a slope are one flow if the shallower is this share of the deeper",
     )
+    edge_band: float = Field(
+        0.3,
+        gt=0.0,
+        le=0.5,
+        description="Width beside a cell edge over which two joined cells ease into one surface, share of a cell",
+    )
+    edge_passes: int = Field(
+        3, ge=0, le=12, description="Refills that remove the step at joined cell edges; 0 leaves each cell a block"
+    )
     peak_lift: float = Field(
         3.0,
         ge=1.0,

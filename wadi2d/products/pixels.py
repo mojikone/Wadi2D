@@ -16,21 +16,25 @@ from wadi2d.config.schema import Pixels
 from wadi2d.products.ground import CellPixels
 from wadi2d.products.surface import (
     Neighbours,
+    around_links,
     at_pixels,
     corner_basis,
     corner_groups,
     corner_means,
+    edge_basis,
     face_links,
     fill_cells,
+    fill_offset,
+    offsets_around,
 )
 
 GPU_SHARE = 0.8
 """Share of the card's free memory the maxima may fill before they go back to the host between maps."""
-LIST_ARRAYS = 48
+LIST_ARRAYS = 60
 """Arrays over the kept cells held on the device while a map is worked on, neighbour tables included."""
 PIXEL_ARRAYS = 4
 """Ground and the three maxima, per pixel."""
-WORK_SCALE = 3
+WORK_SCALE = 5
 """The work arrays of the worst batch, against one array of that batch."""
 BYTES = 4
 TINY = 1e-6
@@ -92,9 +96,12 @@ class PixelMaxima:
         self.zmin = self._cells(zmin)
         self.sill_x, self.sill_y = self._cells(sill_x, np.inf), self._cells(sill_y, np.inf)
         self.basis_t = corner_basis(xp, cells.k).T
+        self.edge_t = edge_basis(xp, cells.k, rule.edge_band).T
         n = cells.rows.size
+        self.pixels_of = n
         self.cell_dv = xp.zeros(self.rows.size + 1, xp.float32)
         self.corners: tuple = ()
+        self.offset = xp.zeros(self.rows.size + 1, xp.float32)
         per_cell = cells.k**2
         step = max(rule.batch_pixels // per_cell, 1)
         lists = LIST_ARRAYS * float(n) * BYTES
@@ -121,8 +128,38 @@ class PixelMaxima:
         """Where an array waits between maps."""
         return a if self.resident else to_host(a)
 
-    def add(self, depth, mean_depth, speed, moment: bool = True, level=None) -> None:
-        """One map, as grids. ``moment`` says depth and speed are of the same instant. ``level`` replaces ground + depth."""
+    def _shape(self, levels, around, cells):
+        """The surface over the given cells, before the fill; ``around`` is None until an offset exists."""
+        surface = at_pixels(self.xp, levels, cells, self.basis_t)
+        return surface if around is None else surface + at_pixels(self.xp, around, cells, self.edge_t)
+
+    def _join_edges(self, levels, h, wet, groups, offset, known):
+        """The nine offsets each cell reads, so that the surface does not step at a joined edge, and the offsets."""
+        xp = self.xp
+        passes = 0 if self.flat else self.rule.edge_passes
+        if passes == 0:
+            return None, offset
+        links = around_links(groups)
+        if known is not None:
+            links = {key: link & self.near.at(known, *key) for key, link in links.items()}
+        around = None
+        for _ in range(passes):
+            change = xp.zeros_like(offset)
+            for batch in self.batches:
+                on = xp.nonzero(wet[batch.first : batch.last])[0]
+                if on.size:
+                    cells = on + batch.first
+                    shape = self._shape(levels, around, cells)
+                    change[cells] = fill_offset(xp, shape, xp.asarray(batch.ground)[on], h[cells])
+            offset = offset + change
+            around = offsets_around(self.near, offset, links)
+        return around, offset
+
+    def add(self, depth, mean_depth, speed, moment: bool = True, level=None, offsets=None) -> None:
+        """One map, as grids. ``moment`` says depth and speed are of the same instant. ``level`` replaces ground + depth.
+
+        ``offsets`` holds the fill offsets of cells that take no pixels here, NaN where none is known yet.
+        """
         xp, rule, near = self.xp, self.rule, self.near
         d, h, s = self._cells(depth), self._cells(mean_depth), self._cells(speed)
         wet = d > 0.0
@@ -138,13 +175,19 @@ class PixelMaxima:
         levels = corner_means(near, level, wet, groups)
         speeds = corner_means(near, s, s > 0.0, groups)
         self.corners = (levels, speeds)
+        seed, known = xp.zeros_like(h), None
+        if offsets is not None:
+            given = self._cells(offsets, np.nan)
+            known = ~xp.isnan(given)
+            known[: self.pixels_of] = True
+            seed = xp.where(known, xp.nan_to_num(given), 0.0)
+        around, self.offset = self._join_edges(levels, h, wet, groups, seed, known)
         for batch in self.batches:
             on = xp.nonzero(wet[batch.first : batch.last])[0]
             if on.size == 0:
                 continue
             cells = on + batch.first
-            surface = at_pixels(xp, levels, cells, self.basis_t)
-            pixel_depth = fill_cells(xp, surface, xp.asarray(batch.ground)[on], h[cells])
+            pixel_depth = fill_cells(xp, self._shape(levels, around, cells), xp.asarray(batch.ground)[on], h[cells])
             pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
             store = [xp.asarray(a) for a in batch.maxima]
             new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed]

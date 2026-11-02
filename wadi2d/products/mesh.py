@@ -155,10 +155,11 @@ class MeshMaxima:
         maxima = PixelMaxima(self.xp, part, zeros, sx, sy, own | ring, self.rule, ghosts=(rows, cols))
         return Pass(s, part, maxima, coarser)
 
-    def _ghosts(self, p: Pass, level: np.ndarray, speed: np.ndarray) -> None:
-        """A coarser neighbour, read through its own surface at the ghost's centre."""
+    def _ghosts(self, p: Pass, level: np.ndarray, speed: np.ndarray, offsets: np.ndarray) -> None:
+        """A coarser neighbour, read through its own surface at the ghost's centre, with its fill offset as it stands."""
         for r, c, t, place, fy, fx in p.coarser:
             done = self.passes[t].maxima
+            offsets[r, c] = to_host(done.offset[place])
             weights = ((1 - fy) * (1 - fx), (1 - fy) * fx, fy * (1 - fx), fy * fx)
             for target, corners in ((level, done.corners[0]), (speed, done.corners[1])):
                 values = [to_host(corner[place]) for corner in corners]
@@ -181,8 +182,9 @@ class MeshMaxima:
             h = (sum_mean[s] / count).astype(np.float32)
             v = (sum_speed[s] / count).astype(np.float32)
             p = self.passes[s]
-            self._ghosts(p, level, v)
-            p.maxima.add(d, h, v, moment, level=level)
+            offsets = np.full(level.shape, np.nan, np.float32)  # a finer neighbour runs later: its offset is not known
+            self._ghosts(p, level, v, offsets)
+            p.maxima.add(d, h, v, moment, level=level, offsets=offsets)
 
     def lift_dv(self, run_hazard) -> None:
         sums = pyramid(run_hazard, self.top)
