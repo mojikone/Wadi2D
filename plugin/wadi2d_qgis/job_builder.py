@@ -11,10 +11,12 @@ from __future__ import annotations
 import json
 import math
 import re
+import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
+from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -34,8 +36,10 @@ PREFERRED_DX = 20.0
 SECONDS_PER_HOUR = 3600.0
 MINUTES_PER_HOUR = 60.0
 COORDINATE_DECIMALS = 3
-STRUCTURE_KINDS = ("crest_line", "wall", "spillway", "burn_line")
+STRUCTURE_KINDS = ("crest_line", "wall", "spillway", "burn_line", *SHAPED_KINDS)
 ELEVATED_KINDS = ("crest_line", "spillway")
+GROUND_KINDS = ("burn_line", *SHAPED_KINDS)
+"""Objects that change the ground, so a preview has something to show."""
 HMS_KEYS = ("basin", "met", "control")
 
 
@@ -167,12 +171,28 @@ def problems(values: dict) -> list[str]:
         found.append("Set how many hours the rain lasts.")
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
-    structures = values.get("structures", {})
+    found.extend(_structure_problems(values.get("structures", {})))
+    return found
+
+
+def _structure_problems(structures: dict) -> list[str]:
+    found = []
     for kind in ELEVATED_KINDS:
         if any(_elevation(feature) is None for feature in structures.get(kind, [])):
             label = kind.replace("_", " ")
             found.append(f"Every {label} needs an elevation: choose a field, or use a layer with Z values.")
-    return found
+    return found + shaped_problems(structures)
+
+
+def preview_problems(values: dict) -> list[str]:
+    """What stops a terrain preview: it needs no rain, no boundary and no output folder."""
+    if not values.get("dem"):
+        return ["Choose a DEM layer backed by a file."]
+    found = ["The DEM must be in a projected CRS, in metres."] if values.get("geographic") else []
+    structures = values.get("structures", {})
+    if not any(structures.get(kind) for kind in GROUND_KINDS):
+        found.append("Choose an embankment, a channel or a burn line layer to preview.")
+    return found + _structure_problems(structures)
 
 
 def notes(values: dict) -> list[str]:
@@ -284,14 +304,39 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     for kind, features in values.get("structures", {}).items():
         if features:
             write_geojson(inputs / f"{kind}.geojson", features, crs)
-            job["terrain"]["objects"].extend(_object(kind, feature) for feature in features)
+            job["terrain"]["objects"].extend(
+                _shaped(kind, n, feature, inputs) if kind in SHAPED_KINDS else _object(kind, feature)
+                for n, feature in enumerate(features)
+            )
     if values.get("boundaries"):
         write_geojson(inputs / "boundaries.geojson", values["boundaries"], crs)
         job["boundaries"] = [_boundary(feature) for feature in values["boundaries"]]
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
+    if values.get("terrain_map"):
+        job["outputs"]["terrain_map"] = True
     return job
+
+
+def preview_job(values: dict, out_dir: Path | str) -> dict:
+    """A job with the terrain and its objects only: a preview needs no water."""
+    blank = {"hms": values.get("hms") or True, "boundaries": [], "design": [], "terrain_map": False}
+    job = build_job({**values, **blank}, out_dir)
+    job.pop("storm", None)
+    job["run"] = {}
+    return job
+
+
+def _shaped(kind: str, index: int, feature: Feature, inputs: Path) -> dict:
+    """A shaped object; its section table is copied beside the job, so the run folder holds what made it."""
+    table = feature.properties.get(TABLE)
+    if not table:
+        return shaped_object(kind, feature)
+    inputs.mkdir(parents=True, exist_ok=True)
+    copied = inputs / f"{kind}_{index + 1}_{Path(table).name}"
+    shutil.copy2(table, copied)
+    return shaped_object(kind, feature, copied.resolve())
 
 
 def hms_import_args(hms: dict, out_file: Path | str) -> list[str]:
