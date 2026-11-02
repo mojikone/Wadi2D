@@ -1,6 +1,6 @@
 # W8 terrain tools
 
-**Status (2026-11-01): built on branch `feature/terrain-tools`, not merged, not pushed. Embankment, channel and channel with dykes work in the engine and through the real dock on Block 2 ground. One limit stands: overtopping is within 5 % only for a crest up to half a cell wide; wider crests spread from -13 % to +8 %, depending on where the line falls in the cell.**
+**Status (2026-11-01): merged to `main` and pushed. Embankment, channel and channel with dykes work in the engine and through the real dock on Block 2 ground. One limit stands: overtopping is within 5 % only for a crest up to half a cell wide; wider crests spread from -13 % to +8 %, depending on where the line falls in the cell.**
 
 ## What was built
 
@@ -64,7 +64,7 @@ With the old limit, an earlier sweep of the same kind ran from 0.75 to 0.98. The
 
 ## Not done, not tested
 
-- A `normal` boundary drawn wider than a channel ponds badly: 2.5 x normal depth in the first test. This is existing behaviour, not fixed here. Draw it across the channel, or use a stage.
+- A `normal` boundary and its width, rechecked at review: the 2.5 x normal depth of the first test does not reproduce. A straight trapezoid at steady flow gives the same depth at half widths 10, 20 and 47 m: 0.96 x normal depth away from the outlet, 0.88 to 0.90 x at 120 m from it. A run of 2,400 s showed +16 %, which was still the filling transient. So the boundary draws the level down near itself and its width does not matter. Keep design points well upstream of an outlet.
 - Tailwater submergence of a shaped crest is untested.
 - Flow round a bend in a channel. Bends are tested for geometry only.
 - Crests against HEC-RAS: still not run.

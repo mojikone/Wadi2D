@@ -373,7 +373,9 @@ Results of 2026-11-01. Aligned faces (`W3 breakline faces test`): a 9-line advec
 
 Branch `fix/dry-face-advection`, not merged: the dry-face fix (`W6 dry face fix test`, on the GPU 45-degree 3-cell mean +6.4 to +1.1 %, worst +4.2 %, Bidah unchanged) and the plugin's engine default. Plugin tested through the real dock, 32 of 32 (`W7 plugin test`). Hazard film and pixel hazard with a guarded sloped water surface done (`W2 full extent run`); the fixed 2 m guard switches the slope off near 7 % at 30 m, so it needs to scale with the local slope.
 
-From the terrain tools: merging `feature/terrain-tools` needs his word. A `normal` boundary drawn wider than a channel ponds to 2.5 x normal depth (existing behaviour, not fixed; draw it across the channel or use a stage). Overtopping at other heads and submerged, and flow round a bend in a channel, are untested.
+From the terrain tools: merged and pushed on his word to push as the work goes. A `normal` boundary draws the level down near itself, 0.88 x normal depth at 120 m from it, and its width does not matter; the 2.5 x reported first was a filling transient. Overtopping at other heads and submerged, and flow round a bend in a channel, are untested.
+
+**Boundaries, fixed 2026-11-01 (`7f4338d`):** a line more than one cell off the active cells used to lose those samples without a word: a 36.6 km sea line opened 0.2 km at 15 m and the balance closed all the same. It now opens the nearest cells within `snap_m` (150 m) and warns if it still opens under `min_share` (0.6) of its length. Lines within a cell of the domain keep their cells; W2 and the plugin hybrid were never affected. The W11 test 4 sets `t` and `b` were throttled and do not count.
 
 Then, in no order: the full-extent run is done (`W2 full extent run`); frames every 5 to 10 min and a rerun are what his hazard video needs, the AIDR H1 to H6 script is in the Majlas dam break project;
 the regional envelope of unit peaks (Bidah 30 m3/s/km2 in 2D, 17 in HMS, 100-yr); a second catchment against RAS, the cheapest guard
@@ -385,6 +387,6 @@ were never run; reviewer acceptance is untested.
 ## Iterations
 
 - `W2 full extent run` (live): the actual project boundary at 30 m on NSA 5 m blended with Copernicus 30 m, Block 2's 200-yr storm. Its `README.md` holds inputs and results.
-- `W8 terrain tools` (live, on branch `feature/terrain-tools`): shaped terrain objects, the crest sweep, the dock check.
+- `W8 terrain tools` (live, merged): shaped terrain objects, the crest sweep, the dock check.
 - `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
   the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.
