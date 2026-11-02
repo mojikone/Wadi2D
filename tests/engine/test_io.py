@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 
 import h5py
 import numpy as np
 import pytest
 import rasterio
+import shapely
 
 from tests.engine.conftest import CRS, X0, Y0
 from wadi2d.config.schema import Tables
 from wadi2d.grid import TileGrid
 from wadi2d.io.cache import cache_key, cache_path, load_tables, save_tables
+from wadi2d.io.geopackage import LINES, VectorLayer, write_geopackage
 from wadi2d.io.geotiff import NODATA, LiveRaster, write_map
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
@@ -104,3 +107,16 @@ def test_cache_round_trip_and_key(grid, tmp_path):
     assert (back.grid.x0, back.grid.y0, back.grid.dx) == (grid.x0, grid.y0, grid.dx)
     for name in ("zmin", "hc", "dtab", "flx", "cwy", "ftaby"):
         np.testing.assert_array_equal(getattr(back, name), getattr(tables, name))
+
+
+def test_a_geopackage_layer_can_carry_z(tmp_path):
+    line = shapely.LineString([(0.0, 0.0, 10.0), (5.0, 5.0, 12.0)])
+    flat = VectorLayer("flat", {"n": int}, [(1,)], [line], LINES)
+    tall = VectorLayer("tall", {"n": int}, [(1,)], [line], LINES, has_z=True)
+    path = write_geopackage(tmp_path / "z.gpkg", [flat, tall], "")
+    db = sqlite3.connect(path)
+    assert dict(db.execute("SELECT table_name, z FROM gpkg_geometry_columns")) == {"flat": 0, "tall": 1}
+    flat_blob = db.execute("SELECT geom FROM flat").fetchone()[0]
+    tall_blob = db.execute("SELECT geom FROM tall").fetchone()[0]
+    assert not shapely.from_wkb(flat_blob[40:]).has_z
+    assert list(shapely.from_wkb(tall_blob[40:]).geoms[0].coords) == [(0.0, 0.0, 10.0), (5.0, 5.0, 12.0)]

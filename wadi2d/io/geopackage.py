@@ -49,6 +49,8 @@ class VectorLayer:
     rows: list[tuple] = field(default_factory=list)
     geometries: list[shapely.Geometry] = field(default_factory=list)
     kind: str = POLYGONS
+    has_z: bool = False
+    """Vertices carry an elevation: a crest line reads its Z per vertex."""
 
 
 def _as_kind(geometry: shapely.Geometry, kind: str) -> shapely.Geometry:
@@ -61,10 +63,10 @@ def _as_kind(geometry: shapely.Geometry, kind: str) -> shapely.Geometry:
     return shapely.MultiPolygon([p for p in parts if p.geom_type == "Polygon"])
 
 
-def _blob(geometry: shapely.Geometry, srs_id: int) -> bytes:
+def _blob(geometry: shapely.Geometry, srs_id: int, has_z: bool = False) -> bytes:
     xmin, ymin, xmax, ymax = shapely.bounds(geometry).tolist()
     head = b"GP" + struct.pack("<BBi4d", 0, HEADER_FLAGS, srs_id, xmin, xmax, ymin, ymax)
-    return head + shapely.to_wkb(geometry, byte_order=1, output_dimension=2)
+    return head + shapely.to_wkb(geometry, byte_order=1, output_dimension=3 if has_z else 2)
 
 
 def _srs_row(crs_wkt: str) -> tuple:
@@ -86,7 +88,7 @@ def _write_layer(db: sqlite3.Connection, layer: VectorLayer, srs_id: int) -> Non
     marks = ", ".join("?" for _ in layer.columns)
     db.executemany(
         f'INSERT INTO "{layer.name}" (geom, {quoted}) VALUES (?, {marks})',
-        [(_blob(s, srs_id), *row) for s, row in shapes_kept],
+        [(_blob(s, srs_id, layer.has_z), *row) for s, row in shapes_kept],
     )
     bounds = shapely.total_bounds([s for s, _row in shapes_kept]).tolist() if shapes_kept else [None] * 4
     db.execute(
@@ -95,7 +97,8 @@ def _write_layer(db: sqlite3.Connection, layer: VectorLayer, srs_id: int) -> Non
         (layer.name, layer.name, *bounds, srs_id),
     )
     db.execute(
-        "INSERT INTO gpkg_geometry_columns VALUES (?, 'geom', ?, ?, 0, 0)", (layer.name, layer.kind, srs_id)
+        "INSERT INTO gpkg_geometry_columns VALUES (?, 'geom', ?, ?, ?, 0)",
+        (layer.name, layer.kind, srs_id, int(layer.has_z)),
     )
 
 
