@@ -75,6 +75,15 @@ def test_a_full_2d_run_has_no_lumped_hills_in_its_water_note(tmp_path: Path) -> 
     assert "1.0 Mm3 of rain" in map_notes.water_note(facts)
 
 
+def test_water_that_came_back_from_a_reach_is_not_counted_as_hills(tmp_path: Path) -> None:
+    """With a hand-back, inflow_m3 holds the re-entry too: that water entered once already, as 2D flow."""
+    facts = map_notes.read_facts(run_folder(tmp_path))
+    facts.balance = {**BALANCE, "inflow_m3": 2.5e6, "reentry_m3": 0.5e6}
+    assert "2.0 Mm3 from the lumped hills" in map_notes.water_note(facts)
+    facts.balance = {**BALANCE, "inflow_m3": 0.5e6, "reentry_m3": 0.5e6}
+    assert "lumped" not in map_notes.water_note(facts)
+
+
 def test_class_labels_follow_the_limits_of_the_run() -> None:
     labels = map_notes.class_labels([[0.3, 0.3, 2.0], [0.6, 0.5, 2.0]])
     assert len(labels) == 3
