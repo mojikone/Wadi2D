@@ -18,6 +18,7 @@ from ..job_builder import (
     ZONE_DX_FIELD,
     layer_features,
 )
+from ..suggest_lines import suggest_breaklines
 from .common import Section, bind, field_combo, layer_combo, number_box
 from .mesh_lines import LineTable
 
@@ -39,6 +40,7 @@ class MeshSection(Section):
         self.speed_note = QLabel(SPEED_NOTE)
         self.speed_note.setWordWrap(True)
         self.preview_button = QPushButton("Preview tile sizes")
+        self.suggest_button = QPushButton("Suggest breaklines")
         self.summary = QLabel()
         self.summary.setWordWrap(True)
         self.summary.setTextInteractionFlags(Qt.TextSelectableByMouse)
@@ -56,6 +58,8 @@ class MeshSection(Section):
         self.form.addRow(self.speed_note)
         self.form.addRow(self.preview_button)
         self.form.addRow(self.summary)
+        self.form.addRow(self.suggest_button)
+        self.suggest_button.clicked.connect(lambda: suggest_breaklines(self))
         self.enabled.toggled.connect(self._enabled_changed)
         self.coarse.valueChanged.connect(self._sizes_changed)
         self._enabled_changed(False)

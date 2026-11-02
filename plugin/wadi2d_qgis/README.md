@@ -37,6 +37,14 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    Needs the `whitebox` package (`pip install wadi2d[mesh]`).
    Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh. It saves no time on a uniform
    grid and helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
+   **Suggest breaklines** reads the ground (the mesh need not be ticked) and puts an editable layer on the map: a bank line
+   either side of every defined wadi, never on the thalweg, one bank where only one exists, and the crests the top-hat finds
+   on ground under 15 %, roads, dams and terrace edges; each line has a kind, a height, a score and a reason, the biggest first.
+   Delete what is wrong, save, and choose the layer as Crest lines under Structures: its vertices carry the ground elevation,
+   so no field is needed. **A crest line is not free**: its faces pass at most critical flow and set the time step, so a
+   bank line the design flood crosses along its length costs the peak (Bidah: 7 to 15 %, three times the steps, `W26`). Use
+   the lines a flood overtops rarely, roads, dams and dykes, and delete the rest. The thalwegs come beneath it as a
+   read-only reference. The file sits beside the run folder. Needs `whitebox`, like the mesh.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
    lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
 4. **Storm.** Steady rain, a hyetograph table, a design storm with its pattern and area reduction, or gridded rain from a
@@ -149,6 +157,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `engine_process.py` | `QProcess` wrappers: short commands and runs, start, attach, stop | yes |
 | `live_layer.py`, `result_layers.py`, `style.py` | layers on the map, grouped and styled | yes |
 | `time_layer.py` | the frames file as a mesh layer, and the Temporal Controller | yes |
+| `suggest_lines.py` | Suggest breaklines: the job, the engine's `breaklines` command, the editable layer | adapters only |
 | `map_notes.py` | the words on a sheet, from the run folder | no |
 | `map_sheets.py` | the A3 layout and its PDF; also runs on QGIS's Python alone | `qgis.core` only |
 | `dock.py`, `sections/*.py`, `settings.py`, `plugin.py` | the interface | yes |
