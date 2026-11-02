@@ -141,7 +141,7 @@ def summary_text(model: dict, rows: list[SubbasinRow]) -> str:
         text += f". Routed as a junction, no reach or no rating, for lack of: {', '.join(others)}"
     notes = model.get("notes", [])
     if notes:
-        text += ". " + " ".join(notes)
+        text += ". " + "; ".join(notes)
     return text + "."
 
 
