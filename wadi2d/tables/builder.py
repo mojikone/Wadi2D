@@ -180,7 +180,7 @@ def _faces(zf, zmin, zbar, active, axis, crest_c, tol, wall=None):
     gl = np.where(open_face, zf - zbar_n, 0.0)
     gr = np.where(open_face, zf - zbar, 0.0)
     natural = open_face & (gl > tol) & (gr > tol)
-    cw = np.where(crest_c > 0.0, crest_c, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
+    cw = np.where(crest_c != 0.0, crest_c, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
     cw = np.where(open_face, cw, 0.0)
     return fl, fr, gl, gr, cw
 
