@@ -13,15 +13,19 @@ You need
   - About 4 GB of disk, and the internet during installation (about 2 GB to download)
 
 Install
-  1. Unzip this whole folder anywhere.
+  1. Close QGIS. Unzip this whole folder anywhere.
   2. Double-click install_wadi2d.bat. Nothing is asked. Run it again later to update.
   3. Open QGIS, go to Plugins > Manage and Install Plugins > Installed, and tick Wadi2D.
+  4. Open the dock from its toolbar button, or from Plugins > Wadi2D > Wadi2D.
 
-  The engine goes into %LOCALAPPDATA%\Wadi2D, the plugin into the default QGIS profile. For another QGIS profile, add
+  The engine goes into %LOCALAPPDATA%\Wadi2D, 3 GB with an NVIDIA card, the plugin into the default QGIS profile. For another
+  drive, run this from a Command Prompt in this folder: install_wadi2d.bat -EngineRoot D:\Wadi2D
+
+  For another QGIS profile, add
   wadi2d_qgis-*.zip there through Plugins > Manage and Install Plugins > Install from ZIP; it finds the same engine.
 
-  If the dock says the engine was not found, press Engine... and give it
-  %LOCALAPPDATA%\Wadi2D\engine\Scripts\python.exe, then Check engine.
+  If the dock says the engine was not found, press Engine... and give it engine\Scripts\python.exe inside that folder,
+  then Check engine.
 
 First run
   1. Load a DEM from a file, in a projected CRS, and a polygon of the area.
@@ -32,7 +36,8 @@ First run
   4. Depth appears live. At the end the maps load into a group. Make map writes A3 sheets as a PDF.
 
 Remove
-  Uninstall the plugin in QGIS's Plugin Manager and delete the folder %LOCALAPPDATA%\Wadi2D.
+  Uninstall the plugin in QGIS's Plugin Manager and delete the folder %LOCALAPPDATA%\Wadi2D, and the engine's folder if
+  you chose another.
 
 Results are not validated against every case. Check them before you rely on them. There is no warranty; see LICENSE.txt.
 Third-party licences are listed in LICENSES.md. The NVIDIA libraries are downloaded by pip from PyPI under NVIDIA's own terms

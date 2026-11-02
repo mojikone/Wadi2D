@@ -4,6 +4,7 @@
 param(
     [string]$EngineRoot = (Join-Path $env:LOCALAPPDATA 'Wadi2D'),
     [string]$PluginsDir = (Join-Path $env:APPDATA 'QGIS\QGIS3\profiles\default\python\plugins'),
+    [string]$RecordRoot = (Join-Path $env:LOCALAPPDATA 'Wadi2D'),
     [string]$Python = '',
     [switch]$CpuOnly
 )
@@ -144,7 +145,8 @@ if (-not $worked) { Write-Host 'WARNING: WhiteboxTools did not load, so the Mesh
 
 Write-Host "[5/5] Putting the plugin into QGIS: $PluginsDir"
 $Record = '"{0}" -m wadi2d.engine.cli' -f $EnginePython
-[IO.File]::WriteAllText((Join-Path $EngineRoot 'engine.txt'), "$Record`n", $Encoding)
+New-Item -ItemType Directory -Force -Path $RecordRoot | Out-Null  # always here, wherever the engine went: Install from ZIP looks here
+[IO.File]::WriteAllText((Join-Path $RecordRoot 'engine.txt'), "$Record`n", $Encoding)
 $Target = Join-Path $PluginsDir $PluginName
 try {
     New-Item -ItemType Directory -Force -Path $PluginsDir | Out-Null
@@ -157,5 +159,6 @@ try {
 
 Write-Host ''
 Write-Host 'Installed.' -ForegroundColor Green
-Write-Host 'Open QGIS, go to Plugins > Manage and Install Plugins > Installed, and tick Wadi2D.'
+Write-Host 'If QGIS is open, close it. Open QGIS, go to Plugins > Manage and Install Plugins > Installed, and tick Wadi2D.'
+Write-Host 'The dock then opens from its toolbar button, or from Plugins > Wadi2D > Wadi2D.'
 exit 0

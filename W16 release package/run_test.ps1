@@ -44,8 +44,8 @@ $gpuRoot = Join-Path $base 'Wadi2D'
 $cpuRoot = Join-Path $base 'cpu\Wadi2D'
 $pluginsOf = { param($mode) Join-Path $Folder "$mode\profiles\profiles\default\python\plugins" }
 
-Install-Release 'gpu' @('-EngineRoot', $gpuRoot, '-PluginsDir', (& $pluginsOf 'gpu'))
-Install-Release 'cpu' @('-EngineRoot', $cpuRoot, '-PluginsDir', (& $pluginsOf 'cpu'), '-CpuOnly')
+Install-Release 'gpu' @('-EngineRoot', $gpuRoot, '-RecordRoot', $gpuRoot, '-PluginsDir', (& $pluginsOf 'gpu'))
+Install-Release 'cpu' @('-EngineRoot', $cpuRoot, '-RecordRoot', $cpuRoot, '-PluginsDir', (& $pluginsOf 'cpu'), '-CpuOnly')
 
 Start-Check 'gpu' '' ''
 
@@ -63,5 +63,5 @@ $plugins = Join-Path $Folder 'junction_plugins'
 New-Item -ItemType Directory -Force -Path $target, $plugins | Out-Null
 'keep me' | Set-Content (Join-Path $target 'keep.txt')
 cmd /c mklink /J "$plugins\wadi2d_qgis" "$target" | Out-Null
-Install-Release 'junction' @('-EngineRoot', $gpuRoot, '-PluginsDir', $plugins)
+Install-Release 'junction' @('-EngineRoot', $gpuRoot, '-RecordRoot', $gpuRoot, '-PluginsDir', $plugins)
 "junction target kept: $(Test-Path (Join-Path $target 'keep.txt')); plugin copied: $(Test-Path "$plugins\wadi2d_qgis\metadata.txt")"
