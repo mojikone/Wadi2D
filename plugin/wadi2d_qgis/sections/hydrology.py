@@ -19,7 +19,7 @@ from ..job_builder import (
     hms_subbasins,
 )
 from .basin import BasinBox, HandbackBox, LossRow
-from .basin_rows import SubbasinRow, hms_elements, mode_tip
+from .basin_rows import SubbasinRow, hms_elements, mode_tip, subbasin_rows
 from .common import Section, ValueOrRaster, bind
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
@@ -98,7 +98,9 @@ class HydrologySection(Section):
     def _generate_toggled(self, on: bool) -> None:
         self.folder.setEnabled(not on)
         self.table.setVisible(on and self.basin.model is not None)
-        if on and self.basin.model is not None:
+        if on and self.basin.model is not None:  # the table may hold an HMS project's rows: back to the generated ones
+            asked = self._subbasin_modes()
+            self._fill_table(subbasin_rows(self.basin.model, asked))
             self.handbacks.set_choices(self.basin.element_choices())
 
     def _basin_changed(self, name: str) -> None:
