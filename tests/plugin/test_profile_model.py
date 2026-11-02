@@ -230,3 +230,28 @@ def test_the_limit_is_the_line_or_a_table_that_runs_past_it() -> None:
 def test_a_named_label_is_used_in_the_words() -> None:
     model = ProfileModel(Seed({CREST: []}), 10.0, {CREST: "invert"})
     assert model.problems() == ["The invert has no points."]
+
+
+def test_a_paste_on_the_stations_makes_rows_and_skips_a_heading() -> None:
+    model = dyke()
+    cells = [["station", "bed"], ["250", "97", "103", "103"], ["500", "96", "", "101"]]
+    assert model.paste(cells, 0, 0) == ""
+    assert model.points[BED][1] == [250.0, 97.0]
+    assert model.points[LEFT][1] == [250.0, 103.0]
+    assert model.points[BED][2] == [500.0, 96.0]
+    assert model.at(LEFT, 500.0) is None
+    assert model.points[RIGHT][2] == [500.0, 101.0]
+
+
+def test_a_paste_in_a_column_fills_down_and_stops_at_the_last_row() -> None:
+    model = channel()
+    assert model.paste([["94"], ["89"], ["80"]], 1, 1) == ""
+    assert model.points[BED] == [[0.0, 100.0], [500.0, 94.0], [1000.0, 89.0]]
+
+
+@pytest.mark.parametrize(
+    "cells, words",
+    [([["1", "2"], ["x", "3"]], "line 2 is not numbers"), ([["", "2"]], "no station"), ([["-5", "1"]], "cannot be negative")],
+)
+def test_a_paste_that_cannot_be_read_is_said(cells, words) -> None:
+    assert words in channel().paste(cells, 0, 0)

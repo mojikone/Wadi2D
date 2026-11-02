@@ -15,6 +15,8 @@ from .profile_table import BED, LEFT, RIGHT, STATION, STATION_DECIMALS, Seed, in
 
 MIN_GAP = 0.01
 """Closest two points of one series may stand, m: stations must increase."""
+NEW_ROW_DECIMALS = 3
+"""A row added between two points reads to the millimetre: the line stays put, and the table stays readable."""
 TOPS = (LEFT, RIGHT)
 LABELS = {BED: "bed", LEFT: "left top", RIGHT: "right top"}
 SAME_LEVEL = 1e-9
@@ -22,6 +24,21 @@ SAME_LEVEL = 1e-9
 
 def _station(value: float) -> float:
     return round(float(value), STATION_DECIMALS)
+
+
+def _number(text: str) -> float | None:
+    text = text.strip()
+    return float(text) if text else None
+
+
+def _numbers(cells: list[str]) -> bool:
+    """Every cell a number or blank."""
+    try:
+        for cell in cells:
+            _number(cell)
+    except ValueError:
+        return False
+    return True
 
 
 class ProfileModel:
@@ -189,7 +206,7 @@ class ProfileModel:
         for key in self.keys:
             level = self.level(key, station)
             if level is not None:
-                self.points[key].append([station, level])
+                self.points[key].append([station, round(level, NEW_ROW_DECIMALS)])
                 self.points[key].sort()
         return ""
 
@@ -215,6 +232,33 @@ class ProfileModel:
             return f"The {self.labels[short[0]]} needs at least one point."
         for key in having:
             del self.points[key][self.at(key, station)]
+        return ""
+
+    def paste(self, lines: list[list[str]], row: int, column: int) -> str:
+        """Cells from a spreadsheet, from table position (row, column); column 0 holds the stations.
+
+        Pasted on the stations, a station not in the table makes a new row. A first line that is not numbers is a heading.
+        """
+        if lines and not _numbers(lines[0]):
+            lines = lines[1:]
+        for number, line in enumerate(lines, start=1):
+            if not _numbers(line):
+                return f"Pasted line {number} is not numbers."
+        known = self.stations()
+        for offset, line in enumerate(lines):
+            values = [_number(cell) for cell in line]
+            if column == 0:
+                if values[0] is None:
+                    return f"Pasted line {offset + 1} has no station."
+                station, values, first = values[0], values[1:], 0
+                if _station(station) not in self.stations() and (words := self.add_station(station)):
+                    return words
+            elif row + offset < len(known):
+                station, first = known[row + offset], column - 1
+            else:
+                return ""
+            for key, value in zip(self.keys[first:], values, strict=False):
+                self.set_level(key, station, value)
         return ""
 
     def tops_alike(self) -> bool:

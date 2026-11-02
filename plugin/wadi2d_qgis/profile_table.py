@@ -12,6 +12,7 @@ nothing: a table, then Z on the vertices or a constant, then the design rule. Wh
 from __future__ import annotations
 
 import csv
+import itertools
 import re
 import tempfile
 from dataclasses import dataclass, field, replace
@@ -80,7 +81,7 @@ class Line:
 def vertex_stations(coordinates: list) -> list[float]:
     """Distance along a polyline at each vertex, m."""
     stations = [0.0]
-    for (x0, y0, *_), (x1, y1, *_) in zip(coordinates, coordinates[1:], strict=False):
+    for (x0, y0, *_), (x1, y1, *_) in itertools.pairwise(coordinates):
         stations.append(stations[-1] + ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** 0.5)
     return stations
 
@@ -104,7 +105,7 @@ def interp(points: list, s: float) -> float:
         return points[0][1]
     if s >= points[-1][0]:
         return points[-1][1]
-    for (s0, z0), (s1, z1) in zip(points, points[1:], strict=False):
+    for (s0, z0), (s1, z1) in itertools.pairwise(points):
         if s <= s1:
             return z0 + (s - s0) / (s1 - s0) * (z1 - z0) if s1 > s0 else z1
     return points[-1][1]
@@ -247,7 +248,8 @@ def seed(line: Line, ground: list, rows: list[dict] | None = None) -> Seed:
         if key in (LEFT, RIGHT):
             points[key] = _top(line, rows, points.get(BED, []), key)
         elif key == CREST:
-            points[key] = _top(line, rows, [], key) if line.kind == "embankment" else _line_levels(line)
+            own = _column(rows, CREST) or _line_levels(line)
+            points[key] = _top(line, rows, [], key) if line.kind == "embankment" else own
     empty = [key for key, found in points.items() if not found]
     for key in empty:
         points[key] = _on_ground(line, ground, points.get(BED, []) if key != BED else [])

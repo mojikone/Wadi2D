@@ -13,9 +13,9 @@ from wadi2d_qgis.profile_model import ProfileModel
 from wadi2d_qgis.profile_table import (
     BED,
     CREST,
+    FOLDER_PROPERTY,
     LEFT,
     RIGHT,
-    FOLDER_PROPERTY,
     Line,
     ProfileStore,
     apply_levels,
@@ -168,6 +168,11 @@ def test_a_top_that_starts_on_the_ground_never_starts_under_the_bed() -> None:
         (500.0, 105.0),
         (1000.0, 105.0),
     ]
+
+
+def test_a_saved_elevation_is_what_a_crest_line_starts_from() -> None:
+    rows = [{"station": 0.0, "crest_z": 88.0}, {"station": 400.0, "crest_z": 87.0}]
+    assert seed(line("crest_line", crest_z=50.0), GROUND, rows).points[CREST] == [(0.0, 88.0), (400.0, 87.0)]
 
 
 def test_with_no_ground_and_no_level_a_series_stays_empty() -> None:
