@@ -1,8 +1,16 @@
 # W11 validation round two
 
-**Status (2026-11-01): in progress. Engine frozen at `f976c23`. Results are added below; the rules in this section were written before any run; the one amendment, the primary of test 1, is marked where it was made.**
+**Status (2026-11-02): done. Engine frozen at `f976c23`. This work committed and pushed nothing (`8a6b69b`, an earlier state of this folder, is not from these runs); nothing under `wadi2d/`, `plugin/` or `tests/` edited; Block files only read. The GPU and the CPU were shared throughout, so run times here are not benchmarks.**
 
-Read-only against the code: nothing under `wadi2d/`, `plugin/` or `tests/` is edited, nothing is committed or pushed, the Block files are only read. Every Wadi2D run uses the snapshot `engine_f976c23\`, made with `git archive f976c23`. The GPU is shared: no timing claim is made from any run here.
+| Test | Rule | Result | Verdict |
+|---|---|---|---|
+| 1. Crest against a 2D Connection, 94 m, 10 m | Q within 10 %, stage within 0.15 m | 536.6 / 534.0 = **1.005**, **+0.002 m** | **Agree**, but RAS was given Wadi2D's coefficient. With no coefficient RAS passes 4.6 to 6.2 x critical flow, so crest discharge has no independent check |
+| 2. Second catchment, Faydh 01, 10 m | +/-10 % | 1,873.8 / 1,872.2 = **1.001** | **Agree**; read as within about 5 % |
+| 3. Regional envelope, 21 km2 | Bands 12 to 23, 24 and over | Readings 5 to 19 near Block 2, 24 to 26 all north | **Cannot say**; leans to 17 |
+| Gauges found | | Z4C and Faydh 01 lie above two ministry gauges; Shaheen has rain and flow together at Lihban | Decision 20's "no gauges" needs correcting |
+| Extra: Shaheen at Lihban | +/-25 %, 45 min | 2,428 / 2,540 = **0.96**, first crest on time, phi loss; 0.59 constant fraction | **2D consistent with the flood**, in one loss form |
+| Extra: Fizh gauge, measurement | none | Wadi2D 2,582 against report Q100 770, **3.4 x** | **Worst finding** |
+| 4. Extent F 0.40 | +0.10 main, under 0.03 excluded | **0.407 to 0.598 inside his perimeter** | **Main cause: the comparison window.** Rain, n, cell size, shift excluded; terrain partial; rest unexplained |
 
 ## Decision rules, fixed before the runs
 
@@ -91,7 +99,29 @@ Wadi2D at `pool400` and at a tail point 100 m below the crest stands within 0.00
 
 ### Test 2, second catchment
 
-To follow.
+**Rule 2 verdict on the 10 m pair: 1,873.8 against 1,872.2 m3/s at `axis`, Wadi2D / RAS 1.001, limit +/-10 %. Agree.** Peaks read again from the raw series, not only from `compare.py`. Second time this method has agreed, now on a catchment 3.5 x Bidah's, and with a gorge.
+
+| Faydh 01, 74.3 km2, 163.08 mm of excess | 20 m | 10 m, the pair the rule judges |
+|---|---|---|
+| RAS 6.6 SWE-EM, peak at `axis`, m3/s | 1,925 at 12.27 h | 1,872 at 12.27 h |
+| Wadi2D `f976c23`, peak at `axis`, m3/s | 1,835 at 12.21 h | 1,874 at 12.21 h |
+| Wadi2D / RAS, `axis` | 0.954 | **1.001** |
+| Wadi2D / RAS, `box_mid` | 0.954 | 1.002 |
+| Peak time, Wadi2D earlier by | 3.5 min | 3.5 min |
+| Nash-Sutcliffe, RAS as the reference | 0.994 | 0.993 |
+| Volume to the end of the read, Wadi2D / RAS | 1.015, to 30 h | 1.016, to 16 h |
+| Both, against HMS's 993 m3/s | RAS 1.94 x, Wadi2D 1.85 x | RAS 1.884 x, Wadi2D 1.886 x |
+
+- The two meet as the cells halve: from 20 m to 10 m RAS falls 2.8 %, Wadi2D rises 2.1 %. So this says the 20 m gap was resolution, on both sides, and not that either is settled at 10 m.
+- RAS closed its volume to 0.057 %, and finished with "Unsteady Finished Successfully" at 16:00, the end set for it, after the rule's read at about 12.2 h.
+- **No timing is quoted.** The card was shared during these runs, so wall times here are not a comparison.
+- **What it does not say.** Two solvers agreeing does not make either right about a real flood, and neither run is calibrated. Both stand 1.89 x above HMS here, as 1.72 x at Bidah: the gap to HMS is a difference of method on a second catchment, not a defect of Wadi2D, and it says nothing on which is right. The Fizh gauge in test 3 is what bears on that.
+- `f976c23` is the engine frozen for this round; the merged engine has not been run on this case.
+- **Read 1.001 as "within about 5 %", not as 0.1 %.** [Likely] It is the same crossing Bidah showed, so the lines meet near 10 m on two catchments. The agreement holds at both sizes inside the rule and is no longer luck on one basin. RAS at 5 m is still unknown.
+- **The gap to HMS repeats in time too:** both 2D solvers peak 1.0 h before HMS here, 0.4 h at Bidah. Best-fit SCS lag at the section is 27 to 30 min on the whole catchment, against HMS lags of 78 and 68 min on S11 and S12 before routing.
+- **Wadi2D stands 14.7 cm high in the gorge at 10 m, rms 47 cm, and 29.5 cm at 20 m, rms 89 cm.** Twice Bidah's figures, on steeper ground. The level converges less well than the peak: the box below the axis reads -7.5 cm (rms 27). Design points need 10 m or finer.
+- **Steep-cell storage repeats:** cells over 10 m of relief hold 2.4 x the water in RAS, 1.8 against 0.8 cm of mean depth; 5 to 10 m relief 2.0 x. Not explained in either test; the section peak does not feel it. Shallow hillslope level -1.3 cm, rms 12 cm.
+- **F at 0.5 m pixels, 0.3 m, is 0.68 on the whole domain and 0.87 in the box.** On steep cells the two read a sloping surface differently, so the whole-domain figure measures that as much as water.
 
 ### Test 3, regional envelope: **cannot say at 21 km2; the record leans to 17, and near Block 2 it sits under both**
 
@@ -230,3 +260,24 @@ Rule above, fixed before the run. Bani Umar near Lihban, 197.5 km2, 2,540 m3/s, 
 **The hybrid (W7) is a separate case.** F 0.14 inside his perimeter, because its 2D area is only 226 km2: hills lumped, plain cut at 443,500 E. Inside its own 2D area F is 0.53, against 0.61 for W2 on the same ground. That job also ran n 0.04, and the map used 15 min frames.
 
 **What this does not settle.** Neither map is observed. Both carry 200-yr rain through CN losses that test 3 found high by a wide margin, so agreement between them says nothing about a real 200-yr flood.
+
+## What looks wrong, or waits on the owner
+
+1. **The design storm with these losses gives 3.4 x the gauge's Q100 at Fizh in 2D and 2.2 x in HMS.** Lihban's Shaheen ran off 33 % of the gauge's rain against about 70 % in the 100-yr run on the Fizh basin. Which does he trust: the 100-yr storm, the CN grid, or the gauges? No Block 2 design flow should be quoted as settled until that is answered, from either model.
+2. **Is transmission loss on the fan and in the wadi bed to be in the design?** Hatta halves between Ajib and Shinas. Neither model has it.
+3. **Decision 20 needs rewriting:** two gauges lie below Block 2, and the observed event needs only a CN or loss study on Lihban to become a proper calibration with IMERG rain, which was not used here.
+4. **The project's Lihban calibration matched the peak with 1.95 x the volume.** It should not be cited as confirming CN 92 or lag 140.
+5. **Crest discharge has no independent check.** A lab or surveyed overtopping case would be needed. RAS's 2D overflow should not be used for crests.
+6. **Do not put a RAS 2D Connection on an unaligned mesh.** It reported success with 28 % of the water invented. His other RAS models were not checked for this; every model with connections should have its volume error read.
+7. **W2's README states a 1,730 km2 frame; it is 2,068 km2,** and its F 0.40 should carry the note of test 4.
+8. **Disk:** this folder holds about 60 GB of RAS output, kept for rerunning and not for git. Before any commit the RAS folders, `wadi_runs`, `cache`, `terrain` and `engine_f976c23` stay out. `drafts\` holds the section drafts and can go.
+
+## Provenance and rerun
+
+`frozen_commit.txt` holds the commit; runs used the snapshot `engine_f976c23\` with the project venv and `PYTHONPATH` on it. Nothing was downloaded or installed apart from the JICA chapter, read as a public web page and kept as `t3_envelope\jica_11784287_04.pdf`.
+
+- `t1_crest\`: `t1case.py`, `build.py NAME`, `run_wadi.py NAME`, `run_ras.py ras_NAME Bidah`, `compare_t1.py WADI RAS`, `diag3.py NAME` for the volume trace.
+- `t2_faydh\`: `adapt.py` makes the Faydh copies of the `ras_rain_on_grid` scripts; `s01_domain.py --terrain`, `s02_excess.py`, `queue.sh NAME`, `run_wadi.py NAME`, `compare.py NAME`.
+- `t3_envelope\`: `s01` to `s20` in order; `s14` the Fizh job, `s18` the Lihban jobs. `report2331_full.txt` is the 2331 report as text.
+- `t4_extent\`: `s02`, `s03`, `s05`, `s09` the layers and decomposition; `s07` then `s14_jobs_sea.py` the jobs; `s13_boundary_check.py` the gate; `s08_score.py` the scores. Only the `c_` runs count.
+- `pin_ras.ps1` kept the two RAS queues on separate physical cores; unpinned, two 8-core runs ran several times slower.
