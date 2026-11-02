@@ -547,7 +547,7 @@ def real_engine() -> None:
     node = group(run_dir.name)
     names = [child.name() for child in node.children()]
     check({"max_depth", "hazard", "max_speed", "arrival"} <= set(names), f"real: maps loaded {names}")
-    depth = node.children()[0].layer()
+    depth = next(n.layer() for n in node.findLayers() if n.layer().name() == "max_depth")
     check(depth.name() == "max_depth", "real: depth on top")
     check(depth.renderer().type() == "singlebandpseudocolor", "real: depth styled")
     peak = depth.dataProvider().bandStatistics(1).maximumValue
