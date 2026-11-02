@@ -1,6 +1,6 @@
 # W16 release package
 
-**Status (2026-11-02): built and tested on this PC, on commit `f326d6c`. Not yet run on another PC.** The Windows package others install from: `Wadi2D-0.1.0-windows.zip`, 0.4 MB, from `python tools/build_release.py`. The zip stays out of git; it goes on a GitHub release.
+**Status (2026-11-02): published as pre-release `v0.1.0` at `540bf10`, https://github.com/mojikone/Wadi2D/releases/tag/v0.1.0. Tested on this PC on `f326d6c`; the published zip differs from the tested one only in its build stamp and the README text inside the wheel. Not yet run on another PC.** The Windows package others install from: `Wadi2D-0.1.0-windows.zip`, 0.4 MB, from `python tools/build_release.py`. The zip stays out of git and lives on the GitHub release; sha256 `baf0be5025f7993bc37c814bba823cd4289ed22fe6f86140b24e1477e102cb32`. `gh` is not logged in on this PC, so the tag went by git and the release page through the browser.
 
 ## What is in it
 
