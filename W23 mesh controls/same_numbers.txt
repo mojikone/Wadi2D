@@ -1,0 +1,7 @@
+uniform_gpu: 17 files, identical, rain total off by 5.2e-16 
+uniform_cpu: 17 files, identical, rain total off by 0.0e+00 
+mesh_gpu: 19 files, identical, rain total off by 1.3e-16 
+mesh_gpu_local: 19 files, identical, rain total off by 2.6e-16 
+mesh_cpu: 19 files, identical, rain total off by 5.3e-16 
+mesh_zones_gpu: 19 files, identical, rain total off by 0.0e+00 
+largest gap in the rain total 5.3e-16; the bookkeeping total on the card, compared apart: two runs of the same code differ by as much

@@ -246,6 +246,44 @@ def test_a_mesh_goes_into_the_job(tmp_path: Path) -> None:
     assert job["numerics"] == {"local_time_stepping": True}
 
 
+def mesh_line(near: float = 20.0, rows: int = 4, far: float = 80.0, name: str = "Wadi") -> Feature:
+    return Feature("LineString", LINE, {"name": name, "near_dx": near, "rows": rows, "far_dx": far})
+
+
+def test_a_mesh_with_no_lines_is_the_job_it_always_was(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path, mesh={**MESH, "lines": []}), tmp_path / "out")
+    assert "lines" not in job["mesh"]
+    assert not (tmp_path / "out" / "inputs" / "mesh_lines.geojson").exists()
+    assert job == build_job(values(tmp_path, mesh=MESH), tmp_path / "out")
+
+
+def test_mesh_lines_go_into_the_job_as_asked(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path, mesh={**MESH, "lines": [mesh_line(near=15.0)]}), tmp_path / "out")
+    assert job["mesh"]["lines"] == [{"name": "Wadi", "near_dx": 15.0, "rows": 4, "far_dx": 80.0, "coordinates": LINE}]
+    assert (tmp_path / "out" / "inputs" / "mesh_lines.geojson").is_file()
+
+
+def test_a_line_with_near_above_far_is_refused_by_name(tmp_path: Path) -> None:
+    found = problems(values(tmp_path, mesh={**MESH, "lines": [mesh_line(near=80.0, far=40.0)]}))
+    assert any("Wadi" in text and "near cell" in text for text in found)
+
+
+def test_a_rounded_line_is_said_before_the_run(tmp_path: Path) -> None:
+    said = notes(values(tmp_path, dx=20.0, mesh={**MESH, "lines": [mesh_line(near=30.0, far=70.0)]}, local_steps=True))
+    assert "Wadi: near 30 m becomes 20 m, far 70 m becomes 40 m." in said
+
+
+def test_a_line_on_the_ladder_says_nothing(tmp_path: Path) -> None:
+    said = notes(values(tmp_path, dx=20.0, mesh={**MESH, "lines": [mesh_line()]}, local_steps=True))
+    assert "Wadi" not in " ".join(said)
+
+
+def test_a_line_reads_the_ladder_from_the_snapped_cell(tmp_path: Path) -> None:
+    """Cell size 7 m on 5 m pixels runs at 5 m: the note must not speak of a ladder from 7 m."""
+    mesh = {**MESH, "coarse_dx": 40.0, "lines": [mesh_line(near=7.0, far=40.0)]}
+    assert "Wadi: near 7 m becomes 5 m." in notes(values(tmp_path, dx=7.0, pixel=5.0, mesh=mesh))
+
+
 def test_local_steps_need_no_mesh(tmp_path: Path) -> None:
     job = build_job(values(tmp_path, local_steps=True), tmp_path / "out")
     assert job["numerics"] == {"local_time_stepping": True}

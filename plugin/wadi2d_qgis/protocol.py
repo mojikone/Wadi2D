@@ -162,7 +162,13 @@ def parse_mesh(out: str) -> dict | None:
 def mesh_text(summary: dict) -> str:
     """What the preview says, from its summary file."""
     tiles = ", ".join(f"{n} of {size}" for size, n in summary["tiles_by_size"].items() if n)
-    return f"{summary['cells']:,} cells, {summary['ratio']:g} x fewer than the uniform grid. Tiles: {tiles}."
+    text = f"{summary['cells']:,} cells, {summary['ratio']:g} x fewer than the uniform grid. Tiles: {tiles}."
+    lines = [
+        f"{line['name']}: {line['near']:g} m for {line['rows']} rows each side, no coarser than {line['far']:g} m "
+        f"within {line['reach']:,.0f} m."
+        for line in summary.get("lines", [])
+    ]
+    return " ".join([text, *lines])
 
 
 def terrain_args(job: Path | str, out_dir: Path | str) -> list[str]:

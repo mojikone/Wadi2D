@@ -686,6 +686,14 @@
           },
           "title": "Zones",
           "type": "array"
+        },
+        "lines": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RefineLine"
+          },
+          "title": "Lines",
+          "type": "array"
         }
       },
       "title": "Mesh",
@@ -1200,6 +1208,66 @@
         }
       },
       "title": "Project",
+      "type": "object"
+    },
+    "RefineLine": {
+      "additionalProperties": false,
+      "description": "Cells of a size on a band around a line, set as a HEC-RAS breakline is: near size, rows, far size.\n\nIt only refines: no wall, and no faces on the line. Sizes go down to the ladder ``grid.dx`` x 2^n.",
+      "properties": {
+        "name": {
+          "default": "",
+          "description": "Name in reports; empty gives its number",
+          "title": "Name",
+          "type": "string"
+        },
+        "coordinates": {
+          "description": "Line, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "near_dx": {
+          "description": "Cell size beside the line, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Near Dx",
+          "type": "number"
+        },
+        "rows": {
+          "default": 4,
+          "description": "Rows of near cells each side; each doubling out to far holds as many rows",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "far_dx": {
+          "description": "Cell size the band grades out to, 2:1; past it the other rules apply, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Far Dx",
+          "type": "number"
+        }
+      },
+      "required": [
+        "coordinates",
+        "near_dx",
+        "far_dx"
+      ],
+      "title": "RefineLine",
       "type": "object"
     },
     "RefineZone": {
@@ -2546,7 +2614,8 @@
         "break_depth": 0.0,
         "break_share": 0.4,
         "refine_lines": true,
-        "zones": []
+        "zones": [],
+        "lines": []
       }
     },
     "terrain": {

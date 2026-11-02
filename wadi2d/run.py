@@ -597,6 +597,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             progress.emit("warn", message=f"rain: {note}")
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
+    if cfg.mesh.enabled and cfg.mesh.lines:
+        from wadi2d.mesh.build import rounding_notes
+
+        for note in rounding_notes(cfg):
+            progress.emit("warn", message=note)
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
         tables, crs = prepare_grid(cfg, cache, progress)

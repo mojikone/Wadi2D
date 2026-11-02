@@ -27,8 +27,14 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    domain is a polygon layer, or the map extent kept inside the DEM. Manning is one value or a raster.
 2. **Mesh.** Optional, off by default: off is the uniform grid, exactly as before. Ticked, the cell size above is the finest
    cell and tiles coarsen to the coarsest cell, by powers of two. Defined wadis stay fine by drainage area; barriers,
-   boundaries and design lines always do. A polygon layer with a cell-size field adds zones. **Preview tile sizes** puts a
-   layer of cell sizes on the map and says how many cells it comes to. Needs the `whitebox` package (`pip install wadi2d[mesh]`).
+   boundaries and design lines always do. A polygon layer with a cell-size field adds zones. A line layer adds **refinement
+   lines**, a table as in HEC-RAS: near cell, rows each side, far cell, with the actual sizes beside them, because the mesh only
+   doubles a cell, so a size goes down to the finest cell times a power of two. Each doubling out to the far cell holds as
+   many rows, so a band reaches rows x (2 far - near); up to 32 rows the 2:1 grading sets the sizes by itself and Far changes
+   nothing. Fields `near_dx`, `rows` and `far_dx` in the layer fill the table. A line only refines: it blocks no flow. A band
+   does not replace the wadi areas: on Bidah 8 rows on the main wadi alone read 7.8 % low, with the wadi areas on 4.1 %.
+   **Preview tile sizes** puts a layer of cell sizes on the map and says how many cells it comes to and what each line got.
+   Needs the `whitebox` package (`pip install wadi2d[mesh]`).
    Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh. It saves no time on a uniform
    grid and helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
@@ -133,6 +139,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `progress.py` | progress tail, run state, where the live raster is | no |
 | `boundary_rows.py` | the rows of the Boundaries table: who set what | no |
 | `storm_rows.py` | the Storm section as plain values: pasted tables, problems, the job's storm block | no |
+| `mesh_rows.py` | the rows of the mesh lines table: what each size becomes, who set what | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
 | `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |

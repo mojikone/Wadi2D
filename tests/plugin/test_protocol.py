@@ -21,6 +21,7 @@ from wadi2d_qgis.protocol import (
     engine_error_text,
     estimate_text,
     exit_message,
+    mesh_text,
     next_run_dir,
     parse_engine,
     parse_estimate,
@@ -139,6 +140,20 @@ def test_estimate_text(seconds: float, words: str) -> None:
 def test_the_estimate_carries_the_engine_s_note_on_a_mesh() -> None:
     estimate = {"cells": 1200, "device_gb": 0.2, "wall_s": 40.0, "note": "The time is rough."}
     assert estimate_text(estimate) == "1,200 cells, 0.20 GB, about 40 s. The time is rough."
+
+
+MESH_SUMMARY = {"cells": 1200, "ratio": 2.5, "tiles_by_size": {"10 m": 3, "20 m": 0, "40 m": 2}}
+
+
+def test_the_preview_with_no_lines_reads_as_it_did() -> None:
+    assert mesh_text(MESH_SUMMARY) == "1,200 cells, 2.5 x fewer than the uniform grid. Tiles: 3 of 10 m, 2 of 40 m."
+
+
+def test_the_preview_gives_each_line_the_engine_s_own_numbers() -> None:
+    line = {"name": "Wadi", "near": 10.0, "rows": 6, "far": 40.0, "reach": 420.0}
+    assert mesh_text({**MESH_SUMMARY, "lines": [line]}).endswith(
+        "2 of 40 m. Wadi: 10 m for 6 rows each side, no coarser than 40 m within 420 m."
+    )
 
 
 def test_the_engines_own_sentence_is_taken_from_its_json_error_line() -> None:

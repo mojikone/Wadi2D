@@ -15,6 +15,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .mesh_rows import reversed_note, rounded_note
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .storm_rows import storm_job, storm_notes, storm_problems
@@ -35,11 +36,23 @@ MESH_COARSE = "mesh.coarse_dx"
 MESH_FINE_AREA = "mesh.stream_area_fine_km2"
 MESH_MID_AREA = "mesh.stream_area_mid_km2"
 MESH_ZONE_DX = "mesh.zones.dx"
+MESH_LINE_NEAR = "mesh.lines.near_dx"
+MESH_LINE_ROWS = "mesh.lines.rows"
+MESH_LINE_FAR = "mesh.lines.far_dx"
 LOCAL_STEPS = "numerics.local_time_stepping"
 ZONE_DX_FIELD = "dx"
+TILE_CELLS = 32
+"""Cells along a tile, for the words below; a contract test holds it to the engine's."""
 SPEED_NOTE = (
     "Local time stepping saves no time on a uniform grid; it helps on a large mesh. "
     "A mesh saves time above about 1 M cells, and only memory below that."
+)
+LINES_NOTE = (
+    "The mesh only doubles a cell, so each size goes down to the finest cell times 1, 2, 4 or 8, never coarser than "
+    f"you asked: the Actual columns show what you get. Bands are whole tiles of {TILE_CELLS} cells, so a band is usually "
+    f"wider than its rows, and up to {TILE_CELLS} rows the 2:1 grading alone sets the sizes outside it, so Far changes "
+    "nothing. A line only refines: it blocks no flow. For a wall use Structures. A band does not replace the wadi areas "
+    "above: on one wadi alone it left the side wadis coarse and lost more of the peak than the two together."
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
@@ -224,6 +237,10 @@ def _mesh_problems(values: dict) -> list[str]:
         found.append("Refinement zones need a cell size: choose the field that holds it.")
     if any(not _zone_dx(zone) for zone in mesh.get("zones", [])):
         found.append("Every refinement zone needs a cell size above zero.")
+    for line in mesh.get("lines", []):
+        text = reversed_note(line.properties["name"], line.properties["near_dx"], line.properties["far_dx"])
+        if text:
+            found.append(text)
     return found
 
 
@@ -267,6 +284,22 @@ def notes(values: dict) -> list[str]:
         found.append(
             "Without local time stepping every tile takes the smallest cell's step: fewer cells, little time saved."
         )
+    return found + _line_notes(values)
+
+
+def _line_notes(values: dict) -> list[str]:
+    """Each mesh line whose sizes move, so that nobody starts a run on a size they did not get."""
+    mesh = values.get("mesh")
+    if not mesh or not mesh.get("lines"):
+        return []
+    finest = snap_dx(values.get("dx", 0.0), values.get("pixel", 0.0))
+    found = []
+    for line in mesh["lines"]:
+        text = rounded_note(
+            line.properties["name"], line.properties["near_dx"], line.properties["far_dx"], finest, mesh["coarse_dx"]
+        )
+        if text:
+            found.append(text)
     return found
 
 
@@ -384,11 +417,13 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["numerics"] = {"local_time_stepping": True}
     if values.get("mesh"):
         job["mesh"] = _mesh(values["mesh"])
+        if values["mesh"].get("lines"):
+            write_geojson(inputs / "mesh_lines.geojson", values["mesh"]["lines"], crs)
     return job
 
 
 def _mesh(mesh: dict) -> dict:
-    return {
+    out = {
         "enabled": True,
         "coarse_dx": mesh["coarse_dx"],
         "stream_area_fine_km2": mesh["fine_km2"],
@@ -397,6 +432,9 @@ def _mesh(mesh: dict) -> dict:
             {"coordinates": zone.coordinates[0], "dx": _zone_dx(zone)} for zone in mesh.get("zones", [])
         ],
     }
+    if mesh.get("lines"):
+        out["lines"] = [{**line.properties, "coordinates": line.xy()} for line in mesh["lines"]]
+    return out
 
 
 def preview_job(values: dict, out_dir: Path | str) -> dict:

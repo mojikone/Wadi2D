@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""2. Mesh: cell sizes, refinement zones, the preview of tile sizes, and local time stepping."""
+"""2. Mesh: cell sizes, refinement zones and lines, the preview of tile sizes, and local time stepping."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from ..job_builder import (
     layer_features,
 )
 from .common import Section, bind, field_combo, layer_combo, number_box
+from .mesh_lines import LineTable
 
 
 class MeshSection(Section):
@@ -32,6 +33,8 @@ class MeshSection(Section):
         self.mid_area = number_box(2)
         self.zones = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "No refinement zones")
         self.zone_dx = field_combo(self.zones)
+        self.lines = LineTable(self.canvas)
+        self._finest = 0.0
         self.local_steps = QCheckBox("Each tile takes the step it can afford")
         self.speed_note = QLabel(SPEED_NOTE)
         self.speed_note.setWordWrap(True)
@@ -45,11 +48,16 @@ class MeshSection(Section):
         self.form.addRow("One step coarser for wadis over, km2", self.mid_area)
         self.form.addRow("Refinement zones", self.zones)
         self.form.addRow("Zone cell size field, m", self.zone_dx)
+        self.form.addRow("Refinement lines", self.lines.layer)
+        self.form.addRow(self.lines.table)
+        self.form.addRow(self.lines.rounded)
+        self.form.addRow(self.lines.note)
         self.form.addRow("Local time stepping", self.local_steps)
         self.form.addRow(self.speed_note)
         self.form.addRow(self.preview_button)
         self.form.addRow(self.summary)
         self.enabled.toggled.connect(self._enabled_changed)
+        self.coarse.valueChanged.connect(self._sizes_changed)
         self._enabled_changed(False)
 
     def _enabled_changed(self, on: bool) -> None:
@@ -62,8 +70,17 @@ class MeshSection(Section):
             self.preview_button,
         ):
             widget.setEnabled(on)
+        self.lines.set_enabled(on)
         if on:
             self.local_steps.setChecked(True)
+
+    def set_finest(self, dx: float) -> None:
+        """The finest cell, which the Terrain section owns; the dock passes it down."""
+        self._finest = dx
+        self._sizes_changed()
+
+    def _sizes_changed(self, *_) -> None:
+        self.lines.set_sizes(self._finest, self.coarse.value())
 
     def apply_schema(self, schema) -> None:
         self.enabled.setChecked(bool(schema.default(MESH_ENABLED, False)))
@@ -73,6 +90,7 @@ class MeshSection(Section):
         bind(self.coarse, schema, MESH_COARSE)
         bind(self.fine_area, schema, MESH_FINE_AREA)
         bind(self.mid_area, schema, MESH_MID_AREA)
+        self.lines.apply_schema(schema)
 
     def values(self, crs) -> dict:
         out: dict = {"local_steps": self.local_steps.isChecked()}
@@ -86,5 +104,6 @@ class MeshSection(Section):
             "mid_km2": self.mid_area.value(),
             "zones": layer_features(layer, crs, {ZONE_DX_FIELD: name}) if layer is not None and name else [],
             "zones_unset": layer is not None and not name,
+            "lines": self.lines.features(crs),
         }
         return out

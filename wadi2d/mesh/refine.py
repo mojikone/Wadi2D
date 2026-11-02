@@ -14,7 +14,7 @@ import shapely
 from rasterio import features
 from rasterio.transform import Affine
 
-from wadi2d.config.schema import Mesh
+from wadi2d.config.schema import Mesh, RefineLine
 from wadi2d.mesh.streams import Terrain, incision, slope_change
 from wadi2d.solver.layout import TILE
 
@@ -35,6 +35,11 @@ class Lattice:
 
     def transform(self) -> Affine:
         return Affine(self.size, 0.0, self.x0, 0.0, -self.size, self.y0)
+
+
+def rung(size: float, dx: float, top: int) -> int:
+    """The level of a wanted cell size: the quadtree only doubles, so down to the ladder, never coarser than asked."""
+    return int(np.clip(np.floor(np.log2(size / dx) + 1e-9), 0, top))
 
 
 def squares(flags: np.ndarray, per_square: int) -> np.ndarray:
@@ -87,7 +92,7 @@ def zone_levels(cfg: Mesh, lat: Lattice, top: int) -> np.ndarray:
     """Wanted level from the user's zones; a later zone does not coarsen an earlier one."""
     out = np.full((lat.ny, lat.nx), top, np.int32)
     for zone in cfg.zones:
-        level = int(np.clip(np.floor(np.log2(zone.dx / lat.dx) + 1e-9), 0, top))
+        level = rung(zone.dx, lat.dx, top)
         hit = features.rasterize(
             [(shapely.Polygon(zone.coordinates), 1)], out_shape=out.shape, transform=lat.transform(), all_touched=True,
             dtype="uint8",
@@ -96,4 +101,23 @@ def zone_levels(cfg: Mesh, lat: Lattice, top: int) -> np.ndarray:
     return out
 
 
-__all__ = ["Lattice", "break_levels", "line_levels", "squares", "stream_levels", "zone_levels"]
+def band_levels(lines: list[RefineLine], lat: Lattice, top: int) -> np.ndarray:
+    """Wanted level from the user's lines: near cells for ``rows`` each side, then each doubling out to far for as many.
+
+    A square counts when the band touches it, so a band is never narrower than asked and usually wider: it is made of
+    whole tiles. Past the far size the line has no say, and the 2:1 balance grades on to what the other rules want.
+    """
+    out = np.full((lat.ny, lat.nx), top, np.int32)
+    for item in lines:
+        line = shapely.LineString(item.coordinates)
+        reach = 0.0
+        for level in range(rung(item.near_dx, lat.dx, top), rung(item.far_dx, lat.dx, top) + 1):
+            reach += item.rows * lat.dx * (1 << level)
+            hit = features.rasterize(
+                [(line.buffer(reach), 1)], out_shape=out.shape, transform=lat.transform(), all_touched=True, dtype="uint8"
+            ).astype(bool)
+            out[hit] = np.minimum(out[hit], level)
+    return out
+
+
+__all__ = ["Lattice", "band_levels", "break_levels", "line_levels", "rung", "squares", "stream_levels", "zone_levels"]
