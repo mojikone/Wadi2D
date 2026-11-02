@@ -1,0 +1,102 @@
+{
+ "highway_km": 40.79063876017253,
+ "corridor_km2": 272.8816432035156,
+ "rows": [
+  {
+   "radius_m": 40.0,
+   "height_m": 0.3,
+   "recall": 0.9377450980392157,
+   "km_on_highway": 50.29200000000001,
+   "km_elsewhere": 1192.8785,
+   "km_elsewhere_per_km2": 4.371413503657148
+  },
+  {
+   "radius_m": 40.0,
+   "height_m": 0.5,
+   "recall": 0.8196078431372549,
+   "km_on_highway": 38.5825,
+   "km_elsewhere": 375.69950000000006,
+   "km_elsewhere_per_km2": 1.3767855381895466
+  },
+  {
+   "radius_m": 40.0,
+   "height_m": 1.0,
+   "recall": 0.4161764705882353,
+   "km_on_highway": 17.325,
+   "km_elsewhere": 97.71850000000002,
+   "km_elsewhere_per_km2": 0.3580984739494602
+  },
+  {
+   "radius_m": 40.0,
+   "height_m": 1.5,
+   "recall": 0.1450980392156863,
+   "km_on_highway": 5.4835,
+   "km_elsewhere": 62.64500000000001,
+   "km_elsewhere_per_km2": 0.2295683918660636
+  },
+  {
+   "radius_m": 60.0,
+   "height_m": 0.3,
+   "recall": 0.9602941176470589,
+   "km_on_highway": 55.40700000000001,
+   "km_elsewhere": 1972.2670000000003,
+   "km_elsewhere_per_km2": 7.227554689448569
+  },
+  {
+   "radius_m": 60.0,
+   "height_m": 0.5,
+   "recall": 0.8838235294117647,
+   "km_on_highway": 44.022,
+   "km_elsewhere": 790.6525000000001,
+   "km_elsewhere_per_km2": 2.8974191547590844
+  },
+  {
+   "radius_m": 60.0,
+   "height_m": 1.0,
+   "recall": 0.5186274509803922,
+   "km_on_highway": 23.078000000000003,
+   "km_elsewhere": 151.7725,
+   "km_elsewhere_per_km2": 0.5561843523743656
+  },
+  {
+   "radius_m": 60.0,
+   "height_m": 1.5,
+   "recall": 0.21176470588235294,
+   "km_on_highway": 8.173,
+   "km_elsewhere": 79.7995,
+   "km_elsewhere_per_km2": 0.2924326424569548
+  },
+  {
+   "radius_m": 100.0,
+   "height_m": 0.3,
+   "recall": 0.9696078431372549,
+   "km_on_highway": 60.08200000000001,
+   "km_elsewhere": 2815.802,
+   "km_elsewhere_per_km2": 10.318766652617855
+  },
+  {
+   "radius_m": 100.0,
+   "height_m": 0.5,
+   "recall": 0.9166666666666666,
+   "km_on_highway": 49.80250000000001,
+   "km_elsewhere": 1481.2875000000001,
+   "km_elsewhere_per_km2": 5.428314937605581
+  },
+  {
+   "radius_m": 100.0,
+   "height_m": 1.0,
+   "recall": 0.6284313725490196,
+   "km_on_highway": 28.919000000000004,
+   "km_elsewhere": 306.24,
+   "km_elsewhere_per_km2": 1.1222447813083773
+  },
+  {
+   "radius_m": 100.0,
+   "height_m": 1.5,
+   "recall": 0.3176470588235294,
+   "km_on_highway": 12.716000000000001,
+   "km_elsewhere": 123.75550000000001,
+   "km_elsewhere_per_km2": 0.45351346667061426
+  }
+ ]
+}

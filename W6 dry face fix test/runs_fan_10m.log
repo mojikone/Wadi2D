@@ -1,0 +1,80 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W1 research and design note\\validation\\ras_head_to_head\\cache\\grid_ebdf8baf5646d65f2b1049c0.h5"}
+D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+  warnings.warn(
+{"ev": "start", "backend": "gpu", "cells": 90000, "tiles": 100, "dx": 10.0, "duration_s": 21600.0, "tables_s": 1.8, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 1.5}
+{"ev": "output", "kind": "map", "t": 301.65243290137136}
+{"ev": "output", "kind": "map", "t": 601.8279639761852}
+{"ev": "output", "kind": "map", "t": 902.3620868456624}
+{"ev": "output", "kind": "map", "t": 1203.0437374877847}
+{"ev": "output", "kind": "map", "t": 1503.8007930098038}
+{"ev": "output", "kind": "map", "t": 1804.359306328002}
+{"ev": "output", "kind": "map", "t": 2104.3951619508352}
+{"ev": "output", "kind": "map", "t": 2404.795547378535}
+{"ev": "output", "kind": "map", "t": 2704.836299629578}
+{"ev": "output", "kind": "map", "t": 3005.0539485875015}
+{"ev": "output", "kind": "map", "t": 3305.2535653340965}
+{"ev": "output", "kind": "map", "t": 3605.528255173544}
+{"ev": "output", "kind": "map", "t": 3905.810548141163}
+{"ev": "output", "kind": "map", "t": 4206.080830420557}
+{"ev": "output", "kind": "map", "t": 4506.349340668403}
+{"ev": "output", "kind": "map", "t": 4806.610796112551}
+{"ev": "output", "kind": "map", "t": 5106.867962904002}
+{"ev": "output", "kind": "map", "t": 5407.124194742019}
+{"ev": "output", "kind": "map", "t": 5707.226001946473}
+{"ev": "output", "kind": "map", "t": 6007.582655958253}
+{"ev": "output", "kind": "map", "t": 6308.032458210278}
+{"ev": "output", "kind": "map", "t": 6608.074849264712}
+{"ev": "output", "kind": "map", "t": 6908.126772401656}
+{"ev": "output", "kind": "map", "t": 7208.183586805412}
+{"ev": "output", "kind": "map", "t": 7508.240466869751}
+{"ev": "output", "kind": "map", "t": 7808.259127642152}
+{"ev": "output", "kind": "map", "t": 8108.32428626979}
+{"ev": "output", "kind": "map", "t": 8408.391153705299}
+{"ev": "output", "kind": "map", "t": 8708.461589048215}
+{"ev": "step", "t": 8821.617, "dt": 0.4043, "steps": 18184, "active_tiles": 82, "volume": 429815.7, "mass_error": -1.636e-08, "wall": 2.0}
+{"ev": "output", "kind": "map", "t": 9008.535051086688}
+{"ev": "output", "kind": "map", "t": 9308.611598682437}
+{"ev": "output", "kind": "map", "t": 9608.690546228112}
+{"ev": "output", "kind": "map", "t": 9908.772775674463}
+{"ev": "output", "kind": "map", "t": 10208.858923395032}
+{"ev": "output", "kind": "map", "t": 10508.94646909207}
+{"ev": "output", "kind": "map", "t": 10809.036873434747}
+{"ev": "output", "kind": "map", "t": 11109.13187974091}
+{"ev": "output", "kind": "map", "t": 11409.229738357157}
+{"ev": "output", "kind": "map", "t": 11709.332746017912}
+{"ev": "output", "kind": "map", "t": 12009.438776726882}
+{"ev": "output", "kind": "map", "t": 12309.551064157864}
+{"ev": "output", "kind": "map", "t": 12609.660158465811}
+{"ev": "output", "kind": "map", "t": 12909.77393779767}
+{"ev": "output", "kind": "map", "t": 13209.900908212345}
+{"ev": "output", "kind": "map", "t": 13510.063888902587}
+{"ev": "output", "kind": "map", "t": 13810.197615639303}
+{"ev": "output", "kind": "map", "t": 14110.379948071126}
+{"ev": "output", "kind": "map", "t": 14410.514016892823}
+{"ev": "output", "kind": "map", "t": 14710.91536267176}
+{"ev": "output", "kind": "map", "t": 15011.054211476207}
+{"ev": "output", "kind": "map", "t": 15311.200104266456}
+{"ev": "output", "kind": "map", "t": 15611.347091279127}
+{"ev": "output", "kind": "map", "t": 15911.727061409993}
+{"ev": "output", "kind": "map", "t": 16211.774518841134}
+{"ev": "output", "kind": "map", "t": 16512.167646740814}
+{"ev": "output", "kind": "map", "t": 16812.32950423774}
+{"ev": "output", "kind": "map", "t": 17112.46756977322}
+{"ev": "output", "kind": "map", "t": 17412.7098449523}
+{"ev": "step", "t": 17415.363, "dt": 0.5307, "steps": 37285, "active_tiles": 82, "volume": 127088.8, "mass_error": -2.066e-08, "wall": 4.0}
+{"ev": "output", "kind": "map", "t": 17713.03466417662}
+{"ev": "output", "kind": "map", "t": 18013.247592875236}
+{"ev": "output", "kind": "map", "t": 18313.29357799945}
+{"ev": "output", "kind": "map", "t": 18613.72596088903}
+{"ev": "output", "kind": "map", "t": 18914.25389169355}
+{"ev": "output", "kind": "map", "t": 19214.349622663143}
+{"ev": "output", "kind": "map", "t": 19514.525510731604}
+{"ev": "output", "kind": "map", "t": 19814.75531401515}
+{"ev": "output", "kind": "map", "t": 20114.957326123174}
+{"ev": "output", "kind": "map", "t": 20415.14515219053}
+{"ev": "output", "kind": "map", "t": 20715.773412520524}
+{"ev": "output", "kind": "map", "t": 21016.094355440502}
+{"ev": "output", "kind": "map", "t": 21316.29284411607}
+{"ev": "output", "kind": "maps", "path": "runs\\fan_10m\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 44304, "loop_s": 4.8, "tables_s": 1.8, "wet_area_km2": 0.7877, "dt_min": 0.3905408601977885, "balance": {"rain_m3": 0.0, "inflow_m3": 2762999.932642998, "outflow_m3": 2731341.390493282, "storage_start_m3": 0.0, "storage_end_m3": 31658.600625259827, "error_m3": -0.05847554377032793, "relative_error": -2.1163787620650457e-08}}

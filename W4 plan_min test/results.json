@@ -1,0 +1,32 @@
+{
+ "20m_n050_em": {
+  "peak_base": 601.642,
+  "peak_new": 602.802,
+  "peak_change_pct": 0.19280568843265122,
+  "t_shift_min": 0.0,
+  "ratio_ras_base": 0.9580618950178877,
+  "ratio_ras_new": 0.9599090928501879,
+  "steps_base": 85155,
+  "steps_new": 77031,
+  "steps_change_pct": -9.540250132112027,
+  "loop_s_base": 14.5,
+  "loop_s_new": 15.02,
+  "mass_new": -2.3240228221252267e-08,
+  "pass": true
+ },
+ "10m_n050_em": {
+  "peak_base": 622.028,
+  "peak_new": 621.994,
+  "peak_change_pct": -0.005465991884612276,
+  "t_shift_min": 0.0,
+  "ratio_ras_base": 1.00016289237779,
+  "ratio_ras_new": 1.0001082235552599,
+  "steps_base": 179869,
+  "steps_new": 169043,
+  "steps_change_pct": -6.018824811390511,
+  "loop_s_base": 47.97,
+  "loop_s_new": 52.31,
+  "mass_new": -2.246021863085966e-08,
+  "pass": true
+ }
+}
