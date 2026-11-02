@@ -103,8 +103,7 @@ def _is_ring(coordinates: list[tuple[float, float]]) -> bool:
 
 
 def _dams(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: list[str]) -> list[PourPoint]:
-    """Crest lines across a stream. One that crosses none, a saddle dam, makes no node and is reported."""
-    threshold = settings.stream_threshold_km2 or settings.min_subbasin_km2
+    """Crest lines across a wadi, whatever the stream threshold. A saddle dam drains next to nothing: no node, reported."""
     found: list[PourPoint] = []
     dams = [o for o in cfg.terrain.objects if o.kind == "crest_line"]
     for index, obj in enumerate(dams, 1):
@@ -112,10 +111,8 @@ def _dams(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: list
         pixel = crossing(surface, obj.coordinates)
         if pixel == NONE:
             notes.append(f"crest line {name} is off the ground: no node")
-        elif surface.count[pixel] * surface.km2_per_pixel < threshold:
-            notes.append(
-                f"crest line {name} crosses no stream of {threshold:g} km2: no node, add a pour point if wanted"
-            )
+        elif surface.count[pixel] * surface.km2_per_pixel < settings.dam_min_km2:
+            notes.append(f"crest line {name} drains under {settings.dam_min_km2:g} km2, a saddle: no node")
         else:
             x, y = map(float, surface.xy(pixel))
             found.append(PourPoint(name, KIND_DAM, pixel, x, y, crest=obj))

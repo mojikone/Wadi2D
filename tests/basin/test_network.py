@@ -189,6 +189,24 @@ def test_a_dam_stops_every_stream_across_its_line(valley: Valley) -> None:
     assert surface.count[pixel] == natural
 
 
+def test_a_dam_on_a_small_wadi_is_a_node_and_a_saddle_is_not(valley: Valley) -> None:
+    surface = surface_of(valley.job)
+    y = row_y(20)
+    small = TerrainObject(
+        kind="crest_line", name="Small", coordinates=[(col_x(20), y), (col_x(80), y)], z_constant=200.0
+    )
+    saddle = TerrainObject(
+        kind="crest_line", name="Saddle", coordinates=[(col_x(0), y), (col_x(4), y)], z_constant=200.0
+    )
+    terrain = load_job(valley.job).terrain.model_copy(update={"objects": [small, saddle]})
+    cfg = load_job(valley.job).model_copy(update={"terrain": terrain})
+    settings = SETTINGS.model_copy(update={"stream_threshold_km2": 5.0, "dam_min_km2": 0.01})
+    notes: list[str] = []
+    _surface, points = gather(cfg, surface, settings, None, notes)
+    assert [p.name for p in points.values()] == ["Small"]
+    assert any("Saddle" in note for note in notes)
+
+
 def test_a_node_above_a_confluence_on_the_smaller_stream_still_drains_to_it(
     tmp_path: Path, valley: Valley
 ) -> None:

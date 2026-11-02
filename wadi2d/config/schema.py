@@ -798,6 +798,9 @@ class BasinSettings(_Part):
     reservoir_top_m: float = Field(
         10.0, gt=0.0, le=100.0, description="Reservoir table above the dam crest, m"
     )
+    dam_min_km2: float = Field(
+        1.0, ge=0.0, description="A crest line draining less is a saddle dam: it makes no node, km2"
+    )
     dam_join_m: float = Field(
         50.0, ge=0.0, le=2000.0, description="A spillway this close to a crest line belongs to that dam, m"
     )
