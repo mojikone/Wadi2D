@@ -47,12 +47,16 @@ def _face_table(
     crest: float,
     pixel: float,
     n_inv: float,
+    weight: np.ndarray,
     length: float,
     e_lo: float,
     e_hi: float,
     tab: np.ndarray,
 ) -> tuple[float, float]:
-    """Fill ``tab`` (rows, 2) for one face from its along-face ground. Returns invert and table top."""
+    """Fill ``tab`` (rows, 2) for one face from its along-face ground. Returns invert and table top.
+
+    ``weight`` is the conveyance of each pixel over what the face's own n gives: 1 unless the pixel is lined.
+    """
     m = prof.size
     if not np.isnan(crest):
         prof = np.maximum(prof, crest)
@@ -69,10 +73,16 @@ def _face_table(
             dep = e - rel[q]
             if dep > 0.0:
                 area += dep
-                conv += dep * np.cbrt(dep) ** 2
+                conv += weight[q] * dep * np.cbrt(dep) ** 2
         tab[r, 0] = pixel * area * length
         tab[r, 1] = (pixel * n_inv * conv * length) ** 0.6
     return float(zf), top
+
+
+@njit(cache=True)
+def _lined(pixel_n: float, cell_n: float) -> float:
+    """Conveyance of a pixel over what the cell's n gives it."""
+    return 1.0 if np.isnan(pixel_n) else cell_n / pixel_n
 
 
 @njit(cache=True, parallel=True)
@@ -82,6 +92,7 @@ def tile_tables(
     tile: int,
     pixel: float,
     nman: np.ndarray,
+    npix: np.ndarray,
     xcrest: np.ndarray,
     xlen: np.ndarray,
     ycrest: np.ndarray,
@@ -103,22 +114,31 @@ def tile_tables(
     west and north faces see the pixels on both sides. Cell (j, i) covers rows 1 + j*k .. of ``z``.
 
     Along a face, the ground is the higher of the two pixels that meet there: the face sees a ridge exactly one
-    pixel wide, on either side of it.
+    pixel wide, on either side of it, and takes that pixel's lining. ``npix`` is a Manning n per pixel of ``z``, NaN
+    where the cell's own n holds; a 1 x 1 array means no pixel is lined.
     """
     rows = dtab.shape[2]
+    lined = npix.shape[0] > 1
     for j in prange(tile):
         prof = np.empty(k)
+        weight = np.ones(k)
         for i in range(tile):
             r0, c0 = 1 + j * k, 1 + i * k
             cell = z[r0 : r0 + k, c0 : c0 + k]
             zmin[j, i], relmean[j, i], hc[j, i] = _cell_table(cell, rows, dtab[j, i])
             for q in range(k):
-                prof[q] = max(z[r0 + q, c0 - 1], z[r0 + q, c0])
+                near, far = z[r0 + q, c0], z[r0 + q, c0 - 1]
+                prof[q] = max(far, near)
+                if lined:
+                    weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i])
             zfx[j, i], efx[j, i] = _face_table(
-                prof, xcrest[j, i], pixel, 1.0 / nman[j, i], xlen[j, i], e_lo, e_hi, ftabx[j, i]
+                prof, xcrest[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], e_lo, e_hi, ftabx[j, i]
             )
             for q in range(k):
-                prof[q] = max(z[r0 - 1, c0 + q], z[r0, c0 + q])
+                near, far = z[r0, c0 + q], z[r0 - 1, c0 + q]
+                prof[q] = max(far, near)
+                if lined:
+                    weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i])
             zfy[j, i], efy[j, i] = _face_table(
-                prof, ycrest[j, i], pixel, 1.0 / nman[j, i], ylen[j, i], e_lo, e_hi, ftaby[j, i]
+                prof, ycrest[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], e_lo, e_hi, ftaby[j, i]
             )
