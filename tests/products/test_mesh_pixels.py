@@ -9,7 +9,7 @@ import pytest
 import rasterio
 
 from tests.engine.conftest import X0, Y0, job, write_dem
-from wadi2d.config.schema import Numerics, Pixels, Tables
+from wadi2d.config.schema import Numerics, Pixels, RunConfig, Tables
 from wadi2d.engine.cli import main
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.products.ground import CellPixels
@@ -286,6 +286,29 @@ def test_cpu_and_gpu_give_the_same_answer_on_a_mesh(sheet, tmp_path):
             rasterio.open(tmp_path / "cpu" / PIXEL_DIR / name) as b,
         ):
             assert np.abs(a.read(1).astype(float) - b.read(1).astype(float)).max() <= tolerance
+
+
+def _with_pixel(cfg, size: float) -> RunConfig:
+    data = cfg.model_dump(mode="json")
+    data["outputs"]["pixels"]["pixel_m"] = size
+    return RunConfig.model_validate(data)
+
+
+def test_a_coarser_pixel_is_a_setting_on_a_mesh_too(sheet, tmp_path):
+    cfg, tmp = sheet
+    tables, crs = prepare_grid(cfg, tmp / "c")
+    _remade(_with_pixel(cfg, 4.0), tables, crs, tmp / "mesh", tmp_path / "px", "cpu")
+    with rasterio.open(tmp_path / "px" / PIXEL_DIR / DEPTH_FILE) as src:
+        assert abs(src.transform.a) == 4.0
+        depth = src.read(1, masked=True).filled(0.0)
+    assert depth.max() > 0.3
+
+
+def test_a_pixel_that_does_not_fit_the_dem_is_refused_on_a_mesh(sheet, tmp_path):
+    cfg, tmp = sheet
+    tables, crs = prepare_grid(cfg, tmp / "c")
+    with pytest.raises(ValueError, match="pixel"):
+        _remade(_with_pixel(cfg, 3.0), tables, crs, tmp / "mesh", tmp_path / "px", "cpu")
 
 
 def test_the_command_line_remakes_them_on_a_mesh_run(sheet):
