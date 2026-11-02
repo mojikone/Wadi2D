@@ -328,6 +328,8 @@ def _elevation(feature: Feature):
 
 def _object(kind: str, feature: Feature) -> dict:
     entry = {"kind": kind, "coordinates": feature.xy()}
+    if feature.properties.get("name"):
+        entry["name"] = str(feature.properties["name"])
     constant = feature.properties.get("crest_z")
     if constant is not None:
         entry["z_constant"] = constant
