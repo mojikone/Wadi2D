@@ -1,0 +1,56 @@
+    0.0 script loaded
+   11.0 PASS thinned ground 2.0
+   11.1 PASS plugin from this branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a256aed617410ea5b\plugin\wadi2d_qgis\__init__.py
+   11.9 PASS engine found Engine ready.
+   11.9 === 1 what the mesh section says
+   11.9 PASS local stepping: no time on a uniform grid Local time stepping saves no time on a uniform grid; it helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
+   11.9 PASS local stepping: helps on a large mesh Local time stepping saves no time on a uniform grid; it helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
+   11.9 PASS mesh: time above 1 M cells, memory below Local time stepping saves no time on a uniform grid; it helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
+   11.9 PASS the tooltips say the same 
+   12.1 === 2 a mesh run with its pixel maps
+   12.1 PASS pixels on by default 
+   12.1 PASS make map waits for a run 
+   16.4 PASS the estimate says its time is rough 68,564 cells, 0.04 GB, about 9 s. 17 saved maps, at most 0.0 GB of disk. On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces.
+   16.4 PASS the estimate counts the mesh 68,564 cells, 0.04 GB, about 9 s. 17 saved maps, at most 0.0 GB of disk. On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces.
+   16.4 dock says: Starting...
+   54.2 dock says: water stood 6.2 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there
+   76.7 PASS mesh finished Finished. water stood 6.2 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there.
+   76.7 PASS pixel step finished finished
+   76.7 PASS cells of the estimate (68564, '68,564 cells, 0.04 GB, about 9 s. 17 saved maps, at most 0.0 GB of disk. On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces.')
+   76.7 PASS file pixel_depth.tif 
+   76.7 PASS file pixel_hazard.tif 
+   76.7 PASS file pixel_speed.tif 
+   76.7 PASS file pixel_dv.tif 
+   76.7 PASS file depth_drawing.tif 
+   76.7 PASS file map_layers.gpkg 
+   76.7 PASS file pixels.json 
+   76.7 class km2 {'H1': 0.7892, 'H2': 0.4612, 'H3': 0.045, 'H4': 0.2905, 'H5': 0.2884, 'H6': 0.0001}; cell sizes [10.0, 20.0, 40.0]
+   76.7 PASS three cell sizes in the step [10.0, 20.0, 40.0]
+   76.7 PASS flood classes {'H1': 0.7892, 'H2': 0.4612, 'H3': 0.045, 'H4': 0.2905, 'H5': 0.2884, 'H6': 0.0001}
+   76.7 PASS groups ['Model setup', 'Flood maps', 'Pixel rasters, the numbers of record', 'Cell maps']
+   76.7 PASS depth map on ['2D model domain, closed walls except open boundaries', 'AIDR hazard class', 'Depth x speed, m2/s', 'Depth, m', 'Design line', 'Hazard class', 'Maximum depth, m', 'Open boundary', 'Speed, m/s', 'arrival', 'hazard', 'max_depth', 'max_level', 'max_mean_depth', 
+   76.7 PASS hazard polygons 10
+   76.8 === 3 make map on the mesh run
+   76.8 PASS make map ready 
+   80.8 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\plugm1\runs\mesh\pixels\mesh_maps.pdf
+   80.8 PASS layout kept in the project ['Wadi2D mesh']
+   80.8 PASS three legends 3
+   80.9 === 4 stop inside the pixel step of a mesh run
+   80.9 dock says: Starting...
+  123.2 dock says: water stood 6.2 m deep against the domain edge at (432051, 2725115): an edge is a wall, so check the domain polygon there
+  123.9 PASS stop button live in the pixel step 
+  123.9 dock says: Stopping: the engine finishes the step and writes its maps.
+  124.4 dock says: Pixel maps stopped on request. The run itself finished and its maps are written.
+  125.4 stop took 1.5 s
+  125.5 PASS run stays finished {'ev': 'done', 'status': 'finished', 'code': 0, 'partial': False, 't': 14400.0, 'duration_s': 14400.0, 'steps': 23073, 'loop_s': 36.88, 'tables_s': 2.42, 'wet_area_km2': 1.9577, 'dt_min': 0.3771293586424279, 'balance': {'rain_m3': 1325076.014731748, 'inflow_m3
+  125.5 PASS cell maps written 
+  125.5 PASS no half-written pixel files []
+  125.5 === 5 the same ground uniform, to set the two sets of pixels side by side
+  125.5 dock says: Starting...
+  160.2 PASS uniform finished Finished.
+  160.2 uniform class km2 {'H1': 0.9024, 'H2': 0.4268, 'H3': 0.0327, 'H4': 0.2639, 'H5': 0.3113, 'H6': 0.0001}
+  160.2 PASS wet area within 10 % of the uniform run (1.8744, 1.9372)
+  160.2 === 6 make map again on the finished mesh run, from its folder
+  164.2 PASS map from a chosen folder Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\plugm1\runs\mesh\pixels\mesh_maps.pdf
+  164.2 SUMMARY 37 passed, 0 failed 
+  164.2 DONE
