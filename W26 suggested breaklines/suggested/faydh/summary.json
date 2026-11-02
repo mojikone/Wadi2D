@@ -1,0 +1,16 @@
+{
+ "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aee58a5a9805a4464\\W26 suggested breaklines\\suggested\\faydh\\suggested_breaklines.gpkg",
+ "layer": "breaklines",
+ "thalweg_layer": "thalwegs",
+ "pixel_m": 5.0,
+ "banks": 225,
+ "crests": 217,
+ "crest_kinds": {
+  "other crest": 176,
+  "dam": 41
+ },
+ "thalwegs": 40,
+ "bank_km": 115.61,
+ "crest_km": 29.76,
+ "thalweg_km": 62.13
+}

@@ -1,0 +1,48 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aee58a5a9805a4464\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.8 PASS button in the Mesh section Suggest breaklines
+    4.8 PASS mesh need not be ticked 
+    4.8 === 1 without a DEM
+    4.8 PASS refused without a DEM Choose a DEM layer first.
+    4.8 === 2 Bidah at 10 m
+    5.0 PASS says it is working Reading the ground, its streams and its crests...
+    5.0 dock says: Reading the ground, its streams and its crests...
+   23.7 PASS suggested Suggested 111 bank lines along 21 thalwegs and 428 crests (425 other crest, 3 dam), from the ground at 5 m. The layer is in editing: delete what is wrong, save it, then choose it as Crest lines under Structures; its vertices carry the ground elevation. A crest
+   23.7 PASS file beside the run folder C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_suggest\runs\banks_breaklines\suggested_breaklines.gpkg
+   23.7 PASS one suggestion layer, one thalweg layer (1, 1)
+   23.7 PASS layer is valid and in editing Suggested breaklines: 111 banks, 428 crests
+   23.7 PASS thalwegs are read-only 
+   23.7 PASS fields ['fid', 'name', 'kind', 'side', 'height_m', 'length_m', 'area_km2', 'slope', 'score', 'why', 'near_dx', 'rows', 'far_dx']
+   23.7 PASS vertices carry Z MultiLineStringZ
+   23.7 PASS in the DEM's CRS EPSG:32640
+   23.7 kinds {'stream bank': 111, 'other crest': 425, 'dam': 3}; first rows [('stream bank', 'left', 22.8, 1428), ('stream bank', 'left', 11.21, 2726), ('stream bank', 'right', 17.04, 1527), ('stream bank', 'left', 11.07, 1787), ('stream bank', 'right', 14.52, 1161), ('stream bank', 'left', 7.41, 1946)]
+   23.7 PASS banks and crests found {'stream bank': 111, 'other crest': 425, 'dam': 3}
+   23.7 PASS biggest first [32553.137439670645, 30556.389093550613, 26016.573468216764, 19777.704661786775, 16865.41554247796]
+   23.7 PASS name counts them Suggested breaklines: 111 banks, 428 crests
+   23.7 PASS every line has a reason 
+   23.7 PASS kinds are the four {'dam', 'other crest', 'stream bank'}
+   23.7 PASS no bank vertex within a cell of a thalweg (10.0, 1229)
+   23.7 bank vertex distance to thalweg: min 10.0, median 14.9
+   23.7 PASS the layer is the file (539, 539)
+   23.9 === 2b the same layer fills the Mesh table
+   24.1 PASS mesh table has a row per line (539, 539)
+   24.1 PASS mesh table reads near, rows and far from the layer (10.0, 4, 40.0)
+   24.2 === 3 delete one line and save
+   24.2 PASS deleted in the buffer 
+   24.2 PASS saved ['SUCCESS: 1 feature deleted.']
+   24.2 PASS the file lost it too (538, 539)
+   24.2 === 4 the rest run as crest lines, no field needed
+   24.4 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   35.4 dock says: water stood 5.2 m deep against the domain edge at (432611, 2727285): an edge is a wall, so check the domain polygon there
+   38.5 PASS run finished Finished. water stood 5.2 m deep against the domain edge at (432611, 2727285): an edge is a wall, so check the domain polygon there.
+   38.6 PASS every line became a crest line (538, 538)
+   38.6 PASS each with its vertex elevations 
+   38.6 run with lines: cells 287578, peaks {}
+   38.6 === 5 a second click replaces the layers
+   38.6 dock says: Reading the ground, its streams and its crests...
+   54.8 PASS still one of each 
+   54.8 PASS the second suggestion is a numbered folder, the edited file untouched C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_suggest\runs\banks_breaklines_2\suggested_breaklines.gpkg|layername=breaklines
+   54.8 PASS and is whole again (539, 539)
+   54.8 SUMMARY 32 passed, 0 failed 
+   54.8 DONE
