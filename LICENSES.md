@@ -16,6 +16,7 @@ is not legal advice.
 | numba | 0.65.1 | BSD | compatible |
 | llvmlite | 0.47.0 | BSD-2-Clause AND Apache-2.0 WITH LLVM-exception | compatible |
 | hecdss | 0.1.29 | MIT | compatible |
+| whitebox (WhiteboxTools) | 2.3.6 | MIT | compatible; optional, the mesher's streams only |
 | affine | 2.4.0 | BSD | compatible |
 | cupy-cuda12x | 14.2.0 | MIT | compatible |
 | **nvidia-cuda-runtime, nvrtc, cublas, cufft, curand, cusolver, cusparse, nvjitlink (cu12)** | 12.9 | **NVIDIA proprietary** | **see below** |

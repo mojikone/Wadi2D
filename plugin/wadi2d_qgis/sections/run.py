@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""6. Run: where the results go, estimate, run, stop, and what is happening now."""
+"""7. Run: where the results go, estimate, run, stop, and what is happening now."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ COLOURS = {"info": "#444444", "note": "#a06000", "good": "#1a7a30", "bad": "#b00
 
 
 class RunSection(Section):
-    heading = "6. Run"
+    heading = "7. Run"
 
     def build(self) -> None:
         self.folder = QgsFileWidget()

@@ -19,11 +19,25 @@ from qgis.PyQt.QtGui import QColor
 
 from .progress import live_source
 from .protocol import MAPS_DIR
-from .style import MAP_ORDER, STYLES, style_depth
+from .style import MAP_ORDER, STYLES, style_depth, style_mesh
 
 LIVE_NAME = "Wadi2D live depth"
+MESH_NAME = "Wadi2D mesh, cell size in m"
 MARKER_SIZE = 18
 MARKER_PEN = 3
+
+
+def show_mesh(path: Path | str, sizes: list[float], old_id: str | None) -> str | None:
+    """The preview on the map, one colour per cell size, in place of the last one. Returns the layer's id."""
+    project = QgsProject.instance()
+    if old_id and project.mapLayer(old_id) is not None:
+        project.removeMapLayer(old_id)
+    layer = QgsRasterLayer(str(path), MESH_NAME)
+    if not layer.isValid():
+        return None
+    style_mesh(layer, sizes)
+    project.addMapLayer(layer)
+    return layer.id()
 
 
 class LiveLayer:

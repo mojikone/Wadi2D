@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""4. Boundaries: one line layer, one kind and value. A layer with fields "kind" and "value" sets them per line."""
+"""5. Boundaries: one line layer, one kind and value. A layer with fields "kind" and "value" sets them per line."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ VALUE_FIELDS = {"stage": (BOUNDARY_STAGE, "Stage, m"), "normal": (BOUNDARY_SLOPE
 
 
 class BoundariesSection(Section):
-    heading = "4. Boundaries"
+    heading = "5. Boundaries"
     start_collapsed = True
 
     def build(self) -> None:

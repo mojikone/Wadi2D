@@ -50,3 +50,22 @@ def style_hazard(layer) -> None:
 
 
 STYLES = {"max_depth": style_depth, "hazard": style_hazard}
+
+
+MESH_OPACITY = 0.7
+MESH_COLOURS = ("#d7301f", "#fc8d59", "#fdcc8a", "#b3cde3", "#6497b1")
+"""Finest cell first."""
+
+
+def style_mesh(layer, sizes: list[float]) -> None:
+    """One colour per cell size, the finest the strongest."""
+    from qgis.core import QgsPalettedRasterRenderer
+    from qgis.PyQt.QtGui import QColor
+
+    classes = [
+        QgsPalettedRasterRenderer.Class(size, QColor(MESH_COLOURS[n % len(MESH_COLOURS)]), f"{size:g} m")
+        for n, size in enumerate(sorted(sizes))
+    ]
+    layer.setRenderer(QgsPalettedRasterRenderer(layer.dataProvider(), 1, classes))
+    layer.setOpacity(MESH_OPACITY)
+    layer.triggerRepaint()

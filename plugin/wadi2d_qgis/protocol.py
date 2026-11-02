@@ -40,6 +40,7 @@ def default_engine(folder: Path | None = None) -> str:
     except OSError:
         return FALLBACK_ENGINE
 
+
 EXIT_FINISHED = 0
 EXIT_STOPPED = 6
 EXIT_MESSAGES = {
@@ -91,6 +92,29 @@ def run_args(job: Path | str, out_dir: Path | str, dry_run: bool = False, resume
     if resume:
         args.append("--resume")
     return args
+
+
+def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:
+    """The arguments of ``wadi2d mesh``."""
+    return ["mesh", str(job), "--out", str(out_dir)]
+
+
+def parse_mesh(out: str) -> dict | None:
+    """The event the preview prints last, or None."""
+    for line in reversed(out.strip().splitlines()):
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(event, dict) and event.get("ev") == "mesh":
+            return event
+    return None
+
+
+def mesh_text(summary: dict) -> str:
+    """What the preview says, from its summary file."""
+    tiles = ", ".join(f"{n} of {size}" for size, n in summary["tiles_by_size"].items() if n)
+    return f"{summary['cells']:,} cells, {summary['ratio']:g} x fewer than the uniform grid. Tiles: {tiles}."
 
 
 def clean_env(env: dict[str, str]) -> dict[str, str]:

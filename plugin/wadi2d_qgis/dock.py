@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The one dock: six sections, top to bottom, and the wiring between them and the engine."""
+"""The one dock: seven sections, top to bottom, and the wiring between them and the engine."""
 
 from __future__ import annotations
 
@@ -28,19 +28,23 @@ from .job_builder import (
     problems,
     write_job,
 )
-from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker
+from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .progress import run_is_live
 from .protocol import (
     EXIT_STOPPED,
     engine_error_text,
     estimate_text,
     exit_message,
+    mesh_args,
+    mesh_text,
     next_run_dir,
     parse_estimate,
+    parse_mesh,
     run_args,
 )
 from .sections.boundaries import BoundariesSection
 from .sections.hydrology import HydrologySection
+from .sections.mesh import MeshSection
 from .sections.points import PointsSection
 from .sections.run import RunSection
 from .sections.structures import StructuresSection
@@ -64,15 +68,19 @@ class Wadi2DDock(QgsDockWidget):
         self._query: EngineQuery | None = None
         self._schema_query: EngineQuery | None = None
         self._scratch: str | None = None
+        self._mesh_layer: str | None = None
+        self._mesh_folder: str | None = None
+        self._mesh_folder_next = ""
 
         self.terrain = TerrainSection(iface.mapCanvas())
+        self.mesh = MeshSection()
         self.hydrology = HydrologySection()
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
         self.panel = RunSection()
         self.sections = (
-            self.terrain, self.hydrology, self.structures, self.boundaries, self.points, self.panel,
+            self.terrain, self.mesh, self.hydrology, self.structures, self.boundaries, self.points, self.panel,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -94,6 +102,7 @@ class Wadi2DDock(QgsDockWidget):
 
         self.engine_button.clicked.connect(self.open_settings)
         self.panel.estimate_button.clicked.connect(self.estimate)
+        self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.panel.run_button.clicked.connect(self.start_run)
         self.panel.stop_button.clicked.connect(self.stop_run)
         self.panel.open_button.clicked.connect(self.open_results)
@@ -131,6 +140,7 @@ class Wadi2DDock(QgsDockWidget):
         idle = self.run is None
         self.panel.run_button.setEnabled(ready and idle)
         self.panel.estimate_button.setEnabled(ready and idle)
+        self.mesh.preview_button.setEnabled(ready and idle and self.mesh.enabled.isChecked())
 
     def open_settings(self) -> None:
         dialog = settings.EngineDialog(self)
@@ -221,8 +231,50 @@ class Wadi2DDock(QgsDockWidget):
         if estimate is None:
             self.panel.estimate_label.setText(f"{exit_message(code)} {engine_error_text(err)}")
         else:
-            self.panel.estimate_label.setText(estimate_text(estimate))
+            text = estimate_text(estimate)
+            on_mesh = self.mesh.enabled.isChecked()
+            self.panel.estimate_label.setText(
+                f"{text}, for the uniform grid; a mesh takes less." if on_mesh else text
+            )
         self._drop_scratch()
+
+    # Mesh preview.
+
+    def preview_mesh(self) -> None:
+        values = self._checked_values()
+        if values is None:
+            return
+        if not values.get("mesh"):
+            self.mesh.summary.setText("Tick the mesh first.")
+            return
+        self.mesh.preview_button.setEnabled(False)
+        self.mesh.summary.setText("Reading the ground and the streams...")
+        self._scratch = tempfile.mkdtemp(prefix="wadi2d_estimate_")
+        values["output"] = self._scratch
+        self._safely(values, Path(self._scratch), self._run_mesh)
+
+    def _run_mesh(self, job: Path) -> None:
+        folder = tempfile.mkdtemp(prefix="wadi2d_mesh_")
+        self._mesh_folder_next = folder
+        self._query = EngineQuery(settings.engine_text(), self)
+        self._query.done.connect(self._meshed)
+        self._query.start(mesh_args(job, folder))
+
+    def _meshed(self, code: int, out: str, err: str) -> None:
+        self.mesh.preview_button.setEnabled(self.schema is not None and self.mesh.enabled.isChecked())
+        self._drop_scratch()
+        event = parse_mesh(out) if code == 0 else None
+        if event is None:
+            self.mesh.summary.setText(f"{exit_message(code)} {engine_error_text(err)}")
+            shutil.rmtree(self._mesh_folder_next, ignore_errors=True)
+            return
+        summary = json.loads(Path(event["summary"]).read_text(encoding="utf-8"))
+        sizes = [float(size.split()[0]) for size in summary["tiles_by_size"]]
+        self._mesh_layer = show_mesh(event["raster"], sizes, self._mesh_layer)
+        if self._mesh_folder:
+            shutil.rmtree(self._mesh_folder, ignore_errors=True)
+        self._mesh_folder = self._mesh_folder_next
+        self.mesh.summary.setText(mesh_text(summary))
 
     def _drop_scratch(self) -> None:
         if self._scratch:

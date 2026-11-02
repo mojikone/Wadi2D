@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""2. Hydrology: an HMS project with a mode per subbasin, or plain rain; the curve number either way."""
+"""3. Hydrology: an HMS project with a mode per subbasin, or plain rain; the curve number either way."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Con
 
 
 class HydrologySection(Section):
-    heading = "2. Hydrology"
+    heading = "3. Hydrology"
 
     def build(self) -> None:
         self.folder = QgsFileWidget()

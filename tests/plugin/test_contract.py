@@ -25,6 +25,12 @@ PATHS = (
     job_builder.BOUNDARY_STAGE,
     job_builder.BOUNDARY_SLOPE,
     job_builder.SPILLWAY_C,
+    job_builder.MESH_ENABLED,
+    job_builder.MESH_COARSE,
+    job_builder.MESH_FINE_AREA,
+    job_builder.MESH_MID_AREA,
+    job_builder.MESH_ZONE_DX,
+    job_builder.LOCAL_STEPS,
 )
 
 

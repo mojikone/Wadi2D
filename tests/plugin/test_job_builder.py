@@ -223,3 +223,58 @@ def test_an_hms_run_with_no_curve_number_is_said() -> None:
     assert "no losses" in " ".join(notes(base))
     assert notes({**base, "curve_number": 85.0}) == []
     assert notes({**base, "cn_raster": "cn.tif"}) == []
+
+
+MESH = {"coarse_dx": 80.0, "fine_km2": 10.0, "mid_km2": 1.0, "zones": []}
+
+
+def test_no_mesh_leaves_the_job_as_it_was(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path), tmp_path / "out")
+    assert "mesh" not in job
+    assert "numerics" not in job
+
+
+def test_a_mesh_goes_into_the_job(tmp_path: Path) -> None:
+    ring = [[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 0.0]]
+    zone = Feature("Polygon", [ring], {"dx": 20.0})
+    mesh = {**MESH, "zones": [zone]}
+    job = build_job(values(tmp_path, mesh=mesh, local_steps=True), tmp_path / "out")
+    assert job["mesh"]["enabled"] is True
+    assert job["mesh"]["coarse_dx"] == 80.0
+    assert job["mesh"]["stream_area_fine_km2"] == 10.0
+    assert job["mesh"]["zones"] == [{"coordinates": ring, "dx": 20.0}]
+    assert job["numerics"] == {"local_time_stepping": True}
+
+
+def test_local_steps_need_no_mesh(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path, local_steps=True), tmp_path / "out")
+    assert job["numerics"] == {"local_time_stepping": True}
+    assert "mesh" not in job
+
+
+def test_a_coarse_cell_off_the_ladder_is_refused(tmp_path: Path) -> None:
+    found = problems(values(tmp_path, mesh={**MESH, "coarse_dx": 70.0}))
+    assert any("coarsest cell" in text for text in found)
+
+
+def test_areas_the_wrong_way_round_are_refused(tmp_path: Path) -> None:
+    found = problems(values(tmp_path, mesh={**MESH, "fine_km2": 0.5}))
+    assert any("larger of the two" in text for text in found)
+
+
+def test_a_zone_layer_without_its_field_is_refused(tmp_path: Path) -> None:
+    found = problems(values(tmp_path, mesh={**MESH, "zones_unset": True}))
+    assert any("choose the field" in text for text in found)
+
+
+def test_a_zone_without_a_size_is_refused(tmp_path: Path) -> None:
+    zone = Feature("Polygon", [[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 0.0]]], {"dx": None})
+    found = problems(values(tmp_path, mesh={**MESH, "zones": [zone]}))
+    assert any("above zero" in text for text in found)
+
+
+def test_a_mesh_without_local_steps_says_what_it_costs(tmp_path: Path) -> None:
+    assert any("local time stepping" in text for text in notes(values(tmp_path, mesh=MESH)))
+    assert not any(
+        "local time stepping" in text for text in notes(values(tmp_path, mesh=MESH, local_steps=True))
+    )

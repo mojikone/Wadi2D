@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin
 
-One dock, one workflow from top to bottom: terrain, hydrology, structures, boundaries, results points, run. GPL-3.0-or-later.
+One dock, one workflow from top to bottom: terrain, mesh, hydrology, structures, boundaries, results points, run. GPL-3.0-or-later.
 
 The plugin never imports the engine. It writes `job.json`, starts a process, tails `progress.jsonl` and loads rasters
 (design note section 5), so either side can change alone. Defaults, bounds and tooltips come from `wadi2d schema`.
@@ -19,12 +19,17 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
 
 1. **Terrain.** A DEM layer backed by a file, in a projected CRS. The cell size snaps to a multiple of the DEM pixel. The
    domain is a polygon layer, or the map extent kept inside the DEM. Manning is one value or a raster.
-2. **Hydrology.** Rain in mm/h and hours, or an HMS project folder: choose the basin, met and control files and set each
+2. **Mesh.** Optional, off by default: off is the uniform grid, exactly as before. Ticked, the cell size above is the finest
+   cell and tiles coarsen to the coarsest cell, by powers of two. Defined wadis stay fine by drainage area; barriers,
+   boundaries and design lines always do. A polygon layer with a cell-size field adds zones. **Preview tile sizes** puts a
+   layer of cell sizes on the map and says how many cells it comes to. Needs the `whitebox` package (`pip install wadi2d[mesh]`).
+   Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh.
+3. **Hydrology.** Rain in mm/h and hours, or an HMS project folder: choose the basin, met and control files and set each
    subbasin to lumped or 2d. The storm and the simulated time then come from the project through `wadi2d hms-import`.
-3. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
-4. **Boundaries.** A line layer with one kind and value. If it has fields named `kind` and `value`, each line uses its own.
-5. **Results points.** Points record depth and level; lines across the flow record discharge.
-6. **Run.** Estimate gives cells, memory and time. A folder that already holds a run is never overwritten: the new run goes
+4. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
+5. **Boundaries.** A line layer with one kind and value. If it has fields named `kind` and `value`, each line uses its own.
+6. **Results points.** Points record depth and level; lines across the flow record discharge.
+7. **Run.** Estimate gives cells, memory and time, for the uniform grid even when a mesh is on. A folder that already holds a run is never overwritten: the new run goes
    to `<folder>_2`, and all runs share `wadi2d_cache` beside them, so tables are built once.
 
 During a run the depth appears as a blue layer. At the end the maps load into a group named after the run. If the run

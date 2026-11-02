@@ -1,6 +1,6 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""5. Results points: where hydrographs and levels are recorded. Points for levels, lines across the flow for Q."""
+"""6. Results points: where hydrographs and levels are recorded. Points for levels, lines across the flow for Q."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from .common import Section, field_combo, layer_combo
 
 
 class PointsSection(Section):
-    heading = "5. Results points (optional)"
+    heading = "6. Results points (optional)"
     start_collapsed = True
 
     def build(self) -> None:

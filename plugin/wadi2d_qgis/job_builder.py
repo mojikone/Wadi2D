@@ -27,6 +27,13 @@ BOUNDARY_KIND = "boundaries.kind"
 BOUNDARY_STAGE = "boundaries.stage"
 BOUNDARY_SLOPE = "boundaries.slope"
 SPILLWAY_C = "terrain.objects.coefficient"
+MESH_ENABLED = "mesh.enabled"
+MESH_COARSE = "mesh.coarse_dx"
+MESH_FINE_AREA = "mesh.stream_area_fine_km2"
+MESH_MID_AREA = "mesh.stream_area_mid_km2"
+MESH_ZONE_DX = "mesh.zones.dx"
+LOCAL_STEPS = "numerics.local_time_stepping"
+ZONE_DX_FIELD = "dx"
 
 PREFERRED_DX = 20.0
 """The dock's starting cell size, his choice for a first look: the schema's default is the finer engine one."""
@@ -172,7 +179,33 @@ def problems(values: dict) -> list[str]:
         if any(_elevation(feature) is None for feature in structures.get(kind, [])):
             label = kind.replace("_", " ")
             found.append(f"Every {label} needs an elevation: choose a field, or use a layer with Z values.")
+    return found + _mesh_problems(values)
+
+
+def _mesh_problems(values: dict) -> list[str]:
+    """What stops a mesh, in plain words."""
+    mesh = values.get("mesh")
+    if not mesh:
+        return []
+    found = []
+    dx = snap_dx(values.get("dx", 0.0), values.get("pixel", 0.0))
+    ratio = mesh["coarse_dx"] / dx if dx > 0.0 else 0.0
+    if ratio < 1.0 or abs(2.0 ** round(math.log2(ratio)) - ratio) > 1e-6:
+        found.append(f"The coarsest cell must be {dx:g} m times 1, 2, 4 or 8.")
+    if mesh["mid_km2"] > mesh["fine_km2"]:
+        found.append("The wadi area for the finest cell must be the larger of the two.")
+    if mesh.get("zones_unset"):
+        found.append("Refinement zones need a cell size: choose the field that holds it.")
+    if any(not _zone_dx(zone) for zone in mesh.get("zones", [])):
+        found.append("Every refinement zone needs a cell size above zero.")
     return found
+
+
+def _zone_dx(zone: Feature) -> float:
+    try:
+        return float(zone.properties.get(ZONE_DX_FIELD) or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def notes(values: dict) -> list[str]:
@@ -183,11 +216,17 @@ def notes(values: dict) -> list[str]:
     if not values.get("hms") and values.get("rain_hours", 0.0) > values.get("duration_h", 0.0):
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
     if values.get("hms") and not values.get("curve_number") and not values.get("cn_raster"):
-        found.append("No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses.")
+        found.append(
+            "No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses."
+        )
     dx, pixel = values.get("dx"), values.get("pixel", 0.0)
     if dx and snap_dx(dx, pixel) != dx:
         found.append(
             f"The cell size becomes {snap_dx(dx, pixel):g} m, a whole number of {pixel:g} m DEM pixels."
+        )
+    if values.get("mesh") and not values.get("local_steps"):
+        found.append(
+            "Without local time stepping every tile takes the smallest cell's step: fewer cells, little time saved."
         )
     return found
 
@@ -291,7 +330,23 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
+    if values.get("local_steps"):
+        job["numerics"] = {"local_time_stepping": True}
+    if values.get("mesh"):
+        job["mesh"] = _mesh(values["mesh"])
     return job
+
+
+def _mesh(mesh: dict) -> dict:
+    return {
+        "enabled": True,
+        "coarse_dx": mesh["coarse_dx"],
+        "stream_area_fine_km2": mesh["fine_km2"],
+        "stream_area_mid_km2": mesh["mid_km2"],
+        "zones": [
+            {"coordinates": zone.coordinates[0], "dx": _zone_dx(zone)} for zone in mesh.get("zones", [])
+        ],
+    }
 
 
 def hms_import_args(hms: dict, out_file: Path | str) -> list[str]:
