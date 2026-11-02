@@ -5,8 +5,8 @@ section in the dock. All off by default; the uniform path gives the same numbers
 
 **Decision, 2026-11-01: the mesher goes to `main`, off by default, and local stepping stays an option. The mesh's gain is accepted in place
 of Stage A's speed gate; that gate's failure stays on record as a failure.** Stages B, C and D pass. Stage A passes on accuracy and fails on
-speed: on a uniform grid, local time stepping saves no time. The gain is on the mesh, and only at scale: Block 2 at 10 m ran 2.9 x faster at
-buffer 0.5. On a job of Bidah's size the mesh is slower than the uniform grid, because launches cost more than the kernels. The work stands on
+speed: on a uniform grid, local time stepping saves no time. The gain is on the mesh, and only at scale: Block 2 at 10 m ran **1.6 x** faster at
+buffer 0.5 on an idle card (the 2.9 x first reported here came from a uniform run sharing the card). On a job of Bidah's size the mesh is slower than the uniform grid, because launches cost more than the kernels. The work stands on
 `stage/d-plugin`, finished and not merged: the merge and the clean timing of the four mesh cases are the coordinator's.
 
 ## The gates
@@ -50,9 +50,20 @@ Mesh, Block 2, 14 h, `grid.dx` 10 m, coarse 40 m. Peaks against uniform 10 m at 
 | Mesh, local stepping, buffer 1.0 | 4,718,245 | 198,121 | 498 | 946 | -0.2 to -2.5 % | others on it: **not clean** |
 | Mesh, local stepping, buffer 0.5 | 4,718,245 | 171,161 | 343 | **523** | -0.2 to -2.4 % | idle at the start, 30 % mean use |
 
-Tile-steps are the same whatever else the card is doing: on the mesh, local stepping cuts them to 59 % at buffer 1.0 and 41 % at 0.5. Only the
+**Those timings are superseded by the clean table below; only the tile-steps stand.** Tile-steps are the same whatever else the card is doing: on the mesh, local stepping cuts them to 59 % at buffer 1.0 and 41 % at 0.5. Only the
 523 s is near clean, so 2.9 x stands against 1,538 s, which ran with others on the card, and may flatter a little. The three mesh runs ran before
-the merge of `main`, on the frozen code of `ab7f98c`. A clean run of all four, on one idle card, is still wanted.
+the merge of `main`, on the frozen code of `ab7f98c`. 
+
+**Clean, 2026-11-02, merged code, one idle card, run in sequence by `speed_mesh.py block2`:**
+
+| Run | Cells | Steps | Loop, s | Against uniform | Five dams | Worst of 16 lines |
+|---|---|---|---|---|---|---|
+| Uniform 10 m | 8,104,054 | 149,582 | 977 | | | |
+| Mesh, one step | 4,819,670 | 174,265 | 866 | 1.13 x | -0.15 to -2.7 % | -5.7 % |
+| Mesh, local stepping, buffer 1.0 | 4,819,670 | 198,377 | 705 | 1.39 x | -0.16 to -2.5 % | -5.8 % |
+| Mesh, local stepping, buffer 0.5 | 4,819,670 | 171,985 | 603 | 1.62 x | -0.17 to -2.4 % | -5.8 % |
+
+Memory 2.9 GB against 4.5 GB. The uniform run fell from 1,538 s to 977 s once the card was free, which is what took 2.9 x to 1.6 x. HEC-RAS was running on the CPU throughout, so the host was not idle; the card was. The mesh's -5.8 % sits on the S6 ring, not a dam: read the five dams, and treat the mesh as a saving that costs up to 6 % on a line away from them.
 
 Bidah on the mesh: 88 to 269 s against 36 s uniform, not clean. A mesh substep runs about 25 kernels over three cell sizes and two
 axes, against 9 on the uniform path, at about 8 microseconds each, so at 90 tiles the launches swamp the kernels. **Below about
