@@ -146,8 +146,9 @@ def test_a_mesh_without_lines_from_the_dock_is_what_the_engine_had_before(tmp_pa
 
 
 def test_the_cell_grid_names_are_the_engines() -> None:
-    from wadi2d.products import cell_grid
     from wadi2d_qgis import protocol
+
+    from wadi2d.products import cell_grid
 
     assert protocol.CELL_GRID_FILE == cell_grid.CELL_GRID_FILE
     assert protocol.CELL_GRID_LAYER == cell_grid.CELL_GRID_LAYER
