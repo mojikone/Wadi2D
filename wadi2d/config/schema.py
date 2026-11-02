@@ -240,8 +240,9 @@ class Smooth(_Part):
         0.1, ge=0.0, le=2.0, description="Polygon vertices closer than this to the line go, pixels"
     )
     block_px: int = Field(
-        8192, ge=256, le=32768, description="Pixels along a block, so memory stays bounded on any domain"
+        4096, ge=256, le=32768, description="Pixels along a block, so memory stays bounded on any domain"
     )
+    workers: int = Field(0, ge=0, le=256, description="Blocks worked on at once; 0 means half the logical cores")
     domain_sigma_cells: float = Field(
         0.8, ge=0.1, le=8.0, description="Width of the soft domain mask, Gaussian sigma in cells"
     )

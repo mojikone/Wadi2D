@@ -823,7 +823,8 @@
             "sigma_px": 1.0,
             "speckle_m2": 500.0,
             "simplify_px": 0.1,
-            "block_px": 8192,
+            "block_px": 4096,
+            "workers": 0,
             "domain_sigma_cells": 0.8,
             "depth_scale": 2,
             "depth_sigma_px": 0.7,
@@ -1107,11 +1108,19 @@
           "type": "number"
         },
         "block_px": {
-          "default": 8192,
+          "default": 4096,
           "description": "Pixels along a block, so memory stays bounded on any domain",
           "maximum": 32768,
           "minimum": 256,
           "title": "Block Px",
+          "type": "integer"
+        },
+        "workers": {
+          "default": 0,
+          "description": "Blocks worked on at once; 0 means half the logical cores",
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Workers",
           "type": "integer"
         },
         "domain_sigma_cells": {
@@ -1727,7 +1736,7 @@
           "pixel_m": 0.0
         },
         "smooth": {
-          "block_px": 8192,
+          "block_px": 4096,
           "depth_scale": 2,
           "depth_sigma_px": 0.7,
           "domain_sigma_cells": 0.8,
@@ -1735,7 +1744,8 @@
           "sigma_px": 1.0,
           "simplify_px": 0.1,
           "speckle_m2": 500.0,
-          "wet_edge_px": 1.0
+          "wet_edge_px": 1.0,
+          "workers": 0
         },
         "points": [],
         "lines": []

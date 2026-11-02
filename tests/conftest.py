@@ -22,7 +22,7 @@ def _gpu_available() -> bool:
     try:
         import cupy as cp
 
-        return cp.cuda.Device(0).compute_capability > 0
+        return bool(cp.cuda.Device(0).compute_capability)
     except Exception:
         return False
 

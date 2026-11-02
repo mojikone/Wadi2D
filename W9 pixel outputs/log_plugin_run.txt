@@ -1,63 +1,63 @@
     0.0 script loaded
-    5.2 PASS plugin from the branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98fcfbdcbd7d924d\plugin\wadi2d_qgis\__init__.py
-    5.3 dock says:  | 
-    5.5 PASS engine found Engine ready.
-    5.5 PASS engine is the branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98fcfbdcbd7d924d\wadi2d\__init__.py
-    5.5 PASS map choices ['Every 15 minutes, for design work', 'Every 5 minutes, for an animation']
-    5.5 PASS disk note shown Peak depth and hazard do not need the shorter interval: the run keeps its own peaks. It takes three times the disk, so choose it for an animation. Estimate says how much.
-    5.5 PASS pixels on by default 
-    5.5 PASS make map waits for a run 
-    5.5 === 1 hybrid
-    5.7 dock says:  | Estimating...
-    7.2 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | Estimating...
-   11.0 PASS estimate says the disk of the maps 506,615 cells, 0.28 GB, about 82 s. 193 saved maps, at most 1.0 GB of disk
-   11.5 dock says: Starting... | 
-   13.0 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
-  227.4 dock says: water stood 21.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
-  321.4 PASS hybrid finished Finished. water stood 21.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
-  321.4 PASS pixel step finished finished
-  321.4 PASS bar and status followed the pixel step [(0, 'Pixel maps: reading the terrain'), (0, 'Pixel maps: reading the terrain'), (2, 'Pixel maps: reading the terrain'), (92, 'Pixel maps: drawing the polygons and the depth'), (92, 'Pixel maps: drawing the polygons and the depth')]
-  321.4 PASS bar rose through the pixel step [0, 0, 2, 2, 92, 92, 92, 92]
-  321.4 PASS file pixel_depth.tif 
-  321.4 PASS file pixel_hazard.tif 
-  321.4 PASS file pixel_speed.tif 
-  321.4 PASS file pixel_dv.tif 
-  321.4 PASS file depth_drawing.tif 
-  321.4 PASS file map_layers.gpkg 
-  321.4 PASS file pixels.json 
-  321.4 class km2 {'H1': 11.8824, 'H2': 6.0988, 'H3': 0.7282, 'H4': 3.6023, 'H5': 13.4172, 'H6': 10.3958}
-  321.4 drawn change % {'H1': 4.067, 'H2': 0.087, 'H3': -0.028, 'H4': 0.077, 'H5': -0.036, 'H6': -0.032}
-  321.4 PASS smoothing under 1 % for H3 and above [0.028, 0.077, 0.036, 0.032]
-  321.4 PASS groups ['Model setup', 'Flood maps', 'Pixel rasters, the numbers of record', 'Cell maps']
-  321.4 PASS depth is on, hazard off, cell maps off ['2D model domain, closed walls except open boundaries', 'AIDR hazard class', 'Depth x speed, m2/s', 'Depth, m', 'Design line', 'Hazard class', 'Lumped hydrograph enters 2D here', 'Maximum depth, m', 'Open boundary', 'Reach, routed by the 2D model here', 'Spee
-  321.4 PASS AIDR colours ['#0000ff', '#0080ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000']
-  321.4 PASS Blues to 3 m [(0.0, '#ffffff'), (0.03, '#f7fbff'), (0.75, '#a2cae5'), (1.5, '#73b2d8'), (2.25, '#2979b9'), (3.0, '#08306b')]
-  321.4 PASS no stray band line in the layer tree []
-  321.4 PASS hazard layer has six classes 6
-  321.5 === 2 make map
-  321.5 PASS make map ready 
-  328.9 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w9\plug\runs\hybrid\pixels\hybrid_maps.pdf
-  328.9 PASS layout kept in the project ['Wadi2D hybrid']
-  328.9 PASS no stray legend line on the sheets []
-  336.3 PASS a second map replaces the first 
-  336.3 === 3 stop in the pixel step
-  336.7 dock says: Starting... | 
-  374.8 dock says: water stood 18.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
-  376.8 PASS five-minute maps reached the job {'map_every_s': 300.0}
-  376.8 PASS stop button live in the pixel step 
-  376.8 dock says: Stopping: the engine finishes the step and writes its maps. | 
-  377.3 dock says: Pixel maps stopped on request. The run itself finished and its maps are written. | 
-  377.8 stop took 1.0 s
-  377.8 PASS run stays finished {'ev': 'done', 'status': 'finished', 'code': 0, 'partial': False, 't': 21600.0, 'duration_s': 21600.0, 'steps': 28317, 'loop_s': 34.27, 'tables_s': 1.17, 'wet_area_km2': 73.3296, 'dt_min': 0.6096525687662674, 'balance': {'rain_m3': 97066369.07915172, 'inflow_m
-  377.8 PASS stop within the grace period 
-  377.8 PASS says so Finished. water stood 18.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there. Pixel maps stopped on request. The run itself finished and its maps are written.
-  377.8 PASS cell maps written 
-  377.8 PASS no half-written pixel files []
-  377.8 PASS no map button for it 
-  377.8 === 4 pixel step off
-  378.0 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. | 
-  386.4 PASS off means off Finished. water stood 12.3 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain p
-  386.4 === 5 make map on a finished run
-  392.5 PASS map from a chosen folder, satellite Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w9\plug\runs\hybrid\pixels\hybrid_maps.pdf
-  392.5 SUMMARY 41 passed, 0 failed 
-  392.5 DONE
+    5.3 PASS plugin from the branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98fcfbdcbd7d924d\plugin\wadi2d_qgis\__init__.py
+    5.4 dock says:  | 
+    5.9 PASS engine found Engine ready.
+    5.9 PASS engine is the branch D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a98fcfbdcbd7d924d\wadi2d\__init__.py
+    5.9 PASS map choices ['Every 15 minutes, for design work', 'Every 5 minutes, for an animation']
+    5.9 PASS disk note shown Peak depth and hazard do not need the shorter interval: the run keeps its own peaks. It takes three times the disk, so choose it for an animation. Estimate says how much.
+    5.9 PASS pixels on by default 
+    5.9 PASS make map waits for a run 
+    5.9 === 1 hybrid
+    6.1 dock says:  | Estimating...
+    7.4 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | Estimating...
+   10.4 PASS estimate says the disk of the maps 506,615 cells, 0.28 GB, about 66 s. 193 saved maps, at most 1.0 GB of disk
+   10.7 dock says: Starting... | 
+   12.2 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
+  138.8 dock says: water stood 21.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
+  232.8 PASS hybrid finished Finished. water stood 21.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+  232.8 PASS pixel step finished finished
+  232.8 PASS bar and status followed the pixel step [(0, 'Pixel maps: reading the terrain'), (0, 'Pixel maps: reading the terrain'), (2, 'Pixel maps: reading the terrain'), (92, 'Pixel maps: drawing the polygons and the depth'), (92, 'Pixel maps: drawing the polygons and the depth')]
+  232.8 PASS bar rose through the pixel step [0, 0, 2, 2, 92, 92, 92, 92]
+  232.8 PASS file pixel_depth.tif 
+  232.8 PASS file pixel_hazard.tif 
+  232.8 PASS file pixel_speed.tif 
+  232.8 PASS file pixel_dv.tif 
+  232.8 PASS file depth_drawing.tif 
+  232.8 PASS file map_layers.gpkg 
+  232.8 PASS file pixels.json 
+  232.8 class km2 {'H1': 11.8824, 'H2': 6.0988, 'H3': 0.7282, 'H4': 3.6023, 'H5': 13.4172, 'H6': 10.3958}
+  232.8 drawn change % {'H1': 4.067, 'H2': 0.087, 'H3': -0.028, 'H4': 0.077, 'H5': -0.036, 'H6': -0.032}
+  232.8 PASS smoothing under 1 % for H3 and above [0.028, 0.077, 0.036, 0.032]
+  232.8 PASS groups ['Model setup', 'Flood maps', 'Pixel rasters, the numbers of record', 'Cell maps']
+  232.8 PASS depth is on, hazard off, cell maps off ['2D model domain, closed walls except open boundaries', 'AIDR hazard class', 'Depth x speed, m2/s', 'Depth, m', 'Design line', 'Hazard class', 'Lumped hydrograph enters 2D here', 'Maximum depth, m', 'Open boundary', 'Reach, routed by the 2D model here', 'Spee
+  232.8 PASS AIDR colours ['#0000ff', '#0080ff', '#00ffff', '#00ff00', '#ffff00', '#ff0000']
+  232.8 PASS Blues to 3 m [(0.0, '#ffffff'), (0.03, '#f7fbff'), (0.75, '#a2cae5'), (1.5, '#73b2d8'), (2.25, '#2979b9'), (3.0, '#08306b')]
+  232.8 PASS no stray band line in the layer tree []
+  232.8 PASS hazard layer has six classes 6
+  232.9 === 2 make map
+  232.9 PASS make map ready 
+  240.8 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w9\plug\runs\hybrid\pixels\hybrid_maps.pdf
+  240.8 PASS layout kept in the project ['Wadi2D hybrid']
+  240.8 PASS no stray legend line on the sheets []
+  248.7 PASS a second map replaces the first 
+  248.7 === 3 stop in the pixel step
+  248.9 dock says: Starting... | 
+  281.2 dock says: water stood 18.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
+  283.5 PASS five-minute maps reached the job {'map_every_s': 300.0}
+  283.5 PASS stop button live in the pixel step 
+  283.5 dock says: Stopping: the engine finishes the step and writes its maps. | 
+  284.0 dock says: Pixel maps stopped on request. The run itself finished and its maps are written. | 
+  284.3 stop took 0.8 s
+  284.3 PASS run stays finished {'ev': 'done', 'status': 'finished', 'code': 0, 'partial': False, 't': 21600.0, 'duration_s': 21600.0, 'steps': 28317, 'loop_s': 29.84, 'tables_s': 0.83, 'wet_area_km2': 73.3296, 'dt_min': 0.6096525687662674, 'balance': {'rain_m3': 97066369.0791517, 'inflow_m3
+  284.3 PASS stop within the grace period 
+  284.3 PASS says so Finished. water stood 18.9 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there. Pixel maps stopped on request. The run itself finished and its maps are written.
+  284.3 PASS cell maps written 
+  284.3 PASS no half-written pixel files []
+  284.3 PASS no map button for it 
+  284.3 === 4 pixel step off
+  284.5 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. | 
+  292.6 PASS off means off Finished. water stood 12.3 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain p
+  292.6 === 5 make map on a finished run
+  299.2 PASS map from a chosen folder, satellite Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w9\plug\runs\hybrid\pixels\hybrid_maps.pdf
+  299.2 SUMMARY 41 passed, 0 failed 
+  299.2 DONE

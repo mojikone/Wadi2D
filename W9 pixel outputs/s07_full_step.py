@@ -31,11 +31,29 @@ last = [None]
 
 def emit(event, **fields):
     tag = (event, fields.get("stage"))
-    if tag != last[0] or fields.get("done", 1) % 40 == 0:
+    if tag != last[0] or fields.get("done", 1) % 20 == 0:
         print(f"{time.time() - t0:7.0f} {event} {fields}", flush=True)
         last[0] = tag
 
 
-stats = make_products(cfg, tables, crs, WORK, Watch(emit, lambda: False), "auto")
+if len(sys.argv) > 4:  # the drawing alone, from the rasters already written
+    import numpy as np
+    import rasterio
+
+    from wadi2d.products.smooth import make_drawings
+    from wadi2d.products.step import HAZARD_FILE, PIXEL_DIR
+
+    folder = WORK / PIXEL_DIR
+    with rasterio.open(folder / HAZARD_FILE) as src:
+        classes = src.read(1)
+        t = src.transform
+    with rasterio.open(folder / "pixel_depth.tif") as src:
+        depth = src.read(1, masked=True).filled(0.0).astype(np.float32)
+    from wadi2d.io.geotiff import raster_profile
+
+    written = {"classes": classes, "profile": raster_profile(classes.shape, t.a, t.c, t.f, crs)}
+    stats = make_drawings(cfg, tables, written, depth, folder, crs, Watch(emit, lambda: False))
+else:
+    stats = make_products(cfg, tables, crs, WORK, Watch(emit, lambda: False), "auto")
 stats["step_s"] = round(time.time() - t0)
 print(json.dumps(stats, indent=1), flush=True)

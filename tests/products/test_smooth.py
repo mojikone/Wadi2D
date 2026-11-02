@@ -122,6 +122,18 @@ def test_the_block_size_does_not_change_the_areas() -> None:
         assert many[name] == pytest.approx(area, abs=0.02 * max(area, 0.01))
 
 
+def test_a_block_counts_its_edge_pixels_by_half() -> None:
+    assert sm.block_area(np.ones((5, 5), bool)) == 16.0  # 4 x 4 pixel widths between the outer centres
+
+
+def test_small_blocks_keep_the_classes_too() -> None:
+    classes = rough_classes(900)
+    small = RunConfig.model_validate({"outputs": {"smooth": {"block_px": 256}}})
+    change = sm.class_polygons(small, classes, profile_of(classes), calm())[1]["change_pct"]
+    for name in ("H3", "H4", "H5", "H6"):
+        assert abs(change[name]) < 1.0
+
+
 def test_a_stop_stops_the_polygons() -> None:
     from wadi2d.products.step import ProductsStopped
 

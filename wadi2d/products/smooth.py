@@ -11,7 +11,9 @@ any domain.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from itertools import pairwise
 from pathlib import Path
 
@@ -139,8 +141,17 @@ def _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, sigma, w
         watch.check()
         if masks[k] is not None:
             field = soft(masks[k], sigma)[cut]
-            fields[k] = (field, area_iso(field, int((raw >= k).sum())))
+            fields[k] = (field, area_iso(field, block_area(raw >= k)))
     return raw > DRY, fields
+
+
+def block_area(mask: np.ndarray) -> float:
+    """Pixels of a mask inside its block: the block's edges run through pixel centres, so they count by half."""
+    return (
+        float(mask.sum())
+        - 0.5 * float(mask[0].sum() + mask[-1].sum() + mask[:, 0].sum() + mask[:, -1].sum())
+        + 0.25 * float(mask[0, 0]) + 0.25 * float(mask[0, -1]) + 0.25 * float(mask[-1, 0]) + 0.25 * float(mask[-1, -1])
+    )
 
 
 def _generator(field: np.ndarray):
@@ -164,7 +175,7 @@ def _held_area(made, level: float) -> float:
     return abs(total)
 
 
-def area_iso(field: np.ndarray, pixels: int) -> float:
+def area_iso(field: np.ndarray, pixels: float) -> float:
     """The contour of a soft mask that holds the area of the raw class: thin, broken patches shrink at one half."""
     if pixels <= 0:
         return ISO
@@ -180,53 +191,79 @@ def area_iso(field: np.ndarray, pixels: int) -> float:
     return 0.5 * (low + high)
 
 
+def _block_bands(classes, box: tuple, index: int, levels: int, reach: int, smallest: int, profile, smooth, watch):
+    """The class polygons of one block: rows, area drawn per class, wet pixels added and removed."""
+    transform = profile["transform"]
+    pixel, x0, y0 = transform.a, transform.c, transform.f
+    r0, r1, c0, c1 = box
+    raw_wet, fields = _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, smooth.sigma_px, watch)
+    added = removed = 0
+    if fields[1] is not None:
+        smooth_wet = fields[1][0] >= fields[1][1]
+        added = int((smooth_wet & ~raw_wet).sum())
+        removed = int((raw_wet & ~smooth_wet).sum())
+    rows = []
+    shown = np.zeros(levels + 1)
+    above = shapely.MultiPolygon()
+    for k in range(levels, 0, -1):
+        watch.check()
+        if fields[k] is None:
+            continue
+        parts = contour_polygons(*fields[k])
+        area = multi([as_map(p, x0, y0, pixel, c0, r0) for p in parts])
+        if smooth.simplify_px > 0.0:
+            area = shapely.simplify(area, smooth.simplify_px * pixel)
+        band = shapely.difference(area, above)
+        above = shapely.union(area, above)  # contours read at different values can cross where classes pinch
+        if not band.is_empty:
+            rows.append((k, index, band))
+            shown[k] = shapely.area(band) / M2_PER_KM2
+    return rows, shown, added, removed
+
+
 def class_polygons(cfg: RunConfig, classes: np.ndarray, profile: dict, watch) -> tuple[list, dict]:
     """Rows of (class, block, geometry) and the area accounts, against the raw classes."""
     smooth, rule = cfg.outputs.smooth, cfg.outputs.pixels
-    transform = profile["transform"]
-    pixel, x0, y0 = transform.a, transform.c, transform.f
+    pixel = profile["transform"].a
     levels = len(rule.hazard_limits) + 1
     smallest = int(np.ceil(smooth.speckle_m2 / pixel**2))
     reach = int(np.ceil(GAUSS_REACH * smooth.sigma_px)) + max(int(np.ceil(np.sqrt(smallest))), 2) + 2
     height, width = classes.shape
     rows_of = list(block_ranges(height, smooth.block_px))
     cols_of = list(block_ranges(width, smooth.block_px))
-    blocks = [(r, c) for r in rows_of for c in cols_of]
+    blocks = [(*r, *c) for r in rows_of for c in cols_of]
+    wet = [box for box in blocks if (window(classes, box[0], box[1] + 1, box[2], box[3] + 1, DRY) > DRY).any()]
+    workers = smooth.workers or max((os.cpu_count() or 2) // 2, 1)
     rows: list[tuple[int, int, shapely.Geometry]] = []
     km2 = pixel**2 / M2_PER_KM2
     shown = np.zeros(levels + 1)
     added = removed = 0
-    for index, ((r0, r1), (c0, c1)) in enumerate(blocks):
-        watch.tick("smooth", index, 2 * len(blocks))
-        if not (window(classes, r0, r1 + 1, c0, c1 + 1, DRY) > DRY).any():
-            continue
-        raw_wet, fields = _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, smooth.sigma_px, watch)
-        if fields[1] is not None:
-            smooth_wet = fields[1][0] >= fields[1][1]
-            added += int((smooth_wet & ~raw_wet).sum())
-            removed += int((raw_wet & ~smooth_wet).sum())
-        above = shapely.MultiPolygon()
-        for k in range(levels, 0, -1):
-            watch.check()
-            if fields[k] is None:
-                continue
-            parts = contour_polygons(*fields[k])
-            area = multi([as_map(p, x0, y0, pixel, c0, r0) for p in parts])
-            if smooth.simplify_px > 0.0:
-                area = shapely.simplify(area, smooth.simplify_px * pixel)
-            band = shapely.difference(area, above)
-            above = shapely.union(area, above)  # contours read at different values can cross where classes pinch
-            if not band.is_empty:
-                rows.append((k, index, band))
-                shown[k] += shapely.area(band) / M2_PER_KM2
+    with ThreadPoolExecutor(workers) as pool:  # GEOS and SciPy let go of the GIL
+        tasks = [
+            pool.submit(_block_bands, classes, box, index, levels, reach, smallest, profile, smooth, watch)
+            for index, box in enumerate(wet)
+        ]
+        try:
+            for finished, task in enumerate(as_completed(tasks)):
+                watch.tick("smooth", finished, 2 * len(tasks))
+                found, drawn, plus, minus = task.result()
+                rows.extend(found)
+                shown += drawn
+                added += plus
+                removed += minus
+        except BaseException:
+            for task in tasks:
+                task.cancel()
+            raise
+    rows.sort(key=lambda row: (row[1], row[0]))
     names = class_names(rule)
     raw = {name: float((classes == k + 1).sum()) * km2 for k, name in enumerate(names)}
-    drawn = {name: float(shown[k + 1]) for k, name in enumerate(names)}
+    drawn_km2 = {name: float(shown[k + 1]) for k, name in enumerate(names)}
     accounts = {
         "raw_km2": {name: round(value, 4) for name, value in raw.items()},
-        "drawn_km2": {name: round(value, 4) for name, value in drawn.items()},
+        "drawn_km2": {name: round(value, 4) for name, value in drawn_km2.items()},
         "change_pct": {
-            name: round(100.0 * (drawn[name] - raw[name]) / raw[name], 3) if raw[name] else 0.0 for name in names
+            name: round(100.0 * (drawn_km2[name] - raw[name]) / raw[name], 3) if raw[name] else 0.0 for name in names
         },
         "wet_added_km2": round(added * km2, 4),
         "wet_removed_km2": round(removed * km2, 4),
