@@ -725,6 +725,28 @@ class Hydrology(_Part):
         return self
 
 
+class Transmission(_Part):
+    """Dry-bed transmission loss on 2D routing cells: a rate over the wetted bed, as HEC-HMS's percolation method."""
+
+    enabled: bool = Field(False, description="Off leaves every number as it was")
+    rate_mm_h: float = Field(
+        25.0, gt=0.0, le=2000.0, description="Infiltration into the wetted bed, mm/h"
+    )
+    max_depth_mm: float | None = Field(
+        None, gt=0.0, description="Total a square metre of bed can take, mm; None means no limit"
+    )
+    min_depth_m: float = Field(
+        0.1,
+        ge=0.0,
+        le=10.0,
+        description="Level above a cell's lowest point that makes it a channel cell, m; thin sheet flow keeps its CN",
+    )
+    water_share: float = Field(
+        0.5, gt=0.0, le=1.0, description="Most of a cell's water one source window may take"
+    )
+    area: str | None = Field(None, description="Polygons of the bed it applies to; None means every cell")
+
+
 class ArfStudy(_Part):
     """The depth-area study: one run per storm area, each design point reading its own drainage area."""
 
@@ -780,6 +802,7 @@ class RunConfig(_Part):
     numerics: Numerics = Numerics()
     storm: Storm = Storm()
     hydrology: Hydrology = Hydrology()
+    transmission: Transmission = Transmission()
     boundaries: list[Boundary] = []
     initial_levels: list[InitialLevel] = []
     outputs: Outputs = Outputs()

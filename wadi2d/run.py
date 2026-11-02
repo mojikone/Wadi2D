@@ -26,6 +26,7 @@ from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
     Forcing,
     boundary_notes,
@@ -97,6 +98,7 @@ PATH_FIELDS = (
     ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
     ("hydrology", "polygons"),
+    ("transmission", "area"),
     ("arf", "accumulation"),
 )
 """Every path in a job; relative paths are relative to the job file."""
@@ -239,6 +241,8 @@ def job_hash(cfg: RunConfig) -> str:
     data.pop("project")
     if not cfg.hydrology.handbacks:
         data["hydrology"].pop("handbacks")
+    if not cfg.transmission.enabled:
+        data.pop("transmission")
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for part, name in PATH_FIELDS:
@@ -673,7 +677,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs, stop_files)
     monitor.balance.storage0 = monitor.storage()
     link = HandBackLink(cfg, tables, model, bset, forcing, network, monitor) if network is not None else None
-    for part in (link,):
+    bed = BedLoss(cfg, tables, model, forcing, crs, monitor) if cfg.transmission.enabled else None
+    for part in (link, bed):
         for note in part.notes() if part is not None else ():
             progress.emit("warn", message=note)
     if continuing:
@@ -697,11 +702,12 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
                 link.exchange(t)
                 t_next = link.window_end(t, t_next)
             rate, rain, inflow = forcing.rate(t, t_next)
-            if rain + inflow > 0.0 or not dry:
+            loss = bed.apply(rate, t, t_next) if bed is not None else 0.0
+            if rain + inflow + loss > 0.0 or not dry:
                 model.set_source_cells(forcing.state, rate)
-            dry = rain + inflow <= 0.0
+            dry = rain + inflow + loss <= 0.0
             back = link.reentry_volume() if link is not None else 0.0
-            monitor.open_window(t, t_next, rain, inflow, back)
+            monitor.open_window(t, t_next, rain, inflow, back, loss)
             model.advance(t_next, monitor.on_step)
             monitor.settle(t_next)
             t = t_next

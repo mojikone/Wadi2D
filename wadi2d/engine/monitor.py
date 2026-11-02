@@ -41,6 +41,8 @@ class Balance:
     outflow: float = 0.0
     storage0: float = 0.0
     storage: float = 0.0
+    transmission: float = 0.0
+    """Taken by dry beds."""
     handback: float = 0.0
     """Part of ``outflow`` that crossed hand-back lines into the network."""
     reentry: float = 0.0
@@ -56,7 +58,7 @@ class Balance:
 
     @property
     def error(self) -> float:
-        return self.rain + self.inflow - self.outflow - (self.storage - self.storage0)
+        return self.rain + self.inflow - self.transmission - self.outflow - (self.storage - self.storage0)
 
     @property
     def whole_error(self) -> float:
@@ -127,7 +129,7 @@ class Monitor:
         self.times: list[float] = []
         self.dt_min = np.inf
         self.checkpoint_due = False
-        self.window = (0.0, 1.0, 0.0, 0.0, 0.0)
+        self.window = (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)
         self.settled = 0.0
         self.live = None
         if o.live_every_s > 0.0:
@@ -170,18 +172,21 @@ class Monitor:
         for tally in self.more_tallies:
             tally.add(dt)
 
-    def open_window(self, t0: float, t1: float, rain: float, inflow: float, reentry: float = 0.0) -> None:
+    def open_window(
+        self, t0: float, t1: float, rain: float, inflow: float, reentry: float = 0.0, loss: float = 0.0
+    ) -> None:
         """The source of [t0, t1] enters the accounts as the run advances through it."""
-        self.window = (t0, t1, rain, inflow, reentry)
+        self.window = (t0, t1, rain, inflow, reentry, loss)
         self.settled = t0
 
     def settle(self, t: float) -> None:
         """Credit the source up to time t."""
-        t0, t1, rain, inflow, reentry = self.window
+        t0, t1, rain, inflow, reentry, loss = self.window
         share = (min(t, t1) - self.settled) / (t1 - t0)
         self.balance.rain += rain * share
         self.balance.inflow += inflow * share
         self.balance.reentry += reentry * share
+        self.balance.transmission += loss * share
         self.settled = min(t, t1)
 
     def storage(self) -> float:
