@@ -758,6 +758,51 @@ class RunConfig(_Part):
     arf: ArfStudy = ArfStudy()
 
 
+class BasinSettings(_Part):
+    """What ``wadi2d basin`` needs beyond the job. Not a part of RunConfig, so a job is the same with or without it."""
+
+    stream_threshold_km2: float | None = Field(
+        10.0, gt=0.0, description="Drainage area that starts a stream, km2; None breaks at the pour points only"
+    )
+    analysis_pixel: float | None = Field(
+        None, gt=0.0, le=100.0, description="Pixel of the delineation, m; None takes mesh.analysis_pixel"
+    )
+    max_pixels: int = Field(
+        400_000_000, ge=1, description="Largest analysis raster, pixels; a bigger one asks for a coarser pixel"
+    )
+    snap_m: float = Field(
+        100.0, ge=0.0, le=5000.0, description="Reach of a pour point towards the nearest stream, m; 0 keeps its pixel"
+    )
+    min_reach_m: float = Field(
+        100.0, ge=0.0, le=5000.0, description="A shorter link gets no reach: its junctions join directly, m"
+    )
+    min_subbasin_km2: float = Field(
+        0.05, ge=0.0, description="A smaller local catchment joins a neighbour draining to the same junction, km2"
+    )
+    min_slope: float = Field(1.0e-4, gt=0.0, le=0.1, description="Floor of a reach slope, m/m")
+    min_raster_share: float = Field(
+        0.9, gt=0.0, le=1.0, description="Share of an element a raster must cover for its mean to count"
+    )
+    section_spacing_m: float = Field(100.0, gt=0.0, le=5000.0, description="Cross-sections along a reach, m")
+    section_half_width_m: float = Field(
+        500.0, gt=0.0, le=10000.0, description="Reach of a cross-section from the stream, m"
+    )
+    section_depth_m: float = Field(
+        4.0, gt=0.0, le=50.0, description="Depth above the bed over which the trapezoid is fitted, m"
+    )
+    section_depths: int = Field(9, ge=3, le=33, description="Depths of the width curve of a section")
+    section_search_m: float = Field(
+        30.0, ge=0.0, le=500.0, description="How far from the D8 line the bed of a section is looked for, m"
+    )
+    reservoir_step_m: float = Field(0.5, gt=0.0, le=20.0, description="Rows of a reservoir table, m")
+    reservoir_top_m: float = Field(
+        10.0, gt=0.0, le=100.0, description="Reservoir table above the dam crest, m"
+    )
+    dam_join_m: float = Field(
+        50.0, ge=0.0, le=2000.0, description="A spillway this close to a crest line belongs to that dam, m"
+    )
+
+
 def json_schema() -> dict:
     """The JSON Schema of a job file, for the plugin and the documentation."""
     return RunConfig.model_json_schema()
