@@ -62,7 +62,7 @@ def missing_from_wheel(wheel: Path, tree: Path) -> list[str]:
     """Every committed file of the engine package that the wheel left out, kernels above all."""
     with zipfile.ZipFile(wheel) as archive:
         inside = set(archive.namelist())
-    wanted = (p.relative_to(tree).as_posix() for p in (tree / PACKAGE).rglob("*") if p.is_file())
+    wanted = (p.relative_to(tree).as_posix() for p in (tree / PACKAGE).rglob("*") if p.is_file() and p.suffix != ".md")
     return sorted(name for name in wanted if name not in inside)
 
 
