@@ -12,7 +12,7 @@ from wadi2d.config.schema import Numerics, Tables
 from wadi2d.grid import TileGrid
 from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.level_stepper import trailing_level
-from wadi2d.solver.levels import LevelRule, assign_levels, plan_cycle
+from wadi2d.solver.levels import SIDES, LevelRule, assign_levels, plan_cycle
 from wadi2d.solver.model import Model
 from wadi2d.tables import ArrayBed, build_tables
 from wadi2d.validation import UniformGrid, compare
@@ -72,10 +72,10 @@ def test_levels_hold_while_the_step_barely_moves():
 def test_plan_lists_each_edge_once_with_its_owner():
     nbr = _row_grid(3)
     level = np.array([0, 0, 1, 1], np.int32)
-    plan = plan_cycle(level, np.arange(1, 4), nbr)
+    plan = plan_cycle(level, np.arange(1, 4), nbr[:, SIDES])
     assert plan.top == 1
-    assert plan.edges_x[0].tolist() == [[1, 2, 2, 0]]
-    assert plan.strips[0].tolist() == [[1, 2, 2, 0]]
+    assert [(s, e.tolist()) for s, e in plan.edges_x[0]] == [(0, [[1, 2, 2, 0]])]
+    assert [(s, e.tolist()) for s, e in plan.strips[0]] == [(0, [[1, 2, 2, 0]])]
     assert plan.coarse[1].tolist() == [2]
 
 
