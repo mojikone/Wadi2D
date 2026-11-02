@@ -369,6 +369,30 @@ What that implies (my reading, each point open for the design note):
 - Distributed execution: the node service and job queue, discovery and security on a LAN, scheduling across unequal PCs (version 2); the
   tile and halo design that keeps domain splitting possible (version 1).
 
+## Work order after version 0.1.1 (his decisions, side chat of 2026-11-02)
+
+His rules for all of it: each item its own branch, tests, and a `W#` folder where it is an engineering iteration; **a feature is done only when it is in the plugin and tested through the real dock**; the [PRESERVE-CHECK] and [BROAD] rule applies; never push or publish without his word. In this order:
+
+1. **D2, see the mesh.** After every run, the real cell grid as a vector layer in Model setup.
+2. **D8, boundaries.** One line layer holds all boundaries. The dock lists each line in a table with kind and value editable, defaults filled by kind, no fields needed in the layer. The kind and value field route stays.
+3. **D1, time slider.** The engine exports the saved frames as one CF NetCDF file; one dock button loads it as a QGIS mesh layer with depth, speed and hazard datasets, working with the Temporal Controller. Cell frames first; per-frame pixel maps only for small areas, if at all. **Check first that QGIS really reads the file with its time axis; untested.**
+4. **D5, rainfall.** A Storm section: hyetograph table, hypothetical design patterns with ARF, gridded rain and DSS first, plus NetCDF; radar and satellite later. The rain feeds rain-on-grid and lumped alike.
+5. **D9, result lines, HEC-RAS style.** Two kinds, labelled in the plot. Upfront lines and points stay, computed during the run: the numbers of record. After the run the user draws a temporary line or picks one from a layer, and the plugin rapidly shows the hydrograph, depth, and the water surface with the terrain along the line, all changing as the time slider moves. These read saved frames, so state their limit: the map interval, flow estimated from depth and speed. Depends on D1.
+6. **D7, profile editor.** A dedicated graphical editor per structure, as in HEC-RAS: drag points, type a table, undo, for bed, tops and elevations.
+7. **D3, mesh controls.** A table of lines: near cell size, number of rows, far cell size, as in HEC-RAS. The quadtree only doubles sizes, so round to the ladder and say so.
+8. **D4, automatic breaklines in the Mesh section.** A Suggest breaklines button makes an editable layer to accept or delete. Streams in mountains and defined wadis by bank lines, never on the thalweg; none in plains with no defined wadi; one bank where one exists; lines at slope changes such as roads and dams. Follows the rules under Next steps and the `W5` results. Refinement by slope change alone lost 18 % of a wadi peak, so test it.
+9. **D6, HMS-style model inside.** The model generates its own subbasins, reaches, junctions and reservoir routing from the DEM.
+   - The 2D flow area is always the full area.
+   - A subbasin is lumped by default. Parameters complete: it runs lumped. Not complete: a warning before the run names what is missing, and it runs as rain-on-grid unless the user adds them.
+   - Scenarios on the same basin model can switch each subbasin between lumped and rain-on-grid.
+   - Lumped means no rain on the cells beneath it; otherwise rain-on-grid. A cell never gets two rainfalls, and a check stops the run if one does.
+   - Where a reach is defined, route HMS style. Where none is, the junction flow enters the 2D grid and runs over the dry ground to the next junction.
+   - Flow double-count check: a reach-routed hydrograph stays out of the 2D grid until the end of its reach. The dock shows each junction's route.
+   - Hand-back: where 2D flow reaches a junction with a lumped reach below, it leaves the grid at a defined line and enters the reach. This link does not exist today; prove its mass balance first.
+   - Dry-bed transmission loss on 2D routing cells: an option, off by default.
+
+**Productivity ideas, proposed and not yet decided; ask him after the above:** scenarios with compare, check before run, run queue, templates, dock tabs, click-the-map results, warnings on the map.
+
 ## Next steps (for the next session)
 
 Waiting on him:

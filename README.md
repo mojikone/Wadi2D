@@ -58,6 +58,10 @@ A run makes its pixel maps by itself; `wadi2d products` makes them again on any 
 
 To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [[x, y], ...], "level": 100.0}]`, on the datum of the DEM.
 
+## Work order
+
+His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 time slider, D5 Storm section, D9 result lines, D7 profile editor, D3 mesh controls, D4 automatic breaklines, D6 HMS-style model inside. Detail in `CLAUDE.md`, section Work order. A feature is done only when it is in the plugin and tested through the real dock.
+
 ## Iterations
 
 | Folder | Date | What it holds | Status |
