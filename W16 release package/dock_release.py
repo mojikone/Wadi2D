@@ -184,6 +184,7 @@ def scenario():
         log(f"peaks {got}")
         worst = max(abs(got.get(k, 0.0) - v) for k, v in HYBRID_ON_RECORD.items())
         check("the five peaks match the record", worst <= 0.1, f"worst {worst:.2f} m3/s")
+        check("no CuPy noise in engine.err", "CUDA_PATH" not in (folder / "engine.err").read_text(encoding="utf-8", errors="replace"))
         shot("hybrid")
 
         log("=== rain, pixel maps, Make map")
