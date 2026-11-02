@@ -62,7 +62,7 @@ Found there, fixed in 0.1.1 where the line says so:
 
 ## 0.1.1
 
-Built and checked here from `edf3c39`, the same way as 0.1.0: 35 of 35 through three QGIS profiles (`log_gpu.txt`, `log_zip.txt`, `log_cpu.txt` are this run's), the five Block 2 peaks equal to the record, `engine.err` empty, a failing install now returns 1 through the `.bat`, 1,126 tests. Not on the laptop yet. Solver and job format did not change.
+Built and checked here from `edf3c39`, the same way as 0.1.0: 35 of 35 through three QGIS profiles (`log_gpu.txt`, `log_zip.txt`, `log_cpu.txt` are this run's), the five Block 2 peaks equal to the record, `engine.err` empty, a failing install now returns 1 through the `.bat`, 1,124 tests. Not on the laptop yet. Solver and job format did not change.
 
 ## Not tested
 
