@@ -9,7 +9,8 @@ from pathlib import Path
 
 import pytest
 from wadi2d_qgis import job_builder
-from wadi2d_qgis.job_builder import Feature, SchemaView, build_job, merge_hms
+from wadi2d_qgis.job_builder import Feature, SchemaView, build_job, merge_hms, preview_job
+from wadi2d_qgis.shaped import END_KEYS, LINING, OBJECT_PATH, SECTION_PATH, SHAPE_KEYS, SHAPED_KINDS
 
 config = pytest.importorskip("wadi2d.config.schema")
 SAMPLE = Path(__file__).with_name("schema_sample.json")
@@ -31,6 +32,8 @@ PATHS = (
     job_builder.MESH_MID_AREA,
     job_builder.MESH_ZONE_DX,
     job_builder.LOCAL_STEPS,
+    *(SECTION_PATH + key for key in SHAPE_KEYS),
+    *(OBJECT_PATH + key for key in (*END_KEYS, LINING)),
 )
 
 
@@ -91,6 +94,35 @@ def test_a_full_job_passes_the_engine_validation(tmp_path: Path) -> None:
     assert parsed.storm.kind == "uniform"
     assert parsed.storm.depth_mm == 150.0
     assert parsed.outputs.points[0].name == "Dam"
+
+
+def test_every_shaped_kind_the_dock_offers_is_an_engine_kind() -> None:
+    kinds = config.TerrainObject.model_fields["kind"].annotation.__args__
+    assert set(SHAPED_KINDS) == set(config.SHAPED_KINDS)
+    assert set(SHAPED_KINDS) <= set(kinds)
+
+
+def test_jobs_with_every_shaped_object_pass_the_engine_validation(tmp_path: Path) -> None:
+    table = tmp_path / "s.csv"
+    table.write_text("station,bed_z,left_top_z,right_top_z\n0,100,103,102\n100,99,102,101\n", encoding="utf-8")
+    line = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
+    structures = {
+        "embankment": [Feature("LineString", line, {"crest_z": 110.0, "width": 6.0, "openings": "10-20 left; 40-50"})],
+        "channel": [
+            Feature("LineString", line, {"bed_start_z": 100.0, "bed_slope": 0.01, "width": 4.0, "lining_n": 0.02}),
+        ],
+        "channel_dyke": [
+            Feature("LineString", line, {"table": str(table), "start_end": "taper", "taper_length": 30.0}),
+            Feature("LineString", line, {"crest_z": 99.0, "top_z": 103.0, "end_end": "closed"}),
+            Feature("LineString", line, {"crest_z": 99.0, "freeboard": 0.5, "water_depth": 2.0}),
+        ],
+    }
+    data = full_values(tmp_path, structures=structures, terrain_map=True)
+    parsed = config.RunConfig.model_validate(build_job(data, tmp_path / "out"))
+    assert [o.kind for o in parsed.terrain.objects].count("channel_dyke") == 3
+    assert parsed.outputs.terrain_map is True
+    assert parsed.terrain.objects[0].openings[0].side == "left"
+    assert config.RunConfig.model_validate(preview_job(data, tmp_path / "p")).storm.kind == "none"
 
 
 def test_an_extent_job_passes_the_engine_validation(tmp_path: Path) -> None:

@@ -15,7 +15,6 @@ import numpy as np
 from wadi2d.solver.levels import SIDES, LevelRule, Plan, assign_levels, graded, plan_cycle
 from wadi2d.solver.stepper import NumericalFailure, Stepper
 
-
 CLIMB_EVERY = 16
 """Cycles between chances for a tile to climb a level: a new set of lists costs more than a late climb."""
 

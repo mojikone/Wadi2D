@@ -232,6 +232,30 @@ class QuadGrid:
         return self.tile_dx**2
 
 
+@dataclass
+class LatticeView:
+    """The finest tiles under a QuadGrid, for what walks tiles of one size: a coarse tile is several of them."""
+
+    x0: float
+    y0: float
+    dx: float
+    shape: tuple[int, int]
+    tiles: np.ndarray
+
+    @property
+    def ntiles(self) -> int:
+        return self.tiles.shape[0]
+
+
+def lattice_view(grid: QuadGrid) -> LatticeView:
+    rows = [[-1, -1]]
+    for t in range(1, grid.ntiles):
+        size = 1 << int(grid.level[t])
+        tj, ti = int(grid.tiles[t, 0]), int(grid.tiles[t, 1])
+        rows += [[tj + a, ti + b] for a in range(size) for b in range(size)]
+    return LatticeView(grid.x0, grid.y0, grid.dx, grid.shape, np.array(rows, np.int32))
+
+
 def _aligned(shape: tuple[int, int], size: int) -> np.ndarray:
     rows = np.arange(shape[0]) % size == 0
     cols = np.arange(shape[1]) % size == 0

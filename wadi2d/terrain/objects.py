@@ -6,6 +6,9 @@ Crest lines and walls that end beside another one are joined on the lattice firs
 on paper also stops on it in the grid. A spillway drawn on a dam line shares the dam's faces: its own staircase
 could fall one cell off the dam's and pour into the back of it, so it takes the crest faces beside it and walks
 its own lattice only where none are near. Burn lines edit pixels through the ``edit`` hook of ``build_tables``.
+
+Shaped objects (embankment, channel, channel_dyke, see :mod:`wadi2d.terrain.earthworks`) do both: they rebuild the
+ground pixels and, where they stand above it, run as crest lines of their own, one per stretch and per bank.
 """
 
 from __future__ import annotations
@@ -20,11 +23,20 @@ from rasterio import features
 from rasterio.transform import Affine
 
 from wadi2d.config.constants import CRITICAL_WEIR_COEFF
-from wadi2d.config.schema import Terrain, TerrainObject
+from wadi2d.config.schema import SHAPED_KINDS, Terrain, TerrainObject
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.storm.registry import Registry
 from wadi2d.tables.builder import CrestFaces
 from wadi2d.terrain.crest import NORTH, Staircase, elevations_along, join_ends, line_lengths, staircase
+from wadi2d.terrain.earthworks import (
+    CrestRun,
+    Sampler,
+    Shape,
+    ShapeEdit,
+    as_dem,
+    crest_coefficient,
+    notch_shapes,
+)
 
 PixelEdit = Callable[[np.ndarray, int, int], None]
 
@@ -40,6 +52,7 @@ class FaceSet:
     cfg: Terrain
     stairs: dict[int, Staircase] = field(default_factory=dict)
     lines: list[Staircase] = field(default_factory=list)
+    runs: dict[int, list[tuple[Staircase, CrestRun]]] = field(default_factory=dict)
 
     def crest_faces(self) -> Staircase | None:
         if not self.lines:
@@ -192,37 +205,90 @@ class BurnLine:
         return edit
 
 
+@TERRAIN_OBJECTS.register("embankment")
+@TERRAIN_OBJECTS.register("channel")
+@TERRAIN_OBJECTS.register("channel_dyke")
+class Shaped:
+    """Ground rebuilt along an alignment; every stretch standing above the old ground is also a line of crest faces."""
+
+    phase = 0
+    barrier = False
+
+    def faces(self, obj: TerrainObject, target: FaceSet) -> None:
+        for st, run in target.runs[id(obj)]:
+            z = as_dem(np.interp(st.s, line_lengths(run.coordinates), run.z))
+            c = crest_coefficient(run.width, target.grid.dx, target.cfg)
+            _set(target, st, z, st.factor, c, keep_max=True)
+            target.lines.append(st)
+
+    def pixels(self, _obj, _grid, _pixel, _cfg) -> PixelEdit | None:
+        return None  # the shape carries the notches of its spillways: apply_objects makes its edit
+
+
+def _run_stairs(grid: TileGrid, obj: TerrainObject, shape: Shape, cfg: Terrain, ground) -> list:
+    out = []
+    for run in shape.crest_runs(grid.dx, cfg, ground):
+        st = staircase(grid, run.coordinates)
+        st.group, st.joins = id(obj), run.joins
+        out.append((st, run))
+    return out
+
+
 @dataclass
 class TerrainEdits:
-    """What ``build_tables`` needs from the objects."""
+    """What ``build_tables`` needs from the objects, and what the reports need to walk the same edits."""
 
     crest: CrestFaces
     edit: PixelEdit | None
+    lining: Callable[[np.ndarray, np.ndarray, int, int], None] | None = None
+    steps: list[tuple[TerrainObject, PixelEdit]] = field(default_factory=list)
+    shapes: dict[int, Shape] = field(default_factory=dict)
 
 
 def apply_objects(
-    grid: TileGrid, objects: Iterable[TerrainObject], pixel: float, cfg: Terrain | None = None
+    grid: TileGrid,
+    objects: Iterable[TerrainObject],
+    pixel: float,
+    cfg: Terrain | None = None,
+    ground: Sampler | None = None,
 ) -> TerrainEdits:
-    """Turn the job's objects into edited faces and a pixel edit."""
+    """Turn the job's objects into edited faces and a pixel edit.
+
+    ``ground`` tells a shaped object where it stands above the ground; without it every stretch counts as standing.
+    """
     cfg = cfg or Terrain()
+    objects = list(objects)
     crest = CrestFaces.empty(grid.shape)
     crest.xwall = np.zeros(grid.shape, bool)
     crest.ywall = np.zeros(grid.shape, bool)
     built = [(TERRAIN_OBJECTS.build(o.kind), o) for o in objects]
+    shapes = {id(o): Shape.of(o) for o in objects if o.kind in SHAPED_KINDS}
+    notch_shapes(shapes.values(), objects, cfg.spillway_snap_cells * grid.dx)
     stairs = {id(o): staircase(grid, o.coordinates) for kind, o in built if kind.barrier}
-    join_ends(list(stairs.values()), cfg.join_cells, grid)
-    target = FaceSet(grid, crest, cfg, stairs)
-    edits: list[PixelEdit] = []
+    runs = {key: _run_stairs(grid, o, shapes[key], cfg, ground) for o in objects if (key := id(o)) in shapes}
+    lines = list(stairs.values()) + [st for found in runs.values() for st, _run in found]
+    join_ends(lines, cfg.join_cells, grid)
+    target = FaceSet(grid, crest, cfg, stairs, runs=runs)
+    steps: list[tuple[TerrainObject, PixelEdit]] = []
+    lined: list[ShapeEdit] = []
     for kind, obj in sorted(built, key=lambda item: item[0].phase):
         kind.faces(obj, target)
         edit = kind.pixels(obj, grid, pixel, cfg)
+        if id(obj) in shapes:
+            edit = ShapeEdit(shapes[id(obj)], grid, pixel)
+            if obj.lining_n is not None:
+                lined.append(edit)
         if edit is not None:
-            edits.append(edit)
-    if not edits:
+            steps.append((obj, edit))
+    if not steps:
         return TerrainEdits(crest, None)
 
     def edit_all(z: np.ndarray, row0: int, col0: int) -> None:
-        for edit in edits:
+        for _obj, edit in steps:
             edit(z, row0, col0)
 
-    return TerrainEdits(crest, edit_all)
+    def line_all(z: np.ndarray, n: np.ndarray, row0: int, col0: int) -> None:
+        for edit in lined:
+            edit.line_pixels(z, n, row0, col0)
+
+    return TerrainEdits(crest, edit_all, line_all if lined else None, steps, shapes)

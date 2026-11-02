@@ -15,7 +15,7 @@ from wadi2d.config.schema import Tables
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import BedSource, CrestFaces, GridTables
-from wadi2d.tables.core import _face_table, tile_tables
+from wadi2d.tables.core import _face_table, _lined, tile_tables
 
 HALF = TILE // 2
 
@@ -28,7 +28,8 @@ def _opening(zf, zmin_a, zbar_a, zmin_b, zbar_b, open_face, tol, crest_c=None):
     gr = np.where(open_face, zf - zbar_b, 0.0)
     natural = open_face & (gl > tol) & (gr > tol)
     given = np.zeros(np.shape(zf)) if crest_c is None else crest_c
-    cw = np.where(given > 0.0, given, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
+    # a negative coefficient is a shaped crest, which reads the energy head: it is a crest, not an absence of one
+    cw = np.where(given != 0.0, given, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
     return fl, fr, gl, gr, np.where(open_face, cw, 0.0)
 
 
@@ -37,20 +38,26 @@ def _coarse_cells(row: np.ndarray) -> np.ndarray:
     return int(row[4]) + np.arange(TILE) // 2
 
 
-def _strip(z, k, pixel, side, nman, crest, length, e_lo, e_hi, rows):
+def _strip(z, npix, k, pixel, side, nman, crest, length, e_lo, e_hi, rows):
     """Faces along a fine tile's east or south edge: invert and table top per face, and the tables."""
     zf = np.zeros(TILE)
     ef = np.zeros(TILE)
     tab = np.zeros((TILE, rows, 2))
     edge = 1 + TILE * k
     prof = np.empty(k)
+    weight = np.ones(k)
+    lined = npix.shape[0] > 1
     for q in range(TILE):
         start = 1 + q * k
         for m in range(k):
-            a = z[start + m, edge - 1] if side == 2 else z[edge - 1, start + m]
-            b = z[start + m, edge] if side == 2 else z[edge, start + m]
-            prof[m] = max(a, b)
-        zf[q], ef[q] = _face_table(prof, crest[q], pixel, 1.0 / nman[q], length[q], e_lo, e_hi, tab[q])
+            near = (start + m, edge - 1) if side == 2 else (edge - 1, start + m)
+            far = (start + m, edge) if side == 2 else (edge, start + m)
+            prof[m] = max(z[near], z[far])
+            if lined:
+                weight[m] = _lined(npix[far] if z[far] > z[near] else npix[near], nman[q])
+        zf[q], ef[q] = _face_table(
+            prof, crest[q], pixel, 1.0 / nman[q], weight, length[q], e_lo, e_hi, tab[q]
+        )
     return zf, ef, tab
 
 
@@ -61,8 +68,12 @@ def build_quad_tables(
     manning: float | np.ndarray = 0.035,
     crest: CrestFaces | None = None,
     edit=None,
+    lining=None,
 ) -> GridTables:
-    """All static arrays. ``crest`` and a Manning grid are on the finest raster; crests must lie in finest tiles."""
+    """All static arrays. ``crest`` and a Manning grid are on the finest raster; crests must lie in finest tiles.
+
+    ``edit`` and ``lining`` are the hooks of ``build_tables``: they work on pixels, so they do not care for the cell size.
+    """
     k0 = round(grid.dx / bed.pixel)
     if abs(k0 * bed.pixel - grid.dx) > 1e-6 * grid.dx:
         raise ValueError(f"cell size {grid.dx} is not a multiple of the pixel {bed.pixel}")
@@ -84,6 +95,7 @@ def build_quad_tables(
     w_dtab = np.zeros((TILE, TILE, rows))
     w_ftabx, w_ftaby = np.zeros((TILE, TILE, rows, 2)), np.zeros((TILE, TILE, rows, 2))
     east_south = {(int(r[0]), int(r[1])): r for r in grid.interfaces if r[1] >= 2}
+    npix = np.full((1, 1), np.nan)
     fx, fy = np.zeros((total, TILE, TILE, 2)), np.zeros((total, TILE, TILE, 2))
     """Invert of the extra faces, per table tile; the second layer marks a used face."""
 
@@ -95,6 +107,9 @@ def build_quad_tables(
         z = bed.read(row0, col0, TILE * k + 2, TILE * k + 2)
         if edit is not None:
             edit(z, row0, col0)
+        if lining is not None:
+            npix = np.full(z.shape, np.nan)
+            lining(z, npix, row0, col0)
         if size == 1:
             sl = (slice(j0, j0 + TILE), slice(i0, i0 + TILE))
             cxz, cxl, cyz, cyl = crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl]
@@ -102,7 +117,7 @@ def build_quad_tables(
             cxz, cxl = np.full((TILE, TILE), np.nan), np.ones((TILE, TILE))
             cyz, cyl = cxz, cxl
         tile_tables(
-            z, k, TILE, bed.pixel, nman_t[t], cxz, cxl, cyz, cyl, cfg.face_depth_min, cfg.face_depth_max,
+            z, k, TILE, bed.pixel, nman_t[t], npix, cxz, cxl, cyz, cyl, cfg.face_depth_min, cfg.face_depth_max,
             zmin[t], rel[t], w_hc, w_dtab, zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby,
         )  # fmt: skip
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
@@ -114,6 +129,7 @@ def build_quad_tables(
             line = nman_t[t, :, -1] if side == 2 else nman_t[t, -1, :]
             zf, ef, tab = _strip(
                 z,
+                npix,
                 k,
                 bed.pixel,
                 side,
@@ -191,7 +207,7 @@ def _face_arrays(grid: QuadGrid, cfg: Tables, zmin, zbar, zf, extra, axis: int, 
             out[n][t] = a
     side_high = side_low + 2
     for r in grid.interfaces[grid.interfaces[:, 1] == side_high]:
-        _high_interface(grid, r, zmin, zbar, extra, axis, tol, out)
+        _high_interface(grid, r, zmin, zbar, extra, axis, tol, out, crest)
     return out
 
 
@@ -216,19 +232,43 @@ def _low_side(grid, zmin, zbar, t, axis, row, side_low):
     return zmin_a, zbar_a, on_a
 
 
-def _high_interface(grid, row, zmin, zbar, extra, axis, tol, out) -> None:
-    """The extra faces on a fine tile's east or south side."""
+def _high_interface(grid, row, zmin, zbar, extra, axis, tol, out, crest) -> None:
+    """The extra faces on a fine tile's east or south side; a crest or a wall there holds as on any other face."""
     t, coarse, base = int(row[0]), int(row[2]), int(row[5])
     pt, rw = base // (TILE * TILE), (base % (TILE * TILE)) // TILE
     c = _coarse_cells(row)
     near = (slice(None), -1) if axis == 0 else (-1, slice(None))
     at = (c, 0) if axis == 0 else (0, c)
     open_face = grid.cells[t][near] & grid.cells[coarse][at] & (extra[pt, rw, :, 1] > 0.0)
+    given, wall = _edge_faces(grid, crest, t, axis)
+    if wall is not None:
+        open_face = open_face & ~wall
     parts = _opening(
-        extra[pt, rw, :, 0], zmin[t][near], zbar[t][near], zmin[coarse][at], zbar[coarse][at], open_face, tol
+        extra[pt, rw, :, 0],
+        zmin[t][near],
+        zbar[t][near],
+        zmin[coarse][at],
+        zbar[coarse][at],
+        open_face,
+        tol,
+        given,
     )
     for n, a in enumerate(parts):
         out[n][pt, rw] = a
+
+
+def _edge_faces(grid, crest, t, axis):
+    """Crest coefficient and wall of the raster faces along a tile's east (axis 0) or south (axis 1) edge."""
+    if grid.level[t] > 0:
+        return None, None
+    j0, i0 = int(grid.tiles[t, 0]) * TILE, int(grid.tiles[t, 1]) * TILE
+    ny, nx = grid.shape
+    if (axis == 0 and i0 + TILE >= nx) or (axis == 1 and j0 + TILE >= ny):
+        return None, None
+    sl = (slice(j0, j0 + TILE), i0 + TILE) if axis == 0 else (j0 + TILE, slice(i0, i0 + TILE))
+    given = crest.xc[sl] if axis == 0 else crest.yc[sl]
+    wall = crest.xwall if axis == 0 else crest.ywall
+    return given, None if wall is None else wall[sl]
 
 
 def _crest_arrays(grid, crest, t, axis):

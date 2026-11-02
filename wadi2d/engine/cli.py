@@ -78,11 +78,20 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def _mesh(args: argparse.Namespace) -> int:
-    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError, check_inputs, domain_mask, grid_window
+    from wadi2d.run import (
+        EXIT_DONE,
+        EXIT_INVALID,
+        JobError,
+        check_inputs,
+        domain_mask,
+        grid_window,
+        with_tables,
+    )
     from wadi2d.terrain import RasterBed
+    from wadi2d.terrain.ground import Ground
 
     try:
-        cfg = _load(args.job)
+        cfg = with_tables(_load(args.job))
         check_inputs(cfg)
         from wadi2d.mesh.build import build_grid, report, write_preview
 
@@ -90,7 +99,8 @@ def _mesh(args: argparse.Namespace) -> int:
             window = grid_window(cfg, bed)
             mask = domain_mask(cfg, bed, window)
             crs = bed.crs.to_wkt() if bed.crs is not None else ""
-        grid = build_grid(cfg, mask, window.x0, window.y0, crs)
+            bed.bind(window.x0, window.y0)
+            grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
         summary = report(grid, int(mask.sum()), cfg.grid.dx)
         written = write_preview(grid, crs, args.out, summary)
     except ValueError as error:
@@ -113,6 +123,21 @@ def _arf(args: argparse.Namespace) -> int:
     except JobError as error:
         print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
         return error.code
+
+
+def _terrain(args: argparse.Namespace) -> int:
+    from wadi2d.engine.terrain_preview import preview_terrain
+    from wadi2d.run import EXIT_INVALID, JobError
+
+    try:
+        print(json.dumps(preview_terrain(_load(args.job), args.out), indent=2))
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    return EXIT_OK
 
 
 def _hms_import(args: argparse.Namespace) -> int:
@@ -152,6 +177,11 @@ def parser() -> argparse.ArgumentParser:
     arf.add_argument("--out", required=True)
     arf.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     arf.set_defaults(call=_arf)
+
+    terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
+    terrain.add_argument("job")
+    terrain.add_argument("--out", required=True)
+    terrain.set_defaults(call=_terrain)
 
     hms = sub.add_parser("hms-import", help="job.json from an HMS project")
     hms.add_argument("hms_dir", metavar="HMS_DIR")

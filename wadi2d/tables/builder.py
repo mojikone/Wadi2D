@@ -42,6 +42,9 @@ class ArrayBed:
         c = np.clip(np.arange(col0, col0 + ncols) + self.col_offset, 0, self.z.shape[1] - 1)
         return self.z[np.ix_(r, c)].astype(np.float64)
 
+    def levels(self) -> tuple[float, float]:
+        return float(self.z.min()), float(self.z.max())
+
 
 @dataclass
 class CrestFaces:
@@ -100,8 +103,12 @@ def build_tables(
     manning: float | np.ndarray = 0.035,
     crest: CrestFaces | None = None,
     edit=None,
+    lining=None,
 ) -> GridTables:
-    """Build all tables. ``manning`` is one value or a (ny, nx) grid; ``edit(z, row0, col0)`` edits pixels in place."""
+    """Build all tables. ``manning`` is one value or a (ny, nx) grid; ``edit(z, row0, col0)`` edits pixels in place.
+
+    ``lining(z, n, row0, col0)`` writes a Manning n per pixel into ``n``, which starts as NaN, after the edits.
+    """
     k = round(grid.dx / bed.pixel)
     if abs(k * bed.pixel - grid.dx) > 1e-6 * grid.dx:
         raise ValueError(f"cell size {grid.dx} is not a multiple of the pixel {bed.pixel}")
@@ -129,15 +136,19 @@ def build_tables(
     w_zfx, w_efx, w_zfy, w_efy = (np.zeros((TILE, TILE)) for _ in range(4))
     w_ftabx = np.zeros((TILE, TILE, rows, 2))
     w_ftaby = np.zeros((TILE, TILE, rows, 2))
+    npix = np.full((1, 1), np.nan)
     for t in range(1, nt):
         tj, ti = grid.tiles[t]
         j0, i0 = int(tj) * TILE, int(ti) * TILE
         z = bed.read(j0 * k - 1, i0 * k - 1, TILE * k + 1, TILE * k + 1)
         if edit is not None:
             edit(z, j0 * k - 1, i0 * k - 1)
+        if lining is not None:
+            npix = np.full(z.shape, np.nan)
+            lining(z, npix, j0 * k - 1, i0 * k - 1)
         sl = (slice(j0, j0 + TILE), slice(i0, i0 + TILE))
         tile_tables(
-            z, k, TILE, bed.pixel, nman[sl],
+            z, k, TILE, bed.pixel, nman[sl], npix,
             crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl],
             cfg.face_depth_min, cfg.face_depth_max,
             w_zmin, w_rel, w_hc, w_dtab, w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby,
@@ -172,7 +183,7 @@ def _faces(zf, zmin, zbar, active, axis, crest_c, tol, wall=None):
     gl = np.where(open_face, zf - zbar_n, 0.0)
     gr = np.where(open_face, zf - zbar, 0.0)
     natural = open_face & (gl > tol) & (gr > tol)
-    cw = np.where(crest_c > 0.0, crest_c, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
+    cw = np.where(crest_c != 0.0, crest_c, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
     cw = np.where(open_face, cw, 0.0)
     return fl, fr, gl, gr, cw
 

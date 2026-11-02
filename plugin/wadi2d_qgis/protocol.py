@@ -117,6 +117,11 @@ def mesh_text(summary: dict) -> str:
     return f"{summary['cells']:,} cells, {summary['ratio']:g} x fewer than the uniform grid. Tiles: {tiles}."
 
 
+def terrain_args(job: Path | str, out_dir: Path | str) -> list[str]:
+    """The arguments of ``wadi2d terrain``."""
+    return ["terrain", str(job), "--out", str(out_dir)]
+
+
 def clean_env(env: dict[str, str]) -> dict[str, str]:
     """The environment for the engine: QGIS's own Python, GDAL and PROJ must not leak into its interpreter."""
     roots = []

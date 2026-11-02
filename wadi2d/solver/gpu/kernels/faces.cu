@@ -100,8 +100,15 @@ __device__ __forceinline__ float face_step(
     // [6] crest face: the discharge cannot exceed critical flow over the crest for this head
     float qn = A * rho * un;
     const float c = cw[id];
-    if (c > 0.0f) {
-        const float qc = c * A * sqrtf(A / fmaxf(W, 1e-9f));
+    if (c != 0.0f) {
+        float Ac = A, Wc = W;
+        if (c < 0.0f) {
+            // a shaped object's crest may be resolved: the cell before the face has already spent its velocity head
+            const float ua = from_left ? um : up;
+            float Tc;
+            face_lookup(eup + 0.5f * ua * ua / P.g, ef[id], ftab + 2 * P.rows * id, Ac, Tc, Wc);
+        }
+        const float qc = fabsf(c) * Ac * sqrtf(Ac / fmaxf(Wc, 1e-9f));
         if (fabsf(qn) > qc) {
             qn = copysignf(qc, qn);
             un = qn / fmaxf(A * rho, 1e-12f);

@@ -46,6 +46,10 @@ class Staircase:
     """(n + 1, 2) every corner walked, on the grid or not."""
     length: float = 0.0
     """True length of the line, m."""
+    group: int | None = None
+    """Lines of one group never join each other: the two banks of a channel must not close it."""
+    joins: tuple[bool, bool] = (True, True)
+    """Which ends may join another line: an end at an opening stays where it is."""
 
     @property
     def size(self) -> int:
@@ -163,11 +167,18 @@ def join_ends(lines: list[Staircase], reach_cells: float, grid: TileGrid) -> Non
     on another line walks to the nearest corner of one within ``reach_cells``, whichever line was drawn first.
     """
     for n, st in enumerate(lines):
-        others = [o.corners for m, o in enumerate(lines) if m != n and o.corners.size]
+        others = [
+            o.corners
+            for m, o in enumerate(lines)
+            if m != n and o.corners.size and (st.group is None or o.group != st.group)
+        ]
         if not others or st.corners.size == 0:
             continue
         pool = np.concatenate(others)
-        for corner, s in ((st.corners[0], 0.0), (st.corners[-1], st.length)):
+        ends = ((st.corners[0], 0.0, st.joins[0]), (st.corners[-1], st.length, st.joins[1]))
+        for corner, s, free in ends:
+            if not free:
+                continue
             gaps = np.hypot(*(pool - corner).T)
             nearest = int(np.argmin(gaps))
             if 0.0 < gaps[nearest] <= reach_cells:

@@ -27,6 +27,8 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
 3. **Hydrology.** Rain in mm/h and hours, or an HMS project folder: choose the basin, met and control files and set each
    subbasin to lumped or 2d. The storm and the simulated time then come from the project through `wadi2d hms-import`.
 4. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
+   Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
+   shows the result on the map in seconds, without a run.
 5. **Boundaries.** A line layer with one kind and value. If it has fields named `kind` and `value`, each line uses its own.
 6. **Results points.** Points record depth and level; lines across the flow record discharge.
 7. **Run.** Estimate gives cells, memory and time, for the uniform grid even when a mesh is on. A folder that already holds a run is never overwritten: the new run goes
@@ -37,6 +39,43 @@ fails, the message says why and a red cross marks the cell.
 
 **Stop** creates `DIR/stop`; the engine finishes the step, writes its maps and exits, and is killed after 30 s if it does
 not. Close QGIS and the engine keeps running: on the next start the dock opens and follows it from its progress file.
+
+## Embankments and channels
+
+Station 0 is the first vertex; left and right are looking along the line, so draw channels downstream.
+
+- **Embankment.** Raised ground for a dam or dyke: crest, crest width, a slope each side. Where it stands above the
+  ground it also runs as a line of crest faces, so it holds water on cells far coarser than it.
+- **Channel.** A trapezoid burned into the ground, daylighting to it.
+- **Channel with dykes.** The one HEC-RAS does not have. One line, and at every section each bank settles itself: where
+  the ground is above the bank's top the channel is cut and daylights; where it is below, a dyke is built at the top
+  level with its outer slope down to the ground. One bank can be in cut and the other in dyke, changing along the line.
+
+Give a section three ways, and mix them:
+
+1. **On the feature.** Each number in the dock is the value for every line of the layer; choose a field next to it and
+   the field wins wherever it holds a value. Bed and top are fields, or Z on the vertices for the bed.
+2. **A section table.** A CSV chosen in the dock for the layer, or named per line in a field. Columns: `station`, then any
+   of `bed_z`, `width`, `crest_z` (both banks), `left_top_z`, `right_top_z`, `left_slope`, `right_slope`,
+   `left_crest_width`, `right_crest_width`, `left_outer_slope`, `right_outer_slope`, `water_z`. Values read linearly
+   between stations, so two sections join with no step; an empty cell reads between its neighbours; a missing column
+   takes the number in the dock. A table is copied into `inputs/` with the run.
+3. **A design rule.** Bed from a start level and a slope, top as freeboard above a water depth, or above a `water_z`
+   column in the table.
+
+**Openings** are text in a field, station ranges with an optional bank: `120-180 left; 600-650`. The raised part is left out
+and ends in a slope either side. **Lining** is a Manning n on the pixels of the channel section, not on whole cells.
+**Ends**: open stops a cut square, closed wraps the section round the end, taper fades it to the ground. A raised part
+always ends in a slope. A spillway drawn on an embankment takes the fill out of its pixels and keeps its own law.
+
+**Preview terrain** writes the job, runs `wadi2d terrain`, and loads `terrain change` (blue cut, brown fill) and `terrain
+modified` into a group. It also says cut and fill per object and everything the checks found, and **Sections and long
+profile** draws ground, bed and tops along the line with what each bank is at each station, and any section. Nothing
+here needs rain, boundaries or an output folder.
+
+A run writes `terrain/volumes.csv` and `terrain/volumes_by_station.csv`, gives the volumes in its final message, and with
+**Write the modified terrain** also `terrain/terrain_modified.tif` and `terrain_change.tif`, whole domain. A preview's rasters
+hold only the tiles the objects reach.
 
 ## In a run folder, written by the plugin
 
@@ -51,6 +90,8 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `protocol.py` | commands, file names, exit codes, the clean environment | no |
 | `progress.py` | progress tail, run state, where the live raster is | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
+| `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
+| `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |
 | `engine_process.py` | `QProcess` wrappers: short commands and runs, start, attach, stop | yes |
 | `live_layer.py`, `style.py` | layers on the map | yes |
 | `dock.py`, `sections/*.py`, `settings.py`, `plugin.py` | the interface | yes |
