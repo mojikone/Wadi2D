@@ -86,9 +86,14 @@ def face_lookup(e, top, tab, rows):
 @njit
 def face_step(
     k, fid, dt, want_wave, om, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet,
-    h_cfl, u_max, lead, a_min, second, sheet, mirror,
+    h_cfl, u_max, lead, a_min, second, sheet, mirror, dist=None, far=2,
 ):  # fmt: skip
-    """One face: s is the array step along the normal, p across it. Returns the wave speed."""
+    """One face: s is the array step along the normal, p across it. Returns the wave speed.
+
+    ``dist`` is the distance between the two cell centres, ``dx`` unless given; ``far`` how far ahead second-order terms
+    read, 1 on a face held in a halo entry.
+    """
+    span = dx if dist is None else dist
     e_l = d[k - s] - fl[fid]
     e_r = d[k] - fr[fid]
     uf = u[k]
@@ -132,7 +137,7 @@ def face_step(
     um = gated(u[k - s], uf, mirror)
     up = gated(u[k + s], uf, mirror)
     umm = gated(u[k - 2 * s], um, mirror)
-    upp = gated(u[k + 2 * s], up, mirror)
+    upp = gated(u[k + far * s], up, mirror)
     qc_l = HALF * (q[k - s] + q[k])
     qc_r = HALF * (q[k] + q[k + s])
     s_l = ustar(um, umm, uf, second) if qc_l > ZERO else ustar(uf, up, um, second)
@@ -150,9 +155,9 @@ def face_step(
 
     # [4] momentum and pressure
     abar = HALF * (h_l + h_r) * dx
-    press = dt * g * d_eta / dx
+    press = dt * g * d_eta / span
     if abar > F(1e-6) * dx:
-        us = (m[k] - dt * flux / dx) / abar - press
+        us = (m[k] - dt * flux / span) / abar - press
     else:
         us = uf - press
 

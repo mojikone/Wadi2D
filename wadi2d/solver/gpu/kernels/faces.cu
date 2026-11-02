@@ -4,9 +4,11 @@
 // converges to the wrong shock speed. Still water gives exactly no drive: the pressure term is the difference of
 // the two depths over the same invert, so no absolute elevation and no bed-slope term exists to cancel.
 
-template <int S, int Q_P>
+// ``L`` is the distance between the two cell centres. ``FAR`` is how far ahead the second-order terms read: 1 on a face
+// held in a halo entry, which has only one halo entry beyond it.
+template <int S, int Q_P, int FAR = 2>
 __device__ __forceinline__ float face_step(
-    const int k, const int id, const float dt, const int want_wave, const float* __restrict__ om,
+    const int k, const int id, const float dt, const float L, const int want_wave, const float* __restrict__ om,
     const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ m, const float* __restrict__ q, const float* __restrict__ qp,
     const float* __restrict__ vp, const float* __restrict__ fl, const float* __restrict__ fr,
@@ -64,7 +66,7 @@ __device__ __forceinline__ float face_step(
     const float um = gated(u[k - S], uf);
     const float up = gated(u[k + S], uf);
     const float umm = gated(u[k - 2 * S], um);
-    const float upp = gated(u[k + 2 * S], up);
+    const float upp = gated(u[k + FAR * S], up);
     const float QcL = 0.5f * (q[k - S] + q[k]);
     const float QcR = 0.5f * (q[k] + q[k + S]);
     const float sL = QcL > 0.0f ? ustar(um, umm, uf) : ustar(uf, up, um);
@@ -82,8 +84,8 @@ __device__ __forceinline__ float face_step(
 
     // [4] momentum and pressure
     const float Abar = 0.5f * (hL + hR) * dx;
-    const float press = dt * P.g * dEta / dx;
-    float us = Abar > 1e-6f * dx ? (m[k] - dt * flux / dx) / Abar - press : uf - press;
+    const float press = dt * P.g * dEta / L;
+    float us = Abar > 1e-6f * dx ? (m[k] - dt * flux / L) / Abar - press : uf - press;
 
     // [5] friction, implicit in the speed, with the transverse velocity at the face
     const float vb = 0.25f * (vp[k - S] + vp[k] + vp[k - S + Q_P] + vp[k + Q_P]);
@@ -144,9 +146,9 @@ extern "C" __global__ void faces(
         const int j = threadIdx.y * CELLS_PER_THREAD + r;
         const int k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO;
         const int id = t * TILE2 + j * TILE + i;
-        const float wx = face_step<1, STRIDE>(k, id, dt, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        const float wx = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                               u1, mx1, qx1);
-        const float wy = face_step<STRIDE, 1>(k, id, dt, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        const float wy = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                               v1, my1, qy1);
         w = fmaxf(w, fmaxf(wx, wy));
     }

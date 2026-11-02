@@ -49,12 +49,12 @@ extern "C" __global__ void strips(
     if (side == 2) {
         const int k = t * STRIDE2 + (q + HALO) * STRIDE + HALO;
         const int id = t * TILE2 + q * TILE;
-        w = face_step<1, STRIDE>(k, id, dt, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        w = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                  u1, mx1, qx1);
     } else {
         const int k = t * STRIDE2 + HALO * STRIDE + q + HALO;
         const int id = t * TILE2 + q;
-        w = face_step<STRIDE, 1>(k, id, dt, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        w = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                  v1, my1, qy1);
     }
     if (want_wave) {
