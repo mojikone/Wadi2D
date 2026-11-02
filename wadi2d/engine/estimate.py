@@ -28,6 +28,7 @@ FACE_STATIC = 6
 FACE_DIRECTIONS = 2
 FACE_COLUMNS = 2
 MAXIMA_ARRAYS = 5
+MESH_NOTE = "On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces."
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ class Estimate:
     backend: str
     maps: int
     maps_gb: float
+    note: str = ""
 
 
 def saved_maps(cfg: RunConfig, cells: int) -> tuple[int, float]:
@@ -75,19 +77,23 @@ def measure_cost(backend: str, num: Numerics, cfg: Tables) -> tuple[float, str]:
 
 def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     """What the job will cost; the cell count comes from the DEM, the cost from a short probe."""
-    from wadi2d.run import domain_mask, grid_window, preflight
+    from wadi2d.run import domain_mask, grid_window, mesh_grid, preflight
 
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
-        preflight(cfg, bed.crs.to_wkt() if bed.crs is not None else "")
+        crs = bed.crs.to_wkt() if bed.crs is not None else ""
+        preflight(cfg, crs)
         window = grid_window(cfg, bed)
         mask = domain_mask(cfg, bed, window)
-    grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
-    cells = int(mask.sum())
+        quad = mesh_grid(cfg, bed, window, crs) if cfg.mesh.enabled else None
+    grid = quad or TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
+    raster_cells = int(mask.sum())
+    cells = raster_cells if quad is None else quad.cell_count
     tiles = grid.ntiles - 1
+    extra = 0 if quad is None else quad.pseudo
     rows = cfg.tables.rows
     state = (len(STATE_ARRAYS) + len(WORK_ARRAYS) + MAXIMA_ARRAYS) * STRIDE2
     static = (2 + rows + FACE_DIRECTIONS * (FACE_STATIC + rows * FACE_COLUMNS)) * TILE2
-    gb = (tiles + 1) * (state + static) * BYTES / 1e9
+    gb = ((tiles + 1) * state + (tiles + 1 + extra) * static) * BYTES / 1e9
     ns, name = measure_cost(backend or cfg.run.backend, cfg.numerics, cfg.tables)
     r = cfg.run
     ns *= r.estimate_overhead
@@ -96,7 +102,7 @@ def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     steps = int(np.ceil(r.duration_s / step))
     return Estimate(
         cells, tiles, round(gb, 3), round(ns, 3), step, steps, ns * 1e-9 * cells * steps, name,
-        *saved_maps(cfg, cells),
+        *saved_maps(cfg, raster_cells), MESH_NOTE if cfg.mesh.enabled else "",
     )  # fmt: skip
 
 

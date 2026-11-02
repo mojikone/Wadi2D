@@ -271,10 +271,9 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
     return tables, crs
 
 
-def _mesh_tables(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str) -> GridTables:
-    """Tables of a quadtree. Not cached yet: the mesher's rules are the first thing a user changes."""
+def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str):
+    """The quadtree of a job, and every refusal a mesh can give before its tables."""
     from wadi2d.mesh.build import build_grid, lines_on_coarse_tiles
-    from wadi2d.tables.quad import build_quad_tables
 
     if cfg.grid.dx < cfg.mesh.min_dx:
         raise InvalidJob(f"grid.dx {cfg.grid.dx} m is below mesh.min_dx {cfg.mesh.min_dx} m")
@@ -284,13 +283,21 @@ def _mesh_tables(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str) -
     bed.bind(window.x0, window.y0)
     grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
     bed.bind(grid.x0, grid.y0)
-    ground = Ground(bed, grid.x0, grid.y0)
-    stray = lines_on_coarse_tiles(cfg, grid, ground)
+    stray = lines_on_coarse_tiles(cfg, grid, Ground(bed, grid.x0, grid.y0))
     if stray:
         raise InvalidJob(
             f"{stray} barrier, crest, boundary or design lines reach coarse tiles, where their faces cannot be "
             "read and water would pass them: keep mesh.refine_lines on, or add a refinement zone along them"
         )
+    return grid
+
+
+def _mesh_tables(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str) -> GridTables:
+    """Tables of a quadtree. Not cached yet: the mesher's rules are the first thing a user changes."""
+    from wadi2d.tables.quad import build_quad_tables
+
+    grid = mesh_grid(cfg, bed, window, crs)
+    ground = Ground(bed, grid.x0, grid.y0)
     edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
     n = manning_grid(cfg, grid, crs)
     return build_quad_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)

@@ -235,8 +235,8 @@ def estimate_text(estimate: dict) -> str:
         time_text = f"{seconds / 3600:.1f} h"
     words = f"{estimate['cells']:,} cells, {estimate['device_gb']:.2f} GB, about {time_text}"
     if estimate.get("maps"):
-        return f"{words}. {estimate['maps']} saved maps, at most {estimate['maps_gb']:.1f} GB of disk"
-    return words
+        words = f"{words}. {estimate['maps']} saved maps, at most {estimate['maps_gb']:.1f} GB of disk"
+    return f"{words}. {estimate['note']}" if estimate.get("note") else words
 
 
 def engine_error_text(stderr: str) -> str:

@@ -425,6 +425,7 @@ class Forcing:
             )
         self.rained = _labels(grid, [polygons[name] for name in names])[self.jj, self.ii] == 0
         cn = curve_numbers(cfg, grid, polygons, crs)
+        cn = self._at_cells(cn, grid) if cfg.terrain.cn_raster else cn[self.jj, self.ii]
         self._check_curve_numbers(cfg, cn)
         self.depths = None
         if cfg.storm.depth_grid is not None:
@@ -433,14 +434,26 @@ class Forcing:
         self.classes, self.class_of = self._loss_classes(cn)
         if self.depths is not None and self.classes is not None:
             has = self.class_of >= 0
-            self.cell_loss = ScsCurveNumber(curve_number=cn[self.jj, self.ii][has])
+            self.cell_loss = ScsCurveNumber(curve_number=cn[has])
         self.injections = [self._injection(cfg, tables, *h) for h in hydrographs]
+
+    def _at_cells(self, raster: np.ndarray, grid: TileGrid) -> np.ndarray:
+        """A raster at the interior cells. A coarse cell hanging over the raster's edge reads the part that lies on it."""
+        values = raster[self.jj, self.ii]
+        if self.areas is None or np.isfinite(values).all():
+            return values
+        jj, ii = np.nonzero(np.isfinite(raster) & grid.mask)
+        index = np.asarray(grid.state_index(jj, ii), np.int64)
+        where = np.minimum(np.searchsorted(self.state, index), self.state.size - 1)
+        hit = (self.state[where] == index) & ~np.isfinite(values[where])
+        values[where[hit]] = raster[jj[hit], ii[hit]]
+        return values
 
     def _check_curve_numbers(self, cfg: RunConfig, cn: np.ndarray) -> None:
         """A CN raster must cover the cells it is meant for: a hole would run off without losses."""
         if cfg.terrain.cn_raster is None:
             return
-        holes = int(np.count_nonzero(np.isnan(cn[self.jj, self.ii]) & self.rained))
+        holes = int(np.count_nonzero(np.isnan(cn) & self.rained))
         if holes:
             raise ValueError(
                 f"terrain.cn_raster gives no CN on {holes} rained cells of {self.rained.size}, and nothing "
@@ -449,7 +462,7 @@ class Forcing:
 
     def _read_depths(self, cfg: RunConfig, grid: TileGrid, crs: str) -> np.ndarray:
         """The depth grid per interior cell; a rained cell without a depth is refused."""
-        values = raster_at_cells(cfg.storm.depth_grid, grid, crs)[self.jj, self.ii]
+        values = self._at_cells(raster_at_cells(cfg.storm.depth_grid, grid, crs), grid)
         holes = int(np.count_nonzero(~np.isfinite(values) & self.rained))
         if holes:
             raise ValueError(f"storm.depth_grid has no depth on {holes} rained cells of {self.rained.size}")
@@ -457,12 +470,11 @@ class Forcing:
 
     def _loss_classes(self, cn: np.ndarray) -> tuple[ScsCurveNumber | None, np.ndarray]:
         """Few distinct CN values, so a refresh computes each once; class -1 means rain passes whole."""
-        values = cn[self.jj, self.ii]
-        has = np.isfinite(values)
+        has = np.isfinite(cn)
         if not has.any():
-            return None, np.full(values.size, -1, np.int64)
-        unique, inverse = np.unique(values[has], return_inverse=True)
-        out = np.full(values.size, -1, np.int64)
+            return None, np.full(cn.size, -1, np.int64)
+        unique, inverse = np.unique(cn[has], return_inverse=True)
+        out = np.full(cn.size, -1, np.int64)
         out[has] = inverse
         return ScsCurveNumber(curve_number=unique), out
 

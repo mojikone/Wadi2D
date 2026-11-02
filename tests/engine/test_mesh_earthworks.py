@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import rasterio
 
 from tests.engine.conftest import X0, Y0, job, write_dem
 from wadi2d.config.constants import CRITICAL_WEIR_COEFF
 from wadi2d.config.schema import RunConfig, Tables
 from wadi2d.grid.quad import QuadGrid, lattice_view
+from wadi2d.products.step import DEPTH_FILE, PIXEL_DIR
 from wadi2d.run import prepare_grid, run_job
 from wadi2d.solver.layout import TILE
 from wadi2d.tables import ArrayBed
@@ -231,3 +233,22 @@ def test_the_volumes_on_a_mesh_are_those_of_the_uniform_grid(tmp_path):
         return next(e for e in events if e["ev"] == "terrain")["volumes"][0]["fill_m3"]
 
     assert fill(tmp_path / "b") == pytest.approx(fill(tmp_path / "a"), rel=1e-6)
+
+
+def test_pixel_depth_on_a_mesh_stands_against_an_embankment(tmp_path):
+    """The modified terrain reaches the mesh's pixel step: water to the toe, a dry crest, nothing behind it."""
+    data = _weir_job(_dem(tmp_path), 101.0, True, [_embankment()], duration=900.0).model_dump(mode="json")
+    data["outputs"]["map_every_s"] = 300.0
+    summary = run_job(RunConfig.model_validate(data), tmp_path / "run")
+    assert summary.exit_code == 0, summary.message
+    assert summary.products == "finished"
+    with rasterio.open(tmp_path / "run" / PIXEL_DIR / DEPTH_FILE) as src:
+        depth = src.read(1, masked=True).filled(0.0)
+        x0, y0 = src.transform.c, src.transform.f
+    (xa, ya), (xb, yb) = _diagonal()
+    for share in (0.2, 0.5, 0.8):
+        x, y = xa + share * (xb - xa), ya + share * (yb - ya)
+        row, column = int((y0 - y) / PIXEL), int((x - x0) / PIXEL)
+        assert depth[row, column] == 0.0
+        assert depth[row, column - 15] > 0.9
+        assert depth[row, column + 15] == 0.0

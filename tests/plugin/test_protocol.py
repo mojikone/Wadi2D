@@ -133,6 +133,11 @@ def test_estimate_text(seconds: float, words: str) -> None:
     assert estimate_text(estimate) == f"1,497,120 cells, 0.69 GB, {words}"
 
 
+def test_the_estimate_carries_the_engine_s_note_on_a_mesh() -> None:
+    estimate = {"cells": 1200, "device_gb": 0.2, "wall_s": 40.0, "note": "The time is rough."}
+    assert estimate_text(estimate) == "1,200 cells, 0.20 GB, about 40 s. The time is rough."
+
+
 def test_the_engines_own_sentence_is_taken_from_its_json_error_line() -> None:
     stderr = 'some warning\n{"ev": "error", "code": 3, "message": "terrain.dem not found: x.tif"}\n'
     assert engine_error_text(stderr) == "terrain.dem not found: x.tif"

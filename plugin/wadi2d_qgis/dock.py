@@ -249,11 +249,7 @@ class Wadi2DDock(QgsDockWidget):
         if estimate is None:
             self.panel.estimate_label.setText(f"{exit_message(code)} {engine_error_text(err)}")
         else:
-            text = estimate_text(estimate)
-            on_mesh = self.mesh.enabled.isChecked()
-            self.panel.estimate_label.setText(
-                f"{text}, for the uniform grid; a mesh takes less." if on_mesh else text
-            )
+            self.panel.estimate_label.setText(estimate_text(estimate))
         self._drop_scratch()
 
     # Mesh preview.
