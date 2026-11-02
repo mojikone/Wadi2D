@@ -1,0 +1,32 @@
+    0.0 script loaded
+    5.0 PASS no engine setting in this profile 
+    5.3 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel test\\gpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
+    5.4 PASS QGIS loads it 
+    5.4 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\gpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
+    5.4 PASS metadata reads 0.1.0
+    5.5 dock says:  | 
+    6.1 PASS engine found with nothing set by hand Engine ready.
+    6.1 === hybrid against the record
+    6.1 PASS hms read by the installed engine 18
+    6.4 dock says: No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses. | 
+    7.4 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
+  121.0 dock says: water stood 23.2 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
+  215.0 PASS hybrid finished Finished. water stood 23.2 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+  215.0 PASS on the GPU gpu
+  215.1 peaks {'Bidah_03': 654.9, 'Bidah_03_ring': 670.6, 'Faydh_01': 898.1, 'Faydh_01_ring': 899.7, 'R2A': 1426.4, 'R2A_ring': 1426.2, 'R5A': 1003.4, 'R5A_ring': 1005.8, 'S11_ring': 345.0, 'S14_ring': 2.5, 'S1_ring': 1238.9, 'S2_ring': 1236.0, 'S5_ring': 595.9, 'S6_ring': 213.6, 'Z4C': 2021.0, 'Z4C_ring': 2020.8}
+  215.1 PASS the five peaks match the record worst 0.00 m3/s
+  215.3 === rain, pixel maps, Make map
+  215.4 dock says: Starting... | 
+  219.9 dock says: water stood 10.1 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there | 
+  225.3 PASS rain finished Finished. water stood 10.1 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+  225.3 PASS pixel depth written ['depth_drawing.tif', 'map_layers.gpkg', 'pixels.json', 'pixel_depth.tif', 'pixel_dv.tif', 'pixel_hazard.tif', 'pixel_speed.tif']
+  225.3 PASS flood maps loaded ['2D model domain, closed walls except open boundaries', '2D model domain, closed walls except open boundaries', 'AIDR hazard class', 'AIDR hazard class', 'Depth, m', 'Depth, m', 'Depth x speed, m2/s', 'Depth x speed, m2/s']
+  227.6 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\gpu\runs\rain\pixels\rain_maps.pdf
+  227.6 === mesh, on WhiteboxTools from the installer
+  227.6 dock says: Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\D--Mojtaba-Renardet-Wadi2D\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel test\gpu\runs\rain\pixels\rain_maps.pdf | Reading the ground and the streams...
+  229.2 PASS mesh preview 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  229.3 dock says: Starting... | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  236.4 dock says: water stood 5.7 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  247.1 PASS mesh run finished Finished. water stood 5.7 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there.
+  247.2 SUMMARY 16 passed, 0 failed 
+  247.2 DONE
