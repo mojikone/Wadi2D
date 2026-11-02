@@ -1,0 +1,71 @@
+{
+ "Faydh01": {
+  "notes": [
+   "crest line Dam2 drains under 1 km2, a saddle: no node"
+  ],
+  "drainage_km2": 74.424,
+  "spillways": [
+   {
+    "crest_elevation_m": 230.0,
+    "crest_length_m": 207.0,
+    "coefficient": 2.1,
+    "outlet": 0
+   }
+  ],
+  "peak_inflow": 993.5,
+  "generated_peak": 905.8,
+  "eav_peak": 910.5,
+  "w1_puls_peak": 908.0,
+  "fsl": {
+   "level": 230.0,
+   "eav_volume": 17150277,
+   "volume": 17153723,
+   "engine_storage": 17148471,
+   "eav_area": 941432,
+   "area": 972435
+  },
+  "crest": {
+   "level": 235.0,
+   "eav_volume": 22468705,
+   "volume": 22539076,
+   "engine_storage": 22532981,
+   "eav_area": 1148984,
+   "area": 1184498
+  }
+ },
+ "Bidah03": {
+  "notes": [
+   "crest line Dam2 drains under 1 km2, a saddle: no node",
+   "crest line Dam3 drains under 1 km2, a saddle: no node"
+  ],
+  "drainage_km2": 20.0263,
+  "spillways": [
+   {
+    "crest_elevation_m": 100.0,
+    "crest_length_m": 72.0,
+    "coefficient": 2.1,
+    "outlet": 0
+   }
+  ],
+  "peak_inflow": 362.4,
+  "generated_peak": 220.1,
+  "eav_peak": 221.2,
+  "w1_puls_peak": 220.0,
+  "fsl": {
+   "level": 100.0,
+   "eav_volume": 5668238,
+   "volume": 5664659,
+   "engine_storage": 5662771,
+   "eav_area": 824804,
+   "area": 830753
+  },
+  "crest": {
+   "level": 105.0,
+   "eav_volume": 10595051,
+   "volume": 10596041,
+   "engine_storage": 10594988,
+   "eav_area": 1126844,
+   "area": 1135620
+  }
+ }
+}

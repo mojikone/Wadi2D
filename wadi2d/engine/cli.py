@@ -121,6 +121,30 @@ def _mesh(args: argparse.Namespace) -> int:
     return EXIT_DONE
 
 
+def _basin(args: argparse.Namespace) -> int:
+    from wadi2d.basin.build import build_basin
+    from wadi2d.config.schema import BasinSettings
+    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError, check_inputs
+
+    try:
+        cfg = _load(args.job)
+        check_inputs(cfg)
+        chosen = {} if args.settings is None else json.loads(Path(args.settings).read_text(encoding="utf-8"))
+        if args.threshold_km2 is not None:
+            chosen["stream_threshold_km2"] = args.threshold_km2 or None
+        if args.pixel is not None:
+            chosen["analysis_pixel"] = args.pixel
+        written = build_basin(cfg, BasinSettings.model_validate(chosen), args.pour_points, args.out)
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    print(json.dumps({"ev": "basin", **written}))
+    return EXIT_DONE
+
+
 def _arf(args: argparse.Namespace) -> int:
     from wadi2d.arf import arf_study
     from wadi2d.run import JobError
@@ -226,6 +250,17 @@ def parser() -> argparse.ArgumentParser:
     mesh.add_argument("job")
     mesh.add_argument("--out", required=True)
     mesh.set_defaults(call=_mesh)
+
+    basin = sub.add_parser("basin", help="subbasins, reaches and junctions generated from the DEM")
+    basin.add_argument("job")
+    basin.add_argument("--out", required=True)
+    basin.add_argument(
+        "--threshold-km2", type=float, help="stream threshold; 0 breaks at the pour points only"
+    )
+    basin.add_argument("--pour-points", help="point layer; a 'name' field names the junctions")
+    basin.add_argument("--pixel", type=float, help="analysis pixel, m")
+    basin.add_argument("--settings", help="JSON file of BasinSettings")
+    basin.set_defaults(call=_basin)
 
     arf = sub.add_parser("arf", help="depth-area study: one run per storm area, design-point table")
     arf.add_argument("job")
