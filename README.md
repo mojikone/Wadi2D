@@ -71,7 +71,7 @@ To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
-| `W16 release package` | 2026-11-02 | The Windows package and installer | live; `v0.1.0` published as a pre-release; passed on a second PC; a PC with no NVIDIA card not yet |
+| `W16 release package` | 2026-11-02 | The Windows package and installer | live; `v0.1.1` published as a pre-release; 0.1.0 passed on a second PC; a PC with no NVIDIA card not yet |
 
 ## Test case
 
