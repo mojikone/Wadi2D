@@ -68,19 +68,34 @@ Hybrid run against W7's rasters (`unchanged_run.json`), km2:
 
 ## Smoothing
 
-Classes are drawn from cumulative masks (H3 and above, H4 and above, ...), each softened by the same Gaussian, 1 pixel, and contoured at the value that holds its raw area, so a class keeps its area; a polygon is the difference of two contours, so classes share edges with no gap and no overlap. Patches and holes under 500 m2 go. Depth is drawn at 2.5 m with a fade over the wet edge. Domain and subbasin outlines are smoothed; the polygon that masks rain is not.
+Classes are drawn from cumulative masks (H3 and above, H4 and above, ...), each softened by the same Gaussian, 1 pixel, and contoured at the value that holds its raw area, so a class keeps its area; a polygon is the difference of two contours, so classes share edges with no gap and no overlap. Patches and holes under 500 m2 go. Depth is drawn at 2.5 m with a fade over the wet edge. Domain and subbasin outlines are smoothed; the polygon that masks rain is not. Higher classes draw on top, so a thin H6 ribbon is never hidden by the hairline of a lower class.
 
-| Hybrid, area change from smoothing | H1 | H2 | H3 | H4 | H5 | H6 |
+| Area change from smoothing, % | H1 | H2 | H3 | H4 | H5 | H6 |
 |---|---|---|---|---|---|---|
-| % | +1.9 to +4.1 | -0.2 to +0.1 | below 0.2 | below 0.1 | below 0.05 | below 0.05 |
+| Hybrid, 20 m, `maps/pixels.json` | +1.6 | +0.2 | +0.6 | +0.05 | -0.03 | -0.01 |
+| Hybrid, 40 m, dock check | +3.3 | +0.5 | +0.6 | 0.00 | -0.03 | -0.02 |
+| Full extent, 239 M pixels, `s07_full_step.py` | +1.4 | +0.1 | -0.07 | +0.07 | +0.02 | -0.02 |
 
-Under 1 % for H3 and above, as asked. **H1 is not under 1 %**: 5 m stipple closes up. Wet area added 1.8 km2, removed 2.1 km2, of 51: pixels moved along an edge, not water invented, though at that scale a pixel of H1 can sit where the raster has none.
+Under 1 % for H3 and above, as asked. **H1 is not under 1 %**: 5 m stipple closes up. Wet area added 2.2 km2, removed 2.7 km2, of 51: pixels moved along an edge, not water invented, though at that scale a pixel of H1 can sit where the raster has none.
+
+**The block size is near its limit.** Blocks of 8192 pixels hold H3 to +0.3 %, 4096 to +0.6 %, 2048 miss it at -2.8 %. A block holds its own area, so speckle removed where a block has little else is not taken up by the rest. Cause argued, not proved. 4096 is the default because the full extent at 8192 had not finished its first blocks in an hour.
 
 Regenerated W7 maps: `maps/Wadi2D_hybrid_Block2_maps.pdf`, from the run in the session scratchpad by the code of the button (`s04_maps.py`, satellite background as W7). `maps/crop_hazard_100pct.jpg` and `crop_depth_100pct.jpg` are 300 dpi crops at full A3: no stair on class edges, wet edges, domain or subbasin lines.
 
+## On modified terrain
+
+Merged with `main` at `020ea37`, terrain tools included. Pixels come through the same `edit` hook as the tables, section tables read, so depth reads the ground the run stood on. `tests/products/test_terrain_pixels.py`, a real run each, 6 m cells, 40 m3/s, normal depth 1.24 m:
+
+| Case | On the raw DEM it would read | Reads |
+|---|---|---|
+| Channel cut 3 m | dry: the water never reaches the old ground | 1.20 m at the centre |
+| Channel between dykes, bed 0.5 m under the old ground | water over the dyke and past it | 1.20 m at the centre, wet to the waterline at 11.5 m, dyke top at 15 m dry |
+
+The face ground comes from the tables, so a dyke is a crest to the surface as well. Not run on real terrain or through the dock's own channel tools: both are the job file the tests use. The hillshade on a sheet is the raw DEM.
+
 ## Through the real dock
 
-`plug_check.py` in a separate QGIS 3.44.8, throwaway profile, branch code for plugin and engine, real GPU runs: **41 of 41** (`log_plugin_run.txt`). Hybrid run; bar and status follow the step; groups, colours, ramp; no band line in the panel or on the sheets; Make map, twice, and on a finished run picked by its folder; five-minute maps reach the job; Stop in the pixel step ends in 1 s with the run still finished and no half-written file; the step switched off.
+`plug_check.py` in a separate QGIS 3.44.8, throwaway profile, branch code for plugin and engine, merged with `main`, real GPU runs: **41 of 41** (`log_plugin_run.txt`). Hybrid run; bar and status follow the step; groups, colours, ramp; no band line in the panel or on the sheets; Make map, twice, and on a finished run picked by its folder; five-minute maps reach the job; Stop in the pixel step ends in 1 s with the run still finished and no half-written file; the step switched off.
 
 Bugs this found that no test had: the engine lingered after a stop until the dock killed it at 30 s, because a reader thread kept h5py's lock; the layer panel kept its band line, having drawn the legend before the order was set. Running it on the full extent found a third: the GPU memory pool grew until Windows paged the card, 17 s a map, now 1.4 s.
 
@@ -91,9 +106,12 @@ Also learned: QGIS with `QT_QPA_PLATFORM=offscreen` draws every letter as a box,
 - **Decided here, for him to check:** the fill to mean depth and `peak_lift` are not in the brief.
 - A pixel that peaks later than its cell is scaled by its cell's ratio. An estimate, not a saved moment.
 - Another PC, a PC with no GPU through the plugin, QGIS other than 3.44.8.
-- A run with crest lines or burn lines through the pixel step on real terrain: the code is shared with the tables, the case was not run.
 - A slope across a bend, as in W2: still untested. The checks are straight channels.
 - Make map blocks QGIS while it exports, about 7 s here; a larger domain will take longer.
 - The satellite background is Google imagery, as W7: check its terms before client use. Hillshade is the dock's default.
+
+- One whole-suite run under load printed its last line and then sat at exit for 15 minutes before I killed it. It did not come back in three clean runs and I did not find a cause. Suite on the merged code: 951 passed, ruff clean.
+
+- The whole step ran on the full extent once, by script, not through the dock: it finished, with a GeoPackage of 1.1 GB and a depth drawing of 4 GB. No sheet was made from it, and a PDF of 1.1 GB of polygons was not tried.
 
 Rerun: from the repository root with `PYTHONPATH` on it, `s01` to `s03`, `s05` to `s07` with the project venv; `s04` with `python-qgis-ltr.bat`, without offscreen. Rasters and `runs/` stay out of git.
