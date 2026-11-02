@@ -31,15 +31,21 @@ BED_NORTH = 100.0
 CRS = "EPSG:32640"
 
 
-def valley_dem(flat_width: float = 0.0) -> np.ndarray:
-    """Ground, m, with an optional flat bed ``flat_width`` wide on the main valley."""
+def valley_dem() -> np.ndarray:
+    """Ground, m."""
     rows, cols = np.mgrid[0:NY, 0:NX]
     distance_along = (NY - rows) * PIXEL * BED_SLOPE
     centre = NX // 2
     spread = ARM_OFFSET * np.maximum(FORK_ROW - rows, 0) / FORK_ROW
     across = np.minimum(np.abs(cols - (centre - spread)), np.abs(cols - (centre + spread))) * PIXEL
-    across = np.maximum(across - flat_width / 2.0, 0.0)
     return BED_NORTH + distance_along + across * SIDE_SLOPE
+
+
+def straight_valley(flat_width: float = 0.0) -> np.ndarray:
+    """One valley down the middle, ``flat_width`` of flat bed between banks at SIDE_SLOPE."""
+    rows, cols = np.mgrid[0:NY, 0:NX]
+    across = np.maximum(np.abs(cols - NX // 2) * PIXEL - 0.5 * flat_width, 0.0)
+    return BED_NORTH + (NY - rows) * PIXEL * BED_SLOPE + across * SIDE_SLOPE
 
 
 def write_raster(path: Path, values: np.ndarray, nodata: float = -9999.0) -> Path:

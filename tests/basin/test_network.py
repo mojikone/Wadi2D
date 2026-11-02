@@ -12,8 +12,8 @@ from tests.basin.conftest import ARM_OFFSET, FORK_ROW, NX, NY, PIXEL, Valley, co
 from wadi2d.basin.delineate import flow_surface, read_surface
 from wadi2d.basin.kernels import NONE, accumulate, trace_links, upstream_first
 from wadi2d.basin.network import build_network
-from wadi2d.basin.pour import PourPoint, crossing, gather, snapped
-from wadi2d.config.schema import BasinSettings, DesignLine, DesignPoint, Outputs
+from wadi2d.basin.pour import PourPoint, collect_at_dams, crossing, crossings, gather, snapped
+from wadi2d.config.schema import BasinSettings, DesignLine, DesignPoint, Outputs, TerrainObject
 from wadi2d.mesh.streams import drainage_area
 from wadi2d.run import load_job
 
@@ -154,11 +154,55 @@ def test_gather_settles_shared_pixels_and_reports_what_it_drops(valley: Valley) 
         }
     )
     notes: list[str] = []
-    points = gather(cfg, surface, SETTINGS, None, notes)
+    _surface, points = gather(cfg, surface, SETTINGS, None, notes)
     assert [p.name for p in points.values()] == ["Axis"]
     assert next(iter(points.values())).aliases == ["Same axis"]
     assert any("Ring" in note for note in notes)
     assert any("Off" in note for note in notes)
+
+
+def test_a_design_line_across_two_arms_gets_one_node_on_each(valley: Valley) -> None:
+    surface = surface_of(valley.job)
+    y = row_y(FORK_ROW // 2)
+    line = [(col_x(20), y), (col_x(180), y)]
+    pixels = crossings(surface, line, 0.5 / KM2_PER_PIXEL)
+    assert len(pixels) == 2
+    cfg = load_job(valley.job).model_copy(
+        update={"outputs": Outputs(lines=[DesignLine(name="Across", coordinates=line)])}
+    )
+    _surface, points = gather(cfg, surface, SETTINGS, None, [])
+    assert sorted(p.name for p in points.values()) == ["Across", "Across 2"]
+    assert {p.line for p in points.values()} == {"Across"}
+
+
+def test_a_dam_stops_every_stream_across_its_line(valley: Valley) -> None:
+    surface = surface_of(valley.job)
+    y = row_y(FORK_ROW // 2)
+    line = [(col_x(20), y), (col_x(180), y)]
+    crest = TerrainObject(kind="crest_line", name="Long", coordinates=line, z_constant=200.0)
+    pixel = crossing(surface, line)
+    natural = surface.count[pixel]
+    dam = PourPoint("Long", "dam", pixel, 0.0, 0.0, crest=crest)
+    collected = collect_at_dams(surface, [dam])
+    assert collected.count[pixel] > 1.9 * natural
+    assert collected.count.max() == surface.count.max()
+    assert surface.count[pixel] == natural
+
+
+def test_a_node_above_a_confluence_on_the_smaller_stream_still_drains_to_it(
+    tmp_path: Path, valley: Valley
+) -> None:
+    surface = surface_of(valley.job)
+    net = build_network(surface, {}, SETTINGS)
+    fork = int(net.end_node[np.flatnonzero(net.start_node == NONE)[0]])
+    smaller = min(
+        (p for p in np.flatnonzero(surface.down == fork) if surface.count[p] > 100),
+        key=lambda p: surface.count[p],
+    )
+    point = {int(smaller): PourPoint("Beside", "layer", int(smaller), 0.0, 0.0)}
+    joined = build_network(surface, point, SETTINGS)
+    assert int(smaller) in joined.nodes
+    assert not np.any(joined.start_node == smaller)
 
 
 def test_the_domain_cuts_the_catchment(tmp_path: Path, valley: Valley) -> None:

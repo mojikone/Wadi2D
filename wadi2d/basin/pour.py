@@ -1,24 +1,27 @@
 """Pour points: where the user wants a subbasin to end.
 
 Three sources, in the order a shared pixel is settled: the dams of the job (crest lines), a point layer, the design lines
-and points of the job. A line lands on the pixel of largest drainage area it touches, the wadi it crosses. A point moves to
-the nearest stream pixel within ``snap_m``, as Jenson snapping does; with no stream that near it takes the largest drainage
-area in reach, and a stream is forced from there down.
+and points of the job.
 
-Interface: :class:`PourPoint`, :func:`gather`, :func:`crossing`.
+A dam stops every stream that crosses its axis, whatever the D8 lines say: the whole line drains to the pixel of largest
+drainage area on it, as a wall layer does in HMS. A design line stops nothing, so each stream it crosses keeps its own way and
+gets its own node, and the line's area is their sum. A point moves to the nearest stream pixel within ``snap_m``, as Jenson
+snapping does; with no stream that near it takes the largest drainage area in reach, and a stream is forced from there down.
+
+Interface: :class:`PourPoint`, :func:`gather`, :func:`crossing`, :func:`crossings`.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
 import shapely
 
 from wadi2d.basin.delineate import Surface
-from wadi2d.basin.kernels import NONE
-from wadi2d.config.schema import BasinSettings, RunConfig
+from wadi2d.basin.kernels import NONE, accumulate, upstream_first
+from wadi2d.config.schema import BasinSettings, RunConfig, TerrainObject
 from wadi2d.terrain.vector import read_features
 
 KIND_DAM, KIND_LAYER, KIND_LINE, KIND_POINT = "dam", "layer", "design_line", "design_point"
@@ -35,12 +38,27 @@ class PourPoint:
     x: float
     y: float
     aliases: list[str] = field(default_factory=list)
+    crest: TerrainObject | None = None
+    """The crest line of a dam."""
+    line: str | None = None
+    """The design line this node is one crossing of."""
 
 
 def crossing(surface: Surface, coordinates: list[tuple[float, float]]) -> int:
     """The pixel of largest drainage area on a line, NONE off the ground."""
     pixels = surface.line_pixels(coordinates)
     return NONE if pixels.size == 0 else int(pixels[np.argmax(surface.count[pixels])])
+
+
+def crossings(surface: Surface, coordinates: list[tuple[float, float]], limit: float) -> list[int]:
+    """Where streams of ``limit`` pixels leave a line, largest first; the largest pixel on the line is always one."""
+    pixels = surface.line_pixels(coordinates)
+    if pixels.size == 0:
+        return []
+    leaving = pixels[~np.isin(surface.down[pixels], pixels) & (surface.count[pixels] >= limit)]
+    ranked = leaving[np.argsort(-surface.count[leaving], kind="stable")].tolist()
+    best = crossing(surface, coordinates)
+    return [best, *(pixel for pixel in ranked if pixel != best)]
 
 
 def stream_limit(surface: Surface, settings: BasinSettings) -> float | None:
@@ -99,8 +117,26 @@ def _dams(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: list
                 f"crest line {name} crosses no stream of {threshold:g} km2: no node, add a pour point if wanted"
             )
         else:
-            found.append(PourPoint(name, KIND_DAM, pixel, *map(float, surface.xy(pixel))))
+            x, y = map(float, surface.xy(pixel))
+            found.append(PourPoint(name, KIND_DAM, pixel, x, y, crest=obj))
     return found
+
+
+def collect_at_dams(surface: Surface, dams: list[PourPoint]) -> Surface:
+    """The surface with each dam's whole line draining to its outlet pixel."""
+    if not dams:
+        return surface
+    down = surface.down.copy()
+    for dam in dams:
+        line = surface.line_pixels(dam.crest.coordinates)
+        down[line] = dam.pixel
+        down[dam.pixel] = surface.down[dam.pixel]
+    order = upstream_first(down)
+    if order.size != down.size:
+        raise ValueError(
+            f"dams {[dam.name for dam in dams]} drain into each other: their lines cross a stream twice"
+        )
+    return replace(surface, down=down, order=order, count=accumulate(down, order, surface.valid))
 
 
 def _layer(path: str | Path, surface: Surface, settings: BasinSettings, notes: list[str]) -> list[PourPoint]:
@@ -124,11 +160,14 @@ def _design(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: li
         if _is_ring(line.coordinates):
             notes.append(f"design line {line.name} is closed: not a pour point")
             continue
-        pixel = crossing(surface, line.coordinates)
-        if pixel == NONE:
+        limit = stream_limit(surface, settings) or settings.min_subbasin_km2 / surface.km2_per_pixel
+        pixels = crossings(surface, line.coordinates, limit)
+        if not pixels:
             notes.append(f"design line {line.name} is off the ground: dropped")
-        else:
-            found.append(PourPoint(line.name, KIND_LINE, pixel, *map(float, surface.xy(pixel))))
+        for number, pixel in enumerate(pixels, 1):
+            name = line.name if number == 1 else f"{line.name} {number}"
+            x, y = map(float, surface.xy(pixel))
+            found.append(PourPoint(name, KIND_LINE, pixel, x, y, line=line.name))
     for point in cfg.outputs.points:
         pixel = snapped(surface, point.x, point.y, settings)
         if pixel == NONE:
@@ -140,9 +179,10 @@ def _design(cfg: RunConfig, surface: Surface, settings: BasinSettings, notes: li
 
 def gather(
     cfg: RunConfig, surface: Surface, settings: BasinSettings, layer: str | Path | None, notes: list[str]
-) -> dict[int, PourPoint]:
-    """Every pour point by pixel; one landing on a pixel already held becomes an alias there."""
+) -> tuple[Surface, dict[int, PourPoint]]:
+    """The surface with the dams in it, and every pour point by pixel; one landing on a held pixel becomes an alias there."""
     found = _dams(cfg, surface, settings, notes)
+    surface = collect_at_dams(surface, found)
     if layer is not None:
         found += _layer(layer, surface, settings, notes)
     found += _design(cfg, surface, settings, notes)
@@ -153,4 +193,4 @@ def gather(
             points[point.pixel] = point
         elif point.name != held.name:
             held.aliases.append(point.name)
-    return points
+    return surface, points
