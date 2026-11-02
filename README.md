@@ -11,7 +11,7 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,285 tests pass. Fit to try
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,504 tests pass. Fit to try
 and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
 catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
@@ -76,6 +76,9 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
+| `W24 basin model` | 2026-11-02 | D6a: subbasins, reaches, junctions and reservoirs from the DEM, `basin.json` and `basin.gpkg` | done, engine only; Block 2 areas within 0.2 %, peaks 1.05 to 1.58 x HMS from the lag method alone: HMS's lags are 0.474 x Kirpich, not NRCS |
+| `W22 profile editor` | 2026-11-02 | D7: a graphical editor per structure, drag, type, undo, with the preview under it | done on QGIS 3.44.8, 120 of 120 through the real dock |
+| `W21 result lines` | 2026-11-02 | D9: the Result lines panel on the time slider, upfront and temporary lines | done on QGIS 3.44.8, 73 of 73; flow from frames reads 0.6 to 1.0 of upfront lines |
 | `W20 storm section` | 2026-11-02 | D5: a Storm section, hyetograph, design storm, gridded rain from NetCDF, DSS and GeoTIFF folders | done on QGIS 3.44.8, 41 of 41 through the real dock; raw peaks of `S5_ring` and `S11_ring` are noise, see it |
 | `W19 time slider` | 2026-11-02 | D1: the saved frames as a mesh layer on the Temporal Controller | done on QGIS 3.44.8, 31 of 31 through the dock |
 | `W18 boundary table` | 2026-11-02 | D8: a table of kinds and values for one line layer | done, 34 of 34 through the dock |
