@@ -97,6 +97,23 @@ def test_two_handbacks_in_series_are_fine_when_the_first_reenters_above_the_seco
     assert set(routes.live) == {"R1", "R2"}
 
 
+def test_with_the_links_kept_a_route_may_reach_the_next_entry_which_is_one_more_live_element():
+    """A generated basin with every subbasin in 2D: a line at every reach junction, chained down to the outlet."""
+    basin = Basin(
+        "b",
+        [
+            Junction("J2", "R4"), Reach("R4", "J3", NoRouting()), Junction("J3", "R5"),
+            Reach("R5", "J1", NoRouting()), Junction("J1", None),
+        ],
+    )  # fmt: skip
+    with pytest.raises(ValueError, match="would be lost"):
+        plan_routes(basin, ["J2", "J3"], ["J1"])
+    routes = plan_routes(basin, ["J2", "J3"], ["J1"], cut=[("J1", "J1")], cut_entries=False)
+    assert routes.live == ("J2", "R4", "J3", "R5", "J1")
+    assert routes.cut == frozenset({("J1", "J1")})
+    assert routes.ends == ()
+
+
 def test_a_route_through_a_subbasin_is_refused():
     area = Subbasin("S", None, 1.0, NoLoss(), ScsUnitHydrograph(30.0))
     basin = Basin("b", [Reach("R1", "S", NoRouting()), area])

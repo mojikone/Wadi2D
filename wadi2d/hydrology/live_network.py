@@ -94,7 +94,7 @@ def plan_routes(
         for target in (main, second):
             if target is None:
                 continue
-            if target in above:
+            if target in above and cut_entries:  # with the links kept, the next entry is one more live element
                 raise ValueError(
                     f"water routed through {name} reaches {target}, where a hand-back replaces all that arrives: "
                     f"it would be lost. Give that route a re-entry above {target}."
