@@ -10,11 +10,11 @@ from pathlib import Path
 import pytest
 from wadi2d_qgis.protocol import (
     ENGINE_FILE,
-    FALLBACK_ENGINE,
-    default_engine,
     ENGINE_MODULE,
     EXIT_MESSAGES,
+    FALLBACK_ENGINE,
     clean_env,
+    default_engine,
     engine_error_text,
     estimate_text,
     exit_message,
