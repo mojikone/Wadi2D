@@ -42,6 +42,55 @@ class GridConfig(_Part):
     )
 
 
+class RefineZone(_Part):
+    """A polygon the user wants at a cell size."""
+
+    coordinates: list[tuple[float, float]] = Field(description="Polygon ring, m", min_length=3)
+    dx: float = Field(gt=0.0, le=1000.0, description="Wanted cell size inside it, m")
+
+
+class Mesh(_Part):
+    """The quadtree. Off keeps the uniform grid of ``grid.dx``; on, that is the finest cell and tiles coarsen from it."""
+
+    enabled: bool = Field(False, description="Refine tiles by the rules below; off is the uniform grid")
+    coarse_dx: float = Field(
+        40.0, gt=0.0, le=1000.0, description="Coarsest cell, m; grid.dx times a power of two"
+    )
+    min_dx: float = Field(
+        5.0, gt=0.0, le=1000.0, description="Smallest cell the mesher accepts, m; small cells set the step"
+    )
+    analysis_pixel: float = Field(5.0, gt=0.0, le=100.0, description="Pixel of the stream analysis, m")
+    stream_area_fine_km2: float = Field(
+        10.0, gt=0.0, description="Defined wadis draining this much stay at the finest cell, km2"
+    )
+    stream_area_mid_km2: float = Field(
+        1.0, gt=0.0, description="Defined wadis draining this much stay one step coarser than the coarsest, km2"
+    )
+    stream_pixels: int = Field(3, ge=1, description="Pixels of wadi that make a tile count as holding one")
+    incision_depth: float = Field(
+        0.5, ge=0.0, le=50.0, description="A stream counts where it lies this far below the ground around it, m"
+    )
+    incision_width: float = Field(
+        200.0, gt=0.0, le=5000.0, description="Square over which the ground around a stream is averaged, m"
+    )
+    break_depth: float = Field(
+        0.0, ge=0.0, le=50.0, description="Ground leaving a plane by this over a coarse cell is a slope break, m; 0 is off"
+    )
+    break_share: float = Field(
+        0.4, gt=0.0, le=1.0, description="Share of a tile in slope breaks that refines it one step"
+    )
+    refine_lines: bool = Field(
+        True, description="Barriers, boundaries and design lines sit on the finest cells; faces must lie on them"
+    )
+    zones: list[RefineZone] = []
+
+    @model_validator(mode="after")
+    def _sizes(self) -> Mesh:
+        if self.stream_area_mid_km2 > self.stream_area_fine_km2:
+            raise ValueError("mesh.stream_area_mid_km2 must not exceed mesh.stream_area_fine_km2")
+        return self
+
+
 class TerrainObject(_Part):
     """A vector edit of the terrain, applied when the tables are built; the DEM file never changes."""
 
@@ -367,6 +416,7 @@ class RunConfig(_Part):
 
     project: Project = Project()
     grid: GridConfig = GridConfig()
+    mesh: Mesh = Mesh()
     terrain: Terrain = Terrain()
     tables: Tables = Tables()
     numerics: Numerics = Numerics()

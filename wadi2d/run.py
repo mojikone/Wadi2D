@@ -187,6 +187,8 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
+        if cfg.mesh.enabled:
+            return _mesh_tables(cfg, bed, window, crs), crs
         key = grid_key(cfg, bed, window)
         path = cache_path(cache_dir, key)
         hit = load_tables(path, key)
@@ -203,6 +205,28 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
     save_tables(path, tables, key)
     emit("output", kind="grid_cache_saved", path=str(path))
     return tables, crs
+
+
+def _mesh_tables(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str) -> GridTables:
+    """Tables of a quadtree. Not cached yet: the mesher's rules are the first thing a user changes."""
+    from wadi2d.mesh.build import build_grid, lines_on_coarse_tiles
+    from wadi2d.tables.quad import build_quad_tables
+
+    if cfg.grid.dx < cfg.mesh.min_dx:
+        raise InvalidJob(f"grid.dx {cfg.grid.dx} m is below mesh.min_dx {cfg.mesh.min_dx} m")
+    mask = domain_mask(cfg, bed, window)
+    if not mask.any():
+        raise InvalidJob("the domain holds no active cell")
+    grid = build_grid(cfg, mask, window.x0, window.y0, crs)
+    stray = lines_on_coarse_tiles(cfg, grid)
+    if stray:
+        raise InvalidJob(
+            f"{stray} barrier, boundary or design lines reach coarse tiles, where their faces cannot be read: "
+            "keep mesh.refine_lines on, or add a refinement zone along them"
+        )
+    bed.bind(grid.x0, grid.y0)
+    edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain)
+    return build_quad_tables(grid, bed, cfg.tables, manning_grid(cfg, grid, crs), edits.crest, edits.edit)
 
 
 def _project_tables(h, hms_basin):
@@ -469,7 +493,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         tables, crs = prepare_grid(cfg, cache, progress)
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
-    summary.cells = int(grid.mask.sum())
+    summary.cells = grid.cell_count if getattr(grid, "quad", False) else int(grid.mask.sum())
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
@@ -562,7 +586,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
         status=summary.status, code=summary.exit_code, partial=summary.status != "finished", t=st.t,
         duration_s=cfg.run.duration_s, steps=st.nsteps, loop_s=round(summary.loop_s, 2),
         tables_s=round(summary.tables_s, 2), wet_area_km2=round(summary.wet_area_km2, 4),
-        dt_min=summary.dt_min, balance=balance,
+        dt_min=summary.dt_min, balance=balance, tile_steps=getattr(st, "tile_steps", None),
     )  # fmt: skip
 
 

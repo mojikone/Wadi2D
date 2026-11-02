@@ -262,6 +262,10 @@ def boundary_set(boundaries: list[Boundary], tables: GridTables, samples: int = 
         ja, ia = np.nonzero(into)
         index = np.concatenate((state_index(grid, j, i), state_index(grid, ja, ia))).astype(np.int64)
         sign = np.concatenate((np.ones(j.size), -np.ones(ja.size)))
+        if getattr(grid, "quad", False):
+            # raster cells of a coarse cell share its face, which holds the sum of the fine faces beside it
+            index, first = np.unique(index, return_index=True)
+            sign = sign[first]
         faces.append((index, sign))
     return BoundarySet(cells, taken, faces[0][0], faces[0][1], faces[1][0], faces[1][1])
 
@@ -356,9 +360,14 @@ class Forcing:
         self.model = model
         self.storm = storm
         self.area = grid.dx**2
+        self.areas = None
+        """Cell areas on a quadtree, where one number will not do."""
         interior = grid.mask & ~boundary.mask
-        self.jj, self.ii = np.nonzero(interior)
-        self.state = np.asarray(state_index(grid, self.jj, self.ii), np.int64)
+        if getattr(grid, "quad", False):
+            self.jj, self.ii, self.state, self.areas = grid.cells_of(interior)
+        else:
+            self.jj, self.ii = np.nonzero(interior)
+            self.state = np.asarray(state_index(grid, self.jj, self.ii), np.int64)
         self.tile = self.state // STRIDE2
 
         names = [s.name for s in cfg.hydrology.subbasins if s.mode == "lumped"]
@@ -456,13 +465,22 @@ class Forcing:
         if self.storm is not None:
             excess = (self._excess_mm(t1) - self._excess_mm(t0)) / (MM_PER_M * step)
             out[:] = (excess if self.depths is not None else excess[self.class_of]) * self.rained
-            rain = float(out.sum(dtype=np.float64)) * self.area * step
+            if self.areas is None:
+                rain = float(out.sum(dtype=np.float64)) * self.area * step
+            else:
+                rain = float(np.dot(out.astype(np.float64), self.areas)) * step
         inflow = 0.0
         for inj in self.injections:
             q = inj.mean_flow(t0, t1)
             if q <= 0.0:
                 continue
-            added = q * inj.share(self.model.read_cells("d", inj.index)) / self.area
-            out[inj.cells] += added.astype(np.float32)
-            inflow += float(np.float32(added).sum(dtype=np.float64)) * self.area * step
+            if self.areas is None:
+                added = q * inj.share(self.model.read_cells("d", inj.index)) / self.area
+                out[inj.cells] += added.astype(np.float32)
+                inflow += float(np.float32(added).sum(dtype=np.float64)) * self.area * step
+            else:
+                held = self.areas[inj.cells]
+                added = q * inj.share(self.model.read_cells("d", inj.index)) / held
+                out[inj.cells] += added.astype(np.float32)
+                inflow += float(np.dot(np.float32(added).astype(np.float64), held)) * step
         return out, rain, inflow

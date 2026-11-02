@@ -570,6 +570,111 @@
       "title": "InitialLevel",
       "type": "object"
     },
+    "Mesh": {
+      "additionalProperties": false,
+      "description": "The quadtree. Off keeps the uniform grid of ``grid.dx``; on, that is the finest cell and tiles coarsen from it.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "description": "Refine tiles by the rules below; off is the uniform grid",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "coarse_dx": {
+          "default": 40.0,
+          "description": "Coarsest cell, m; grid.dx times a power of two",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Coarse Dx",
+          "type": "number"
+        },
+        "min_dx": {
+          "default": 5.0,
+          "description": "Smallest cell the mesher accepts, m; small cells set the step",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Min Dx",
+          "type": "number"
+        },
+        "analysis_pixel": {
+          "default": 5.0,
+          "description": "Pixel of the stream analysis, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Analysis Pixel",
+          "type": "number"
+        },
+        "stream_area_fine_km2": {
+          "default": 10.0,
+          "description": "Defined wadis draining this much stay at the finest cell, km2",
+          "exclusiveMinimum": 0.0,
+          "title": "Stream Area Fine Km2",
+          "type": "number"
+        },
+        "stream_area_mid_km2": {
+          "default": 1.0,
+          "description": "Defined wadis draining this much stay one step coarser than the coarsest, km2",
+          "exclusiveMinimum": 0.0,
+          "title": "Stream Area Mid Km2",
+          "type": "number"
+        },
+        "stream_pixels": {
+          "default": 3,
+          "description": "Pixels of wadi that make a tile count as holding one",
+          "minimum": 1,
+          "title": "Stream Pixels",
+          "type": "integer"
+        },
+        "incision_depth": {
+          "default": 0.5,
+          "description": "A stream counts where it lies this far below the ground around it, m",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Incision Depth",
+          "type": "number"
+        },
+        "incision_width": {
+          "default": 200.0,
+          "description": "Square over which the ground around a stream is averaged, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Incision Width",
+          "type": "number"
+        },
+        "break_depth": {
+          "default": 0.0,
+          "description": "Ground leaving a plane by this over a coarse cell is a slope break, m; 0 is off",
+          "maximum": 50.0,
+          "minimum": 0.0,
+          "title": "Break Depth",
+          "type": "number"
+        },
+        "break_share": {
+          "default": 0.4,
+          "description": "Share of a tile in slope breaks that refines it one step",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Break Share",
+          "type": "number"
+        },
+        "refine_lines": {
+          "default": true,
+          "description": "Barriers, boundaries and design lines sit on the finest cells; faces must lie on them",
+          "title": "Refine Lines",
+          "type": "boolean"
+        },
+        "zones": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RefineZone"
+          },
+          "title": "Zones",
+          "type": "array"
+        }
+      },
+      "title": "Mesh",
+      "type": "object"
+    },
     "Numerics": {
       "additionalProperties": false,
       "properties": {
@@ -838,6 +943,44 @@
         }
       },
       "title": "Project",
+      "type": "object"
+    },
+    "RefineZone": {
+      "additionalProperties": false,
+      "description": "A polygon the user wants at a cell size.",
+      "properties": {
+        "coordinates": {
+          "description": "Polygon ring, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 3,
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "dx": {
+          "description": "Wanted cell size inside it, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Dx",
+          "type": "number"
+        }
+      },
+      "required": [
+        "coordinates",
+        "dx"
+      ],
+      "title": "RefineZone",
       "type": "object"
     },
     "Run": {
@@ -1356,6 +1499,24 @@
         "cache_dir": null,
         "line_samples": 4,
         "content_hash_limit_mb": 64.0
+      }
+    },
+    "mesh": {
+      "$ref": "#/$defs/Mesh",
+      "default": {
+        "enabled": false,
+        "coarse_dx": 40.0,
+        "min_dx": 5.0,
+        "analysis_pixel": 5.0,
+        "stream_area_fine_km2": 10.0,
+        "stream_area_mid_km2": 1.0,
+        "stream_pixels": 3,
+        "incision_depth": 0.5,
+        "incision_width": 200.0,
+        "break_depth": 0.0,
+        "break_share": 0.4,
+        "refine_lines": true,
+        "zones": []
       }
     },
     "terrain": {

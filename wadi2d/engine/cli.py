@@ -77,6 +77,32 @@ def _run(args: argparse.Namespace) -> int:
     return run_job(cfg, args.out, args.backend, resume=args.resume, echo=True).exit_code
 
 
+def _mesh(args: argparse.Namespace) -> int:
+    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError, check_inputs, domain_mask, grid_window
+    from wadi2d.terrain import RasterBed
+
+    try:
+        cfg = _load(args.job)
+        check_inputs(cfg)
+        from wadi2d.mesh.build import build_grid, report, write_preview
+
+        with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+            window = grid_window(cfg, bed)
+            mask = domain_mask(cfg, bed, window)
+            crs = bed.crs.to_wkt() if bed.crs is not None else ""
+        grid = build_grid(cfg, mask, window.x0, window.y0, crs)
+        summary = report(grid, int(mask.sum()), cfg.grid.dx)
+        written = write_preview(grid, crs, args.out, summary)
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    print(json.dumps({"ev": "mesh", **written, "cells": summary.cells, "ratio": summary.ratio}))
+    return EXIT_DONE
+
+
 def _arf(args: argparse.Namespace) -> int:
     from wadi2d.arf import arf_study
     from wadi2d.run import JobError
@@ -115,6 +141,11 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true")
     run.add_argument("--resume", action="store_true")
     run.set_defaults(call=_run)
+
+    mesh = sub.add_parser("mesh", help="preview of the mesh: cell-size raster and counts")
+    mesh.add_argument("job")
+    mesh.add_argument("--out", required=True)
+    mesh.set_defaults(call=_mesh)
 
     arf = sub.add_parser("arf", help="depth-area study: one run per storm area, design-point table")
     arf.add_argument("job")
