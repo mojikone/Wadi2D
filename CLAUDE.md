@@ -1,6 +1,6 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
-**State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built; `main` is public on GitHub; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **HEC-RAS rain-on-grid on Bidah agrees with mode (c): 622.0 against 621.9 m3/s at 10 m, read as within about 4 %, and RAS alone gives 1.72 x HMS. So the gap to HMS is method, not a Wadi2D defect. Still open: whether the SCS lag or the 2D response is right; Block 2 has no gauges (his word), so that needs outside evidence (decision 20).** The next step is his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
+**State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built; `main` is public on GitHub; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **HEC-RAS rain-on-grid on Bidah agrees with mode (c): 622.0 against 621.9 m3/s at 10 m, read as within about 4 %, and RAS alone gives 1.72 x HMS. So the gap to HMS is method, not a Wadi2D defect. Still open: whether the SCS lag or the 2D response is right; Block 2 has no gauges (his word), so that needs outside evidence (decision 20).** **Full project boundary run on 2026-11-01 (`W2 full extent run`): 15,398 km2, 17.1 M cells at 30 m, 68 min, Block 2's 200-yr storm, mass error 4e-8; against his 200-yr layer, depth agrees where both are wet (median -0.11 m) but extent does not (F 0.40 at 0.3 m), cause unknown.** The next step is his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -199,8 +199,9 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     which agreed independently). Level per cell, conservative momentum per face, friction implicit, crest faces limited by critical flow, thin
     sheet flow read by volume over length with a mean-surface drive. Reasons: sub-grid tables sit exactly on these unknowns; still water is exact by
     construction; TUFLOW HPC works this way. Measured: a plain flat-surface sub-grid holds 14 % of the correct storage on a 5 % plane, this one
-    100 %; thin crest 0.996 of critical flow; Stoker plateau exact; 2.2 to 2.9 G cell-updates/s with real tables on the RTX 5080. Weakness, final code:
-    a channel with vertical walls at 45 degrees runs +11 % at 3 cells wide and +2 % at 6; 2:1 banks +2 % and +0.8 %. `design_note.md` carries the equations
+    100 %; thin crest 0.996 of critical flow; Stoker plateau exact; 2.2 to 2.9 G cell-updates/s with real tables on the RTX 5080. Weakness, corrected 2026-11-01 (`W3 breakline faces test`): a channel with
+    vertical walls at 45 degrees runs +7 to +8 % at 3 cells wide and about +3.5 % at 6, averaged over lateral position; the +2 % recorded before was a lucky
+    position and +11 % an old kernel. 2:1 banks +1.9 % and +0.9 %. Cause: a dry face's zero velocity is advected as real momentum, not grid alignment. `design_note.md` carries the equations
     and the list of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
 20. **Validation without gauges** (his statement, 2026-11-01: Block 2 has no hydrometric station with matching rainfall and hydrographs for one event, so
     HMS is not the thing to validate the outputs). Consequences. HMS replication stays as a **code check**: it proves our hydrology does what HMS does, not
@@ -358,7 +359,18 @@ Waiting on him:
    project data it carries (dam levels, job files with local paths, the datum finding).
 6. Deleting the generated caches under `validation/block2_full/` (`cache`, 3.9 GB; `cache_3f32ca6`, 6.5 GB), which the session's safety check refused.
 
-Then, in no order: the regional envelope of unit peaks (Bidah 30 m3/s/km2 in 2D, 17 in HMS, 100-yr); a second catchment against RAS, the cheapest guard
+Decided 2026-11-01, his agreement: hazard is pixel depth x interpolated velocity on 5-minute frames, as HEC-RAS Mapper and his Majlas script do; no split of a face by conveyance until a case can validate it. Rerun `runs/full_30m_200yr_5min` holds those frames.
+
+Version 2, his question of 2026-11-01 (cells aligned with the ground so steep slopes need no finer mesh): keep the tile quadtree, add faces snapped to breaklines, and test a sloped water surface inside a cell. Long cells along the flow fix diagonal channels; they do not by themselves lift the limit on steep ground, and thin cells shorten the explicit step. An unstructured mesh is the alternative, at 2 to 4 x the cost per cell (decision 4).
+
+Automatic breaklines, his rules of 2026-11-01: streams from his Watershed-Scripts create_streams.py find the channel, smoothed; a row of cells runs along the thalweg with bank lines either side, never a breakline on the thalweg, because flow concentrates on a breakline. On a plain with no defined wadi there is no stream breakline at all: the faces stay as they are and the flow finds its way. One bank only where one bank exists. Roads, dams, ponds and stockpiles come from surveyed layers first, then DEM detection, reviewed in QGIS. Queued after the rerun: plan_min 0.05 against the Bidah HEC-RAS case; automatic lines against Bathinah Highway CL only, the coastal road is not fully built.
+
+Results of 2026-11-01. Aligned faces (`W3 breakline faces test`): a 9-line advection fix takes the 45-degree error to -0.8 to +3.2 %, 0.16 over the 3 % pass mark, on a stand-alone CPU port, not yet on the GPU; snapped faces rejected, they oscillate to +29 % on banks; cell vectors pass, about 25 % of the kernels; triangles pass at equal faces, a whole new engine. Refinement by change of slope alone lost 18 % of a wadi peak. `plan_min` 0.05 (`W4 plan_min test`): accuracy passes, the speed gain is unproven. Automatic lines (`W5 automatic breaklines test`): suggestions for review only. Pixel hazard done (`W2 full extent run`).
+
+Branch `fix/dry-face-advection`, not merged: the dry-face fix (`W6 dry face fix test`, on the GPU 45-degree 3-cell mean +6.4 to +1.1 %, worst +4.2 %, Bidah unchanged) and the plugin's engine default. Plugin tested through the real dock, 32 of 32 (`W7 plugin test`). Hazard film and pixel hazard with a guarded sloped water surface done (`W2 full extent run`); the fixed 2 m guard switches the slope off near 7 % at 30 m, so it needs to scale with the local slope.
+
+Then, in no order: the full-extent run is done (`W2 full extent run`); frames every 5 to 10 min and a rerun are what his hazard video needs, the AIDR H1 to H6 script is in the Majlas dam break project;
+the regional envelope of unit peaks (Bidah 30 m3/s/km2 in 2D, 17 in HMS, 100-yr); a second catchment against RAS, the cheapest guard
 against 1.000 being luck; crest lines against RAS; why cells over 10 m relief hold 2 to 2.6 x more water in RAS than here (hillslope total matches, section
 peak unaffected, may matter for a short storm); Wadi2D's 16.5 cm high in the gorge at 20 m, halving at 10 m, so design points run at 10 m; `plan_min` 0.05 (9 % faster, peaks within 0.3 %, needs a proper test); the composite ARF maps have been written but not looked at; the
 plugin has no field for `initial_levels` yet, job.json only; a full-domain run with the dams in place; research topics N04, N06, N07, N08, N10, H05, S01 to S05
@@ -366,5 +378,6 @@ were never run; reviewer acceptance is untested.
 
 ## Iterations
 
+- `W2 full extent run` (live): the actual project boundary at 30 m on NSA 5 m blended with Copernicus 30 m, Block 2's 200-yr storm. Its `README.md` holds inputs and results.
 - `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
   the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.

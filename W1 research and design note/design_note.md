@@ -57,7 +57,7 @@ Layout, in `wadi2d/solver/layout.py`: compact tiles of 32 x 32 with a 2-cell hal
 | Rain on planes of 1, 5, 20 %, dx 20-40 m | storage within 1 % of the kinematic wave; a plain flat-surface sub-grid holds 14 % of it |
 | Thin crest | 0.996 of critical flow |
 | Aligned channel, 3 cells wide | normal depth within 1 % |
-| Rotated channel, 45 degrees, final code | 2:1 banks: +6.8 % at 1.5 cells wide, +2.0 % at 3, +0.8 % at 6. Vertical walls: +11 % at 3, +2 % at 6. 30 degrees: +4 to 5 % |
+| Rotated channel, 45 degrees, `eb8583a`, corrected by `W3 breakline faces test` | 2:1 banks: +1.9 % at 3 cells wide, +0.9 % at 6. Vertical walls, over lateral position: +1.8 to +8.0 % at 3, about +3.5 % at 6; +11 % was commit 35ad921 and +2 % a lucky position. 30 degrees: +4 to 5 % |
 | Speed on the RTX 5080, all cells wet, real tables | 2.2 to 2.9 G cell-updates/s; 1 M cells 0.48 ms per step; 48 h at 1 s step in 1.4 min |
 | Speed on real runs, GPU idle | Block 2, 2.03 M cells, 48 h: 8.9 min, 1.28 ms per step, 1.58 G cell-updates/s. 8.1 M cells, 36 h: 42 min |
 | HEC-RAS 6.6, 3 x 3 km fan, inflow only | 10 m: +2.6 cm, rms 5.5 cm, F 0.936, Q within 0.2 %, 39 x faster |
