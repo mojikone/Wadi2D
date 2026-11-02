@@ -58,3 +58,5 @@ From the repository root with the project venv:
 `python -m wadi2d.engine.cli run "W12 full extent rerun/jobs/full_30m_200yr.json" --out "W12 full extent rerun/runs/full_30m_200yr"`
 
 `runs/`, `cache/` and `run.log` stay out of git.
+
+**Sheets:** `s03_make_map.py` runs the dock's Make map code on this run, 2 min, 138 MB, no error; `before_after_zoom.png` from `s04_zoom.py`. At A3 the map reads as smooth water. At a 3 km close-up, thin flow in narrow channels still shows faint 30 m squares, before and after the fix, because that is the cell size; only finer cells remove them.
