@@ -3,10 +3,11 @@
 Status: finished 2026-11-01. Block-uniform quadtree, tile-level local time stepping, a mesher from DEM and streams, and a Mesh
 section in the dock. All off by default; the uniform path gives the same numbers as `main` to the last digit.
 
-**Verdict: stages B, C and D pass. Stage A passes on accuracy and fails on speed: on a uniform grid, local time stepping saves no
-time. The gain is on the mesh, and only at scale: Block 2 at 10 m ran 2.9 x faster at buffer 0.5. On a job of Bidah's size the mesh
-is slower than the uniform grid, because launches cost more than the kernels. Stage A's gate says "a real speed gain", so by the
-rule set for this work the stages are not merged into `feature/mesher`; they stand stacked on `stage/d-plugin` for the owner to decide.**
+**Decision, 2026-11-01: the mesher goes to `main`, off by default, and local stepping stays an option. The mesh's gain is accepted in place
+of Stage A's speed gate; that gate's failure stays on record as a failure.** Stages B, C and D pass. Stage A passes on accuracy and fails on
+speed: on a uniform grid, local time stepping saves no time. The gain is on the mesh, and only at scale: Block 2 at 10 m ran 2.9 x faster at
+buffer 0.5. On a job of Bidah's size the mesh is slower than the uniform grid, because launches cost more than the kernels. The work stands on
+`stage/d-plugin`, finished and not merged: the merge and the clean timing of the four mesh cases are the coordinator's.
 
 ## The gates
 
@@ -21,10 +22,10 @@ rule set for this work the stages are not merged into `feature/mesher`; they sta
 | | Dam break, planar flow within 3 % | Dam break 1.4 to 1.6 % at most off the front, rms 0.1 %; a shock begun in coarse cells rms 2 %; planar 1.8 % at most | pass |
 | | Mass under 1e-6 | 2e-10 | pass |
 | C Mesher | Bidah within 5 %, 3 x fewer cells | 68,564 cells against 220,006, **3.21 x**; peaks -3.54 and -3.46 %, 1 min late | pass |
-| D Plugin | End to end through the real dock | 42 of 42 on the merged code, in QGIS 3.44.8, throwaway profile | pass |
+| D Plugin | End to end through the real dock | 42 of 42 in QGIS 3.44.8, throwaway profile; then a finished mesh run, its pixel maps and Make map, 37 of 37 | pass |
 | Fast path | Not over 3 % slower | Block 2, idle GPU: 162.94 s against 161.98 s, +0.6 % | pass |
 
-976 tests pass on the merged code. Ruff is clean on everything added here; `tests/conftest.py` keeps its three old notes.
+1,098 tests pass on the merged code. Ruff is clean on everything added here; `tests/conftest.py` keeps its three old notes.
 
 ## Speed, the numbers to read
 
@@ -97,17 +98,58 @@ Buffer 0.5 is an option, not the default: it misses Stage B's 3 % at a front run
 4. **On a slope a coarse cell reads shallower** without sheet flow: the same -10 % as a uniform 20 m grid, to four figures. With production
    numerics 1.8 %. The interface adds nothing of its own.
 
+5. **Two meshes built at once can trip WhiteboxTools.** It keeps one settings file, and one run in a full suite exited 0 with no output while a
+   dock check built its own mesh. The analysis now tries three times, then says so. The cause is [Likely]; the missing file is [Certain].
+6. **A resumed run does not end exactly where an unbroken one does**, on the uniform grid too: rain windows restart at the stop, and a peak at the
+   end of the storm moved 0.9 % uniform, up to 1.4 % on the mesh. Not caused by this work; the windows could be kept on their old times.
+
 Mutation checks, recorded because a first clean pass proved nothing: 16 faults put into the edge and interface code, one at a time. 14 are
 caught, four of them only after new tests were written for them. Two are not: coarse-rate edge faces, and halos frozen in time, read within
 noise on the smooth wave. Their job is at fast fronts, and no test shows that yet.
 
+## Pixel maps on a mesh
+
+The step runs once per cell size, each on a lattice of that size, so the uniform code does the work. Around each set of cells sits a ring of
+ghost cells for what lies beside it: a finer neighbour gives its mean, a coarser one its sloped surface read at the ghost's centre, which is why
+coarse sizes go first. Sills come from the fine faces, and each coarse cell fills to its own volume.
+
+A planar sheet down a 1 % slope through both interfaces, 0.34 m deep: **largest step 0.0064 m, at most 0.012 m from the uniform run**
+(`tests/products/test_mesh_pixels.py`). CPU and GPU give the same hazard and within 1 mm of the same depth. The speed saved in frames used to read
+raster neighbours, which inside a coarse cell are the same cell; it now reads the cell's own faces.
+
+Bidah at 2 m pixels, 3 h after a 30 mm storm, through the dock: 68,564 cells, three sizes. Wet 1.87 km2 against 1.94 on uniform 10 m; of the wet
+pixels 85 % are wet on both, there the median difference is 2 mm and 95 % lie within 0.175 m. Small ponds and side wadis under 1 km2 sit in coarse
+cells and read shallower: that is the mesh's resolution, not the step (`pixels_mesh_vs_uniform.png`).
+
+## Tested on a mesh, against an answer known without it
+
+All in `tests/engine/test_mesh_paths.py`, cells of both sizes.
+
+| Path | Answer it is held to | Result |
+|---|---|---|
+| Depth grid, CN raster | Volume from each cell's own depth or CN | within 0.2 %; **fixed:** a coarse cell over a raster's edge read off it, so a raster ending at the DEM was refused |
+| Depth grid that stops short | Refused in plain words | refused, exit 2 |
+| Manning raster | The same value as a number | 0.1 % |
+| Pool set by level | Ground's own volume | 0.1 % |
+| Lumped subbasin, table, into fine and coarse cells | Rain masked, hydrograph enters once | rain within 0.2 %, inflow exact |
+| Lumped subbasin from an HMS basin | Its volume enters | 3 % |
+| 2D subbasin with its own CN | Volume | 0.2 % |
+| Depth-area study, composite maps | The uniform grid | design peak within 5 %, median depth 2 cm |
+| Stop and resume, CPU and GPU | An unbroken run | peak 1.4 % off; a uniform run moves 0.9 %, because rain windows restart at the stop |
+| `--dry-run` | The mesh's own cells, memory, a word on the time | **fixed:** it reported the uniform grid. Its time is rough, and says so |
+| Spillway, burn line, normal-depth edge | Rating; uniform | 3 %, 0.1 %, 5 % |
+| Gauge in a coarse cell | Uniform water level | 3 cm on a 1 % slope |
+| Pixel depth against an embankment | Crest and the far side dry | dry |
+
+The dock offers no ARF study and no resume, so those two reach a mesh from the command line. Nothing had to be refused beyond what already was.
+
 ## Not tested
 
-Levels at a real front on a mesh at full scale; an observed event; another PC; the CPU backend through the dock; a mesh with an ARF study,
-HMS lumped subbasins or a depth grid (the code paths exist, no test runs them); resume on a mesh with GPU; `--dry-run` for a mesh, which
-reports the uniform grid and says so. Table cache: a mesh rebuilds its tables each run. Slope breaks are unit-tested only.
+Levels at a real front on a mesh at full scale; an observed event; another PC; the CPU backend through the dock. A mesh rebuilds its tables each
+run: no cache. Slope breaks are unit-tested only. A mesh ran no timing in this last pass: the GPU was held by the full-extent rerun, and the clean
+timing of the four mesh cases is the coordinator's.
 
 ## Files
 
 `bidah.py` one run with changed settings. `speed.py`, `speed_mesh.py` timing with GPU use sampled; results in `speed_*.jsonl`.
-`plug_mesh.py`, `run_plug.ps1` the dock check; `log_plugin_run.txt` its record. `runs/` is not in git.
+`plug_mesh.py`, `plug_maps.py`, `run_plug.ps1` the dock checks; `log_plugin_run.txt`, `log_plugin_maps.txt` their records. `runs/` is not in git.

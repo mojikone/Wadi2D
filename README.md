@@ -61,7 +61,7 @@ To start a reservoir full, add to job.json `"initial_levels": [{"coordinates": [
 | `W1 research and design note` | 2026-10-29 | Toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note | live |
 | `W9 pixel outputs` | 2026-11-01 | Pixel depth and hazard in the engine, sloped surface, smooth maps, Make map | live; replaces the map scripts of `W2` and `W7` |
 | `W8 terrain tools` | 2026-11-01 | Embankments, channels, channels with dykes in engine and plugin; the crest sweep; dock check | live, merged |
-| `W10 mesher` | 2026-11-01 | Quadtree, local time stepping, the mesher, the Mesh section of the dock; off by default | live, on `stage/d-plugin`, not merged: local stepping gains nothing on a uniform grid, the gate it had to pass |
+| `W10 mesher` | 2026-11-01 | Quadtree, local time stepping, the mesher, the Mesh section of the dock; off by default | live, on `stage/d-plugin`; accepted for `main`, off by default. Local stepping gains nothing on a uniform grid: that gate stays failed, the mesh's gain is taken instead |
 
 ## Test case
 

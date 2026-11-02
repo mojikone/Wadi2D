@@ -23,7 +23,8 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    cell and tiles coarsen to the coarsest cell, by powers of two. Defined wadis stay fine by drainage area; barriers,
    boundaries and design lines always do. A polygon layer with a cell-size field adds zones. **Preview tile sizes** puts a
    layer of cell sizes on the map and says how many cells it comes to. Needs the `whitebox` package (`pip install wadi2d[mesh]`).
-   Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh.
+   Local time stepping sits here too: ticking the mesh turns it on, and it can be used without a mesh. It saves no time on a uniform
+   grid and helps on a large mesh. A mesh saves time above about 1 M cells, and only memory below that.
 3. **Hydrology.** Rain in mm/h and hours, or an HMS project folder: choose the basin, met and control files and set each
    subbasin to lumped or 2d. The storm and the simulated time then come from the project through `wadi2d hms-import`.
 4. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
@@ -31,7 +32,7 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    shows the result on the map in seconds, without a run.
 5. **Boundaries.** A line layer with one kind and value. If it has fields named `kind` and `value`, each line uses its own.
 6. **Results points.** Points record depth and level; lines across the flow record discharge.
-7. **Run.** Estimate gives cells, memory, time and the disk of the saved maps, for the uniform grid even when a mesh is on. **Save maps** is every 15 minutes for design
+7. **Run.** Estimate gives cells, memory, time and the disk of the saved maps; on a mesh it counts the mesh, and its time is rough. **Save maps** is every 15 minutes for design
    work, or every 5 for an animation, three times the disk; peak depth and hazard hardly move between the two, because the
    run keeps its own peaks. A folder that already holds a run is never overwritten: the new run goes to `<folder>_2`, and
    all runs share `wadi2d_cache` beside them, so tables are built once.
