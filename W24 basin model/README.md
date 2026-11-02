@@ -3,7 +3,7 @@
 [PRESERVE-CHECK]
 
 KEEP, not touched:
-- `wadi2d/forcing.py`, `wadi2d/run.py`, everything under `plugin/`: D5 is changing them on another branch.
+- `wadi2d/forcing.py`, `wadi2d/run.py`, everything under `plugin/`: left to D5 and the next piece.
 - `RunConfig` and its JSON Schema: no new field, so `tests/plugin/schema_sample.json` stays as it is and an old job
   is byte-identical in its resolved config, its grid key and its checkpoint hash.
 - `wadi2d/mesh/streams.py`, the mesher, the lumped engine and the reservoir classes: reused, unchanged.
@@ -143,7 +143,7 @@ Terrain `GGC_2_MERGE_HDSM_5.tif`, the 5 m raster HMS's polygons sit on; `domain.
 | Diagnosis: 0.474 Kirpich on the generated L and 10-85 S | 0.98 | 0.96 | 0.88 | 0.98 | 0.95 |
 
 - **Lag: the whole gap.** [Certain] With HMS's lags every site comes under 1.0. CN does nothing.
-- **Sections: up to -12 %, the second error.** [Certain] With HMS's lag the generated trapezoids read 0.88 at R5A and 0.95 at Z4C; HMS's own read 0.98 and 1.00. They attenuate more, which partly hides the lag error in the top row.
+- **Sections: the second error, 10 points at R5A.** [Certain] With HMS's lag the generated trapezoids read 0.88 at R5A and 0.95 at Z4C; HMS's own read 0.98 and 1.00. They attenuate more, which partly hides the lag error in the top row.
 - **Area:** with all parameters from HMS the rest is 0.96 at Bidah, the -4.2 % above, and 0.98 to 1.01 elsewhere.
 - **What HMS's lags are.** [Certain, arithmetic] A free fit of ln lag on ln L and ln S 10-85 gives exponents 0.770 and -0.386, Kirpich's 0.77 and -0.385, rms 0.13 %. Lag / Kirpich is 0.473 to 0.476 on all 18. Where 0.474 comes from is not in the files; the textbook lag ratio is 0.6. The diagnosis row is not a setting of the model: it shows the terrain can carry that rule, not that the rule is right.
 - **The NRCS lags sit on the 2D response, not on HMS.** [Certain for the numbers] `W1`'s equivalent lags of the 2D model, from hills 0.05 to n 0.1 everywhere, against NRCS on terrain: S1 45-65 / 56, S2 44-61 / 48, S5 40-57 / 61, S6 21-37 / 40, S11 27-41 / 41, S14 41-57 / 43. Two sit just above the range. Two methods agreeing is not a gauge; this says nothing on which is right (decision 20).
@@ -171,7 +171,7 @@ Terrain `GGC_2_MERGE_HDSM_5.tif`, the 5 m raster HMS's polygons sit on; `domain.
 | S17 | S13 | 1.000 | 11.89 | 11.89 | 87.5 | 87.47 | 53.0 | 43.70 | 11373 | 11365 | 0.02237 | 0.02242 | 0.369 | 0.374 |
 | S18 | S10 | 0.157 | 1.67 | 10.62 | 86.4 | 86.54 | 31.5 | 44.43 | 4242 | 7753 | 0.01206 | 0.01857 | 0.136 | 0.210 |
 
-NRCS over HMS lag: 0.46 to 0.86, median 0.61, on the 16 subbasins that are the same catchment. S16 and S18 share one mouth at the R5A axis: 24.03 km2 in HMS, 24.04 here, split differently because an outlet here is the largest pixel in a polygon and HMS's walls draw the line elsewhere. S10 has the same cause at R2A. These three say nothing against the terrain measures.
+NRCS over HMS lag: 0.46 to 0.86, median 0.61, on the 15 subbasins that are the same catchment. S16 and S18 share one mouth at the R5A axis: 24.03 km2 in HMS, 24.04 here, split differently because an outlet here is the largest pixel in a polygon and HMS's walls draw the line elsewhere. S10 has the same cause at R2A. These three say nothing against the terrain measures.
 
 ### Reaches, aligned
 
@@ -188,7 +188,7 @@ A generated reach counts for an HMS reach when most of it lies within 30 m of th
 | R7 | R4 | 17006.9 | 16999.3 | -0.0 | 0.01523 | 0.01522 | -0.1 | 50 | 16.6 | 1.0 | 6.3 |
 | R8 | R5 | 7765.3 | 7751.7 | -0.2 | 0.01100 | 0.01104 | +0.4 | 70 | 26.0 | 3.0 | 7.1 |
 
-Length and slope are the same measure on the same raster. The section is not: generated bottoms are a third of HMS's and side slopes three to eight times flatter. The fit runs over 4 m of depth with the bed as the lowest ground, so it reads a narrow low-flow channel in a wide bed; HMS's trapezoids are a judgement of the wadi. Neither is checked against a surveyed flood section [Likely the generated one is a poor fit above the low-flow channel]. R5, 660 m, has no twin: the J6 to J7 stretch falls inside other links. HMS's reach parameters were left out for it in the attribution.
+Length and slope are the same measure on the same raster. The section is not: generated bottoms are a quarter to a third of HMS's and side slopes two to eight times flatter. The fit runs over 4 m of depth with the bed as the lowest ground, so it reads a narrow low-flow channel in a wide bed; HMS's trapezoids are a judgement of the wadi. Neither is checked against a surveyed flood section [Likely the generated one is a poor fit above the low-flow channel]. R5, 660 m, has no twin: the J6 to J7 stretch falls inside other links. HMS's reach parameters were left out for it in the attribution.
 
 ### Reservoirs, on the NSA 5 m terrain of the dam levels
 
@@ -204,7 +204,7 @@ Length and slope are the same measure on the same raster. The section is not: ge
 ## Weak, and what to decide
 
 1. **Which lag.** NRCS is what the brief asked for and it gives 1.05 to 1.58 x HMS. Kirpich x 0.474 is a one-line alternative that reproduces his model. `slope_10_85` is in `basin.json` for it. Not built: choosing a lag method is a design decision for him, and no gauge settles it.
-2. **Sections** cost up to 12 % at R5A. The trapezoid is what the engine's Muskingum-Cunge takes, so the 8-point section of decision 8 is not there; the width curve is stored in `section`.
+2. **Sections** cost 10 points of the HMS peak at R5A. The trapezoid is what the engine's Muskingum-Cunge takes, so the 8-point section of decision 8 is not there; the width curve is stored in `section`.
 3. **`index_celerity` is derived**, 5/3 of Manning at `section_depth_m`, 2 to 4 m/s against HMS's 1.524 on every reach. It sets the reach's grid, not its physics, but it is not HMS's number.
 4. **D8 on a flat bed runs parallel lines**, which do not join, so a confluence on a wide bed lands further down than on the ground.
 5. **Delineation ignores `burn_line`, `wall` and the shaped objects.** A channel in the job does not change the network; an embankment across a wadi is not a dam. Decision 10 wants them in.
