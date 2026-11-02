@@ -155,6 +155,7 @@ def scenario():
     dock.points.layer.setLayer(lines)
     dock.points.name.setField("name")
     dock.panel.duration.setValue(4.0)
+    dock.panel.pixels.setChecked(False)  # pixel maps on a mesh are plug_maps.py's, on thinned ground; this DEM is 0.5 m
 
     log("=== 1 the default stays the uniform grid")
     dock.panel.folder.setFilePath(str(RUNS / "uniform"))
@@ -240,8 +241,8 @@ def scenario():
     dock.panel.estimate_button.click()
     yield lambda: dock.panel.estimate_label.text() not in ("", "Estimating...")
     check(
-        "estimate says it is for the uniform grid",
-        "uniform grid" in dock.panel.estimate_label.text(),
+        "estimate counts the mesh and says its time is rough",
+        f"{first_cells:,} cells" in dock.panel.estimate_label.text() and "rough" in dock.panel.estimate_label.text(),
         dock.panel.estimate_label.text(),
     )
     dock.panel.run_button.click()
