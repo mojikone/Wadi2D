@@ -1,0 +1,9 @@
+{
+ "gpu_s": 53.9,
+ "cpu_s": 62.2,
+ "pixels": 2962048,
+ "pixels_with_another_class": 0,
+ "largest_difference_depth_m": 1.0728836059570312e-06,
+ "largest_difference_speed_ms": 0.0,
+ "largest_difference_dv_m2s": 7.62939453125e-06
+}

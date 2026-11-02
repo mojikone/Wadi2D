@@ -1,0 +1,23 @@
+[
+ {
+  "slope": 0.01,
+  "steady_depth_m": 0.668,
+  "surface_spread_m": 0.003,
+  "flat_error_m": 0.125,
+  "bank_pixels_wet_pct": 0.0
+ },
+ {
+  "slope": 0.05,
+  "steady_depth_m": 0.422,
+  "surface_spread_m": 0.002,
+  "flat_error_m": 0.625,
+  "bank_pixels_wet_pct": 0.0
+ },
+ {
+  "slope": 0.1,
+  "steady_depth_m": 0.344,
+  "surface_spread_m": 0.001,
+  "flat_error_m": 1.25,
+  "bank_pixels_wet_pct": 0.0
+ }
+]

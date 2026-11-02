@@ -57,6 +57,8 @@ NICE_STEPS = (1.0, 2.0, 2.5, 5.0)
 NORTH_ARROW = "/arrows/NorthArrow_02.svg"
 FALLBACK_ARROW = ":/images/north_arrows/layout_default_north_arrow.svg"
 HILLSHADE_AZIMUTH, HILLSHADE_ALTITUDE = 315.0, 45.0
+HILLSHADE_OPACITY = 0.4
+"""Full strength, a mountain block drowns the thin classes on it."""
 SATELLITE = (
     "type=xyz&url=https://mt1.google.com/vt/lyrs%3Ds%26x%3D%7Bx%7D%26y%3D%7By%7D%26z%3D%7Bz%7D"
     "&zmax=17&zmin=0&crs=EPSG3857"
@@ -102,7 +104,9 @@ def _background(kind: str, dem: str, project):
     else:
         layer = QgsRasterLayer(dem, "Hillshade")
         if layer.isValid():
-            layer.setRenderer(QgsHillshadeRenderer(layer.dataProvider(), 1, HILLSHADE_AZIMUTH, HILLSHADE_ALTITUDE))
+            renderer = QgsHillshadeRenderer(layer.dataProvider(), 1, HILLSHADE_AZIMUTH, HILLSHADE_ALTITUDE)
+            renderer.setOpacity(HILLSHADE_OPACITY)
+            layer.setRenderer(renderer)
     if not layer.isValid():
         return None
     project.addMapLayer(layer, False)

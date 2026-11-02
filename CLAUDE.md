@@ -203,6 +203,12 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     vertical walls at 45 degrees runs +7 to +8 % at 3 cells wide and about +3.5 % at 6, averaged over lateral position; the +2 % recorded before was a lucky
     position and +11 % an old kernel. 2:1 banks +1.9 % and +0.9 %. Cause: a dry face's zero velocity is advected as real momentum, not grid alignment. `design_note.md` carries the equations
     and the list of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
+21. **Flood outputs live in the engine and the plugin, not in scripts** (his instruction, 2026-11-01: "the plugin is what other people
+    will use: a feature that is not in the plugin is not done"; he rejected the last maps as "pixel pixel"). After a run the engine makes depth,
+    speed and depth x speed at the DEM pixel over the saved maps, on the GPU with a CPU path from one source, and the classes H1 to H6 by the rule in
+    the schema. Two cells share a water surface when both levels stand above their shared face, or the higher does and their depths are alike; this
+    replaces the fixed 2 m jump, which switched the slope off on steep channels. Each cell is then filled to its own mean depth, so a thin sheet
+    reads its own depth, not a wedge. Rasters are the numbers of record; polygons and the depth drawing only show them. Detail: `W9 pixel outputs/README.md`.
 20. **Validation without gauges** (his statement, 2026-11-01: Block 2 has no hydrometric station with matching rainfall and hydrographs for one event, so
     HMS is not the thing to validate the outputs). Consequences. HMS replication stays as a **code check**: it proves our hydrology does what HMS does, not
     that either is right. Mode (c) against HMS is a **disagreement between two uncalibrated models**, not a failure of (c), and not a pass for HMS. Hand check
@@ -379,5 +385,6 @@ were never run; reviewer acceptance is untested.
 ## Iterations
 
 - `W2 full extent run` (live): the actual project boundary at 30 m on NSA 5 m blended with Copernicus 30 m, Block 2's 200-yr storm. Its `README.md` holds inputs and results.
+- `W9 pixel outputs` (live): pixel depth and hazard in the engine, sloped surface, smooth maps, Make map. The map scripts of `W2` and `W7` are superseded by it.
 - `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
   the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.
