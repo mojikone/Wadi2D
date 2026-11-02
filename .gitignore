@@ -67,5 +67,6 @@ Wadi2D_results.qgz
 /W10 mesher/runs/
 **/W12 full extent rerun/runs/
 **/W12 full extent rerun/run.log
+**/W12 full extent rerun/s02.log
 **/W13 time step test/runs/
 **/W12 full extent rerun/chain.log
