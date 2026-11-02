@@ -207,6 +207,12 @@ def test_a_line_on_the_ladder_says_it_was_not_rounded():
     assert line_sizes(config(near_dx=20.0, far_dx=40.0))[0]["rounded"] is False
 
 
+def test_a_far_size_alone_off_the_ladder_is_said_too():
+    """A mutation check found nothing held this: the run would keep quiet about a far size it moved."""
+    sizes = line_sizes(config(near_dx=10.0, far_dx=30.0))[0]
+    assert (sizes["near"], sizes["far"], sizes["rounded"]) == (10.0, 20.0, True)
+
+
 def test_sizes_past_the_ends_of_the_ladder_are_held_there():
     sizes = line_sizes(config(near_dx=5.0, far_dx=500.0))[0]
     assert (sizes["near"], sizes["far"], sizes["rounded"]) == (10.0, 80.0, True)
