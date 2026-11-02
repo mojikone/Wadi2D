@@ -1,0 +1,95 @@
+{
+ "peaks": {
+  "generated_nrcs": {
+   "Faydh 01": {
+    "peak_m3s": 1443.4,
+    "at_h": 12.67
+   },
+   "Bidah 03": {
+    "peak_m3s": 361.9,
+    "at_h": 12.58
+   },
+   "R5A": {
+    "peak_m3s": 1333.9,
+    "at_h": 13.33
+   },
+   "R2A": {
+    "peak_m3s": 2329.2,
+    "at_h": 13.25
+   },
+   "Z4C": {
+    "peak_m3s": 2158.5,
+    "at_h": 15.17
+   }
+  },
+  "generated_hms_kirpich": {
+   "Faydh 01": {
+    "peak_m3s": 988.5,
+    "at_h": 13.08
+   },
+   "Bidah 03": {
+    "peak_m3s": 330.6,
+    "at_h": 12.75
+   },
+   "R5A": {
+    "peak_m3s": 810.0,
+    "at_h": 14.75
+   },
+   "R2A": {
+    "peak_m3s": 1849.8,
+    "at_h": 13.67
+   },
+   "Z4C": {
+    "peak_m3s": 1751.8,
+    "at_h": 15.58
+   }
+  },
+  "hms": {
+   "Faydh 01": {
+    "peak_m3s": 993.5,
+    "at_h": 13.25
+   },
+   "Bidah 03": {
+    "peak_m3s": 343.6,
+    "at_h": 12.75
+   },
+   "R5A": {
+    "peak_m3s": 921.5,
+    "at_h": 14.75
+   },
+   "R2A": {
+    "peak_m3s": 1464.0,
+    "at_h": 14.25
+   },
+   "Z4C": {
+    "peak_m3s": 1826.0,
+    "at_h": 15.5
+   }
+  },
+  "hms_2d_lines": {
+   "Bidah_03": 0.0,
+   "Faydh_01": 0.0,
+   "R2A": 0.0,
+   "R5A": 0.0,
+   "Z4C": 0.0
+  }
+ },
+ "ratios": {
+  "generated_nrcs": {
+   "Faydh 01": 1.453,
+   "Bidah 03": 1.053,
+   "R5A": 1.448,
+   "R2A": 1.591,
+   "Z4C": 1.182
+  },
+  "generated_hms_kirpich": {
+   "Faydh 01": 0.995,
+   "Bidah 03": 0.962,
+   "R5A": 0.879,
+   "R2A": 1.264,
+   "Z4C": 0.959
+  }
+ },
+ "storm_area_km2": 74.304,
+ "dx": 40.0
+}

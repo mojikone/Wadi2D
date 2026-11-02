@@ -1,0 +1,46 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a42dc3d7206acef8c\plugin\wadi2d_qgis\__init__.py
+    4.6 PASS engine found Engine ready.
+    4.6 === generated basin, lag nrcs
+   33.8 summary: 41 subbasins, 18 reaches, 21 junctions, 5 reservoirs; 80.4057 km2 reach the edge without meeting a stream and rain on the grid. Routed as a junction, no reach or no rating, for lack of: Z4C (spillways, initial_elevation_m), R2A (spillways, initial_elevation_m), R5A (spillways, initial_elevation_m), Faydh 01 (spillways, initial_elevation_m), Bidah 03 (spillways, initial_elevation_m).
+   33.8 PASS nrcs: a basin was generated 41 subbasins, 18 reaches, 21 junctions, 5 reservoirs; 80.4057 km2 reach the edge without meeting a stream and rain on the grid. Routed as a junction, no reach or no rating, for lack of: Z4C (spillways
+   33.8 PASS nrcs: 41 subbasins and 18 reaches at 10 km2 as W24 had (41, 18)
+   33.8 PASS nrcs: the five axes are reservoirs 
+   33.8 PASS nrcs: basin.json says which lag made it nrcs
+   35.9 dock says: Starting...
+   37.9 dock says: reservoir Bidah 03 lacks spillways, initial_elevation_m: it passes its inflow on as a junction
+   79.8 PASS nrcs: the run finished Finished. reservoir Z4C lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R2A lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R5A lacks spillways, initial_elevation_m: it passes its in
+   79.8 PASS nrcs: the five dams are warned as junctions, lacking a spillway ['reservoir Z4C lacks spillways, initial_elevation_m: it passes its inflow on as a junction', 'reservoir R2A lacks spillways, initial_elevation_m: it passes its inflow on as a junction', 'reservoir R5A lacks spillways, initial_elevation_m: it passes its inflow
+   79.8 PASS nrcs: no rain on the grid but the unassigned ground (11914646.338873846, 115747688.43187553)
+   79.8 PASS nrcs: mass closes -2.147684411452642e-08
+   79.8 peaks nrcs: {'Faydh 01': {'peak_m3s': 1443.4, 'at_h': 12.67}, 'Bidah 03': {'peak_m3s': 361.9, 'at_h': 12.58}, 'R5A': {'peak_m3s': 1333.9, 'at_h': 13.33}, 'R2A': {'peak_m3s': 2329.2, 'at_h': 13.25}, 'Z4C': {'peak_m3s': 2158.5, 'at_h': 15.17}}
+   79.8 PASS nrcs: a peak at every dam {'Faydh 01': {'peak_m3s': 1443.4, 'at_h': 12.67}, 'Bidah 03': {'peak_m3s': 361.9, 'at_h': 12.58}, 'R5A': {'peak_m3s': 1333.9, 'at_h': 13.33}, 'R2A': {'peak_m3s': 2329.2, 'at_h': 13.25}, 'Z4C': {'peak_m3s': 2158.5, 'at_h': 15.17}}
+   79.8 === generated basin, lag hms_kirpich
+   80.0 dock says: Finished. reservoir Z4C lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R2A lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R5A lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir Faydh 0
+  107.5 summary: 41 subbasins, 18 reaches, 21 junctions, 5 reservoirs; 80.4057 km2 reach the edge without meeting a stream and rain on the grid. Routed as a junction, no reach or no rating, for lack of: Z4C (spillways, initial_elevation_m), R2A (spillways, initial_elevation_m), R5A (spillways, initial_elevation_m), Faydh 01 (spillways, initial_elevation_m), Bidah 03 (spillways, initial_elevation_m).
+  107.5 PASS hms_kirpich: a basin was generated 41 subbasins, 18 reaches, 21 junctions, 5 reservoirs; 80.4057 km2 reach the edge without meeting a stream and rain on the grid. Routed as a junction, no reach or no rating, for lack of: Z4C (spillways
+  107.5 PASS hms_kirpich: 41 subbasins and 18 reaches at 10 km2 as W24 had (41, 18)
+  107.5 PASS hms_kirpich: the five axes are reservoirs 
+  107.5 PASS hms_kirpich: basin.json says which lag made it hms_kirpich
+  107.7 dock says: Starting...
+  109.7 dock says: reservoir Bidah 03 lacks spillways, initial_elevation_m: it passes its inflow on as a junction
+  148.6 PASS hms_kirpich: the run finished Finished. reservoir Z4C lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R2A lacks spillways, initial_elevation_m: it passes its inflow on as a junction. reservoir R5A lacks spillways, initial_elevation_m: it passes its in
+  148.6 PASS hms_kirpich: the five dams are warned as junctions, lacking a spillway ['reservoir Z4C lacks spillways, initial_elevation_m: it passes its inflow on as a junction', 'reservoir R2A lacks spillways, initial_elevation_m: it passes its inflow on as a junction', 'reservoir R5A lacks spillways, initial_elevation_m: it passes its inflow
+  148.6 PASS hms_kirpich: no rain on the grid but the unassigned ground (11914646.338873843, 115593004.49287647)
+  148.6 PASS hms_kirpich: mass closes -2.1946898397377982e-08
+  148.6 peaks hms_kirpich: {'Faydh 01': {'peak_m3s': 988.5, 'at_h': 13.08}, 'Bidah 03': {'peak_m3s': 330.6, 'at_h': 12.75}, 'R5A': {'peak_m3s': 810.0, 'at_h': 14.75}, 'R2A': {'peak_m3s': 1849.8, 'at_h': 13.67}, 'Z4C': {'peak_m3s': 1751.8, 'at_h': 15.58}}
+  148.6 PASS hms_kirpich: a peak at every dam {'Faydh 01': {'peak_m3s': 988.5, 'at_h': 13.08}, 'Bidah 03': {'peak_m3s': 330.6, 'at_h': 12.75}, 'R5A': {'peak_m3s': 810.0, 'at_h': 14.75}, 'R2A': {'peak_m3s': 1849.8, 'at_h': 13.67}, 'Z4C': {'peak_m3s': 1751.8, 'at_h': 15.58}}
+  148.6 === the HMS project, lumped, the same storm
+  148.6 PASS the basin box is off under the HMS project 
+  148.6 PASS 18 HMS subbasins, all lumped 
+  148.8 dock says: Starting...
+  149.8 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  223.7 dock says: water stood 21.1 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there
+  224.0 PASS the HMS run finished Finished. water stood 21.1 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+  224.0 PASS the HMS run has the same storm (205.4, 74.3)
+  224.0 peaks hms: {'Faydh 01': {'peak_m3s': 993.5, 'at_h': 13.25}, 'Bidah 03': {'peak_m3s': 343.6, 'at_h': 12.75}, 'R5A': {'peak_m3s': 921.5, 'at_h': 14.75}, 'R2A': {'peak_m3s': 1464.0, 'at_h': 14.25}, 'Z4C': {'peak_m3s': 1826.0, 'at_h': 15.5}}
+  224.0 PASS a network peak at every HMS dam {'Faydh 01': {'peak_m3s': 993.5, 'at_h': 13.25}, 'Bidah 03': {'peak_m3s': 343.6, 'at_h': 12.75}, 'R5A': {'peak_m3s': 921.5, 'at_h': 14.75}, 'R2A': {'peak_m3s': 1464.0, 'at_h': 14.25}, 'Z4C': {'peak_m3s': 1826.0, 'at_h': 15.5}}
+  224.0 ratios to HMS: {'generated_nrcs': {'Faydh 01': 1.453, 'Bidah 03': 1.053, 'R5A': 1.448, 'R2A': 1.591, 'Z4C': 1.182}, 'generated_hms_kirpich': {'Faydh 01': 0.995, 'Bidah 03': 0.962, 'R5A': 0.879, 'R2A': 1.264, 'Z4C': 0.959}}
+  224.0 PASS the HMS-style lag reads closer to HMS than NRCS at every dam {'generated_nrcs': {'Faydh 01': 1.453, 'Bidah 03': 1.053, 'R5A': 1.448, 'R2A': 1.591, 'Z4C': 1.182}, 'generated_hms_kirpich': {'Faydh 01': 0.995, 'Bidah 03': 0.962, 'R5A': 0.879, 'R2A': 1.264, 'Z4C': 0.959}}
+  224.0 SUMMARY 26 passed, 0 failed 
+  224.0 DONE
