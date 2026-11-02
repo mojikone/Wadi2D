@@ -14,6 +14,7 @@ from ..job_builder import (
     MESH_ENABLED,
     MESH_FINE_AREA,
     MESH_MID_AREA,
+    SPEED_NOTE,
     ZONE_DX_FIELD,
     layer_features,
 )
@@ -32,6 +33,8 @@ class MeshSection(Section):
         self.zones = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "No refinement zones")
         self.zone_dx = field_combo(self.zones)
         self.local_steps = QCheckBox("Each tile takes the step it can afford")
+        self.speed_note = QLabel(SPEED_NOTE)
+        self.speed_note.setWordWrap(True)
         self.preview_button = QPushButton("Preview tile sizes")
         self.summary = QLabel()
         self.summary.setWordWrap(True)
@@ -43,6 +46,7 @@ class MeshSection(Section):
         self.form.addRow("Refinement zones", self.zones)
         self.form.addRow("Zone cell size field, m", self.zone_dx)
         self.form.addRow("Local time stepping", self.local_steps)
+        self.form.addRow(self.speed_note)
         self.form.addRow(self.preview_button)
         self.form.addRow(self.summary)
         self.enabled.toggled.connect(self._enabled_changed)

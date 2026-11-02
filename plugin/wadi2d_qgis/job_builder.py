@@ -36,6 +36,10 @@ MESH_MID_AREA = "mesh.stream_area_mid_km2"
 MESH_ZONE_DX = "mesh.zones.dx"
 LOCAL_STEPS = "numerics.local_time_stepping"
 ZONE_DX_FIELD = "dx"
+SPEED_NOTE = (
+    "Local time stepping saves no time on a uniform grid; it helps on a large mesh. "
+    "A mesh saves time above about 1 M cells, and only memory below that."
+)
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
 

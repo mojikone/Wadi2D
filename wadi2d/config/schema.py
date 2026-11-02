@@ -55,7 +55,10 @@ class RefineZone(_Part):
 class Mesh(_Part):
     """The quadtree. Off keeps the uniform grid of ``grid.dx``; on, that is the finest cell and tiles coarsen from it."""
 
-    enabled: bool = Field(False, description="Refine tiles by the rules below; off is the uniform grid")
+    enabled: bool = Field(
+        False,
+        description="Refine tiles by the rules below; off is the uniform grid. Saves time above about 1 M cells, only memory below",
+    )
     coarse_dx: float = Field(
         40.0, gt=0.0, le=1000.0, description="Coarsest cell, m; grid.dx times a power of two"
     )
@@ -365,7 +368,8 @@ class Numerics(_Part):
         16, ge=1, le=32, description="Steps between active-tile rebuilds; at most the tile size"
     )
     local_time_stepping: bool = Field(
-        False, description="Each tile steps a power of two of the smallest step; off keeps the uniform step"
+        False,
+        description="Each tile steps a power of two of the smallest step. Saves no time on a uniform grid; helps on a large mesh",
     )
     lts_levels: int = Field(
         3, ge=0, le=5, description="Highest time level: the slowest tile steps 2^this x the smallest step"

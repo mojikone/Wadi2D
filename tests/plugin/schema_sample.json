@@ -592,7 +592,7 @@
       "properties": {
         "enabled": {
           "default": false,
-          "description": "Refine tiles by the rules below; off is the uniform grid",
+          "description": "Refine tiles by the rules below; off is the uniform grid. Saves time above about 1 M cells, only memory below",
           "title": "Enabled",
           "type": "boolean"
         },
@@ -798,7 +798,7 @@
         },
         "local_time_stepping": {
           "default": false,
-          "description": "Each tile steps a power of two of the smallest step; off keeps the uniform step",
+          "description": "Each tile steps a power of two of the smallest step. Saves no time on a uniform grid; helps on a large mesh",
           "title": "Local Time Stepping",
           "type": "boolean"
         },
