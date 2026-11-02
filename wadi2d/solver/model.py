@@ -12,6 +12,15 @@ from wadi2d.solver.stepper import Stepper
 from wadi2d.tables.builder import GridTables
 
 
+def make_stepper(backend, grid, num: Numerics) -> Stepper:
+    """The uniform step unless the job asks for local time stepping."""
+    if not num.local_time_stepping:
+        return Stepper(backend, grid, num)
+    from wadi2d.solver.level_stepper import LevelStepper
+
+    return LevelStepper(backend, grid, num)
+
+
 class Model:
     def __init__(self, tables: GridTables, num: Numerics | None = None, backend: str = "auto") -> None:
         self.tables = tables
@@ -19,7 +28,7 @@ class Model:
         self.num = num or Numerics()
         record = NumericsRecord.from_config(self.num, self.grid.dx)
         self.backend = select_backend(backend, tables, record)
-        self.stepper = Stepper(self.backend, self.grid, self.num)
+        self.stepper = make_stepper(self.backend, self.grid, self.num)
         self.host = HostState(self.grid, {})
         self.boundary_tiles = np.zeros(0, np.int64)
 
@@ -101,6 +110,7 @@ class Model:
         self.backend.set_boundary(bc)
         self.boundary_tiles = np.unique(bc.cell // STRIDE2)
         self.stepper.keep_active[self.boundary_tiles] = True
+        self.stepper.pin(self.boundary_tiles)
         self.stepper.rebuild_active(retain=True)
 
     def advance(self, t_end: float, on_step=None) -> float:

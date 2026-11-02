@@ -87,7 +87,7 @@ class CpuBackend:
         kernels.limit(self.active, dtf, self.h, self.qx1, self.qy1, self.r, np.float32(self.num.dx))
         self._exch(self.r)
         kernels.update(
-            self.active, dtf, want_wave, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab, self.h, self.d, self.qx,
+            self.active, dtf, want_wave, False, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab, self.h, self.d, self.qx,
             self.qy, self.wet, self.rows, np.float32(self.num.dx),
         )  # fmt: skip
         if self.bc.cell.size:
@@ -100,6 +100,12 @@ class CpuBackend:
         self.v, self.v1 = self.v1, self.v
         self.mx, self.mx1 = self.mx1, self.mx
         self.my, self.my1 = self.my1, self.my
+
+    def level_ops(self):
+        """The operations of the level stepper, which allocates what only it needs."""
+        from wadi2d.solver.cpu.levels import CpuLevels
+
+        return CpuLevels(self)
 
     def max_wave(self) -> float:
         return float(self.wave.max())

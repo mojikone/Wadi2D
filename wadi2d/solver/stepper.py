@@ -32,6 +32,9 @@ class Stepper:
         self.dt = self.num.cfl * self.grid.dx / self.num.wave_floor
         """Tiles that stay active whatever the water does: sources and boundaries."""
 
+    def pin(self, tiles: np.ndarray) -> None:
+        """Tiles that must see every smallest step; the uniform step has no other kind."""
+
     def rebuild_active(self, retain: bool = False) -> None:
         """Active: a wet tile, a tile with a source, and all their neighbours; water moves under a cell per step.
 

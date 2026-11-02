@@ -245,7 +245,7 @@ def scaled(q, rl, rr):
 
 
 @njit(parallel=True)
-def update(active, dt, want_plan, res, om, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
+def update(active, dt, want_plan, debt, res, om, qx1, qy1, r, src, hc, dtab, h, d, qx, qy, wet, rows, dx):
     area = dx * dx
     for a in prange(active.size):
         t = active[a]
@@ -265,7 +265,7 @@ def update(active, dt, want_plan, res, om, qx1, qy1, r, src, hc, dtab, h, d, qx,
                 inc = res[k] + dt * src[k] - dt * (qe - qw + qs - qn) / area
                 total = h0 + inc
                 hn = max(total, ZERO)
-                res[k] = inc - (total - h0) if total > ZERO else ZERO
+                res[k] = inc - (total - h0) if total > ZERO else (total if debt else ZERO)
                 h[k] = hn
                 tab = dtab[rows * fid : rows * (fid + 1)]
                 d[k] = cell_level(hn, hc[fid], tab, rows)

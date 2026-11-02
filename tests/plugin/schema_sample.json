@@ -674,6 +674,36 @@
           "minimum": 1,
           "title": "Active Every",
           "type": "integer"
+        },
+        "local_time_stepping": {
+          "default": false,
+          "description": "Each tile steps a power of two of the smallest step; off keeps the uniform step",
+          "title": "Local Time Stepping",
+          "type": "boolean"
+        },
+        "lts_levels": {
+          "default": 3,
+          "description": "Highest time level: the slowest tile steps 2^this x the smallest step",
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Lts Levels",
+          "type": "integer"
+        },
+        "lts_wave_floor": {
+          "default": 1.0,
+          "description": "Least wave speed in a tile's own step, m/s; lower than wave_floor, the buffer guards fronts",
+          "maximum": 30.0,
+          "minimum": 0.1,
+          "title": "Lts Wave Floor",
+          "type": "number"
+        },
+        "lts_buffer": {
+          "default": 1.0,
+          "description": "Share of the fastest neighbour's wave a tile respects, so a front can enter it within a cycle",
+          "maximum": 1.0,
+          "minimum": 0.5,
+          "title": "Lts Buffer",
+          "type": "number"
         }
       },
       "title": "Numerics",
@@ -1367,7 +1397,11 @@
         "dt_every": 8,
         "wave_floor": 3.0,
         "plan_min": 0.02,
-        "active_every": 16
+        "active_every": 16,
+        "local_time_stepping": false,
+        "lts_levels": 3,
+        "lts_wave_floor": 1.0,
+        "lts_buffer": 1.0
       }
     },
     "storm": {

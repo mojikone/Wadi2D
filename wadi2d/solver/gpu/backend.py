@@ -24,7 +24,7 @@ def _source() -> str:
     )
     head += f"\n#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
     return head + "".join(
-        (KERNELS / f).read_text(encoding="utf-8") + "\n" for f in ("common.cuh", "faces.cu", "cells.cu")
+        (KERNELS / f).read_text(encoding="utf-8") + "\n" for f in ("common.cuh", "faces.cu", "cells.cu", "levels.cu")
     )
 
 
@@ -124,7 +124,7 @@ class GpuBackend:
             self.wet[:] = 0
         self._update(
             grid, BLOCK,
-            (self.active, dtf, int(want_wet), int(want_wave), self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab,
+            (self.active, dtf, int(want_wet), int(want_wave), 0, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab,
              self.h, self.d, self.qx, self.qy, self.wet),
         )  # fmt: skip
         if self.bc is not None and self.bc.cell.size:
@@ -137,6 +137,12 @@ class GpuBackend:
         self.v, self.v1 = self.v1, self.v
         self.mx, self.mx1 = self.mx1, self.mx
         self.my, self.my1 = self.my1, self.my
+
+    def level_ops(self):
+        """The operations of the level stepper, which allocates what only it needs."""
+        from wadi2d.solver.gpu.levels import GpuLevels
+
+        return GpuLevels(self, BLOCK, EXCHANGE_BLOCK)
 
     def max_wave(self) -> float:
         return float(self.wave.max())

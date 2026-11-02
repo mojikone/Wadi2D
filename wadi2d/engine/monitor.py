@@ -83,6 +83,9 @@ class Monitor:
         grid = tables.grid
         self.maxima = Maxima(model, o.arrival_depth, o.speed_depth)
         self.tally = Tally(model, boundary.xfaces, boundary.xsign, boundary.yfaces, boundary.ysign)
+        self.counted_inside = hasattr(model.stepper, "substep_hook")
+        if self.counted_inside:
+            model.stepper.substep_hook = self.tally.add
         self.balance = Balance()
         self.stop_file = out / "stop"
         self.stop_files = (self.stop_file, *stop_files)
@@ -197,11 +200,12 @@ class Monitor:
     def on_step(self, st: Stepper) -> None:
         n = st.nsteps
         t = st.t
-        self.tally.add(t - self.last_t)
+        if not self.counted_inside:
+            self.tally.add(t - self.last_t)
         self.last_t = t
         if st.dt < self.dt_min:
             self.dt_min = st.dt
-        if n % self.max_every == 0:
+        if self.counted_inside or n % self.max_every == 0:
             self.maxima.update(t)
         if t >= self.next_series:
             self.record(t)

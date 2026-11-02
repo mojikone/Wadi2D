@@ -142,6 +142,24 @@ class Numerics(_Part):
     active_every: int = Field(
         16, ge=1, le=32, description="Steps between active-tile rebuilds; at most the tile size"
     )
+    local_time_stepping: bool = Field(
+        False, description="Each tile steps a power of two of the smallest step; off keeps the uniform step"
+    )
+    lts_levels: int = Field(
+        3, ge=0, le=5, description="Highest time level: the slowest tile steps 2^this x the smallest step"
+    )
+    lts_wave_floor: float = Field(
+        1.0,
+        ge=0.1,
+        le=30.0,
+        description="Least wave speed in a tile's own step, m/s; lower than wave_floor, the buffer guards fronts",
+    )
+    lts_buffer: float = Field(
+        1.0,
+        ge=0.5,
+        le=1.0,
+        description="Share of the fastest neighbour's wave a tile respects, so a front can enter it within a cycle",
+    )
 
 
 class Boundary(_Part):

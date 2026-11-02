@@ -28,8 +28,9 @@ class NumericsRecord:
 
     @classmethod
     def from_config(cls, num: Numerics, dx: float) -> NumericsRecord:
+        lead = float(max(num.dt_every, 1 << num.lts_levels) if num.local_time_stepping else num.dt_every)
         return cls(
-            G, dx, num.e_wet, num.h_cfl, num.u_max, float(num.dt_every), num.plan_min, num.limiter != "none",
+            G, dx, num.e_wet, num.h_cfl, num.u_max, lead, num.plan_min, num.limiter != "none",
             num.sheet_flow,
             num.mirror_dry_faces,
         )  # fmt: skip
