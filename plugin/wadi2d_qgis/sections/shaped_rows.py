@@ -8,9 +8,10 @@ from dataclasses import replace
 from pathlib import Path
 
 from qgis.gui import QgsFileWidget
-from qgis.PyQt.QtWidgets import QComboBox, QFormLayout, QHBoxLayout, QWidget
+from qgis.PyQt.QtWidgets import QComboBox, QFormLayout, QHBoxLayout, QLabel, QPushButton, QSizePolicy, QWidget
 
-from ..job_builder import layer_features
+from ..job_builder import Feature, layer_features
+from ..profile_table import Line, ProfileStore, keyed, part_label
 from ..shaped import END_KEYS, LINING, OBJECT_PATH, OPENINGS, SECTION_PATH, TABLE, TOP
 from .common import bind, field_combo, number_box
 
@@ -91,13 +92,45 @@ class NumberOrField(QWidget):
         self.field.setToolTip(text)
 
 
+class ProfileRow(QWidget):
+    """The way into the profile editor, and how many lines of the layer have a saved profile."""
+
+    def __init__(self, kind: str, picker, profiles: ProfileStore) -> None:
+        super().__init__()
+        self.kind, self.picker, self.profiles = kind, picker, profiles
+        self.button = QPushButton("Edit profile...")
+        self.button.setToolTip("Bed, tops or elevations along each line: drag points, type a table, undo, preview.")
+        self.button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)  # the dock is narrow: the label gives way, not this
+        self.saved = QLabel()
+        self.saved.setToolTip("For its line, a saved profile outranks the fields and the section table.")
+        row = QHBoxLayout(self)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.addWidget(self.button)
+        row.addWidget(self.saved, 1)
+        picker.layerChanged.connect(lambda _layer: self.refresh())
+
+    def refresh(self) -> None:
+        layer = self.picker.currentLayer()
+        count = self.profiles.count(layer, self.kind) if layer is not None else 0
+        self.saved.setText(f"{count} saved" if count else "")
+
+
+def lines_of(kind: str, found: list[tuple[str, int, Feature]]) -> list[Line]:
+    """What the editor needs of each line; ``table`` is the line's own route, never its saved profile."""
+    return [
+        Line(key, fid, part_label(n, feature, key), kind, feature.coordinates, feature.properties, feature.properties.get(TABLE))
+        for n, (key, fid, feature) in enumerate(found, start=1)
+    ]
+
+
 class ShapedRows(QWidget):
     """The rows of one kind; hidden until its layer is chosen."""
 
-    def __init__(self, kind: str, picker) -> None:
+    def __init__(self, kind: str, picker, profiles: ProfileStore | None = None) -> None:
         super().__init__()
         self.kind = kind
         self.picker = picker
+        self.profiles = profiles or ProfileStore()
         self.fields: dict = {}
         self.numbers: dict = {}
         self.form = QFormLayout(self)
@@ -117,6 +150,8 @@ class ShapedRows(QWidget):
         self.table.setDialogTitle("Section table")
         self.form.addRow("Section table", self.table)
         self.form.addRow("Section table field, per line", self.table_field)
+        self.profile_row = ProfileRow(kind, picker, self.profiles)
+        self.form.addRow("Profile along the line", self.profile_row)
         self.start_end = QComboBox()
         self.end_end = QComboBox()
         self.taper = number_box(NUMBER_DECIMALS)
@@ -151,8 +186,8 @@ class ShapedRows(QWidget):
             return str(path)
         return str(Path(layer.source().split("|")[0]).parent / path)
 
-    def features(self, crs) -> list:
-        """The layer's lines with every value in their properties: a field where it holds one, else the number."""
+    def _own(self, crs) -> list[tuple[str, int, Feature]]:
+        """Each line with every value in its properties: a field where it holds one, else the number."""
         layer = self.picker.currentLayer()
         chosen = {key: combo.currentField() for key, combo in self.fields.items()}
         chosen[TABLE] = self.table_field.currentField()
@@ -164,9 +199,21 @@ class ShapedRows(QWidget):
                 strict=True,
             )
         )
-        features = []
-        for feature in layer_features(layer, crs, chosen):
-            held = {key: value for key, value in feature.properties.items() if value is not None}
+        found = []
+        for key, fid, feature in keyed(layer_features(layer, crs, chosen, with_id=True)):
+            held = {name: value for name, value in feature.properties.items() if value is not None}
             merged = {**numbers, **ends, **held, TABLE: self._table_path(held.get(TABLE), layer)}
-            features.append(replace(feature, properties=merged))
+            found.append((key, fid, replace(feature, properties=merged)))
+        return found
+
+    def features(self, crs) -> list:
+        """What goes to the job: the lines, each with its saved profile, if it has one, as its table."""
+        layer = self.picker.currentLayer()
+        features = []
+        for key, _fid, feature in self._own(crs):
+            saved = self.profiles.table(layer, self.kind, key)
+            features.append(replace(feature, properties={**feature.properties, TABLE: saved}) if saved else feature)
         return features
+
+    def lines(self, crs) -> list[Line]:
+        return lines_of(self.kind, self._own(crs))

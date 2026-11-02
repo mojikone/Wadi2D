@@ -39,6 +39,7 @@ from .job_builder import (
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
 from .preview import TerrainPreview
+from .profile_editor import ProfileEditor
 from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
@@ -143,6 +144,8 @@ class Wadi2DDock(QgsDockWidget):
         self.preview.finished.connect(self._previewed)
         self.structures.preview_button.clicked.connect(self.preview_terrain)
         self.structures.profile_button.clicked.connect(self.show_profile)
+        self.editor: ProfileEditor | None = None
+        self.structures.edit_requested.connect(self.edit_profile)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -419,9 +422,58 @@ class Wadi2DDock(QgsDockWidget):
         box.preview_button.setEnabled(True)
         box.preview_label.setText(text)
         box.profile_button.setVisible(worked and bool(self.preview.data))
+        if self.editor is not None and self.editor.waiting:
+            self.editor.previewed(text, worked, self.preview.data if worked else [])
 
     def show_profile(self) -> None:
         ProfileDialog(self.preview.data, self).exec_()
+
+    # The profile editor: it writes a file, and the job finds the file. Only its preview passes through here.
+
+    def edit_profile(self, kind: str) -> None:
+        box = self.structures
+        dem = self.terrain.dem_layer()
+        if dem is None:
+            box.preview_label.setText("Choose a DEM layer first: the editor draws the ground from it.")
+            return
+        if self.editor is not None and not self.editor.close():
+            return
+        layer = box.layers[kind].currentLayer()
+        crs = dem.crs()
+        try:
+            if not box.lines(kind, crs):
+                box.preview_label.setText(f'Layer "{layer.name()}" has no lines to edit.')
+                return
+        except LayerError as error:
+            box.preview_label.setText(str(error))
+            return
+
+        def fetch() -> list:
+            return box.lines(kind, crs) if box.layers[kind].currentLayer() is layer else []
+
+        self.editor = ProfileEditor(kind, layer, fetch, dem, box.profiles, self.preview.canvas, self)
+        box.layers[kind].layerChanged.connect(self.editor.close)  # it edits this layer, and asks about unsaved points
+        self.editor.preview_wanted.connect(self.preview_profile)
+        self.editor.saved.connect(box.refresh_profiles)
+        self.editor.closed.connect(self._editor_closed)
+        self.editor.show()
+
+    def _editor_closed(self) -> None:
+        self.editor = None
+
+    def preview_profile(self, kind: str, key: str, table: str) -> None:
+        """Preview terrain with these points standing in for what is saved on one line."""
+        box = self.structures
+        if self.preview.running:
+            self.editor.previewed("A preview is already running. Press Preview terrain again when it ends.", False, [])
+            return
+        box.profiles.draft = (kind, key, table)
+        try:
+            self.preview_terrain()
+        finally:
+            box.profiles.draft = None
+        if self.editor is not None and self.editor.waiting and not self.preview.running:  # the job could not be written
+            self.editor.previewed(box.preview_label.text(), False, [])
 
     def _ended(self, state) -> None:
         run, self.run = self.run, None
