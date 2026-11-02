@@ -414,6 +414,7 @@ class ProfileEditor(QDialog):
         self.undo_button.setEnabled(self.model.can_undo)
         self.redo_button.setEnabled(self.model.can_redo)
         self.setWindowModified(self.model.dirty)
+        self.canvas.keep_in_view()
         self.canvas.update()
         if self._previewed is not None and self._previewed != self.model.points:
             self.pane.stale()
@@ -488,15 +489,18 @@ class ProfileEditor(QDialog):
 
     def undo(self) -> None:
         if self.model.undo():
-            self.canvas.selected = None
-            self.say("")
-            self.refresh()
+            self._stepped()
 
     def redo(self) -> None:
         if self.model.redo():
-            self.canvas.selected = None
-            self.say("")
-            self.refresh()
+            self._stepped()
+
+    def _stepped(self) -> None:
+        """After undo or redo no point is in hand, and what was said of one no longer holds."""
+        self.canvas.selected = None
+        self.readout.setText(" ")
+        self.say("")
+        self.refresh()
 
     # Save, drop, preview.
 

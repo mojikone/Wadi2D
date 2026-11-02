@@ -86,6 +86,8 @@ class EditCanvas(QWidget):
         self.x_range = (0.0, 1.0)
         self.y_range = (0.0, 1.0)
         self._pan: tuple[QPointF, tuple, tuple] | None = None
+        self.whole = True
+        """The view is the whole line: nobody has zoomed or panned since the last fit."""
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setMinimumSize(520, 320)
@@ -114,7 +116,15 @@ class EditCanvas(QWidget):
         middle = max(high - low, SMALLEST_SPAN) / 2.0 + spare
         centre = 0.5 * (low + high)
         self.y_range = (centre - middle, centre + middle)
+        self.whole = True
         self.update()
+
+    def keep_in_view(self) -> None:
+        """A typed level can land outside the frame, as a drag cannot. A view zoomed on purpose stays as it is."""
+        if self.whole and any(
+            not self.y_range[0] <= z <= self.y_range[1] for found in self.model.points.values() for _s, z in found
+        ):
+            self.fit()
 
     # Pixels and data.
 
@@ -209,6 +219,7 @@ class EditCanvas(QWidget):
             return
         factor = 1.0 / ZOOM if event.angleDelta().y() > 0 else ZOOM
         s, z = self.to_data(event.position())
+        self.whole = False
         if event.modifiers() & Qt.ControlModifier:
             self.y_range = self._zoomed(self.y_range, z, factor, MIN_Y_SPAN)
         else:
@@ -229,6 +240,7 @@ class EditCanvas(QWidget):
 
     def _panned(self, point: QPointF) -> None:
         start, x_range, y_range = self._pan
+        self.whole = False
         box = self._box()
         along = (point.x() - start.x()) / box.width() * (x_range[1] - x_range[0])
         up = (point.y() - start.y()) / box.height() * (y_range[1] - y_range[0])
