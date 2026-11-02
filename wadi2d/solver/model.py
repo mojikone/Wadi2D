@@ -7,14 +7,22 @@ import numpy as np
 from wadi2d.config.schema import Numerics
 from wadi2d.solver.backend import BoundaryCells, NumericsRecord, select_backend
 from wadi2d.solver.layout import HALO, STRIDE, STRIDE2, TILE, local_index
-from wadi2d.solver.state import HostState, from_state, level_field, plan_field
+from wadi2d.solver.state import (
+    HostState,
+    from_state,
+    level_field,
+    level_of,
+    plan_field,
+    plan_of,
+    tiles_to_state,
+)
 from wadi2d.solver.stepper import Stepper
 from wadi2d.tables.builder import GridTables
 
 
 def make_stepper(backend, grid, num: Numerics) -> Stepper:
-    """The uniform step unless the job asks for local time stepping."""
-    if not num.local_time_stepping:
+    """The uniform step unless the job asks for local time stepping; a quadtree always has interfaces to step."""
+    if not num.local_time_stepping and not getattr(grid, "quad", False):
         return Stepper(backend, grid, num)
     from wadi2d.solver.level_stepper import LevelStepper
 
@@ -35,6 +43,9 @@ class Model:
     def set_depth(self, hbar: np.ndarray) -> None:
         """Set the mean depth grid, with levels through the table and zero velocities."""
         h = np.where(self.grid.mask, hbar, 0.0)
+        if getattr(self.grid, "quad", False):
+            self._set_depth_tiles(h)
+            return
         d = level_field(self.tables, h)
         self.backend.set_field("h", self.host.to_state(h))
         self.backend.set_field("d", self.host.to_state(d))
@@ -42,8 +53,23 @@ class Model:
         self.stepper.backend.wet[:] = self._tile_wet(h)
         self.stepper.rebuild_active()
 
+    def _set_depth_tiles(self, h: np.ndarray) -> None:
+        """``set_depth`` on a quadtree: each cell takes the mean of the raster over it, and its own tables."""
+        grid, t = self.grid, self.tables
+        n = grid.ntiles
+        tiles = grid.to_tiles(h, np.float64)
+        hc, dtab = t.hc[:n].astype(np.float64), t.dtab[:n].astype(np.float64)
+        self.backend.set_field("h", tiles_to_state(grid, tiles))
+        self.backend.set_field("d", tiles_to_state(grid, level_of(tiles, hc, dtab)))
+        self.backend.set_field("om", tiles_to_state(grid, plan_of(tiles, hc, dtab)))
+        self.stepper.backend.wet[:] = self._tile_wet(h)
+        self.stepper.rebuild_active()
+
     def _tile_wet(self, h: np.ndarray) -> np.ndarray:
         grid = self.grid
+        if getattr(grid, "quad", False):
+            flags = (grid.to_tiles(h, np.float64) > 0.0).any(axis=(1, 2)).astype(np.int32)
+            return self.backend.cp.asarray(flags) if hasattr(self.backend, "cp") else flags
         out = np.zeros(grid.ntiles, np.int32)
         for t in range(1, grid.ntiles):
             tj, ti = grid.tiles[t]

@@ -8,6 +8,8 @@ from wadi2d.solver import layout
 
 EDGE_BLOCK = (layout.TILE,)
 """One thread per face of an edge."""
+COARSE_BLOCK = (layout.TILE // 2,)
+"""One thread per coarse cell along an interface."""
 
 
 class GpuLevels:
@@ -22,14 +24,39 @@ class GpuLevels:
         self.d0 = cp.zeros(n * layout.STRIDE2, cp.float32)
         self.est = cp.zeros(4 * n * layout.TILE, cp.float32)
         self.level = cp.zeros(n, cp.int32)
-        m = backend.module
-        self._strips = m.get_function("strips")
+        grid = backend.grid
+        self.quad = getattr(grid, "quad", False)
+        self.modules = backend.size_modules()
+        m = self.modules[0]
         self._halo = m.get_function("halo_levels")
         self._save = m.get_function("save_old")
         self._commit = m.get_function("commit")
         self._commit_strips = m.get_function("commit_strips")
         self._estimate = m.get_function("edge_estimate")
-        self._flux = m.get_function("edge_flux")
+        self.kernels = {
+            name: [mod.get_function(name) for mod in self.modules]
+            for name in (
+                "faces",
+                "limit",
+                "update",
+                "strips",
+                "edge_flux",
+                "iface_faces",
+                "iface_estimate",
+                "iface_flux",
+            )
+        }
+        self._iface_load = m.get_function("iface_load")
+        self._iface_store = m.get_function("iface_store")
+        self._quad_halo = m.get_function("quad_halo")
+        self._quad_done = m.get_function("quad_faces_done")
+        if self.quad:
+            from wadi2d.grid.quad import halo_maps
+
+            maps = halo_maps(grid)
+            self.fu, self.fv = cp.asarray(maps["u"].ravel()), cp.asarray(maps["v"].ravel())
+            self.qu, self.qv = cp.asarray(maps["qu"].ravel()), cp.asarray(maps["qv"].ravel())
+            self.iest = cp.zeros(max(grid.interfaces.shape[0], 1) * (layout.TILE // 2), cp.float32)
 
     def lists(self, a: np.ndarray):
         return self.cp.asarray(a.astype(np.int32))
@@ -39,10 +66,17 @@ class GpuLevels:
 
     def halo_state(self, tiles, n: int, want_plan: bool) -> None:
         b = self.b
-        self._halo(
-            (int(tiles.size),), self.exchange_block,
-            (tiles, b.slot, b.src_map, b.nhalo, self.level, n, b.h, self.h0, b.d, self.d0, b.u, b.v, b.qx, b.qy),
-        )  # fmt: skip
+        if self.quad:
+            self._quad_halo(
+                (int(tiles.size),), self.exchange_block,
+                (tiles, b.slot, b.src_map, self.fu, self.fv, self.qu, self.qv, b.nhalo, self.level, n, b.h, self.h0,
+                 b.d, self.d0, b.u, b.v, b.qx, b.qy),
+            )  # fmt: skip
+        else:
+            self._halo(
+                (int(tiles.size),), self.exchange_block,
+                (tiles, b.slot, b.src_map, b.nhalo, self.level, n, b.h, self.h0, b.d, self.d0, b.u, b.v, b.qx, b.qy),
+            )  # fmt: skip
         if want_plan:
             self.exch(tiles, b.om)
 
@@ -56,31 +90,70 @@ class GpuLevels:
     def clear_wet(self) -> None:
         self.b.wet[:] = 0
 
-    def faces(self, tiles, dt: float, want_wave: bool) -> None:
+    def faces(self, tiles, dt: float, want_wave: bool, size: int = 0) -> None:
         b = self.b
-        b._faces(
+        self.kernels["faces"][size](
             (int(tiles.size), 1), self.block,
             (tiles, self.cp.float32(dt), int(want_wave), b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
              *b.static_x, b.ftabx, *b.static_y, b.ftaby,
              b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave),
         )  # fmt: skip
 
-    def strips(self, edges, dt: float, want_wave: bool) -> None:
+    def strips(self, edges, dt: float, want_wave: bool, size: int = 0) -> None:
+        self._edge_faces("strips", edges, dt, want_wave, size)
+
+    def iface_faces(self, rows, dt: float, want_wave: bool, size: int) -> None:
+        self._edge_faces("iface_faces", rows, dt, want_wave, size)
+
+    def _edge_faces(self, name: str, rows, dt: float, want_wave: bool, size: int) -> None:
         b = self.b
-        self._strips(
-            (edges.shape[0],), EDGE_BLOCK,
-            (edges, self.cp.float32(dt), int(want_wave), b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+        self.kernels[name][size](
+            (rows.shape[0],), EDGE_BLOCK,
+            (rows, self.cp.float32(dt), int(want_wave), b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
              *b.static_x, b.ftabx, *b.static_y, b.ftaby,
              b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave),
         )  # fmt: skip
 
     def faces_done(self, tiles) -> None:
         b = self.b
-        self.exch(tiles, b.u1, b.v1, b.qx1, b.qy1)
+        if self.quad:
+            self._quad_done(
+                (int(tiles.size),), self.exchange_block,
+                (tiles, b.slot, self.fu, self.fv, b.nhalo, b.u1, b.v1, b.qx1, b.qy1),
+            )  # fmt: skip
+        else:
+            self.exch(tiles, b.u1, b.v1, b.qx1, b.qy1)
 
-    def limit(self, tiles, dt: float) -> None:
+    def iface_load(self, rows) -> None:
         b = self.b
-        b._limit((int(tiles.size), 1), self.block, (tiles, self.cp.float32(dt), b.h, b.qx1, b.qy1, b.r))
+        self._iface_load((rows.shape[0],), COARSE_BLOCK, (rows, b.u1, b.v1, b.qx1, b.qy1))
+
+    def iface_estimate(self, rows, dt: float, size: int) -> None:
+        b = self.b
+        self.kernels["iface_estimate"][size](
+            (rows.shape[0],), COARSE_BLOCK,
+            (rows, self.cp.float32(dt), b.qx1, b.qy1, b.r, self.iest, b.res),
+        )  # fmt: skip
+
+    def iface_flux(self, rows, dt: float, size: int) -> None:
+        b = self.b
+        self.kernels["iface_flux"][size](
+            (rows.shape[0],), COARSE_BLOCK,
+            (rows, self.cp.float32(dt), b.qx1, b.qy1, b.r, self.iest, b.res),
+        )  # fmt: skip
+
+    def iface_store(self, rows) -> None:
+        b = self.b
+        self._iface_store(
+            (rows.shape[0],), EDGE_BLOCK,
+            (rows, b.qx1, b.qy1, b.r, b.u1, b.v1, b.mx1, b.my1, b.u, b.v, b.mx, b.my, b.qx, b.qy),
+        )  # fmt: skip
+
+    def limit(self, tiles, dt: float, size: int = 0) -> None:
+        b = self.b
+        self.kernels["limit"][size](
+            (int(tiles.size), 1), self.block, (tiles, self.cp.float32(dt), b.h, b.qx1, b.qy1, b.r)
+        )
 
     def limit_done(self, tiles) -> None:
         self.exch(tiles, self.b.r)
@@ -93,16 +166,16 @@ class GpuLevels:
         b = self.b
         self._estimate((edges.shape[0],), EDGE_BLOCK, (edges, b.qx1, b.qy1, b.r, self.est))
 
-    def flux(self, edges, dt: float) -> None:
+    def flux(self, edges, dt: float, size: int = 0) -> None:
         b = self.b
-        self._flux(
+        self.kernels["edge_flux"][size](
             (edges.shape[0],), EDGE_BLOCK,
             (edges, self.cp.float32(dt), b.qx1, b.qy1, b.r, self.est, b.res, b.qx, b.qy),
         )  # fmt: skip
 
-    def update(self, tiles, dt: float, want_wet: bool, want_plan: bool) -> None:
+    def update(self, tiles, dt: float, want_wet: bool, want_plan: bool, size: int = 0) -> None:
         b = self.b
-        b._update(
+        self.kernels["update"][size](
             (int(tiles.size), 1), self.block,
             (tiles, self.cp.float32(dt), int(want_wet), int(want_plan), 1, b.res, b.om, b.qx1, b.qy1, b.r, b.src,
              b.Hc, b.dtab, b.h, b.d, b.qx, b.qy, b.wet),

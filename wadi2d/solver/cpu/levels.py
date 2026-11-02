@@ -150,15 +150,35 @@ def edge_flux(edges, dt, qx1, qy1, r, est, res, qx, qy, dx):
 
 
 class CpuLevels:
-    """The level stepper's operations on the CPU; ``GpuLevels`` is the same on the device."""
+    """The level stepper's operations on the CPU; ``GpuLevels`` is the same on the device.
+
+    ``size`` is a tile's cell size as a level: the cell is 2^size finest cells wide, and only the numbers change.
+    """
 
     def __init__(self, backend) -> None:
         self.b = backend
-        n = backend.grid.ntiles
+        grid = backend.grid
+        n = grid.ntiles
         self.h0 = np.zeros(n * STRIDE2, np.float32)
         self.d0 = np.zeros(n * STRIDE2, np.float32)
         self.est = np.zeros(4 * n * TILE, np.float32)
         self.level = np.zeros(n, np.int32)
+        self.quad = getattr(grid, "quad", False)
+        if self.quad:
+            from wadi2d.grid.quad import halo_maps
+
+            maps = halo_maps(grid)
+            self.fu, self.fv = maps["u"].ravel(), maps["v"].ravel()
+            self.qu, self.qv = maps["qu"].ravel(), maps["qv"].ravel()
+            self.cell = maps["cell"].ravel()
+            self.iest = np.zeros(max(grid.interfaces.shape[0], 1) * (TILE // 2), np.float32)
+
+    def dx(self, size: int) -> np.float32:
+        return np.float32(self.b.num.dx * (1 << size))
+
+    def args(self, size: int) -> tuple:
+        rows, g, _dx, *rest = self.b._args
+        return (rows, g, self.dx(size), *rest)
 
     def lists(self, a: np.ndarray) -> np.ndarray:
         return a
@@ -168,9 +188,30 @@ class CpuLevels:
 
     def halo_state(self, tiles, n: int, want_plan: bool) -> None:
         b = self.b
-        halo_levels(
-            tiles, b.slot, b.src_map, b.nhalo, self.level, n, b.h, self.h0, b.d, self.d0, b.u, b.v, b.qx, b.qy
-        )
+        if self.quad:
+            from wadi2d.solver.cpu.quad import quad_halo
+
+            quad_halo(
+                tiles, b.slot, self.cell, self.fu, self.fv, self.qu, self.qv, b.nhalo, self.level, n, b.h, self.h0,
+                b.d, self.d0, b.u, b.v, b.qx, b.qy,
+            )  # fmt: skip
+        else:
+            halo_levels(
+                tiles,
+                b.slot,
+                b.src_map,
+                b.nhalo,
+                self.level,
+                n,
+                b.h,
+                self.h0,
+                b.d,
+                self.d0,
+                b.u,
+                b.v,
+                b.qx,
+                b.qy,
+            )
         if want_plan:
             self.exch(tiles, b.om)
 
@@ -187,36 +228,54 @@ class CpuLevels:
     def clear_wet(self) -> None:
         self.b.wet[:] = 0
 
-    def _faces_max(self, tiles, dtf, want_wave) -> None:
+    def faces(self, tiles, dt: float, want_wave: bool, size: int = 0) -> None:
         from wadi2d.solver.cpu import kernels
 
         b = self.b
         kernels.faces(
-            tiles, dtf, want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            tiles, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
             *b.static_x, b.ftabx, *b.static_y, b.ftaby,
-            b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *b._args,
+            b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
         )  # fmt: skip
 
-    def faces(self, tiles, dt: float, want_wave: bool) -> None:
-        self._faces_max(tiles, np.float32(dt), want_wave)
-
-    def strips(self, edges, dt: float, want_wave: bool) -> None:
+    def strips(self, edges, dt: float, want_wave: bool, size: int = 0) -> None:
         b = self.b
         strips(
             edges, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
             *b.static_x, b.ftabx, *b.static_y, b.ftaby,
-            b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *b._args,
+            b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
+        )  # fmt: skip
+
+    def iface_faces(self, rows, dt: float, want_wave: bool, size: int) -> None:
+        from wadi2d.solver.cpu.quad import iface_faces
+
+        b = self.b
+        iface_faces(
+            rows, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            *b.static_x, b.ftabx, *b.static_y, b.ftaby,
+            b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
         )  # fmt: skip
 
     def faces_done(self, tiles) -> None:
         b = self.b
-        self.exch(tiles, b.u1, b.v1, b.qx1, b.qy1)
+        if self.quad:
+            from wadi2d.solver.cpu.quad import quad_faces_done
 
-    def limit(self, tiles, dt: float) -> None:
+            quad_faces_done(tiles, b.slot, self.fu, self.fv, b.nhalo, b.u1, b.v1, b.qx1, b.qy1)
+        else:
+            self.exch(tiles, b.u1, b.v1, b.qx1, b.qy1)
+
+    def iface_load(self, rows) -> None:
+        from wadi2d.solver.cpu.quad import iface_load
+
+        b = self.b
+        iface_load(rows, b.u1, b.v1, b.qx1, b.qy1)
+
+    def limit(self, tiles, dt: float, size: int = 0) -> None:
         from wadi2d.solver.cpu import kernels
 
         b = self.b
-        kernels.limit(tiles, np.float32(dt), b.h, b.qx1, b.qy1, b.r, np.float32(b.num.dx))
+        kernels.limit(tiles, np.float32(dt), b.h, b.qx1, b.qy1, b.r, self.dx(size))
 
     def limit_done(self, tiles) -> None:
         self.exch(tiles, self.b.r)
@@ -228,17 +287,35 @@ class CpuLevels:
         b = self.b
         edge_estimate(edges, b.qx1, b.qy1, b.r, self.est)
 
-    def flux(self, edges, dt: float) -> None:
+    def flux(self, edges, dt: float, size: int = 0) -> None:
         b = self.b
-        edge_flux(edges, np.float32(dt), b.qx1, b.qy1, b.r, self.est, b.res, b.qx, b.qy, np.float32(b.num.dx))
+        edge_flux(edges, np.float32(dt), b.qx1, b.qy1, b.r, self.est, b.res, b.qx, b.qy, self.dx(size))
 
-    def update(self, tiles, dt: float, want_wet: bool, want_plan: bool) -> None:
+    def iface_estimate(self, rows, dt: float, size: int) -> None:
+        from wadi2d.solver.cpu.quad import iface_estimate
+
+        b = self.b
+        iface_estimate(rows, np.float32(dt), b.qx1, b.qy1, b.r, self.iest, b.res, self.dx(size))
+
+    def iface_flux(self, rows, dt: float, size: int) -> None:
+        from wadi2d.solver.cpu.quad import iface_flux
+
+        b = self.b
+        iface_flux(rows, np.float32(dt), b.qx1, b.qy1, b.r, self.iest, b.res, self.dx(size))
+
+    def iface_store(self, rows) -> None:
+        from wadi2d.solver.cpu.quad import iface_store
+
+        b = self.b
+        iface_store(rows, b.qx1, b.qy1, b.r, b.u1, b.v1, b.mx1, b.my1, b.u, b.v, b.mx, b.my, b.qx, b.qy)
+
+    def update(self, tiles, dt: float, want_wet: bool, want_plan: bool, size: int = 0) -> None:
         from wadi2d.solver.cpu import kernels
 
         b = self.b
         kernels.update(
             tiles, np.float32(dt), want_plan, True, b.res, b.om, b.qx1, b.qy1, b.r, b.src, b.Hc, b.dtab, b.h, b.d,
-            b.qx, b.qy, b.wet, b.rows, np.float32(b.num.dx),
+            b.qx, b.qy, b.wet, b.rows, self.dx(size),
         )  # fmt: skip
 
     def boundary(self) -> None:

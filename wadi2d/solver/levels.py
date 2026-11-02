@@ -45,6 +45,7 @@ def assign_levels(
     rule: LevelRule,
     pinned: np.ndarray,
     previous: np.ndarray | None = None,
+    interfaces: np.ndarray | None = None,
 ) -> tuple[np.ndarray, float]:
     """(level per tile, smallest step). ``wave`` is the fastest wave seen in each tile.
 
@@ -71,13 +72,18 @@ def assign_levels(
     level = np.zeros(n, np.int32)
     level[active] = best
     level[pinned] = 0
-    level = _graded(level, active, nbr)
+    level = _graded(level, active, nbr, interfaces)
     dt0 = float((want[active] / (1 << level[active])).min()) if active.size else rule.dt_max
     return level, dt0
 
 
-def _graded(level: np.ndarray, active: np.ndarray, nbr: np.ndarray) -> np.ndarray:
-    """Lower levels until neighbours differ by at most one; inactive neighbours do not count."""
+def _graded(
+    level: np.ndarray, active: np.ndarray, nbr: np.ndarray, interfaces: np.ndarray | None = None
+) -> np.ndarray:
+    """Lower levels until neighbours differ by at most one; inactive neighbours do not count.
+
+    Across an interface the small cells never step slower than the large ones, so its faces follow the fine tile.
+    """
     high = np.iinfo(np.int32).max // 2
     around = np.full(level.size, high, np.int32)
     around[active] = level[active]
@@ -85,55 +91,102 @@ def _graded(level: np.ndarray, active: np.ndarray, nbr: np.ndarray) -> np.ndarra
     while True:
         lowest = around[links].min(axis=1)
         fixed = np.minimum(around[active], lowest + 1)
-        if np.array_equal(fixed, around[active]):
-            break
+        same = np.array_equal(fixed, around[active])
         around[active] = fixed
+        if interfaces is not None and interfaces.size:
+            fine, coarse = interfaces[:, 0], interfaces[:, 2]
+            keep = around[fine].copy()
+            np.minimum.at(around, fine, around[coarse])
+            same = same and np.array_equal(keep, around[fine])
+        if same:
+            break
     out = np.zeros_like(level)
     out[active] = around[active]
     return out
 
 
+Sized = list[tuple[int, np.ndarray]]
+"""Lists per tile size: (size level, entries)."""
+
+
 @dataclass
 class Plan:
-    """One cycle's lists, in host form. ``upto[k]`` is every tile of level <= k."""
+    """One cycle's lists, in host form, indexed by time level. ``upto[k]`` is every tile of level <= k."""
 
     level: np.ndarray
     top: int
-    groups: list[np.ndarray]
+    groups: list[Sized]
     upto: list[np.ndarray]
     halo: list[np.ndarray]
-    """Per level, the tiles whose halos a step of that level needs: ``upto``, and the owners of the faces in ``strips``."""
+    """The tiles whose halos a step of that level needs: ``upto``, and the owners of the faces in ``strips``."""
     coarse: list[np.ndarray]
-    """Per level, the tiles with a finer neighbour: their old values are wanted."""
-    edges_x: list[np.ndarray]
-    edges_y: list[np.ndarray]
-    """Per fine level, rows (fine tile, side, coarse tile, edge number), one list per axis."""
-    strips: list[np.ndarray]
-    """Per fine level, the rows of edges whose faces the coarse tile owns."""
+    """The tiles with a neighbour at a finer time level: their old values are wanted."""
+    edges_x: list[Sized]
+    edges_y: list[Sized]
+    """Rows (fine tile, side, coarse tile, edge number) by the fine tile's level, one list per axis."""
+    strips: list[Sized]
+    """The rows of edges whose faces the coarse tile owns."""
+    level_with: list[Sized]
+    level_above: list[Sized]
+    """Interface rows by the fine tile's level: coarse tile at the same time level, or one above. The residual of a
+    coarse cell is written without a lock, so each entry holds one axis."""
 
 
-def plan_cycle(level: np.ndarray, active: np.ndarray, nbr: np.ndarray) -> Plan:
-    """The lists for ``level``; an edge joins two active tiles of different levels."""
+def _by_size(entries: np.ndarray, sizes: np.ndarray) -> Sized:
+    return [(int(s), entries[sizes == s]) for s in np.unique(sizes)]
+
+
+def plan_cycle(
+    level: np.ndarray,
+    active: np.ndarray,
+    same: np.ndarray,
+    size: np.ndarray | None = None,
+    interfaces: np.ndarray | None = None,
+) -> Plan:
+    """The lists for ``level``. ``same`` gives each tile's neighbour of its own cell size per side."""
+    size = np.zeros(level.size, np.int32) if size is None else size
+    interfaces = np.zeros((0, 7), np.int32) if interfaces is None else interfaces
     top = int(level[active].max()) if active.size else 0
-    groups = [active[level[active] == n] for n in range(top + 1)]
-    upto = [active[level[active] <= n] for n in range(top + 1)]
+    span = range(top + 1)
     on = np.zeros(level.size, bool)
     on[active] = True
+    groups = [_by_size(g, size[g]) for g in (active[level[active] == n] for n in span)]
+    upto = [active[level[active] <= n] for n in span]
     rows = []
-    for side, slot in enumerate(SIDES):
-        other = nbr[active, slot]
+    for side in range(4):
+        other = same[active, side]
         hit = on[other] & (level[other] > level[active])
         rows.append(np.column_stack((active[hit], np.full(hit.sum(), side), other[hit])))
     row = np.vstack(rows).astype(np.int32)
     row = np.column_stack((row, np.arange(row.shape[0], dtype=np.int32)))
     fine_level = level[row[:, 0]]
-    edges_x = [row[(fine_level == n) & (row[:, 1] % 2 == 0)] for n in range(top + 1)]
-    edges_y = [row[(fine_level == n) & (row[:, 1] % 2 == 1)] for n in range(top + 1)]
-    strips = [row[(fine_level == n) & (row[:, 1] >= EAST)] for n in range(top + 1)]
+    fine_size = size[row[:, 0]]
+
+    def pick(wanted: np.ndarray) -> list[Sized]:
+        return [
+            _by_size(row[wanted & (fine_level == n)], fine_size[wanted & (fine_level == n)]) for n in span
+        ]
+
+    edges_x, edges_y = pick(row[:, 1] % 2 == 0), pick(row[:, 1] % 2 == 1)
+    strips = pick(row[:, 1] >= EAST)
+    used = interfaces[on[interfaces[:, 0]] & on[interfaces[:, 2]]]
+    gap = level[used[:, 2]] - level[used[:, 0]]
+    fine = level[used[:, 0]]
+
+    def interface_lists(wanted: np.ndarray, n: int) -> Sized:
+        """One entry per axis, so no launch writes one coarse cell twice."""
+        out: Sized = []
+        for axis in (0, 1):
+            rows_ = used[wanted & (fine == n) & (used[:, 1] % 2 == axis)]
+            out += _by_size(rows_, size[rows_[:, 0]])
+        return out
+
+    level_with = [interface_lists(gap == 0, n) for n in span]
+    level_above = [interface_lists(gap > 0, n) for n in span]
     has_finer = np.zeros(level.size, bool)
     has_finer[row[:, 2]] = True
-    coarse = [g[has_finer[g]] for g in groups]
-    halo = [np.union1d(upto[n], np.concatenate([e[:, 2] for e in strips[: n + 1]])) for n in range(top + 1)]
-    return Plan(
-        level, top, groups, upto, [h.astype(np.int32) for h in halo], coarse, edges_x, edges_y, strips
-    )
+    has_finer[used[gap > 0, 2]] = True
+    coarse = [active[(level[active] == n) & has_finer[active]] for n in span]
+    owners = [np.concatenate([e[:, 2] for _s, e in strips[n]] or [np.zeros(0, np.int32)]) for n in span]
+    halo = [np.union1d(upto[n], np.concatenate(owners[: n + 1])).astype(np.int32) for n in span]
+    return Plan(level, top, groups, upto, halo, coarse, edges_x, edges_y, strips, level_with, level_above)

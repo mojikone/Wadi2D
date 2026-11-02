@@ -24,7 +24,7 @@ def _source() -> str:
     )
     head += f"\n#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
     return head + "".join(
-        (KERNELS / f).read_text(encoding="utf-8") + "\n" for f in ("common.cuh", "faces.cu", "cells.cu", "levels.cu")
+        (KERNELS / f).read_text(encoding="utf-8") + "\n" for f in ("common.cuh", "faces.cu", "cells.cu", "levels.cu", "quad.cu")
     )
 
 
@@ -39,20 +39,13 @@ class GpuBackend:
         self.cp = cp
         self.grid = tables.grid
         self.num = num
-        self.module = cp.RawModule(code=_source(), options=("-std=c++17", "--use_fast_math"))
+        self.rows = tables.rows
+        self.module = self._module(num.dx)
         self._faces = self.module.get_function("faces")
         self._limit = self.module.get_function("limit")
         self._update = self.module.get_function("update")
         self._exchange = self.module.get_function("exchange")
         self._boundary = self.module.get_function("boundary")
-        record = np.array(
-            [(num.g, num.dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, tables.rows, int(num.second), int(num.sheet), int(num.mirror))],
-            dtype=np.dtype(
-                [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
-                 ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
-            ),
-        )  # fmt: skip
-        self.module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)
 
         n = self.grid.ntiles * layout.STRIDE2
         for a in layout.STATE_ARRAYS + layout.WORK_ARRAYS:
@@ -79,6 +72,29 @@ class GpuBackend:
         self.bc: BoundaryCells | None = None
         self.bc_arrays = None
         self.set_active(np.arange(1, self.grid.ntiles, dtype=np.int32))
+
+    def _module(self, dx: float, tag: str = ""):
+        """A copy of the kernels whose constants hold this cell size.
+
+        CuPy hands the same loaded module to the same source, constants included, so a second size needs its own text.
+        """
+        num = self.num
+        module = self.cp.RawModule(code=_source() + tag, options=("-std=c++17", "--use_fast_math"))
+        record = np.array(
+            [(num.g, dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, self.rows, int(num.second), int(num.sheet), int(num.mirror))],
+            dtype=np.dtype(
+                [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
+                 ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
+            ),
+        )  # fmt: skip
+        module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)
+        return module
+
+    def size_modules(self) -> list:
+        """One module per tile size in the grid; a uniform grid has the one."""
+        sizes = int(self.grid.level.max()) + 1 if getattr(self.grid, "quad", False) else 1
+        extra = (self.num.dx * (1 << s) for s in range(1, sizes))
+        return [self.module, *(self._module(dx, f"\n// cell size {dx}\n") for dx in extra)]
 
     def set_active(self, active: np.ndarray) -> None:
         self.active_tiles = active.astype(np.int32)

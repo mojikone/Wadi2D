@@ -12,7 +12,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from wadi2d.solver.levels import LevelRule, Plan, assign_levels, plan_cycle
+from wadi2d.solver.levels import SIDES, LevelRule, Plan, assign_levels, plan_cycle
 from wadi2d.solver.stepper import NumericalFailure, Stepper
 
 
@@ -34,6 +34,8 @@ class Lists:
     edges_x: list
     edges_y: list
     strips: list
+    level_with: list
+    level_above: list
 
 
 class LevelStepper(Stepper):
@@ -41,7 +43,14 @@ class LevelStepper(Stepper):
         super().__post_init__()
         n = self.num
         self.ops = self.backend.level_ops()
-        self.rule = LevelRule(n.cfl, n.lts_wave_floor, n.lts_buffer, n.dt_max, n.lts_levels)
+        top = n.lts_levels if n.local_time_stepping else 0
+        self.rule = LevelRule(n.cfl, n.lts_wave_floor, n.lts_buffer, n.dt_max, top)
+        g = self.grid
+        self.quad = getattr(g, "quad", False)
+        self.same = g.same if self.quad else g.nbr[:, SIDES]
+        self.size = g.level if self.quad else None
+        self.interfaces = g.interfaces if self.quad else None
+        self.tile_dx = g.tile_dx if self.quad else g.dx
         self.pinned = np.zeros(self.grid.ntiles, bool)
         self.level = np.zeros(self.grid.ntiles, np.int32)
         self.plan: Plan | None = None
@@ -62,14 +71,17 @@ class LevelStepper(Stepper):
 
     def _set_plan(self) -> None:
         active = np.asarray(self.backend.active_tiles)
-        p = plan_cycle(self.level, active, self.grid.nbr)
+        p = plan_cycle(self.level, active, self.same, self.size, self.interfaces)
         self.plan = p
         to = self.ops.lists
+
+        def sized(part):
+            return [[(s, to(a)) for s, a in entry if a.size] for entry in part]
+
         self.lists = Lists(
-            *(
-                [to(a) if a.size else None for a in part]
-                for part in (p.groups, p.upto, p.halo, p.coarse, p.edges_x, p.edges_y, p.strips)
-            )
+            sized(p.groups),
+            *([to(a) if a.size else None for a in part] for part in (p.upto, p.halo, p.coarse)),
+            *(sized(part) for part in (p.edges_x, p.edges_y, p.strips, p.level_with, p.level_above)),
         )
         self.ops.set_level(self.level)
 
@@ -82,7 +94,7 @@ class LevelStepper(Stepper):
         keep = self.level.copy()
         pinned = self.pinned & np.isin(np.arange(self.pinned.size), active)
         self.level, self.dt = assign_levels(
-            wave, active, self.grid.nbr, self.grid.dx, self.rule, pinned, keep
+            wave, active, self.grid.nbr, self.tile_dx, self.rule, pinned, keep, self.interfaces
         )
         if self.dt < self.num.dt_min:
             raise NumericalFailure(f"time step {self.dt:.2e} s below the minimum at t = {self.t:.3f} s")
@@ -95,44 +107,63 @@ class LevelStepper(Stepper):
         tiles = lists.upto[k]
         if tiles is None:
             return
-        dts = [dt0 * (1 << a) for a in range(k + 1)]
-        groups = [(g, dts[a]) for a, g in enumerate(lists.groups[: k + 1]) if g is not None]
+        dts = [dt0 * (1 << a) for a in range(k + 2)]
+        due = range(k + 1)
         wet_step = wave_step and wet_due
         ops.halo_state(lists.halo[k], n, wave_step)
         if wave_step:
             ops.clear_wave()
-        for g, dt in groups:
-            ops.faces(g, dt, wave_step)
-        for a in range(k + 1):
-            if lists.strips[a] is not None:
-                ops.strips(lists.strips[a], dts[a], wave_step)
+        for a in due:
+            for s, g in lists.groups[a]:
+                ops.faces(g, dts[a], wave_step, s)
+        for a in due:
+            for s, e in lists.strips[a]:
+                ops.strips(e, dts[a], wave_step, s)
+            for part in (lists.level_with[a], lists.level_above[a]):
+                for s, r in part:
+                    ops.iface_faces(r, dts[a], wave_step, s)
         ops.faces_done(tiles)
-        for g, dt in groups:
-            ops.limit(g, dt)
+        for a in due:
+            for part in (lists.level_with[a], lists.level_above[a]):
+                for _s, r in part:
+                    ops.iface_load(r)
+        for a in due:
+            for s, g in lists.groups[a]:
+                ops.limit(g, dts[a], s)
         ops.limit_done(tiles)
-        for a in range(k + 1):
+        for a in due:
             if lists.coarse[a] is not None:
                 ops.save(lists.coarse[a])
-            for edges in (lists.edges_x[a], lists.edges_y[a]):
-                if edges is None:
-                    continue
+            for part in (lists.edges_x[a], lists.edges_y[a]):
+                for s, e in part:
+                    if a < k:
+                        ops.estimate(e)
+                    else:
+                        ops.flux(e, dts[a], s)
+            for s, r in lists.level_with[a]:
+                ops.iface_estimate(r, dts[a], s)
+            for s, r in lists.level_above[a]:
                 if a < k:
-                    ops.estimate(edges)
+                    ops.iface_estimate(r, dts[a + 1], s)
                 else:
-                    ops.flux(edges, dts[a])
+                    ops.iface_flux(r, dts[a], s)
         if wet_step:
             ops.clear_wet()
-        for g, dt in groups:
-            ops.update(g, dt, wet_step, wave_step)
+        for a in due:
+            for s, g in lists.groups[a]:
+                ops.update(g, dts[a], wet_step, wave_step, s)
         ops.boundary()
         ops.commit(tiles)
-        for a in range(k + 1):
-            if lists.strips[a] is not None:
-                ops.commit_strips(lists.strips[a])
+        for a in due:
+            for _s, e in lists.strips[a]:
+                ops.commit_strips(e)
+            for part in (lists.level_with[a], lists.level_above[a]):
+                for _s, r in part:
+                    ops.iface_store(r)
         if self.substep_hook is not None:
             self.substep_hook(dt0)
         self.nsteps += 1
-        self.tile_steps += sum(int(g.size) for g, _dt in groups)
+        self.tile_steps += sum(int(g.size) for a in due for _s, g in lists.groups[a])
 
     def advance(self, t_end: float, on_step: Callable[[Stepper], None] | None = None) -> float:
         """Run to ``t_end`` exactly."""

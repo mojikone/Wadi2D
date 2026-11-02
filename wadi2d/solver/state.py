@@ -20,6 +20,12 @@ def exchange_map(grid: TileGrid) -> tuple[np.ndarray, np.ndarray]:
     nt = grid.ntiles
     if nt <= 1:
         return np.zeros(0, np.int32), np.zeros(0, np.int32)
+    if getattr(grid, "quad", False):
+        from wadi2d.grid.quad import halo_maps
+
+        maps = halo_maps(grid)
+        base = np.arange(1, nt, dtype=np.int64)[:, None] * STRIDE2
+        return (base + maps["slot"]).ravel().astype(np.int32), maps["cell"].ravel().astype(np.int32)
     # offsets inside one tile: every halo position, and which neighbour holds it
     jj, ii = np.meshgrid(np.arange(STRIDE), np.arange(STRIDE), indexing="ij")
     own_j = (jj >= HALO) & (jj < HALO + TILE)
@@ -64,6 +70,8 @@ class HostState:
 
     def to_state(self, a: np.ndarray) -> np.ndarray:
         grid = self.grid
+        if getattr(grid, "quad", False):
+            return tiles_to_state(grid, grid.to_tiles(a))
         out = np.zeros(grid.ntiles * STRIDE2, np.float32)
         ny, nx = grid.shape
         for t in range(1, grid.ntiles):
@@ -78,8 +86,25 @@ class HostState:
         return from_state(self.grid, self.arrays[name])
 
 
+def tiles_to_state(grid, a: np.ndarray) -> np.ndarray:
+    """(ntiles, TILE, TILE) into the own cells of a state array."""
+    out = np.zeros(grid.ntiles * STRIDE2, np.float32)
+    sj, si = own_slice()
+    for t in range(1, grid.ntiles):
+        out[t * STRIDE2 : (t + 1) * STRIDE2].reshape(STRIDE, STRIDE)[sj, si] = a[t]
+    return out
+
+
+def state_to_tiles(grid, a: np.ndarray) -> np.ndarray:
+    """The own cells of a state array as (ntiles, TILE, TILE)."""
+    sj, si = own_slice()
+    return a[: grid.ntiles * STRIDE2].reshape(-1, STRIDE, STRIDE)[:, sj, si]
+
+
 def from_state(grid: TileGrid, a: np.ndarray) -> np.ndarray:
     """Own cells of a tile-major array as a (ny, nx) grid."""
+    if getattr(grid, "quad", False):
+        return grid.from_tiles(state_to_tiles(grid, a))
     ny, nx = grid.shape
     out = np.zeros((ny, nx), a.dtype)
     sj, si = own_slice()
@@ -92,6 +117,8 @@ def from_state(grid: TileGrid, a: np.ndarray) -> np.ndarray:
 
 def state_index(grid: TileGrid, j: np.ndarray, i: np.ndarray) -> np.ndarray:
     """State-array index of grid cells (own entries)."""
+    if getattr(grid, "quad", False):
+        return grid.state_index(j, i)
     tile = grid.tile_of[j // TILE, i // TILE]
     return local_index(tile, j % TILE + HALO, i % TILE + HALO)
 
@@ -99,8 +126,11 @@ def state_index(grid: TileGrid, j: np.ndarray, i: np.ndarray) -> np.ndarray:
 def level_field(tables: GridTables, h: np.ndarray) -> np.ndarray:
     """Level above zmin for a (ny, nx) mean depth; float64 reference of the solver's lookup."""
     grid = tables.grid
-    hc = grid.from_tiles(tables.hc)
-    dtab = grid.from_tiles(tables.dtab)
+    return level_of(h, grid.from_tiles(tables.hc), grid.from_tiles(tables.dtab))
+
+
+def level_of(h: np.ndarray, hc: np.ndarray, dtab: np.ndarray) -> np.ndarray:
+    """Level above zmin for mean depths ``h`` with their ``hc`` and tables, any matching shape."""
     last = dtab.shape[-1] - 1
     out = np.array(h, dtype=np.float64)
     wet = hc > 0.0
@@ -118,8 +148,11 @@ def level_field(tables: GridTables, h: np.ndarray) -> np.ndarray:
 def plan_field(tables: GridTables, h: np.ndarray) -> np.ndarray:
     """Wet share of the cell plan for a (ny, nx) mean depth; what the kernels call ``om``."""
     grid = tables.grid
-    hc = grid.from_tiles(tables.hc)
-    dtab = grid.from_tiles(tables.dtab)
+    return plan_of(h, grid.from_tiles(tables.hc), grid.from_tiles(tables.dtab))
+
+
+def plan_of(h: np.ndarray, hc: np.ndarray, dtab: np.ndarray) -> np.ndarray:
+    """Wet share of the cell plan for mean depths ``h``, any matching shape."""
     last = dtab.shape[-1] - 1
     out = np.ones(h.shape, np.float64)
     mid = (hc > 0.0) & (h < hc)
