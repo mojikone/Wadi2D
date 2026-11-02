@@ -47,6 +47,7 @@ from wadi2d.products.cell_grid import write_cell_grid
 from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
+from wadi2d.storm.gridded import GriddedStorm
 from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
 from wadi2d.terrain.checks import terrain_notes
@@ -90,6 +91,7 @@ PATH_FIELDS = (
     ("terrain", "manning_raster"),
     ("terrain", "cn_raster"),
     ("storm", "depth_grid"),
+    ("storm", "rain_file"),
     ("hydrology", "hms_basin"),
     ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
@@ -343,16 +345,18 @@ def _project_tables(h, hms_basin):
 
 
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
-    """What falls on the lumped network: the storm, or the depth grid averaged over each subbasin."""
+    """What falls on the lumped network: the storm, or a grid averaged over each subbasin."""
+    h = cfg.hydrology
+    system = hms_basin.spatial.coordinate_system if hms_basin.spatial is not None else None
+    if isinstance(storm, GriddedStorm):
+        return storm.bind(load_polygons(h, crs), system or crs)
     if cfg.storm.depth_grid is None:
         return storm
     from wadi2d.hydrology.from_hms import grid_storm
     from wadi2d.storm.grid_depth import DepthGrid
 
-    h = cfg.hydrology
     if h.hms_sqlite is None:
         raise InvalidJob("a depth grid on a lumped network needs hydrology.hms_sqlite for the polygons")
-    system = hms_basin.spatial.coordinate_system if hms_basin.spatial is not None else None
     try:
         rain = grid_storm(
             storm, DepthGrid.load(cfg.storm.depth_grid, system or crs or None), basin, h.hms_sqlite, True
@@ -588,6 +592,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             message="depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; "
             "HMS with Uniform Depth: Yes uses the mean above each analysis point instead",
         )
+    if isinstance(storm, GriddedStorm):
+        for note in storm.notes(cfg.run.duration_s / SECONDS_PER_MINUTE):
+            progress.emit("warn", message=f"rain: {note}")
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     if tables is None:

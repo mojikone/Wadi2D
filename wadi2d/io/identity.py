@@ -17,6 +17,8 @@ SIDECARS = (".prj",)
 def file_identity(path: str | Path, limit_mb: float) -> dict[str, object]:
     """A JSON-ready identity of one file, with its sidecars."""
     source = Path(path)
+    if source.is_dir():
+        return {child.name: file_identity(child, limit_mb) for child in sorted(source.iterdir()) if child.is_file()}
     stat = source.stat()
     if stat.st_size > limit_mb * BYTES_PER_MB:
         identity: dict[str, object] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns}

@@ -21,15 +21,20 @@ from wadi2d.config.schema import Boundary, Hydrology, InitialLevel, RunConfig
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hms import load_basin
 from wadi2d.hms import sqlite as hms_sqlite
+from wadi2d.hydrology.cell_rain import CellRain, rain_pixels
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.losses import ScsCurveNumber
 from wadi2d.io.geotiff import grid_transform
+from wadi2d.io.rain import read_rain
 from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.layout import STRIDE2
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import state_index
 from wadi2d.storm import STORM_METHODS, ArfTable, HypotheticalStorm, PercentPattern, Storm, UniformStorm
+from wadi2d.storm.gridded import GriddedStorm
+from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.hypothetical import HYPOTHETICAL_STORM, MINUTES_PER_HOUR
+from wadi2d.storm.rain_frames import RainSpec
 from wadi2d.storm.uniform import UNIFORM_STORM
 from wadi2d.tables import GridTables, hbar_at_level
 from wadi2d.terrain.crest import NORTH, staircase
@@ -53,6 +58,11 @@ def build_storm(cfg: RunConfig) -> Storm | None:
     s = cfg.storm
     if s.kind == "none":
         return None
+    if s.kind == "gridded":
+        spec = RainSpec(s.rain_variable, s.rain_units, s.rain_interval_min, s.rain_stamp)
+        return GriddedStorm(read_rain(s.rain_file, spec, s.rain_start))
+    if s.kind == "hyetograph":
+        return HyetographStorm.from_periods(s.hyetograph_min, s.hyetograph_mm)
     if s.depth_grid is None and s.depth_mm <= 0.0:
         raise ValueError(f"storm kind {s.kind!r} has no depth: set storm.depth_mm or storm.depth_grid")
     depth = UNIT_DEPTH if s.depth_grid is not None else s.depth_mm
@@ -435,6 +445,10 @@ class Forcing:
         if self.depths is not None and self.classes is not None:
             has = self.class_of >= 0
             self.cell_loss = ScsCurveNumber(curve_number=cn[has])
+        self.gridded = None
+        if isinstance(storm, GriddedStorm):
+            self.gridded = CellRain(storm, self._rain_pixels(storm, grid, crs), cn, self.rained)
+            self.class_of = self.gridded.pair_of
         self.injections = [self._injection(cfg, tables, *h) for h in hydrographs]
 
     def _at_cells(self, raster: np.ndarray, grid: TileGrid) -> np.ndarray:
@@ -448,6 +462,13 @@ class Forcing:
         hit = (self.state[where] == index) & ~np.isfinite(values[where])
         values[where[hit]] = raster[jj[hit], ii[hit]]
         return values
+
+    def _rain_pixels(self, storm: GriddedStorm, grid: TileGrid, crs: str) -> np.ndarray:
+        """The rain pixel of each interior cell, read like any raster, so a coarse cell over the grid's edge finds it."""
+        jj, ii = np.nonzero(grid.mask)
+        raster = np.full(grid.shape, np.nan)
+        raster[jj, ii] = rain_pixels(storm, *grid.xy_of(jj, ii), crs)
+        return self._at_cells(raster, grid)
 
     def _check_curve_numbers(self, cfg: RunConfig, cn: np.ndarray) -> None:
         """A CN raster must cover the cells it is meant for: a hole would run off without losses."""
@@ -499,7 +520,11 @@ class Forcing:
         )  # fmt: skip
 
     def _excess_mm(self, t: float) -> np.ndarray:
-        """Cumulative excess at time t: per class with the plain rain last, or per cell under a depth grid."""
+        """Cumulative excess at time t: per class with the plain rain last, per cell under a depth grid, or per
+        pair of pixel and curve number under gridded rain.
+        """
+        if self.gridded is not None:
+            return self.gridded.excess_mm(t / SECONDS_PER_MINUTE)
         depth = float(self.storm.cumulative_depth(np.array([t / SECONDS_PER_MINUTE]))[0])
         if self.depths is not None:
             rain = depth * self.depths
