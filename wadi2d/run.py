@@ -43,6 +43,7 @@ from wadi2d.io.geotiff import write_map
 from wadi2d.io.identity import file_identity
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
+from wadi2d.products.cell_grid import write_cell_grid
 from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
@@ -595,6 +596,10 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = grid.cell_count if getattr(grid, "quad", False) else int(grid.mask.sum())
+    try:
+        write_cell_grid(grid, crs, out)
+    except Exception as error:  # a drawing of the grid must not cost a run
+        progress.emit("warn", message=f"The cell grid layer could not be written: {error}")
     if any(o.kind in PIXEL_KINDS for o in cfg.terrain.objects):
         wanted = cfg.outputs.terrain_map
         report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
