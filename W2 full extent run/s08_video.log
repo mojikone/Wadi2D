@@ -1,0 +1,20 @@
+D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+  warnings.warn(
+scene ready 27 s [(0.0, 505000.0, 2665000.0, 225000.0), (14.0, 505000.0, 2665000.0, 225000.0), (20.0, 458060.0, 2690790.0, 9000.0), (26.0, 458060.0, 2690790.0, 9000.0), (29.0, 479330.0, 2668290.0, 70000.0), (32.0, 500600.0, 2645790.0, 9000.0), (38.0, 500600.0, 2645790.0, 9000.0), (41.0, 529630.0, 2626750.0, 70000.0), (44.0, 558660.0, 2607710.0, 9000.0), (50.0, 558660.0, 2607710.0, 9000.0), (53.0, 581160.0, 2608170.0, 70000.0), (56.0, 603660.0, 2608630.0, 9000.0), (62.0, 603660.0, 2608630.0, 9000.0), (68.0, 505000.0, 2665000.0, 225000.0), (80.0, 505000.0, 2665000.0, 225000.0)]
+frame 0 of 2400, hour 3.5, 1.45 s each
+frame 150 of 2400, hour 5.8, 0.26 s each
+frame 300 of 2400, hour 8.0, 0.26 s each
+frame 450 of 2400, hour 9.5, 0.24 s each
+frame 600 of 2400, hour 11.0, 0.22 s each
+frame 750 of 2400, hour 11.5, 0.20 s each
+frame 900 of 2400, hour 12.1, 0.18 s each
+frame 1050 of 2400, hour 12.6, 0.17 s each
+frame 1200 of 2400, hour 13.2, 0.16 s each
+frame 1350 of 2400, hour 13.7, 0.16 s each
+frame 1500 of 2400, hour 14.3, 0.15 s each
+frame 1650 of 2400, hour 14.8, 0.15 s each
+frame 1800 of 2400, hour 15.3, 0.14 s each
+frame 1950 of 2400, hour 15.9, 0.14 s each
+frame 2100 of 2400, hour 20.0, 0.16 s each
+frame 2250 of 2400, hour 25.0, 0.17 s each
+done 283.287645 MB

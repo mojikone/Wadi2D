@@ -49,3 +49,16 @@ desktop.ini
 **/validation/ras_rain_on_grid/*/
 !**/validation/ras_rain_on_grid/jobs/
 **/validation/ras_rain_on_grid/classes_*.npz
+**/W2 full extent run/terrain/*.tif
+**/W2 full extent run/runs/
+plugin/wadi2d_qgis/engine.txt
+**/W2 full extent run/*.mp4
+**/W2 full extent run/*.jpg
+**/W2 full extent run/terrain/background/
+**/W2 full extent run/terrain/*.png
+**/W4 plan_min test/runs/
+**/W6 dry face fix test/runs/
+**/W7 plugin test/maps/terrain/
+**/W7 plugin test/maps/sheet*.png
+Wadi2D_results.qgz
+**/W2 full extent run/terrain/preview_*.jpg

@@ -1,0 +1,23 @@
+{
+ "median_nsa_minus_cop_m": -0.9150676727294922,
+ "gap_km2_inside_boundary": 701.3529,
+ "nsa_changed_beyond_feather_max_m": 0.0074462890625,
+ "step_at_border_raw_median_p95_m": [
+  6.2640380859375,
+  25.925323486328125
+ ],
+ "step_at_border_blended_median_p95_m": [
+  4.22271728515625,
+  17.576568603515625
+ ],
+ "step_30m_on_plain_nsa_median_p95_m": [
+  1.896026611328125,
+  21.3074951171875
+ ],
+ "constants": {
+  "EDGE_M": 300.0,
+  "SMOOTH_M": 150.0,
+  "TAPER_M": 1500.0,
+  "FEATHER_M": 300.0
+ }
+}

@@ -1,0 +1,27 @@
+D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+  warnings.warn(
+kept cells 6,649,332, pixels 239 M
+ground read in 35 s
+frame 20, 0.35 s each
+frame 40, 0.42 s each
+frame 60, 0.50 s each
+frame 80, 0.54 s each
+frame 100, 0.56 s each
+frame 120, 0.58 s each
+frame 140, 0.59 s each
+frame 160, 0.60 s each
+frame 180, 0.60 s each
+frame 200, 0.61 s each
+frame 220, 0.62 s each
+frame 240, 0.62 s each
+frame 260, 0.62 s each
+frame 280, 0.63 s each
+frame 300, 0.63 s each
+frame 320, 0.63 s each
+frame 340, 0.63 s each
+frame 360, 0.63 s each
+frame 380, 0.63 s each
+frame 400, 0.63 s each
+frame 420, 0.63 s each
+max depth 707.5, speed 22.5, d x v 6057.4
+pixel classes km2 {'H1': 989.0, 'H2': 777.1, 'H3': 392.0, 'H4': 708.6, 'H5': 1169.6, 'H6': 437.6}

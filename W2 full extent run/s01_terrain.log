@@ -1,0 +1,35 @@
+coarse grid 7059 x 7297; median NSA minus Copernicus at the gap edge -0.92 m
+row 4096 of 43782; copied 0, blended 11
+row 8192 of 43782; copied 0, blended 22
+row 12288 of 43782; copied 1, blended 32
+row 16384 of 43782; copied 3, blended 41
+row 20480 of 43782; copied 5, blended 50
+row 24576 of 43782; copied 7, blended 59
+row 28672 of 43782; copied 10, blended 67
+row 32768 of 43782; copied 14, blended 74
+row 36864 of 43782; copied 20, blended 79
+row 40960 of 43782; copied 24, blended 86
+row 43782 of 43782; copied 26, blended 95
+{
+ "median_nsa_minus_cop_m": -0.9150676727294922,
+ "gap_km2_inside_boundary": 701.3529,
+ "nsa_changed_beyond_feather_max_m": 0.0074462890625,
+ "step_at_border_raw_median_p95_m": [
+  6.2640380859375,
+  25.925323486328125
+ ],
+ "step_at_border_blended_median_p95_m": [
+  4.22271728515625,
+  17.576568603515625
+ ],
+ "step_30m_on_plain_nsa_median_p95_m": [
+  1.896026611328125,
+  21.3074951171875
+ ],
+ "constants": {
+  "EDGE_M": 300.0,
+  "SMOOTH_M": 150.0,
+  "TAPER_M": 1500.0,
+  "FEATHER_M": 300.0
+ }
+}
