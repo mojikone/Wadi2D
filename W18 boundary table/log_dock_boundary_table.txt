@@ -1,0 +1,48 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.0 PASS the Bidah job has two outlets 2
+    5.0 === 1 a layer with no fields fills the table
+    5.0 PASS the layer has no kind or value []
+    5.0 PASS no layer, no rows 0
+    5.0 PASS one row per line 3
+    5.0 PASS rows are numbered 
+    5.0 PASS the name is not editable 
+    5.0 === 2 Kind and Value set every line
+    5.0 PASS all rows follow the kind 
+    5.0 PASS all rows follow the value 
+    5.0 === 3 each line its own
+    5.0 PASS value filled by kind 0.0
+    5.0 PASS stage takes any level (-1000000000000.0, 1000000000000.0)
+    5.0 PASS free has no value 
+    5.0 PASS normal keeps the schema's bounds (1e-05, 0.5)
+    5.0 PASS an untouched row still follows 0.02
+    5.0 PASS an edited row stays 2.5
+    5.2 === 4 it reaches the engine
+    5.3 dock says: Starting...
+    7.3 dock says: The cell grid layer could not be written: [WinError 5] Access is denied: 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_boundary_table\\runs\\own\\cell_grid.tmp.gpkg' -> 'C:\\Users\\mojtaba\\AppData\\Local\\
+    8.3 PASS finished Finished. The cell grid layer could not be written: [WinError 5] Access is denied: 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_boundary_table\\runs\\own\\cell_grid.
+    8.3 PASS three lines in the job 3
+    8.3 PASS line 1 is a stage {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5}
+    8.3 PASS line 2 is normal {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [438800.0, 2728690.0]], 'slope': 0.02}
+    8.3 PASS line 3 is free {'kind': 'free', 'coordinates': [[438800.0, 2728690.0], [440300.0, 2728690.0]]}
+    8.3 PASS the engine took them {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6}
+    8.3 PASS mass closes -4.79393162706566e-09
+    8.3 === 5 the field route stays
+    8.3 PASS rows of the new layer 2
+    8.3 PASS fields fill the table 
+    8.3 PASS fields outrank Kind 
+    8.4 dock says: Starting...
+    9.4 dock says: The cell grid layer could not be written: [WinError 5] Access is denied: 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_boundary_table\\runs\\fields\\cell_grid.tmp.gpkg' -> 'C:\\Users\\mojtaba\\AppData\\Loca
+   10.4 dock says: water stood 7.4 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   10.7 PASS the field reaches the job {'kind': 'normal', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'slope': 0.01}
+   10.7 PASS an edit outranks the field {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'slope': 0.03}
+   10.7 === 6 the table keeps up with the layer
+   10.7 PASS a drawn layer has a row 1
+   10.7 PASS a new line appears 2
+   10.7 PASS the edit survives 0.04
+   10.7 PASS no layer, no rows again 
+   10.8 PASS back to the layer, rows afresh 
+   10.8 PASS the old layer is let go 
+   10.8 SUMMARY 34 passed, 0 failed 
+   10.8 DONE

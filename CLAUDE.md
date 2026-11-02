@@ -374,7 +374,7 @@ What that implies (my reading, each point open for the design note):
 His rules for all of it: each item its own branch, tests, and a `W#` folder where it is an engineering iteration; **a feature is done only when it is in the plugin and tested through the real dock**; the [PRESERVE-CHECK] and [BROAD] rule applies; never push or publish without his word. In this order:
 
 1. **D2, see the mesh.** After every run, the real cell grid as a vector layer in Model setup. **Done, `W17 cell grid layer`.**
-2. **D8, boundaries.** One line layer holds all boundaries. The dock lists each line in a table with kind and value editable, defaults filled by kind, no fields needed in the layer. The kind and value field route stays.
+2. **D8, boundaries.** One line layer holds all boundaries. The dock lists each line in a table with kind and value editable, defaults filled by kind, no fields needed in the layer. The kind and value field route stays. **Done, `W18 boundary table`.**
 3. **D1, time slider.** The engine exports the saved frames as one CF NetCDF file; one dock button loads it as a QGIS mesh layer with depth, speed and hazard datasets, working with the Temporal Controller. Cell frames first; per-frame pixel maps only for small areas, if at all. **Check first that QGIS really reads the file with its time axis; untested.**
 4. **D5, rainfall.** A Storm section: hyetograph table, hypothetical design patterns with ARF, gridded rain and DSS first, plus NetCDF; radar and satellite later. The rain feeds rain-on-grid and lumped alike.
 5. **D9, result lines, HEC-RAS style.** Two kinds, labelled in the plot. Upfront lines and points stay, computed during the run: the numbers of record. After the run the user draws a temporary line or picks one from a layer, and the plugin rapidly shows the hydrograph, depth, and the water surface with the terrain along the line, all changing as the time slider moves. These read saved frames, so state their limit: the map interval, flow estimated from depth and speed. Depends on D1.
@@ -435,6 +435,7 @@ were never run; reviewer acceptance is untested.
 - `W14 cell edge steps` (live, merged): why depth maps drew as cell-sized blocks, the edge blend.
 - `W13 time step test` (done): a quarter of the step moves Bidah's peak 0.23 %.
 - `W12 full extent rerun` (live): W2's job on the merged engine, the rule, the five dams, why the peaks rose, maps with the edge fix. Quote this and not W2 for current numbers.
+- `W18 boundary table` (done): D8, one line layer, a table of kinds and values, 34 of 34 through the real dock.
 - `W17 cell grid layer` (done): D2, the real cell grid in Model setup after every run, 21 of 21 through the real dock.
 - `W16 release package` (live): the Windows package and installer, tested from a fresh environment on this PC; another PC not yet.
 - `W15 final plugin test` (done): the five dock checks on merged `main`, 207 of 207, small areas, throwaway QGIS profiles.

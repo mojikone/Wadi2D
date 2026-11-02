@@ -59,6 +59,12 @@ def shot(name):
     iface.mainWindow().grab().save(str(P / f"{len(results):03d}_{name}.png"))
 
 
+def widget_shot(name, widget):
+    """One part of the dock as it draws, whatever the state of the window."""
+    QApplication.processEvents()
+    widget.grab().save(str(P / f"widget_{name}.png"))
+
+
 def render(name, layers, centre, scale, size=(1000, 700), dpi=96):
     """What a user sees at this scale, drawn to the end, off the screen: a minimized window's canvas shows nothing."""
     settings = QgsMapSettings()
@@ -201,7 +207,7 @@ def finish(failed=""):
         log(f"  FAILED {r[0]}: {r[2]}")
     log("DONE")
     QgsProject.instance().setDirty(False)
-    QTimer.singleShot(400, iface.actionExit().trigger)
+    QTimer.singleShot(400, lambda: os._exit(0))  # a throwaway window: its exit can stop on a dialog nobody will answer
 
 
 gen = None
