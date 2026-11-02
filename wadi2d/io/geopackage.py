@@ -1,4 +1,4 @@
-"""A GeoPackage of polygon layers, written with the standard library.
+"""A GeoPackage of vector layers, written with the standard library.
 
 SQLite plus the few tables of the OGC standard. A second GDAL in the process is not an option here: the wheels of
 rasterio and pyogrio each bring their own, and loading both beside CuPy crashes the interpreter on Windows.
@@ -22,6 +22,7 @@ LOCAL_SRS = 99999
 HEADER_FLAGS = 0b0000_0011
 """Little-endian, with an envelope of minx, maxx, miny, maxy."""
 SQL_TYPES = {int: "INTEGER", float: "DOUBLE", str: "TEXT"}
+POINTS, LINES, POLYGONS = "POINT", "MULTILINESTRING", "MULTIPOLYGON"
 UNDEFINED_SRS = (
     ("Undefined Cartesian SRS", -1, "NONE", -1, "undefined", "undefined Cartesian coordinate reference system"),
     ("Undefined geographic SRS", 0, "NONE", 0, "undefined", "undefined geographic coordinate reference system"),
@@ -40,17 +41,23 @@ CREATE TABLE gpkg_geometry_columns (table_name TEXT NOT NULL, column_name TEXT N
 
 
 @dataclass
-class PolygonLayer:
+class VectorLayer:
     """Rows of a layer: ``columns`` names to Python types, ``rows`` tuples in that order, one geometry each."""
 
     name: str
     columns: dict[str, type]
     rows: list[tuple] = field(default_factory=list)
     geometries: list[shapely.Geometry] = field(default_factory=list)
+    kind: str = POLYGONS
 
 
-def _as_multipolygon(geometry: shapely.Geometry) -> shapely.MultiPolygon:
+def _as_kind(geometry: shapely.Geometry, kind: str) -> shapely.Geometry:
+    """One geometry of the layer's type; what a polygon clip leaves behind beside its polygons goes."""
+    if kind == POINTS:
+        return geometry
     parts = shapely.get_parts(geometry)
+    if kind == LINES:
+        return shapely.MultiLineString([p for p in parts if p.geom_type == "LineString"])
     return shapely.MultiPolygon([p for p in parts if p.geom_type == "Polygon"])
 
 
@@ -68,12 +75,12 @@ def _srs_row(crs_wkt: str) -> tuple:
     return (f"EPSG:{epsg}", epsg, "EPSG", epsg, crs_wkt, "the CRS of the run")
 
 
-def _write_layer(db: sqlite3.Connection, layer: PolygonLayer, srs_id: int) -> None:
+def _write_layer(db: sqlite3.Connection, layer: VectorLayer, srs_id: int) -> None:
     names = ", ".join(f'"{n}" {SQL_TYPES[t]}' for n, t in layer.columns.items())
     db.execute(
         f'CREATE TABLE "{layer.name}" (fid INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, geom BLOB, {names})'
     )
-    shapes = [_as_multipolygon(g) for g in layer.geometries]
+    shapes = [_as_kind(g, layer.kind) for g in layer.geometries]
     shapes_kept = [(s, row) for s, row in zip(shapes, layer.rows, strict=True) if not s.is_empty]
     quoted = ", ".join(f'"{n}"' for n in layer.columns)
     marks = ", ".join("?" for _ in layer.columns)
@@ -88,11 +95,11 @@ def _write_layer(db: sqlite3.Connection, layer: PolygonLayer, srs_id: int) -> No
         (layer.name, layer.name, *bounds, srs_id),
     )
     db.execute(
-        "INSERT INTO gpkg_geometry_columns VALUES (?, 'geom', 'MULTIPOLYGON', ?, 0, 0)", (layer.name, srs_id)
+        "INSERT INTO gpkg_geometry_columns VALUES (?, 'geom', ?, ?, 0, 0)", (layer.name, layer.kind, srs_id)
     )
 
 
-def write_geopackage(path: Path, layers: list[PolygonLayer], crs_wkt: str) -> Path:
+def write_geopackage(path: Path, layers: list[VectorLayer], crs_wkt: str) -> Path:
     """A new GeoPackage, through a temporary name, so a stop never leaves half a file under the real name."""
     tmp = path.with_name(f"{path.stem}.tmp{path.suffix}")
     tmp.unlink(missing_ok=True)

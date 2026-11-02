@@ -62,3 +62,5 @@ plugin/wadi2d_qgis/engine.txt
 **/W7 plugin test/maps/sheet*.png
 Wadi2D_results.qgz
 **/W2 full extent run/terrain/preview_*.jpg
+**/W9 pixel outputs/runs/
+**/W9 pixel outputs/maps/sheet*.png

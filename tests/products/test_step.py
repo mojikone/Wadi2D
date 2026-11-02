@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 from pathlib import Path
 
 import h5py
@@ -59,7 +60,7 @@ def test_a_run_makes_its_pixel_maps_by_default(finished) -> None:
     folder = run / PIXEL_DIR
     for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.DV_FILE, step.STATS_FILE):
         assert (folder / name).exists()
-    assert (folder / "hazard_classes.gpkg").exists()
+    assert (folder / "map_layers.gpkg").exists()
     assert (folder / "depth_drawing.tif").exists()
     assert (run / "maps" / "hazard.tif").exists()  # the cell hazard stays
 
@@ -205,6 +206,48 @@ def test_peak_depth_does_not_wait_for_a_saved_map(tmp_path) -> None:
         pixel_peak = float(src.read(1, masked=True).max())
     assert run_peak > 1.01 * saved  # the saved maps did miss it
     assert pixel_peak >= 0.99 * run_peak
+
+
+def test_the_run_s_peak_lifts_depth_times_speed_to_what_the_cell_saw(tmp_path) -> None:
+    summary = run_job(wadi_job(tmp_path, map_every_s=2300.0), tmp_path / "coarse")
+    assert summary.exit_code == 0
+    with h5py.File(tmp_path / "coarse" / "results.h5", "r") as f:
+        run_peak = float(f["maxima"]["hazard"][:].max())
+        saved = 0.0
+        for name in f["maps"]:
+            group = f["maps"][name]
+            saved = max(saved, float((group["depth"][:] * group["speed"][:]).max()))
+    with rasterio.open(tmp_path / "coarse" / PIXEL_DIR / step.DV_FILE) as src:
+        lifted = float(src.read(1, masked=True).max())
+    assert run_peak > saved
+    assert lifted > saved * 0.5  # a pixel reads the sub-grid depth, not the level over the cell's lowest point
+
+
+def test_a_coarser_pixel_is_a_setting(tmp_path) -> None:
+    summary = run_job(wadi_job(tmp_path, pixels={"pixel_m": 10.0}), tmp_path / "run")
+    assert summary.products == runner.PRODUCTS_DONE
+    with rasterio.open(tmp_path / "run" / PIXEL_DIR / step.DEPTH_FILE) as src:
+        assert src.transform.a == 10.0
+
+
+def test_a_pixel_that_does_not_fit_the_dem_fails_the_step_not_the_run(tmp_path) -> None:
+    summary = run_job(wadi_job(tmp_path, pixels={"pixel_m": 7.0}), tmp_path / "run")
+    assert summary.exit_code == 0
+    assert summary.products == runner.PRODUCTS_FAILED
+
+
+def test_rasters_of_record_without_the_drawing(tmp_path) -> None:
+    summary = run_job(wadi_job(tmp_path, smooth={"enabled": False}), tmp_path / "run")
+    assert summary.products == runner.PRODUCTS_DONE
+    assert (tmp_path / "run" / PIXEL_DIR / step.HAZARD_FILE).exists()
+    assert not (tmp_path / "run" / PIXEL_DIR / "map_layers.gpkg").exists()
+
+
+def test_the_setup_of_the_run_goes_into_the_geopackage(finished) -> None:
+    _cfg, run, _summary = finished
+    with sqlite3.connect(run / PIXEL_DIR / "map_layers.gpkg") as db:
+        names = {row[0] for row in db.execute("SELECT table_name FROM gpkg_contents")}
+    assert {"hazard_classes", "domain", "boundaries"} <= names
 
 
 def test_products_settings_do_not_refuse_a_checkpoint(tmp_path) -> None:

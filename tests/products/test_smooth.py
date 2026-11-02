@@ -15,6 +15,7 @@ from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
 from wadi2d.grid.tiles import TileGrid
+from wadi2d.io.geopackage import write_geopackage
 from wadi2d.io.geotiff import raster_profile
 from wadi2d.products import smooth as sm
 from wadi2d.products.smooth_geometry import chaikin
@@ -182,7 +183,8 @@ def test_geopackage_is_read_by_gdal_with_both_layers(tmp_path) -> None:
     rows, _ = sm.class_polygons(CFG, classes, profile_of(classes), calm())
     domain = shapely.MultiPolygon([shapely.box(X0, Y0 - 100.0, X0 + 100.0, Y0)])
     wkt = rasterio.crs.CRS.from_epsg(32640).to_wkt()
-    path = sm.write_polygons(tmp_path / "h.gpkg", rows, domain, ["H1", "H2", "H3", "H4", "H5", "H6"], wkt)
+    layers = sm.class_layers(rows, domain, ["H1", "H2", "H3", "H4", "H5", "H6"])
+    path = write_geopackage(tmp_path / "h.gpkg", layers, wkt)
     with sqlite3.connect(path) as db:
         assert db.execute("PRAGMA application_id").fetchone()[0] == 0x47504B47
         assert db.execute("SELECT count(*) FROM hazard_classes").fetchone()[0] == len(rows)

@@ -46,9 +46,12 @@ class Watch:
     emit: Callable[..., None]
     stopped: Callable[[], bool]
 
-    def tick(self, stage: str, done: int, of: int) -> None:
+    def check(self) -> None:
         if self.stopped():
             raise ProductsStopped
+
+    def tick(self, stage: str, done: int, of: int) -> None:
+        self.check()
         low, high = STAGES[stage]
         share = done / of if of else 1.0
         self.emit("products", stage=stage, done=done, of=of, percent=round(low + (high - low) * share, 1))

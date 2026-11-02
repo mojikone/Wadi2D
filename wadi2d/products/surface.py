@@ -19,6 +19,10 @@ from __future__ import annotations
 NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST = (-1, -1), (-1, 1), (1, -1), (1, 1)
 CORNERS = (NORTH_WEST, NORTH_EAST, SOUTH_WEST, SOUTH_EAST)
 """(row, column) side of each corner, in the order of :func:`corner_basis`."""
+FILL_STEPS = 12
+"""Newton steps at most; a thin sheet over strong relief takes the most."""
+FILL_TOLERANCE = 1e-4
+"""A cell whose offset moves less than this is done, m."""
 
 
 def corner_basis(xp, k: int):
@@ -84,17 +88,25 @@ def fill_cells(xp, surface, ground, mean_depth):
     """Pixel depth under a surface of this shape, raised or lowered until it holds the cell's water exactly.
 
     A level is the height of a flat fill, so on a slope with thin flow it stands well under the true surface. The
-    water itself is known: the mean depth. The offset of each cell solves ``sum(max(0, c - g)) = k * k * mean_depth``
-    with g the ground over the surface shape, by the sorted fill the table builder also uses.
+    water itself is known: the mean depth. The offset c of each cell solves ``sum(max(0, c - g)) = k * k * mean_depth``
+    with g the ground over the surface shape. The left side is convex and piecewise linear, so Newton from above, where
+    every pixel is wet, walks down onto the root and never past it. Deep cells stop at the first step, and work
+    shrinks to the cells still moving, which is what keeps this cheap on the GPU.
     """
     relief = ground - surface
-    n = relief.shape[1]
-    ordered = xp.sort(relief, axis=1)
-    held = xp.cumsum(ordered, axis=1)
-    count = xp.arange(1, n + 1, dtype=xp.float32)
-    needed = count[None, :] * ordered - held
-    water = (mean_depth * n)[:, None]
-    wet_pixels = xp.maximum((needed <= water).sum(axis=1), 1)
-    picked = held[xp.arange(ordered.shape[0]), wet_pixels - 1]
-    offset = (water[:, 0] + picked) / wet_pixels.astype(xp.float32)
+    pixels = relief.shape[1]
+    water = mean_depth * pixels
+    offset = relief.mean(axis=1) + mean_depth
+    moving = xp.arange(relief.shape[0])
+    left = relief
+    for _ in range(FILL_STEPS):
+        gap = offset[moving, None] - left
+        under = gap > 0.0
+        excess = (gap * under).sum(axis=1) - water[moving]
+        step = excess / xp.maximum(under.sum(axis=1), 1).astype(xp.float32)
+        offset[moving] = offset[moving] - step
+        going = step > FILL_TOLERANCE
+        if not bool(going.any()):
+            break
+        moving, left = moving[going], left[going]
     return xp.maximum(offset[:, None] - relief, 0.0)

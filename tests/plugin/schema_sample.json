@@ -821,7 +821,7 @@
           "default": {
             "enabled": true,
             "sigma_px": 1.0,
-            "speckle_m2": 250.0,
+            "speckle_m2": 500.0,
             "simplify_px": 0.1,
             "block_px": 8192,
             "domain_sigma_cells": 0.8,
@@ -1091,7 +1091,7 @@
           "type": "number"
         },
         "speckle_m2": {
-          "default": 250.0,
+          "default": 500.0,
           "description": "A patch or a hole of a class smaller than this goes, m2",
           "maximum": 1000000.0,
           "minimum": 0.0,
@@ -1734,7 +1734,7 @@
           "enabled": true,
           "sigma_px": 1.0,
           "simplify_px": 0.1,
-          "speckle_m2": 250.0,
+          "speckle_m2": 500.0,
           "wet_edge_px": 1.0
         },
         "points": [],

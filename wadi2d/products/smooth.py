@@ -19,18 +19,20 @@ import contourpy
 import numpy as np
 import rasterio
 import shapely
+from rasterio.enums import Resampling
 from rasterio.windows import Window
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
-from wadi2d.io.geopackage import PolygonLayer, write_geopackage
+from wadi2d.io.geopackage import VectorLayer, write_geopackage
 from wadi2d.io.geotiff import raster_profile
 from wadi2d.products.hazard import DRY, class_names
+from wadi2d.products.setup_layers import setup_layers
 from wadi2d.products.smooth_geometry import chaikin_rings
 from wadi2d.tables import GridTables
 
-POLYGON_FILE = "hazard_classes.gpkg"
+LAYERS_FILE = "map_layers.gpkg"
 CLASS_LAYER = "hazard_classes"
 DOMAIN_LAYER = "domain"
 DRAWING_FILE = "depth_drawing.tif"
@@ -45,6 +47,8 @@ GAUSS_REACH = 4.0
 """Gaussian kernel reach, in sigmas."""
 EDGE_LOW, EDGE_HIGH = 0.25, 0.75
 """A soft mask below the low value draws nothing, above the high one draws all of the depth."""
+OVERVIEWS = (2, 4, 8, 16)
+"""Of the depth drawing, so a whole sheet does not read every drawing pixel."""
 DOMAIN_CHAIKIN = 2
 """Corner-cutting passes on the domain outline."""
 
@@ -119,7 +123,7 @@ def multi(parts: list) -> shapely.Geometry:
     return shapely.union_all(valid, grid_size=None) if len(parts) < 2 else shapely.coverage_union_all(valid)
 
 
-def _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, sigma):
+def _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, sigma, watch):
     """The soft cumulative masks of one block, cut to the block; ``None`` for a level absent here."""
     wide = window(classes, r0 - reach, r1 + 1 + reach, c0 - reach, c1 + 1 + reach, DRY)
     masks = [None] * (levels + 1)
@@ -132,6 +136,7 @@ def _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, sigma):
     raw = wide[cut]
     fields: list = [None] * (levels + 1)
     for k in range(1, levels + 1):
+        watch.check()
         if masks[k] is not None:
             field = soft(masks[k], sigma)[cut]
             fields[k] = (field, area_iso(field, int((raw >= k).sum())))
@@ -195,13 +200,14 @@ def class_polygons(cfg: RunConfig, classes: np.ndarray, profile: dict, watch) ->
         watch.tick("smooth", index, 2 * len(blocks))
         if not (window(classes, r0, r1 + 1, c0, c1 + 1, DRY) > DRY).any():
             continue
-        raw_wet, fields = _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, smooth.sigma_px)
+        raw_wet, fields = _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, smooth.sigma_px, watch)
         if fields[1] is not None:
             smooth_wet = fields[1][0] >= fields[1][1]
             added += int((smooth_wet & ~raw_wet).sum())
             removed += int((raw_wet & ~smooth_wet).sum())
         above = shapely.MultiPolygon()
         for k in range(levels, 0, -1):
+            watch.check()
             if fields[k] is None:
                 continue
             parts = contour_polygons(*fields[k])
@@ -236,16 +242,15 @@ def domain_outline(tables: GridTables, sigma_cells: float) -> shapely.Geometry:
     return chaikin_rings(multi(parts), DOMAIN_CHAIKIN)
 
 
-def write_polygons(path: Path, rows: list, domain, names: list[str], crs) -> Path:
-    """The class polygons and the outline, in one GeoPackage."""
-    classes = PolygonLayer(
+def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
+    """The class polygons and the outline, as GeoPackage layers."""
+    classes = VectorLayer(
         CLASS_LAYER,
         {"class": int, "name": str, "area_km2": float, "block": int},
         [(k, names[k - 1], shapely.area(g) / M2_PER_KM2, b) for k, b, g in rows],
         [g for _k, _b, g in rows],
     )
-    outline = PolygonLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])
-    return write_geopackage(path, [classes, outline], crs.to_wkt() if hasattr(crs, "to_wkt") else crs)
+    return [classes, VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])]
 
 
 def _fill_dry(depth: np.ndarray, wet: np.ndarray) -> np.ndarray:
@@ -299,6 +304,7 @@ def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, 
                 cut = drawn[reach * scale : -reach * scale, reach * scale : -reach * scale]
                 box = Window(c0 * scale, r0 * scale, (c1 - c0) * scale, (r1 - r0) * scale)
                 out.write(cut, 1, window=box)
+            out.build_overviews(OVERVIEWS, Resampling.average)
     except BaseException:
         tmp.unlink(missing_ok=True)
         raise
@@ -311,10 +317,15 @@ def make_drawings(cfg, tables: GridTables, written: dict, depth: np.ndarray, fol
     classes, profile = written["classes"], written["profile"]
     rows, accounts = class_polygons(cfg, classes, profile, watch)
     domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
-    write_polygons(folder / POLYGON_FILE, rows, domain, class_names(cfg.outputs.pixels), crs)
+    layers = class_layers(rows, domain, class_names(cfg.outputs.pixels)) + setup_layers(cfg, crs_text(crs))
+    write_geopackage(folder / LAYERS_FILE, layers, crs_text(crs))
     depth_drawing(cfg, depth, raster_profile(depth.shape, *_pixel_origin(profile), crs), folder / DRAWING_FILE, watch)
     watch.tick("smooth", 1, 1)
     return accounts
+
+
+def crs_text(crs) -> str:
+    return crs.to_wkt() if hasattr(crs, "to_wkt") else crs
 
 
 def _pixel_origin(profile: dict) -> tuple[float, float, float]:

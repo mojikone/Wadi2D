@@ -20,11 +20,10 @@ def _block2_path() -> Path:
 
 def _gpu_available() -> bool:
     try:
-        import cupy as cp  # noqa: PLC0415
+        import cupy as cp
 
-        cp.cuda.Device(0).compute_capability
-        return True
-    except Exception:  # noqa: BLE001
+        return cp.cuda.Device(0).compute_capability > 0
+    except Exception:
         return False
 
 

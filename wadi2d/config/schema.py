@@ -234,7 +234,7 @@ class Smooth(_Part):
         1.0, ge=0.25, le=8.0, description="Width of the soft class masks, Gaussian sigma in pixels"
     )
     speckle_m2: float = Field(
-        250.0, ge=0.0, le=1.0e6, description="A patch or a hole of a class smaller than this goes, m2"
+        500.0, ge=0.0, le=1.0e6, description="A patch or a hole of a class smaller than this goes, m2"
     )
     simplify_px: float = Field(
         0.1, ge=0.0, le=2.0, description="Polygon vertices closer than this to the line go, pixels"

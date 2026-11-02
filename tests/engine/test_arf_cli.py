@@ -158,3 +158,12 @@ def test_hms_import_makes_a_valid_job(hms_project_dir: Path, tmp_path):
     assert len(cfg.hydrology.subbasins) == 18
     assert cfg.storm.arf is not None
     assert cfg.run.duration_s > 3600.0
+
+
+def test_a_study_runs_without_pixel_maps_even_when_its_job_has_them_on(arf_job, tmp_path):
+    """Its runs are many and it reads the cell maps: the pixel maps belong to the run chosen after it."""
+    outputs = arf_job.outputs.model_copy(update={"map_every_s": 600.0})
+    arf_study(arf_job.model_copy(update={"outputs": outputs}), tmp_path / "study")
+    runs = list((tmp_path / "study" / "runs").iterdir())
+    assert runs
+    assert not any((run / "pixels").exists() for run in runs)
