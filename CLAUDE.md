@@ -4,6 +4,7 @@
 
 **State line (2026-11-01, end of the first build): version 1 engine and QGIS plugin built; `main` is public on GitHub; 709 tests pass; the plugin ran a real GPU job in a real QGIS window. Block 2 validated as far as it can be without a gauge: lumped hydrology replicates HMS, mode (b) matches it within 3 %, both dams route within 1.6 % of Modified Puls, one easy HEC-RAS window agrees to 2.6 cm. **HEC-RAS rain-on-grid on Bidah agrees with mode (c): 622.0 against 621.9 m3/s at 10 m, read as within about 4 %, and RAS alone gives 1.72 x HMS. So the gap to HMS is method, not a Wadi2D defect. Still open: whether the SCS lag or the 2D response is right; Block 2 has no gauges (his word), so that needs outside evidence (decision 20).** **Full project boundary run on 2026-11-01 (`W2 full extent run`): 15,398 km2, 17.1 M cells at 30 m, 68 min, Block 2's 200-yr storm, mass error 4e-8; against his 200-yr layer, depth agrees where both are wet (median -0.11 m) but extent does not (F 0.40 at 0.3 m), cause unknown.** The next step is his answers to the list under Next steps. **Worst finding for the dam work: the GGC terrain lies 2.39 m above the NSA datum of the dam levels and EAV.**
 **2026-11-01, branch `feature/terrain-tools`, not merged, not pushed: embankment, channel and channel with dykes in engine and plugin (decision 21); 54 of 54 through the real dock on Block 2 ground. Overtopping is within 5 % only for a crest up to half a cell wide.**
+**2026-11-01, branch `feature/pixel-outputs`, not merged, not pushed: runs make pixel depth, hazard H1 to H6, smooth polygons and a depth drawing by themselves, on the modified terrain, and the dock has Make map; `W9 pixel outputs/README.md`.**
 
 The user's global CLAUDE.md rules apply (advisor register, confidence tags, W# iterations never overwritten, live documents, one
 logical change per commit, **never push without his explicit word**). This file is the live state of the project: update the state
@@ -206,6 +207,12 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
     vertical walls at 45 degrees runs +7 to +8 % at 3 cells wide and about +3.5 % at 6, averaged over lateral position; the +2 % recorded before was a lucky
     position and +11 % an old kernel. 2:1 banks +1.9 % and +0.9 %. Cause: a dry face's zero velocity is advected as real momentum, not grid alignment. `design_note.md` carries the equations
     and the list of what this overturned, including `dx <= h/S` as a hard rule in decision 18.
+21. **Flood outputs live in the engine and the plugin, not in scripts** (his instruction, 2026-11-01: "the plugin is what other people
+    will use: a feature that is not in the plugin is not done"; he rejected the last maps as "pixel pixel"). After a run the engine makes depth,
+    speed and depth x speed at the DEM pixel over the saved maps, on the GPU with a CPU path from one source, and the classes H1 to H6 by the rule in
+    the schema. Two cells share a water surface when both levels stand above their shared face, or the higher does and their depths are alike; this
+    replaces the fixed 2 m jump, which switched the slope off on steep channels. Each cell is then filled to its own mean depth, so a thin sheet
+    reads its own depth, not a wedge. Rasters are the numbers of record; polygons and the depth drawing only show them. Detail: `W9 pixel outputs/README.md`.
 20. **Validation without gauges** (his statement, 2026-11-01: Block 2 has no hydrometric station with matching rainfall and hydrographs for one event, so
     HMS is not the thing to validate the outputs). Consequences. HMS replication stays as a **code check**: it proves our hydrology does what HMS does, not
     that either is right. Mode (c) against HMS is a **disagreement between two uncalibrated models**, not a failure of (c), and not a pass for HMS. Hand check
@@ -373,6 +380,8 @@ Waiting on him:
    project data it carries (dam levels, job files with local paths, the datum finding).
 6. Deleting the generated caches under `validation/block2_full/` (`cache`, 3.9 GB; `cache_3f32ca6`, 6.5 GB), which the session's safety check refused.
 
+Waiting on him, W9: the two things added beyond the brief, each cell filled to its own mean depth and the lift of depth x speed to the run's peak (H1 grows 12 % on the full extent from the first); merging `feature/pixel-outputs`.
+
 Decided 2026-11-01, his agreement: hazard is pixel depth x interpolated velocity on 5-minute frames, as HEC-RAS Mapper and his Majlas script do; no split of a face by conveyance until a case can validate it. Rerun `runs/full_30m_200yr_5min` holds those frames.
 
 Version 2, his question of 2026-11-01 (cells aligned with the ground so steep slopes need no finer mesh): keep the tile quadtree, add faces snapped to breaklines, and test a sloped water surface inside a cell. Long cells along the flow fix diagonal channels; they do not by themselves lift the limit on steep ground, and thin cells shorten the explicit step. An unstructured mesh is the alternative, at 2 to 4 x the cost per cell (decision 4).
@@ -398,6 +407,7 @@ were never run; reviewer acceptance is untested.
 
 - `W2 full extent run` (live): the actual project boundary at 30 m on NSA 5 m blended with Copernicus 30 m, Block 2's 200-yr storm. Its `README.md` holds inputs and results.
 - `W10 mesher` (live, not merged, branch `stage/d-plugin`): quadtree, local time stepping, the mesher, the Mesh section; decision 22.
+- `W9 pixel outputs` (live): pixel depth and hazard in the engine, sloped surface, smooth maps, Make map. The map scripts of `W2` and `W7` are superseded by it.
 - `W8 terrain tools` (live, merged): shaped terrain objects, the crest sweep, the dock check.
 - `W1 research and design note` (live): toolchain gate, Block 2 inventory, research, benchmarks, prototypes, design note. The software itself lives at
   the repository root. Convention: `W<n> <short description>`, never overwritten; superseded iterations stay and are marked in `README.md`.

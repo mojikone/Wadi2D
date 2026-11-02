@@ -189,3 +189,27 @@ def test_a_broken_latest_file_falls_back_to_the_plain_raster(tmp_path: Path) -> 
     (live / "depth.tif").write_bytes(b"x")
     (live / "latest.json").write_text("{half", "utf-8")
     assert live_source(tmp_path)[0] == live / "depth.tif"
+
+
+def test_the_bar_and_the_status_follow_the_pixel_maps() -> None:
+    state = RunState(t_end=100.0)
+    state.apply({"ev": "step", "t": 100.0, "dt": 1.0})
+    assert state.percent == 100
+    state.apply({"ev": "products", "stage": "maps", "done": 12, "of": 193, "percent": 40.0})
+    assert state.percent == 40
+    assert state.status == "Pixel maps: saved map: 12 of 193"
+    state.apply({"ev": "products", "stage": "smooth", "done": 0, "of": 2, "percent": 85.0})
+    assert "polygons" in state.status
+    state.apply({"ev": "done", "code": 0, "t": 100.0, "products": "finished"})
+    assert state.percent == 100
+    assert state.products == "finished"
+    assert "Pixel maps" not in state.status
+
+
+def test_a_stop_during_the_pixel_maps_is_said_on_a_finished_run() -> None:
+    state = RunState(t_end=100.0)
+    state.apply({"ev": "products", "stage": "maps", "done": 1, "of": 9, "percent": 10.0})
+    state.apply({"ev": "warn", "message": "Pixel maps stopped on request. The run itself finished."})
+    state.apply({"ev": "done", "code": 0, "t": 100.0, "products": "stopped"})
+    assert state.succeeded
+    assert "Pixel maps stopped" in state.outcome()

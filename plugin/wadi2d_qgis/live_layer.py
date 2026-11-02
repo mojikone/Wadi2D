@@ -19,6 +19,7 @@ from qgis.PyQt.QtGui import QColor
 
 from .progress import live_source
 from .protocol import MAPS_DIR
+from .result_layers import GROUP_CELLS, hide_band_name
 from .style import MAP_ORDER, STYLES, style_depth, style_mesh
 
 LIVE_NAME = "Wadi2D live depth"
@@ -94,8 +95,11 @@ class LiveLayer:
         self._layer_id, self._path, self._stamp = None, None, None
 
 
-def load_maps(out_dir: Path | str, name: str) -> list:
-    """``maps/*.tif`` into a group named after the run; loading a run again replaces its group."""
+def load_maps(out_dir: Path | str, name: str, tucked: bool = False) -> list:
+    """``maps/*.tif`` into a group named after the run; loading a run again replaces its group.
+
+    ``tucked`` puts them in a closed subgroup, switched off, under what the run made after them.
+    """
     project = QgsProject.instance()
     root = project.layerTreeRoot()
     old = root.findGroup(name)
@@ -107,12 +111,17 @@ def load_maps(out_dir: Path | str, name: str) -> list:
     if not layers:
         return []
     group = root.insertGroup(0, name)
+    if tucked:
+        group = group.addGroup(GROUP_CELLS)
+        group.setExpanded(False)
     for index, layer in enumerate(layers):
         style = STYLES.get(layer.name())
         if style:
             style(layer)
         project.addMapLayer(layer, False)
-        group.addLayer(layer).setItemVisibilityChecked(index == 0)
+        node = group.addLayer(layer)
+        node.setItemVisibilityChecked(index == 0 and not tucked)
+        hide_band_name(node)
     return layers
 
 

@@ -36,6 +36,11 @@ MESH_MID_AREA = "mesh.stream_area_mid_km2"
 MESH_ZONE_DX = "mesh.zones.dx"
 LOCAL_STEPS = "numerics.local_time_stepping"
 ZONE_DX_FIELD = "dx"
+MAP_EVERY = "outputs.map_every_s"
+PIXELS_ON = "outputs.pixels.enabled"
+
+ANIMATION_MAP_S = 300.0
+"""Saved maps for a film: the dock's other choice. A display choice, so it lives here; the default is the schema's."""
 
 PREFERRED_DX = 20.0
 """The dock's starting cell size, his choice for a first look: the schema's default is the finer engine one."""
@@ -353,6 +358,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
+    if values.get("map_every_s") is not None:
+        job["outputs"]["map_every_s"] = values["map_every_s"]
+    if values.get("pixels") is False:
+        job["outputs"]["pixels"] = {"enabled": False}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
     if values.get("local_steps"):

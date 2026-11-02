@@ -125,6 +125,12 @@ def _arf(args: argparse.Namespace) -> int:
         return error.code
 
 
+def _products(args: argparse.Namespace) -> int:
+    from wadi2d.products.runner import remake
+
+    return remake(Path(args.run), args.backend, echo=True)
+
+
 def _terrain(args: argparse.Namespace) -> int:
     from wadi2d.engine.terrain_preview import preview_terrain
     from wadi2d.run import EXIT_INVALID, JobError
@@ -177,6 +183,11 @@ def parser() -> argparse.ArgumentParser:
     arf.add_argument("--out", required=True)
     arf.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     arf.set_defaults(call=_arf)
+
+    products = sub.add_parser("products", help="pixel depth, hazard and their drawing, for a finished run")
+    products.add_argument("run", metavar="RUN_DIR")
+    products.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
+    products.set_defaults(call=_products)
 
     terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
     terrain.add_argument("job")

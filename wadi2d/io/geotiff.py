@@ -56,6 +56,37 @@ def write_map(
     return out
 
 
+def raster_profile(shape: tuple[int, int], pixel: float, x0: float, y0: float, crs) -> dict:
+    """A compressed raster north-up from (x0, y0), for :func:`write_band`."""
+    return {
+        "driver": "GTiff",
+        "height": shape[0],
+        "width": shape[1],
+        "count": 1,
+        "crs": crs,
+        "transform": Affine(pixel, 0.0, x0, 0.0, -pixel, y0),
+        "compress": "deflate",
+        "zlevel": ZLEVEL,
+        "tiled": True,
+        "blockxsize": BLOCK,
+        "blockysize": BLOCK,
+        "BIGTIFF": "IF_SAFER",
+    }
+
+
+def write_band(path: str | Path, band: np.ndarray, profile: dict, nodata: float, tags=None) -> Path:
+    """One band of any type; through a temporary name, so a stop never leaves half a file under the real name."""
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(f"{out.stem}.tmp{out.suffix}")
+    with rasterio.open(tmp, "w", dtype=band.dtype.name, nodata=nodata, **profile) as dst:
+        dst.write(band, 1)
+        if tags:
+            dst.update_tags(**tags)
+    tmp.replace(out)
+    return out
+
+
 class LiveRaster:
     """Uncompressed float32 band overwritten in place, ``stride`` cells per pixel, mean over the cells."""
 

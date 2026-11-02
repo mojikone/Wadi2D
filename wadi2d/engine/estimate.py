@@ -40,6 +40,17 @@ class Estimate:
     steps: int
     wall_s: float
     backend: str
+    maps: int
+    maps_gb: float
+
+
+def saved_maps(cfg: RunConfig, cells: int) -> tuple[int, float]:
+    """How many maps a run saves, and the disk they take, GB. Dry ground compresses well, so it is an upper end."""
+    every = cfg.outputs.map_every_s
+    if every <= 0.0:
+        return 0, 0.0
+    count = int(np.ceil(cfg.run.duration_s / every)) + 1
+    return count, round(count * cells * cfg.outputs.frame_bytes_per_cell / 1e9, 2)
 
 
 def measure_cost(backend: str, num: Numerics, cfg: Tables) -> tuple[float, str]:
@@ -83,7 +94,10 @@ def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     wave = r.estimate_wave * (r.estimate_speed + np.sqrt(G * r.estimate_depth))
     step = float(min(cfg.numerics.cfl * cfg.grid.dx / wave, cfg.numerics.dt_max))
     steps = int(np.ceil(r.duration_s / step))
-    return Estimate(cells, tiles, round(gb, 3), round(ns, 3), step, steps, ns * 1e-9 * cells * steps, name)
+    return Estimate(
+        cells, tiles, round(gb, 3), round(ns, 3), step, steps, ns * 1e-9 * cells * steps, name,
+        *saved_maps(cfg, cells),
+    )  # fmt: skip
 
 
 def as_dict(e: Estimate) -> dict[str, object]:

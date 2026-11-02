@@ -21,6 +21,7 @@ dependencies = [
   "pydantic>=2.6",
   "numba>=0.60",
   "hecdss>=0.1.29",
+  "contourpy>=1.2",
 ]
 
 [project.optional-dependencies]

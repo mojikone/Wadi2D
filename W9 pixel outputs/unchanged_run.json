@@ -1,0 +1,113 @@
+{
+ "lines": {
+  "Bidah_03": {
+   "before_m3s": 667.922,
+   "after_m3s": 667.922,
+   "same_file": true
+  },
+  "Bidah_03_ring": {
+   "before_m3s": 682.291,
+   "after_m3s": 682.291,
+   "same_file": true
+  },
+  "Faydh_01": {
+   "before_m3s": 848.709,
+   "after_m3s": 848.709,
+   "same_file": true
+  },
+  "Faydh_01_ring": {
+   "before_m3s": 848.391,
+   "after_m3s": 848.391,
+   "same_file": true
+  },
+  "R2A": {
+   "before_m3s": 1545.0,
+   "after_m3s": 1545.0,
+   "same_file": true
+  },
+  "R2A_ring": {
+   "before_m3s": 1544.85,
+   "after_m3s": 1544.85,
+   "same_file": true
+  },
+  "R5A": {
+   "before_m3s": 1029.61,
+   "after_m3s": 1029.61,
+   "same_file": true
+  },
+  "R5A_ring": {
+   "before_m3s": 1002.21,
+   "after_m3s": 1002.21,
+   "same_file": true
+  },
+  "S11_ring": {
+   "before_m3s": 248.849,
+   "after_m3s": 248.849,
+   "same_file": true
+  },
+  "S14_ring": {
+   "before_m3s": 201.685,
+   "after_m3s": 201.685,
+   "same_file": true
+  },
+  "S1_ring": {
+   "before_m3s": 157.968,
+   "after_m3s": 157.968,
+   "same_file": true
+  },
+  "S2_ring": {
+   "before_m3s": 322.264,
+   "after_m3s": 322.264,
+   "same_file": true
+  },
+  "S5_ring": {
+   "before_m3s": 255.275,
+   "after_m3s": 255.275,
+   "same_file": true
+  },
+  "S6_ring": {
+   "before_m3s": 61.3196,
+   "after_m3s": 61.3196,
+   "same_file": true
+  },
+  "Z4C": {
+   "before_m3s": 2040.48,
+   "after_m3s": 2040.48,
+   "same_file": true
+  },
+  "Z4C_ring": {
+   "before_m3s": 2040.79,
+   "after_m3s": 2040.79,
+   "same_file": true
+  }
+ },
+ "max_depth_largest_difference": 0.0,
+ "max_speed_largest_difference": 0.0,
+ "hazard_largest_difference": 0.0,
+ "s06_class_km2": {
+  "H1": 14.38,
+  "H2": 6.45,
+  "H3": 1.04,
+  "H4": 4.04,
+  "H5": 11.62,
+  "H6": 10.06
+ },
+ "engine_class_km2": {
+  "H1": 16.64,
+  "H2": 6.78,
+  "H3": 1.0,
+  "H4": 4.02,
+  "H5": 12.25,
+  "H6": 10.29
+ },
+ "smoothing_change_pct": {
+  "H1": 1.855,
+  "H2": -0.167,
+  "H3": 0.181,
+  "H4": 0.09,
+  "H5": -0.049,
+  "H6": -0.011
+ },
+ "wet_added_km2": 1.778,
+ "wet_removed_km2": 2.1353
+}

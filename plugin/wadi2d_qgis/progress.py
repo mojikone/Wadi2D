@@ -21,6 +21,13 @@ from .protocol import (
 )
 from .shaped import volumes_text
 
+PRODUCT_STAGES = {
+    "ground": "Pixel maps: reading the terrain",
+    "maps": "Pixel maps: saved map",
+    "rasters": "Pixel maps: writing the rasters",
+    "smooth": "Pixel maps: drawing the polygons and the depth",
+}
+
 
 class ProgressTail:
     """Reads ``progress.jsonl`` from its last offset; a half-written last line waits for the next poll."""
@@ -74,6 +81,11 @@ class RunState:
     finished: bool = False
     exit_code: int | None = None
     message: str = ""
+    product_stage: str | None = None
+    product_percent: float = 0.0
+    product_done: int = 0
+    product_of: int = 0
+    products: str | None = None
 
     def apply(self, event: dict) -> None:
         kind = event.get("ev")
@@ -84,6 +96,11 @@ class RunState:
             self.dt = event.get("dt", self.dt)
             self.wet_cells = event.get("wet_cells", self.wet_cells)
             self.mass_error = event.get("mass_error", self.mass_error)
+        elif kind == "products":
+            self.product_stage = event.get("stage")
+            self.product_percent = event.get("percent", self.product_percent)
+            self.product_done = event.get("done", 0)
+            self.product_of = event.get("of", 0)
         elif kind == "warn":
             self.warnings.append(str(event.get("message", "")))
         elif kind == "terrain":
@@ -98,17 +115,23 @@ class RunState:
             self.wet_area_km2 = event.get("wet_area_km2", self.wet_area_km2)
             balance = event.get("balance") or {}  # a short run ends before its first throttled "step"
             self.mass_error = balance.get("relative_error", self.mass_error)
+            self.products = event.get("products", self.products)
+            self.product_stage = None
             self.finished = True
 
     @property
     def percent(self) -> int:
+        if self.product_stage is not None:
+            return max(0, min(100, int(self.product_percent)))
         if not self.t_end:
             return 0
         return max(0, min(100, int(100 * self.t / self.t_end)))
 
     @property
     def status(self) -> str:
-        """Simulated time, time step, wet cells and mass error on one line."""
+        """Simulated time, time step, wet cells and mass error on one line; or where the pixel maps have got to."""
+        if self.product_stage is not None:
+            return _product_status(self.product_stage, self.product_done, self.product_of)
         parts = [f"{_clock(self.t)} of {_clock(self.t_end)}" if self.t_end else _clock(self.t)]
         if self.dt is not None:
             parts.append(f"step {self.dt:.3g} s")
@@ -135,6 +158,13 @@ class RunState:
             words.append(volumes_text(self.volumes))
         words.extend(warning.rstrip(". ") + "." for warning in dict.fromkeys(self.warnings))
         return " ".join(words)
+
+
+def _product_status(stage: str, done: int, of: int) -> str:
+    words = PRODUCT_STAGES.get(stage, "Pixel maps")
+    if stage == "maps" and of:
+        return f"{words}: {done} of {of}"
+    return words
 
 
 def event_xy(event: dict) -> tuple[float, float] | None:
