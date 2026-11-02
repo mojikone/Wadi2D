@@ -219,6 +219,24 @@ def _terrain(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _breaklines(args: argparse.Namespace) -> int:
+    from wadi2d.breaklines import suggest
+    from wadi2d.run import EXIT_INVALID, JobError, check_inputs
+
+    try:
+        cfg = _load(args.job)
+        check_inputs(cfg)
+        summary = suggest(cfg, args.out)
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    except (ValueError, RuntimeError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    print(json.dumps({"ev": "breaklines", **summary}))
+    return EXIT_OK
+
+
 def _hms_import(args: argparse.Namespace) -> int:
     from wadi2d.engine.hms_import import write_job
 
@@ -296,6 +314,11 @@ def parser() -> argparse.ArgumentParser:
     terrain.add_argument("job")
     terrain.add_argument("--out", required=True)
     terrain.set_defaults(call=_terrain)
+
+    breaklines = sub.add_parser("breaklines", help="suggested breaklines from the ground, as an editable line layer")
+    breaklines.add_argument("job")
+    breaklines.add_argument("--out", required=True)
+    breaklines.set_defaults(call=_breaklines)
 
     hms = sub.add_parser("hms-import", help="job.json from an HMS project")
     hms.add_argument("hms_dir", metavar="HMS_DIR")
