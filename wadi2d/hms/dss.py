@@ -1,6 +1,6 @@
 """DSS access: a thin, safe wrapper over ``hecdss``.
 
-Interface: :func:`open_dss`, :class:`DssFile`, :class:`TimeSeries`, :class:`PairedTable`,
+Interface: :func:`open_dss`, :class:`DssFile`, :class:`TimeSeries`, :class:`PairedTable`, :class:`GridRecord`,
 :class:`DssPathname` and the F-part helpers :func:`run_fpart`, :func:`daa_fpart`, :func:`met_fpart`.
 
 ``hecdss`` creates a file that does not exist and has no read-only mode, so :func:`open_dss` refuses a
@@ -14,6 +14,7 @@ from __future__ import annotations
 import shutil
 import tempfile
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
 from types import TracebackType
 from typing import Any, Self
@@ -27,6 +28,8 @@ MET_PREFIX = "MET"
 POINT_SEPARATOR = ">"
 PERIOD_TYPE_PREFIX = "PER"  # PER-CUM, PER-AVER: the stamp closes the period it describes
 NATIVE_DEBUG_LEVEL = 1
+GRID_SRS_CHARACTERS = 8192
+"""``hecdss`` asks for 600 unless told, and PSD93 / UTM zone 40N takes 616."""
 
 _native_configured = False
 
@@ -90,6 +93,23 @@ class PairedTable:
     y_units: str
     x_type: str
     y_type: str
+
+
+@dataclass(frozen=True)
+class GridRecord:
+    """A gridded record as stored: ``values`` is (rows, columns) with the southern row first."""
+
+    pathname: DssPathname
+    values: np.ndarray
+    lower_left_x: int
+    lower_left_y: int
+    cell_size: float
+    x_cell_zero: float
+    y_cell_zero: float
+    null_value: float
+    units: str
+    grid_type: int
+    srs: str
 
 
 class DssLookupError(KeyError):
@@ -194,6 +214,39 @@ class DssFile:
             y_units=str(table.units_dependent),
             x_type=str(table.type_independent),
             y_type=str(table.type_dependent),
+        )
+
+    def grid_pathnames(self) -> list[DssPathname]:
+        """Every gridded record; grids are never condensed, so each keeps its own D and E."""
+        from hecdss.record_type import RecordType
+
+        items = self._native.get_catalog().items
+        return [DssPathname(i.A, i.B, i.C, i.D, i.E, i.F) for i in items if i.recType == RecordType.Grid]
+
+    def read_grid(self, pathname: DssPathname) -> GridRecord:
+        """The gridded record at this pathname, as stored."""
+        layer = self._native._native
+        layer.hec_dss_gridRetrieve = partial(
+            layer.hec_dss_gridRetrieve, srsDefinitionLength=GRID_SRS_CHARACTERS
+        )
+        try:
+            grid = self._native.get(str(pathname))
+        finally:
+            del layer.hec_dss_gridRetrieve
+        if grid is None:
+            raise DssLookupError(f"no gridded record at {pathname}")
+        return GridRecord(
+            pathname=pathname,
+            values=np.asarray(grid.data, dtype=float),
+            lower_left_x=int(grid.lowerLeftCellX),
+            lower_left_y=int(grid.lowerLeftCellY),
+            cell_size=float(grid.cellSize),
+            x_cell_zero=float(grid.xCoordOfGridCellZero),
+            y_cell_zero=float(grid.yCoordOfGridCellZero),
+            null_value=float(grid.nullValue),
+            units=str(grid.dataUnits),
+            grid_type=int(grid.type),
+            srs=str(grid.srsDefinition),
         )
 
 
