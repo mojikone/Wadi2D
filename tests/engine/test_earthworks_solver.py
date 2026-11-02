@@ -20,6 +20,8 @@ BOTTOM, SIDE = 18.0, 2.0
 FLOW = 40.0
 DEPTH_BELOW_GROUND = 3.0
 TOP = 100.0
+DYKE_TOP = 3.0
+"""Top of the dykes above the bed."""
 
 
 def normal_depth(q: float, b: float, side: float, n: float, slope: float) -> float:
@@ -31,7 +33,14 @@ def normal_depth(q: float, b: float, side: float, n: float, slope: float) -> flo
     return float(brentq(excess, 1e-3, 20.0))
 
 
-def channel_case(tmp_path, angle: float, manning: float = N, lining: float | None = None):
+def channel_case(
+    tmp_path,
+    angle: float,
+    manning: float = N,
+    lining: float | None = None,
+    depth=DEPTH_BELOW_GROUND,
+    dyke=False,
+):
     """A straight trapezoid in a plane falling along it, ``angle`` degrees south of east; held to steady flow."""
     size = 864.0 if angle else 1080.0
     height = 864.0 if angle else 96.0
@@ -44,7 +53,7 @@ def channel_case(tmp_path, angle: float, manning: float = N, lining: float | Non
     ground = TOP - S * along
     dem = write_dem(tmp_path / f"plane{angle:.0f}.tif", ground, PIXEL)
     length = size / max(ux, 1e-9)
-    bed0 = TOP - DEPTH_BELOW_GROUND
+    bed0 = TOP - depth
 
     def point(s: float, offset: float = 0.0) -> tuple[float, float]:
         return (X0 + start[0] + s * ux - offset * uy, Y0 + start[1] + s * uy + offset * ux)
@@ -57,6 +66,17 @@ def channel_case(tmp_path, angle: float, manning: float = N, lining: float | Non
     }
     if lining is not None:
         obj["lining_n"] = lining
+    if dyke:
+        top = [bed0 + DYKE_TOP, bed0 - S * length + DYKE_TOP]
+        rows = [
+            {"station": 0.0, "bed_z": bed0, "crest_z": top[0]},
+            {"station": length, "bed_z": bed0 - S * length, "crest_z": top[1]},
+        ]
+        obj = {
+            "kind": "channel_dyke",
+            "coordinates": obj["coordinates"],
+            "section": {**obj["section"], "rows": rows},
+        }
     stop = length - 60.0
     stations = (0.40 * length, 0.55 * length, 0.70 * length)
     # the level the solver is held to is the answer only at the end: upstream it must find its own depth
@@ -69,7 +89,13 @@ def channel_case(tmp_path, angle: float, manning: float = N, lining: float | Non
         terrain={"objects": [obj], "manning": manning},
         hydrology={
             "inflows": [
-                {"name": "in", "x": point(60.0)[0], "y": point(60.0)[1], "times_s": [0.0, 1e6], "flows": [FLOW, FLOW]}
+                {
+                    "name": "in",
+                    "x": point(60.0)[0],
+                    "y": point(60.0)[1],
+                    "times_s": [0.0, 1e6],
+                    "flows": [FLOW, FLOW],
+                }
             ],
             "inject_radius": 10.0,
         },
@@ -105,6 +131,17 @@ def test_a_straight_trapezoid_runs_at_manning_normal_depth(tmp_path, angle):
 def test_a_lined_channel_runs_at_the_depth_of_its_lining(tmp_path):
     depths, _flow = channel_case(tmp_path, 0.0, manning=0.12, lining=N)
     expected = normal_depth(FLOW, BOTTOM, SIDE, N, S)
+    for depth in depths:
+        assert depth == pytest.approx(expected, rel=0.05)
+
+
+@pytest.mark.parametrize("angle", [0.0, 45.0])
+def test_a_channel_between_dykes_runs_at_manning_normal_depth(tmp_path, angle):
+    # the ground is only 0.5 m above the bed, so the water stands against the dykes and between their crest lines
+    depths, flow = channel_case(tmp_path, angle, depth=0.5, dyke=True)
+    expected = normal_depth(FLOW, BOTTOM, SIDE, N, S)
+    assert expected > 0.5
+    assert flow == pytest.approx(FLOW, rel=0.02)
     for depth in depths:
         assert depth == pytest.approx(expected, rel=0.05)
 
@@ -207,12 +244,21 @@ def test_a_diagonal_dyke_holds_on_coarse_cells(tmp_path):
         terrain={"objects": [barrier("embankment", a, b)]},
         hydrology={
             "inflows": [
-                {"name": "in", "x": X0 + 40.0, "y": Y0 - 40.0, "times_s": [0.0, fill, fill + 1.0, 1e6], "flows": [flow, flow, 0.0, 0.0]}
+                {
+                    "name": "in",
+                    "x": X0 + 40.0,
+                    "y": Y0 - 40.0,
+                    "times_s": [0.0, fill, fill + 1.0, 1e6],
+                    "flows": [flow, flow, 0.0, 0.0],
+                }
             ],
             "inject_radius": 12.0,
         },
         run={"duration_s": fill + 200.0, "source_every_s": 10.0},
-        outputs={"lines": [{"name": "over", "coordinates": [(X0 + 230.0, Y0), (X0 + 230.0, Y0 - width)]}], "series_every_s": 5.0},
+        outputs={
+            "lines": [{"name": "over", "coordinates": [(X0 + 230.0, Y0), (X0 + 230.0, Y0 - width)]}],
+            "series_every_s": 5.0,
+        },
     )
     out = tmp_path / "hold"
     run = run_job(cfg, out)
@@ -258,7 +304,12 @@ EVERY_OBJECT = [
 def test_still_water_stays_still_over_every_object(tmp_path, level):
     nx, ny, pixel, dx = 240, 200, 1.25, 5.0
     dem = write_dem(tmp_path / "bumpy.tif", bumpy(nx, ny, pixel), pixel)
-    ring = [(X0 - 10.0, Y0 + 10.0), (X0 + 310.0, Y0 + 10.0), (X0 + 310.0, Y0 - 260.0), (X0 - 10.0, Y0 - 260.0)]
+    ring = [
+        (X0 - 10.0, Y0 + 10.0),
+        (X0 + 310.0, Y0 + 10.0),
+        (X0 + 310.0, Y0 - 260.0),
+        (X0 - 10.0, Y0 - 260.0),
+    ]
     cfg = job(
         dem,
         nx // 4,
@@ -297,7 +348,11 @@ def test_a_spillway_on_a_real_embankment_passes_its_rating(tmp_path):
         dx,
         terrain={"objects": objects},
         boundaries=[
-            {"kind": "stage", "coordinates": [(X0 + 2.0, Y0), (X0 + 2.0, Y0 - 64.0)], "stage": crest_z + head},
+            {
+                "kind": "stage",
+                "coordinates": [(X0 + 2.0, Y0), (X0 + 2.0, Y0 - 64.0)],
+                "stage": crest_z + head,
+            },
             {"kind": "free", "coordinates": [(X0 + 238.0, Y0), (X0 + 238.0, Y0 - 64.0)]},
         ],
         run={"duration_s": 900.0, "source_every_s": 30.0},
@@ -313,10 +368,18 @@ def test_a_spillway_on_a_real_embankment_passes_its_rating(tmp_path):
 def test_old_crests_keep_their_law_and_new_ones_read_the_energy_head(tmp_path):
     dem = write_dem(tmp_path / "f.tif", np.full((64, 64), 100.0), 2.0)
     line = [(X0 + 60.0, Y0), (X0 + 60.0, Y0 - 128.0)]
-    old = job(dem, 16, 16, 8.0, terrain={"objects": [{"kind": "crest_line", "coordinates": line, "z_constant": 102.0}]})
+    old = job(
+        dem,
+        16,
+        16,
+        8.0,
+        terrain={"objects": [{"kind": "crest_line", "coordinates": line, "z_constant": 102.0}]},
+    )
     thin = {**barrier("embankment", *line), "section": {"width": 3.0}}
     new = job(dem, 16, 16, 8.0, terrain={"objects": [thin]})
-    wide = job(dem, 16, 16, 8.0, terrain={"objects": [{**barrier("embankment", *line), "section": {"width": 20.0}}]})
+    wide = job(
+        dem, 16, 16, 8.0, terrain={"objects": [{**barrier("embankment", *line), "section": {"width": 20.0}}]}
+    )
     assert prepare_grid(old, tmp_path / "c")[0].cwx.max() == pytest.approx(CRITICAL_WEIR_COEFF)
     assert prepare_grid(new, tmp_path / "c")[0].cwx.min() == pytest.approx(-CRITICAL_WEIR_COEFF)
     assert np.abs(prepare_grid(wide, tmp_path / "c")[0].cwx).max() == 0.0

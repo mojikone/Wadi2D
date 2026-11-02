@@ -42,7 +42,13 @@ def test_an_embankment_buried_by_the_ground_has_no_faces():
 
 
 def test_a_crest_line_stops_at_an_opening():
-    bank = obj("embankment", NORTH_SOUTH, z_constant=103.0, section={"width": 4.0}, openings=[{"start": 100.0, "end": 160.0}])
+    bank = obj(
+        "embankment",
+        NORTH_SOUTH,
+        z_constant=103.0,
+        section={"width": 4.0},
+        openings=[{"start": 100.0, "end": 160.0}],
+    )
     crest, grid = faces([bank])
     column = round((160.0 - grid.x0) / grid.dx)
     raised = np.flatnonzero(crest.xz[:, column] == 103.0)
@@ -91,7 +97,13 @@ def test_the_two_banks_never_join_across_the_channel():
 
 def test_a_short_gap_between_two_stretches_stays_open():
     section = {"width": 20.0, "crest_z": 102.0}
-    dyke = obj("channel_dyke", NORTH_SOUTH, z_constant=99.0, section=section, openings=[{"start": 100.0, "end": 120.0}])
+    dyke = obj(
+        "channel_dyke",
+        NORTH_SOUTH,
+        z_constant=99.0,
+        section=section,
+        openings=[{"start": 100.0, "end": 120.0}],
+    )
     crest, grid = faces([dyke])
     row = round((grid.y0 - 190.0) // grid.dx)
     assert np.isnan(crest.xz[row]).all()
@@ -134,13 +146,31 @@ def test_a_closed_channel_end_is_closed_by_a_line_across_it():
 
 
 def test_a_tapered_dyke_end_comes_down_to_the_ground():
-    bank = obj("embankment", NORTH_SOUTH, z_constant=103.0, section={"width": 4.0}, end_end="taper", taper_length=100.0)
+    bank = obj(
+        "embankment",
+        NORTH_SOUTH,
+        z_constant=103.0,
+        section={"width": 4.0},
+        end_end="taper",
+        taper_length=100.0,
+    )
     crest, grid = faces([bank])
     column = round((160.0 - grid.x0) / grid.dx)
     values = crest.xz[:, column]
     known = values[~np.isnan(values)]
     assert known.max() == 103.0
     assert known.min() < 101.0
+
+
+def test_a_crest_line_keeps_off_the_channel_round_a_tight_bend():
+    # the inside bank's offset line would loop back past the corner: none of its faces may cross the channel
+    line = [(60.0, 200.0), (200.0, 200.0), (200.0, 60.0)]
+    section = {"width": 30.0, "crest_z": 102.0, "left_slope": 2.0, "right_slope": 2.0}
+    shape = Shape.of(obj("channel_dyke", line, z_constant=99.0, section=section))
+    inside = next(run for run in shape.crest_runs(10.0, CFG, None) if run.side == "right")
+    x, y = inside.coordinates.T
+    assert shape.line.distance(x, y).min() >= 21.0 - 5.0
+    assert np.hypot(*np.diff(inside.coordinates, axis=0).T).max() < 40.0
 
 
 def test_without_a_ground_every_stretch_counts_as_standing():
