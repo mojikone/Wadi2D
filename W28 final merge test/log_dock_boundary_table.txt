@@ -1,0 +1,44 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.8 PASS the Bidah job has two outlets 2
+    4.8 === 1 a layer with no fields fills the table
+    4.8 PASS the layer has no kind or value []
+    4.8 PASS no layer, no rows 0
+    4.8 PASS one row per line 3
+    4.8 PASS rows are numbered 
+    4.8 PASS the name is not editable 
+    4.8 === 2 Kind and Value set every line
+    4.8 PASS all rows follow the kind 
+    4.8 PASS all rows follow the value 
+    4.8 === 3 each line its own
+    4.8 PASS value filled by kind 0.0
+    4.8 PASS stage takes any level (-1000000000000.0, 1000000000000.0)
+    4.8 PASS free has no value 
+    4.8 PASS normal keeps the schema's bounds (1e-05, 0.5)
+    4.8 PASS an untouched row still follows 0.02
+    4.8 PASS an edited row stays 2.5
+    4.9 === 4 it reaches the engine
+    4.9 dock says: Starting...
+    7.5 PASS finished Finished. water stood 7.4 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+    7.5 PASS three lines in the job 3
+    7.5 PASS line 1 is a stage {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5}
+    7.5 PASS line 2 is normal {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [438800.0, 2728690.0]], 'slope': 0.02}
+    7.5 PASS line 3 is free {'kind': 'free', 'coordinates': [[438800.0, 2728690.0], [440300.0, 2728690.0]]}
+    7.5 PASS the engine took them {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6}
+    7.5 PASS mass closes -4.79393162706566e-09
+    7.5 === 5 the field route stays
+    7.5 PASS rows of the new layer 2
+    7.5 PASS fields fill the table 
+    7.5 PASS fields outrank Kind 
+    9.5 PASS the field reaches the job {'kind': 'normal', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'slope': 0.01}
+    9.5 PASS an edit outranks the field {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'slope': 0.03}
+    9.5 === 6 the table keeps up with the layer
+    9.6 PASS a drawn layer has a row 1
+    9.6 PASS a new line appears 2
+    9.6 PASS the edit survives 0.04
+    9.6 PASS no layer, no rows again 
+    9.6 PASS back to the layer, rows afresh 
+    9.6 PASS the old layer is let go 
+    9.6 SUMMARY 34 passed, 0 failed 
+    9.6 DONE

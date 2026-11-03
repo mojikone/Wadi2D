@@ -1,0 +1,49 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.8 === 1 a uniform run
+    4.8 PASS no button before a run 
+    4.8 dock says: Starting...
+    7.8 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   11.6 PASS finished Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   11.6 PASS button after a run 
+   12.2 PASS nothing exported until asked 
+   12.2 dock says: Writing the saved frames to one file...
+   13.8 PASS says how to use it Use the Temporal Controller to step through the flood. These are cells; the pixel rasters stay the numbers of record. The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run.
+   13.8 PASS the file is there 10193662
+   13.8 PASS a valid mesh layer 
+   13.8 PASS one face per cell (71934, 71934)
+   13.8 groups ['Depth, m', 'Hazard class, 1 to 6 are H1 to H6', 'Speed, m/s']
+   13.8 PASS depth, speed, hazard ['Depth, m', 'Hazard class, 1 to 6 are H1 to H6', 'Speed, m/s']
+   13.8 PASS every saved frame (24, 24)
+   13.8 PASS the layer is temporal 
+   13.8 PASS runs for the run's time 6913
+   13.8 PASS in the DEM's CRS EPSG:32640
+   13.8 PASS on top of the run's group 
+   13.8 PASS maximum maps switched off under it 
+   13.8 === 2 what QGIS reads is what the engine saved
+   13.8 PASS frame at 304 s: wet cells (53009, 53009)
+   13.9 PASS frame at 3612 s: wet cells (55911, 55911)
+   13.9 PASS frame at 6916 s: wet cells (11819, 11819)
+   13.9 PASS deepest cell in those frames 0.0
+   13.9 === 3 the Temporal Controller drives it
+   13.9 PASS set to animate 1
+   13.9 PASS one step per frame (23, 24)
+   14.0 PASS the panel is open ['Temporal Controller']
+   14.0 PASS canvas moves with it 
+   14.0 first frame at 3 s, last at 6916 s
+   14.0 PASS the first frame is where the slider starts Sat Jan 1 00:00:03 2000 GMT
+   14.0 PASS a time picks its frame 5
+   14.7 === 4 a second click reuses the file
+   15.7 PASS file not rewritten 
+   15.7 === 5 a run with no saved maps says so
+   15.8 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   17.3 dock says: Writing the saved frames to one file...
+   18.3 PASS too few frames says so An input file is missing or cannot be read. This run saved 1 map(s), and a time slider needs two. Save maps more often, or run longer.
+   18.3 === 6 a mesh: the real tiles in time
+   18.3 dock says: Starting...
+   24.4 dock says: Writing the saved frames to one file...
+   25.8 PASS mesh: one face per real cell (103792, 103792)
+   25.8 PASS mesh: three datasets in time 12
+   26.0 SUMMARY 31 passed, 0 failed 
+   26.0 DONE

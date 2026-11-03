@@ -1,0 +1,89 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.8 === 0 what is under test
+    5.1 PASS the engine code is this checkout's D:\Mojtaba\Renardet\Wadi2D\wadi2d\__init__.py
+    5.1 PASS the engine answering knows mesh lines 
+    5.1 PASS the mesh is off by default 
+    5.1 PASS the table is off with the mesh 
+    5.1 PASS it says the ladder The mesh only doubles a cell, so each size goes down to the finest cell times 1, 2, 4 or 8, never coarser than you asked: the Actual columns show what you get. Bands are whole tiles of 32 cells, so a band is usually wider than its rows, and up to 32 rows the 2
+    5.1 === 1 a layer with no fields fills the table
+    5.2 PASS the table is on with the mesh 
+    5.2 PASS no layer, no rows 0
+    5.2 PASS one row per line 2
+    5.2 PASS names from the layer, numbers else 
+    5.2 PASS the name is not editable 
+    5.2 PASS near starts at the finest 10.0
+    5.2 PASS far starts at the coarsest 40.0
+    5.2 PASS rows start at the engine's default 
+    5.2 PASS rows take the engine's bounds 
+    5.2 PASS on the ladder nothing moves ('10', '40')
+    5.2 PASS no rounding said 
+    5.2 === 2 sizes off the ladder show what they become, before any run
+    5.2 PASS requested stays as typed 
+    5.2 PASS actual near goes down ('10', '20')
+    5.2 PASS actual far goes down ('10', '20')
+    5.2 PASS a moved size stands out 
+    5.2 PASS a size that did not move does not 
+    5.2 PASS the dock says it in words Wadi: near 15 m becomes 10 m, far 30 m becomes 20 m.
+    5.2 PASS the tooltip gives both 
+    5.2 PASS below the finest holds at the finest ('10', '40')
+    5.2 PASS typing keeps its keys, and Actual answers at once ('25', ('20', '40'))
+    5.3 === 3 the ladder follows the finest and the coarsest cell
+    5.3 PASS line 1, a set near, stands on a finer ladder ('10', '20')
+    5.3 PASS the ladder is the snapped cell: 12 m on 5 m pixels is 10 ('10', '20')
+    5.3 PASS a far nobody set follows the coarsest 80.0
+    5.3 PASS a far set by hand stays 30.0
+    5.3 === 4 near above far is refused before a run
+    5.3 PASS refused in plain words Line 2: the near cell must not be larger than the far cell.
+    5.3 PASS nothing started 
+    5.3 === 5 the preview: the engine's own numbers equal the table's
+    5.3 dock says: Line 2: the near cell must not be larger than the far cell.
+    6.9 preview says: 119,628 cells, 2.404 x fewer than the uniform grid. Tiles: 88 of 10 m, 38 of 20 m, 11 of 40 m. Wadi: 10 m for 8 rows each side, no coarser than 20 m within 240 m. Line 2: 10 m for 4 rows each side, no coarser than 40 m within 280 m.
+    6.9 PASS the preview names the line 119,628 cells, 2.404 x fewer than the uniform grid. Tiles: 88 of 10 m, 38 of 20 m, 11 of 40 m. Wadi: 10 m for 8 rows each side, no coarser than 20 m within 240 m. Line 2: 10 m for 4 rows each side, no coarser than 40 m within 280 m.
+    6.9 PASS table and engine agree, line by line ([('Wadi', '10', '20'), ('Line 2', '10', '40')], [('Wadi', '10', '20'), ('Line 2', '10', '40')])
+    6.9 PASS a raster of tile sizes 
+    6.9 === 6 a run on the band
+    6.9 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. Wadi: near 15 m becomes 10 m, far 30 m becomes 20 m.
+    7.9 dock says: mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two
+    9.9 PASS finished Finished. mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two. water stood 3.5 m deep against the domain edge at (432011, 2725065): an edge is a wall, so check the domain polygon there.
+    9.9 PASS the job holds what was asked {'name': 'Wadi', 'near_dx': 15.0, 'rows': 8, 'far_dx': 30.0, 'coordinates': [[439048.48973783385, 2727557.893463373], [439003.48973783385, 2727497.893463373], [439013.48973783385, 2727417.893463373], [438953.48973783385, 2727317.893463373], [438808.48973783385
+    9.9 PASS two lines in the job 2
+    9.9 PASS the lines are on file 
+    9.9 PASS the engine took them Wadi
+    9.9 PASS the run says what it rounded ['mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two', 'water stood 3.5 m deep against the domain edge at (432011, 2725065): an edge is a wall, so check the domain polygon there']
+    9.9 PASS the dock said it on starting 
+    9.9 PASS mass closes -2.667170539137187e-10
+    9.9 PASS cell grid in Model setup 
+    9.9 PASS its cells are the solver's 
+    9.9 PASS every tile on the line is at near size 22
+    9.9 PASS every tile within the 8 rows is at near size 33
+    9.9 PASS three sizes on the map [10.0, 20.0, 40.0]
+    9.9 tiles: 88 of 10 m, 11 of 40 m, of 137
+   10.0 PASS away from the line nothing asks for fine cells 6
+   10.2 grid extent 430576,2722510 : 440296,2728700
+   10.3 === 7 a mesh with no lines through the same dock: fewer cells, and no lines in the job
+   10.3 PASS no layer, no rows again 0
+   10.4 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   12.9 PASS no lines key ['enabled', 'coarse_dx', 'stream_area_fine_km2', 'stream_area_mid_km2', 'zones']
+   12.9 PASS no lines file 
+   12.9 PASS the band added cells (119628, 43995)
+   12.9 === 8 fields fill a row by themselves
+   12.9 PASS near from its field 20.0
+   12.9 PASS rows from its field 6.0
+   12.9 PASS far from its field 40.0
+   12.9 PASS on the ladder ('20', '40')
+   12.9 PASS a set row stays through an edit of the layer 2
+   12.9 PASS the new line starts afresh 4.0
+   12.9 === 8b a layer that leaves the project takes its rows with it
+   12.9 PASS the rows follow the picker, with no error ('mixed outlets', 2)
+   12.9 PASS another layer fills it again 2
+   12.9 === 9 a line off the domain is refused, not ignored
+   14.3 PASS refused by name The engine refused the job: a setting is invalid. mesh line Far away touches no cell of the domain, so it would refine nothing.
+   14.3 === 10 the mesh off: the uniform job, lines ignored
+   14.3 PASS the table is off again 
+   16.4 PASS finished Finished.
+   16.4 PASS no mesh in the job ['project', 'grid', 'terrain', 'hydrology', 'boundaries', 'outputs', 'run', 'storm']
+   16.4 PASS one cell size 
+   16.4 SUMMARY 67 passed, 0 failed 
+   16.4 DONE

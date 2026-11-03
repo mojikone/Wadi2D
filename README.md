@@ -76,6 +76,7 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
+| `W28 final merge test` | 2026-11-02 | Every dock scenario of the work order on the merged `main` | done, 497 of 497 |
 | `W27 basin wiring` | 2026-11-02 | D6b: the generated basin in the run and the dock, inflows and hand-backs from the routes, the lag choice, the rain-once check | done on QGIS 3.44.8, Bidah 52 of 52 and Block 2 26 of 26; generated NRCS 1.05 to 1.59 x HMS, HMS-style lag 0.88 to 1.26 |
 | `W26 suggested breaklines` | 2026-11-02 | D4: Suggest breaklines, an editable layer of banks and crests, with the bank-line runs on Bidah and Faydh | done, 32 of 32 through the dock; bank lines as crest lines cost the peak 10 to 36 %, so banks go to the Mesh table |
 | `W25 hand-back and transmission loss` | 2026-11-02 | D6c: 2D flow handed to a lumped reach during the run, mass closed; D6d: dry-bed transmission loss, off by default | done, engine only; Muskingum-Cunge as HMS does it does not conserve volume; Fizh stays 2.2 x Q100 at 150 mm/h |

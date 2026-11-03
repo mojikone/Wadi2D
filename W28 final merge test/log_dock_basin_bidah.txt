@@ -1,0 +1,71 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.5 PASS engine found Engine ready.
+    4.5 === 1 generate the basin from the DEM
+    4.5 PASS the box starts unticked and the subbasin table hidden 
+    4.5 PASS the lag choices are the engine's 
+    4.5 PASS the HMS folder is disabled while the basin is on 
+    4.6 PASS the button is busy 
+    6.6 summary: 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    6.6 PASS a basin was generated 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    6.6 PASS subbasins, reaches and junctions (8, 4, 5)
+    6.6 PASS the crest line is a reservoir with its rating complete []
+    6.6 PASS three basin layers loaded ['Subbasins, generated', 'Reaches, generated', 'Junctions, generated']
+    6.6 PASS the subbasin table shows every subbasin 8
+    6.6 PASS every subbasin lumped by default {'S1': 'lumped', 'S2': 'lumped', 'S3': 'lumped', 'S4': 'lumped', 'S5': 'lumped', 'S6': 'lumped', 'S7': 'lumped', 'S8': 'lumped'}
+    6.6 PASS the junction table has every junction 5
+    6.6 PASS the route column says what happens before a run ['water enters the 2D grid here', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it']
+    6.6 PASS the summary counts 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    7.1 PASS basin.json and basin.gpkg are inside the output folder 
+    7.1 === 2 run lumped by default
+    7.1 dock says: Starting...
+   10.2 PASS the run finished Finished. water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   10.2 PASS the job names basin.json and every subbasin lumped 
+   10.2 PASS the job records the threshold and the lag method {'stream_threshold_km2': 2.0, 'lag_method': 'nrcs'}
+   10.2 PASS one basin event in progress.jsonl []
+   10.2 PASS no warning but the test domain's edge []
+   10.2 PASS the water enters as inflow at the junctions, and only the unassigned ground rains (405426.30949109036, 185531.8902102388)
+   10.2 PASS mass closes -1.9393634030550236e-08
+   10.2 PASS network series for every element 17
+   10.2 PASS the resolved job lists every subbasin and the junction inflows 1
+   10.2 PASS the junction table took the run's word 
+   10.2 lumped balance: {'rain_m3': 185531.8902102388, 'inflow_m3': 405426.30949109036, 'outflow_m3': 499679.32484290306, 'storage_start_m3': 0.0, 'storage_end_m3': 91278.88631925322, 'error_m3': -0.0114608270523604, 'relative_error': -1.9393634030550236e-08}
+   10.2 === 3 one subbasin switched to rain-on-grid
+   12.7 dock says: water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   13.0 PASS the 2D run finished Finished. water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   13.0 PASS a hand-back line was built at Bidah 03 for S2 (['Bidah 03'], {'junction': 'Bidah 03', 'kind': 'reservoir', 'route': 'reach', 'reach': 'R1', 'next_junction': 'J1', 'reach_missing': [], 'enters_2d': False, 'handback': True, 'two_d_sources': ['S2']})
+   13.0 PASS the job says 2d for that subbasin and nothing else changed 
+   13.0 PASS the resolved job carries the built line 
+   13.0 PASS the same water for S2 within 5 % (the hydrograph's tail is the rest) (65944, 65921)
+   13.0 PASS what the arm rained crossed the line or is still on the grid (58386, 7585, 65921)
+   13.0 PASS the whole closes to the routing defect (-0.0002312548755728746, -1.8793381584318238e-08)
+   13.0 PASS handback_Bidah_03.csv written 
+   13.0 2d balance: {'rain_m3': 251452.6957969219, 'inflow_m3': 395058.7888920054, 'outflow_m3': 547647.9766359068, 'storage_start_m3': 0.0, 'storage_end_m3': 98863.52020315749, 'error_m3': -0.01215013703040313, 'relative_error': -1.8793381584318238e-08, 'handback_m3': 58385.78716861759, 'reentry_m3': 395058.7888920054, 'lateral_m3': 631973.8294418475, 'network_out_m3': 0.0, 'network_storage_m3': 295505.11225949455, 'routing_defect_m3': -204.28454103483818, 'whole_error_m3': -204.2966911718686, 'whole_relative_error': -0.0002312548755728746}
+   13.0 === 4 an element lacking a parameter is refused into rain-on-grid and named
+   13.0 dock says: Finished. water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   14.8 PASS generated again 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number, lag_minutes), S2 (curv
+   14.8 PASS every row says 2d and cannot be changed {'S1': '2d', 'S2': '2d', 'S3': '2d', 'S4': '2d', 'S5': '2d', 'S6': '2d', 'S7': '2d', 'S8': '2d'}
+   14.8 PASS the tooltip names curve_number S1 lacks curve_number, lag_minutes, so it runs as rain-on-grid whatever is chosen here. Fill the value in basin.json, then generate again.
+   14.9 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+   15.9 dock says: subbasin S8 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters
+   16.9 dock says: water stood 7.4 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   17.1 PASS the run finished Finished. subbasin S1 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S2 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or g
+   17.1 PASS the warning names the element and curve_number ['subbasin S1 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters', 'subbasin S2 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it
+   17.1 PASS the event lists them as incomplete and 2d (8, 8)
+   17.1 PASS every reach junction got a line, chained down to the outlet ['Bidah 03', 'J2', 'J3', 'J4']
+   17.1 PASS the dock shows the warning Finished. subbasin S1 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S2 lacks curve_number, lag_minutes
+   17.1 === 5 hand-back rows from a line layer
+   17.2 PASS one row per line 16
+   17.2 PASS the element choices are the generated reaches and junctions ['R1', 'R2', 'R3', 'R4', 'J1', 'Bidah 03']
+   17.2 PASS the values carry the lines with their elements [{'name': 'Bidah 03', 'element': 'R1'}, {'name': 'Faydh 01', 'element': 'R1'}]
+   17.2 === 6 the transmission loss row
+   17.2 PASS off by default 
+   17.2 PASS the job has the loss on at 25 mm/h {'enabled': True, 'rate_mm_h': 25.0}
+   17.2 PASS off leaves the job without it 
+   17.2 === 7 an HMS project switches the basin off, and back
+   17.3 PASS the basin box is off and disabled under an HMS project 
+   17.3 PASS the subbasin table shows the HMS subbasins 18
+   17.3 PASS the basin box is enabled again 
+   17.3 PASS the generated subbasins are back in the table 8
+   17.3 SUMMARY 52 passed, 0 failed 
+   17.3 DONE
