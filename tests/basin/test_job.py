@@ -140,7 +140,7 @@ def test_an_incomplete_subbasin_runs_as_rain_on_grid_and_the_warning_names_what_
     cfg = cfg.model_copy(update={"hydrology": cfg.hydrology.model_copy(update={"basin_json": str(path)})})
     _resolved, gen = resolve(cfg)
     assert gen.modes[first] == MODE_2D
-    assert gen.missing == {first: ["curve_number", "lag_minutes"]}
+    assert gen.missing == {first: ["curve_number"]}  # the Kirpich lag needs no CN, so it is derived again
     (note,) = gen.notes
     assert first in note and "curve_number" in note and "rain-on-grid" in note and "not lumped as asked" in note
     assert first not in engine_basin(gen.model, gen.modes).elements
@@ -165,15 +165,16 @@ def test_an_override_of_a_lag_input_rederives_a_derived_lag_and_a_given_lag_stay
     model = read_model(generated["basin"])
     first, second = names(model, "subbasin")[:2]
     before = {e["name"]: value_of(e, "lag_minutes") for e in model["elements"] if e["kind"] == "subbasin"}
+    gentler = 0.5 * value_of(next(e for e in model["elements"] if e["name"] == first), "slope_10_85")
     fixed = with_overrides(
         model,
         [
-            Subbasin(name=first, parameters={"curve_number": 60.0}),
+            Subbasin(name=first, parameters={"slope_10_85": gentler}),
             Subbasin(name=second, parameters={"lag_minutes": 99.0, "curve_number": 60.0}),
         ],
     )
     by_name = {e["name"]: e for e in fixed["elements"]}
-    assert value_of(by_name[first], "lag_minutes") > before[first]  # a lower CN lengthens the NRCS lag
+    assert value_of(by_name[first], "lag_minutes") > before[first]  # a gentler 10-85 slope lengthens the Kirpich lag
     assert by_name[first]["parameters"]["lag_minutes"]["source"] == SOURCE_DERIVED
     assert value_of(by_name[second], "lag_minutes") == 99.0
     assert by_name[second]["parameters"]["lag_minutes"]["source"] == SOURCE_JOB

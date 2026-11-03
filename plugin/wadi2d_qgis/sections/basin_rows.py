@@ -22,7 +22,11 @@ MODE_LUMPED, MODE_2D = "lumped", "2d"
 ROUTE_REACH, ROUTE_NONE = "reach", "none"
 ELEMENT_KINDS = ("reach", "junction", "reservoir")
 """What a hand-back line can enter."""
-LAG_WORDS = {"nrcs": "NRCS watershed lag", "hms_kirpich": "HMS-style: 0.474 x Kirpich (W24 finding)"}
+LAG_WORDS = {
+    "kirpich": "Kirpich: 0.6 x tc on the 10-85 flow path",
+    "nrcs": "NRCS watershed lag",
+    "hms_kirpich": "Kirpich (older name)",
+}
 JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction"]
 
 

@@ -114,9 +114,10 @@
       "description": "What ``wadi2d basin`` needs beyond the job: a part of the job, so the run folder records how its basin was made.\n\nThe run never reads it: ``job_hash`` leaves it out, and the basin file's own bytes are what a checkpoint must match.",
       "properties": {
         "lag_method": {
-          "default": "nrcs",
-          "description": "Lag of a generated subbasin. 'nrcs': the NRCS watershed lag (NEH 630 chapter 15) on the longest flow length, the curve number and the mean land slope. 'hms_kirpich': 0.474 x Kirpich's time of concentration on the longest flow length and the 10-85 slope, the rule the 18 lags of the Block 2 HEC-HMS model follow to 0.3 % (W24). On Block 2 at 100 yr, NRCS gave 1.05 to 1.58 x the HMS peaks at the five dams and this rule 0.88 to 0.98; no gauge says which is right. Applied when the basin is generated: generate again after changing it",
+          "default": "kirpich",
+          "description": "Lag of a generated subbasin. 'kirpich': 0.6 x Kirpich's time of concentration, L^0.77 / (52 S^0.385) minutes, on the 10-85 flow path (three quarters of the longest path) and its slope: the owner's HEC-HMS practice, the rule the 18 lags of the Block 2 HMS model follow to 0.3 %. 'nrcs': the NRCS watershed lag (NEH 630 chapter 15) on the longest flow length, the curve number and the mean land slope. 'hms_kirpich': the older name of 'kirpich'. On Block 2 at 100 yr, NRCS gave 1.05 to 1.58 x the HMS peaks at the five dams and Kirpich 0.88 to 0.98; no gauge says which is right. Applied when the basin is generated: generate again after changing it",
           "enum": [
+            "kirpich",
             "nrcs",
             "hms_kirpich"
           ],
@@ -3193,7 +3194,7 @@
     "basin": {
       "$ref": "#/$defs/BasinSettings",
       "default": {
-        "lag_method": "nrcs",
+        "lag_method": "kirpich",
         "stream_threshold_km2": 10.0,
         "analysis_pixel": null,
         "max_pixels": 400000000,

@@ -18,8 +18,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from wadi2d.basin.parameters import hms_kirpich_lag_minutes, index_celerity, nrcs_lag_minutes
-from wadi2d.config.schema import LAG_HMS_KIRPICH, LAG_NRCS
+from wadi2d.basin.parameters import index_celerity, kirpich_lag_minutes, nrcs_lag_minutes
+from wadi2d.config.schema import LAG_HMS_KIRPICH, LAG_KIRPICH, LAG_NRCS
 
 FORMAT = "wadi2d-basin"
 FORMAT_VERSION = "1.0"
@@ -66,9 +66,9 @@ def _fill(element: Element, key: str, value: float) -> None:
 def _lag(element: Element, method: str) -> float | None:
     """The lag by the model's method, or None while a parameter it needs is absent."""
     length = value_of(element, "flow_length_m")
-    if method == LAG_HMS_KIRPICH:
+    if method in (LAG_KIRPICH, LAG_HMS_KIRPICH):
         slope = value_of(element, "slope_10_85")
-        return hms_kirpich_lag_minutes(length, slope) if length and slope else None
+        return kirpich_lag_minutes(length, slope) if length and slope else None
     if method != LAG_NRCS:
         raise ValueError(f"unknown lag method {method!r}")
     curve, slope = value_of(element, "curve_number"), value_of(element, "slope")
