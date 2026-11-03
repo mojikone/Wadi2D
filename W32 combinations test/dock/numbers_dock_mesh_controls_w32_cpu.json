@@ -1,0 +1,70 @@
+{
+ "band": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_mesh_controls_w32_cpu\\runs\\band",
+  "backend": "cpu",
+  "cells": 119628,
+  "tiles": 137,
+  "dx": 10.0,
+  "exit": 0,
+  "steps": 1385,
+  "loop_s": 30.72,
+  "balance": {
+   "rain_m3": 517667.4057552521,
+   "inflow_m3": 0.0,
+   "outflow_m3": 9003.514019493192,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 508663.88971139747,
+   "error_m3": 0.0020243614562787116,
+   "relative_error": 3.910544557707404e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two",
+   "water stood 3.5 m deep against the domain edge at (432011, 2725065): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "no_lines": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_mesh_controls_w32_cpu\\runs\\no_lines",
+  "backend": "cpu",
+  "cells": 43995,
+  "tiles": 60,
+  "dx": 10.0,
+  "exit": 0,
+  "steps": 1105,
+  "loop_s": 23.97,
+  "balance": {
+   "rain_m3": 516933.00574708736,
+   "inflow_m3": 0.0,
+   "outflow_m3": 9000.843202654876,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 507932.16188071016,
+   "error_m3": 0.000663722341414541,
+   "relative_error": 1.283962010619363e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 3.5 m deep against the domain edge at (432011, 2725065): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "uniform": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_mesh_controls_w32_cpu\\runs\\uniform",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 182,
+  "loop_s": 13.27,
+  "balance": {
+   "rain_m3": 171924.00191139313,
+   "inflow_m3": 0.0,
+   "outflow_m3": 634.2840123931139,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 171289.7200494943,
+   "error_m3": -0.0021504942851606756,
+   "relative_error": -1.2508400579629397e-08
+  },
+  "peaks": {},
+  "warnings": []
+ }
+}

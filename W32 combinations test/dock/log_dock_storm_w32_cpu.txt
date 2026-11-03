@@ -1,0 +1,131 @@
+    0.0 script loaded
+    4.0 W32: expecting the cpu backend; CUDA_VISIBLE_DEVICES='-1'
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a2b1d1f6c57822a6b\plugin\wadi2d_qgis\__init__.py
+    4.9 PASS engine found Engine ready.
+    4.9 === the section
+    4.9 PASS storm comes after hydrology 
+    4.9 PASS steady rain is the start Steady rain
+    4.9 PASS no HMS choice without a project 
+    4.9 PASS units come from the engine 4
+    4.9 PASS sections renumbered 8. Run
+    5.0 === 1 steady rain, the known answer
+    5.0 dock says: Starting...
+   24.3 PASS W32 steady: ran on the cpu cpu
+   24.3 W32 steady: backend cpu, cells 17976, steps 2633, loop 16.92 s
+   24.3 PASS steady job as before {'kind': 'uniform', 'depth_mm': 60.0, 'duration_min': 60.0}
+   24.3 PASS steady ran {'rain_m3': 1711392.01902668, 'inflow_m3': 0.0, 'outflow_m3': 427447.67064392834, 'storage_start_m3': 0.0, 'storage_end_m3': 1283944.3457947574, 'error_m3': 0.0025879940949380398, 'relative_error': 1.5122158255768366e-09}
+   24.3 steady peaks {} rain 1711392.01902668
+   24.3 === 2 hyetograph typed in the table
+   44.6 PASS W32 hyetograph: ran on the cpu cpu
+   44.6 W32 hyetograph: backend cpu, cells 17976, steps 2633, loop 17.95 s
+   44.6 PASS table reached the job {'kind': 'hyetograph', 'hyetograph_min': [15.0, 30.0, 45.0, 60.0], 'hyetograph_mm': [15.0, 15.0, 15.0, 15.0]}
+   44.6 PASS hyetograph rain equals steady 1711392.01902668
+   44.6 PASS hyetograph water equals steady 427447.67064392834
+   44.6 === 3 a bad table is refused in words
+   44.7 PASS bad table refused Hyetograph times must rise, and each one closes its period, so the first is above zero.
+   44.7 === 4 pasted from a spreadsheet
+   44.7 PASS paste fills the table [(20.0, 20.0), (40.0, 20.0), (60.0, 20.0)]
+   44.7 === 5 design storm with area reduction
+   63.7 PASS W32 design: ran on the cpu cpu
+   63.7 W32 design: backend cpu, cells 17976, steps 2633, loop 16.72 s
+   63.7 PASS 100 mm at 0.6 is 60 mm 1711392.01902668
+   63.7 PASS design job keeps its table 
+   63.7 === 6 NetCDF-4 from the real library, in lat/lon, on UTM cells
+   64.1 dock says: Finished. water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   64.9 rain label: 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 6 x 5 pixels. Total 60.0 mm on average, 60.0 mm at most.
+   64.9 PASS the engine says what the file holds 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 6 x 5 pixels. Total 60.0 mm on average, 60.0 mm at most.
+   64.9 PASS first period is dated 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 6 x 5 pixels. Total 60.0 mm on average, 60.0 mm at most.
+   64.9 dock says: Starting...
+   86.7 PASS W32 nc4: ran on the cpu cpu
+   86.7 W32 nc4: backend cpu, cells 17976, steps 2633, loop 20.19 s
+   86.7 PASS NetCDF-4 rain equals steady 1711392.01902668
+   86.7 === 7 classic NetCDF from the real library
+   86.7 dock says: Finished. water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   87.9 PASS classic file read 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 6 x 5 pixels. Total 60.0 mm on average, 60.0 mm at most.
+   88.0 dock says: Starting...
+  111.3 PASS W32 classic: ran on the cpu cpu
+  111.3 W32 classic: backend cpu, cells 17976, steps 2633, loop 19.86 s
+  111.3 PASS classic rain equals steady 
+  111.3 === 8 a start date cuts the rain
+  111.3 dock says: Finished. water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+  112.6 dock says: Starting...
+  136.3 PASS W32 cut: ran on the cpu cpu
+  136.3 W32 cut: backend cpu, cells 17976, steps 2336, loop 19.89 s
+  136.3 PASS half the rain is left 855696.00951334
+  136.3 === 9 a GeoTIFF folder, rain on the north only: does it fall where the grid says
+  136.4 dock says: Finished. water stood 5.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+  137.7 dock says: Starting...
+  162.7 dock says: water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there
+  165.2 PASS W32 north: ran on the cpu cpu
+  165.2 W32 north: backend cpu, cells 17976, steps 2541, loop 21.97 s
+  166.2 north cells {'north': 11563, 'all': 17976, 'dx': 40.0}, share 0.6432
+  166.2 PASS rain only on the wet half 1095744.0121821128
+  166.2 PASS the run says nothing odd [{'ev': 'warn', 'message': 'water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there'}]
+  166.4 === 9b a DSS file, the same rain, stored south row first
+  171.1 dock says: Finished. water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+  172.4 rain label: 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 24 x 17 pixels. Total 28.2 mm on average, 60.0 mm at most.
+  172.4 PASS DSS frames read 4 frames of 15 min, 1 h, from 2021-10-03 00:00:00. 24 x 17 pixels. Total 28.2 mm on average, 60.0 mm at most.
+  172.4 dock says: Starting...
+  192.7 PASS W32 dss: ran on the cpu cpu
+  192.7 W32 dss: backend cpu, cells 17976, steps 2522, loop 16.73 s
+  193.5 dss cells {'north': 9910, 'all': 17976, 'dx': 40.0}
+  193.5 PASS DSS rain on the north only 937728.0104253441
+  193.5 dock says: Finished. water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+  194.8 === 10 gridded rain on a mesh
+  194.9 dock says: Starting...
+  232.0 dock says: water stood 7.8 m deep against the domain edge at (431436, 2725030): an edge is a wall, so check the domain polygon there
+  232.3 PASS W32 mesh: ran on the cpu cpu
+  232.3 W32 mesh: backend cpu, cells 27464, steps 4089, loop 33.73 s
+  232.3 PASS mesh run ended Finished. water stood 7.8 m deep against the domain edge at (431436, 2725030): an edge is a wall, so check the domain polygon there.
+  232.3 PASS mesh mass closes 3.584168721069271e-09
+  232.3 PASS mesh rain near steady 1722240.0191472843
+  232.3 === 11 a file that is not rain says so
+  232.3 dock says: Finished. water stood 7.8 m deep against the domain edge at (431436, 2725030): an edge is a wall, so check the domain polygon there.
+  233.3 PASS bad file named plainly The rain file could not be read. bad.nc is not a NetCDF file
+  233.3 === 12 the HMS storm, then the same rain as frames
+  233.6 PASS a rain the user chose stays Gridded rain: NetCDF, DSS, GeoTIFF folder
+  233.6 PASS an HMS project offers its storm 
+  233.9 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+  235.7 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  748.2 dock says: water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there
+  748.6 PASS W32 hms: ran on the cpu cpu
+  748.6 W32 hms: backend cpu, cells 126531, steps 101421, loop 507.69 s
+  748.6 PASS HMS run ended Finished. water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there.
+  748.6 HMS peaks {'Bidah_03': 1.8, 'Bidah_03_ring': 42.7, 'Faydh_01': 493.7, 'Faydh_01_ring': 897.5, 'R2A': 1118.4, 'R2A_ring': 1124.0, 'R5A': 790.3, 'R5A_ring': 1003.3, 'S11_ring': 6.6, 'S14_ring': 467.9, 'S1_ring': 11.9, 'S2_ring': 10.0, 'S5_ring': 16.0, 'S6_ring': 8.8, 'Z4C': 1673.1, 'Z4C_ring': 1681.5}
+  751.2 frames {'frames': 288, 'total': 171.44053333333335}
+  751.2 dock says: Finished. water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there.
+  752.7 rain label: 288 frames of 5 min, 24 h. 2 x 2 pixels. Total 171.4 mm on average, 171.4 mm at most.
+  752.7 PASS the label follows the last reading 288 frames of 5 min, 24 h. 2 x 2 pixels. Total 171.4 mm on average, 171.4 mm at most.
+  753.0 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+  754.7 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+ 1287.6 dock says: water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there
+ 1288.5 PASS W32 hms_frames: ran on the cpu cpu
+ 1288.5 W32 hms_frames: backend cpu, cells 126531, steps 101433, loop 529.31 s
+ 1288.5 PASS frames run ended Finished. water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there.
+ 1288.6 PASS the storm in the job is the frames gridded
+ 1288.6 PASS the control file still sets the time 
+ 1288.6 frames peaks {'Bidah_03': 1.8, 'Bidah_03_ring': 74.9, 'Faydh_01': 496.5, 'Faydh_01_ring': 894.5, 'R2A': 1124.4, 'R2A_ring': 1125.1, 'R5A': 789.7, 'R5A_ring': 999.3, 'S11_ring': 6.6, 'S14_ring': 463.1, 'S1_ring': 11.9, 'S2_ring': 10.1, 'S5_ring': 16.0, 'S6_ring': 9.5, 'Z4C': 1666.4, 'Z4C_ring': 1669.1}
+ 1288.6 Bidah_03: raw 1.8 and 1.8, step change near the peak 0.0 m3/s
+ 1288.6 Bidah_03_ring: raw 42.7 and 74.9, step change near the peak 10.1 m3/s
+ 1288.6 Faydh_01: raw 493.7 and 496.5, step change near the peak 5.8 m3/s
+ 1288.6 Faydh_01_ring: raw 897.5 and 894.5, step change near the peak 8.5 m3/s
+ 1288.7 R2A: raw 1118.4 and 1124.4, step change near the peak 7.3 m3/s
+ 1288.7 R2A_ring: raw 1124.0 and 1125.1, step change near the peak 18.2 m3/s
+ 1288.7 R5A: raw 790.3 and 789.7, step change near the peak 6.4 m3/s
+ 1288.7 R5A_ring: raw 1003.3 and 999.3, step change near the peak 15.3 m3/s
+ 1288.7 S11_ring: raw 6.6 and 6.6, step change near the peak 0.5 m3/s
+ 1288.7 S14_ring: raw 467.9 and 463.1, step change near the peak 13.6 m3/s
+ 1288.7 S1_ring: raw 11.9 and 11.9, step change near the peak 0.3 m3/s
+ 1288.7 S2_ring: raw 10.0 and 10.1, step change near the peak 0.3 m3/s
+ 1288.7 S5_ring: raw 16.0 and 16.0, step change near the peak 0.5 m3/s
+ 1288.7 S6_ring: raw 8.8 and 9.5, step change near the peak 1.5 m3/s
+ 1288.7 Z4C: raw 1673.1 and 1666.4, step change near the peak 10.8 m3/s
+ 1288.7 Z4C_ring: raw 1681.5 and 1669.1, step change near the peak 14.2 m3/s
+ 1288.7 FAIL every steady line as the HMS storm worst 0.7374%, 9 lines
+ 1288.7 PASS no dam line flickers ['Bidah_03_ring', 'S11_ring', 'S14_ring', 'S1_ring', 'S2_ring', 'S5_ring', 'S6_ring']
+ 1288.7 flickering lines, raw peak not a fair reading: {'Bidah_03_ring': 0.7541, 'S11_ring': 0.0, 'S14_ring': -0.0103, 'S1_ring': 0.0, 'S2_ring': 0.01, 'S5_ring': 0.0, 'S6_ring': 0.0795}
+ 1288.7 PASS hills took the same water (84501544.01294197, 84501544.01294202)
+ 1288.7 PASS plain took the same rain (35462131.41537132, 35462131.35187833)
+ 1288.7 SUMMARY 51 passed, 1 failed 
+ 1288.7   FAILED every steady line as the HMS storm: worst 0.7374%, 9 lines
+ 1288.7 DONE

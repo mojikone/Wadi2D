@@ -1,0 +1,18 @@
+uniform10: exit 0, cells 287578, lines {'above': (64.6736, 12.025), 'axis': (0.00395075, 11.825), 'below': (0.228191, 11.991666666666667), 'Bidah_03': (0.0786029, 11.825)}, handbacks {'Bidah_03': {'crossed': (68.7441, 12.083333333333334), 'crossed_m3': 335683.4590536162}, 'J2': {'crossed': (326.257, 12.25), 'crossed_m3': 1621887.8397856676}, 'J3': {'crossed': (88.471, 12.25), 'crossed_m3': 502506.9710586663}, 'J4': {'crossed': (182.046, 12.083333333333334), 'crossed_m3': 788752.4419195987}}
+mesh10_40: exit 0, cells 131425, lines {'above': (64.5083, 12.025), 'axis': (0.00395081, 11.825), 'below': (0.229426, 11.991666666666667), 'Bidah_03': (0.0806094, 11.825)}, handbacks {'Bidah_03': {'crossed': (68.5912, 12.083333333333334), 'crossed_m3': 335138.5378130337}, 'J2': {'crossed': (317.361, 12.25), 'crossed_m3': 1628747.8348679938}, 'J3': {'crossed': (85.8567, 12.25), 'crossed_m3': 499240.8177916215}, 'J4': {'crossed': (176.463, 12.083333333333334), 'crossed_m3': 789936.6777079062}}
+mesh10_40_lts: exit 0, cells 131425, lines {'above': (64.5959, 12.025), 'axis': (0.00395055, 11.825), 'below': (0.229636, 11.991666666666667), 'Bidah_03': (0.0800798, 11.825)}, handbacks {'Bidah_03': {'crossed': (68.7125, 12.083333333333334), 'crossed_m3': 335177.6635280337}, 'J2': {'crossed': (317.929, 12.25), 'crossed_m3': 1628740.531731594}, 'J3': {'crossed': (85.8488, 12.25), 'crossed_m3': 499197.2696386215}, 'J4': {'crossed': (176.625, 12.083333333333334), 'crossed_m3': 789957.2905729063}}
+PASS uniform finished 0
+FAIL a hand-back was built at the reservoir ['Bidah 03', 'J2', 'J3', 'J4']
+PASS mesh10_40 finished 0
+PASS mesh10_40 fewer cells than uniform (287578, 131425)
+PASS mesh10_40 mass closes -2.1196908456034517e-08
+PASS mesh10_40 whole closes to the routing defect -0.0007736022736800801
+PASS mesh10_40: line above within 2.4% of uniform 64.7 -> 64.5, -0.26%
+PASS mesh10_40: reservoir outflow peak within 2.4% ((277.786, 12.75), (274.706, 12.833333333333334))
+PASS mesh10_40_lts finished 0
+PASS mesh10_40_lts fewer cells than uniform (287578, 131425)
+PASS mesh10_40_lts mass closes -2.0530659658125897e-08
+PASS mesh10_40_lts whole closes to the routing defect -0.0007752892540496352
+PASS mesh10_40_lts: line above within 2.4% of uniform 64.7 -> 64.6, -0.12%
+PASS mesh10_40_lts: reservoir outflow peak within 2.4% ((277.786, 12.75), (274.937, 12.833333333333334))
+item 3: 13 passed, 1 failed

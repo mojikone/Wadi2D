@@ -1,0 +1,23 @@
+handback: exit 0; lines {'above': (65.3402, 12.041666666666666), 'axis': (0.0, 0.0008333333333333334), 'below': (0.0574542, 11.975), 'Bidah_03': (0.122379, 11.825)}; network {'inflow': (456.924, 12.416666666666666), 'outflow': (262.552, 12.916666666666666), 'outflow_m3': 3249320.3839368536}; handbacks {'Bidah_03': {'crossed': (67.7662, 12.083333333333334), 'crossed_m3': 364872.2667895082}}; pool {'column': 'level_m', 'max': 91.3681, 'at_h': 12.058333333333334}; below_m3 315.5396061113111
+   balance {'rain_m3': 1354145.8366745498, 'inflow_m3': 3626058.230856696, 'outflow_m3': 4606028.182359372, 'storage_start_m3': 0.0, 'storage_end_m3': 374175.9722082692, 'error_m3': -0.08703639567829669, 'relative_error': -1.7476471746556723e-08, 'handback_m3': 364881.0140693391, 'reentry_m3': 3626058.230856696, 'lateral_m3': 3278178.5728572453, 'network_out_m3': 0.0, 'network_storage_m3': 18285.294135307544, 'routing_defect_m3': -1283.93806541909, 'whole_error_m3': -1284.0251018147683, 'whole_relative_error': -0.0002771880784456003}
+grid: exit 0; lines {'above': (610.669, 0.01759972222222222), 'axis': (258.838, 12.891666666666667), 'below': (258.732, 12.908333333333333), 'Bidah_03': (495.421, 0.0008333333333333334)}; network {'inflow': (0.0, 0.0), 'outflow': (0.0, 0.0), 'outflow_m3': 0.0}; handbacks {}; pool {'column': 'level_m', 'max': 101.432, 'at_h': 12.858333333333333}; below_m3 3139732.097100359
+   balance {'rain_m3': 1356378.1472619765, 'inflow_m3': 3277116.8959024553, 'outflow_m3': 4128327.7471089964, 'storage_start_m3': 3740057.4050001334, 'storage_end_m3': 4245224.773393456, 'error_m3': -0.0723378867842257, 'relative_error': -8.638852772706016e-09}
+grid_embankment: exit 0; lines {'above': (263.412, 12.658333333333333), 'axis': (255.417, 12.891666666666667), 'below': (255.401, 12.908333333333333), 'Bidah_03': (495.421, 0.0008333333333333334)}; network {'inflow': (0.0, 0.0), 'outflow': (0.0, 0.0), 'outflow_m3': 0.0}; handbacks {}; pool {'column': 'level_m', 'max': 101.484, 'at_h': 12.891666666666667}; below_m3 3242271.4618655783
+   balance {'rain_m3': 1356378.1472619765, 'inflow_m3': 3277116.895256948, 'outflow_m3': 4230775.503266777, 'storage_start_m3': 3658095.142809814, 'storage_end_m3': 4060814.7665054966, 'error_m3': -0.08444353472441435, 'relative_error': -1.0184238829583013e-08}
+PASS handback run finished None
+PASS one hand-back line, at the reservoir ['Bidah 03']
+PASS handback: grid error closes -1.7476471746556723e-08
+PASS handback: the whole closes to the routing defect (-0.0002771880784456003, -1283.93806541909)
+PASS grid run finished None
+PASS grid: no hand-back built []
+PASS grid: the pool started at the reservoir's level 3740057.4050001334
+PASS grid: grid error closes -8.638852772706016e-09
+PASS grid_embankment run finished None
+PASS grid_embankment: no hand-back built []
+PASS grid_embankment: the pool started at the reservoir's level 3658095.142809814
+PASS grid_embankment: grid error closes -1.0184238829583013e-08
+comparison: {"pool_inflow": {"handback_crossing_S2": null, "lumped_reservoir_inflow": [456.924, 12.416666666666666]}, "outflow_peak_m3s_at_h": {"rated_lumped": [262.552, 12.916666666666666], "grid_crest_faces": [258.732, 12.908333333333333], "grid_embankment": [255.401, 12.908333333333333]}, "outflow_volume_m3": {"rated_lumped": 3249320.3839368536, "grid_crest_faces": 3139732.097100359, "grid_embankment": 3242271.4618655783}, "pool_level": {"grid": {"column": "level_m", "max": 101.432, "at_h": 12.858333333333333}, "grid_embankment": {"column": "level_m", "max": 101.484, "at_h": 12.891666666666667}}, "ratios": {"grid/rated_peak": 0.9854505012340413, "embankment/rated_peak": 0.9727634906608976, "grid/rated_volume": 0.9662734744846188, "embankment/rated_volume": 0.9978306472620792}}
+PASS rated outflow against the crest faces within 10 % at the peak (rule set before the run) rated 262.6 at 12.92 h, crest faces 258.7 at 12.91 h, -1.5%
+PASS embankment within 10 % of the rated outflow at the peak rated 262.6, embankment 255.4 at 12.91 h, -2.7%
+PASS spilled volumes within 10 % rated 3249320, crest faces 3139732, embankment 3242271
+item 6b: 15 passed, 0 failed
