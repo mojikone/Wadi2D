@@ -1,0 +1,1066 @@
+{
+  "w20": {
+    "variant": "w20",
+    "backend": "gpu",
+    "steps": 234735,
+    "mass_error": 1.1788531195379998e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.63,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.0,
+        "peak_15min": 0.4,
+        "peak_5s": 0.4,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 699.1,
+        "hour": 13.25,
+        "step_1min_rms": 8.2,
+        "step_1min_max": 26.8,
+        "peak_15min": 690.1,
+        "peak_5s": 700.1,
+        "step_5s_max": 8.9
+      },
+      "R5A": {
+        "peak_1min": 752.3,
+        "hour": 14.4,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 12.1,
+        "peak_15min": 749.8,
+        "peak_5s": 753.3,
+        "step_5s_max": 4.2
+      },
+      "R2A": {
+        "peak_1min": 1101.5,
+        "hour": 14.25,
+        "step_1min_rms": 12.1,
+        "step_1min_max": 34.1,
+        "peak_15min": 1090.0,
+        "peak_5s": 1110.6,
+        "step_5s_max": 30.5
+      },
+      "Z4C": {
+        "peak_1min": 1593.0,
+        "hour": 15.33,
+        "step_1min_rms": 10.2,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.7,
+        "peak_5s": 1593.0,
+        "step_5s_max": 2.2
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.3,
+        "hour": 12.75,
+        "step_1min_rms": 2.7,
+        "step_1min_max": 6.5,
+        "peak_15min": 299.9,
+        "peak_5s": 302.3,
+        "step_5s_max": 1.4
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 697.5,
+        "hour": 13.25,
+        "step_1min_rms": 8.2,
+        "step_1min_max": 26.0,
+        "peak_15min": 688.3,
+        "peak_5s": 700.5,
+        "step_5s_max": 10.2
+      },
+      "R5A ring": {
+        "peak_1min": 753.0,
+        "hour": 14.47,
+        "step_1min_rms": 5.1,
+        "step_1min_max": 11.8,
+        "peak_15min": 750.3,
+        "peak_5s": 755.5,
+        "step_5s_max": 6.2
+      },
+      "R2A ring": {
+        "peak_1min": 1110.1,
+        "hour": 14.32,
+        "step_1min_rms": 15.5,
+        "step_1min_max": 43.5,
+        "peak_15min": 1091.0,
+        "peak_5s": 1113.3,
+        "step_5s_max": 38.9
+      },
+      "Z4C ring": {
+        "peak_1min": 1592.7,
+        "hour": 15.33,
+        "step_1min_rms": 10.2,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.2,
+        "peak_5s": 1593.0,
+        "step_5s_max": 2.8
+      },
+      "S1 ring": {
+        "peak_1min": 986.5,
+        "hour": 13.68,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 12.4,
+        "peak_15min": 984.3,
+        "peak_5s": 986.5,
+        "step_5s_max": 6.2
+      },
+      "S2 ring": {
+        "peak_1min": 986.4,
+        "hour": 13.67,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 12.1,
+        "peak_15min": 984.3,
+        "peak_5s": 986.8,
+        "step_5s_max": 5.5
+      },
+      "S5 ring": {
+        "peak_1min": 464.9,
+        "hour": 14.07,
+        "step_1min_rms": 82.6,
+        "step_1min_max": 222.4,
+        "peak_15min": 332.6,
+        "peak_5s": 499.4,
+        "step_5s_max": 263.6
+      },
+      "S6 ring": {
+        "peak_1min": 169.6,
+        "hour": 13.02,
+        "step_1min_rms": 3.6,
+        "step_1min_max": 15.1,
+        "peak_15min": 161.9,
+        "peak_5s": 171.6,
+        "step_5s_max": 10.0
+      },
+      "S11 ring": {
+        "peak_1min": 313.3,
+        "hour": 13.18,
+        "step_1min_rms": 39.9,
+        "step_1min_max": 124.3,
+        "peak_15min": 248.5,
+        "peak_5s": 324.3,
+        "step_5s_max": 134.2
+      },
+      "S14 ring": {
+        "peak_1min": 2.2,
+        "hour": 12.77,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.4,
+        "peak_15min": 2.0,
+        "peak_5s": 3.3,
+        "step_5s_max": 1.0
+      }
+    }
+  },
+  "w20_points": {
+    "variant": "w20_points",
+    "backend": "gpu",
+    "steps": 234735,
+    "mass_error": 1.1788532257968522e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.62,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.0,
+        "peak_15min": 0.4,
+        "peak_5s": 0.4,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 698.7,
+        "hour": 13.25,
+        "step_1min_rms": 8.1,
+        "step_1min_max": 26.6,
+        "peak_15min": 690.0,
+        "peak_5s": 700.1,
+        "step_5s_max": 2.2
+      },
+      "R5A": {
+        "peak_1min": 752.3,
+        "hour": 14.4,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 12.2,
+        "peak_15min": 749.8,
+        "peak_5s": 753.3,
+        "step_5s_max": 1.3
+      },
+      "R2A": {
+        "peak_1min": 1102.3,
+        "hour": 14.2,
+        "step_1min_rms": 11.2,
+        "step_1min_max": 25.9,
+        "peak_15min": 1090.2,
+        "peak_5s": 1110.6,
+        "step_5s_max": 29.8
+      },
+      "Z4C": {
+        "peak_1min": 1593.0,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 24.5,
+        "peak_15min": 1589.7,
+        "peak_5s": 1593.0,
+        "step_5s_max": 0.6
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.3,
+        "hour": 12.75,
+        "step_1min_rms": 2.7,
+        "step_1min_max": 6.3,
+        "peak_15min": 299.9,
+        "peak_5s": 302.3,
+        "step_5s_max": 0.4
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 697.1,
+        "hour": 13.25,
+        "step_1min_rms": 8.2,
+        "step_1min_max": 25.7,
+        "peak_15min": 688.2,
+        "peak_5s": 700.9,
+        "step_5s_max": 3.0
+      },
+      "R5A ring": {
+        "peak_1min": 752.9,
+        "hour": 14.34,
+        "step_1min_rms": 5.1,
+        "step_1min_max": 12.0,
+        "peak_15min": 750.2,
+        "peak_5s": 755.6,
+        "step_5s_max": 1.8
+      },
+      "R2A ring": {
+        "peak_1min": 1103.3,
+        "hour": 14.1,
+        "step_1min_rms": 15.7,
+        "step_1min_max": 37.4,
+        "peak_15min": 1091.2,
+        "peak_5s": 1113.3,
+        "step_5s_max": 32.9
+      },
+      "Z4C ring": {
+        "peak_1min": 1592.4,
+        "hour": 15.31,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 24.7,
+        "peak_15min": 1589.2,
+        "peak_5s": 1593.0,
+        "step_5s_max": 0.8
+      },
+      "S1 ring": {
+        "peak_1min": 986.6,
+        "hour": 13.68,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 11.8,
+        "peak_15min": 984.4,
+        "peak_5s": 986.6,
+        "step_5s_max": 1.6
+      },
+      "S2 ring": {
+        "peak_1min": 986.5,
+        "hour": 13.68,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 11.6,
+        "peak_15min": 984.4,
+        "peak_5s": 986.8,
+        "step_5s_max": 1.4
+      },
+      "S5 ring": {
+        "peak_1min": 481.4,
+        "hour": 13.87,
+        "step_1min_rms": 66.8,
+        "step_1min_max": 197.0,
+        "peak_15min": 388.6,
+        "peak_5s": 507.9,
+        "step_5s_max": 216.4
+      },
+      "S6 ring": {
+        "peak_1min": 170.2,
+        "hour": 12.9,
+        "step_1min_rms": 3.8,
+        "step_1min_max": 13.3,
+        "peak_15min": 162.1,
+        "peak_5s": 172.2,
+        "step_5s_max": 2.9
+      },
+      "S11 ring": {
+        "peak_1min": 319.8,
+        "hour": 13.2,
+        "step_1min_rms": 37.9,
+        "step_1min_max": 131.3,
+        "peak_15min": 250.0,
+        "peak_5s": 329.5,
+        "step_5s_max": 92.0
+      },
+      "S14 ring": {
+        "peak_1min": 2.0,
+        "hour": 12.83,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.2,
+        "peak_15min": 2.0,
+        "peak_5s": 3.4,
+        "step_5s_max": 0.3
+      }
+    }
+  },
+  "lowest_only": {
+    "variant": "lowest_only",
+    "backend": "gpu",
+    "steps": 234763,
+    "mass_error": 1.1720899048293471e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.63,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.0,
+        "peak_15min": 0.4,
+        "peak_5s": 0.4,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 717.2,
+        "hour": 12.73,
+        "step_1min_rms": 28.5,
+        "step_1min_max": 325.2,
+        "peak_15min": 689.7,
+        "peak_5s": 720.8,
+        "step_5s_max": 99.9
+      },
+      "R5A": {
+        "peak_1min": 752.3,
+        "hour": 14.4,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 13.4,
+        "peak_15min": 749.7,
+        "peak_5s": 753.1,
+        "step_5s_max": 4.2
+      },
+      "R2A": {
+        "peak_1min": 1098.3,
+        "hour": 14.07,
+        "step_1min_rms": 11.4,
+        "step_1min_max": 28.4,
+        "peak_15min": 1091.2,
+        "peak_5s": 1108.3,
+        "step_5s_max": 29.0
+      },
+      "Z4C": {
+        "peak_1min": 1592.9,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.6,
+        "peak_5s": 1592.9,
+        "step_5s_max": 2.2
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.3,
+        "hour": 12.75,
+        "step_1min_rms": 2.7,
+        "step_1min_max": 6.6,
+        "peak_15min": 299.9,
+        "peak_5s": 302.3,
+        "step_5s_max": 1.4
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 716.7,
+        "hour": 12.73,
+        "step_1min_rms": 28.5,
+        "step_1min_max": 325.4,
+        "peak_15min": 688.1,
+        "peak_5s": 719.8,
+        "step_5s_max": 100.8
+      },
+      "R5A ring": {
+        "peak_1min": 752.6,
+        "hour": 14.45,
+        "step_1min_rms": 5.1,
+        "step_1min_max": 13.5,
+        "peak_15min": 750.1,
+        "peak_5s": 755.3,
+        "step_5s_max": 6.7
+      },
+      "R2A ring": {
+        "peak_1min": 1106.5,
+        "hour": 14.28,
+        "step_1min_rms": 15.1,
+        "step_1min_max": 45.9,
+        "peak_15min": 1092.2,
+        "peak_5s": 1113.4,
+        "step_5s_max": 44.1
+      },
+      "Z4C ring": {
+        "peak_1min": 1592.4,
+        "hour": 15.31,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 25.2,
+        "peak_15min": 1589.3,
+        "peak_5s": 1592.9,
+        "step_5s_max": 2.8
+      },
+      "S1 ring": {
+        "peak_1min": 986.5,
+        "hour": 13.68,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 12.0,
+        "peak_15min": 984.3,
+        "peak_5s": 986.5,
+        "step_5s_max": 6.2
+      },
+      "S2 ring": {
+        "peak_1min": 986.5,
+        "hour": 13.67,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 12.2,
+        "peak_15min": 984.3,
+        "peak_5s": 986.8,
+        "step_5s_max": 5.5
+      },
+      "S5 ring": {
+        "peak_1min": 439.8,
+        "hour": 13.87,
+        "step_1min_rms": 74.1,
+        "step_1min_max": 199.3,
+        "peak_15min": 323.7,
+        "peak_5s": 510.8,
+        "step_5s_max": 272.4
+      },
+      "S6 ring": {
+        "peak_1min": 5.1,
+        "hour": 12.7,
+        "step_1min_rms": 1.1,
+        "step_1min_max": 5.0,
+        "peak_15min": 3.4,
+        "peak_5s": 5.8,
+        "step_5s_max": 4.1
+      },
+      "S11 ring": {
+        "peak_1min": 5.8,
+        "hour": 12.27,
+        "step_1min_rms": 1.0,
+        "step_1min_max": 3.8,
+        "peak_15min": 3.8,
+        "peak_5s": 7.7,
+        "step_5s_max": 5.0
+      },
+      "S14 ring": {
+        "peak_1min": 2.1,
+        "hour": 12.82,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.2,
+        "peak_15min": 1.9,
+        "peak_5s": 3.0,
+        "step_5s_max": 0.8
+      }
+    }
+  },
+  "refresh_10": {
+    "variant": "refresh_10",
+    "backend": "gpu",
+    "steps": 237253,
+    "mass_error": 1.3017922352962063e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.63,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.0,
+        "peak_15min": 0.4,
+        "peak_5s": 0.4,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 699.0,
+        "hour": 13.2,
+        "step_1min_rms": 7.9,
+        "step_1min_max": 23.4,
+        "peak_15min": 689.2,
+        "peak_5s": 700.1,
+        "step_5s_max": 9.1
+      },
+      "R5A": {
+        "peak_1min": 752.8,
+        "hour": 14.4,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 14.8,
+        "peak_15min": 750.0,
+        "peak_5s": 753.1,
+        "step_5s_max": 4.2
+      },
+      "R2A": {
+        "peak_1min": 1102.9,
+        "hour": 14.18,
+        "step_1min_rms": 12.4,
+        "step_1min_max": 33.4,
+        "peak_15min": 1091.6,
+        "peak_5s": 1111.1,
+        "step_5s_max": 30.6
+      },
+      "Z4C": {
+        "peak_1min": 1592.8,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 26.0,
+        "peak_15min": 1589.5,
+        "peak_5s": 1592.8,
+        "step_5s_max": 2.3
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.4,
+        "hour": 12.75,
+        "step_1min_rms": 2.7,
+        "step_1min_max": 6.6,
+        "peak_15min": 299.9,
+        "peak_5s": 302.4,
+        "step_5s_max": 0.7
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 698.3,
+        "hour": 13.2,
+        "step_1min_rms": 8.0,
+        "step_1min_max": 22.3,
+        "peak_15min": 687.5,
+        "peak_5s": 700.8,
+        "step_5s_max": 10.1
+      },
+      "R5A ring": {
+        "peak_1min": 753.5,
+        "hour": 14.45,
+        "step_1min_rms": 5.1,
+        "step_1min_max": 14.0,
+        "peak_15min": 750.3,
+        "peak_5s": 755.4,
+        "step_5s_max": 5.2
+      },
+      "R2A ring": {
+        "peak_1min": 1107.4,
+        "hour": 14.18,
+        "step_1min_rms": 15.6,
+        "step_1min_max": 43.5,
+        "peak_15min": 1092.4,
+        "peak_5s": 1114.7,
+        "step_5s_max": 43.9
+      },
+      "Z4C ring": {
+        "peak_1min": 1592.6,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 26.4,
+        "peak_15min": 1589.0,
+        "peak_5s": 1592.7,
+        "step_5s_max": 2.9
+      },
+      "S1 ring": {
+        "peak_1min": 986.3,
+        "hour": 13.67,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 12.1,
+        "peak_15min": 984.3,
+        "peak_5s": 986.5,
+        "step_5s_max": 1.6
+      },
+      "S2 ring": {
+        "peak_1min": 986.4,
+        "hour": 13.67,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 11.9,
+        "peak_15min": 984.3,
+        "peak_5s": 986.7,
+        "step_5s_max": 1.6
+      },
+      "S5 ring": {
+        "peak_1min": 462.9,
+        "hour": 14.2,
+        "step_1min_rms": 60.6,
+        "step_1min_max": 227.8,
+        "peak_15min": 325.4,
+        "peak_5s": 508.1,
+        "step_5s_max": 267.2
+      },
+      "S6 ring": {
+        "peak_1min": 171.9,
+        "hour": 12.9,
+        "step_1min_rms": 4.5,
+        "step_1min_max": 16.2,
+        "peak_15min": 162.8,
+        "peak_5s": 171.9,
+        "step_5s_max": 10.4
+      },
+      "S11 ring": {
+        "peak_1min": 327.2,
+        "hour": 13.15,
+        "step_1min_rms": 44.3,
+        "step_1min_max": 123.8,
+        "peak_15min": 248.3,
+        "peak_5s": 327.2,
+        "step_5s_max": 138.1
+      },
+      "S14 ring": {
+        "peak_1min": 2.4,
+        "hour": 12.75,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.3,
+        "peak_15min": 2.3,
+        "peak_5s": 2.5,
+        "step_5s_max": 0.1
+      }
+    }
+  },
+  "refresh_120": {
+    "variant": "refresh_120",
+    "backend": "gpu",
+    "steps": 231674,
+    "mass_error": 1.1455009336462547e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.63,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.1,
+        "peak_15min": 0.4,
+        "peak_5s": 0.5,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 699.6,
+        "hour": 13.25,
+        "step_1min_rms": 8.1,
+        "step_1min_max": 21.9,
+        "peak_15min": 689.7,
+        "peak_5s": 700.8,
+        "step_5s_max": 9.4
+      },
+      "R5A": {
+        "peak_1min": 752.1,
+        "hour": 14.39,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 13.5,
+        "peak_15min": 749.6,
+        "peak_5s": 754.0,
+        "step_5s_max": 4.6
+      },
+      "R2A": {
+        "peak_1min": 1102.5,
+        "hour": 14.2,
+        "step_1min_rms": 12.4,
+        "step_1min_max": 32.7,
+        "peak_15min": 1092.1,
+        "peak_5s": 1108.9,
+        "step_5s_max": 30.5
+      },
+      "Z4C": {
+        "peak_1min": 1592.8,
+        "hour": 15.33,
+        "step_1min_rms": 10.2,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.5,
+        "peak_5s": 1593.1,
+        "step_5s_max": 2.5
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.3,
+        "hour": 12.77,
+        "step_1min_rms": 3.2,
+        "step_1min_max": 10.5,
+        "peak_15min": 299.8,
+        "peak_5s": 302.3,
+        "step_5s_max": 4.5
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 697.6,
+        "hour": 13.25,
+        "step_1min_rms": 8.0,
+        "step_1min_max": 21.5,
+        "peak_15min": 688.0,
+        "peak_5s": 700.6,
+        "step_5s_max": 11.0
+      },
+      "R5A ring": {
+        "peak_1min": 753.2,
+        "hour": 14.45,
+        "step_1min_rms": 5.2,
+        "step_1min_max": 11.8,
+        "peak_15min": 749.8,
+        "peak_5s": 755.6,
+        "step_5s_max": 5.5
+      },
+      "R2A ring": {
+        "peak_1min": 1101.2,
+        "hour": 14.17,
+        "step_1min_rms": 15.4,
+        "step_1min_max": 46.9,
+        "peak_15min": 1093.8,
+        "peak_5s": 1114.9,
+        "step_5s_max": 43.8
+      },
+      "Z4C ring": {
+        "peak_1min": 1592.2,
+        "hour": 15.32,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.0,
+        "peak_5s": 1593.0,
+        "step_5s_max": 3.0
+      },
+      "S1 ring": {
+        "peak_1min": 986.4,
+        "hour": 13.67,
+        "step_1min_rms": 7.0,
+        "step_1min_max": 18.6,
+        "peak_15min": 984.2,
+        "peak_5s": 986.8,
+        "step_5s_max": 19.5
+      },
+      "S2 ring": {
+        "peak_1min": 986.6,
+        "hour": 13.68,
+        "step_1min_rms": 8.5,
+        "step_1min_max": 23.0,
+        "peak_15min": 984.3,
+        "peak_5s": 986.6,
+        "step_5s_max": 16.7
+      },
+      "S5 ring": {
+        "peak_1min": 498.2,
+        "hour": 14.2,
+        "step_1min_rms": 70.7,
+        "step_1min_max": 279.5,
+        "peak_15min": 341.3,
+        "peak_5s": 505.5,
+        "step_5s_max": 279.5
+      },
+      "S6 ring": {
+        "peak_1min": 170.8,
+        "hour": 12.9,
+        "step_1min_rms": 4.4,
+        "step_1min_max": 14.3,
+        "peak_15min": 162.3,
+        "peak_5s": 172.2,
+        "step_5s_max": 10.0
+      },
+      "S11 ring": {
+        "peak_1min": 270.8,
+        "hour": 12.87,
+        "step_1min_rms": 30.4,
+        "step_1min_max": 106.5,
+        "peak_15min": 230.7,
+        "peak_5s": 323.0,
+        "step_5s_max": 111.5
+      },
+      "S14 ring": {
+        "peak_1min": 3.7,
+        "hour": 12.92,
+        "step_1min_rms": 1.5,
+        "step_1min_max": 3.5,
+        "peak_15min": 2.0,
+        "peak_5s": 7.1,
+        "step_5s_max": 4.3
+      }
+    }
+  },
+  "radius_100": {
+    "variant": "radius_100",
+    "backend": "gpu",
+    "steps": 234246,
+    "mass_error": 1.2323941598364505e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 1.1,
+        "hour": 11.78,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.6,
+        "peak_15min": 0.4,
+        "peak_5s": 1.1,
+        "step_5s_max": 0.1
+      },
+      "Faydh 01": {
+        "peak_1min": 743.8,
+        "hour": 13.3,
+        "step_1min_rms": 9.9,
+        "step_1min_max": 30.2,
+        "peak_15min": 726.7,
+        "peak_5s": 748.7,
+        "step_5s_max": 23.8
+      },
+      "R5A": {
+        "peak_1min": 832.7,
+        "hour": 14.33,
+        "step_1min_rms": 4.9,
+        "step_1min_max": 10.8,
+        "peak_15min": 829.8,
+        "peak_5s": 832.9,
+        "step_5s_max": 4.4
+      },
+      "R2A": {
+        "peak_1min": 1250.2,
+        "hour": 14.08,
+        "step_1min_rms": 13.8,
+        "step_1min_max": 34.6,
+        "peak_15min": 1235.0,
+        "peak_5s": 1252.1,
+        "step_5s_max": 40.2
+      },
+      "Z4C": {
+        "peak_1min": 1612.4,
+        "hour": 15.31,
+        "step_1min_rms": 10.0,
+        "step_1min_max": 25.3,
+        "peak_15min": 1609.1,
+        "peak_5s": 1612.4,
+        "step_5s_max": 2.2
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 155.2,
+        "hour": 12.75,
+        "step_1min_rms": 1.4,
+        "step_1min_max": 3.3,
+        "peak_15min": 154.0,
+        "peak_5s": 155.3,
+        "step_5s_max": 0.3
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 729.4,
+        "hour": 13.3,
+        "step_1min_rms": 9.8,
+        "step_1min_max": 30.2,
+        "peak_15min": 713.2,
+        "peak_5s": 736.5,
+        "step_5s_max": 26.1
+      },
+      "R5A ring": {
+        "peak_1min": 834.4,
+        "hour": 14.33,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 10.8,
+        "peak_15min": 829.5,
+        "peak_5s": 834.6,
+        "step_5s_max": 5.0
+      },
+      "R2A ring": {
+        "peak_1min": 1252.0,
+        "hour": 14.02,
+        "step_1min_rms": 17.7,
+        "step_1min_max": 48.9,
+        "peak_15min": 1235.5,
+        "peak_5s": 1259.9,
+        "step_5s_max": 49.4
+      },
+      "Z4C ring": {
+        "peak_1min": 1612.2,
+        "hour": 15.33,
+        "step_1min_rms": 10.0,
+        "step_1min_max": 25.3,
+        "peak_15min": 1608.7,
+        "peak_5s": 1612.3,
+        "step_5s_max": 2.8
+      },
+      "S1 ring": {
+        "peak_1min": 241.3,
+        "hour": 13.8,
+        "step_1min_rms": 15.8,
+        "step_1min_max": 46.3,
+        "peak_15min": 222.4,
+        "peak_5s": 242.9,
+        "step_5s_max": 42.3
+      },
+      "S2 ring": {
+        "peak_1min": 430.0,
+        "hour": 13.72,
+        "step_1min_rms": 11.7,
+        "step_1min_max": 31.3,
+        "peak_15min": 415.6,
+        "peak_5s": 430.0,
+        "step_5s_max": 27.0
+      },
+      "S5 ring": {
+        "peak_1min": 549.3,
+        "hour": 13.83,
+        "step_1min_rms": 90.7,
+        "step_1min_max": 311.0,
+        "peak_15min": 342.3,
+        "peak_5s": 598.3,
+        "step_5s_max": 328.6
+      },
+      "S6 ring": {
+        "peak_1min": 107.0,
+        "hour": 12.97,
+        "step_1min_rms": 8.4,
+        "step_1min_max": 26.9,
+        "peak_15min": 92.0,
+        "peak_5s": 107.1,
+        "step_5s_max": 19.6
+      },
+      "S11 ring": {
+        "peak_1min": 173.2,
+        "hour": 13.18,
+        "step_1min_rms": 6.0,
+        "step_1min_max": 14.3,
+        "peak_15min": 164.9,
+        "peak_5s": 177.8,
+        "step_5s_max": 19.1
+      },
+      "S14 ring": {
+        "peak_1min": 135.6,
+        "hour": 13.43,
+        "step_1min_rms": 1.1,
+        "step_1min_max": 6.8,
+        "peak_15min": 135.2,
+        "peak_5s": 135.7,
+        "step_5s_max": 1.2
+      }
+    }
+  },
+  "cfl_half": {
+    "variant": "cfl_half",
+    "backend": "gpu",
+    "steps": 464448,
+    "mass_error": 1.3247549946791062e-08,
+    "lines": {
+      "Bidah 03": {
+        "peak_1min": 0.4,
+        "hour": 12.63,
+        "step_1min_rms": 0.0,
+        "step_1min_max": 0.0,
+        "peak_15min": 0.4,
+        "peak_5s": 0.4,
+        "step_5s_max": 0.0
+      },
+      "Faydh 01": {
+        "peak_1min": 700.0,
+        "hour": 13.23,
+        "step_1min_rms": 7.6,
+        "step_1min_max": 21.4,
+        "peak_15min": 690.6,
+        "peak_5s": 700.2,
+        "step_5s_max": 8.4
+      },
+      "R5A": {
+        "peak_1min": 752.5,
+        "hour": 14.4,
+        "step_1min_rms": 4.9,
+        "step_1min_max": 12.4,
+        "peak_15min": 749.5,
+        "peak_5s": 752.8,
+        "step_5s_max": 4.4
+      },
+      "R2A": {
+        "peak_1min": 1103.4,
+        "hour": 14.17,
+        "step_1min_rms": 11.6,
+        "step_1min_max": 26.9,
+        "peak_15min": 1092.5,
+        "peak_5s": 1109.0,
+        "step_5s_max": 27.9
+      },
+      "Z4C": {
+        "peak_1min": 1593.0,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.9,
+        "peak_5s": 1593.1,
+        "step_5s_max": 2.2
+      },
+      "Bidah 03 ring": {
+        "peak_1min": 302.3,
+        "hour": 12.75,
+        "step_1min_rms": 2.7,
+        "step_1min_max": 6.5,
+        "peak_15min": 299.9,
+        "peak_5s": 302.3,
+        "step_5s_max": 1.3
+      },
+      "Faydh 01 ring": {
+        "peak_1min": 699.8,
+        "hour": 13.23,
+        "step_1min_rms": 7.7,
+        "step_1min_max": 22.4,
+        "peak_15min": 691.5,
+        "peak_5s": 701.4,
+        "step_5s_max": 9.0
+      },
+      "R5A ring": {
+        "peak_1min": 753.8,
+        "hour": 14.37,
+        "step_1min_rms": 5.0,
+        "step_1min_max": 12.9,
+        "peak_15min": 749.7,
+        "peak_5s": 754.9,
+        "step_5s_max": 5.1
+      },
+      "R2A ring": {
+        "peak_1min": 1104.5,
+        "hour": 14.1,
+        "step_1min_rms": 15.0,
+        "step_1min_max": 40.5,
+        "peak_15min": 1092.0,
+        "peak_5s": 1113.3,
+        "step_5s_max": 41.0
+      },
+      "Z4C ring": {
+        "peak_1min": 1593.0,
+        "hour": 15.33,
+        "step_1min_rms": 10.1,
+        "step_1min_max": 25.1,
+        "peak_15min": 1589.8,
+        "peak_5s": 1593.0,
+        "step_5s_max": 2.7
+      },
+      "S1 ring": {
+        "peak_1min": 986.5,
+        "hour": 13.68,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 13.8,
+        "peak_15min": 984.3,
+        "peak_5s": 986.5,
+        "step_5s_max": 5.8
+      },
+      "S2 ring": {
+        "peak_1min": 986.3,
+        "hour": 13.66,
+        "step_1min_rms": 6.5,
+        "step_1min_max": 13.5,
+        "peak_15min": 984.4,
+        "peak_5s": 986.8,
+        "step_5s_max": 5.0
+      },
+      "S5 ring": {
+        "peak_1min": 485.9,
+        "hour": 13.92,
+        "step_1min_rms": 83.1,
+        "step_1min_max": 229.0,
+        "peak_15min": 339.8,
+        "peak_5s": 519.0,
+        "step_5s_max": 283.6
+      },
+      "S6 ring": {
+        "peak_1min": 170.3,
+        "hour": 13.03,
+        "step_1min_rms": 3.8,
+        "step_1min_max": 14.7,
+        "peak_15min": 162.2,
+        "peak_5s": 172.6,
+        "step_5s_max": 9.9
+      },
+      "S11 ring": {
+        "peak_1min": 335.0,
+        "hour": 13.3,
+        "step_1min_rms": 43.7,
+        "step_1min_max": 140.3,
+        "peak_15min": 249.1,
+        "peak_5s": 335.8,
+        "step_5s_max": 152.6
+      },
+      "S14 ring": {
+        "peak_1min": 2.3,
+        "hour": 12.73,
+        "step_1min_rms": 0.1,
+        "step_1min_max": 0.4,
+        "peak_15min": 2.0,
+        "peak_5s": 3.2,
+        "step_5s_max": 1.0
+      }
+    }
+  }
+}

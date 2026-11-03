@@ -83,3 +83,10 @@ Wadi2D_results.qgz
 **/W11 validation round two/**/*.log
 **/W11 validation round two/**/jica*
 **/W11 validation round two/**/report2331*
+
+**/W31 ring flicker/runs/
+**/W31 ring flicker/series/block2_*
+!**/W31 ring flicker/series/block2_w20_S5_ring.csv
+!**/W31 ring flicker/series/block2_w20_points_S5_ring.csv
+!**/W31 ring flicker/series/block2_w20_S11_ring.csv
+!**/W31 ring flicker/series/block2_w20_points_S11_ring.csv

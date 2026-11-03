@@ -1,0 +1,172 @@
+{
+  "S1": {
+    "outlet": [
+      424978.48973783385,
+      2705532.893463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 1335,
+    "cells": [
+      {
+        "j": 767,
+        "i": 290,
+        "zmin": 549.47,
+        "inside_ring": false,
+        "lowest": true,
+        "offset_m": 10.6
+      }
+    ],
+    "cells_inside": 0,
+    "lowest_inside": false
+  },
+  "S2": {
+    "outlet": [
+      424978.48973783385,
+      2705532.893463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 1112,
+    "cells": [
+      {
+        "j": 767,
+        "i": 290,
+        "zmin": 549.47,
+        "inside_ring": true,
+        "lowest": true,
+        "offset_m": 10.6
+      }
+    ],
+    "cells_inside": 1,
+    "lowest_inside": true
+  },
+  "S5": {
+    "outlet": [
+      429890.98973783385,
+      2713480.393463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 1430,
+    "cells": [
+      {
+        "j": 568,
+        "i": 413,
+        "zmin": 311.24,
+        "inside_ring": true,
+        "lowest": false,
+        "offset_m": 20.0
+      },
+      {
+        "j": 569,
+        "i": 413,
+        "zmin": 310.7,
+        "inside_ring": false,
+        "lowest": true,
+        "offset_m": 20.0
+      }
+    ],
+    "cells_inside": 1,
+    "lowest_inside": false
+  },
+  "S6": {
+    "outlet": [
+      432065.98973783385,
+      2719027.893463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 852,
+    "cells": [
+      {
+        "j": 430,
+        "i": 467,
+        "zmin": 287.04,
+        "inside_ring": true,
+        "lowest": false,
+        "offset_m": 16.8
+      },
+      {
+        "j": 430,
+        "i": 468,
+        "zmin": 286.49,
+        "inside_ring": false,
+        "lowest": true,
+        "offset_m": 26.1
+      }
+    ],
+    "cells_inside": 1,
+    "lowest_inside": false
+  },
+  "S11": {
+    "outlet": [
+      428615.98973783385,
+      2731952.893463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 1031,
+    "cells": [
+      {
+        "j": 106,
+        "i": 381,
+        "zmin": 241.83,
+        "inside_ring": true,
+        "lowest": false,
+        "offset_m": 28.0
+      },
+      {
+        "j": 107,
+        "i": 381,
+        "zmin": 240.81,
+        "inside_ring": true,
+        "lowest": true,
+        "offset_m": 13.5
+      }
+    ],
+    "cells_inside": 2,
+    "lowest_inside": true
+  },
+  "S14": {
+    "outlet": [
+      425995.98973783385,
+      2724320.393463373
+    ],
+    "grid_origin": [
+      413350.98973783385,
+      2736240.393463373
+    ],
+    "ring_faces": 928,
+    "cells": [
+      {
+        "j": 297,
+        "i": 316,
+        "zmin": 470.15,
+        "inside_ring": false,
+        "lowest": true,
+        "offset_m": 25.0
+      },
+      {
+        "j": 298,
+        "i": 316,
+        "zmin": 470.8,
+        "inside_ring": false,
+        "lowest": false,
+        "offset_m": 25.0
+      }
+    ],
+    "cells_inside": 0,
+    "lowest_inside": false
+  }
+}
