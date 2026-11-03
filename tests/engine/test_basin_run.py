@@ -172,7 +172,7 @@ def test_an_incomplete_subbasin_is_refused_into_rain_on_grid_with_the_warning_na
     assert any(first in w and "curve_number" in w and "not lumped as asked" in w for w in warnings)
     assert run.balance.rain > 0.0
     (event,) = events(out, "basin")
-    assert event["two_d"] == [first] and event["incomplete"] == [{"name": first, "missing": ["curve_number", "lag_minutes"]}]
+    assert event["two_d"] == [first] and event["incomplete"] == [{"name": first, "missing": ["curve_number"]}]
     assert resolved(out)["subbasins"][[s["name"] for s in resolved(out)["subbasins"]].index(first)]["mode"] == "2d"
 
 

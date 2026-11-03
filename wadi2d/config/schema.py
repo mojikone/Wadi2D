@@ -833,7 +833,7 @@ class Run(_Part):
     )
 
 
-LAG_NRCS, LAG_HMS_KIRPICH = "nrcs", "hms_kirpich"
+LAG_KIRPICH, LAG_NRCS, LAG_HMS_KIRPICH = "kirpich", "nrcs", "hms_kirpich"
 
 
 class BasinSettings(_Part):
@@ -842,12 +842,13 @@ class BasinSettings(_Part):
     The run never reads it: ``job_hash`` leaves it out, and the basin file's own bytes are what a checkpoint must match.
     """
 
-    lag_method: Literal["nrcs", "hms_kirpich"] = Field(
-        LAG_NRCS,
-        description="Lag of a generated subbasin. 'nrcs': the NRCS watershed lag (NEH 630 chapter 15) on the longest flow "
-        "length, the curve number and the mean land slope. 'hms_kirpich': 0.474 x Kirpich's time of concentration on the "
-        "longest flow length and the 10-85 slope, the rule the 18 lags of the Block 2 HEC-HMS model follow to 0.3 % (W24). "
-        "On Block 2 at 100 yr, NRCS gave 1.05 to 1.58 x the HMS peaks at the five dams and this rule 0.88 to 0.98; no gauge "
+    lag_method: Literal["kirpich", "nrcs", "hms_kirpich"] = Field(
+        LAG_KIRPICH,
+        description="Lag of a generated subbasin. 'kirpich': 0.6 x Kirpich's time of concentration, L^0.77 / (52 S^0.385) "
+        "minutes, on the 10-85 flow path (three quarters of the longest path) and its slope: the owner's HEC-HMS practice, "
+        "the rule the 18 lags of the Block 2 HMS model follow to 0.3 %. 'nrcs': the NRCS watershed lag (NEH 630 chapter 15) "
+        "on the longest flow length, the curve number and the mean land slope. 'hms_kirpich': the older name of 'kirpich'. "
+        "On Block 2 at 100 yr, NRCS gave 1.05 to 1.58 x the HMS peaks at the five dams and Kirpich 0.88 to 0.98; no gauge "
         "says which is right. Applied when the basin is generated: generate again after changing it",
     )
     stream_threshold_km2: float | None = Field(

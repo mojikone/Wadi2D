@@ -1,6 +1,6 @@
 """What the terrain and the job's rasters say about an element.
 
-Interface: :func:`nrcs_lag_minutes`, :func:`hms_kirpich_lag_minutes`, :func:`index_celerity`, :func:`land_slope`,
+Interface: :func:`kirpich_lag_minutes`, :func:`nrcs_lag_minutes`, :func:`index_celerity`, :func:`land_slope`,
 :func:`zonal_mean`, :func:`read_on_surface`.
 Pure functions; which of them an element gets, and from what source, is decided in :mod:`wadi2d.basin.elements`.
 """
@@ -28,21 +28,28 @@ NRCS_RETENTION_POWER = 0.7
 NRCS_DIVISOR = 1900.0
 """NEH 630 chapter 15, the watershed lag method: L = l^0.8 (S + 1)^0.7 / (1900 Y^0.5), hours, l in ft, S in inches, Y in %."""
 MINUTES_PER_HOUR = 60.0
-KIRPICH_COEFFICIENT, KIRPICH_LENGTH_POWER, KIRPICH_SLOPE_POWER = 0.0195, 0.77, -0.385
-"""Kirpich (1940): tc = 0.0195 L^0.77 S^-0.385, minutes, L in m, S in m/m (0.0078 with L in ft)."""
-HMS_LAG_RATIO = 0.474
-"""Lag over Kirpich's tc on the longest path and the 10-85 slope: what all 18 lags of the Block 2 HEC-HMS model are, to
-0.3 % (`W24 basin model`). The textbook ratio is 0.6; where 0.474 comes from is not in the files. A finding, not a law."""
+KIRPICH_DIVISOR, KIRPICH_LENGTH_POWER, KIRPICH_SLOPE_POWER = 52.0, 0.77, 0.385
+"""Kirpich (1940) as the owner writes it in HEC-HMS: tc = L^0.77 / (52 S^0.385), minutes, L in m, S in m/m; the
+textbook coefficient 0.0195 is 1 / 51.3."""
+LAG_OVER_TC = 0.6
+"""The SCS lag, 0.6 of the time of concentration."""
+TEN_TO_85_SHARE = 0.75
+"""The 10-85 flow path is the longest path between 10 % and 85 % of its length: three quarters of it."""
 
 
-def kirpich_minutes(flow_length_m: float, slope_10_85: float) -> float:
-    """Kirpich's time of concentration on the longest path and its 10-85 slope."""
-    return KIRPICH_COEFFICIENT * flow_length_m**KIRPICH_LENGTH_POWER * slope_10_85**KIRPICH_SLOPE_POWER
+def kirpich_lag_minutes(flow_length_m: float, slope_10_85: float) -> float:
+    """The owner's HEC-HMS practice: 0.6 x Kirpich's tc on the 10-85 flow path and its slope.
+
+    ``flow_length_m`` is the longest path; the 10-85 path is ``TEN_TO_85_SHARE`` of it. This is the rule all 18 lags
+    of the Block 2 HMS model follow to 0.3 % (`W24 basin model` read it as 0.474 x Kirpich on the whole path, which is
+    the same number: 0.6 x 0.75^0.77 x 51.3 / 52 = 0.474).
+    """
+    length = TEN_TO_85_SHARE * flow_length_m
+    return LAG_OVER_TC * length**KIRPICH_LENGTH_POWER / (KIRPICH_DIVISOR * slope_10_85**KIRPICH_SLOPE_POWER)
 
 
-def hms_kirpich_lag_minutes(flow_length_m: float, slope_10_85: float) -> float:
-    """The lag rule under the Block 2 HMS model: ``HMS_LAG_RATIO`` times Kirpich."""
-    return HMS_LAG_RATIO * kirpich_minutes(flow_length_m, slope_10_85)
+hms_kirpich_lag_minutes = kirpich_lag_minutes
+"""The older name of the same rule; files that say ``hms_kirpich`` read it."""
 
 
 def nrcs_lag_minutes(flow_length_m: float, curve_number: float, slope: float) -> float:
