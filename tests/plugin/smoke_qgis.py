@@ -469,6 +469,11 @@ def smoke() -> None:
     check(dock.hydrology.table.rowCount() == 2, "subbasin table read from the basin file")
     check(dock.storm.kind.currentData() == "hms", "an HMS project brings its storm")
     dock.hydrology.table.cellWidget(1, 1).setCurrentText("2d")
+    routing = dock.hydrology.routing
+    schemes = [routing.itemData(i) for i in range(routing.count())]
+    check(schemes == dock.schema.enum("hydrology.reach_routing"), "the reach routing choices are the engine's")
+    check(routing.currentData() == dock.schema.default("hydrology.reach_routing"), "HMS-faithful routing by default")
+    routing.setCurrentIndex(routing.findData("conserving"))
     dock.hydrology.setCollapsed(True)
     values = dock._collect()
     check("hms" in values, "a collapsed section still gives its HMS project")
@@ -480,6 +485,8 @@ def smoke() -> None:
     check(job["storm"]["kind"] == "hypothetical", "the HMS storm comes through hms-import")
     modes = {entry["name"]: entry["mode"] for entry in job["hydrology"]["subbasins"]}
     check(modes == {"S1": "lumped", "S2": "2d"}, "lumped or 2D per subbasin")
+    check(job["hydrology"]["reach_routing"] == "conserving", "the conserving reach routing survives the HMS merge")
+    routing.setCurrentIndex(routing.findData("hms"))
     check(job["run"]["duration_s"] == 7200.0, "the HMS control file sets the simulated time")
 
     settings.set_engine_text(r"C:\no\such\python.exe -m wadi2d.engine.cli")

@@ -1,7 +1,7 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin; the curve number either
-way; hand-back lines and the transmission loss. The rain is section 4."""
+"""3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin; the reach routing scheme
+and the curve number either way; hand-back lines and the transmission loss. The rain is section 4."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from ..job_builder import (
     hms_subbasins,
 )
 from .basin import BasinBox, HandbackBox, LossRow
-from .basin_rows import SubbasinRow, hms_elements, mode_tip, subbasin_rows
+from .basin_rows import REACH_ROUTING, ROUTING_WORDS, SubbasinRow, hms_elements, mode_tip, subbasin_rows
 from .common import Section, ValueOrRaster, bind
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
@@ -55,6 +55,9 @@ class HydrologySection(Section):
         self.form.addRow(self.table)
         self.table.hide()
 
+        self.routing = QComboBox()
+        self.form.addRow("Reach routing", self.routing)
+
         self.handbacks = HandbackBox()
         self.form.addRow(self.handbacks)
         self.loss = LossRow()
@@ -73,6 +76,13 @@ class HydrologySection(Section):
     def apply_schema(self, schema) -> None:
         bind(self.cn.box, schema, CURVE_NUMBER)
         self._modes = schema.enum(SUBBASIN_MODE)
+        self.routing.clear()
+        for key in schema.enum(REACH_ROUTING):
+            self.routing.addItem(ROUTING_WORDS.get(key, key), key)
+        self.routing.setToolTip(schema.tip(REACH_ROUTING))
+        default = schema.default(REACH_ROUTING)
+        if default is not None:
+            self.routing.setCurrentIndex(max(self.routing.findData(default), 0))
         self.basin.apply_schema(schema)
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
@@ -136,6 +146,7 @@ class HydrologySection(Section):
         values = {
             "curve_number": self.cn.value() if self.cn.box.isEnabled() else None,
             "cn_raster": self.cn.path(),
+            "reach_routing": self.routing.currentData(),
             "handbacks": self.handbacks.features(crs),
             "transmission": self.loss.values(),
         }

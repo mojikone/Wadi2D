@@ -14,6 +14,7 @@ from typing import Any
 
 STREAM_THRESHOLD = "basin.stream_threshold_km2"
 LAG_METHOD = "basin.lag_method"
+REACH_ROUTING = "hydrology.reach_routing"
 BASIN_JSON = "hydrology.basin_json"
 HANDBACK_ELEMENT = "hydrology.handbacks.element"
 TRANSMISSION_ON = "transmission.enabled"
@@ -23,6 +24,11 @@ ROUTE_REACH, ROUTE_NONE = "reach", "none"
 ELEMENT_KINDS = ("reach", "junction", "reservoir")
 """What a hand-back line can enter."""
 LAG_WORDS = {"nrcs": "NRCS watershed lag", "hms_kirpich": "HMS-style: 0.474 x Kirpich (W24 finding)"}
+ROUTING_WORDS = {
+    "hms": "HMS-faithful: replicates HEC-HMS 4.12, does not conserve volume",
+    "conserving": "Conserving (Todini 2007): the routed volume closes to round-off",
+}
+"""What the dock calls each reach routing scheme; the keys are the engine's."""
 JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction"]
 
 

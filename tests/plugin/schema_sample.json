@@ -609,6 +609,16 @@
           "description": "HEC-HMS .basin file of the lumped network",
           "title": "Hms Basin"
         },
+        "reach_routing": {
+          "default": "hms",
+          "description": "Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS 4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to 1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and sub-steps",
+          "enum": [
+            "hms",
+            "conserving"
+          ],
+          "title": "Reach Routing",
+          "type": "string"
+        },
         "hms_project": {
           "anyOf": [
             {
@@ -3051,6 +3061,7 @@
       "$ref": "#/$defs/Hydrology",
       "default": {
         "hms_basin": null,
+        "reach_routing": "hms",
         "hms_project": null,
         "hms_sqlite": null,
         "basin_json": null,
