@@ -38,6 +38,9 @@ VOLUME = PEAK * RISE_S
 STEP_MIN = 1.0
 TOLERANCE = 1e-5
 """What a closed run closes to, as a share of the water that entered."""
+DRAIN_CUT = 1e-8
+"""What the conserving reach's defect reads, as a share of the water: the drain stops at 1e-6 m3/s and books the
+rest, so the floor is the drain's, not the scheme's."""
 
 
 def lag_reach(lag: float = LAG_MIN) -> str:
@@ -210,6 +213,26 @@ def test_muskingum_cunge_closes_and_its_own_volume_error_is_named_not_hidden(tmp
     gained = (by_hand.sum() - line.sum()) * STEP_MIN * 60.0
     assert abs(gained) > 0.01 * VOLUME
     assert b.routing_defect == pytest.approx(-gained, rel=1e-3)
+
+
+def test_the_conserving_variant_closes_through_the_hand_back_with_no_defect(tmp_path):
+    """The same box and reach as above with hydrology.reach_routing 'conserving': the defect line reads round-off,
+    the whole closes, and the reach's outflow is the conserving route of the line's inflow, by hand."""
+    out = tmp_path / "run"
+    cfg = box(
+        tmp_path, write_basin(tmp_path, MC_REACH, SINK), duration=7200.0, hydrology={"reach_routing": "conserving"}
+    )
+    run = run_job(cfg, out)
+    books(run)
+    b = run.balance
+    assert abs(b.routing_defect) < DRAIN_CUT * VOLUME
+    assert b.handback > 0.9 * VOLUME
+    line = series(out, "handbacks", "Line", "inflow_m3s")
+    outflow = series(out, "network", "R1", "outflow_m3s")
+    by_hand = MuskingumCunge(3000.0, 0.01, 0.04, 10.0, 1.0, 2.0, scheme="conserving").route(line, STEP_MIN)
+    np.testing.assert_allclose(outflow, by_hand, atol=1e-9)
+    resolved = json.loads((out / "config.resolved.json").read_text(encoding="utf-8"))
+    assert resolved["hydrology"]["reach_routing"] == "conserving"
 
 
 def test_a_reservoir_in_the_network_below(tmp_path, monkeypatch):
@@ -609,6 +632,8 @@ def test_old_jobs_keep_their_hash_their_events_and_their_checkpoints(tmp_path):
         plain.model_dump_json(exclude={"hydrology": {"handbacks"}, "transmission": True}), encoding="utf-8"
     )
     assert job_hash(load_job(path)) == job_hash(plain)
+    conserving = plain.model_copy(update={"hydrology": plain.hydrology.model_copy(update={"reach_routing": "conserving"})})
+    assert job_hash(conserving) != job_hash(plain)
     out = tmp_path / "run"
     done = run_job(plain, out).done
     assert set(done["balance"]) == {
