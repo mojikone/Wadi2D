@@ -40,6 +40,7 @@ PATHS = (
     job_builder.PIXELS_ON,
     basin_rows.STREAM_THRESHOLD,
     basin_rows.LAG_METHOD,
+    basin_rows.REACH_ROUTING,
     basin_rows.BASIN_JSON,
     basin_rows.HANDBACK_ELEMENT,
     basin_rows.TRANSMISSION_ON,
@@ -57,6 +58,11 @@ def real() -> SchemaView:
 @pytest.mark.parametrize("path", PATHS)
 def test_every_path_the_dock_binds_exists_in_the_engine(real: SchemaView, path: str) -> None:
     assert real.has(path)
+
+
+def test_every_reach_routing_scheme_of_the_engine_has_words_in_the_dock(real: SchemaView) -> None:
+    assert set(real.enum(basin_rows.REACH_ROUTING)) == set(basin_rows.ROUTING_WORDS)
+    assert real.default(basin_rows.REACH_ROUTING) == "hms"
 
 
 def test_the_frozen_sample_still_matches_the_engine() -> None:

@@ -32,7 +32,7 @@ from wadi2d.basin.elements import Namer
 from wadi2d.basin.kernels import NONE
 from wadi2d.basin.parameters import hms_kirpich_lag_minutes, index_celerity, nrcs_lag_minutes
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH
-from wadi2d.config.schema import BasinSettings, DesignPoint, RunConfig
+from wadi2d.config.schema import REACH_CONSERVING, REACH_HMS, BasinSettings, DesignPoint, RunConfig
 from wadi2d.engine.cli import main
 from wadi2d.hydrology import LumpedEngine, TimeGrid
 from wadi2d.hydrology.model import Junction, Reach, Reservoir, Subbasin
@@ -221,6 +221,16 @@ def test_the_lumped_engine_runs_unchanged_and_closes_the_volume(tmp_path: Path) 
     volume = float(np.trapezoid(run.outflow[outlet["name"]])) * GRID.dt_seconds
     excess_mm = sum(run.water[name].excess.sum() * basin.elements[name].area_km2 for name in basin.subbasins)
     assert volume == pytest.approx(excess_mm * 1000.0, rel=0.01)
+
+
+def test_the_loader_gives_every_reach_the_scheme_the_job_asks(tmp_path: Path) -> None:
+    model = model_of(complete_job(tmp_path, write_raster(tmp_path / "dem.tif", valley_dem())))
+    reaches = [e["name"] for e in by_kind(model, "reach")]
+    assert reaches
+    for scheme in (REACH_HMS, REACH_CONSERVING):
+        basin = load_network(model, reach_routing=scheme)
+        assert {basin.elements[name].routing.scheme for name in reaches} == {scheme}
+    assert {load_network(model).elements[name].routing.scheme for name in reaches} == {REACH_HMS}
 
 
 def test_the_file_loads_as_the_dict_does(tmp_path: Path) -> None:

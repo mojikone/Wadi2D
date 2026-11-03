@@ -1,7 +1,8 @@
 """The compiled core of the Muskingum-Cunge reach: trapezoid hydraulics and the cell step.
 
-Interface: :func:`route_cells`, :func:`muskingum_coefficients`. Numba kernels on plain floats and arrays, so
-they carry no objects; every knob arrives as an argument from :mod:`wadi2d.hydrology.routing`.
+Interface: :func:`route_cells`, :func:`muskingum_coefficients`, :func:`normal_depth`. Numba kernels on plain floats
+and arrays, so they carry no objects; every knob arrives as an argument from :mod:`wadi2d.hydrology.routing`. The
+conserving variant in :mod:`wadi2d.hydrology.routing_conserving` shares the trapezoid hydraulics and nothing else.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ def muskingum_coefficients(courant: float, reynolds: float) -> tuple[float, floa
 
 
 @njit(cache=True)
-def _normal_depth(
+def normal_depth(
     flow: float, width: float, side: float, conveyance: float, guess: float, iterations: int, tolerance: float
 ) -> float:
     """Manning depth by Newton from ``guess``; ``conveyance`` is sqrt(S) / n."""
@@ -66,7 +67,7 @@ def _numbers(
     tolerance: float,
 ) -> tuple[float, float, float]:
     """Courant and cell Reynolds numbers at a reference flow, and the depth to start the next solve from."""
-    depth = _normal_depth(flow, width, side, conveyance, depth, iterations, tolerance)
+    depth = normal_depth(flow, width, side, conveyance, depth, iterations, tolerance)
     area = (width + side * depth) * depth
     top = width + 2.0 * side * depth
     perimeter = width + 2.0 * depth * math.sqrt(1.0 + side * side)

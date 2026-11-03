@@ -394,6 +394,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             job["terrain"][key] = str(Path(values[key]).resolve())
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
+    if values.get("reach_routing"):
+        job["hydrology"]["reach_routing"] = values["reach_routing"]
     if values.get("storm"):
         job["storm"] = storm_job(values["storm"])
     elif not values.get("hms"):

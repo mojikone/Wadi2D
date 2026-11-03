@@ -39,6 +39,14 @@ def values(tmp_path: Path, **changes) -> dict:
     return {**base, **changes}
 
 
+def test_the_reach_routing_choice_reaches_the_job_and_no_choice_leaves_it_out(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path, reach_routing="conserving"), tmp_path / "out")
+    assert job["hydrology"]["reach_routing"] == "conserving"
+    assert build_job(values(tmp_path, reach_routing="hms"), tmp_path / "out")["hydrology"]["reach_routing"] == "hms"
+    assert "reach_routing" not in build_job(values(tmp_path), tmp_path / "out")["hydrology"]
+    assert "reach_routing" not in build_job(values(tmp_path, reach_routing=None), tmp_path / "out")["hydrology"]
+
+
 def test_a_snapped_cell_size_is_said() -> None:
     said = " ".join(notes({"boundaries": [1], "dx": 20.0, "pixel": 3.0}))
     assert "21 m" in said

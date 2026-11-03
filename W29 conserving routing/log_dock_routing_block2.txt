@@ -1,0 +1,46 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-adc9a04e1c27dbf0c\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.1 === 1 the combo before any project
+    5.1 PASS the choices are the engine's two schemes, HMS-faithful first ['hms', 'conserving']
+    5.1 PASS HMS-faithful is the default hms
+    5.1 PASS each choice has words of its own ['HMS-faithful: replicates HEC-HMS 4.12, does not conserve volume', 'Conserving (Todini 2007): the routed volume closes to round-off']
+    5.1 PASS the tooltip is the schema's Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' rep
+    5.3 PASS 18 HMS subbasins, all lumped 
+    5.3 PASS the combo is still there and still HMS-faithful under an HMS project 
+    5.3 === 2 the default run: the job says 'hms', the engine resolves 'hms'
+    5.5 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+    7.0 dock says: The HMS control file sets 48 h of simulated time, not the 1 h in the form.
+  110.0 dock says: water stood 21.6 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there
+  110.5 PASS the HMS-faithful run finished Finished. water stood 21.6 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+  110.5 PASS job.json says hms hms
+  110.5 PASS the resolved job says hms hms
+  110.5 PASS mass closes 
+  110.5 === 3 the conserving run
+  110.6 PASS the collected values carry the choice conserving
+  110.7 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+  112.8 dock says: The HMS control file sets 48 h of simulated time, not the 1 h in the form.
+  220.7 dock says: water stood 21.6 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there
+  220.9 PASS the conserving run finished Finished. water stood 21.6 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
+  220.9 PASS job.json says conserving conserving
+  220.9 PASS the resolved job says conserving conserving
+  220.9 PASS mass closes 
+  220.9 PASS nothing else of the job changed []
+  220.9 === 4 the reach series: a headwater reach takes the same inflow, every outflow differs, none gains
+  220.9 PASS R1: a different outflow, no volume gained, never negative (True, True, 0.9992009329720117, 0.9952858233602763)
+  220.9 PASS R2: a different outflow, no volume gained, never negative (False, True, 0.9995902433994581, 0.9968219790382142)
+  221.0 PASS R3: a different outflow, no volume gained, never negative (True, True, 0.9996778345617052, 0.9979634101803369)
+  221.0 PASS R4: a different outflow, no volume gained, never negative (True, True, 1.0003450236801903, 0.9980277882372841)
+  221.0 PASS R5: a different outflow, no volume gained, never negative (False, True, 0.9999511921764862, 0.9998202593338685)
+  221.0 PASS R6: a different outflow, no volume gained, never negative (True, True, 0.9999203520690542, 0.9999896523755956)
+  221.0 PASS R7: a different outflow, no volume gained, never negative (True, True, 0.9998431640506755, 0.9971071619725002)
+  221.0 PASS R8: a different outflow, no volume gained, never negative (False, True, 0.999741743713527, 0.9972897699077297)
+  221.0 PASS the headwater reaches take the same inflow in both runs; the others take what the scheme above gave ['R1', 'R3', 'R4', 'R6', 'R7']
+  221.0 reaches: {'R1': {'hms': {'peak_m3s': 979.3, 'at_h': 15.17}, 'conserving': {'peak_m3s': 979.4, 'at_h': 15.17}, 'out_in_hms': 0.9992, 'out_in_conserving': 0.99529, 'window_h': 48.0}, 'R2': {'hms': {'peak_m3s': 1565.8, 'at_h': 15.67}, 'conserving': {'peak_m3s': 1565.9, 'at_h': 15.67}, 'out_in_hms': 0.99959, 'out_in_conserving': 0.99682, 'window_h': 48.0}, 'R3': {'hms': {'peak_m3s': 626.7, 'at_h': 15.08}, 'conserving': {'peak_m3s': 626.7, 'at_h': 15.08}, 'out_in_hms': 0.99968, 'out_in_conserving': 0.99796, 'window_h': 48.0}, 'R4': {'hms': {'peak_m3s': 324.8, 'at_h': 13.83}, 'conserving': {'peak_m3s': 326.8, 'at_h': 13.83}, 'out_in_hms': 1.00035, 'out_in_conserving': 0.99803, 'window_h': 48.0}, 'R5': {'hms': {'peak_m3s': 710.7, 'at_h': 13.67}, 'conserving': {'peak_m3s': 720.8, 'at_h': 13.67}, 'out_in_hms': 0.99995, 'out_in_conserving': 0.99982, 'window_h': 48.0}, 'R6': {'hms': {'peak_m3s': 491.4, 'at_h': 13.42}, 'conserving': {'peak_m3s': 491.4, 'at_h': 13.42}, 'out_in_hms': 0.99992, 'out_in_conserving': 0.99999, 'window_h': 48.0}, 'R7': {'hms': {'peak_m3s': 445.6, 'at_h': 14.58}, 'conserving': {'peak_m3s': 445.6, 'at_h': 14.58}, 'out_in_hms': 0.99984, 'out_in_conserving': 0.99711, 'window_h': 48.0}, 'R8': {'hms': {'peak_m3s': 688.0, 'at_h': 14.92}, 'conserving': {'peak_m3s': 688.1, 'at_h': 14.92}, 'out_in_hms': 0.99974, 'out_in_conserving': 0.99729, 'window_h': 48.0}}
+  221.0 dams: {'Faydh 01': {'hms': {'peak_m3s': 877.9, 'at_h': 13.25}, 'conserving': {'peak_m3s': 877.9, 'at_h': 13.25}}, 'Bidah 03': {'hms': {'peak_m3s': 302.3, 'at_h': 12.75}, 'conserving': {'peak_m3s': 302.3, 'at_h': 12.75}}, 'R5A': {'hms': {'peak_m3s': 801.1, 'at_h': 14.83}, 'conserving': {'peak_m3s': 802.2, 'at_h': 14.83}}, 'R2A': {'hms': {'peak_m3s': 1277.3, 'at_h': 14.33}, 'conserving': {'peak_m3s': 1278.2, 'at_h': 14.33}}, 'Z4C': {'hms': {'peak_m3s': 1605.7, 'at_h': 15.67}, 'conserving': {'peak_m3s': 1605.9, 'at_h': 15.58}}}
+  221.0 2D lines: {'hms': {'Bidah_03': 0.6, 'Faydh_01': 681.4, 'R2A': 1049.2, 'R5A': 680.3, 'Z4C': 1551.7}, 'conserving': {'Bidah_03': 0.6, 'Faydh_01': 681.4, 'R2A': 1049.2, 'R5A': 680.3, 'Z4C': 1551.7}}
+  221.0 PASS every dam peak within 10 % of the HMS-faithful run's {'Faydh 01': {'hms': {'peak_m3s': 877.9, 'at_h': 13.25}, 'conserving': {'peak_m3s': 877.9, 'at_h': 13.25}}, 'Bidah 03': {'hms': {'peak_m3s': 302.3, 'at_h': 12.75}, 'conserving': {'peak_m3s': 302.3, 'at_h': 12.75}}, 'R5A': {'hms': {'peak_m3s': 801.1, 'at_h': 14
+  221.0 === 5 back to the default
+  221.2 PASS the HMS choice writes hms again hms
+  221.2 SUMMARY 29 passed, 0 failed 
+  221.2 DONE

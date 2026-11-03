@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from wadi2d.config.schema import REACH_CONSERVING
 from wadi2d.hydrology import Basin, Junction, LumpedEngine, Reach, Subbasin, TimeGrid
 from wadi2d.hydrology.live_network import LiveNetwork, plan_routes
 from wadi2d.hydrology.losses import NoLoss
@@ -27,6 +28,7 @@ def pulse(peak: float = 100.0, at: int = 20, width: float = 6.0) -> np.ndarray:
 
 
 MC = MuskingumCunge(6000.0, 0.01, 0.04, 30.0, 2.0, 3.0)
+MC_CONSERVING = MuskingumCunge(6000.0, 0.01, 0.04, 30.0, 2.0, 3.0, scheme=REACH_CONSERVING)
 POOL = ReservoirOutflowCurve(
     np.array([100.0, 104.0, 110.0, 120.0]),
     np.array([1.0e5, 1.4e5, 2.0e5, 4.0e5]),
@@ -48,7 +50,9 @@ def network(basin: Basin, entries, exits, storm=None) -> LiveNetwork:
     return LiveNetwork(basin, routes, base, {name: name for name in exits})
 
 
-@pytest.mark.parametrize("routing", [LagRouting(17.0), NoRouting(), MC], ids=["lag", "none", "mc"])
+@pytest.mark.parametrize(
+    "routing", [LagRouting(17.0), NoRouting(), MC, MC_CONSERVING], ids=["lag", "none", "mc", "mc_conserving"]
+)
 def test_the_routing_is_causal_so_a_rerun_on_the_series_so_far_is_the_true_series(routing):
     q = pulse()
     whole = routing.route(q, DT_MIN)
@@ -153,6 +157,19 @@ def test_muskingum_cunge_shows_its_own_mass_error_as_a_defect_not_as_storage():
     # the flood has gone by the end of the series: nothing is left in the reach, whatever the routing did to the volume
     assert abs(books.storage) < 1e-4 * line
     assert books.defect == pytest.approx(line - float(run.outflow["R1"].sum()) * DT - books.storage, abs=1e-6)
+
+
+def test_the_conserving_muskingum_cunge_drains_with_no_defect():
+    """The same books as the HMS variant above; the drain finds the reach empty and the defect at round-off."""
+    live = network(line_of(MC_CONSERVING), ["R1"], ["R1"])
+    q = pulse(400.0)
+    series = {"R1": q}
+    run = live.route(series)
+    line = float(q.sum()) * DT
+    books = live.settle(series, line, N, float(run.outflow["R1"][:N].sum()) * DT)
+    assert books.drained
+    assert abs(books.defect) < 1e-9 * line
+    assert 0.0 <= books.storage < 1e-2 * line  # the trickle of the tail, still in the reach after 8 h
 
 
 def test_a_reservoir_keeps_what_its_pool_says():
