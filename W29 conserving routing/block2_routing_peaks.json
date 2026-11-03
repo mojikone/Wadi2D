@@ -1,0 +1,177 @@
+{
+ "dx": 40.0,
+ "reaches": {
+  "R1": {
+   "hms": {
+    "peak_m3s": 979.3,
+    "at_h": 15.17
+   },
+   "conserving": {
+    "peak_m3s": 979.4,
+    "at_h": 15.17
+   },
+   "out_in_hms": 0.9992,
+   "out_in_conserving": 0.99529,
+   "window_h": 48.0
+  },
+  "R2": {
+   "hms": {
+    "peak_m3s": 1565.8,
+    "at_h": 15.67
+   },
+   "conserving": {
+    "peak_m3s": 1565.9,
+    "at_h": 15.67
+   },
+   "out_in_hms": 0.99959,
+   "out_in_conserving": 0.99682,
+   "window_h": 48.0
+  },
+  "R3": {
+   "hms": {
+    "peak_m3s": 626.7,
+    "at_h": 15.08
+   },
+   "conserving": {
+    "peak_m3s": 626.7,
+    "at_h": 15.08
+   },
+   "out_in_hms": 0.99968,
+   "out_in_conserving": 0.99796,
+   "window_h": 48.0
+  },
+  "R4": {
+   "hms": {
+    "peak_m3s": 324.8,
+    "at_h": 13.83
+   },
+   "conserving": {
+    "peak_m3s": 326.8,
+    "at_h": 13.83
+   },
+   "out_in_hms": 1.00035,
+   "out_in_conserving": 0.99803,
+   "window_h": 48.0
+  },
+  "R5": {
+   "hms": {
+    "peak_m3s": 710.7,
+    "at_h": 13.67
+   },
+   "conserving": {
+    "peak_m3s": 720.8,
+    "at_h": 13.67
+   },
+   "out_in_hms": 0.99995,
+   "out_in_conserving": 0.99982,
+   "window_h": 48.0
+  },
+  "R6": {
+   "hms": {
+    "peak_m3s": 491.4,
+    "at_h": 13.42
+   },
+   "conserving": {
+    "peak_m3s": 491.4,
+    "at_h": 13.42
+   },
+   "out_in_hms": 0.99992,
+   "out_in_conserving": 0.99999,
+   "window_h": 48.0
+  },
+  "R7": {
+   "hms": {
+    "peak_m3s": 445.6,
+    "at_h": 14.58
+   },
+   "conserving": {
+    "peak_m3s": 445.6,
+    "at_h": 14.58
+   },
+   "out_in_hms": 0.99984,
+   "out_in_conserving": 0.99711,
+   "window_h": 48.0
+  },
+  "R8": {
+   "hms": {
+    "peak_m3s": 688.0,
+    "at_h": 14.92
+   },
+   "conserving": {
+    "peak_m3s": 688.1,
+    "at_h": 14.92
+   },
+   "out_in_hms": 0.99974,
+   "out_in_conserving": 0.99729,
+   "window_h": 48.0
+  }
+ },
+ "dams": {
+  "Faydh 01": {
+   "hms": {
+    "peak_m3s": 877.9,
+    "at_h": 13.25
+   },
+   "conserving": {
+    "peak_m3s": 877.9,
+    "at_h": 13.25
+   }
+  },
+  "Bidah 03": {
+   "hms": {
+    "peak_m3s": 302.3,
+    "at_h": 12.75
+   },
+   "conserving": {
+    "peak_m3s": 302.3,
+    "at_h": 12.75
+   }
+  },
+  "R5A": {
+   "hms": {
+    "peak_m3s": 801.1,
+    "at_h": 14.83
+   },
+   "conserving": {
+    "peak_m3s": 802.2,
+    "at_h": 14.83
+   }
+  },
+  "R2A": {
+   "hms": {
+    "peak_m3s": 1277.3,
+    "at_h": 14.33
+   },
+   "conserving": {
+    "peak_m3s": 1278.2,
+    "at_h": 14.33
+   }
+  },
+  "Z4C": {
+   "hms": {
+    "peak_m3s": 1605.7,
+    "at_h": 15.67
+   },
+   "conserving": {
+    "peak_m3s": 1605.9,
+    "at_h": 15.58
+   }
+  }
+ },
+ "dam_lines_2d": {
+  "hms": {
+   "Bidah_03": 0.6,
+   "Faydh_01": 681.4,
+   "R2A": 1049.2,
+   "R5A": 680.3,
+   "Z4C": 1551.7
+  },
+  "conserving": {
+   "Bidah_03": 0.6,
+   "Faydh_01": 681.4,
+   "R2A": 1049.2,
+   "R5A": 680.3,
+   "Z4C": 1551.7
+  }
+ }
+}
