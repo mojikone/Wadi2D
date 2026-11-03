@@ -14,6 +14,7 @@ from wadi2d.config.schema import Pixels, RunConfig
 from wadi2d.engine.cli import main
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.products.cell_grid import write_cell_grid
+from wadi2d.products.face_flow import FLOW_FACES
 from wadi2d.products.result_lines import (
     FLOW_FLOOR,
     GROUND_CELLS,
@@ -184,24 +185,25 @@ def test_the_catalogue_holds_the_frames_and_the_series_of_record(finished: Path)
     assert point["name"] == "mid" and len(point["level_m"]) == len(point["t_s"])
 
 
-def test_flow_from_frames_stands_near_the_upfront_line(finished: Path) -> None:
-    """The limit the plot states: on a line square to a plain sheet of flow the estimate holds within 8 %."""
+def test_flow_from_frames_is_the_upfront_line_at_the_frames(finished: Path) -> None:
+    """The run saved the face discharges, so the line reads the record, sign included, at the frame times."""
     record = catalogue(finished)["lines"][0]
     found = read_line(finished, ACROSS, "same line")
     assert found["name"] == "same line"
-    at_frames = np.interp(found["t_s"], record["t_s"], np.abs(record["discharge_m3s"]))
+    assert found["flow_source"] == FLOW_FACES
+    at_frames = np.interp(found["t_s"], record["t_s"], record["discharge_m3s"])
     flow = np.array(found["flow_m3s"])
-    running = at_frames > 0.25 * at_frames.max()
+    running = np.abs(at_frames) > 0.25 * np.abs(at_frames).max()
     assert running.sum() >= 3
-    assert np.abs(flow[running] / at_frames[running] - 1.0).max() < 0.08
-    assert flow.max() == pytest.approx(np.abs(record["discharge_m3s"]).max(), rel=0.08)
+    assert flow[running] == pytest.approx(at_frames[running], rel=0.01)
+    assert flow.min() < 0.0  # eastward through a line drawn southward is to its left
 
 
 def test_a_line_along_the_flow_passes_little(finished: Path) -> None:
     y = Y0 - WIDE / 2.0
     along_it = read_line(finished, [(X0 + 40.0, y), (X0 + WIDE - 40.0, y)])
     across_it = read_line(finished, ACROSS)
-    assert max(along_it["flow_m3s"]) < 0.1 * max(across_it["flow_m3s"])
+    assert max(np.abs(along_it["flow_m3s"])) < 0.1 * max(np.abs(across_it["flow_m3s"]))
 
 
 def test_the_level_on_the_line_is_the_level_recorded_at_the_point(finished: Path) -> None:
@@ -240,7 +242,7 @@ def test_with_the_dem_gone_the_ground_is_each_cells_lowest_point(finished: Path)
     (finished.parent / "dem.tif").unlink()
     found = read_line(finished, ACROSS)
     assert found["ground_source"] == GROUND_CELLS
-    assert max(found["flow_m3s"]) > 0.0
+    assert max(np.abs(found["flow_m3s"])) > 0.0
     assert all(g is None or 90.0 < g < 100.0 for g in found["ground_m"])
 
 
@@ -272,6 +274,7 @@ def test_the_command_writes_what_the_plugin_reads(finished: Path, tmp_path: Path
     assert main(["lines", str(finished), "--line", str(request), "--out", str(answer)]) == 0
     read = json.loads(answer.read_text("utf-8"))
     assert read["name"] == "Line 1" and len(read["level_m"]) == len(read["t_s"])
+    assert read["flow_source"] == FLOW_FACES
 
 
 def test_the_command_says_when_a_run_saved_too_few_maps(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
@@ -313,7 +316,10 @@ def test_on_a_mesh_a_line_reads_the_coarse_cells_and_stands_near_its_record(tmp_
     run = tmp_path / "mesh"
     record = catalogue(run)["lines"][0]
     found = read_line(run, record["coordinates"], record["name"])
-    at_frames = np.interp(found["t_s"], record["t_s"], np.abs(record["discharge_m3s"]))
-    assert 0.65 < max(found["flow_m3s"]) / at_frames.max() < 1.1  # a thin sheet still rising: the same 0.7 as on a uniform grid
+    assert found["flow_source"] == FLOW_FACES
+    at_frames = np.interp(found["t_s"], record["t_s"], record["discharge_m3s"])
+    flow = np.array(found["flow_m3s"])
+    running = np.abs(at_frames) > 0.25 * np.abs(at_frames).max()
+    assert flow[running] == pytest.approx(at_frames[running], rel=0.01)  # an upfront line on a mesh sits on finest cells
     assert found["ground_source"] == GROUND_DEM
     assert max(found["deepest_m"]) > 0.0
