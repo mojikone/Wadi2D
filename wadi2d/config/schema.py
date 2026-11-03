@@ -579,6 +579,11 @@ class Outputs(_Part):
         le=100.0,
         description="Disk per cell per saved map, for the estimate, B; the full extent at 30 m gave 10",
     )
+    face_discharge: bool = Field(
+        True,
+        description="Save the discharge through every face with each map, signed, m3/s: a line drawn after the run "
+        "then reads the number of record at the map interval",
+    )
     pixels: Pixels = Pixels()
     smooth: Smooth = Smooth()
     terrain_map: bool = Field(False, description="Write the modified terrain as a GeoTIFF with the run")

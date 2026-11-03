@@ -112,6 +112,7 @@ NOT_WATER = (
     ("outputs", "pixels"),
     ("outputs", "smooth"),
     ("outputs", "frame_bytes_per_cell"),
+    ("outputs", "face_discharge"),
     ("hydrology", "overlap_share"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""

@@ -18,7 +18,7 @@ from wadi2d.engine.maxima import Maxima, Tally
 from wadi2d.forcing import BoundarySet, LineFaces, line_faces
 from wadi2d.io.geotiff import LiveRaster
 from wadi2d.io.progress import Progress
-from wadi2d.io.results import Results
+from wadi2d.io.results import FACE_FIELDS, Results
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import state_index
 from wadi2d.solver.stepper import Stepper
@@ -209,10 +209,12 @@ class Monitor:
             s.columns["discharge_m3s"].append(float(q))
 
     def snapshot(self, t: float) -> None:
+        """One saved map; the face discharges go with it when the job keeps them, read from either backend alike."""
         m = self.model
-        d = m.field("d")
-        speed = m.cell_speed()
-        self.results.snapshot(t, {"depth": d, "mean_depth": m.field("h"), "speed": speed})
+        fields = {"depth": m.field("d"), "mean_depth": m.field("h"), "speed": m.cell_speed()}
+        if self.cfg.outputs.face_discharge:
+            fields.update({name: m.field(name) for name in FACE_FIELDS})
+        self.results.snapshot(t, fields)
         self.progress.emit("output", kind="map", t=t)
 
     def _accounts(self, t: float) -> None:

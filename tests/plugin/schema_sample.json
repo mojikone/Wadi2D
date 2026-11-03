@@ -1236,6 +1236,12 @@
           "title": "Frame Bytes Per Cell",
           "type": "number"
         },
+        "face_discharge": {
+          "default": true,
+          "description": "Save the discharge through every face with each map, signed, m3/s: a line drawn after the run then reads the number of record at the map interval",
+          "title": "Face Discharge",
+          "type": "boolean"
+        },
         "pixels": {
           "$ref": "#/$defs/Pixels",
           "default": {
@@ -3108,6 +3114,7 @@
         "edge_depth": 3.0,
         "progress_every_s": 2.0,
         "frame_bytes_per_cell": 10.0,
+        "face_discharge": true,
         "pixels": {
           "batch_pixels": 50000000,
           "cell_depth": 0.05,
