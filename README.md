@@ -11,7 +11,7 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,708 tests pass. Fit to try
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,769 tests pass. Fit to try
 and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
 catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
@@ -76,6 +76,9 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
+| `W32 combinations test` | 2026-11-02 | The combinations nobody ran: CPU twin through the new sections, generated basin with gridded storm, mesh, resume, full extent, hand-back at a dam | done, 4 of 6; CPU and GPU diverge on the Block 2 hybrid, resume re-phases the series clock |
+| `W30 face frames` | 2026-11-02 | Face discharges saved with every map; a line after the run of record | done, 42 of 42 through the dock; 1.001 of the upfront lines, 1.58 x disk |
+| `W29 conserving routing` | 2026-11-02 | A conserving Muskingum-Cunge (Todini 2007) beside the HMS-faithful one | done, 29 of 29 through the dock; volume 1.000000, peaks within 0.14 % |
 | `W28 final merge test` | 2026-11-02 | Every dock scenario of the work order on the merged `main` | done, 497 of 497 |
 | `W27 basin wiring` | 2026-11-02 | D6b: the generated basin in the run and the dock, inflows and hand-backs from the routes, the lag choice, the rain-once check | done on QGIS 3.44.8, Bidah 52 of 52 and Block 2 26 of 26; generated NRCS 1.05 to 1.59 x HMS, HMS-style lag 0.88 to 1.26 |
 | `W26 suggested breaklines` | 2026-11-02 | D4: Suggest breaklines, an editable layer of banks and crests, with the bank-line runs on Bidah and Faydh | done, 32 of 32 through the dock; bank lines as crest lines cost the peak 10 to 36 %, so banks go to the Mesh table |
