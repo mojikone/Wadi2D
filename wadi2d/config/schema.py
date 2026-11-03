@@ -715,10 +715,22 @@ class Handback(_Part):
     )
 
 
+REACH_HMS, REACH_CONSERVING = "hms", "conserving"
+ReachRouting = Literal["hms", "conserving"]
+
+
 class Hydrology(_Part):
     """Subbasins, their polygons and the lumped network. Every path is optional: rain-on-grid needs none."""
 
     hms_basin: str | None = Field(None, description="HEC-HMS .basin file of the lumped network")
+    reach_routing: ReachRouting = Field(
+        REACH_HMS,
+        description="Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS "
+        "4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to "
+        "1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter "
+        "scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and "
+        "sub-steps",
+    )
     hms_project: str | None = Field(
         None, description="The .hms file, for paired tables; None takes the one beside the basin file"
     )

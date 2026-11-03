@@ -1,7 +1,9 @@
 """Channel routing. Interface: :class:`RoutingMethod`, :data:`ROUTING_METHODS`.
 
-The Muskingum-Cunge method here replicates HEC-HMS 4.12, not the textbook scheme: it reproduces the eight Block 2
-reaches, and every choice HMS leaves undocumented is one named constant below, measured against its output.
+The Muskingum-Cunge method here replicates HEC-HMS 4.12 by default, not the textbook scheme: it reproduces the eight
+Block 2 reaches, and every choice HMS leaves undocumented is one named constant below, measured against its output.
+Its ``scheme`` can instead be the conserving variant of :mod:`wadi2d.hydrology.routing_conserving`, on the same
+cells, sub-steps and section; the job's ``hydrology.reach_routing`` chooses, and the HMS path is untouched by it.
 """
 
 from __future__ import annotations
@@ -12,7 +14,9 @@ from typing import Protocol
 
 import numpy as np
 
+from wadi2d.config.schema import REACH_CONSERVING, REACH_HMS
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
+from wadi2d.hydrology.routing_conserving import route_cells_conserving
 from wadi2d.hydrology.routing_kernel import route_cells
 from wadi2d.storm.base import FloatArray
 from wadi2d.storm.registry import Registry
@@ -44,6 +48,16 @@ HMS_DEPTH_TOLERANCE = 1.0e-9
 HMS_LOW_FLOW = 0.01
 # New-inflow weight: below C + D = 1 it would go negative, so it is zeroed and split evenly between the other two
 # (route_cells). The form was read off the lag of the HMS falling limb; without it the 5 yr peaks miss by 7.5 %.
+
+# The conserving variant (Todini 2007, routing_conserving) on the same grid; what the paper leaves open on an
+# ephemeral wadi, measured on Block 2 (W29).
+CONSERVING_FLOW_FLOOR = HMS_LOW_FLOW
+"""The hydraulics are read at no less than this flow, m3/s: at zero flow the celerity and beta are 0 / 0. The same
+figure as the HMS low-flow mean, so the two paths agree on what a trickle is; the identity holds whatever it is."""
+CONSERVING_MIN_VELOCITY = 0.1
+"""The parcel speed that sets a cell's travel time is never taken below this, m/s. Below about 0.2 m3/s in a 60 m
+bed the section's speed is lower, a cell would hold its water for hours and R1 would take days to drain; the design
+flood is at 1 to 3 m/s and does not see it."""
 
 
 class RoutingMethod(Protocol):
@@ -80,10 +94,20 @@ class LagRouting:
         return np.interp(times - self.lag_minutes, times, inflow_m3s)
 
 
+def _refined(inflow_m3s: FloatArray, substeps: int) -> FloatArray:
+    """The inflow interpolated linearly onto the sub-steps."""
+    times = np.arange(len(inflow_m3s), dtype=np.float64)
+    fine = np.arange((len(inflow_m3s) - 1) * substeps + 1, dtype=np.float64) / substeps
+    return np.interp(fine, times, inflow_m3s)
+
+
 @ROUTING_METHODS.register(MUSKINGUM_CUNGE)
 @dataclass(frozen=True)
 class MuskingumCunge:
-    """Muskingum-Cunge on a trapezoid, with `Automatic DX and DT` from an index celerity."""
+    """Muskingum-Cunge on a trapezoid, with `Automatic DX and DT` from an index celerity.
+
+    ``scheme`` is the job's ``hydrology.reach_routing``: HMS-faithful by default, or the conserving variant.
+    """
 
     length_m: float
     slope: float
@@ -93,6 +117,11 @@ class MuskingumCunge:
     index_celerity: float
     route_iterations: int = 30
     depth_iterations: int = 20
+    scheme: str = REACH_HMS
+
+    def __post_init__(self) -> None:
+        if self.scheme not in (REACH_HMS, REACH_CONSERVING):
+            raise ValueError(f"reach routing scheme {self.scheme!r}: one of {REACH_HMS!r}, {REACH_CONSERVING!r}")
 
     def grid(self, dt_seconds: float) -> tuple[int, float, int]:
         """Cells, cell length and sub-steps per control step, as measured from the HMS logs (see above)."""
@@ -100,14 +129,37 @@ class MuskingumCunge:
         cell_time = self.length_m / (cells * self.index_celerity)
         return cells, self.length_m / cells, max(1, math.floor(dt_seconds / cell_time + ROUND_HALF_UP))
 
-    def route(self, inflow_m3s: FloatArray, dt_minutes: float) -> FloatArray:
-        """The outflow at the times of the inflow, m3/s."""
+    def route_conserving(self, inflow_m3s: FloatArray, dt_minutes: float) -> tuple[FloatArray, float]:
+        """The conserving variant's outflow at the times of the inflow, m3/s, and what the reach holds at the end of
+        the series, m3: the inflow volume equals the outflow volume plus that, to round-off."""
         dt_seconds = dt_minutes * SECONDS_PER_MINUTE
         cells, dx, substeps = self.grid(dt_seconds)
-        times = np.arange(len(inflow_m3s), dtype=np.float64)
-        fine = np.arange((len(inflow_m3s) - 1) * substeps + 1, dtype=np.float64) / substeps
+        outflow, storage = route_cells_conserving(
+            _refined(inflow_m3s, substeps),
+            cells,
+            dt_seconds / substeps,
+            dx,
+            self.bottom_width_m,
+            self.side_slope,
+            self.slope,
+            self.roughness,
+            self.route_iterations,
+            self.depth_iterations,
+            HMS_DEPTH_TOLERANCE,
+            HMS_RELATIVE_TOLERANCE,
+            CONSERVING_FLOW_FLOOR,
+            CONSERVING_MIN_VELOCITY,
+        )
+        return outflow[::substeps], storage
+
+    def route(self, inflow_m3s: FloatArray, dt_minutes: float) -> FloatArray:
+        """The outflow at the times of the inflow, m3/s."""
+        if self.scheme == REACH_CONSERVING:
+            return self.route_conserving(inflow_m3s, dt_minutes)[0]
+        dt_seconds = dt_minutes * SECONDS_PER_MINUTE
+        cells, dx, substeps = self.grid(dt_seconds)
         outflow = route_cells(
-            np.interp(fine, times, inflow_m3s),
+            _refined(inflow_m3s, substeps),
             cells,
             dt_seconds / substeps,
             dx,

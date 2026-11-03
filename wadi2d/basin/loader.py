@@ -23,6 +23,7 @@ from wadi2d.basin.contract import (
     refresh,
     value_of,
 )
+from wadi2d.config.schema import REACH_HMS
 from wadi2d.hydrology.losses import LOSS_METHODS, SCS_CN
 from wadi2d.hydrology.model import Basin, Junction, Reach, Reservoir, Subbasin
 from wadi2d.hydrology.reservoir import RESERVOIR_OUTFLOW_STRUCTURES, Spillway
@@ -40,7 +41,7 @@ def _subbasin(element: Element, downstream: str | None) -> Subbasin:
     )
 
 
-def _reach(element: Element, downstream: str | None) -> Reach:
+def _reach(element: Element, downstream: str | None, reach_routing: str) -> Reach:
     routing = ROUTING_METHODS.build(
         MUSKINGUM_CUNGE,
         length_m=value_of(element, "length_m"),
@@ -49,6 +50,7 @@ def _reach(element: Element, downstream: str | None) -> Reach:
         bottom_width_m=value_of(element, "bottom_width_m"),
         side_slope=value_of(element, "side_slope"),
         index_celerity=value_of(element, "index_celerity"),
+        scheme=reach_routing,
     )
     return Reach(name=element["name"], downstream=downstream, routing=routing)
 
@@ -80,8 +82,10 @@ def _complete(model: Model) -> tuple[list[Element], set[str]]:
     return kept, cut
 
 
-def load_network(source: str | Path | Model, skip_incomplete: bool = False) -> Basin:
-    """The engine's basin of a model, or of its file."""
+def load_network(
+    source: str | Path | Model, skip_incomplete: bool = False, reach_routing: str = REACH_HMS
+) -> Basin:
+    """The engine's basin of a model, or of its file; ``reach_routing`` is the job's, the scheme of every reach."""
     model = _as_model(source)
     incomplete = {e["name"]: e["missing"] for e in model["elements"] if e["missing"]}
     if incomplete and not skip_incomplete:
@@ -93,7 +97,7 @@ def load_network(source: str | Path | Model, skip_incomplete: bool = False) -> B
         if element["kind"] == SUBBASIN:
             built.append(_subbasin(element, downstream))
         elif element["kind"] == REACH:
-            built.append(_reach(element, downstream))
+            built.append(_reach(element, downstream, reach_routing))
         elif element["kind"] == RESERVOIR and not element["missing"]:
             built.append(_reservoir(element, downstream))
         else:

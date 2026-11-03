@@ -38,7 +38,7 @@ from wadi2d.basin.contract import (
 from wadi2d.basin.geometry import ModelGeometry, first_direction, model_geometry
 from wadi2d.basin.loader import load_network
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH, JunctionRoute, junction_routes
-from wadi2d.config.schema import Handback, Hydrology, Inflow, RunConfig, Subbasin
+from wadi2d.config.schema import REACH_HMS, Handback, Hydrology, Inflow, RunConfig, Subbasin
 from wadi2d.hydrology.model import Basin
 
 MODE_LUMPED, MODE_2D = "lumped", "2d"
@@ -151,10 +151,10 @@ def _modes(model: Model, subbasins: list[Subbasin]) -> tuple[dict[str, str], dic
     return modes, missing, notes
 
 
-def engine_basin(model: Model, modes: dict[str, str]) -> Basin:
+def engine_basin(model: Model, modes: dict[str, str], reach_routing: str = REACH_HMS) -> Basin:
     """The lumped engine's basin: every element that can run, the 2D subbasins left out (their water is on the grid)."""
     kept = [e for e in model["elements"] if not (e["kind"] == SUBBASIN and modes.get(e["name"]) == MODE_2D)]
-    return load_network({**model, "elements": kept}, skip_incomplete=True)
+    return load_network({**model, "elements": kept}, skip_incomplete=True, reach_routing=reach_routing)
 
 
 def _line(junction: Element, reach: Element, geometry: ModelGeometry, cfg: RunConfig) -> list[tuple[float, float]]:
@@ -219,7 +219,7 @@ def generated_basin(cfg: RunConfig, crs: str = "") -> GeneratedBasin:
     path = Path(h.basin_json)
     model = load_model(h)
     modes, missing, notes = _modes(model, h.subbasins)
-    basin = engine_basin(model, modes)
+    basin = engine_basin(model, modes, h.reach_routing)
     geometry = model_geometry(model, path, crs)
     plans, cut, inflows, handbacks = _plan(model, modes, basin, geometry, cfg)
     return GeneratedBasin(path, model, modes, missing, notes, plans, cut, inflows, handbacks)

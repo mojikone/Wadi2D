@@ -23,7 +23,7 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
+from wadi2d.config.schema import REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.rain_once import check_rain_once
@@ -247,6 +247,8 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("handbacks")
     if not cfg.transmission.enabled:
         data.pop("transmission")
+    if cfg.hydrology.reach_routing == REACH_HMS:  # an old job's checkpoint keeps its hash
+        data["hydrology"].pop("reach_routing")
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for part, name in PATH_FIELDS:
@@ -440,12 +442,12 @@ def _lumped_basin(cfg: RunConfig, crs: str):
         from wadi2d.basin.job import engine_basin, generated_basin
 
         gen = generated_basin(cfg, crs)
-        return engine_basin(gen.model, gen.modes), None, gen.cut
+        return engine_basin(gen.model, gen.modes, h.reach_routing), None, gen.cut
     from wadi2d.hms import load_basin
     from wadi2d.hydrology.from_hms import basin_from_hms
 
     hms_basin = load_basin(h.hms_basin)
-    return basin_from_hms(hms_basin, _project_tables(h, hms_basin)), hms_basin, ()
+    return basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing), hms_basin, ()
 
 
 def _network(cfg: RunConfig, storm, crs: str = ""):

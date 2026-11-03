@@ -14,6 +14,7 @@ from typing import Any
 
 import numpy as np
 
+from wadi2d.config.schema import REACH_HMS
 from wadi2d.hms import PairedDataFile, load_document, open_dss
 from wadi2d.hms.basin import Basin as HmsBasin
 from wadi2d.hms.basin import Diversion as HmsDiversion
@@ -58,7 +59,7 @@ from wadi2d.hydrology.reservoir import (
     RESERVOIR_OUTFLOW_STRUCTURES,
     Spillway,
 )
-from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS
+from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS, MuskingumCunge
 from wadi2d.hydrology.transforms import CLARK_UH, SCS_UH, TRANSFORM_METHODS
 from wadi2d.storm import ArfTable, HypotheticalStorm, PercentPattern, StormBySubbasin, SubbasinRain
 from wadi2d.storm.grid_depth import DepthGrid
@@ -184,8 +185,10 @@ def _subbasin(element: HmsSubbasin) -> Subbasin:
     )
 
 
-def _reach(element: HmsReach) -> Reach:
+def _reach(element: HmsReach, reach_routing: str) -> Reach:
     routing = _build(ROUTING_METHODS, ROUTING_PARAMETERS, element.route, NO_ROUTING)
+    if isinstance(routing, MuskingumCunge):
+        routing = replace(routing, scheme=reach_routing)
     return Reach(name=element.name, downstream=element.downstream or None, routing=routing)
 
 
@@ -287,10 +290,13 @@ def _diversion(element: HmsDiversion, tables: ProjectTables | None) -> Diversion
     )
 
 
-def basin_from_hms(basin: HmsBasin, tables: ProjectTables | None = None) -> Basin:
+def basin_from_hms(
+    basin: HmsBasin, tables: ProjectTables | None = None, reach_routing: str = REACH_HMS
+) -> Basin:
     """The engine's basin of an HMS basin model; metric only, as nothing here converts units.
 
     ``tables`` holds the paired data of reservoirs and diversions; a model with neither needs none.
+    ``reach_routing`` is the job's ``hydrology.reach_routing``, the scheme of every Muskingum-Cunge reach.
     """
     if basin.unit_system != METRIC:
         raise ValueError(f"unit system {basin.unit_system!r}: only {METRIC} basin models are read")
@@ -299,7 +305,7 @@ def basin_from_hms(basin: HmsBasin, tables: ProjectTables | None = None) -> Basi
         if isinstance(element, HmsSubbasin):
             elements.append(_subbasin(element))
         elif isinstance(element, HmsReach):
-            elements.append(_reach(element))
+            elements.append(_reach(element, reach_routing))
         elif isinstance(element, HmsJunction | HmsSink):
             elements.append(Junction(name=element.name, downstream=element.downstream or None))
         elif isinstance(element, HmsReservoir):
