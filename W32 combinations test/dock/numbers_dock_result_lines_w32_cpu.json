@@ -1,0 +1,164 @@
+{
+ "uniform": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_result_lines_w32_cpu\\runs\\uniform",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 6687,
+  "loop_s": 36.45,
+  "balance": {
+   "rain_m3": 1719240.0191139267,
+   "inflow_m3": 0.0,
+   "outflow_m3": 1242390.7855613772,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 476849.2246115962,
+   "error_m3": 0.0089409532956779,
+   "relative_error": 5.2005265095480666e-09
+  },
+  "peaks": {
+   "line_Across": {
+    "discharge_m3s": [
+     314.313,
+     1.025
+    ]
+   },
+   "line_Axis": {
+    "discharge_m3s": [
+     327.129,
+     1.025
+    ]
+   },
+   "line_Oblique": {
+    "discharge_m3s": [
+     325.149,
+     1.0416666666666667
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "points": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_result_lines_w32_cpu\\runs\\points",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 2986,
+  "loop_s": 22.86,
+  "balance": {
+   "rain_m3": 859620.0095569643,
+   "inflow_m3": 0.0,
+   "outflow_m3": 137043.64289562442,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 722576.3685518549,
+   "error_m3": -0.0018905149772763252,
+   "relative_error": -2.1992449643542722e-09
+  },
+  "peaks": {
+   "point_Pool": {
+    "depth_m": [
+     0.801405,
+     0.9416666666666667
+    ],
+    "mean_depth_m": [
+     0.514232,
+     0.9416666666666667
+    ],
+    "level_m": [
+     87.0962,
+     0.9416666666666667
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 5.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "few": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_result_lines_w32_cpu\\runs\\few",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 65,
+  "loop_s": 12.81,
+  "balance": {
+   "rain_m3": 85962.00095569657,
+   "inflow_m3": 0.0,
+   "outflow_m3": 110.01460143209991,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 85851.98872941054,
+   "error_m3": -0.0023751460830681026,
+   "relative_error": -2.7630186089923787e-08
+  },
+  "peaks": {
+   "line_Across": {
+    "discharge_m3s": [
+     0.107677,
+     0.05
+    ]
+   },
+   "line_Axis": {
+    "discharge_m3s": [
+     0.172688,
+     0.05
+    ]
+   },
+   "line_Oblique": {
+    "discharge_m3s": [
+     0.0905537,
+     0.05
+    ]
+   }
+  },
+  "warnings": []
+ },
+ "mesh": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_result_lines_w32_cpu\\runs\\mesh",
+  "backend": "cpu",
+  "cells": 106864,
+  "tiles": 127,
+  "dx": 10.0,
+  "exit": 0,
+  "steps": 9449,
+  "loop_s": 97.58,
+  "balance": {
+   "rain_m3": 1726158.019190841,
+   "inflow_m3": 0.0,
+   "outflow_m3": 834568.036111934,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 891589.9857447186,
+   "error_m3": -0.0026658116839826107,
+   "relative_error": -1.5443613240184375e-09
+  },
+  "peaks": {
+   "line_Across": {
+    "discharge_m3s": [
+     316.36,
+     1.0416666666666667
+    ]
+   },
+   "line_Axis": {
+    "discharge_m3s": [
+     326.03,
+     1.0416666666666667
+    ]
+   },
+   "line_Oblique": {
+    "discharge_m3s": [
+     324.405,
+     1.0416666666666667
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 5.8 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there"
+  ]
+ }
+}

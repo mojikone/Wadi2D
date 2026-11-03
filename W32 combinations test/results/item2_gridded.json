@@ -1,0 +1,1060 @@
+{
+ "generation": {
+  "ev": "basin",
+  "basin": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.json",
+  "geometry": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.gpkg",
+  "subbasins": 8,
+  "reaches": 4,
+  "junctions": 4,
+  "reservoirs": 1,
+  "incomplete": 0,
+  "exit": 0,
+  "wall_s": 2.2
+ },
+ "arm_in_2d": {
+  "subbasin": "S2",
+  "junction": "Bidah 03"
+ },
+ "frames": {
+  "frames": 288,
+  "total": 200.25101226,
+  "exit": 0,
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\item2\\rain_frames"
+ },
+ "runs": {
+  "storm_lumped": {
+   "exit": 0,
+   "backend": "gpu",
+   "cells": 71934,
+   "steps": 90980,
+   "loop_s": 17.78,
+   "balance": {
+    "rain_m3": 996681.1922585145,
+    "inflow_m3": 3600902.7898027124,
+    "outflow_m3": 4214644.838727204,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 382939.23385876074,
+    "error_m3": -0.09052473801421002,
+    "relative_error": -1.968963228674405e-08
+   },
+   "lines": {
+    "above": [
+     0.425046,
+     17.941666666666666
+    ],
+    "axis": [
+     0.0,
+     0.0008333333333333334
+    ],
+    "below": [
+     0.0123846,
+     11.758333333333333
+    ],
+    "Bidah_03": [
+     0.0615325,
+     11.825
+    ]
+   },
+   "network": {
+    "R1": {
+     "inflow": [
+      263.995,
+      12.916666666666666
+     ],
+     "outflow": [
+      263.105,
+      13.166666666666666
+     ],
+     "outflow_m3": 3224698.105477348
+    },
+    "R2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      414.274,
+      12.416666666666666
+     ],
+     "outflow_m3": 2901972.0816842914
+    },
+    "R3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      190.01,
+      12.25
+     ],
+     "outflow_m3": 1285157.6305721363
+    },
+    "R4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      135.208,
+      12.166666666666666
+     ],
+     "outflow_m3": 787109.4204896907
+    },
+    "J1": {
+     "inflow": [
+      294.574,
+      13.083333333333334
+     ],
+     "outflow": [
+      294.574,
+      13.083333333333334
+     ],
+     "outflow_m3": 3600902.66584119
+    },
+    "Bidah 03": {
+     "inflow": [
+      463.334,
+      12.416666666666666
+     ],
+     "outflow": [
+      263.995,
+      12.916666666666666
+     ],
+     "outflow_m3": 3225397.173620531
+    },
+    "J2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow_m3": 2901124.6641524467
+    },
+    "J3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      191.77,
+      12.25
+     ],
+     "outflow_m3": 1284982.603762329
+    },
+    "J4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow_m3": 787070.86110321
+    }
+   },
+   "handbacks": {},
+   "warnings": [
+    "water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+   ],
+   "basin_event": {
+    "ev": "basin",
+    "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.json",
+    "junctions": [
+     {
+      "junction": "J1",
+      "kind": "junction",
+      "route": "none",
+      "reach": null,
+      "next_junction": null,
+      "reach_missing": [],
+      "enters_2d": true,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "Bidah 03",
+      "kind": "reservoir",
+      "route": "reach",
+      "reach": "R1",
+      "next_junction": "J1",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J2",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R2",
+      "next_junction": "Bidah 03",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J3",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R3",
+      "next_junction": "J2",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J4",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R4",
+      "next_junction": "J3",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     }
+    ],
+    "incomplete": [],
+    "lumped": [
+     "S1",
+     "S2",
+     "S3",
+     "S4",
+     "S5",
+     "S6",
+     "S7",
+     "S8"
+    ],
+    "two_d": [],
+    "inflows": [
+     "J1"
+    ],
+    "handbacks": []
+   },
+   "wall_s": 19.7
+  },
+  "storm_arm2d": {
+   "exit": 0,
+   "backend": "gpu",
+   "cells": 71934,
+   "steps": 90932,
+   "loop_s": 20.25,
+   "balance": {
+    "rain_m3": 1354145.8366745508,
+    "inflow_m3": 3599606.999399403,
+    "outflow_m3": 4576484.244475402,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 377268.68722125475,
+    "error_m3": -0.09562270302558318,
+    "relative_error": -1.9303083175495685e-08,
+    "handback_m3": 362769.44248636824,
+    "reentry_m3": 3599606.999399403,
+    "lateral_m3": 3278178.572857245,
+    "network_out_m3": 0.0,
+    "network_storage_m3": 42625.060142094335,
+    "routing_defect_m3": -1284.0441978844538,
+    "whole_error_m3": -1284.1398205874793,
+    "whole_relative_error": -0.00027721284328557455
+   },
+   "lines": {
+    "above": [
+     65.3402,
+     12.041666666666666
+    ],
+    "axis": [
+     0.0,
+     0.0008333333333333334
+    ],
+    "below": [
+     0.0574542,
+     11.975
+    ],
+    "Bidah_03": [
+     0.122379,
+     11.825
+    ]
+   },
+   "network": {
+    "R1": {
+     "inflow": [
+      262.552,
+      12.916666666666666
+     ],
+     "outflow": [
+      261.141,
+      13.166666666666666
+     ],
+     "outflow_m3": 3223737.4590808945
+    },
+    "R2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      414.274,
+      12.416666666666666
+     ],
+     "outflow_m3": 2901972.0816842914
+    },
+    "R3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      190.01,
+      12.25
+     ],
+     "outflow_m3": 1285157.6305721363
+    },
+    "R4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      135.208,
+      12.166666666666666
+     ],
+     "outflow_m3": 787109.4204896907
+    },
+    "J1": {
+     "inflow": [
+      293.807,
+      13.083333333333334
+     ],
+     "outflow": [
+      293.807,
+      13.083333333333334
+     ],
+     "outflow_m3": 3599943.299100742
+    },
+    "Bidah 03": {
+     "inflow": [
+      456.924,
+      12.416666666666666
+     ],
+     "outflow": [
+      262.552,
+      12.916666666666666
+     ],
+     "outflow_m3": 3224660.171386854
+    },
+    "J2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow_m3": 2901124.6641524467
+    },
+    "J3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      191.77,
+      12.25
+     ],
+     "outflow_m3": 1284982.603762329
+    },
+    "J4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow_m3": 787070.86110321
+    }
+   },
+   "handbacks": {
+    "Bidah_03": {
+     "crossed": [
+      67.7662,
+      12.083333333333334
+     ],
+     "crossed_m3": 362745.0121495082
+    }
+   },
+   "warnings": [
+    "water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+   ],
+   "basin_event": {
+    "ev": "basin",
+    "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.json",
+    "junctions": [
+     {
+      "junction": "J1",
+      "kind": "junction",
+      "route": "none",
+      "reach": null,
+      "next_junction": null,
+      "reach_missing": [],
+      "enters_2d": true,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "Bidah 03",
+      "kind": "reservoir",
+      "route": "reach",
+      "reach": "R1",
+      "next_junction": "J1",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": true,
+      "two_d_sources": [
+       "S2"
+      ]
+     },
+     {
+      "junction": "J2",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R2",
+      "next_junction": "Bidah 03",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J3",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R3",
+      "next_junction": "J2",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J4",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R4",
+      "next_junction": "J3",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     }
+    ],
+    "incomplete": [],
+    "lumped": [
+     "S1",
+     "S3",
+     "S4",
+     "S5",
+     "S6",
+     "S7",
+     "S8"
+    ],
+    "two_d": [
+     "S2"
+    ],
+    "inflows": [
+     "J1"
+    ],
+    "handbacks": [
+     "Bidah 03"
+    ]
+   },
+   "wall_s": 22.8
+  },
+  "frames_lumped": {
+   "exit": 0,
+   "backend": "gpu",
+   "cells": 71934,
+   "steps": 90972,
+   "loop_s": 16.02,
+   "balance": {
+    "rain_m3": 996681.1930498721,
+    "inflow_m3": 3600902.7871903526,
+    "outflow_m3": 4214644.832908072,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 382939.2390059038,
+    "error_m3": -0.0916737504885532,
+    "relative_error": -1.9939548876660916e-08
+   },
+   "lines": {
+    "above": [
+     0.425042,
+     17.941666666666666
+    ],
+    "axis": [
+     0.0,
+     0.0008333333333333334
+    ],
+    "below": [
+     0.0123981,
+     11.841666666666667
+    ],
+    "Bidah_03": [
+     0.0615309,
+     11.825
+    ]
+   },
+   "network": {
+    "R1": {
+     "inflow": [
+      263.995,
+      12.916666666666666
+     ],
+     "outflow": [
+      263.105,
+      13.166666666666666
+     ],
+     "outflow_m3": 3224698.105477348
+    },
+    "R2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      414.274,
+      12.416666666666666
+     ],
+     "outflow_m3": 2901972.0816842914
+    },
+    "R3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      190.01,
+      12.25
+     ],
+     "outflow_m3": 1285157.6305721363
+    },
+    "R4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      135.208,
+      12.166666666666666
+     ],
+     "outflow_m3": 787109.4204896907
+    },
+    "J1": {
+     "inflow": [
+      294.574,
+      13.083333333333334
+     ],
+     "outflow": [
+      294.574,
+      13.083333333333334
+     ],
+     "outflow_m3": 3600902.66584119
+    },
+    "Bidah 03": {
+     "inflow": [
+      463.334,
+      12.416666666666666
+     ],
+     "outflow": [
+      263.995,
+      12.916666666666666
+     ],
+     "outflow_m3": 3225397.173620531
+    },
+    "J2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow_m3": 2901124.6641524467
+    },
+    "J3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      191.77,
+      12.25
+     ],
+     "outflow_m3": 1284982.603762329
+    },
+    "J4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow_m3": 787070.86110321
+    }
+   },
+   "handbacks": {},
+   "warnings": [
+    "water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+   ],
+   "basin_event": {
+    "ev": "basin",
+    "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.json",
+    "junctions": [
+     {
+      "junction": "J1",
+      "kind": "junction",
+      "route": "none",
+      "reach": null,
+      "next_junction": null,
+      "reach_missing": [],
+      "enters_2d": true,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "Bidah 03",
+      "kind": "reservoir",
+      "route": "reach",
+      "reach": "R1",
+      "next_junction": "J1",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J2",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R2",
+      "next_junction": "Bidah 03",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J3",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R3",
+      "next_junction": "J2",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J4",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R4",
+      "next_junction": "J3",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     }
+    ],
+    "incomplete": [],
+    "lumped": [
+     "S1",
+     "S2",
+     "S3",
+     "S4",
+     "S5",
+     "S6",
+     "S7",
+     "S8"
+    ],
+    "two_d": [],
+    "inflows": [
+     "J1"
+    ],
+    "handbacks": []
+   },
+   "wall_s": 18.2
+  },
+  "frames_arm2d": {
+   "exit": 0,
+   "backend": "gpu",
+   "cells": 71934,
+   "steps": 90942,
+   "loop_s": 19.53,
+   "balance": {
+    "rain_m3": 1354145.837775781,
+    "inflow_m3": 3599606.9915976007,
+    "outflow_m3": 4576484.354648111,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 377268.5724382928,
+    "error_m3": -0.09771302214358002,
+    "relative_error": -1.9725049979116557e-08,
+    "handback_m3": 362769.4653543569,
+    "reentry_m3": 3599606.9915976007,
+    "lateral_m3": 3278178.572857245,
+    "network_out_m3": 0.0,
+    "network_storage_m3": 42625.0907010833,
+    "routing_defect_m3": -1284.044087082264,
+    "whole_error_m3": -1284.1418001044076,
+    "whole_relative_error": -0.0002772132705465947
+   },
+   "lines": {
+    "above": [
+     65.3224,
+     12.041666666666666
+    ],
+    "axis": [
+     0.0,
+     0.0008333333333333334
+    ],
+    "below": [
+     0.0573432,
+     11.975
+    ],
+    "Bidah_03": [
+     0.12238,
+     11.825
+    ]
+   },
+   "network": {
+    "R1": {
+     "inflow": [
+      262.553,
+      12.916666666666666
+     ],
+     "outflow": [
+      261.142,
+      13.166666666666666
+     ],
+     "outflow_m3": 3223737.885380897
+    },
+    "R2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      414.274,
+      12.416666666666666
+     ],
+     "outflow_m3": 2901972.0816842914
+    },
+    "R3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      190.01,
+      12.25
+     ],
+     "outflow_m3": 1285157.6305721363
+    },
+    "R4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      135.208,
+      12.166666666666666
+     ],
+     "outflow_m3": 787109.4204896907
+    },
+    "J1": {
+     "inflow": [
+      293.808,
+      13.083333333333334
+     ],
+     "outflow": [
+      293.808,
+      13.083333333333334
+     ],
+     "outflow_m3": 3599943.5181007423
+    },
+    "Bidah 03": {
+     "inflow": [
+      456.934,
+      12.416666666666666
+     ],
+     "outflow": [
+      262.553,
+      12.916666666666666
+     ],
+     "outflow_m3": 3224660.417086889
+    },
+    "J2": {
+     "inflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow": [
+      415.881,
+      12.333333333333334
+     ],
+     "outflow_m3": 2901124.6641524467
+    },
+    "J3": {
+     "inflow": [
+      191.77,
+      12.25
+     ],
+     "outflow": [
+      191.77,
+      12.25
+     ],
+     "outflow_m3": 1284982.603762329
+    },
+    "J4": {
+     "inflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow": [
+      136.67,
+      12.166666666666666
+     ],
+     "outflow_m3": 787070.86110321
+    }
+   },
+   "handbacks": {
+    "Bidah_03": {
+     "crossed": [
+      67.7413,
+      12.083333333333334
+     ],
+     "crossed_m3": 362745.0464579042
+    }
+   },
+   "warnings": [
+    "water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+   ],
+   "basin_event": {
+    "ev": "basin",
+    "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\basin2\\basin\\basin.json",
+    "junctions": [
+     {
+      "junction": "J1",
+      "kind": "junction",
+      "route": "none",
+      "reach": null,
+      "next_junction": null,
+      "reach_missing": [],
+      "enters_2d": true,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "Bidah 03",
+      "kind": "reservoir",
+      "route": "reach",
+      "reach": "R1",
+      "next_junction": "J1",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": true,
+      "two_d_sources": [
+       "S2"
+      ]
+     },
+     {
+      "junction": "J2",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R2",
+      "next_junction": "Bidah 03",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J3",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R3",
+      "next_junction": "J2",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     },
+     {
+      "junction": "J4",
+      "kind": "junction",
+      "route": "reach",
+      "reach": "R4",
+      "next_junction": "J3",
+      "reach_missing": [],
+      "enters_2d": false,
+      "handback": false,
+      "two_d_sources": []
+     }
+    ],
+    "incomplete": [],
+    "lumped": [
+     "S1",
+     "S3",
+     "S4",
+     "S5",
+     "S6",
+     "S7",
+     "S8"
+    ],
+    "two_d": [
+     "S2"
+    ],
+    "inflows": [
+     "J1"
+    ],
+    "handbacks": [
+     "Bidah 03"
+    ]
+   },
+   "wall_s": 21.9
+  }
+ },
+ "checks": [
+  {
+   "check": "storm_lumped finished",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "storm_lumped mass closes",
+   "pass": true,
+   "detail": "-1.968963228674405e-08"
+  },
+  {
+   "check": "storm_lumped rain-once: no overlap stop or warning",
+   "pass": true,
+   "detail": "['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']"
+  },
+  {
+   "check": "storm_arm2d finished",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "storm_arm2d mass closes",
+   "pass": true,
+   "detail": "-1.9303083175495685e-08"
+  },
+  {
+   "check": "storm_arm2d rain-once: no overlap stop or warning",
+   "pass": true,
+   "detail": "['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']"
+  },
+  {
+   "check": "frames_lumped finished",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "frames_lumped mass closes",
+   "pass": true,
+   "detail": "-1.9939548876660916e-08"
+  },
+  {
+   "check": "frames_lumped rain-once: no overlap stop or warning",
+   "pass": true,
+   "detail": "['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']"
+  },
+  {
+   "check": "frames_arm2d finished",
+   "pass": true,
+   "detail": "0"
+  },
+  {
+   "check": "frames_arm2d mass closes",
+   "pass": true,
+   "detail": "-1.9725049979116557e-08"
+  },
+  {
+   "check": "frames_arm2d rain-once: no overlap stop or warning",
+   "pass": true,
+   "detail": "['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']"
+  },
+  {
+   "check": "lumped by default: every subbasin lumped",
+   "pass": true,
+   "detail": "(8, 8)"
+  },
+  {
+   "check": "frames_lumped: hills took the same water as storm_lumped",
+   "pass": true,
+   "detail": "(3600902.7898027124, 3600902.7871903526)"
+  },
+  {
+   "check": "frames_lumped: grid took the same rain as storm_lumped",
+   "pass": true,
+   "detail": "(996681.1922585145, 996681.1930498721)"
+  },
+  {
+   "check": "frames_lumped: reservoir inflow peak as storm_lumped within 0.5 %",
+   "pass": true,
+   "detail": "((463.334, 12.416666666666666), (463.334, 12.416666666666666))"
+  },
+  {
+   "check": "frames_arm2d: hills took the same water as storm_arm2d",
+   "pass": true,
+   "detail": "(3599606.999399403, 3599606.9915976007)"
+  },
+  {
+   "check": "frames_arm2d: grid took the same rain as storm_arm2d",
+   "pass": true,
+   "detail": "(1354145.8366745508, 1354145.837775781)"
+  },
+  {
+   "check": "frames_arm2d: line above peak as storm_arm2d within 0.5 %",
+   "pass": true,
+   "detail": "(65.34, 65.32)"
+  },
+  {
+   "check": "frames_arm2d: reservoir inflow peak as storm_arm2d within 0.5 %",
+   "pass": true,
+   "detail": "((456.924, 12.416666666666666), (456.934, 12.416666666666666))"
+  },
+  {
+   "check": "storm_arm2d: a hand-back line was built at Bidah 03",
+   "pass": true,
+   "detail": "['Bidah 03']"
+  },
+  {
+   "check": "storm_arm2d: the whole closes to the routing defect",
+   "pass": true,
+   "detail": "-0.00027721284328557455"
+  },
+  {
+   "check": "frames_arm2d: a hand-back line was built at Bidah 03",
+   "pass": true,
+   "detail": "['Bidah 03']"
+  },
+  {
+   "check": "frames_arm2d: the whole closes to the routing defect",
+   "pass": true,
+   "detail": "-0.0002772132705465947"
+  }
+ ],
+ "passed": 24,
+ "failed": 0
+}

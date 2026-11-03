@@ -1,0 +1,39 @@
+whole: exit 0, {'rain_m3': 4254615.476591175, 'inflow_m3': 3572788.4855807154, 'outflow_m3': 7438336.736887442, 'storage_start_m3': 0.0, 'storage_end_m3': 389067.3920575688, 'error_m3': -0.16677311999956146, 'relative_error': -2.1306313153829673e-08, 'handback_m3': 3251468.1293211766, 'reentry_m3': 3572788.4855807154, 'lateral_m3': 376205.6680030673, 'network_out_m3': 0.0, 'network_storage_m3': 58481.211701887754, 'routing_defect_m3': -3595.899958359172, 'whole_error_m3': -3596.0667314791717, 'whole_relative_error': -0.0007765505553322903}
+stopped: exit 6 near 12.09 h, checkpoint True, {'rain_m3': 3271864.8323916486, 'inflow_m3': 1252424.1484539025, 'outflow_m3': 3857145.3680945793, 'storage_start_m3': 0.0, 'storage_end_m3': 667143.701686893, 'error_m3': -0.08893592131789774, 'relative_error': -1.965743605115082e-08, 'handback_m3': 2196722.900252751, 'reentry_m3': 1252424.1484539025, 'lateral_m3': 238137.69382634806, 'network_out_m3': 0.0, 'network_storage_m3': 1186931.8669667516, 'routing_defect_m3': -4495.42134155496, 'whole_error_m3': -4495.510277476278, 'whole_relative_error': -0.001280771237028185}
+resumed: exit 0, {'rain_m3': 4254615.486280464, 'inflow_m3': 3572788.59500328, 'outflow_m3': 7438336.528613396, 'storage_start_m3': 0.0, 'storage_end_m3': 389067.72130453953, 'error_m3': -0.16863419202854857, 'relative_error': -2.154407646230671e-08, 'handback_m3': 3251467.8424237054, 'reentry_m3': 3572788.59500328, 'lateral_m3': 376205.6680030673, 'network_out_m3': 0.0, 'network_storage_m3': 58480.81519664389, 'routing_defect_m3': -3595.899773150988, 'whole_error_m3': -3596.0684073430166, 'whole_relative_error': -0.0007765509156009268}
+PASS the straight run finished 0
+PASS the run stopped on the stop file with a checkpoint (6, 48465.501231313305)
+PASS stopped inside the flood 48465.501231313305
+PASS the resumed run finished 0
+PASS resumed to the end 108000.0
+PASS whole error of the resumed run small -0.0007765509156009268
+PASS grid error of the resumed run small -2.154407646230671e-08
+PASS storage_end_m3 as the straight run within 1e-3 (389067.3920575688, 389067.72130453953)
+PASS handback_m3 as the straight run within 1e-3 (3251468.1293211766, 3251467.8424237054)
+PASS network_storage_m3 as the straight run within 1e-3 (58481.211701887754, 58480.81519664389)
+PASS outflow_m3 as the straight run within 1e-3 (7438336.736887442, 7438336.528613396)
+PASS reentry_m3 as the straight run within 1e-3 (3572788.4855807154, 3572788.59500328)
+PASS inflow_m3 as the straight run within 1e-3 (3572788.4855807154, 3572788.59500328)
+PASS rain_m3 as the straight run within 1e-3 (4254615.476591175, 4254615.486280464)
+PASS every series file is present after the resume []
+FAIL every series equal to the last digit 1 of 19 identical; worst (30.0, 'point_pool')
+  differs: handback_Bidah_03: rows (361, 361), max |diff| 0.0002200000000005531 at ('inflow_m3s', '48600.000')
+  differs: handback_J2: rows (361, 361), max |diff| 0.002200000000001978 at ('inflow_m3s', '48600.000')
+  differs: handback_J3: rows (361, 361), max |diff| 0.0004000000000008441 at ('inflow_m3s', '48600.000')
+  differs: handback_J4: rows (361, 361), max |diff| 0.00039999999999906777 at ('inflow_m3s', '48600.000')
+  differs: line_above: rows (1801, 1801), max |diff| 30.0 at ('t_s', '50430.000')
+  differs: line_axis: rows (1801, 1801), max |diff| 30.0 at ('t_s', '50430.000')
+  differs: line_below: rows (1801, 1801), max |diff| 30.0 at ('t_s', '50430.000')
+  differs: line_Bidah_03: rows (1801, 1801), max |diff| 30.0 at ('t_s', '50430.000')
+  differs: network_Bidah_03: rows (361, 361), max |diff| 0.001599999999996271 at ('inflow_m3s', '48900.000')
+  differs: network_J1: rows (361, 361), max |diff| 0.0010000000000047748 at ('inflow_m3s', '50400.000')
+  differs: network_J2: rows (361, 361), max |diff| 0.0023999999999944066 at ('inflow_m3s', '48600.000')
+  differs: network_J3: rows (361, 361), max |diff| 0.0005999999999986017 at ('inflow_m3s', '48600.000')
+  differs: network_J4: rows (361, 361), max |diff| 0.00039999999999906777 at ('inflow_m3s', '48600.000')
+  differs: network_R1: rows (361, 361), max |diff| 0.0010000000000047748 at ('inflow_m3s', '49800.000')
+  differs: network_R2: rows (361, 361), max |diff| 0.0023999999999944066 at ('inflow_m3s', '48600.000')
+  differs: network_R3: rows (361, 361), max |diff| 0.0005999999999986017 at ('inflow_m3s', '48600.000')
+  differs: network_R4: rows (361, 361), max |diff| 0.00039999999999906777 at ('inflow_m3s', '48600.000')
+  differs: point_pool: rows (1801, 1801), max |diff| 30.0 at ('t_s', '50430.000')
+PASS line above peak within 1e-3 ((62.8699, 12.041666666666666), (62.8699, 12.041666666666666))
+item 4: 16 passed, 1 failed

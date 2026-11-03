@@ -1,0 +1,560 @@
+{
+ "basin_lumped": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_basin_bidah_w32_cpu\\runs\\basin_lumped",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 8124,
+  "loop_s": 30.59,
+  "balance": {
+   "rain_m3": 185531.8902102388,
+   "inflow_m3": 405426.30914463836,
+   "outflow_m3": 499679.31377545034,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 91278.88628994304,
+   "error_m3": -0.000710516149410978,
+   "relative_error": -1.2023120250918201e-09
+  },
+  "peaks": {
+   "network_Bidah_03": {
+    "inflow_m3s": [
+     179.085,
+     1.3333333333333333
+    ],
+    "outflow_m3s": [
+     66.7186,
+     1.9166666666666667
+    ],
+    "branched_m3s": [
+     0.0,
+     0.0
+    ]
+   },
+   "network_J1": {
+    "inflow_m3s": [
+     77.0945,
+     1.9166666666666667
+    ],
+    "outflow_m3s": [
+     77.0945,
+     1.9166666666666667
+    ]
+   },
+   "network_J2": {
+    "inflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ]
+   },
+   "network_J3": {
+    "inflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ]
+   },
+   "network_J4": {
+    "inflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ],
+    "outflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ]
+   },
+   "network_R1": {
+    "inflow_m3s": [
+     66.7186,
+     1.9166666666666667
+    ],
+    "outflow_m3s": [
+     66.5505,
+     2.0
+    ]
+   },
+   "network_R2": {
+    "inflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     161.054,
+     1.3333333333333333
+    ]
+   },
+   "network_R3": {
+    "inflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     73.3151,
+     1.1666666666666667
+    ]
+   },
+   "network_R4": {
+    "inflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ],
+    "outflow_m3s": [
+     50.9253,
+     1.1666666666666667
+    ]
+   },
+   "network_S1": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     15.4055,
+     1.5
+    ]
+   },
+   "network_S2": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     18.0301,
+     1.3333333333333333
+    ]
+   },
+   "network_S3": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     19.4847,
+     1.0833333333333333
+    ]
+   },
+   "network_S4": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     72.2753,
+     1.25
+    ]
+   },
+   "network_S5": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     3.16975,
+     1.0
+    ]
+   },
+   "network_S6": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     28.6363,
+     1.0833333333333333
+    ]
+   },
+   "network_S7": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     23.3493,
+     1.3333333333333333
+    ]
+   },
+   "network_S8": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     23.3538,
+     1.1666666666666667
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "basin_2d": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_basin_bidah_w32_cpu\\runs\\basin_2d",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 8124,
+  "loop_s": 31.03,
+  "balance": {
+   "rain_m3": 251452.6957969219,
+   "inflow_m3": 395058.7878638253,
+   "outflow_m3": 547647.9638507226,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 98863.5200484176,
+   "error_m3": -0.00023839306959416717,
+   "relative_error": -3.687375640171342e-10,
+   "handback_m3": 58385.7859141427,
+   "reentry_m3": 395058.7878638253,
+   "lateral_m3": 631973.8294418475,
+   "network_out_m3": 0.0,
+   "network_storage_m3": 295505.112032336,
+   "routing_defect_m3": -204.2845401710365,
+   "whole_error_m3": -204.2847785641061,
+   "whole_relative_error": -0.00023124139102444625
+  },
+  "peaks": {
+   "handback_Bidah_03": {
+    "inflow_m3s": [
+     21.8127,
+     1.1666666666666667
+    ]
+   },
+   "network_Bidah_03": {
+    "inflow_m3s": [
+     178.83,
+     1.25
+    ],
+    "outflow_m3s": [
+     65.6122,
+     1.8333333333333333
+    ],
+    "branched_m3s": [
+     0.0,
+     0.0
+    ]
+   },
+   "network_J1": {
+    "inflow_m3s": [
+     76.2005,
+     1.9166666666666667
+    ],
+    "outflow_m3s": [
+     76.2005,
+     1.9166666666666667
+    ]
+   },
+   "network_J2": {
+    "inflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ]
+   },
+   "network_J3": {
+    "inflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ]
+   },
+   "network_J4": {
+    "inflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ],
+    "outflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ]
+   },
+   "network_R1": {
+    "inflow_m3s": [
+     65.6122,
+     1.8333333333333333
+    ],
+    "outflow_m3s": [
+     65.4679,
+     2.0
+    ]
+   },
+   "network_R2": {
+    "inflow_m3s": [
+     161.9,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     161.054,
+     1.3333333333333333
+    ]
+   },
+   "network_R3": {
+    "inflow_m3s": [
+     74.1651,
+     1.1666666666666667
+    ],
+    "outflow_m3s": [
+     73.3151,
+     1.1666666666666667
+    ]
+   },
+   "network_R4": {
+    "inflow_m3s": [
+     51.3609,
+     1.0833333333333333
+    ],
+    "outflow_m3s": [
+     50.9253,
+     1.1666666666666667
+    ]
+   },
+   "network_S1": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     15.4055,
+     1.5
+    ]
+   },
+   "network_S3": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     19.4847,
+     1.0833333333333333
+    ]
+   },
+   "network_S4": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     72.2753,
+     1.25
+    ]
+   },
+   "network_S5": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     3.16975,
+     1.0
+    ]
+   },
+   "network_S6": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     28.6363,
+     1.0833333333333333
+    ]
+   },
+   "network_S7": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     23.3493,
+     1.3333333333333333
+    ]
+   },
+   "network_S8": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     23.3538,
+     1.1666666666666667
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 5.3 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "basin_incomplete": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_basin_bidah_w32_cpu\\runs\\basin_incomplete",
+  "backend": "cpu",
+  "cells": 71934,
+  "tiles": 95,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 3143,
+  "loop_s": 22.53,
+  "balance": {
+   "rain_m3": 1716168.0190797732,
+   "inflow_m3": 7199.919047840545,
+   "outflow_m3": 744317.1192683853,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 979050.8180886629,
+   "error_m3": 0.0007705655880272388,
+   "relative_error": 4.4712772645894444e-10,
+   "handback_m3": 547438.0856677387,
+   "reentry_m3": 7199.919047840545,
+   "lateral_m3": 0,
+   "network_out_m3": 0.0,
+   "network_storage_m3": 546519.639845634,
+   "routing_defect_m3": -6281.473225735826,
+   "whole_error_m3": -6281.472455170238,
+   "whole_relative_error": -0.003660173354435557
+  },
+  "peaks": {
+   "handback_Bidah_03": {
+    "inflow_m3s": [
+     35.0817,
+     1.0
+    ]
+   },
+   "handback_J2": {
+    "inflow_m3s": [
+     165.592,
+     1.0
+    ]
+   },
+   "handback_J3": {
+    "inflow_m3s": [
+     50.4484,
+     1.0
+    ]
+   },
+   "handback_J4": {
+    "inflow_m3s": [
+     81.1737,
+     0.9166666666666666
+    ]
+   },
+   "network_Bidah_03": {
+    "inflow_m3s": [
+     325.486,
+     1.0
+    ],
+    "outflow_m3s": [
+     49.5418,
+     1.0
+    ],
+    "branched_m3s": [
+     0.0,
+     0.0
+    ]
+   },
+   "network_J1": {
+    "inflow_m3s": [
+     25.2861,
+     1.0
+    ],
+    "outflow_m3s": [
+     25.2861,
+     1.0
+    ]
+   },
+   "network_J2": {
+    "inflow_m3s": [
+     296.914,
+     1.0
+    ],
+    "outflow_m3s": [
+     296.914,
+     1.0
+    ]
+   },
+   "network_J3": {
+    "inflow_m3s": [
+     131.605,
+     1.0
+    ],
+    "outflow_m3s": [
+     131.605,
+     1.0
+    ]
+   },
+   "network_J4": {
+    "inflow_m3s": [
+     81.1737,
+     0.9166666666666666
+    ],
+    "outflow_m3s": [
+     81.1737,
+     0.9166666666666666
+    ]
+   },
+   "network_R1": {
+    "inflow_m3s": [
+     49.5418,
+     1.0
+    ],
+    "outflow_m3s": [
+     25.2861,
+     1.0
+    ]
+   },
+   "network_R2": {
+    "inflow_m3s": [
+     296.914,
+     1.0
+    ],
+    "outflow_m3s": [
+     290.405,
+     1.0
+    ]
+   },
+   "network_R3": {
+    "inflow_m3s": [
+     131.605,
+     1.0
+    ],
+    "outflow_m3s": [
+     131.323,
+     1.0
+    ]
+   },
+   "network_R4": {
+    "inflow_m3s": [
+     81.1737,
+     0.9166666666666666
+    ],
+    "outflow_m3s": [
+     81.1708,
+     0.9166666666666666
+    ]
+   }
+  },
+  "warnings": [
+   "subbasin S1 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S2 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S3 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S4 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S5 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S6 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S7 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "subbasin S8 lacks curve_number, lag_minutes: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters",
+   "water stood 7.4 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there"
+  ]
+ }
+}

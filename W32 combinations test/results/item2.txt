@@ -1,0 +1,31 @@
+generated: {'subbasins': 8, 'reaches': 4, 'junctions': 4, 'reservoirs': 1}, notes None, 2.2 s
+storm_lumped: exit 0, {'rain_m3': 996681.1922585145, 'inflow_m3': 3600902.7898027124, 'outflow_m3': 4214644.838727204, 'storage_start_m3': 0.0, 'storage_end_m3': 382939.23385876074, 'error_m3': -0.09052473801421002, 'relative_error': -1.968963228674405e-08}
+storm_arm2d: exit 0, {'rain_m3': 1354145.8366745508, 'inflow_m3': 3599606.999399403, 'outflow_m3': 4576484.244475402, 'storage_start_m3': 0.0, 'storage_end_m3': 377268.68722125475, 'error_m3': -0.09562270302558318, 'relative_error': -1.9303083175495685e-08, 'handback_m3': 362769.44248636824, 'reentry_m3': 3599606.999399403, 'lateral_m3': 3278178.572857245, 'network_out_m3': 0.0, 'network_storage_m3': 42625.060142094335, 'routing_defect_m3': -1284.0441978844538, 'whole_error_m3': -1284.1398205874793, 'whole_relative_error': -0.00027721284328557455}
+frames: {'frames': 288, 'total': 200.25101226}
+frames_lumped: exit 0, {'rain_m3': 996681.1930498721, 'inflow_m3': 3600902.7871903526, 'outflow_m3': 4214644.832908072, 'storage_start_m3': 0.0, 'storage_end_m3': 382939.2390059038, 'error_m3': -0.0916737504885532, 'relative_error': -1.9939548876660916e-08}
+frames_arm2d: exit 0, {'rain_m3': 1354145.837775781, 'inflow_m3': 3599606.9915976007, 'outflow_m3': 4576484.354648111, 'storage_start_m3': 0.0, 'storage_end_m3': 377268.5724382928, 'error_m3': -0.09771302214358002, 'relative_error': -1.9725049979116557e-08, 'handback_m3': 362769.4653543569, 'reentry_m3': 3599606.9915976007, 'lateral_m3': 3278178.572857245, 'network_out_m3': 0.0, 'network_storage_m3': 42625.0907010833, 'routing_defect_m3': -1284.044087082264, 'whole_error_m3': -1284.1418001044076, 'whole_relative_error': -0.0002772132705465947}
+PASS storm_lumped finished 0
+PASS storm_lumped mass closes -1.968963228674405e-08
+PASS storm_lumped rain-once: no overlap stop or warning ['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']
+PASS storm_arm2d finished 0
+PASS storm_arm2d mass closes -1.9303083175495685e-08
+PASS storm_arm2d rain-once: no overlap stop or warning ['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']
+PASS frames_lumped finished 0
+PASS frames_lumped mass closes -1.9939548876660916e-08
+PASS frames_lumped rain-once: no overlap stop or warning ['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']
+PASS frames_arm2d finished 0
+PASS frames_arm2d mass closes -1.9725049979116557e-08
+PASS frames_arm2d rain-once: no overlap stop or warning ['water stood 10.0 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there']
+PASS lumped by default: every subbasin lumped (8, 8)
+PASS frames_lumped: hills took the same water as storm_lumped (3600902.7898027124, 3600902.7871903526)
+PASS frames_lumped: grid took the same rain as storm_lumped (996681.1922585145, 996681.1930498721)
+PASS frames_lumped: reservoir inflow peak as storm_lumped within 0.5 % ((463.334, 12.416666666666666), (463.334, 12.416666666666666))
+PASS frames_arm2d: hills took the same water as storm_arm2d (3599606.999399403, 3599606.9915976007)
+PASS frames_arm2d: grid took the same rain as storm_arm2d (1354145.8366745508, 1354145.837775781)
+PASS frames_arm2d: line above peak as storm_arm2d within 0.5 % (65.34, 65.32)
+PASS frames_arm2d: reservoir inflow peak as storm_arm2d within 0.5 % ((456.924, 12.416666666666666), (456.934, 12.416666666666666))
+PASS storm_arm2d: a hand-back line was built at Bidah 03 ['Bidah 03']
+PASS storm_arm2d: the whole closes to the routing defect -0.00027721284328557455
+PASS frames_arm2d: a hand-back line was built at Bidah 03 ['Bidah 03']
+PASS frames_arm2d: the whole closes to the routing defect -0.0002772132705465947
+item 2: 24 passed, 0 failed

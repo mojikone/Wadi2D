@@ -1,0 +1,1249 @@
+{
+ "steady": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\steady",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2633,
+  "loop_s": 0.59,
+  "balance": {
+   "rain_m3": 1711392.01902668,
+   "inflow_m3": 0.0,
+   "outflow_m3": 427447.72408503416,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1283944.2999477743,
+   "error_m3": -0.005006128456443548,
+   "relative_error": -2.925179269733117e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "hyetograph": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\hyetograph",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2633,
+  "loop_s": 0.59,
+  "balance": {
+   "rain_m3": 1711392.01902668,
+   "inflow_m3": 0.0,
+   "outflow_m3": 427447.72408503416,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1283944.2999477743,
+   "error_m3": -0.005006128456443548,
+   "relative_error": -2.925179269733117e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "design": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\design",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2633,
+  "loop_s": 0.73,
+  "balance": {
+   "rain_m3": 1711392.01902668,
+   "inflow_m3": 0.0,
+   "outflow_m3": 427447.72408503416,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1283944.2999477743,
+   "error_m3": -0.005006128456443548,
+   "relative_error": -2.925179269733117e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "nc4": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\nc4",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2633,
+  "loop_s": 0.86,
+  "balance": {
+   "rain_m3": 1711392.01902668,
+   "inflow_m3": 0.0,
+   "outflow_m3": 427447.72408503416,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1283944.2999477743,
+   "error_m3": -0.005006128456443548,
+   "relative_error": -2.925179269733117e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "classic": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\classic",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2633,
+  "loop_s": 0.89,
+  "balance": {
+   "rain_m3": 1711392.01902668,
+   "inflow_m3": 0.0,
+   "outflow_m3": 427447.72408503416,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1283944.2999477743,
+   "error_m3": -0.005006128456443548,
+   "relative_error": -2.925179269733117e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "cut": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\cut",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2336,
+  "loop_s": 0.64,
+  "balance": {
+   "rain_m3": 855696.00951334,
+   "inflow_m3": 0.0,
+   "outflow_m3": 223959.79676630927,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 631736.217305027,
+   "error_m3": -0.004557996289804578,
+   "relative_error": -5.326653670380965e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 5.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "north": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\north",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2541,
+  "loop_s": 0.69,
+  "balance": {
+   "rain_m3": 1095744.0121821128,
+   "inflow_m3": 0.0,
+   "outflow_m3": 314618.06615380413,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 781125.9521006932,
+   "error_m3": -0.006072384538128972,
+   "relative_error": -5.541791212745173e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "dss": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\dss",
+  "backend": "gpu",
+  "cells": 17976,
+  "tiles": 26,
+  "dx": 40.0,
+  "exit": 0,
+  "steps": 2522,
+  "loop_s": 0.78,
+  "balance": {
+   "rain_m3": 937728.0104253441,
+   "inflow_m3": 0.0,
+   "outflow_m3": 274188.48428300786,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 663539.5328864516,
+   "error_m3": -0.0067441153805702925,
+   "relative_error": -7.191973904577329e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "mesh": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\mesh",
+  "backend": "gpu",
+  "cells": 27464,
+  "tiles": 38,
+  "dx": 20.0,
+  "exit": 0,
+  "steps": 4089,
+  "loop_s": 3.56,
+  "balance": {
+   "rain_m3": 1722240.0191472843,
+   "inflow_m3": 0.0,
+   "outflow_m3": 451530.942768405,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1270709.0843208903,
+   "error_m3": -0.007942010881379247,
+   "relative_error": -4.611442535931488e-09
+  },
+  "peaks": {},
+  "warnings": [
+   "water stood 7.8 m deep against the domain edge at (431436, 2725030): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "hms": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\hms",
+  "backend": "gpu",
+  "cells": 126531,
+  "tiles": 144,
+  "dx": 80.0,
+  "exit": 0,
+  "steps": 101432,
+  "loop_s": 56.17,
+  "balance": {
+   "rain_m3": 35462131.41537131,
+   "inflow_m3": 84501544.01294203,
+   "outflow_m3": 118113754.57774596,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1849921.0299184397,
+   "error_m3": -0.1793510541319847,
+   "relative_error": -1.495044674912111e-09
+  },
+  "peaks": {
+   "line_Bidah_03": {
+    "discharge_m3s": [
+     1.81197,
+     14.675
+    ]
+   },
+   "line_Bidah_03_ring": {
+    "discharge_m3s": [
+     55.5977,
+     14.441666666666666
+    ]
+   },
+   "line_Faydh_01": {
+    "discharge_m3s": [
+     506.601,
+     13.425
+    ]
+   },
+   "line_Faydh_01_ring": {
+    "discharge_m3s": [
+     895.652,
+     13.141666666666667
+    ]
+   },
+   "line_R2A": {
+    "discharge_m3s": [
+     1118.49,
+     13.808333333333334
+    ]
+   },
+   "line_R2A_ring": {
+    "discharge_m3s": [
+     1123.46,
+     13.958333333333334
+    ]
+   },
+   "line_R5A": {
+    "discharge_m3s": [
+     788.668,
+     14.241666666666667
+    ]
+   },
+   "line_R5A_ring": {
+    "discharge_m3s": [
+     1003.17,
+     13.941666666666666
+    ]
+   },
+   "line_S11_ring": {
+    "discharge_m3s": [
+     6.60599,
+     11.825
+    ]
+   },
+   "line_S14_ring": {
+    "discharge_m3s": [
+     467.303,
+     13.541666666666666
+    ]
+   },
+   "line_S1_ring": {
+    "discharge_m3s": [
+     11.8642,
+     12.841666666666667
+    ]
+   },
+   "line_S2_ring": {
+    "discharge_m3s": [
+     10.0427,
+     12.791666666666666
+    ]
+   },
+   "line_S5_ring": {
+    "discharge_m3s": [
+     15.9389,
+     12.375
+    ]
+   },
+   "line_S6_ring": {
+    "discharge_m3s": [
+     8.81315,
+     13.075
+    ]
+   },
+   "line_Z4C": {
+    "discharge_m3s": [
+     1674.16,
+     15.041666666666666
+    ]
+   },
+   "line_Z4C_ring": {
+    "discharge_m3s": [
+     1677.73,
+     15.041666666666666
+    ]
+   },
+   "network_Bidah_03": {
+    "inflow_m3s": [
+     302.266,
+     12.75
+    ],
+    "outflow_m3s": [
+     302.266,
+     12.75
+    ]
+   },
+   "network_Faydh_01": {
+    "inflow_m3s": [
+     877.855,
+     13.25
+    ],
+    "outflow_m3s": [
+     877.855,
+     13.25
+    ]
+   },
+   "network_J1": {
+    "inflow_m3s": [
+     987.525,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     987.525,
+     13.666666666666666
+    ]
+   },
+   "network_J12": {
+    "inflow_m3s": [
+     447.885,
+     13.416666666666666
+    ],
+    "outflow_m3s": [
+     447.885,
+     13.416666666666666
+    ]
+   },
+   "network_J13": {
+    "inflow_m3s": [
+     689.765,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     689.765,
+     14.333333333333334
+    ]
+   },
+   "network_J2": {
+    "inflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ],
+    "outflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ]
+   },
+   "network_J4": {
+    "inflow_m3s": [
+     629.535,
+     14.0
+    ],
+    "outflow_m3s": [
+     629.535,
+     14.0
+    ]
+   },
+   "network_J5": {
+    "inflow_m3s": [
+     326.899,
+     12.916666666666666
+    ],
+    "outflow_m3s": [
+     326.899,
+     12.916666666666666
+    ]
+   },
+   "network_J6": {
+    "inflow_m3s": [
+     708.164,
+     13.583333333333334
+    ],
+    "outflow_m3s": [
+     708.164,
+     13.583333333333334
+    ]
+   },
+   "network_J7": {
+    "inflow_m3s": [
+     710.671,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     710.671,
+     13.666666666666666
+    ]
+   },
+   "network_J9": {
+    "inflow_m3s": [
+     492.734,
+     13.166666666666666
+    ],
+    "outflow_m3s": [
+     492.734,
+     13.166666666666666
+    ]
+   },
+   "network_R1": {
+    "inflow_m3s": [
+     987.525,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     979.303,
+     15.166666666666666
+    ]
+   },
+   "network_R2": {
+    "inflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ],
+    "outflow_m3s": [
+     1565.78,
+     15.666666666666666
+    ]
+   },
+   "network_R2A": {
+    "inflow_m3s": [
+     1277.35,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     1277.35,
+     14.333333333333334
+    ]
+   },
+   "network_R3": {
+    "inflow_m3s": [
+     629.535,
+     14.0
+    ],
+    "outflow_m3s": [
+     626.714,
+     15.083333333333334
+    ]
+   },
+   "network_R4": {
+    "inflow_m3s": [
+     326.899,
+     12.916666666666666
+    ],
+    "outflow_m3s": [
+     324.75,
+     13.833333333333334
+    ]
+   },
+   "network_R5": {
+    "inflow_m3s": [
+     708.164,
+     13.583333333333334
+    ],
+    "outflow_m3s": [
+     710.671,
+     13.666666666666666
+    ]
+   },
+   "network_R5A": {
+    "inflow_m3s": [
+     801.097,
+     14.833333333333334
+    ],
+    "outflow_m3s": [
+     801.097,
+     14.833333333333334
+    ]
+   },
+   "network_R6": {
+    "inflow_m3s": [
+     492.734,
+     13.166666666666666
+    ],
+    "outflow_m3s": [
+     491.358,
+     13.416666666666666
+    ]
+   },
+   "network_R7": {
+    "inflow_m3s": [
+     447.885,
+     13.416666666666666
+    ],
+    "outflow_m3s": [
+     445.613,
+     14.583333333333334
+    ]
+   },
+   "network_R8": {
+    "inflow_m3s": [
+     689.765,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     687.951,
+     14.916666666666666
+    ]
+   },
+   "network_S1": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     549.152,
+     13.75
+    ]
+   },
+   "network_S10": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     66.3634,
+     12.416666666666666
+    ]
+   },
+   "network_S11": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     492.734,
+     13.166666666666666
+    ]
+   },
+   "network_S12": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     426.158,
+     13.0
+    ]
+   },
+   "network_S13": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     302.266,
+     12.75
+    ]
+   },
+   "network_S14": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     447.885,
+     13.416666666666666
+    ]
+   },
+   "network_S15": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     431.915,
+     13.25
+    ]
+   },
+   "network_S16": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     268.219,
+     13.0
+    ]
+   },
+   "network_S17": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     171.582,
+     12.75
+    ]
+   },
+   "network_S18": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     31.84,
+     12.333333333333334
+    ]
+   },
+   "network_S2": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     441.598,
+     13.583333333333334
+    ]
+   },
+   "network_S3": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     632.51,
+     14.583333333333334
+    ]
+   },
+   "network_S4": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     252.267,
+     12.916666666666666
+    ]
+   },
+   "network_S5": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     629.535,
+     14.0
+    ]
+   },
+   "network_S6": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     326.899,
+     12.916666666666666
+    ]
+   },
+   "network_S7": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     435.298,
+     13.083333333333334
+    ]
+   },
+   "network_S8": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     70.0895,
+     12.75
+    ]
+   },
+   "network_S9": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     293.929,
+     13.583333333333334
+    ]
+   },
+   "network_Z4C": {
+    "inflow_m3s": [
+     1605.73,
+     15.666666666666666
+    ],
+    "outflow_m3s": [
+     1605.73,
+     15.666666666666666
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there"
+  ]
+ },
+ "hms_frames": {
+  "folder": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\D--Mojtaba-Renardet-Wadi2D\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w32\\dock\\dock_storm_w32_gpu\\runs\\hms_frames",
+  "backend": "gpu",
+  "cells": 126531,
+  "tiles": 144,
+  "dx": 80.0,
+  "exit": 0,
+  "steps": 101440,
+  "loop_s": 63.03,
+  "balance": {
+   "rain_m3": 35462131.351878285,
+   "inflow_m3": 84501544.01294206,
+   "outflow_m3": 118113751.69544046,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 1849923.541052734,
+   "error_m3": 0.12832715595141053,
+   "relative_error": 1.069716775191791e-09
+  },
+  "peaks": {
+   "line_Bidah_03": {
+    "discharge_m3s": [
+     1.81132,
+     14.675
+    ]
+   },
+   "line_Bidah_03_ring": {
+    "discharge_m3s": [
+     57.6924,
+     14.908333333333333
+    ]
+   },
+   "line_Faydh_01": {
+    "discharge_m3s": [
+     500.713,
+     13.491666666666667
+    ]
+   },
+   "line_Faydh_01_ring": {
+    "discharge_m3s": [
+     897.028,
+     13.241666666666667
+    ]
+   },
+   "line_R2A": {
+    "discharge_m3s": [
+     1116.85,
+     13.808333333333334
+    ]
+   },
+   "line_R2A_ring": {
+    "discharge_m3s": [
+     1120.1,
+     13.925
+    ]
+   },
+   "line_R5A": {
+    "discharge_m3s": [
+     791.271,
+     14.208333333333334
+    ]
+   },
+   "line_R5A_ring": {
+    "discharge_m3s": [
+     999.277,
+     13.975
+    ]
+   },
+   "line_S11_ring": {
+    "discharge_m3s": [
+     6.60456,
+     11.825
+    ]
+   },
+   "line_S14_ring": {
+    "discharge_m3s": [
+     464.256,
+     13.458333333333334
+    ]
+   },
+   "line_S1_ring": {
+    "discharge_m3s": [
+     11.8281,
+     12.841666666666667
+    ]
+   },
+   "line_S2_ring": {
+    "discharge_m3s": [
+     10.0469,
+     12.791666666666666
+    ]
+   },
+   "line_S5_ring": {
+    "discharge_m3s": [
+     15.9702,
+     12.375
+    ]
+   },
+   "line_S6_ring": {
+    "discharge_m3s": [
+     7.87328,
+     13.275
+    ]
+   },
+   "line_Z4C": {
+    "discharge_m3s": [
+     1663.13,
+     15.041666666666666
+    ]
+   },
+   "line_Z4C_ring": {
+    "discharge_m3s": [
+     1669.14,
+     14.825
+    ]
+   },
+   "network_Bidah_03": {
+    "inflow_m3s": [
+     302.266,
+     12.75
+    ],
+    "outflow_m3s": [
+     302.266,
+     12.75
+    ]
+   },
+   "network_Faydh_01": {
+    "inflow_m3s": [
+     877.855,
+     13.25
+    ],
+    "outflow_m3s": [
+     877.855,
+     13.25
+    ]
+   },
+   "network_J1": {
+    "inflow_m3s": [
+     987.525,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     987.525,
+     13.666666666666666
+    ]
+   },
+   "network_J12": {
+    "inflow_m3s": [
+     447.885,
+     13.416666666666666
+    ],
+    "outflow_m3s": [
+     447.885,
+     13.416666666666666
+    ]
+   },
+   "network_J13": {
+    "inflow_m3s": [
+     689.765,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     689.765,
+     14.333333333333334
+    ]
+   },
+   "network_J2": {
+    "inflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ],
+    "outflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ]
+   },
+   "network_J4": {
+    "inflow_m3s": [
+     629.535,
+     14.0
+    ],
+    "outflow_m3s": [
+     629.535,
+     14.0
+    ]
+   },
+   "network_J5": {
+    "inflow_m3s": [
+     326.899,
+     12.916666666666666
+    ],
+    "outflow_m3s": [
+     326.899,
+     12.916666666666666
+    ]
+   },
+   "network_J6": {
+    "inflow_m3s": [
+     708.164,
+     13.583333333333334
+    ],
+    "outflow_m3s": [
+     708.164,
+     13.583333333333334
+    ]
+   },
+   "network_J7": {
+    "inflow_m3s": [
+     710.671,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     710.671,
+     13.666666666666666
+    ]
+   },
+   "network_J9": {
+    "inflow_m3s": [
+     492.734,
+     13.166666666666666
+    ],
+    "outflow_m3s": [
+     492.734,
+     13.166666666666666
+    ]
+   },
+   "network_R1": {
+    "inflow_m3s": [
+     987.525,
+     13.666666666666666
+    ],
+    "outflow_m3s": [
+     979.303,
+     15.166666666666666
+    ]
+   },
+   "network_R2": {
+    "inflow_m3s": [
+     1571.92,
+     15.083333333333334
+    ],
+    "outflow_m3s": [
+     1565.78,
+     15.666666666666666
+    ]
+   },
+   "network_R2A": {
+    "inflow_m3s": [
+     1277.35,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     1277.35,
+     14.333333333333334
+    ]
+   },
+   "network_R3": {
+    "inflow_m3s": [
+     629.535,
+     14.0
+    ],
+    "outflow_m3s": [
+     626.714,
+     15.083333333333334
+    ]
+   },
+   "network_R4": {
+    "inflow_m3s": [
+     326.899,
+     12.916666666666666
+    ],
+    "outflow_m3s": [
+     324.75,
+     13.833333333333334
+    ]
+   },
+   "network_R5": {
+    "inflow_m3s": [
+     708.164,
+     13.583333333333334
+    ],
+    "outflow_m3s": [
+     710.671,
+     13.666666666666666
+    ]
+   },
+   "network_R5A": {
+    "inflow_m3s": [
+     801.097,
+     14.833333333333334
+    ],
+    "outflow_m3s": [
+     801.097,
+     14.833333333333334
+    ]
+   },
+   "network_R6": {
+    "inflow_m3s": [
+     492.734,
+     13.166666666666666
+    ],
+    "outflow_m3s": [
+     491.358,
+     13.416666666666666
+    ]
+   },
+   "network_R7": {
+    "inflow_m3s": [
+     447.885,
+     13.416666666666666
+    ],
+    "outflow_m3s": [
+     445.613,
+     14.583333333333334
+    ]
+   },
+   "network_R8": {
+    "inflow_m3s": [
+     689.765,
+     14.333333333333334
+    ],
+    "outflow_m3s": [
+     687.951,
+     14.916666666666666
+    ]
+   },
+   "network_S1": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     549.152,
+     13.75
+    ]
+   },
+   "network_S10": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     66.3634,
+     12.416666666666666
+    ]
+   },
+   "network_S11": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     492.734,
+     13.166666666666666
+    ]
+   },
+   "network_S12": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     426.158,
+     13.0
+    ]
+   },
+   "network_S13": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     302.266,
+     12.75
+    ]
+   },
+   "network_S14": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     447.885,
+     13.416666666666666
+    ]
+   },
+   "network_S15": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     431.915,
+     13.25
+    ]
+   },
+   "network_S16": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     268.219,
+     13.0
+    ]
+   },
+   "network_S17": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     171.582,
+     12.75
+    ]
+   },
+   "network_S18": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     31.84,
+     12.333333333333334
+    ]
+   },
+   "network_S2": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     441.598,
+     13.583333333333334
+    ]
+   },
+   "network_S3": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     632.51,
+     14.583333333333334
+    ]
+   },
+   "network_S4": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     252.267,
+     12.916666666666666
+    ]
+   },
+   "network_S5": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     629.535,
+     14.0
+    ]
+   },
+   "network_S6": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     326.899,
+     12.916666666666666
+    ]
+   },
+   "network_S7": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     435.298,
+     13.083333333333334
+    ]
+   },
+   "network_S8": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     70.0895,
+     12.75
+    ]
+   },
+   "network_S9": {
+    "inflow_m3s": [
+     0.0,
+     0.0
+    ],
+    "outflow_m3s": [
+     293.929,
+     13.583333333333334
+    ]
+   },
+   "network_Z4C": {
+    "inflow_m3s": [
+     1605.73,
+     15.666666666666666
+    ],
+    "outflow_m3s": [
+     1605.73,
+     15.666666666666666
+    ]
+   }
+  },
+  "warnings": [
+   "water stood 22.4 m deep against the domain edge at (430711, 2730320): an edge is a wall, so check the domain polygon there"
+  ]
+ }
+}
