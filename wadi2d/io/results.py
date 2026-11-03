@@ -3,6 +3,11 @@
 Layout (``format_version`` attribute at the root): ``maxima/<name>``; ``maps/t<seconds>/<name>``;
 ``series/points/<name>/<quantity>`` and ``series/lines/<name>/<quantity>``, each with its ``t_s``; the balance as
 root attributes. Maps are (ny, nx) float32 with the grid origin in the root attributes.
+
+A map holds ``depth``, ``mean_depth`` and ``speed`` per cell, and, when the job keeps ``outputs.face_discharge``, the
+discharge on the faces as the solver holds it: ``qx`` through each cell's west face, positive eastward, and ``qy``
+through its north face, positive southward, m3/s. On a quadtree a coarse cell's discharge is painted onto every finest
+cell under it, as the other maps are.
 """
 
 from __future__ import annotations
@@ -19,6 +24,8 @@ from wadi2d.grid.tiles import TileGrid
 
 GZIP_LEVEL = 1
 CHUNK = 128
+FACE_FIELDS = ("qx", "qy")
+"""The face discharges saved with a map, by their names in the solver state."""
 DAMAGED_SUFFIX = ".damaged.h5"
 
 

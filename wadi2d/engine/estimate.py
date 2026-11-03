@@ -28,6 +28,8 @@ FACE_STATIC = 6
 FACE_DIRECTIONS = 2
 FACE_COLUMNS = 2
 MAXIMA_ARRAYS = 5
+FACE_FRAME_SHARE = 1.6
+"""A map with the face discharges over one without: Bidah at 20 m gave 18.4 against 11.7 B per cell."""
 MESH_NOTE = "On a mesh the time is rough: it takes every cell at the finest step and leaves out the level interfaces."
 
 
@@ -52,7 +54,8 @@ def saved_maps(cfg: RunConfig, cells: int) -> tuple[int, float]:
     if every <= 0.0:
         return 0, 0.0
     count = int(np.ceil(cfg.run.duration_s / every)) + 1
-    return count, round(count * cells * cfg.outputs.frame_bytes_per_cell / 1e9, 2)
+    share = FACE_FRAME_SHARE if cfg.outputs.face_discharge else 1.0
+    return count, round(count * cells * cfg.outputs.frame_bytes_per_cell * share / 1e9, 2)
 
 
 def measure_cost(backend: str, num: Numerics, cfg: Tables) -> tuple[float, str]:

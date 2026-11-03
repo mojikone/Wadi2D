@@ -1,0 +1,65 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aebeca6194c1fbeb1\plugin\wadi2d_qgis\__init__.py
+    4.6 PASS engine found Engine ready.
+   20.5 PASS engine from this worktree D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aebeca6194c1fbeb1\wadi2d\__init__.py
+   20.6 === 1 a run with four upfront lines; the faces are in the run
+   20.7 dock says: Starting...
+   27.2 PASS finished Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   27.2 PASS the job kept the faces by default 
+   27.2 PASS the panel opened 
+   27.3 dock says: Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   30.5 PASS the four upfront lines are listed ['Upfront line: Across', 'Upfront line: Oblique', 'Upfront line: Axis', 'Upfront line: Bent']
+   30.5 === 2 each upfront line read back from the faces against its own series
+   30.5 PASS Across: labelled of record Saved frames, every 5 min: from the faces, of record
+   30.5 PASS Across: the footer says so Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   30.5 Across: record peak 314.3, frames 313.7, peak ratio 1.0010, worst over 15 running frames 0.0028
+   30.5 PASS Across: peak within 1 % 1.0009642204650848
+   30.5 PASS Across: every running frame within 1 % 0.002846355092266384
+   32.3 PASS Oblique: labelled of record Saved frames, every 5 min: from the faces, of record
+   32.3 PASS Oblique: the footer says so Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   32.3 Oblique: record peak 325.1, frames 323.8, peak ratio 1.0008, worst over 15 running frames 0.0010
+   32.3 PASS Oblique: peak within 1 % 1.0008370704758935
+   32.3 PASS Oblique: every running frame within 1 % 0.0009588368829493987
+   34.3 PASS Axis: labelled of record Saved frames, every 5 min: from the faces, of record
+   34.3 PASS Axis: the footer says so Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   34.3 Axis: record peak 327.1, frames 326.3, peak ratio 1.0010, worst over 15 running frames 0.0013
+   34.3 PASS Axis: peak within 1 % 1.0009813633004485
+   34.3 PASS Axis: every running frame within 1 % 0.0012561134163764365
+   36.9 PASS Bent: labelled of record Saved frames, every 5 min: from the faces, of record
+   36.9 PASS Bent: the footer says so Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   36.9 Bent: record peak 327.8, frames 327.1, peak ratio 1.0010, worst over 15 running frames 0.0013
+   36.9 PASS Bent: peak within 1 % 1.0010298030826765
+   36.9 PASS Bent: every running frame within 1 % 0.001254020672432521
+   37.3 === 3 a line drawn after the run, and one from a layer
+   39.6 PASS drawn line chosen Temporary line: Line 1
+   39.6 PASS drawn line is of record Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   39.6 PASS no record curve on it 
+   39.6 PASS water on it 296.96
+   41.9 PASS a line from a layer is of record too Saved frames, every 5 min: from the faces, of record
+   41.9 PASS flow on it 120.575
+   41.9 === 4 the same job without the faces: the disk cost, and the fallback through the dock
+   48.4 PASS the run without faces finished (0, '.0, "duration_s": 7200.0, "steps": 6687, "loop_s": 2.62, "tables_s": 0.2, "wet_area_km2": 3.2076, "dt_min": 0.996169514197118, "balance": {"rain_m3": 1719240.0191139264, "inflow_m3": 0.0, "outflow_m3": 1242390.871741153, "storage_start_m3": 0.0, "storage_
+   48.4 disk: {"cells": 71934, "maps": 24, "results_h5_with_faces_bytes": 31781330, "results_h5_without_bytes": 20144973, "bytes_per_cell_per_map_with": 18.408848157106977, "bytes_per_cell_per_map_without": 11.66866676397809, "faces_share_of_file": 0.36613813833467634, "faces_bytes_per_cell_per_map": 6.7401813931288865}
+   48.4 PASS the faces cost disk (31781330, 20144973)
+   52.7 PASS the run without faces is read D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aebeca6194c1fbeb1\_dock_tmp\dock_face_frames\runs\nofaces
+   52.7 PASS on it the frames curve says estimated Saved frames, every 5 min: estimated
+   52.7 PASS and the footer keeps the old limit Saved frames, every 5 min: a peak between two frames is not seen. Flow is estimated from depth and speed, turned by the slope of the water: not a number of record. Across the flow it read 0.6 to 1.0 of upfront lines, lowest on coarse cells. A line along the fl
+   52.7 Across without faces: estimate peak ratio 0.9392, worst 0.0615
+   52.7 === 5 a mesh
+   52.8 dock says: Starting...
+   70.9 dock says: Finished. water stood 5.8 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there.
+   74.7 PASS the mesh run is read D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aebeca6194c1fbeb1\_dock_tmp\dock_face_frames\runs\mesh
+   74.7 mesh Across: peak ratio 1.0000, worst over 9 running frames 0.0000
+   74.7 PASS mesh Across: of record, within 1 % (np.float64(1.0), 0.0)
+   77.5 mesh Oblique: peak ratio 1.0000, worst over 9 running frames 0.0000
+   77.5 PASS mesh Oblique: of record, within 1 % (np.float64(1.0), 0.0)
+   79.8 mesh Axis: peak ratio 1.0000, worst over 9 running frames 0.0000
+   79.8 PASS mesh Axis: of record, within 1 % (np.float64(1.0), 0.0)
+   82.3 mesh Bent: peak ratio 1.0000, worst over 9 running frames 0.0000
+   82.3 PASS mesh Bent: of record, within 1 % (np.float64(1.0), 0.0)
+   84.1 PASS a drawn line on the mesh reads the faces 298.818
+   84.1 === 6 the panel goes with the plugin
+   84.1 PASS released 
+   84.1 PASS its files are gone C:\Users\mojtaba\AppData\Local\Temp\wadi2d_lines_r0pwsr93
+   84.1 SUMMARY 42 passed, 0 failed 
+   84.1 DONE

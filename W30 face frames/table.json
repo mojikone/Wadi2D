@@ -1,0 +1,77 @@
+{
+  "lines": {
+    "Across": {
+      "record_peak": 314.313,
+      "frames_peak": 313.716,
+      "peak_ratio": 1.0009642204650848,
+      "worst_off_record": 0.002846355092266384,
+      "running_frames": 15
+    },
+    "Oblique": {
+      "record_peak": 325.149,
+      "frames_peak": 323.78,
+      "peak_ratio": 1.0008370704758935,
+      "worst_off_record": 0.0009588368829493987,
+      "running_frames": 15
+    },
+    "Axis": {
+      "record_peak": 327.129,
+      "frames_peak": 326.295,
+      "peak_ratio": 1.0009813633004485,
+      "worst_off_record": 0.0012561134163764365,
+      "running_frames": 15
+    },
+    "Bent": {
+      "record_peak": 327.8,
+      "frames_peak": 327.098,
+      "peak_ratio": 1.0010298030826765,
+      "worst_off_record": 0.001254020672432521,
+      "running_frames": 15
+    },
+    "Across, estimate": {
+      "record_peak": 314.313,
+      "frames_peak": 294.351,
+      "peak_ratio": 0.9391768964863705,
+      "worst_off_record": 0.061462981339736045,
+      "running_frames": 15
+    },
+    "Across, mesh": {
+      "record_peak": 316.334,
+      "frames_peak": 315.21,
+      "peak_ratio": 1.0,
+      "worst_off_record": 0.0,
+      "running_frames": 9
+    },
+    "Oblique, mesh": {
+      "record_peak": 324.38,
+      "frames_peak": 323.125,
+      "peak_ratio": 1.0,
+      "worst_off_record": 0.0,
+      "running_frames": 9
+    },
+    "Axis, mesh": {
+      "record_peak": 326.007,
+      "frames_peak": 325.238,
+      "peak_ratio": 1.0,
+      "worst_off_record": 0.0,
+      "running_frames": 9
+    },
+    "Bent, mesh": {
+      "record_peak": 326.751,
+      "frames_peak": 326.154,
+      "peak_ratio": 1.0,
+      "worst_off_record": 0.0,
+      "running_frames": 9
+    }
+  },
+  "disk": {
+    "cells": 71934,
+    "maps": 24,
+    "results_h5_with_faces_bytes": 31781330,
+    "results_h5_without_bytes": 20144973,
+    "bytes_per_cell_per_map_with": 18.408848157106977,
+    "bytes_per_cell_per_map_without": 11.66866676397809,
+    "faces_share_of_file": 0.36613813833467634,
+    "faces_bytes_per_cell_per_map": 6.7401813931288865
+  }
+}

@@ -1,10 +1,12 @@
 """A run's result lines, for the plugin: the upfront ones as recorded, and any line read back from the saved frames.
 
 Upfront lines and points were computed during the run, at every series step, from the discharge on the faces: those are
-the numbers of record. A line read from saved frames sees only what a frame keeps, so it has the map interval and no
-face discharge. Its flow is an estimate from depth and speed: mean depth x speed x length, each sample of the line
-turned by the angle between the line and the flow. A frame holds a speed and no direction, so the direction is read from
-the slope of the water surface around the sample, and the flow has a size and no sign.
+the numbers of record. A line read from saved frames sees only what a frame keeps, so it has the map interval. When
+the run saved the face discharges with its maps (``outputs.face_discharge``), the line reads the same faces, signs and
+sum an upfront line uses (``face_flow``): the number of record at the frame interval. When it did not, its flow is an
+estimate from depth and speed: mean depth x speed x length, each sample of the line turned by the angle between the
+line and the flow. A frame holds a speed and no direction, so the direction is read from the slope of the water surface
+around the sample, and the estimate has a size and no sign. The answer says which it is.
 
 Mean depth and not depth: a cell's depth is the level over its deepest point, which reads 1.5 to 8 x the flow of record.
 A level is the depth over a cell's lowest point, and that lowest point comes from the run's own maps, ``max_level`` less
@@ -26,6 +28,16 @@ from rasterio.windows import Window
 
 from wadi2d.config.schema import RunConfig
 from wadi2d.grid.tiles import TileGrid
+from wadi2d.products.face_flow import (
+    FLOW_ESTIMATE,
+    FLOW_FACES,
+    X_FACES,
+    Y_FACES,
+    FaceCrossing,
+    face_crossing,
+    face_flow,
+    frames_have_faces,
+)
 from wadi2d.products.frames import frame_names
 from wadi2d.products.time_slider import frame_seconds, read_tiles
 from wadi2d.solver.layout import TILE
@@ -227,6 +239,26 @@ def _line_cells(samples: Samples, mask: np.ndarray, x0: float, y0: float, dx: fl
     return LineCells(Picker(rows, columns), stencil, inside, on_raster)
 
 
+class FacePickers:
+    """A line's face crossing with its cells grouped for reading, once for every frame."""
+
+    def __init__(self, crossing: FaceCrossing) -> None:
+        self.crossing = crossing
+        self.x = Picker(crossing.x_rows, crossing.x_columns)
+        self.y = Picker(crossing.y_rows, crossing.y_columns)
+
+    def flow(self, group: h5py.Group) -> float:
+        qx = self.x.read(dataset_window(group[X_FACES]))
+        qy = self.y.read(dataset_window(group[Y_FACES]))
+        return face_flow(qx, qy, self.crossing)
+
+
+def _estimated_flow(samples: Samples, cells: LineCells, group: h5py.Group, running: np.ndarray, share: np.ndarray) -> float:
+    mean_depth = cells.middle.read(dataset_window(group["mean_depth"]))
+    speed = cells.middle.read(dataset_window(group["speed"]))
+    return line_flow(samples, mean_depth, speed, share, running[1, 1] & cells.inside)
+
+
 def read_line(run: Path, coordinates: list, name: str = "") -> dict:
     """Flow, deepest water and the water surface along a line, at every saved frame; see the module's note."""
     results = run / "results.h5"
@@ -245,6 +277,7 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
         low = cells.stencil.read(tif_window(peak_level)) - cells.stencil.read(dataset_window(f["maxima"]["depth"]))
         low = low.astype(np.float64)
         ground, source = _terrain(cfg, samples, mask, x0, y0, dx, low.reshape(STENCIL, count)[MIDDLE])
+        faces = FacePickers(face_crossing(mask, x0, y0, dx, coordinates, tiles)) if frames_have_faces(f, names) else None
         flows, deepest, levels = [], [], []
         for frame in names:
             group = f["maps"][frame]
@@ -252,10 +285,10 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
             known = np.isfinite(low) & cells.on_raster
             level = (low + depth).reshape(3, 3, count)
             running = (known & (depth >= FLOW_FLOOR)).reshape(3, 3, count)
-            share = crossing(samples, level, running)
-            mean_depth = cells.middle.read(dataset_window(group["mean_depth"]))
-            speed = cells.middle.read(dataset_window(group["speed"]))
-            flows.append(line_flow(samples, mean_depth, speed, share, running[1, 1] & cells.inside))
+            if faces is not None:
+                flows.append(faces.flow(group))
+            else:
+                flows.append(_estimated_flow(samples, cells, group, running, crossing(samples, level, running)))
             shown = (known & (depth >= floor)).reshape(3, 3, count)[1, 1] & cells.inside
             surface = np.where(shown, level[1, 1], np.nan)
             water = surface - ground
@@ -268,6 +301,7 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
         "t_s": times.tolist(),
         "interval_s": float(np.median(np.diff(times))),
         "length_m": round(float(count * samples.spacing), 2),
+        "flow_source": FLOW_FACES if faces is not None else FLOW_ESTIMATE,
         "flow_m3s": [round(q, DIGITS_FLOW) for q in flows],
         "deepest_m": [round(d, DIGITS_LEVEL) for d in deepest],
         "station_m": _rounded(samples.station, DIGITS_LEVEL),
