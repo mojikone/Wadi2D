@@ -293,9 +293,12 @@ def test_products_settings_do_not_refuse_a_checkpoint(tmp_path) -> None:
 
 
 def test_the_estimate_says_the_disk_of_the_maps() -> None:
-    cfg = RunConfig.model_validate({"run": {"duration_s": 3600.0}, "outputs": {"map_every_s": 900.0}})
+    plain = {"face_discharge": False}
+    cfg = RunConfig.model_validate({"run": {"duration_s": 3600.0}, "outputs": {"map_every_s": 900.0, **plain}})
     assert saved_maps(cfg, 1_000_000) == (5, 0.05)
-    fine = RunConfig.model_validate({"run": {"duration_s": 3600.0}, "outputs": {"map_every_s": 300.0}})
+    fine = RunConfig.model_validate({"run": {"duration_s": 3600.0}, "outputs": {"map_every_s": 300.0, **plain}})
     assert saved_maps(fine, 1_000_000) == (13, 0.13)
+    faces = RunConfig.model_validate({"run": {"duration_s": 3600.0}, "outputs": {"map_every_s": 900.0}})
+    assert saved_maps(faces, 1_000_000) == (5, 0.08)  # the faces, on by default, add 0.6 of a map
     off = RunConfig.model_validate({"outputs": {"map_every_s": 0.0}})
     assert saved_maps(off, 1_000_000) == (0, 0.0)
