@@ -36,16 +36,19 @@ NODE_COLUMNS = {"drainage_area_km2": float}
 
 
 def _polygons(surface: Surface, label: np.ndarray) -> dict[int, shapely.Geometry]:
-    """Each label's pixels as one simplified geometry; 4-connected pieces stay parts of it."""
+    """Each label's pixels as one exact geometry; 4-connected pieces stay parts of it.
+
+    Not simplified: these polygons mask the rain under a lumped subbasin, so they must hold exactly the pixels its area
+    counts. Simplified one by one they overlapped along shared edges, and a cell under two lumped polygons counted its rain
+    twice (found by the rain-once check of `W27`); simplified as a coverage the edges still moved up to a pixel, and cells
+    along them changed owner. The vertex count of a pixel staircase is small beside the raster it comes from.
+    """
     grid = label.reshape(surface.shape).astype(np.int32)
     pieces: dict[int, list[shapely.Geometry]] = defaultdict(list)
     shapes = features.shapes(grid, mask=grid != NONE, connectivity=4, transform=surface.transform)
     for geometry, value in shapes:
         pieces[int(value)].append(shapely.geometry.shape(geometry))
-    return {
-        link: shapely.simplify(shapely.coverage_union_all(parts), surface.pixel)
-        for link, parts in pieces.items()
-    }
+    return {link: shapely.coverage_union_all(parts) for link, parts in pieces.items()}
 
 
 def _layer(

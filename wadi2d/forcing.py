@@ -92,6 +92,11 @@ def load_polygons(h: Hydrology, crs: str = "") -> dict[str, shapely.Geometry]:
     out: dict[str, shapely.Geometry] = {}
     if h.hms_sqlite is not None:
         out.update({row.name: row.shape() for row in hms_sqlite.subbasin_polygons(h.hms_sqlite)})
+    if h.basin_json is not None:
+        from wadi2d.basin.contract import read_model
+        from wadi2d.basin.geometry import SUBBASINS, geometry_file, read_layer
+
+        out.update(read_layer(geometry_file(read_model(h.basin_json), h.basin_json), SUBBASINS, crs))
     if h.polygons is not None:
         for properties, shape in read_features(h.polygons, crs):
             if NAME_FIELD not in properties:

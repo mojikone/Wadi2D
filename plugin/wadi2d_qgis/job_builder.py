@@ -17,6 +17,7 @@ from pathlib import Path
 
 from .mesh_rows import reversed_note, rounded_note
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
+from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .storm_rows import storm_job, storm_notes, storm_problems
 
@@ -197,6 +198,11 @@ def problems(values: dict) -> list[str]:
     found.extend(_rain_problems(values))
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
+    basin = values.get("basin")
+    if basin is not None and not basin.get("json"):
+        found.append("Press Generate basin first, or untick it: the run needs the generated basin.json.")
+    if any(not feature.properties.get("element") for feature in values.get("handbacks") or []):
+        found.append("Every hand-back line needs an element to enter: choose one in the table.")
     found.extend(_structure_problems(values.get("structures", {})))
     return found + _mesh_problems(values)
 
@@ -271,9 +277,10 @@ def notes(values: dict) -> list[str]:
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
     if values.get("storm"):
         found.extend(storm_notes(values["storm"], values.get("duration_h", 0.0)))
-    if values.get("hms") and not values.get("curve_number") and not values.get("cn_raster"):
+    lumped = values.get("hms") or values.get("basin")
+    if lumped and not values.get("curve_number") and not values.get("cn_raster"):
         found.append(
-            "No curve number: rain on the 2D area outside the HMS subbasins runs off with no losses."
+            "No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses."
         )
     dx, pixel = values.get("dx"), values.get("pixel", 0.0)
     if dx and snap_dx(dx, pixel) != dx:
@@ -321,6 +328,8 @@ def _elevation(feature: Feature):
 
 def _object(kind: str, feature: Feature) -> dict:
     entry = {"kind": kind, "coordinates": feature.xy()}
+    if feature.properties.get("name"):
+        entry["name"] = str(feature.properties["name"])
     constant = feature.properties.get("crest_z")
     if constant is not None:
         entry["z_constant"] = constant
@@ -407,6 +416,19 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
+    if values.get("basin"):
+        basin = values["basin"]
+        job["hydrology"]["basin_json"] = str(Path(basin["json"]).resolve())
+        job["hydrology"]["subbasins"] = [{"name": n, "mode": m} for n, m in basin.get("modes", {}).items()]
+        job["basin"] = basin_settings(**basin["settings"])
+    if values.get("handbacks"):
+        write_geojson(inputs / "handbacks.geojson", values["handbacks"], crs)
+        job["hydrology"]["handbacks"] = [
+            {"name": f.properties["name"], "coordinates": f.xy(), "element": f.properties["element"]}
+            for f in values["handbacks"]
+        ]
+    if values.get("transmission"):
+        job["transmission"] = {"enabled": True, "rate_mm_h": values["transmission"]["rate_mm_h"]}
     if values.get("map_every_s") is not None:
         job["outputs"]["map_every_s"] = values["map_every_s"]
     if values.get("pixels") is False:
@@ -443,6 +465,18 @@ def preview_job(values: dict, out_dir: Path | str) -> dict:
     job = build_job({**values, **blank}, out_dir)
     job.pop("storm", None)
     job["run"] = {}
+    return job
+
+
+def basin_job(values: dict, out_dir: Path | str) -> dict:
+    """What ``wadi2d basin`` reads: the terrain, its dams, the CN and Manning, the design lines and points as pour
+    points, and the settings of the box. No water, no basin of its own."""
+    settings = values["basin"]["settings"]
+    blank = {"hms": True, "basin": None, "handbacks": [], "transmission": None, "boundaries": [], "terrain_map": False}
+    job = build_job({**values, **blank}, out_dir)
+    job.pop("storm", None)
+    job["run"] = {}
+    job["basin"] = basin_settings(**settings)
     return job
 
 

@@ -26,6 +26,7 @@ from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
     Forcing,
@@ -97,6 +98,7 @@ PATH_FIELDS = (
     ("hydrology", "hms_basin"),
     ("hydrology", "hms_project"),
     ("hydrology", "hms_sqlite"),
+    ("hydrology", "basin_json"),
     ("hydrology", "polygons"),
     ("transmission", "area"),
     ("arf", "accumulation"),
@@ -110,6 +112,7 @@ NOT_WATER = (
     ("outputs", "pixels"),
     ("outputs", "smooth"),
     ("outputs", "frame_bytes_per_cell"),
+    ("hydrology", "overlap_share"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""
 
@@ -239,6 +242,7 @@ def job_hash(cfg: RunConfig) -> str:
     for part, name in NOT_WATER:
         data[part].pop(name)
     data.pop("project")
+    data.pop("basin")  # how basin.json was made; the file's own bytes are hashed below
     if not cfg.hydrology.handbacks:
         data["hydrology"].pop("handbacks")
     if not cfg.transmission.enabled:
@@ -354,7 +358,8 @@ def _project_tables(h, hms_basin):
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
     """What falls on the lumped network: the storm, or a grid averaged over each subbasin."""
     h = cfg.hydrology
-    system = hms_basin.spatial.coordinate_system if hms_basin.spatial is not None else None
+    spatial = hms_basin.spatial if hms_basin is not None else None
+    system = spatial.coordinate_system if spatial is not None else None
     if isinstance(storm, GriddedStorm):
         return storm.bind(load_polygons(h, crs), system or crs)
     if cfg.storm.depth_grid is None:
@@ -363,7 +368,8 @@ def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
     from wadi2d.storm.grid_depth import DepthGrid
 
     if h.hms_sqlite is None:
-        raise InvalidJob("a depth grid on a lumped network needs hydrology.hms_sqlite for the polygons")
+        why = "; a generated basin cannot take one yet" if h.basin_json is not None else ""
+        raise InvalidJob(f"a depth grid on a lumped network needs hydrology.hms_sqlite for the polygons{why}")
     try:
         rain = grid_storm(
             storm, DepthGrid.load(cfg.storm.depth_grid, system or crs or None), basin, h.hms_sqlite, True
@@ -427,8 +433,23 @@ def hydrographs(
     return _network(cfg, storm, crs)[0]
 
 
+def _lumped_basin(cfg: RunConfig, crs: str):
+    """The engine's basin from the job's network file, the HMS model when there is one, and the cuts the routes decided."""
+    h = cfg.hydrology
+    if h.basin_json is not None:
+        from wadi2d.basin.job import engine_basin, generated_basin
+
+        gen = generated_basin(cfg, crs)
+        return engine_basin(gen.model, gen.modes), None, gen.cut
+    from wadi2d.hms import load_basin
+    from wadi2d.hydrology.from_hms import basin_from_hms
+
+    hms_basin = load_basin(h.hms_basin)
+    return basin_from_hms(hms_basin, _project_tables(h, hms_basin)), hms_basin, ()
+
+
 def _network(cfg: RunConfig, storm, crs: str = ""):
-    """``hydrographs``, and the live network of a job with hand-backs, None otherwise."""
+    """``hydrographs``, the live network of a job with hand-backs (None otherwise), and the base run's series."""
     h = cfg.hydrology
     table = [
         (i.name, (i.x, i.y), np.asarray(i.times_s, np.float64), np.asarray(i.flows, np.float64))
@@ -437,25 +458,25 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
     ]
     wanted = [(i.name, (i.x, i.y), i.element) for i in h.inflows if i.element is not None]
     wanted += [(s.name, s.outlet, s.name) for s in h.subbasins if s.mode == "lumped" and s.outlet is not None]
-    if not wanted and not h.handbacks:
+    generated = h.basin_json is not None
+    if not wanted and not h.handbacks and not generated:
         _check_routes(h, None, [])
-        return table, None
-    if h.hms_basin is None:
+        return table, None, None
+    if h.hms_basin is None and not generated:
         raise InvalidJob(f"a {'hand-back' if h.handbacks else 'lumped inflow'} needs hydrology.hms_basin")
     if storm is None and not h.handbacks:
         raise InvalidJob("a lumped inflow needs a storm")
-    from wadi2d.hms import load_basin
-    from wadi2d.hydrology.from_hms import basin_from_hms
+    from wadi2d.engine.network_series import NetworkSeries
     from wadi2d.hydrology.live_network import LiveNetwork, NoRain, plan_routes
     from wadi2d.hydrology.model import TimeGrid
     from wadi2d.hydrology.network import LumpedEngine
 
-    hms_basin = load_basin(h.hms_basin)
-    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin))
+    basin, hms_basin, decided = _lumped_basin(cfg, crs)
     routes = None
-    if h.handbacks:
+    if h.handbacks or generated:
         leaving = [element for _name, _point, element in wanted]
-        routes = plan_routes(basin, [line.element for line in h.handbacks], leaving)
+        entries = [line.element for line in h.handbacks]
+        routes = plan_routes(basin, entries, leaving, decided, cut_entries=not generated)
     _check_routes(h, basin, wanted, routes)
     steps = int(np.ceil(cfg.run.duration_s / SECONDS_PER_MINUTE / h.time_step_min))
     grid = TimeGrid(h.time_step_min, steps)
@@ -464,9 +485,9 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
     times = grid.minutes * SECONDS_PER_MINUTE
     for name, point, element in wanted:
         table.append((name, point, times, run.outflow[element]))
-    if routes is None:
-        return table, None
-    return table, LiveNetwork(basin, routes, run, _live_reentries(routes, wanted))
+    if routes is None or not routes.live:
+        return table, None, NetworkSeries(basin, run)
+    return table, LiveNetwork(basin, routes, run, _live_reentries(routes, wanted)), NetworkSeries(basin, run, routes.live)
 
 
 @dataclass
@@ -575,9 +596,18 @@ def _preflight(cfg: RunConfig, crs: str):
     return (storm, polygons, *_network(cfg, storm, crs))
 
 
+def _resolved(cfg: RunConfig, crs: str):
+    """A job on a generated basin as the engine runs it, and the basin; any other job as it is."""
+    if cfg.hydrology.basin_json is None:
+        return cfg, None
+    from wadi2d.basin.job import resolve
+
+    return resolve(cfg, crs)
+
+
 def preflight(cfg: RunConfig, crs: str):
     """Everything that can refuse a job without a grid; it comes before the tables, which can take minutes."""
-    return _preflight(cfg, crs)[:3]
+    return _preflight(_resolved(cfg, crs)[0], crs)[:3]
 
 
 def spillway_notes(cfg: RunConfig) -> list[str]:
@@ -616,16 +646,21 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     """The simulation. Returns (tables, CRS WKT) for the step after it; the model is gone by then, GPU memory too."""
     check_inputs(cfg)
     cfg = with_tables(cfg)
-    checkpoint = out / "checkpoint.h5"
-    continuing = _check_resume(cfg, checkpoint, resume, progress)
-    (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
-    t0 = time.monotonic()
     if tables is not None:
         tables, crs = tables
     else:
         with rasterio.open(cfg.terrain.dem) as dem:
             crs = dem.crs.to_wkt() if dem.crs is not None else ""
-    storm, polygons, flows, network = _preflight(cfg, crs)
+    cfg, generated = _resolved(cfg, crs)
+    checkpoint = out / "checkpoint.h5"
+    continuing = _check_resume(cfg, checkpoint, resume, progress)
+    (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
+    t0 = time.monotonic()
+    storm, polygons, flows, network, lumped = _preflight(cfg, crs)
+    if generated is not None:
+        for note in generated.notes:
+            progress.emit("warn", message=note)
+        progress.emit("basin", path=str(generated.path), **generated.report())
     still = storm is None and not flows and not cfg.initial_levels
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
@@ -659,6 +694,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         wanted = cfg.outputs.terrain_map
         report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
         progress.emit("terrain", volumes=report.volumes, files=report.files)
+    subs = cfg.hydrology.subbasins
+    lumped_names = [s.name for s in subs if s.mode == "lumped"]
+    two_d_names = [s.name for s in subs if s.mode == "2d"]
+    for note in check_rain_once(grid, polygons, lumped_names, two_d_names, cfg.hydrology.overlap_share):
+        progress.emit("warn", message=note)
     name = backend or cfg.run.backend
     try:
         model = Model(tables, cfg.numerics, name)
@@ -682,6 +722,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs, stop_files)
     monitor.balance.storage0 = monitor.storage()
     link = HandBackLink(cfg, tables, model, bset, forcing, network, monitor) if network is not None else None
+    if lumped is not None:
+        monitor.parts.append(lumped)
     bed = BedLoss(cfg, tables, model, forcing, crs, monitor) if cfg.transmission.enabled else None
     for part in (link, bed):
         for note in part.notes() if part is not None else ():

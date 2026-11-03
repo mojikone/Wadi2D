@@ -13,7 +13,7 @@ method needs a streaming form or a saved state; a checkpoint keeps the series an
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Collection, Iterable, Mapping
 from dataclasses import dataclass
 
 import numpy as np
@@ -44,16 +44,29 @@ class Routes:
     """Elements a hand-back enters."""
 
 
-def plan_routes(basin: Basin, entries: Iterable[str], exits: Iterable[str]) -> Routes:
+def plan_routes(
+    basin: Basin,
+    entries: Iterable[str],
+    exits: Iterable[str],
+    cut: Collection[tuple[str, str]] = (),
+    cut_entries: bool = True,
+) -> Routes:
     """Walk down from each hand-back's element to a re-entry or the end of the network; a route that cannot hold water
     honestly raises, in words.
+
+    ``cut`` holds links decided elsewhere, which carry no water either way. ``cut_entries`` cuts every link into a
+    hand-back's element, because on an HMS basin everything above it reaches it through the grid; a generated basin
+    passes False, since its routes already say which water is on the grid and the lumped water above the junction stays
+    in the network (:mod:`wadi2d.basin.job`).
     """
     above = tuple(dict.fromkeys(entries))
     leaving = set(exits)
     for name in above:
         if name not in basin.elements:
             raise ValueError(f"hand-back into unknown element {name}")
-    cut = {(parent, name) for name in above for parent in basin.upstream[name]}
+    cut = set(cut)
+    if cut_entries:
+        cut |= {(parent, name) for name in above for parent in basin.upstream[name]}
     live: set[str] = set()
     ends: list[tuple[str, bool]] = []
     stack = list(above)
@@ -81,7 +94,7 @@ def plan_routes(basin: Basin, entries: Iterable[str], exits: Iterable[str]) -> R
         for target in (main, second):
             if target is None:
                 continue
-            if target in above:
+            if target in above and cut_entries:  # with the links kept, the next entry is one more live element
                 raise ValueError(
                     f"water routed through {name} reaches {target}, where a hand-back replaces all that arrives: "
                     f"it would be lost. Give that route a re-entry above {target}."

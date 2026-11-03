@@ -30,7 +30,7 @@ from wadi2d.basin.build import assemble
 from wadi2d.basin.contract import SOURCE_JOB, SOURCE_RASTER, SOURCE_USER, check_model, value_of
 from wadi2d.basin.elements import Namer
 from wadi2d.basin.kernels import NONE
-from wadi2d.basin.parameters import index_celerity, nrcs_lag_minutes
+from wadi2d.basin.parameters import hms_kirpich_lag_minutes, index_celerity, nrcs_lag_minutes
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH
 from wadi2d.config.schema import BasinSettings, DesignPoint, RunConfig
 from wadi2d.engine.cli import main
@@ -441,6 +441,41 @@ def test_a_namer_skips_a_name_in_use() -> None:
     assert namer.name("junction", 50.0, 0.0) == "J3"
 
 
-def test_the_job_schema_does_not_know_the_basin_settings() -> None:
-    assert "BasinSettings" not in json.dumps(RunConfig.model_json_schema())
-    assert "basin" not in RunConfig().model_dump()
+def test_the_job_carries_the_basin_settings_and_a_checkpoint_ignores_them() -> None:
+    from wadi2d.run import job_hash
+
+    assert "BasinSettings" in json.dumps(RunConfig.model_json_schema())
+    assert RunConfig().model_dump()["basin"]["lag_method"] == "nrcs"
+    plain = RunConfig(terrain={"dem": __file__})
+    moved = plain.model_copy(update={"basin": BasinSettings(lag_method="hms_kirpich")})
+    assert job_hash(plain) == job_hash(moved)
+
+
+def test_the_hms_lag_rule_reads_an_hms_lag_of_block_2() -> None:
+    """S1 of the Block 2 model: longest path 26,164 m, 10-85 slope 0.01707, lag 112.0 min (`W24 basin model`)."""
+    from wadi2d.basin.parameters import hms_kirpich_lag_minutes
+
+    assert hms_kirpich_lag_minutes(26164.0, 0.01707) == pytest.approx(112.0, rel=0.01)
+
+
+def test_the_lag_method_of_the_settings_decides_the_derived_lag(valley: Valley) -> None:
+    nrcs = model_of(complete_job(valley.folder, valley.dem))
+    settings = SETTINGS.model_copy(update={"lag_method": "hms_kirpich"})
+    kirpich = model_of(complete_job(valley.folder, valley.dem), settings)
+    first = by_kind(nrcs, "subbasin")[0]
+    twin = by_kind(kirpich, "subbasin")[0]
+    assert kirpich["settings"]["lag_method"] == "hms_kirpich"
+    expected = hms_kirpich_lag_minutes(value_of(twin, "flow_length_m"), value_of(twin, "slope_10_85"))
+    assert value_of(twin, "lag_minutes") == pytest.approx(expected, abs=0.01)
+    assert value_of(first, "lag_minutes") != value_of(twin, "lag_minutes")
+    assert [r["junction"] for r in nrcs["routes"]] == [e["name"] for e in nrcs["elements"] if e["kind"] in ("junction", "reservoir")]
+
+
+def test_a_file_without_a_lag_method_is_the_nrcs_one(valley: Valley) -> None:
+    model = model_of(complete_job(valley.folder, valley.dem))
+    old = json.loads(json.dumps(model))
+    del old["settings"]["lag_method"]
+    for element in by_kind(old, "subbasin"):
+        element["parameters"]["lag_minutes"] = {"value": None, "source": "derived"}
+    refresh(old)
+    assert value_of(by_kind(old, "subbasin")[0], "lag_minutes") == value_of(by_kind(model, "subbasin")[0], "lag_minutes")

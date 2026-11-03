@@ -14,6 +14,8 @@ from ..shaped import SHAPED_KINDS
 from .common import Section, field_combo, layer_combo
 from .shaped_rows import ROWS, ProfileRow, ShapedRows, lines_of
 
+NAME_FIELDS = ("name", "Name", "NAME")
+"""A field that names a structure; a crest line's name names its reservoir in a generated basin."""
 RELATED = {
     "crest_line": ("Crest lines", {"crest_z": "Crest elevation field"}),
     "wall": ("Walls", {}),
@@ -96,8 +98,12 @@ class StructuresSection(Section):
         return {"structures": structures, "terrain_map": self.terrain_map.isChecked()}
 
     def _parts(self, kind: str, crs) -> list:
+        layer = self.layers[kind].currentLayer()
         chosen = {key: combo.currentField() for key, combo in self.fields[kind].items()}
-        return keyed(layer_features(self.layers[kind].currentLayer(), crs, chosen, with_id=True))
+        name = next((f for f in NAME_FIELDS if f in layer.fields().names()), None)
+        if name:  # a crest line's name names the reservoir of a generated basin
+            chosen["name"] = name
+        return keyed(layer_features(layer, crs, chosen, with_id=True))
 
     def lines(self, kind: str, crs) -> list:
         """The lines of one kind for the profile editor."""

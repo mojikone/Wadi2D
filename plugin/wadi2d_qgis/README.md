@@ -48,6 +48,14 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    it is. The file sits beside the run folder. Needs `whitebox`, like the mesh.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
    lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
+   Or tick **Generate the basin from the DEM**: a stream threshold, pour points (the dams and the design lines are pour points
+   by themselves), the lag method, and Generate runs `wadi2d basin` on the terrain of section 1 and the dams of section 5,
+   keeps `basin.json` and `basin.gpkg` in `wadi2d_basin` under the output folder, and loads the subbasins, reaches and
+   junctions. Every subbasin is lumped by default; one lacking a parameter runs as rain-on-grid, says so in its tooltip, and
+   the run warns by name. The junctions table says where a reach routes the flow and where the water enters the 2D grid
+   instead; a run completes it with its own word, and builds a hand-back line wherever 2D flow reaches a junction with a
+   reach below. A line layer of your own hand-backs, one element per line, and the dry-bed transmission loss (off by default)
+   sit under the table and work with both sources.
 4. **Storm.** Steady rain, a hyetograph table, a design storm with its pattern and area reduction, or gridded rain from a
    NetCDF file, a DSS file or a folder of GeoTIFFs. An HMS project starts on its own storm, and any of these replaces it.
    The same rain reaches the 2D cells and the lumped subbasins: a cell reads the pixel it stands in, a subbasin the
@@ -147,6 +155,8 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `protocol.py` | commands, file names, exit codes, the clean environment | no |
 | `progress.py` | progress tail, run state, where the live raster is | no |
 | `boundary_rows.py` | the rows of the Boundaries table: who set what | no |
+| `sections/basin_rows.py` | the generated basin as rows: modes, routes, hand-back lines, the job's basin part | no |
+| `basin_layers.py` | the three layers of `basin.gpkg`, styled, in their group | yes |
 | `storm_rows.py` | the Storm section as plain values: pasted tables, problems, the job's storm block | no |
 | `mesh_rows.py` | the rows of the mesh lines table: what each size becomes, who set what | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |

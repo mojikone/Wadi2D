@@ -9,7 +9,8 @@ from pathlib import Path
 
 import pytest
 from wadi2d_qgis import job_builder
-from wadi2d_qgis.job_builder import Feature, SchemaView, build_job, merge_hms, preview_job
+from wadi2d_qgis.job_builder import Feature, SchemaView, basin_job, build_job, merge_hms, preview_job
+from wadi2d_qgis.sections import basin_rows
 from wadi2d_qgis.shaped import END_KEYS, LINING, OBJECT_PATH, SECTION_PATH, SHAPE_KEYS, SHAPED_KINDS
 
 config = pytest.importorskip("wadi2d.config.schema")
@@ -37,6 +38,12 @@ PATHS = (
     job_builder.LOCAL_STEPS,
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
+    basin_rows.STREAM_THRESHOLD,
+    basin_rows.LAG_METHOD,
+    basin_rows.BASIN_JSON,
+    basin_rows.HANDBACK_ELEMENT,
+    basin_rows.TRANSMISSION_ON,
+    basin_rows.TRANSMISSION_RATE,
     *(SECTION_PATH + key for key in SHAPE_KEYS),
     *(OBJECT_PATH + key for key in (*END_KEYS, LINING)),
 )
@@ -259,3 +266,36 @@ def test_handbacks_and_the_bed_loss_pass_through_the_dock_untouched() -> None:
     cfg = config.RunConfig.model_validate(merged)
     assert cfg.hydrology.handbacks[0].element == "R1"
     assert cfg.transmission.enabled
+
+
+def test_a_generated_basin_job_and_its_generation_job_pass_the_engine_validation(tmp_path: Path, real: SchemaView) -> None:
+    line = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
+    basin = {
+        "json": str(tmp_path / "wadi2d_basin" / "basin.json"),
+        "settings": {"stream_threshold_km2": 10.0, "lag_method": "hms_kirpich"},
+        "pour_points": [],
+        "modes": {"S1": "lumped", "S2": "2d"},
+    }
+    values = full_values(
+        tmp_path, basin=basin, transmission={"rate_mm_h": 25.0},
+        handbacks=[Feature("LineString", line, {"name": "Wadi", "element": "R1"})],
+    )  # fmt: skip
+    parsed = config.RunConfig.model_validate(build_job(values, tmp_path / "out"))
+    assert parsed.hydrology.basin_json.endswith("basin.json")
+    assert [(s.name, s.mode) for s in parsed.hydrology.subbasins] == [("S1", "lumped"), ("S2", "2d")]
+    assert parsed.basin.lag_method == "hms_kirpich" and parsed.basin.stream_threshold_km2 == 10.0
+    assert parsed.hydrology.handbacks[0].element == "R1" and parsed.hydrology.handbacks[0].name == "Wadi"
+    assert parsed.transmission.enabled and parsed.transmission.rate_mm_h == 25.0
+    made = config.RunConfig.model_validate(basin_job(values, tmp_path / "wadi2d_basin"))
+    assert made.hydrology.basin_json is None and made.storm.kind == "none" and not made.transmission.enabled
+    assert made.basin.lag_method == "hms_kirpich" and made.outputs.points[0].name == "Dam"
+    assert set(real.enum(basin_rows.LAG_METHOD)) == set(basin_rows.LAG_WORDS)
+    assert real.default(basin_rows.TRANSMISSION_ON) is False
+
+
+def test_the_route_names_of_the_rows_are_the_engines() -> None:
+    from wadi2d.basin.job import MODE_2D, MODE_LUMPED
+    from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH
+
+    assert (basin_rows.MODE_LUMPED, basin_rows.MODE_2D) == (MODE_LUMPED, MODE_2D)
+    assert (basin_rows.ROUTE_REACH, basin_rows.ROUTE_NONE) == (ROUTE_REACH, ROUTE_NONE)
