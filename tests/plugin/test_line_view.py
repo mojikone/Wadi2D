@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pytest
 from wadi2d_qgis.line_view import (
+    FLOW_ESTIMATE,
+    FLOW_FACES,
     FRAMES,
     NO_DEM,
     TEMPORARY,
@@ -191,3 +193,34 @@ def test_a_real_answer_of_the_engine_makes_a_view(tmp_path: Path) -> None:
     assert len(view.section.level_m) == len(view.frames_s) == len(read["t_s"])
     assert "flow" in readout(view, 1)
     assert point_view(point, listing["frames_s"]).charts[0].curves[0].values
+
+
+def test_a_line_read_off_the_saved_faces_is_labelled_a_number_of_record_at_the_frame_interval() -> None:
+    view = line_view(Entry(TEMPORARY, "Line 1"), {**READ, "flow_source": FLOW_FACES, "flow_m3s": [0.0, -10.0, -5.0]})
+    curve = view.charts[0].curves[0]
+    assert curve.source == FRAMES
+    assert curve.label == "Saved frames, every 5 min: discharge through the faces, number of record at the frame interval"
+    assert curve.values == [0.0, 10.0, 5.0]  # drawn as a size, the sign stays in the engine's answer
+    assert "number of record at the frame interval" in view.limit
+    assert "discharge through the faces" in view.limit
+    assert "estimated" not in view.limit and "estimated" not in curve.label
+    assert "a peak between two frames is not seen" in view.limit
+
+
+def test_an_answer_that_says_estimate_or_says_nothing_keeps_the_old_words() -> None:
+    for read in (READ, {**READ, "flow_source": FLOW_ESTIMATE}):
+        view = line_view(Entry(TEMPORARY, "Line 1"), read)
+        assert view.charts[0].curves[0].label == "Saved frames, every 5 min: estimated"
+        assert "not a number of record" in view.limit
+
+
+def test_an_upfront_line_read_off_the_faces_shows_the_record_beside_its_own_frames() -> None:
+    view = line_view(entries({"lines": [RECORD]})[0], {**READ, "flow_source": FLOW_FACES})
+    record, frames = view.charts[0].curves
+    assert "number of record" in record.label and "number of record at the frame interval" in frames.label
+    assert record.source == UPFRONT and frames.source == FRAMES
+
+
+def test_the_flow_source_words_are_the_engines() -> None:
+    engine = pytest.importorskip("wadi2d.products.face_flow")
+    assert (FLOW_FACES, FLOW_ESTIMATE) == (engine.FLOW_FACES, engine.FLOW_ESTIMATE)

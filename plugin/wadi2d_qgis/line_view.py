@@ -4,7 +4,9 @@
 
 Two kinds of line, and the plot must never let them be mistaken for each other. An upfront line or point was computed
 during the run: a number of record. A temporary line is read back from the saved frames: the map interval, and a flow
-estimated from depth and speed. An upfront line can be read from the frames as well, to see the two side by side.
+that is either the discharge through the faces the run saved with its maps, the number of record at the frame interval,
+or, on a run that saved none, an estimate from depth and speed. The engine's answer says which, and so does the plot.
+An upfront line can be read from the frames as well, to see the two side by side.
 """
 
 from __future__ import annotations
@@ -20,12 +22,20 @@ FRAME_TOLERANCE_S = 0.5
 RECORD_COLOUR, FRAMES_COLOUR = "#1a5f9a", "#c8560a"
 RECORD_LABEL = "Upfront, computed in the run: number of record"
 FRAMES_LABEL = "Saved frames, {every}: estimated"
+FACES_LABEL = "Saved frames, {every}: discharge through the faces, number of record at the frame interval"
 FLOW_TITLE = "Flow, m3/s, size only"
 UPFRONT, FRAMES = "upfront", "frames"
+FLOW_FACES, FLOW_ESTIMATE = "faces", "estimate"
+"""What the engine says a line's flow was read from; an answer without the word is an estimate."""
 LIMIT = (
     "Saved frames, {every}: a peak between two frames is not seen. Flow is estimated from depth and speed, turned by the "
     "slope of the water: not a number of record. Across the flow it read 0.6 to 1.0 of upfront lines, lowest on coarse "
     "cells. A line along the flow reads far too high, and a line that crosses a wadi twice counts it twice."
+)
+FACES_LIMIT = (
+    "Saved frames, {every}: a peak between two frames is not seen. Flow is the discharge through the faces the line "
+    "crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. "
+    "A line that crosses a wadi twice reads the net flow through both crossings."
 )
 LINE_NOTE = "Computed during the run, at every series step, from the discharge on the faces: the number of record."
 POINT_NOTE = "Computed during the run, at every series step: the number of record."
@@ -174,7 +184,10 @@ def line_view(entry: Entry, read: dict) -> View:
     """A line read from the saved frames, with its record beside it when it has one."""
     interval = every(read["interval_s"])
     times = _hours(read["t_s"])
-    frames = Curve(FRAMES_LABEL.format(every=interval), FRAMES, FRAMES_COLOUR, times, read["flow_m3s"], markers=True)
+    of_record = read.get("flow_source") == FLOW_FACES
+    label = (FACES_LABEL if of_record else FRAMES_LABEL).format(every=interval)
+    flows = [abs(q) for q in read["flow_m3s"]]
+    frames = Curve(label, FRAMES, FRAMES_COLOUR, times, flows, markers=True)
     deepest = Curve(f"Saved frames, {interval}", FRAMES, FRAMES_COLOUR, times, read["deepest_m"], markers=True)
     record = _record_curve(entry)
     flow = [record, frames] if record else [frames]
@@ -187,7 +200,8 @@ def line_view(entry: Entry, read: dict) -> View:
         heading = f"Temporary line: {entry.name}. Read from saved frames."
     else:
         heading = f"Upfront line: {entry.name}. Flow computed during the run; depth and water surface read from saved frames."
-    return View(heading, LIMIT.format(every=interval), charts, section, read["t_s"])
+    limit = (FACES_LIMIT if of_record else LIMIT).format(every=interval)
+    return View(heading, limit, charts, section, read["t_s"])
 
 
 def value_at(curve: Curve, hours: float) -> float | None:
