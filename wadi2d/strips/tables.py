@@ -131,12 +131,14 @@ def build_poly_tables(
     wall: np.ndarray | None = None,
     given_cw: np.ndarray | None = None,
     ghosts: Ghosts | None = None,
+    crest: np.ndarray | None = None,
 ) -> tuple[PolyMesh, np.ndarray]:
     """The mesh's tables; and the index of each kept face in the geometry (boundary faces and walls are left out).
 
     ``manning`` is one value or one per cell; a face takes the mean of its two cells', an interface face the strip
     cell's. ``wall`` marks faces that are closed; ``given_cw`` the crest coefficients objects gave the geometry's
-    faces (stage 6); ``ghosts`` the tile cells boundary faces open onto, kept as ghost cells after the real ones.
+    faces and ``crest`` the elevation they lift each face to, NaN where none (stage 6); ``ghosts`` the tile cells
+    boundary faces open onto, kept as ghost cells after the real ones.
     """
     area, cx, cy = geo.areas_centroids()
     if (area <= 0.0).any():
@@ -185,8 +187,9 @@ def build_poly_tables(
         a, b = geo.face_node[f]
         prof, spacing = face_profile(pix, geo.x[a], geo.y[a], geo.x[b], geo.y[b])
         n_face = nman[left[f]] if right[f] >= n else 0.5 * (nman[left[f]] + nman[right[f]])
+        lift = np.nan if crest is None else float(crest[f])
         zf[k], ef[k] = _face_table(
-            prof, np.nan, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, cfg.face_depth_min, cfg.face_depth_max, ftab_one
+            prof, lift, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, cfg.face_depth_min, cfg.face_depth_max, ftab_one
         )
         ftab[k] = ftab_one
     cw = np.zeros(m) if given_cw is None else np.asarray(given_cw, dtype=np.float64)[kept]

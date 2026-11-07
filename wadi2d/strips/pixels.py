@@ -136,7 +136,8 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
 
 def strip_ground(cfg: RunConfig, tables, strip, datum: float) -> StripGround:
     """The strip's pixel ground from the job's DEM at the pixel maps' stride, placed on the grid's pixel frame."""
-    from wadi2d.terrain import RasterBed
+    from wadi2d.terrain import Ground, RasterBed, apply_objects
+    from wadi2d.terrain.sections import with_tables
 
     grid, geo = tables.grid, strip.strip.geometry
     with RasterBed(cfg.terrain.dem) as probe:
@@ -148,7 +149,11 @@ def strip_ground(cfg: RunConfig, tables, strip, datum: float) -> StripGround:
         row0 = int(np.floor((grid.y0 - float(geo.y.max())) / p)) - 1
         ncols = int(np.ceil((float(geo.x.max()) - grid.x0) / p)) + 2 - col0
         nrows = int(np.ceil((grid.y0 - float(geo.y.min())) / p)) + 2 - row0
-        z = bed.read(row0, col0, nrows, ncols)
+        z = np.asarray(bed.read(row0, col0, nrows, ncols), np.float64)
+        objects = with_tables(cfg).terrain.objects
+        edits = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0))
+        if edits.edit is not None:  # the same ground the strip's tables stand on
+            edits.edit(z, row0, col0)
     pix = Pixels(np.asarray(z, np.float64), grid.x0 + col0 * p, grid.y0 - row0 * p, p)
     found = ground_from_pixels(geo, strip.mesh, strip.kept, pix, grid.x0, grid.y0, datum)
     found.rows = found.rows + row0

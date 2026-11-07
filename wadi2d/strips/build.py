@@ -21,8 +21,10 @@ from wadi2d.solver.poly.mesh import PolyMesh
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.hybrid import ghosts_for
 from wadi2d.strips.mesher import Corridor, StripMesh, build_strip_mesh
+from wadi2d.strips.objects import crest_polylines, faces_from_objects
 from wadi2d.strips.tables import Pixels, build_poly_tables
 from wadi2d.tables.builder import GridTables
+from wadi2d.terrain import Ground, apply_objects
 
 
 @dataclass
@@ -87,11 +89,19 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     row0 = int(np.floor((grid.y0 - y_hi) / bed.pixel))
     ncols = int(np.ceil((x_hi - x_lo) / bed.pixel)) + 1
     nrows = int(np.ceil((y_hi - y_lo) / bed.pixel)) + 1
-    z = bed.read(row0, col0, nrows, ncols)
-    pix = Pixels(np.asarray(z, np.float64), grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k)
+    z = np.asarray(bed.read(row0, col0, nrows, ncols), np.float64)
+    ground = Ground(bed, grid.x0, grid.y0)
+    edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+    if edits.edit is not None:  # burn lines and shaped objects rebuild the strip's ground as they do the squares'
+        edits.edit(z, row0, col0)
+    pix = Pixels(z, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k)
     ghosts = ghosts_for(geo, grid, tables)
+    lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
+    crest, cw, wall = faces_from_objects(geo, ghosts, lines)
     n = float(np.mean(manning)) if not np.isscalar(manning) else float(manning)
-    mesh, kept = build_poly_tables(geo, pix, cfg.tables, grid.dx, n, ghosts=ghosts)
+    mesh, kept = build_poly_tables(
+        geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest
+    )
     return StripTables(strip, mesh, kept)
 
 
