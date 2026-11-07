@@ -194,6 +194,10 @@ class Hybrid:
         """A strip array on the host (a copy on the GPU, the array itself on the CPU)."""
         raise NotImplementedError
 
+    def strip_maxima(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """The largest depth and mean depth of each real cell and the largest discharge of each face, on the host."""
+        raise NotImplementedError
+
     def strip_volume(self) -> float:
         """Water in the strip, the clamp residual of each cell included, as the tiles count theirs."""
         n = self.nreal
@@ -210,7 +214,9 @@ class Hybrid:
     def attach(self, monitor, strip, lines) -> None:
         """The strip's water in the balance, what it passes into boundary cells as outflow (a boundary cell's depth
         is reset after every step, so that water has left), and its faces in every result line that crosses it."""
+        from wadi2d.forcing import line_faces
         from wadi2d.strips.build import line_crossings
+        from wadi2d.strips.products import STRIP_MESH_FILE, write_strip_mesh
 
         monitor.extra_storage.append(self.strip_volume)
         j, i = self.cells_of(self.ghost)
@@ -220,10 +226,19 @@ class Hybrid:
         self.b_faces = iface[at_boundary[self.mesh.right[iface] - n]]
         self.watch_boundary(self.b_faces)
         monitor.extra_outflow.append(self.boundary_outflow)
+        monitor.extra_products.append(lambda folder, crs: ("strip_mesh", write_strip_mesh(folder / STRIP_MESH_FILE, self, strip, crs)))
+        joins = {axis: set(self.edge[axis][3].tolist()) for axis in self.edge}
+        idx = self.model.device_index
         for n, line in enumerate(lines):
             faces, signs = line_crossings(strip.strip.geometry, strip.kept, strip.mesh, line.coordinates)
             if faces.size:
                 monitor.extra_lines.setdefault(n, []).append(self._line_flow(faces, signs))
+            # the lattice staircase may land on a join slot the strip writes; the strip counts that face
+            lf = line_faces(self.model.grid, line.coordinates)
+            kx = np.array([k not in joins.get("x", ()) for k in lf.xfaces.tolist()], bool)
+            ky = np.array([k not in joins.get("y", ()) for k in lf.yfaces.tolist()], bool)
+            if not (kx.all() and ky.all()):
+                monitor.lines[n] = (idx(lf.xfaces[kx]), lf.xsign[kx], idx(lf.yfaces[ky]), lf.ysign[ky])
 
     def _line_flow(self, faces: np.ndarray, signs: np.ndarray):
         def flow() -> float:
@@ -266,10 +281,15 @@ class HybridCpu(Hybrid):
             raise ValueError("HybridCpu steps a CPU model; make_hybrid picks the class")
         self.saved = np.zeros(self.ghost.size, F)
         self.left_m3 = 0.0
+        self.max_d, self.max_h = np.zeros(self.nreal, F), np.zeros(self.nreal, F)
+        self.max_q = np.zeros(self.mesh.nfaces, F)
         return PolyState(self.mesh, self.model.num)
 
     def strip_host(self, name: str) -> np.ndarray:
         return getattr(self.state, name)
+
+    def strip_maxima(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.max_d, self.max_h, self.max_q
 
     def watch_boundary(self, faces: np.ndarray) -> None:
         self.b_faces = np.asarray(faces, np.int64)
@@ -322,6 +342,9 @@ class HybridCpu(Hybrid):
         dx = float(self.dx)
         if self.b_faces.size:
             self.left_m3 += float(s.q[self.b_faces].astype(np.float64).sum()) * dt
+        np.maximum(self.max_d, s.d[:n], out=self.max_d)
+        np.maximum(self.max_h, s.h[:n], out=self.max_h)
+        np.maximum(self.max_q, np.abs(s.q), out=self.max_q)
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
                 continue

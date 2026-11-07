@@ -652,6 +652,9 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     }
     for name, (data, valid) in maps.items():
         write_map(out / "maps" / f"{name}.tif", data, grid, crs, valid, tags)
+    for make in monitor.extra_products:
+        kind, path = make(out / "maps", crs)
+        progress.emit("output", kind=kind, path=str(path))
     results.maxima(fields_)
     deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask)
     if deep > cfg.outputs.edge_depth:

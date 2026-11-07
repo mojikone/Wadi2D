@@ -61,6 +61,14 @@ def test_a_job_with_a_corridor_runs_on_the_cpu_and_its_books_close(tilted_dem, t
     assert strips["corridors"] == 1 and strips["cells"] == 6 * 30 and strips["triangles"] > 0 and strips["replaced"] > 0
     assert abs(run.balance.relative) < 1e-6
     assert run.balance.rain > 0.0
+    import sqlite3
+
+    db = sqlite3.connect(out / "maps" / "strip_mesh.gpkg")
+    cells = db.execute("SELECT COUNT(*), MAX(max_depth_m), SUM(kind = 'corridor') FROM strip_cells").fetchone()
+    faces = db.execute("SELECT SUM(kind = 'interface'), SUM(kind = 'breakline'), MAX(max_discharge_m3s) FROM strip_faces").fetchone()
+    db.close()
+    assert cells[0] == strips["cells"] + strips["triangles"] and cells[2] == strips["cells"] and cells[1] > 0.0
+    assert faces[0] > 0 and faces[1] == 30 and faces[2] > 0.0  # one snapped row of 30 stations
 
 
 def test_a_corridor_ending_on_the_outflow_boundary_closes_the_books(tilted_dem, tmp_path) -> None:  # noqa: F811

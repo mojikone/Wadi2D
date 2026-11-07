@@ -155,6 +155,8 @@ class Monitor:
         """Callables giving water held beside the tiles, m3: a strip's (W45)."""
         self.extra_outflow: list = []
         """Callables giving water that left through faces beside the tiles, m3: a strip's flow into boundary cells."""
+        self.extra_products: list = []
+        """Callables ``(maps folder, crs) -> (kind, path)`` writing a map product beside the tiles': a strip's mesh."""
         self.extra_lines: dict[int, list] = {}
         """Per line index, callables giving discharge through faces beside the tiles, m3/s."""
         self.lines: list[tuple[object, np.ndarray, object, np.ndarray]] = []

@@ -78,32 +78,40 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
 
 
 def line_crossings(geo: MeshGeometry, kept: np.ndarray, mesh: PolyMesh, coordinates) -> tuple[np.ndarray, np.ndarray]:
-    """The mesh faces a polyline crosses and the sign that makes their discharge positive to the line's right.
+    """The mesh faces a polyline separates and the sign that makes their discharge positive to the line's right.
 
-    A face counts when the line crosses its interior or runs along it; a face that only ends on the line, at a
-    node the line passes through, carries flow along the line and is left out.
+    The lattice rasterises a line into a staircase of faces between the cells on either side of it; here the same
+    rule on polygons: a cell is on the line's left or right by its centroid against the nearest stretch of the line,
+    and a face counts when its two cells (a ghost, the tile cell beyond the join, included) lie on different sides.
+    A line across a corridor is parallel to the station faces that carry the flow and would cut none of them.
+    Faces past the line's ends, which the nearest stretch would still take sides on, stay out.
     """
     line = shapely.LineString(coordinates)
-    faces, signs = [], []
-    a, b = geo.face_node[kept, 0], geo.face_node[kept, 1]
-    segments = shapely.linestrings(np.stack((np.column_stack((geo.x[a], geo.y[a])), np.column_stack((geo.x[b], geo.y[b]))), axis=1))
-    hit = np.nonzero(shapely.intersects(segments, line))[0]
-    parts = np.asarray(line.coords)
-    for f in hit:
-        meet = segments[f].intersection(line)
-        if meet.geom_type == "Point":
-            ends = np.array([[geo.x[a[f]], geo.y[a[f]]], [geo.x[b[f]], geo.y[b[f]]]])
-            if np.hypot(*(ends - np.array([meet.x, meet.y])).T).min() < 1e-6:
-                continue  # the line passes through one of the face's nodes: along, not across
-        elif meet.length <= 1e-9:
-            continue
-        xf, yf = mesh.xf[f], mesh.yf[f]
-        # the line's direction at the crossing: its nearest segment
-        s = line.project(shapely.Point(xf, yf))
-        cum = np.concatenate(([0.0], np.cumsum(np.hypot(*np.diff(parts, axis=0).T))))
-        k = int(np.clip(np.searchsorted(cum, s, side="right") - 1, 0, parts.shape[0] - 2))
-        d = parts[k + 1] - parts[k]
-        right = np.array([d[1], -d[0]])
-        signs.append(1.0 if mesh.nx[f] * right[0] + mesh.ny[f] * right[1] > 0.0 else -1.0)
-        faces.append(int(f))
-    return np.asarray(faces, np.int64), np.asarray(signs, np.float64)
+    parts = np.asarray(line.coords)[:, :2]
+    seg = np.diff(parts, axis=0)
+    cum = np.concatenate(([0.0], np.cumsum(np.hypot(seg[:, 0], seg[:, 1]))))
+    cx, cy = mesh.cx, mesh.cy
+
+    def side(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+        """+1 left of the line, -1 right, by the nearest stretch."""
+        pts = shapely.points(np.column_stack((x, y)))
+        s = shapely.line_locate_point(line, pts)
+        k = np.clip(np.searchsorted(cum, s, side="right") - 1, 0, seg.shape[0] - 1)
+        px, py = np.asarray(shapely.get_coordinates(shapely.line_interpolate_point(line, s))).T
+        cross = seg[k, 0] * (y - py) - seg[k, 1] * (x - px)
+        return np.where(cross >= 0.0, 1.0, -1.0)
+
+    sides = side(cx, cy)
+    L, R = mesh.left, mesh.right
+    across = sides[L] != sides[R]
+    faces = np.nonzero(across)[0]
+    if faces.size == 0:
+        return faces, np.zeros(0, np.float64)
+    mids = shapely.points(np.column_stack((mesh.xf[faces], mesh.yf[faces])))
+    s = shapely.line_locate_point(line, mids)
+    reach = 0.5 * np.sqrt(np.maximum(mesh.area[L[faces]], mesh.area[R[faces]]))
+    at_end = (s <= 1e-6) | (s >= line.length - 1e-6)
+    beyond = at_end & (shapely.distance(line, mids) > reach)
+    faces = faces[~beyond]
+    signs = np.where(sides[L[faces]] > 0.0, 1.0, -1.0)  # positive discharge runs left cell to right cell
+    return faces, signs
