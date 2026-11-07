@@ -973,12 +973,50 @@ class BasinSettings(_Part):
     )
 
 
+class SnapRow(_Part):
+    """A corridor row that lies on a breakline: the row index into the offsets, and the line."""
+
+    row: int = Field(ge=0)
+    coordinates: list[tuple[float, float]] = Field(min_length=2, description="The line the row lies on, m")
+
+
+class CorridorSpec(_Part):
+    """A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,
+    negative to the left of the line's direction; the snapped rows take the ground of their lines."""
+
+    name: str
+    centre: list[tuple[float, float]] = Field(min_length=2, description="The centre line, m")
+    offsets: list[float] = Field(min_length=2, description="Row offsets across, m, ascending")
+    snap: list[SnapRow] = []
+
+    @model_validator(mode="after")
+    def _ascending(self) -> CorridorSpec:
+        if any(b <= a for a, b in zip(self.offsets, self.offsets[1:], strict=False)):
+            raise ValueError(f"corridor {self.name}: offsets must ascend")
+        if any(r.row >= len(self.offsets) for r in self.snap):
+            raise ValueError(f"corridor {self.name}: a snapped row is beyond the offsets")
+        return self
+
+
+class Strips(_Part):
+    """Strips of cells aligned with breaklines inside the square tiles (W45). Off, a job runs as before."""
+
+    enabled: bool = False
+    corridors: list[CorridorSpec] = []
+    along: float | None = Field(None, gt=0.0, description="Station spacing along a corridor, m; None takes grid.dx")
+    buffer_cells: float = Field(
+        0.5, ge=0.0, le=4.0, description="Lattice cells this many cells from a corridor are replaced too"
+    )
+    smooth: int = Field(5, ge=1, le=51, description="Running mean on the centre line, points of 10 m")
+
+
 class RunConfig(_Part):
     """The whole job."""
 
     project: Project = Project()
     grid: GridConfig = GridConfig()
     mesh: Mesh = Mesh()
+    strips: Strips = Strips()
     terrain: Terrain = Terrain()
     tables: Tables = Tables()
     numerics: Numerics = Numerics()

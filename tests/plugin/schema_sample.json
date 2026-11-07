@@ -381,6 +381,59 @@
       "title": "Boundary",
       "type": "object"
     },
+    "CorridorSpec": {
+      "additionalProperties": false,
+      "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\nnegative to the left of the line's direction; the snapped rows take the ground of their lines.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "centre": {
+          "description": "The centre line, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Centre",
+          "type": "array"
+        },
+        "offsets": {
+          "description": "Row offsets across, m, ascending",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "title": "Offsets",
+          "type": "array"
+        },
+        "snap": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SnapRow"
+          },
+          "title": "Snap",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "centre",
+        "offsets"
+      ],
+      "title": "CorridorSpec",
+      "type": "object"
+    },
     "DamLevel": {
       "additionalProperties": false,
       "description": "Where a dam's pool stands when the run starts. A dam not named here starts empty, as a design run that reads the\nattenuation wants; a scenario sets a level, a breach from a full pool say.",
@@ -2214,6 +2267,42 @@
       "title": "Smooth",
       "type": "object"
     },
+    "SnapRow": {
+      "additionalProperties": false,
+      "description": "A corridor row that lies on a breakline: the row index into the offsets, and the line.",
+      "properties": {
+        "row": {
+          "minimum": 0,
+          "title": "Row",
+          "type": "integer"
+        },
+        "coordinates": {
+          "description": "The line the row lies on, m",
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Coordinates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "row",
+        "coordinates"
+      ],
+      "title": "SnapRow",
+      "type": "object"
+    },
     "Storm": {
       "additionalProperties": false,
       "description": "Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.",
@@ -2425,6 +2514,57 @@
         }
       },
       "title": "Storm",
+      "type": "object"
+    },
+    "Strips": {
+      "additionalProperties": false,
+      "description": "Strips of cells aligned with breaklines inside the square tiles (W45). Off, a job runs as before.",
+      "properties": {
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "corridors": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CorridorSpec"
+          },
+          "title": "Corridors",
+          "type": "array"
+        },
+        "along": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Station spacing along a corridor, m; None takes grid.dx",
+          "title": "Along"
+        },
+        "buffer_cells": {
+          "default": 0.5,
+          "description": "Lattice cells this many cells from a corridor are replaced too",
+          "maximum": 4.0,
+          "minimum": 0.0,
+          "title": "Buffer Cells",
+          "type": "number"
+        },
+        "smooth": {
+          "default": 5,
+          "description": "Running mean on the centre line, points of 10 m",
+          "maximum": 51,
+          "minimum": 1,
+          "title": "Smooth",
+          "type": "integer"
+        }
+      },
+      "title": "Strips",
       "type": "object"
     },
     "Subbasin": {
@@ -3063,6 +3203,16 @@
         "refine_lines": true,
         "zones": [],
         "lines": []
+      }
+    },
+    "strips": {
+      "$ref": "#/$defs/Strips",
+      "default": {
+        "enabled": false,
+        "corridors": [],
+        "along": null,
+        "buffer_cells": 0.5,
+        "smooth": 5
       }
     },
     "terrain": {

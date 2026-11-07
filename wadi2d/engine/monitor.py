@@ -151,11 +151,15 @@ class Monitor:
             k = state_index(grid, np.array([j]), np.array([i]))
             self.point_cells.append((idx(np.asarray(k, np.int64)), float(tables.zmin[j, i])))
             self.series.append(Series(p.name, "points", {"depth_m": [], "mean_depth_m": [], "level_m": []}))
+        self.extra_storage: list = []
+        """Callables giving water held beside the tiles, m3: a strip's (W45)."""
+        self.extra_lines: dict[int, list] = {}
+        """Per line index, callables giving discharge through faces beside the tiles, m3/s."""
         self.lines: list[tuple[object, np.ndarray, object, np.ndarray]] = []
         self.line_series: list[Series] = []
         for ln in o.lines:
             faces: LineFaces = line_faces(grid, ln.coordinates)
-            if faces.xfaces.size + faces.yfaces.size == 0:
+            if faces.xfaces.size + faces.yfaces.size == 0 and not getattr(tables, "strip", None):
                 progress.emit("warn", message=f"line {ln.name} crosses no active face")
             self.lines.append((idx(faces.xfaces), faces.xsign, idx(faces.yfaces), faces.ysign))
             self.line_series.append(Series(ln.name, "lines", {"discharge_m3s": []}))
@@ -195,7 +199,7 @@ class Monitor:
         """Water in the interior cells, the rounding residual of each cell included."""
         get = self.model.backend.get_field
         held = get("h")[self.storage_index].astype(np.float64) + get("res")[self.storage_index]
-        return float(held.sum()) * self.tables.grid.dx**2
+        return float(held.sum()) * self.tables.grid.dx**2 + sum(float(more()) for more in self.extra_storage)
 
     def record(self, t: float) -> None:
         m = self.model
@@ -206,8 +210,9 @@ class Monitor:
             s.columns["depth_m"].append(d)
             s.columns["mean_depth_m"].append(float(m.read_cells("h", index)[0]))
             s.columns["level_m"].append(zmin + d)
-        for (ix, sx, iy, sy), s in zip(self.lines, self.line_series, strict=True):
+        for n, ((ix, sx, iy, sy), s) in enumerate(zip(self.lines, self.line_series, strict=True)):
             q = np.dot(m.read_cells("qx", ix), sx) + np.dot(m.read_cells("qy", iy), sy)
+            q += sum(float(more()) for more in self.extra_lines.get(n, ()))
             s.columns["discharge_m3s"].append(float(q))
 
     def snapshot(self, t: float) -> None:

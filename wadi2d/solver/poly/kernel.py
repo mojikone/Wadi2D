@@ -229,8 +229,9 @@ def positivity(nreal, dt, h, area, out, r) -> None:
 
 
 @njit(cache=True)
-def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, h, d, om, q, rows) -> None:
-    """The scaled discharges, the divergence of every cell, the new depth, level and wet share of the real ones."""
+def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, res, h, d, om, q, rows) -> None:
+    """The scaled discharges, the divergence of every cell, the new depth, level and wet share of the real ones;
+    ``res`` carries what the clamp at zero took, as the tile kernel's residual does, so the books close."""
     for c in range(nc):
         div[c] = ZERO
     for f in range(nf):
@@ -241,7 +242,10 @@ def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, 
         div[a] += qf
         div[b] -= qf
     for c in range(nreal):
-        hn = max(h[c] + dt * src[c] - dt * div[c] / area[c], ZERO)
+        inc = res[c] + dt * src[c] - dt * div[c] / area[c]
+        total = h[c] + inc
+        hn = max(total, ZERO)
+        res[c] = inc - (total - h[c]) if total > ZERO else ZERO
         h[c] = hn
         tab = dtab[rows * c : rows * (c + 1)]
         d[c] = cell_level(hn, hc[c], tab, rows)

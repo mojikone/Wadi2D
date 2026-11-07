@@ -149,6 +149,35 @@ The corridor: 580 cells of 20 x 10 m, 272 to 320 gap triangles, 464 to 476 latti
 to under 1 %, the best of the three; [Certain] the 10 m rows halve the time step, the cost the strip's own
 local-time-stepping class will have to pay back (W40's finding, now measured here).
 
+## Stage 7, first piece (2026-11-07): a job carries corridors through `run_job`, passed
+
+The `strips` section of a job (`config/schema.py`: `Strips`, `CorridorSpec`, `SnapRow`; off by default and popped from
+the hash when off, so every existing job keeps its hash) names each corridor by its centre line, its row offsets and the
+rows that snap to a line. `wadi2d/strips/build.py` takes the lattice cells under the corridors out of the mask before
+the tables are built (so their faces close as any inactive cell's do), builds the strip's own tables from the DEM window
+under it through the run's bed reader, and gives a result line the strip faces it crosses, signed as the lattice signs
+them. `run.py` wires the hybrid of stage 3 into the CPU backend's hooks, books the strip's water and rain in the balance
+(`engine/monitor.py`), and adds the strip's crossings to every line. A strip run is CPU only for now and refuses a GPU
+backend, a resume, a CN raster, gridded rain, a depth grid and subbasins by name; stage 5 and the rest of stage 7 lift
+those. `wadi2d/strips/banks.py` turns W26's suggested banks into corridors by the W44 recipe (chain the parts of a side
+along the thalweg, pair the left chain with the right chain it faces longest, the mid-line as the centre, the banks on
+the rows at +-10 m, each corridor clear of the accepted ones and the domain edge). Tests `tests/engine/test_strips_run.py`
+on a tilted plane at 4 m with one corridor and a line across it:
+
+| Case | Result | Rule |
+|---|---|---|
+| The job runs on the CPU; rain 1,129 m3 in, 1,014 out, 115 held | mass error **2e-9** (1.5e-6 before the strip kept its clamp residual as the tiles keep theirs) | under 1e-6 |
+| The line across the corridor against the same job without strips | peak within the rule | within 3 % |
+| A job without strips | hash unchanged | identical |
+| `backend: gpu` with strips | refused in words | InvalidJob |
+
+Found on the way, now in the code: the strip's `update` clamped a cell at zero and dropped the remainder, 1.5e-6 of the
+rain; the tile kernel keeps that remainder in a residual and so does the strip now. A result line that passes through a
+strip node counted the faces that end on it; those carry flow along the line and are left out. Faydh 01's W26 banks give
+225 bank parts on 21 wadis, 41 pairs, 41 corridors along 38.0 km (304 to 3,658 m), against W44's 39 pairs and 30
+corridors (its clearance rule was stricter). Full suite on the branch: one failure, the frozen schema sample, since
+regenerated and passing.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.

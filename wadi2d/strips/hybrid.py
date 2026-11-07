@@ -26,7 +26,7 @@ from wadi2d.solver.model import Model
 from wadi2d.solver.poly import kernel
 from wadi2d.solver.poly.mesh import PolyMesh
 from wadi2d.solver.poly.model import PolyState
-from wadi2d.solver.state import exchange_map, level_of, plan_of
+from wadi2d.solver.state import exchange_map, level_of, plan_of, state_index
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.tables import Ghosts
 from wadi2d.tables.builder import GridTables, hbar_at_level
@@ -186,14 +186,39 @@ class HybridCpu:
         self.state.src[: self.nreal] = np.asarray(rate, F)
 
     def strip_volume(self) -> float:
-        n = self.nreal
-        return float(np.sum(self.state.h[:n].astype(np.float64) * self.mesh.area[:n]))
+        """Water in the strip, the clamp residual of each cell included, as the tiles count theirs."""
+        n, s = self.nreal, self.state
+        return float(np.sum((s.h[:n].astype(np.float64) + s.res[:n]) * self.mesh.area[:n]))
 
     def volume(self) -> float:
         return self.model.volume() + self.strip_volume()
 
     def advance(self, t_end: float, on_step=None) -> float:
         return self.model.advance(t_end, on_step)
+
+    # ---- the run's hooks
+    def attach(self, monitor, strip, lines) -> None:
+        """The strip's water in the balance, and its faces in every result line that crosses it."""
+        from wadi2d.strips.build import line_crossings
+
+        monitor.extra_storage.append(self.strip_volume)
+        for n, line in enumerate(lines):
+            faces, signs = line_crossings(strip.strip.geometry, strip.kept, strip.mesh, line.coordinates)
+            if faces.size:
+                monitor.extra_lines.setdefault(n, []).append(self._line_flow(faces, signs))
+
+    def _line_flow(self, faces: np.ndarray, signs: np.ndarray):
+        def flow() -> float:
+            return float(np.dot(self.state.q[faces].astype(np.float64), signs))
+
+        return flow
+
+    def rain(self, rate: np.ndarray, step: float) -> float:
+        """Uniform rain on the strip at the lattice's own rate; returns the volume of the window, m3."""
+        r = float(rate.max()) if rate.size else 0.0
+        n = self.nreal
+        self.state.src[:n] = F(r)
+        return r * float(self.mesh.area[:n].sum()) * step
 
     # ---- the hooks
     def before_update(self, dt: float, want_wave: bool) -> None:
@@ -219,7 +244,7 @@ class HybridCpu:
         ghost_ratios(g.size, n, g, F(dt), self.dx, b.h, b.r, b.qx1, b.qy1, s.out, s.r)
         kernel.update(
             s.mesh.nfaces, s.ncells, n, F(dt), want_wave, L, R, s.area, s.hc, s.dtab, s.q1, s.r, s.src, s.div,
-            s.h, s.d, s.om, s.q, s.nums[0],
+            s.res, s.h, s.d, s.om, s.q, s.nums[0],
         )  # fmt: skip
         s.u, s.u1 = s.u1, s.u
         s.m, s.m1 = s.m1, s.m
@@ -244,10 +269,10 @@ class HybridCpu:
             velocity[all_copies] = speed[owner].astype(F)
 
 
-def ghosts_for(geo: MeshGeometry, model: Model, tables: GridTables) -> Ghosts:
+def ghosts_for(geo: MeshGeometry, grid_or_model, tables: GridTables) -> Ghosts:
     """The tile cells the geometry's boundary faces open onto: half a cell out along each face's outward normal, an
     active tile cell makes that face an interface; a wall or the void makes it a wall."""
-    grid = model.grid
+    grid = getattr(grid_or_model, "grid", grid_or_model)
     _area, cx, cy = geo.areas_centroids()
     _length, nfx, nfy, xf, yf = geo.faces(cx, cy)
     boundary = np.nonzero(geo.face_cell[:, 1] < 0)[0]
@@ -266,7 +291,7 @@ def ghosts_for(geo: MeshGeometry, model: Model, tables: GridTables) -> Ghosts:
             face_slot[f] = slot_of[(int(jj), int(ii))]
     jj = np.array([c[0] for c in cells], np.int64)
     ii = np.array([c[1] for c in cells], np.int64)
-    state = np.array([model.cell_state_index(int(a), int(b)) for a, b in zip(jj, ii, strict=True)], np.int64)
+    state = np.asarray(state_index(grid, jj, ii), np.int64) if jj.size else np.zeros(0, np.int64)
     gx, gy = grid.xy_of(jj, ii)
     hc, dtab = grid.from_tiles(tables.hc), grid.from_tiles(tables.dtab)
     return Ghosts(

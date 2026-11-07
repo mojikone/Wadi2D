@@ -237,6 +237,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "tables": cfg.tables.model_dump(),
             "manning": t.manning,
             "extras": extras,
+            **({"strips": cfg.strips.model_dump()} if cfg.strips.enabled else {}),
         }
     )
 
@@ -274,6 +275,8 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("reach_routing")
     if not cfg.dam_levels:
         data.pop("dam_levels")
+    if not cfg.strips.enabled:
+        data.pop("strips")  # a job without strips keeps the hash it had before strips existed
     _drop_point_entries(data["hydrology"])
     limit = cfg.grid.content_hash_limit_mb
     files = {}
@@ -296,20 +299,34 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
         key = grid_key(cfg, bed, window)
         path = cache_path(cache_dir, key)
         hit = load_tables(path, key)
-        if hit is not None:
-            emit("output", kind="grid_cache_hit", path=str(path))
-            return hit, crs
         mask = domain_mask(cfg, bed, window)
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
-        grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
-        bed.bind(grid.x0, grid.y0)
-        ground = Ground(bed, grid.x0, grid.y0)
-        edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
-        n = manning_grid(cfg, grid, crs)
-        tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
-    save_tables(path, tables, key)
-    emit("output", kind="grid_cache_saved", path=str(path))
+        strip = None
+        if cfg.strips.enabled:
+            from wadi2d.strips.build import mask_for_strips
+
+            try:
+                mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0)
+            except ValueError as error:
+                raise InvalidJob(str(error)) from error
+        if hit is not None:
+            emit("output", kind="grid_cache_hit", path=str(path))
+            tables = hit
+        else:
+            grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
+            bed.bind(grid.x0, grid.y0)
+            ground = Ground(bed, grid.x0, grid.y0)
+            edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
+            n = manning_grid(cfg, grid, crs)
+            tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
+            save_tables(path, tables, key)
+            emit("output", kind="grid_cache_saved", path=str(path))
+        if strip is not None:  # not cached: seconds, and the mesher's rules are what a user changes
+            from wadi2d.strips.build import strip_tables
+
+            bed.bind(tables.grid.x0, tables.grid.y0)
+            tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs))
     return tables, crs
 
 
@@ -811,6 +828,15 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     for note in check_rain_once(grid, polygons, lumped_names, two_d_names, cfg.hydrology.overlap_share):
         progress.emit("warn", message=note)
     name = backend or cfg.run.backend
+    strip = getattr(tables, "strip", None)
+    if strip is not None:
+        if name == "gpu":
+            raise InvalidJob("strips run on the CPU backend in this version: set run.backend to cpu or auto")
+        name = "cpu"
+        if continuing:
+            raise InvalidJob("a run with strips cannot resume yet")
+        if cfg.terrain.cn_raster or cfg.storm.kind == "gridded" or cfg.storm.depth_grid or cfg.hydrology.subbasins:
+            raise InvalidJob("strips take uniform rain without losses in this version: no CN raster, depth grid, gridded rain or subbasins")
     try:
         model = Model(tables, cfg.numerics, name)
     except (RuntimeError, ImportError, OSError) as error:
@@ -839,12 +865,23 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         for note in inflow_crossings(cfg.outputs.lines, entering, grid):
             progress.emit("warn", message=note)
 
+    hybrid = None
+    if strip is not None:
+        from wadi2d.strips.hybrid import HybridCpu
+
+        hybrid = HybridCpu(model, strip.mesh)
+        progress.emit(
+            "strips", corridors=len(cfg.strips.corridors), cells=int((strip.strip.corridor >= 0).sum()),
+            triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size),
+        )  # fmt: skip
     results = Results(out / "results.h5", grid, crs, cfg.model_dump_json(), append=continuing)
     if results.salvaged:
         progress.emit(
             "warn", message="results.h5 was left unreadable by a kill: snapshots before it are lost"
         )
     monitor = Monitor(cfg, tables, model, bset, results, progress, out, crs, stop_files)
+    if hybrid is not None:
+        hybrid.attach(monitor, strip, cfg.outputs.lines)
     monitor.balance.storage0 = monitor.storage()
     link = HandBackLink(cfg, tables, model, bset, forcing, network, monitor) if network is not None else None
     if lumped is not None:
@@ -874,6 +911,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
                 link.exchange(t)
                 t_next = link.window_end(t, t_next)
             rate, rain, inflow = forcing.rate(t, t_next)
+            if hybrid is not None:
+                rain += hybrid.rain(rate, t_next - t)
             loss = bed.apply(rate, t, t_next) if bed is not None else 0.0
             if rain + inflow + loss > 0.0 or not dry:
                 model.set_source_cells(forcing.state, rate)

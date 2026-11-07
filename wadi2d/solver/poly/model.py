@@ -41,7 +41,7 @@ class PolyState:
         self.src = np.zeros(nc, F)
         self.r = np.ones(nc, F)
         self.Ux, self.Uy, self.Rx, self.Ry, self.Gx, self.Gy = (np.zeros(nc, F) for _ in range(6))
-        self.out, self.div = np.zeros(nc, F), np.zeros(nc, F)
+        self.out, self.div, self.res = np.zeros(nc, F), np.zeros(nc, F), np.zeros(nc, F)
         self.u, self.m, self.q, self.u1, self.m1, self.q1, self.Dl = (np.zeros(nf, F) for _ in range(7))
         self.area = mesh.area.astype(F)
         self.cx, self.cy = mesh.cx.astype(F), mesh.cy.astype(F)
@@ -87,7 +87,7 @@ class PolyState:
         rows = self.nums[0]
         kernel.outflows(nf, nc, L, R, self.q1, self.out)
         kernel.positivity(self.nreal, F(dt), self.h, self.area, self.out, self.r)
-        kernel.update(nf, nc, self.nreal, F(dt), refresh, L, R, self.area, self.hc, self.dtab, self.q1, self.r, self.src, self.div, self.h, self.d, self.om, self.q, rows)
+        kernel.update(nf, nc, self.nreal, F(dt), refresh, L, R, self.area, self.hc, self.dtab, self.q1, self.r, self.src, self.div, self.res, self.h, self.d, self.om, self.q, rows)
         self.u, self.u1 = self.u1, self.u
         self.m, self.m1 = self.m1, self.m
 
