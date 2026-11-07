@@ -160,9 +160,10 @@ def _beside(tables: GridTables, component: np.ndarray, piece: TerrainObject) -> 
 def _pool(tables: GridTables, open_cells: np.ndarray, name: str, pieces: list[TerrainObject], level: float) -> np.ndarray:
     """The cells of the pool behind the dam ``name`` at ``level``, as a mask.
 
-    Each piece is judged alone, as the pieces of one dam may be drawn either way: water held on both sides of one piece
-    is refused. Water held below the dam that touches only another piece would be filled: the count of cells and the
-    volume in the run's notes are the check.
+    Each piece is judged alone, as the pieces of one dam may be drawn either way. A held body of water takes the side
+    most of its cells beside the piece lie on (near a bend of the line the nearest segment can put a few on the other);
+    two held bodies on opposite sides of one piece are refused. Water held below the dam that touches only another
+    piece would be filled: the count of cells and the volume in the run's notes are the check.
     """
     component, _flat = _components(tables, level)
     leaking = set(np.unique(component[open_cells & (component >= 0)]).tolist())
@@ -171,17 +172,14 @@ def _pool(tables: GridTables, open_cells: np.ndarray, name: str, pieces: list[Te
     for piece in pieces:
         labels, sides = _beside(tables, component, piece)
         wet_beside = wet_beside or labels.size > 0
-        kept = {
-            (label, side)
-            for label, side in zip(labels.tolist(), sides.tolist(), strict=True)
-            if label not in leaking and side != 0
-        }
-        if len({side for _label, side in kept}) > 1:
+        mine = {label for label in labels.tolist() if label not in leaking}
+        majority = {label: np.sign(sides[labels == label].sum()) for label in mine}
+        if len({side for side in majority.values() if side != 0}) > 1:
             raise ValueError(
                 f"dam_levels: water at {level:g} m beside {name} is held on both sides of one of its lines, so which "
                 "side is the pool cannot be told; draw it as a polygon in initial_levels"
             )
-        held |= {label for label, _side in kept}
+        held |= mine
     if not wet_beside:
         raise ValueError(f"dam_levels: {name} at {level:g} m wets no cell beside its line: check the datum")
     if not held:
