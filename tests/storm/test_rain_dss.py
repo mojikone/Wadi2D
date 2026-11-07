@@ -57,6 +57,9 @@ JO8lrspwu383QfSkCZCqMWYTO9dX+rqhRb6XQUVQSLsAAACx8uwEagt6HgAB1gbY4gcAMN21jrHEZ/sC
 definition: NORTH_UP with -9999 in row 1, column 3, xllcorner 440000, yllcorner 2726000, 2 km; the period ends at 2400."""
 
 
+DSS_UNDEFINED = -3.4028234663852886e38
+"""DSS's undefined value, which HEC's tools write for a hole."""
+
 def _hec_file(tmp_path: Path, packed: str) -> Path:
     file = tmp_path / "hec.dss"
     file.write_bytes(lzma.decompress(base64.b64decode(packed)))
@@ -170,7 +173,9 @@ def test_the_job_can_overrule_the_units_and_unknown_units_are_refused(tmp_path: 
 def test_a_null_cell_has_no_data_and_a_dry_cell_stays_dry_when_the_null_value_is_unset(
     tmp_path: Path,
 ) -> None:
-    file = _write(tmp_path, _grid(PERIOD, [[np.nan, 0.0], [1.0, 2.0]], nullValue=0.0))
+    # A hole is written as HEC's tools write it, DSS's own undefined value: hecdss 0.1.33 stores a NaN as the grid's null
+    # value, here 0, which no reader could tell from a dry cell (found on his laptop, 2026-11-07).
+    file = _write(tmp_path, _grid(PERIOD, [[DSS_UNDEFINED, 0.0], [1.0, 2.0]], nullValue=0.0))
     depths = read_dss_grid(file, RainSpec()).depths[0]
     assert depths[0].tolist() == [1.0, 2.0]
     assert np.isnan(depths[1, 0])
