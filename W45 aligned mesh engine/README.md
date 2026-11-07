@@ -236,6 +236,33 @@ above the GPU), `box_mid` 1,873.7 (0.07 % below the GPU), volumes within 0.1 %: 
 the CPU sits at the edge of the 3 % rule where the GPU has 0.5 % in hand. Not in this race: 10 m, the W26 bank cases on
 Bidah, the flume; and the corridors here are 60 m wide on banks 20 m apart, so the flood's margins run on squares.
 
+## Stage 7, third piece (2026-11-07): pixel depth over the strip, and the corridors from the Suggest file
+
+His remark on the first map, one colour per cell: the solver's sub-grid was applied, the drawing was not, and the
+strip had no pixel product. `wadi2d/strips/pixels.py` is W9's rule on polygons: a run saves the strip's cells with every
+map (level, mean depth, cell speed) and their maxima; the product step puts a surface through each polygon's nodes (a
+node the mean of the cells round it that are one body of water there, joined across a face by the face's ground as the
+squares are), interpolates it at the pixels inside the ring by Wachspress weights, fills every cell to its own water
+exactly (W9's Newton, ragged over the cell's pixels) and blends the fill offsets across joined edges through the same
+node means; the three maxima per pixel are painted into the pixel rasters where the squares the strip replaced left
+them blank, so the depth drawing and the hazard classes carry the strip. Tests `tests/strips/test_pixels.py`: a cell
+holds its water to 1e-3 under a surface that follows the ground; two joined cells share one flat surface (within 2 mm);
+a dry neighbour keeps its own; the plane job with a corridor paints the corridor's pixels beside the squares'. Faydh 01
+with corridors, maps every 10 min, 96 maps, 0.5 m pixels: 16.3 M strip pixels beside 12,659 kept squares, the product
+step in about 3 min on the GPU; `race_faydh/map_axis_pixels.png` is the window of the first map at the pixel.
+
+A job's `strips` may name the Suggest breaklines GeoPackage instead of corridors outright (`banks`, `layer_m`,
+`rows_per_side`, `min_length_m`): the engine pairs its banks along the thalwegs and builds the corridors inside the
+domain, the banks file in the cache key, what was cut in the `strips` event; corridors with the mesh refinement are
+refused in words. The dock's Mesh section gained the corridor controls (tick, the suggestion layer, row spacing, rows),
+the job builder carries them and refuses a missing layer or the mesh together with them, and after a run the corridor
+cells and faces load under Model setup beside the cell grid. Dock check `dock_corridors.py` on Bidah at 20 m through the
+real dock (QGIS 3.44.8, throwaway profile): **27 of 27**, log `log_dock_corridors.txt`: refused without the suggestion
+layer; Suggest breaklines then corridors from its file, 12 corridors (2,208 cells, 2,058 triangles, 2,609 squares
+replaced, two pairs cut); the GPU took the run, books closed to 1e-8; faces on the banks 736, at the join 1,176; the
+corridor layers under Model setup beside the cell grid; the pixel maps carry 41,744 strip pixels; the dam lines P1 and
+P6 at 1.008 and 0.942 of the same 2 h storm on squares; corridors with the mesh refinement refused in words.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.

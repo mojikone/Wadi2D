@@ -27,7 +27,9 @@ lines = {ln["name"]: np.asarray(ln["coordinates"]) for ln in cfg["outputs"]["lin
 axis = lines["axis"]
 dx = float(cfg["grid"]["dx"])
 
-with rasterio.open(run / "maps" / "max_depth.tif") as src:
+PIXELS = (run / "pixels" / "pixel_depth.tif").is_file()
+"""With the pixel products the depth is at the DEM pixel over squares and strip alike; else the cell maxima."""
+with rasterio.open(run / "pixels" / "pixel_depth.tif" if PIXELS else run / "maps" / "max_depth.tif") as src:
     depth = src.read(1).astype(np.float64)
     nodata = src.nodata
     t = src.transform
@@ -80,7 +82,10 @@ def window(ax, cx: float, cy: float, half: float, title: str, lattice_edges: boo
     keep = [k for k, g in enumerate(cell_geoms) if g.intersects(box)]
     polys = [np.asarray(cell_geoms[k].exterior.coords) for k in keep]
     values = np.array([cell_rows[k][1] for k in keep], np.float64)
-    colours = [cmap(norm(v)) if v > 0.0 else (1.0, 1.0, 1.0, 1.0) for v in values]
+    if PIXELS:  # the pixel raster shows through the cells; only their edges are drawn
+        colours = "none"
+    else:
+        colours = [cmap(norm(v)) if v > 0.0 else (1.0, 1.0, 1.0, 1.0) for v in values]
     ax.add_collection(PolyCollection(polys, facecolors=colours, edgecolors="0.35", linewidths=0.35, zorder=3))
     # breakline faces of the strip and the interface
     for kind, colour, lw, z in (("interface", "#e08a00", 0.9, 4), ("breakline", "#c00000", 1.2, 5)):
@@ -115,7 +120,7 @@ else:
 window(axes[1], dcx, dcy, 180.0, "Detail: aligned rows on the bank (red), squares either side, the join (orange)", True)
 sm = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
 cb = fig.colorbar(sm, ax=axes, fraction=0.025, pad=0.01)
-cb.set_label("largest depth of the run, m", fontsize=8)
+cb.set_label(("largest depth of the run at the DEM pixel, m" if PIXELS else "largest depth of the run per cell, m"), fontsize=8)
 cb.ax.tick_params(labelsize=7)
 fig.text(
     0.5, 0.015,

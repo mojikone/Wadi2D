@@ -1,0 +1,315 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_faydh\\W45 aligned mesh engine\\race_faydh\\cache\\grid_e05c5ec7077d594428790179.h5"}
+{"ev": "strips", "corridors": 39, "cells": 10716, "triangles": 9170, "replaced": 10215}
+{"ev": "start", "backend": "gpu", "cells": 178599, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 17.58, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "output", "kind": "map", "t": 603.0}
+{"ev": "output", "kind": "map", "t": 1203.0}
+{"ev": "output", "kind": "map", "t": 1803.0}
+{"ev": "output", "kind": "map", "t": 2403.0}
+{"ev": "output", "kind": "map", "t": 3003.0}
+{"ev": "output", "kind": "map", "t": 3603.0}
+{"ev": "output", "kind": "map", "t": 4203.0}
+{"ev": "output", "kind": "map", "t": 4803.0}
+{"ev": "output", "kind": "map", "t": 5403.0}
+{"ev": "output", "kind": "map", "t": 6003.0}
+{"ev": "output", "kind": "map", "t": 6603.0}
+{"ev": "output", "kind": "map", "t": 7203.0}
+{"ev": "output", "kind": "map", "t": 7803.0}
+{"ev": "output", "kind": "map", "t": 8403.0}
+{"ev": "output", "kind": "map", "t": 9003.0}
+{"ev": "step", "t": 9003.0, "dt": 3.0, "steps": 3001, "active_tiles": 222, "volume": 0.3, "mass_error": 5.116e-13, "wall": 2.02}
+{"ev": "output", "kind": "map", "t": 9603.0}
+{"ev": "output", "kind": "map", "t": 10203.0}
+{"ev": "output", "kind": "map", "t": 10803.0}
+{"ev": "output", "kind": "map", "t": 11403.765126872007}
+{"ev": "output", "kind": "map", "t": 12004.79135167823}
+{"ev": "output", "kind": "map", "t": 12605.761410380564}
+{"ev": "output", "kind": "map", "t": 13205.763748881482}
+{"ev": "step", "t": 13767.866, "dt": 0.9286, "steps": 5740, "active_tiles": 222, "volume": 23615.7, "mass_error": -4.173e-09, "wall": 4.02}
+{"ev": "output", "kind": "map", "t": 13806.496948932783}
+{"ev": "output", "kind": "map", "t": 14406.883613670188}
+{"ev": "output", "kind": "map", "t": 15007.491435332007}
+{"ev": "output", "kind": "map", "t": 15608.172889648691}
+{"ev": "output", "kind": "map", "t": 16208.286017105635}
+{"ev": "step", "t": 16515.514, "dt": 0.6455, "steps": 9398, "active_tiles": 222, "volume": 61533.3, "mass_error": -6.887e-09, "wall": 6.02}
+{"ev": "output", "kind": "map", "t": 16808.6797674265}
+{"ev": "output", "kind": "map", "t": 17409.155591002393}
+{"ev": "output", "kind": "map", "t": 18009.321399982433}
+{"ev": "step", "t": 18600.0, "dt": 0.5398, "steps": 13626, "active_tiles": 222, "volume": 102779.7, "mass_error": -9.628e-09, "wall": 8.02}
+{"ev": "output", "kind": "map", "t": 18609.70823092496}
+{"ev": "output", "kind": "map", "t": 19209.913923084107}
+{"ev": "output", "kind": "map", "t": 19809.937091806023}
+{"ev": "output", "kind": "map", "t": 20409.948638951475}
+{"ev": "step", "t": 20594.827, "dt": 0.4941, "steps": 17567, "active_tiles": 222, "volume": 152751.8, "mass_error": -1.029e-08, "wall": 10.02}
+{"ev": "output", "kind": "map", "t": 21010.11252661295}
+{"ev": "output", "kind": "map", "t": 21610.430208849444}
+{"ev": "output", "kind": "map", "t": 22210.675640932903}
+{"ev": "step", "t": 22561.826, "dt": 0.4563, "steps": 21794, "active_tiles": 222, "volume": 213465.6, "mass_error": -1.175e-08, "wall": 12.02}
+{"ev": "output", "kind": "map", "t": 22810.83842604577}
+{"ev": "output", "kind": "map", "t": 23410.999047883925}
+{"ev": "output", "kind": "map", "t": 24011.05225830855}
+{"ev": "step", "t": 24291.404, "dt": 0.4195, "steps": 26033, "active_tiles": 222, "volume": 270222.8, "mass_error": -1.273e-08, "wall": 14.02}
+{"ev": "output", "kind": "map", "t": 24611.22950855124}
+{"ev": "output", "kind": "map", "t": 25211.563814475634}
+{"ev": "output", "kind": "map", "t": 25811.93712021388}
+{"ev": "step", "t": 26032.618, "dt": 0.4112, "steps": 30266, "active_tiles": 222, "volume": 323325.8, "mass_error": -1.277e-08, "wall": 16.02}
+{"ev": "output", "kind": "map", "t": 26412.316927179996}
+{"ev": "output", "kind": "map", "t": 27012.69428940777}
+{"ev": "output", "kind": "map", "t": 27612.898301501755}
+{"ev": "step", "t": 27746.125, "dt": 0.4076, "steps": 34500, "active_tiles": 222, "volume": 377173.7, "mass_error": -1.304e-08, "wall": 18.02}
+{"ev": "output", "kind": "map", "t": 28212.98881561657}
+{"ev": "output", "kind": "map", "t": 28813.320745278605}
+{"ev": "step", "t": 29400.353, "dt": 0.3526, "steps": 38847, "active_tiles": 222, "volume": 432074.7, "mass_error": -1.389e-08, "wall": 20.02}
+{"ev": "output", "kind": "map", "t": 29413.3959012993}
+{"ev": "output", "kind": "map", "t": 30013.713067002715}
+{"ev": "output", "kind": "map", "t": 30614.042633442972}
+{"ev": "step", "t": 30895.952, "dt": 0.3507, "steps": 43134, "active_tiles": 222, "volume": 486018.4, "mass_error": -1.285e-08, "wall": 22.02}
+{"ev": "output", "kind": "map", "t": 31214.075940602503}
+{"ev": "output", "kind": "map", "t": 31814.321840542696}
+{"ev": "output", "kind": "map", "t": 32414.646329491465}
+{"ev": "step", "t": 32414.646, "dt": 0.3487, "steps": 47515, "active_tiles": 222, "volume": 547006.2, "mass_error": -1.372e-08, "wall": 24.05}
+{"ev": "output", "kind": "map", "t": 33014.94146119511}
+{"ev": "output", "kind": "map", "t": 33614.98057976097}
+{"ev": "step", "t": 33974.66, "dt": 0.3513, "steps": 52028, "active_tiles": 222, "volume": 620835.0, "mass_error": -1.436e-08, "wall": 26.05}
+{"ev": "output", "kind": "map", "t": 34215.061065870585}
+{"ev": "output", "kind": "map", "t": 34815.40057277997}
+{"ev": "output", "kind": "map", "t": 35415.45716922988}
+{"ev": "step", "t": 35423.848, "dt": 0.3496, "steps": 56330, "active_tiles": 222, "volume": 698363.4, "mass_error": -1.598e-08, "wall": 28.05}
+{"ev": "output", "kind": "map", "t": 36015.56096824296}
+{"ev": "output", "kind": "map", "t": 36615.575101569506}
+{"ev": "step", "t": 36877.784, "dt": 0.3487, "steps": 60787, "active_tiles": 222, "volume": 798794.4, "mass_error": -1.704e-08, "wall": 30.05}
+{"ev": "output", "kind": "map", "t": 37215.64582494738}
+{"ev": "output", "kind": "map", "t": 37815.64852472893}
+{"ev": "step", "t": 38205.843, "dt": 0.3463, "steps": 65243, "active_tiles": 222, "volume": 928735.3, "mass_error": -1.746e-08, "wall": 32.05}
+{"ev": "output", "kind": "map", "t": 38415.81205298888}
+{"ev": "output", "kind": "map", "t": 39015.91712300624}
+{"ev": "step", "t": 39497.266, "dt": 0.2821, "steps": 69780, "active_tiles": 222, "volume": 1119586.0, "mass_error": -1.814e-08, "wall": 34.05}
+{"ev": "output", "kind": "map", "t": 39616.05451523218}
+{"ev": "output", "kind": "map", "t": 40216.118972980265}
+{"ev": "step", "t": 40758.859, "dt": 0.2844, "steps": 74233, "active_tiles": 222, "volume": 1459032.7, "mass_error": -1.77e-08, "wall": 36.05}
+{"ev": "output", "kind": "map", "t": 40816.35583206157}
+{"ev": "output", "kind": "map", "t": 41416.609267863976}
+{"ev": "step", "t": 41888.971, "dt": 0.2332, "steps": 78867, "active_tiles": 222, "volume": 2283820.6, "mass_error": -1.671e-08, "wall": 38.05}
+{"ev": "output", "kind": "map", "t": 42016.72249130381}
+{"ev": "output", "kind": "map", "t": 42616.856197648696}
+{"ev": "step", "t": 42685.242, "dt": 0.1444, "steps": 83471, "active_tiles": 222, "volume": 4574794.0, "mass_error": -1.615e-08, "wall": 40.05}
+{"ev": "output", "kind": "map", "t": 43216.94656141434}
+{"ev": "step", "t": 43412.127, "dt": 0.1561, "steps": 88350, "active_tiles": 222, "volume": 5234902.2, "mass_error": -1.823e-08, "wall": 42.05}
+{"ev": "output", "kind": "map", "t": 43817.02057060612}
+{"ev": "step", "t": 44175.833, "dt": 0.1626, "steps": 93179, "active_tiles": 222, "volume": 4576816.8, "mass_error": -1.966e-08, "wall": 44.05}
+{"ev": "output", "kind": "map", "t": 44417.03931611279}
+{"ev": "step", "t": 44957.935, "dt": 0.1693, "steps": 98003, "active_tiles": 222, "volume": 3614850.0, "mass_error": -2.017e-08, "wall": 46.05}
+{"ev": "output", "kind": "map", "t": 45017.08672410217}
+{"ev": "output", "kind": "map", "t": 45617.12018643719}
+{"ev": "step", "t": 45805.036, "dt": 0.2013, "steps": 102681, "active_tiles": 222, "volume": 2722496.3, "mass_error": -2.009e-08, "wall": 48.05}
+{"ev": "output", "kind": "map", "t": 46217.20983302654}
+{"ev": "output", "kind": "map", "t": 46817.30246309788}
+{"ev": "step", "t": 46817.302, "dt": 0.2418, "steps": 107356, "active_tiles": 222, "volume": 2035862.9, "mass_error": -2.028e-08, "wall": 50.09}
+{"ev": "output", "kind": "map", "t": 47417.4001769365}
+{"ev": "step", "t": 48006.154, "dt": 0.2267, "steps": 112145, "active_tiles": 222, "volume": 1608923.4, "mass_error": -2.022e-08, "wall": 52.09}
+{"ev": "output", "kind": "map", "t": 48017.47973185162}
+{"ev": "output", "kind": "map", "t": 48617.735219552305}
+{"ev": "step", "t": 49196.707, "dt": 0.2515, "steps": 116710, "active_tiles": 222, "volume": 1367304.9, "mass_error": -2.02e-08, "wall": 54.09}
+{"ev": "output", "kind": "map", "t": 49217.79620831504}
+{"ev": "output", "kind": "map", "t": 49817.93504116696}
+{"ev": "output", "kind": "map", "t": 50417.96146596839}
+{"ev": "step", "t": 50417.961, "dt": 0.2872, "steps": 121155, "active_tiles": 222, "volume": 1207675.3, "mass_error": -2.037e-08, "wall": 56.11}
+{"ev": "output", "kind": "map", "t": 51018.11267270071}
+{"ev": "output", "kind": "map", "t": 51618.33593341215}
+{"ev": "step", "t": 51754.991, "dt": 0.3116, "steps": 125687, "active_tiles": 222, "volume": 1084450.8, "mass_error": -2.045e-08, "wall": 58.11}
+{"ev": "output", "kind": "map", "t": 52218.58488190057}
+{"ev": "output", "kind": "map", "t": 52818.87700832122}
+{"ev": "step", "t": 53138.184, "dt": 0.326, "steps": 130233, "active_tiles": 222, "volume": 990180.2, "mass_error": -2.068e-08, "wall": 60.11}
+{"ev": "output", "kind": "map", "t": 53419.06081131179}
+{"ev": "output", "kind": "map", "t": 54019.378250129674}
+{"ev": "step", "t": 54555.931, "dt": 0.3265, "steps": 134776, "active_tiles": 222, "volume": 918920.7, "mass_error": -2.08e-08, "wall": 62.11}
+{"ev": "output", "kind": "map", "t": 54619.71324225661}
+{"ev": "output", "kind": "map", "t": 55220.02409866927}
+{"ev": "output", "kind": "map", "t": 55820.28078148009}
+{"ev": "step", "t": 56008.528, "dt": 0.3479, "steps": 139100, "active_tiles": 222, "volume": 858684.3, "mass_error": -2.088e-08, "wall": 64.11}
+{"ev": "output", "kind": "map", "t": 56420.399882649086}
+{"ev": "output", "kind": "map", "t": 57020.71437343583}
+{"ev": "step", "t": 57561.034, "dt": 0.3457, "steps": 143626, "active_tiles": 222, "volume": 808212.0, "mass_error": -2.1e-08, "wall": 66.11}
+{"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu_px\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu_px\\maps"}
+{"ev": "products", "stage": "ground", "done": 0, "of": 15, "percent": 0.0}
+{"ev": "products", "stage": "ground", "done": 1, "of": 15, "percent": 0.3}
+{"ev": "products", "stage": "ground", "done": 2, "of": 15, "percent": 0.7}
+{"ev": "products", "stage": "ground", "done": 3, "of": 15, "percent": 1.0}
+{"ev": "products", "stage": "ground", "done": 4, "of": 15, "percent": 1.3}
+{"ev": "products", "stage": "ground", "done": 5, "of": 15, "percent": 1.7}
+{"ev": "products", "stage": "ground", "done": 6, "of": 15, "percent": 2.0}
+{"ev": "products", "stage": "ground", "done": 7, "of": 15, "percent": 2.3}
+{"ev": "products", "stage": "ground", "done": 8, "of": 15, "percent": 2.7}
+{"ev": "products", "stage": "ground", "done": 9, "of": 15, "percent": 3.0}
+{"ev": "products", "stage": "ground", "done": 10, "of": 15, "percent": 3.3}
+{"ev": "products", "stage": "ground", "done": 11, "of": 15, "percent": 3.7}
+{"ev": "products", "stage": "ground", "done": 12, "of": 15, "percent": 4.0}
+{"ev": "products", "stage": "ground", "done": 13, "of": 15, "percent": 4.3}
+{"ev": "products", "stage": "ground", "done": 14, "of": 15, "percent": 4.7}
+{"ev": "products", "stage": "maps", "done": 0, "of": 97, "percent": 5.0}
+{"ev": "products", "stage": "maps", "done": 1, "of": 97, "percent": 5.8}
+{"ev": "products", "stage": "maps", "done": 2, "of": 97, "percent": 6.5}
+{"ev": "products", "stage": "maps", "done": 3, "of": 97, "percent": 7.3}
+{"ev": "products", "stage": "maps", "done": 4, "of": 97, "percent": 8.1}
+{"ev": "products", "stage": "maps", "done": 5, "of": 97, "percent": 8.9}
+{"ev": "products", "stage": "maps", "done": 6, "of": 97, "percent": 9.6}
+{"ev": "products", "stage": "maps", "done": 7, "of": 97, "percent": 10.4}
+{"ev": "products", "stage": "maps", "done": 8, "of": 97, "percent": 11.2}
+{"ev": "products", "stage": "maps", "done": 9, "of": 97, "percent": 12.0}
+{"ev": "products", "stage": "maps", "done": 10, "of": 97, "percent": 12.7}
+{"ev": "products", "stage": "maps", "done": 11, "of": 97, "percent": 13.5}
+{"ev": "products", "stage": "maps", "done": 12, "of": 97, "percent": 14.3}
+{"ev": "products", "stage": "maps", "done": 13, "of": 97, "percent": 15.1}
+{"ev": "products", "stage": "maps", "done": 14, "of": 97, "percent": 15.8}
+{"ev": "products", "stage": "maps", "done": 15, "of": 97, "percent": 16.6}
+{"ev": "products", "stage": "maps", "done": 16, "of": 97, "percent": 17.4}
+{"ev": "products", "stage": "maps", "done": 17, "of": 97, "percent": 18.1}
+{"ev": "products", "stage": "maps", "done": 18, "of": 97, "percent": 18.9}
+{"ev": "products", "stage": "maps", "done": 19, "of": 97, "percent": 19.7}
+{"ev": "products", "stage": "maps", "done": 20, "of": 97, "percent": 20.5}
+{"ev": "products", "stage": "maps", "done": 21, "of": 97, "percent": 21.2}
+{"ev": "products", "stage": "maps", "done": 22, "of": 97, "percent": 22.0}
+{"ev": "products", "stage": "maps", "done": 23, "of": 97, "percent": 22.8}
+{"ev": "products", "stage": "maps", "done": 24, "of": 97, "percent": 23.6}
+{"ev": "products", "stage": "maps", "done": 25, "of": 97, "percent": 24.3}
+{"ev": "products", "stage": "maps", "done": 26, "of": 97, "percent": 25.1}
+{"ev": "products", "stage": "maps", "done": 27, "of": 97, "percent": 25.9}
+{"ev": "products", "stage": "maps", "done": 28, "of": 97, "percent": 26.6}
+{"ev": "products", "stage": "maps", "done": 29, "of": 97, "percent": 27.4}
+{"ev": "products", "stage": "maps", "done": 30, "of": 97, "percent": 28.2}
+{"ev": "products", "stage": "maps", "done": 31, "of": 97, "percent": 29.0}
+{"ev": "products", "stage": "maps", "done": 32, "of": 97, "percent": 29.7}
+{"ev": "products", "stage": "maps", "done": 33, "of": 97, "percent": 30.5}
+{"ev": "products", "stage": "maps", "done": 34, "of": 97, "percent": 31.3}
+{"ev": "products", "stage": "maps", "done": 35, "of": 97, "percent": 32.1}
+{"ev": "products", "stage": "maps", "done": 36, "of": 97, "percent": 32.8}
+{"ev": "products", "stage": "maps", "done": 37, "of": 97, "percent": 33.6}
+{"ev": "products", "stage": "maps", "done": 38, "of": 97, "percent": 34.4}
+{"ev": "products", "stage": "maps", "done": 39, "of": 97, "percent": 35.2}
+{"ev": "products", "stage": "maps", "done": 40, "of": 97, "percent": 35.9}
+{"ev": "products", "stage": "maps", "done": 41, "of": 97, "percent": 36.7}
+{"ev": "products", "stage": "maps", "done": 42, "of": 97, "percent": 37.5}
+{"ev": "products", "stage": "maps", "done": 43, "of": 97, "percent": 38.2}
+{"ev": "products", "stage": "maps", "done": 44, "of": 97, "percent": 39.0}
+{"ev": "products", "stage": "maps", "done": 45, "of": 97, "percent": 39.8}
+{"ev": "products", "stage": "maps", "done": 46, "of": 97, "percent": 40.6}
+{"ev": "products", "stage": "maps", "done": 47, "of": 97, "percent": 41.3}
+{"ev": "products", "stage": "maps", "done": 48, "of": 97, "percent": 42.1}
+{"ev": "products", "stage": "maps", "done": 49, "of": 97, "percent": 42.9}
+{"ev": "products", "stage": "maps", "done": 50, "of": 97, "percent": 43.7}
+{"ev": "products", "stage": "maps", "done": 51, "of": 97, "percent": 44.4}
+{"ev": "products", "stage": "maps", "done": 52, "of": 97, "percent": 45.2}
+{"ev": "products", "stage": "maps", "done": 53, "of": 97, "percent": 46.0}
+{"ev": "products", "stage": "maps", "done": 54, "of": 97, "percent": 46.8}
+{"ev": "products", "stage": "maps", "done": 55, "of": 97, "percent": 47.5}
+{"ev": "products", "stage": "maps", "done": 56, "of": 97, "percent": 48.3}
+{"ev": "products", "stage": "maps", "done": 57, "of": 97, "percent": 49.1}
+{"ev": "products", "stage": "maps", "done": 58, "of": 97, "percent": 49.8}
+{"ev": "products", "stage": "maps", "done": 59, "of": 97, "percent": 50.6}
+{"ev": "products", "stage": "maps", "done": 60, "of": 97, "percent": 51.4}
+{"ev": "products", "stage": "maps", "done": 61, "of": 97, "percent": 52.2}
+{"ev": "products", "stage": "maps", "done": 62, "of": 97, "percent": 52.9}
+{"ev": "products", "stage": "maps", "done": 63, "of": 97, "percent": 53.7}
+{"ev": "products", "stage": "maps", "done": 64, "of": 97, "percent": 54.5}
+{"ev": "products", "stage": "maps", "done": 65, "of": 97, "percent": 55.3}
+{"ev": "products", "stage": "maps", "done": 66, "of": 97, "percent": 56.0}
+{"ev": "products", "stage": "maps", "done": 67, "of": 97, "percent": 56.8}
+{"ev": "products", "stage": "maps", "done": 68, "of": 97, "percent": 57.6}
+{"ev": "products", "stage": "maps", "done": 69, "of": 97, "percent": 58.4}
+{"ev": "products", "stage": "maps", "done": 70, "of": 97, "percent": 59.1}
+{"ev": "products", "stage": "maps", "done": 71, "of": 97, "percent": 59.9}
+{"ev": "products", "stage": "maps", "done": 72, "of": 97, "percent": 60.7}
+{"ev": "products", "stage": "maps", "done": 73, "of": 97, "percent": 61.4}
+{"ev": "products", "stage": "maps", "done": 74, "of": 97, "percent": 62.2}
+{"ev": "products", "stage": "maps", "done": 75, "of": 97, "percent": 63.0}
+{"ev": "products", "stage": "maps", "done": 76, "of": 97, "percent": 63.8}
+{"ev": "products", "stage": "maps", "done": 77, "of": 97, "percent": 64.5}
+{"ev": "products", "stage": "maps", "done": 78, "of": 97, "percent": 65.3}
+{"ev": "products", "stage": "maps", "done": 79, "of": 97, "percent": 66.1}
+{"ev": "products", "stage": "maps", "done": 80, "of": 97, "percent": 66.9}
+{"ev": "products", "stage": "maps", "done": 81, "of": 97, "percent": 67.6}
+{"ev": "products", "stage": "maps", "done": 82, "of": 97, "percent": 68.4}
+{"ev": "products", "stage": "maps", "done": 83, "of": 97, "percent": 69.2}
+{"ev": "products", "stage": "maps", "done": 84, "of": 97, "percent": 69.9}
+{"ev": "products", "stage": "maps", "done": 85, "of": 97, "percent": 70.7}
+{"ev": "products", "stage": "maps", "done": 86, "of": 97, "percent": 71.5}
+{"ev": "products", "stage": "maps", "done": 87, "of": 97, "percent": 72.3}
+{"ev": "products", "stage": "maps", "done": 88, "of": 97, "percent": 73.0}
+{"ev": "products", "stage": "maps", "done": 89, "of": 97, "percent": 73.8}
+{"ev": "products", "stage": "maps", "done": 90, "of": 97, "percent": 74.6}
+{"ev": "products", "stage": "maps", "done": 91, "of": 97, "percent": 75.4}
+{"ev": "products", "stage": "maps", "done": 92, "of": 97, "percent": 76.1}
+{"ev": "products", "stage": "maps", "done": 93, "of": 97, "percent": 76.9}
+{"ev": "products", "stage": "maps", "done": 94, "of": 97, "percent": 77.7}
+{"ev": "products", "stage": "maps", "done": 95, "of": 97, "percent": 78.5}
+{"ev": "products", "stage": "maps", "done": 97, "of": 97, "percent": 80.0}
+{"ev": "products", "stage": "rasters", "done": 0, "of": 1, "percent": 80.0}
+{"ev": "products", "stage": "smooth", "done": 0, "of": 58, "percent": 85.0}
+{"ev": "products", "stage": "smooth", "done": 1, "of": 58, "percent": 85.3}
+{"ev": "products", "stage": "smooth", "done": 2, "of": 58, "percent": 85.5}
+{"ev": "products", "stage": "smooth", "done": 3, "of": 58, "percent": 85.8}
+{"ev": "products", "stage": "smooth", "done": 4, "of": 58, "percent": 86.0}
+{"ev": "products", "stage": "smooth", "done": 5, "of": 58, "percent": 86.3}
+{"ev": "products", "stage": "smooth", "done": 6, "of": 58, "percent": 86.6}
+{"ev": "products", "stage": "smooth", "done": 7, "of": 58, "percent": 86.8}
+{"ev": "products", "stage": "smooth", "done": 8, "of": 58, "percent": 87.1}
+{"ev": "products", "stage": "smooth", "done": 9, "of": 58, "percent": 87.3}
+{"ev": "products", "stage": "smooth", "done": 10, "of": 58, "percent": 87.6}
+{"ev": "products", "stage": "smooth", "done": 11, "of": 58, "percent": 87.8}
+{"ev": "products", "stage": "smooth", "done": 12, "of": 58, "percent": 88.1}
+{"ev": "products", "stage": "smooth", "done": 13, "of": 58, "percent": 88.4}
+{"ev": "products", "stage": "smooth", "done": 14, "of": 58, "percent": 88.6}
+{"ev": "products", "stage": "smooth", "done": 15, "of": 58, "percent": 88.9}
+{"ev": "products", "stage": "smooth", "done": 16, "of": 58, "percent": 89.1}
+{"ev": "products", "stage": "smooth", "done": 17, "of": 58, "percent": 89.4}
+{"ev": "products", "stage": "smooth", "done": 18, "of": 58, "percent": 89.7}
+{"ev": "products", "stage": "smooth", "done": 19, "of": 58, "percent": 89.9}
+{"ev": "products", "stage": "smooth", "done": 20, "of": 58, "percent": 90.2}
+{"ev": "products", "stage": "smooth", "done": 21, "of": 58, "percent": 90.4}
+{"ev": "products", "stage": "smooth", "done": 22, "of": 58, "percent": 90.7}
+{"ev": "products", "stage": "smooth", "done": 23, "of": 58, "percent": 90.9}
+{"ev": "products", "stage": "smooth", "done": 24, "of": 58, "percent": 91.2}
+{"ev": "products", "stage": "smooth", "done": 25, "of": 58, "percent": 91.5}
+{"ev": "products", "stage": "smooth", "done": 26, "of": 58, "percent": 91.7}
+{"ev": "products", "stage": "smooth", "done": 27, "of": 58, "percent": 92.0}
+{"ev": "products", "stage": "smooth", "done": 28, "of": 58, "percent": 92.2}
+{"ev": "products", "stage": "smooth", "done": 35, "of": 70, "percent": 92.5}
+{"ev": "products", "stage": "smooth", "done": 36, "of": 70, "percent": 92.7}
+{"ev": "products", "stage": "smooth", "done": 37, "of": 70, "percent": 92.9}
+{"ev": "products", "stage": "smooth", "done": 38, "of": 70, "percent": 93.1}
+{"ev": "products", "stage": "smooth", "done": 39, "of": 70, "percent": 93.4}
+{"ev": "products", "stage": "smooth", "done": 40, "of": 70, "percent": 93.6}
+{"ev": "products", "stage": "smooth", "done": 41, "of": 70, "percent": 93.8}
+{"ev": "products", "stage": "smooth", "done": 42, "of": 70, "percent": 94.0}
+{"ev": "products", "stage": "smooth", "done": 43, "of": 70, "percent": 94.2}
+{"ev": "products", "stage": "smooth", "done": 44, "of": 70, "percent": 94.4}
+{"ev": "products", "stage": "smooth", "done": 45, "of": 70, "percent": 94.6}
+{"ev": "products", "stage": "smooth", "done": 46, "of": 70, "percent": 94.9}
+{"ev": "products", "stage": "smooth", "done": 47, "of": 70, "percent": 95.1}
+{"ev": "products", "stage": "smooth", "done": 48, "of": 70, "percent": 95.3}
+{"ev": "products", "stage": "smooth", "done": 49, "of": 70, "percent": 95.5}
+{"ev": "products", "stage": "smooth", "done": 50, "of": 70, "percent": 95.7}
+{"ev": "products", "stage": "smooth", "done": 51, "of": 70, "percent": 95.9}
+{"ev": "products", "stage": "smooth", "done": 52, "of": 70, "percent": 96.1}
+{"ev": "products", "stage": "smooth", "done": 53, "of": 70, "percent": 96.4}
+{"ev": "products", "stage": "smooth", "done": 54, "of": 70, "percent": 96.6}
+{"ev": "products", "stage": "smooth", "done": 55, "of": 70, "percent": 96.8}
+{"ev": "products", "stage": "smooth", "done": 56, "of": 70, "percent": 97.0}
+{"ev": "products", "stage": "smooth", "done": 57, "of": 70, "percent": 97.2}
+{"ev": "products", "stage": "smooth", "done": 58, "of": 70, "percent": 97.4}
+{"ev": "products", "stage": "smooth", "done": 59, "of": 70, "percent": 97.6}
+{"ev": "products", "stage": "smooth", "done": 60, "of": 70, "percent": 97.9}
+{"ev": "products", "stage": "smooth", "done": 61, "of": 70, "percent": 98.1}
+{"ev": "products", "stage": "smooth", "done": 62, "of": 70, "percent": 98.3}
+{"ev": "products", "stage": "smooth", "done": 63, "of": 70, "percent": 98.5}
+{"ev": "products", "stage": "smooth", "done": 64, "of": 70, "percent": 98.7}
+{"ev": "products", "stage": "smooth", "done": 65, "of": 70, "percent": 98.9}
+{"ev": "products", "stage": "smooth", "done": 66, "of": 70, "percent": 99.1}
+{"ev": "products", "stage": "smooth", "done": 67, "of": 70, "percent": 99.4}
+{"ev": "products", "stage": "smooth", "done": 68, "of": 70, "percent": 99.6}
+{"ev": "products", "stage": "smooth", "done": 69, "of": 70, "percent": 99.8}
+{"ev": "products", "stage": "smooth", "done": 1, "of": 1, "percent": 100.0}
+{"ev": "output", "kind": "pixels", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu_px\\pixels"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 143739, "loop_s": 67.98, "tables_s": 17.58, "wet_area_km2": 3.28, "dt_min": 0.03965886426959722, "balance": {"rain_m3": 10739179.144496484, "inflow_m3": 0.0, "outflow_m3": 9932103.412429394, "storage_start_m3": 0.0, "storage_end_m3": 807075.9574207664, "error_m3": -0.2253536768257618, "relative_error": -2.0984255294898305e-08}, "tile_steps": null, "products": "finished"}

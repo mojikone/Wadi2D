@@ -1,0 +1,44 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.5 PASS engine found Engine ready.
+    4.5 PASS corridor controls in the Mesh section Corridors of cells aligned with the suggested banks
+    4.5 PASS corridor controls off until ticked 
+    4.5 PASS defaults from the schema (3, 10.0)
+    4.5 === 1 corridors without the suggestion layer are refused
+    4.6 PASS controls on when ticked 
+    4.6 PASS refused without the layer Choose the Suggested breaklines layer for the corridors, or untick them.
+    4.6 === 2 suggest the banks
+    4.6 dock says: Reading the ground, its streams and its crests...
+   19.2 PASS one suggestion layer 1
+   19.2 PASS the layer's file is the banks file {'banks': 'D:\\Mojtaba\\Renardet\\Wadi2D_dock_tmp\\dock_corridors\\runs\\corridors_breaklines\\suggested_breaklines.gpkg', 'layer_m': 10.0, 'rows_per_side': 3}
+   19.2 === 3 run with corridors
+   19.3 dock says: Starting...
+   27.6 dock says: water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   30.4 PASS run finished Finished. water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   30.4 PASS job carries the banks file {'enabled': True, 'banks': 'D:\\Mojtaba\\Renardet\\Wadi2D_dock_tmp\\dock_corridors\\runs\\corridors_breaklines\\suggested_breaklines.gpkg', 'layer_m': 10.0, 'rows_per_side': 3}
+   30.4 PASS corridors built from the banks {'ev': 'strips', 'corridors': 12, 'cells': 2208, 'triangles': 2058, 'replaced': 2609, 'cut': ['pair2_7.9km2: folds or runs too close, 1687 m cut to 1352 m in 2 piece(s)', 'pair7_4.8km2: folds or runs too close, 545 m cut to 0 m in 2 piece(s)', 'pair11_2.5km2: 
+   30.4 strips event: {'ev': 'strips', 'corridors': 12, 'cells': 2208, 'triangles': 2058, 'replaced': 2609, 'cut': ['pair2_7.9km2: folds or runs too close, 1687 m cut to 1352 m in 2 piece(s)', 'pair7_4.8km2: folds or runs too close, 545 m cut to 0 m in 2 piece(s)', 'pair11_2.5km2: folds or runs too close, 714 m cut to 302 m in 2 piece(s)']}
+   30.4 PASS books close -1.0282933085666719e-08
+   30.4 PASS GPU took the run gpu
+   30.4 PASS strip mesh written D:\Mojtaba\Renardet\Wadi2D_dock_tmp\dock_corridors\runs\corridors\maps\strip_mesh.gpkg
+   30.4 PASS faces on the banks, at the join and inside {'breakline': 736, 'inner': 6178, 'interface': 1176}
+   30.4 PASS cells with water (4266, 5.530034065246582)
+   30.4 PASS corridor layers loaded (1, 1)
+   30.4 PASS under Model setup beside the cell grid ['Design line', 'Open boundary', '2D model domain, closed walls except open boundaries', 'Cell grid, 20 m, drawn from 1:20,000 in', 'Corridor faces: on a bank (red), the join (orange)', 'Corridor cells, aligned with the banks']
+   30.4 PASS pixel maps carry the corridors {'kept_cells': 10086, 'strip_pixels': 41744, 'strip_depth_max_m': 5.610759258270264}
+   30.4 PASS Make map available 
+   30.5 peaks with corridors {'P1': 330.3, 'P10': 0.0, 'P11': 0.0, 'P12': 0.0, 'P13': 0.0, 'P14': 0.0, 'P15': 0.0, 'P16': 0.0, 'P2': 0.0, 'P3': 0.0, 'P4': 0.0, 'P5': 0.0, 'P6': 320.7, 'P7': 0.0, 'P8': 0.1, 'P9': 0.0}
+   30.5 === 4 the same run on squares alone
+   30.5 dock says: Starting...
+   32.8 dock says: line P16 crosses no active face
+   33.8 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   36.1 PASS squares run finished Finished. line P2 crosses no active face. line P3 crosses no active face. line P4 crosses no active face. line P5 crosses no active face. line P7 crosses no active face. line P9 crosses no active face. line P10 crosses no active face. line P11 crosses no activ
+   36.1 PASS no corridors without the tick 
+   36.1 PASS no corridor layers for it 
+   36.1 peaks on squares {'P1': 327.8, 'P10': 0.0, 'P11': 0.0, 'P12': 0.0, 'P13': 0.0, 'P14': 0.0, 'P15': 0.0, 'P16': 0.0, 'P2': 0.0, 'P3': 0.0, 'P4': 0.0, 'P5': 0.0, 'P6': 340.3, 'P7': 0.0, 'P8': 0.1, 'P9': 0.0}
+   36.1 PASS line P1 within 10 % of the squares 1.008
+   36.1 PASS line P6 within 10 % of the squares 0.942
+   36.1 === 5 corridors with the mesh refinement are refused
+   36.1 PASS refused together Corridors run on the uniform grid: untick the mesh refinement or the corridors.
+   36.1 SUMMARY 27 passed, 0 failed 
+   36.1 DONE
