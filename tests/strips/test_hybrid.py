@@ -12,7 +12,7 @@ from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import level_of
 from wadi2d.strips.geometry import MeshGeometry
-from wadi2d.strips.hybrid import HybridCpu, ghosts_for
+from wadi2d.strips.hybrid import ghosts_for, make_hybrid
 from wadi2d.strips.tables import Pixels, build_poly_tables
 from wadi2d.tables.builder import hbar_at_level
 
@@ -43,19 +43,19 @@ def squares_of(tg, patch_padded: np.ndarray) -> tuple[MeshGeometry, np.ndarray, 
     return MeshGeometry.from_rings(np.array(xs), np.array(ys), rings), jj, ii
 
 
-def hybrid_case(theta: float, num: Numerics | None = None):
+def hybrid_case(theta: float, num: Numerics | None = None, backend: str = "cpu"):
     """The channel with the patch masked out of the tiles and carried by a strip of the same squares."""
     patch = patch_mask()
     tg, tables, sc, tc = channel(theta, ~patch)
     padded = np.zeros(tg.shape, bool)
     padded[1 : 1 + SIDE, 1 : 1 + SIDE] = patch
     geo, jj, ii = squares_of(tg, padded)
-    model = Model(tables, num or Numerics(), "cpu")
+    model = Model(tables, num or Numerics(), backend)
     ghosts = ghosts_for(geo, model, tables)
     assert ghosts.count == 40  # the ring of tile cells round a 10 x 10 patch
     _, _, _, _, z = _bed(theta)
     mesh, _kept = build_poly_tables(geo, Pixels(z, tg.x0, tg.y0, DX / K), Tables(), DX, 0.03, ghosts=ghosts)
-    hybrid = HybridCpu(model, mesh)
+    hybrid = make_hybrid(model, mesh)
     return tg, tables, sc, tc, model, hybrid, (jj, ii)
 
 
@@ -80,12 +80,12 @@ def composed_depth(tg, hybrid, cells) -> np.ndarray:
     """The level above zmin on the whole grid: the tiles', and the strip's on its cells."""
     d = hybrid.model.field("d").astype(np.float64)
     jj, ii = cells
-    d[jj, ii] = hybrid.state.d[: hybrid.nreal].astype(np.float64)
+    d[jj, ii] = hybrid.strip_host("d")[: hybrid.nreal].astype(np.float64)
     return d
 
 
-def run_hybrid_channel(theta: float) -> tuple[float, int]:
-    tg, tables, sc, tc, model, hybrid, cells = hybrid_case(theta)
+def run_hybrid_channel(theta: float, backend: str = "cpu") -> tuple[float, int]:
+    tg, tables, sc, tc, model, hybrid, cells = hybrid_case(theta, backend=backend)
     yn = normal_depth_wide(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
@@ -133,7 +133,7 @@ def test_still_water_across_the_join_stays_still_and_keeps_its_volume() -> None:
     hybrid.advance(600.0)
     speed = max(float(np.abs(model.field("u")).max()), float(np.abs(model.field("v")).max()))
     assert speed < 2e-5
-    assert float(np.abs(hybrid.state.u).max()) < 2e-5
+    assert float(np.abs(hybrid.strip_host("u")).max()) < 2e-5
     assert hybrid.volume() == pytest.approx(v0, rel=1e-7)
 
 
@@ -147,5 +147,5 @@ def test_a_closed_box_sloshing_across_the_join_keeps_its_water() -> None:
     hybrid.set_strip_depth(hybrid.strip_hbar_at_level(level[jj, ii]))
     v0 = hybrid.volume()
     hybrid.advance(300.0)
-    assert float(np.abs(hybrid.state.q).max()) > 0.1  # water crossed the join
+    assert float(np.abs(hybrid.strip_host("q")).max()) > 0.1  # water crossed the join
     assert hybrid.volume() == pytest.approx(v0, rel=1e-7)

@@ -18,14 +18,35 @@ EXCHANGE_BLOCK = (16, 17)
 """Enough threads for every halo slot of a tile: 272."""
 
 
-def _source() -> str:
+def header() -> str:
+    """The layout constants every kernel source starts with: one source of truth, ``layout.py``."""
     head = "\n".join(
         f"#define {n} {getattr(layout, n)}" for n in ("TILE", "HALO", "STRIDE", "STRIDE2", "TILE2")
     )
-    head += f"\n#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
-    return head + "".join(
+    return head + f"\n#define CELLS_PER_THREAD {CELLS_PER_THREAD}\n"
+
+
+def _source() -> str:
+    return header() + "".join(
         (KERNELS / f).read_text(encoding="utf-8") + "\n" for f in ("common.cuh", "faces.cu", "cells.cu", "levels.cu", "quad.cu")
     )
+
+
+def load_module(cp, source: str, num: NumericsRecord, dx: float, rows: int):
+    """A compiled module with its constants ``P`` set for this cell size and table rows.
+
+    CuPy hands the same loaded module to the same source, constants included, so a second size needs its own text.
+    """
+    module = cp.RawModule(code=source, options=("-std=c++17", "--use_fast_math"))
+    record = np.array(
+        [(num.g, dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, rows, int(num.second), int(num.sheet), int(num.mirror))],
+        dtype=np.dtype(
+            [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
+             ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
+        ),
+    )  # fmt: skip
+    module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)
+    return module
 
 
 class GpuBackend:
@@ -71,24 +92,16 @@ class GpuBackend:
         self.src_map = cp.asarray(src)
         self.bc: BoundaryCells | None = None
         self.bc_arrays = None
+        self.hooks = None
+        """A hybrid stepper (W45): ``before_update(dt, want_wave)`` runs after the faces and the positivity, before
+        the update, ``after_update(dt, want_wave)`` after it; both see the device arrays."""
+        self.extra_wave = 0.0
+        """The largest wave speed of whatever a hook steps beside the tiles, m/s; a device scalar or a float."""
         self.set_active(np.arange(1, self.grid.ntiles, dtype=np.int32))
 
     def _module(self, dx: float, tag: str = ""):
-        """A copy of the kernels whose constants hold this cell size.
-
-        CuPy hands the same loaded module to the same source, constants included, so a second size needs its own text.
-        """
-        num = self.num
-        module = self.cp.RawModule(code=_source() + tag, options=("-std=c++17", "--use_fast_math"))
-        record = np.array(
-            [(num.g, dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, self.rows, int(num.second), int(num.sheet), int(num.mirror))],
-            dtype=np.dtype(
-                [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
-                 ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
-            ),
-        )  # fmt: skip
-        module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)
-        return module
+        """A copy of the kernels whose constants hold this cell size."""
+        return load_module(self.cp, _source() + tag, self.num, dx, self.rows)
 
     def size_modules(self) -> list:
         """One module per tile size in the grid; a uniform grid has the one."""
@@ -136,6 +149,8 @@ class GpuBackend:
         self._exch(self.u1, self.v1, self.qx1, self.qy1)
         self._limit(grid, BLOCK, (self.active, dtf, self.h, self.qx1, self.qy1, self.r))
         self._exch(self.r)
+        if self.hooks is not None:
+            self.hooks.before_update(dt, want_wave)
         if want_wet:
             self.wet[:] = 0
         self._update(
@@ -143,6 +158,8 @@ class GpuBackend:
             (self.active, dtf, int(want_wet), int(want_wave), 0, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab,
              self.h, self.d, self.qx, self.qy, self.wet),
         )  # fmt: skip
+        if self.hooks is not None:
+            self.hooks.after_update(dt, want_wave)
         if self.bc is not None and self.bc.cell.size:
             n = self.bc.cell.size
             self._boundary(((n + 255) // 256,), (256,), (n, *self.bc_arrays, self.h, self.d))
@@ -161,7 +178,7 @@ class GpuBackend:
         return GpuLevels(self, BLOCK, EXCHANGE_BLOCK)
 
     def max_wave(self) -> float:
-        return float(self.wave.max())
+        return max(float(self.wave.max()), float(self.extra_wave))
 
     def wet_flags(self) -> np.ndarray:
         return self.cp.asnumpy(self.wet)

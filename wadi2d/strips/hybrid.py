@@ -1,6 +1,6 @@
 # Wadi2D. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The hybrid step on the CPU: square tiles and a polygon strip in one time step (W45, stage 3).
+"""The hybrid step: square tiles and a polygon strip in one time step (W45, stage 3 on the CPU, stage 5 on the GPU).
 
 The tile backend steps its faces and positivity as ever; in its ``before_update`` hook the strip mirrors the tile
 cells it touches into its ghost entries (mean depth, level, wet share), adds those cells' lattice faces to the Perot
@@ -14,6 +14,10 @@ hold a ghost are always stepped.
 What a ghost's lattice faces add [Likely the right form; measured by the stage gate]: the Perot sum of a square from its
 four face discharges, the Green-Gauss gradient from its open wet faces' level differences, and the advection rate from its four lattice
 faces' outflows times the upwind velocity, a neighbour's taken from that neighbour's own four faces.
+
+:class:`Hybrid` holds what both backends share (the ghosts, their open faces, the interface edges, the run's hooks);
+:class:`HybridCpu` steps the strip with the Numba kernels, :class:`wadi2d.strips.hybrid_gpu.HybridGpu` with the CUDA
+twin; :func:`make_hybrid` picks by the model's backend.
 """
 
 from __future__ import annotations
@@ -100,22 +104,20 @@ def ghost_ratios(ng, nreal, ghost, dt, dx, h, r_tile, qx1, qy1, out, r) -> None:
         r[c] = avail / (o * dt) if o * dt > avail else F(1.0)
 
 
-class HybridCpu:
-    """A tile model and a strip stepped together; installs itself as the tile backend's hooks."""
+class Hybrid:
+    """A tile model and a strip stepped together; installs itself as the tile backend's hooks. What the backends
+    share: the ghosts and their open lattice faces, the interface edges, the strip's place in the run."""
 
     def __init__(self, model: Model, mesh: PolyMesh) -> None:
-        if model.backend.name != "cpu":
-            raise ValueError("the hybrid step runs on the CPU backend in stage 3")
         if mesh.ghost_state is None:
             raise ValueError("the strip has no ghosts: build its tables with the tile cells it touches")
         self.model = model
         self.mesh = mesh
-        self.state = PolyState(mesh, model.num)
         self.ghost = np.asarray(mesh.ghost_state, np.int64)
         self.nreal = mesh.real
         grid, tables = model.grid, model.tables
         self.dx = F(grid.dx)
-        self.zmin_state = model.host.to_state(tables.zmin)
+        self.zmin_state = np.asarray(model.host.to_state(tables.zmin), F)
         flx, fly = grid.from_tiles(tables.flx), grid.from_tiles(tables.fly)
         j, i = self.cells_of(self.ghost)
         ny, nx = grid.shape
@@ -123,13 +125,16 @@ class HybridCpu:
         self.open_e = np.where(i + 1 < nx, flx[j, np.minimum(i + 1, nx - 1)] < CLOSED, False)
         self.open_n = fly[j, i] < CLOSED
         self.open_s = np.where(j + 1 < ny, fly[np.minimum(j + 1, ny - 1), i] < CLOSED, False)
-        self.saved = np.zeros(self.ghost.size, F)
         self._edges(mesh, grid)
+        self.state = self.make_state()
         b = model.backend
         b.hooks = self
         tiles = np.unique(self.ghost // STRIDE2)
         model.stepper.keep_active[tiles] = True
         model.stepper.rebuild_active(retain=True)
+
+    def make_state(self):
+        raise NotImplementedError
 
     def _edges(self, mesh: PolyMesh, grid) -> None:
         """Each interface face's closed tile face: its state slot, the sign between the strip's normal and the
@@ -169,26 +174,29 @@ class HybridCpu:
         oj, oi = rem // STRIDE - HALO, rem % STRIDE - HALO
         return grid.tiles[t, 0] * TILE + oj, grid.tiles[t, 1] * TILE + oi
 
-    # ---- the strip's own state
-    def set_strip_depth(self, hbar: np.ndarray) -> None:
-        m, s = self.mesh, self.state
-        n = self.nreal
-        s.h[:n] = np.asarray(hbar, F)
-        s.d[:n] = level_of(s.h[:n].astype(np.float64), m.hc[:n], m.dtab[:n])
-        s.om[:n] = plan_of(s.h[:n].astype(np.float64), m.hc[:n], m.dtab[:n])
-        self.model.stepper.refresh_due = True
-
+    # ---- the strip's own state, as the backends share it
     def strip_hbar_at_level(self, level: float | np.ndarray) -> np.ndarray:
         m, n = self.mesh, self.nreal
         return hbar_at_level(level, m.zmin[:n], m.hc[:n], m.dtab[:n])
 
-    def set_strip_source(self, rate: np.ndarray) -> None:
-        self.state.src[: self.nreal] = np.asarray(rate, F)
+    def strip_start(self, hbar: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Mean depth, level and wet share of the real cells for a depth."""
+        m, n = self.mesh, self.nreal
+        h = np.asarray(hbar, F)
+        d = level_of(h.astype(np.float64), m.hc[:n], m.dtab[:n]).astype(F)
+        om = plan_of(h.astype(np.float64), m.hc[:n], m.dtab[:n]).astype(F)
+        self.model.stepper.refresh_due = True
+        return h, d, om
+
+    def strip_host(self, name: str) -> np.ndarray:
+        """A strip array on the host (a copy on the GPU, the array itself on the CPU)."""
+        raise NotImplementedError
 
     def strip_volume(self) -> float:
         """Water in the strip, the clamp residual of each cell included, as the tiles count theirs."""
-        n, s = self.nreal, self.state
-        return float(np.sum((s.h[:n].astype(np.float64) + s.res[:n]) * self.mesh.area[:n]))
+        n = self.nreal
+        h, res = self.strip_host("h")[:n].astype(np.float64), self.strip_host("res")[:n].astype(np.float64)
+        return float(np.sum((h + res) * self.mesh.area[:n]))
 
     def volume(self) -> float:
         return self.model.volume() + self.strip_volume()
@@ -209,18 +217,48 @@ class HybridCpu:
 
     def _line_flow(self, faces: np.ndarray, signs: np.ndarray):
         def flow() -> float:
-            return float(np.dot(self.state.q[faces].astype(np.float64), signs))
+            return float(np.dot(self.strip_host("q")[faces].astype(np.float64), signs))
 
         return flow
 
     def rain(self, rate: np.ndarray, step: float) -> float:
         """Uniform rain on the strip at the lattice's own rate; returns the volume of the window, m3."""
         r = float(rate.max()) if rate.size else 0.0
-        n = self.nreal
-        self.state.src[:n] = F(r)
-        return r * float(self.mesh.area[:n].sum()) * step
+        self.set_strip_source(np.full(self.nreal, r, F))
+        return r * float(self.mesh.area[: self.nreal].sum()) * step
 
-    # ---- the hooks
+    def set_strip_depth(self, hbar: np.ndarray) -> None:
+        raise NotImplementedError
+
+    def set_strip_source(self, rate: np.ndarray) -> None:
+        raise NotImplementedError
+
+    def before_update(self, dt: float, want_wave: bool) -> None:
+        raise NotImplementedError
+
+    def after_update(self, dt: float, want_wave: bool) -> None:
+        raise NotImplementedError
+
+
+class HybridCpu(Hybrid):
+    """The hybrid step with the Numba kernels on the host arrays."""
+
+    def make_state(self) -> PolyState:
+        if self.model.backend.name != "cpu":
+            raise ValueError("HybridCpu steps a CPU model; make_hybrid picks the class")
+        self.saved = np.zeros(self.ghost.size, F)
+        return PolyState(self.mesh, self.model.num)
+
+    def strip_host(self, name: str) -> np.ndarray:
+        return getattr(self.state, name)
+
+    def set_strip_depth(self, hbar: np.ndarray) -> None:
+        s, n = self.state, self.nreal
+        s.h[:n], s.d[:n], s.om[:n] = self.strip_start(hbar)
+
+    def set_strip_source(self, rate: np.ndarray) -> None:
+        self.state.src[: self.nreal] = np.asarray(rate, F)
+
     def before_update(self, dt: float, want_wave: bool) -> None:
         b, s, n, g = self.model.backend, self.state, self.nreal, self.ghost
         s.h[n:] = b.h[g]
@@ -267,6 +305,15 @@ class HybridCpu:
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
             discharge[unique] = q_edge.astype(F)
             velocity[all_copies] = speed[owner].astype(F)
+
+
+def make_hybrid(model: Model, mesh: PolyMesh) -> Hybrid:
+    """The hybrid stepper for the model's backend."""
+    if model.backend.name == "gpu":
+        from wadi2d.strips.hybrid_gpu import HybridGpu
+
+        return HybridGpu(model, mesh)
+    return HybridCpu(model, mesh)
 
 
 def ghosts_for(geo: MeshGeometry, grid_or_model, tables: GridTables) -> Ghosts:

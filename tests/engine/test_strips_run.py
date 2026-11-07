@@ -80,7 +80,17 @@ def test_a_job_without_strips_keeps_the_hash_it_had(tilted_dem) -> None:  # noqa
     assert job_hash(cfg) == job_hash(cfg.model_copy(update={"strips": cfg.strips.model_copy(update={"smooth": 9})}))
 
 
-def test_a_gpu_backend_is_refused_with_strips_in_words(tilted_dem, tmp_path) -> None:  # noqa: F811
-    cfg = plane_job(tilted_dem, corridor()).model_copy(update={"run": plane_job(tilted_dem, None).run.model_copy(update={"backend": "gpu"})})
-    run = run_job(cfg, tmp_path / "gpu")
-    assert run.exit_code == 2 and "CPU backend" in run.message
+@pytest.mark.gpu
+def test_the_same_job_on_the_gpu_closes_its_books_and_reads_the_cpu_line(tilted_dem, tmp_path) -> None:  # noqa: F811
+    cfg = plane_job(tilted_dem, corridor())
+    on_gpu = cfg.model_copy(update={"run": cfg.run.model_copy(update={"backend": "gpu"})})
+    gpu = run_job(on_gpu, tmp_path / "gpu")
+    assert gpu.exit_code == 0, gpu.message
+    assert gpu.backend == "gpu"
+    assert abs(gpu.balance.relative) < 1e-6
+    cpu = run_job(cfg, tmp_path / "cpu")
+    peak_g, volume_g = peak_and_volume(tmp_path / "gpu")
+    peak_c, volume_c = peak_and_volume(tmp_path / "cpu")
+    assert cpu.exit_code == 0
+    assert volume_g == pytest.approx(volume_c, rel=1e-3)
+    assert peak_g == pytest.approx(peak_c, rel=1e-2)

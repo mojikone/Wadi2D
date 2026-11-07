@@ -830,9 +830,6 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     name = backend or cfg.run.backend
     strip = getattr(tables, "strip", None)
     if strip is not None:
-        if name == "gpu":
-            raise InvalidJob("strips run on the CPU backend in this version: set run.backend to cpu or auto")
-        name = "cpu"
         if continuing:
             raise InvalidJob("a run with strips cannot resume yet")
         if cfg.terrain.cn_raster or cfg.storm.kind == "gridded" or cfg.storm.depth_grid or cfg.hydrology.subbasins:
@@ -867,9 +864,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
 
     hybrid = None
     if strip is not None:
-        from wadi2d.strips.hybrid import HybridCpu
+        from wadi2d.strips.hybrid import make_hybrid
 
-        hybrid = HybridCpu(model, strip.mesh)
+        hybrid = make_hybrid(model, strip.mesh)
         progress.emit(
             "strips", corridors=len(cfg.strips.corridors), cells=int((strip.strip.corridor >= 0).sum()),
             triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size),
