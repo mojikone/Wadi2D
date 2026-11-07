@@ -1,0 +1,6 @@
+# run outputs and caches are rebuilt by race_faydh.py in minutes on the GPU; the series, progress and jobs are the record
+cache/
+W45 aligned mesh engine/
+faydh20_*/*
+!faydh20_*/series/
+!faydh20_*/progress.jsonl

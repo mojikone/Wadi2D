@@ -1,0 +1,54 @@
+{
+ "accepted": 39,
+ "rejected": [
+  {
+   "tag": "pair 4 area 69.78 km2",
+   "why": "pair4_69.8km2: folds or runs too close, 345 m cut to 302 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 7 area 59.69 km2",
+   "why": "pair7_59.7km2: folds or runs too close, 704 m cut to 655 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 13 area 32.14 km2",
+   "why": "pair13_32.1km2: folds or runs too close, 659 m cut to 616 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 14 area 32.14 km2",
+   "why": "pair14_32.1km2: folds or runs too close, 416 m cut to 0 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 16 area 25.41 km2",
+   "why": "pair16_25.4km2: folds or runs too close, 1732 m cut to 1599 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 17 area 22.41 km2",
+   "why": "pair17_22.4km2: folds or runs too close, 832 m cut to 572 m in 2 piece(s)"
+  },
+  {
+   "tag": "pair 21 area 19.50 km2",
+   "why": "pair21_19.5km2: folds or runs too close, 409 m cut to 364 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 26 area 12.29 km2",
+   "why": "pair26_12.3km2: folds or runs too close, 683 m cut to 395 m in 2 piece(s)"
+  },
+  {
+   "tag": "pair 28 area 11.61 km2",
+   "why": "pair28_11.6km2: folds or runs too close, 355 m cut to 313 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 35 area 5.19 km2",
+   "why": "pair35_5.2km2: folds or runs too close, 702 m cut to 484 m in 2 piece(s)"
+  },
+  {
+   "tag": "pair 36 area 5.19 km2",
+   "why": "pair36_5.2km2: folds or runs too close, 432 m cut to 0 m in 1 piece(s)"
+  },
+  {
+   "tag": "pair 40 area 1.70 km2",
+   "why": "pair40_1.7km2: folds or runs too close, 888 m cut to 840 m in 1 piece(s)"
+  }
+ ],
+ "pairs": 41
+}

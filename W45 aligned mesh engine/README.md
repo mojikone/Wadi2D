@@ -178,6 +178,62 @@ strip node counted the faces that end on it; those carry flow along the line and
 corridors (its clearance rule was stricter). Full suite on the branch: one failure, the frozen schema sample, since
 regenerated and passing.
 
+## Stage 5 (2026-11-07): the CUDA twin of the polygon step, passed
+
+`wadi2d/solver/gpu/kernels/poly.cu` carries `kernel.py` statement for statement: one thread per face or per cell, a
+cell gathering over its faces through a CSR (`cell_faces`) so no sum needs an atomic and every launch gives the same
+bits; the ghosts read the lattice arrays as the CPU hybrid does. `wadi2d/solver/poly/gpu.py` (`PolyGpuState`) holds
+the strip on the device and its nine launches; `wadi2d/strips/hybrid_gpu.py` (`HybridGpu`) drives them in the GPU
+backend's new hooks, nothing leaving the device inside a step; `hybrid.py` keeps what the backends share in `Hybrid`,
+and `make_hybrid` picks by the model's backend, so a job with strips runs on the GPU. Tests
+`tests/strips/test_hybrid_gpu.py` and the GPU case of `tests/engine/test_strips_run.py`:
+
+| Case | CPU hybrid | GPU hybrid | Rule |
+|---|---|---|---|
+| W3's channel through the strip, depth / normal depth, axis / 45 degrees | 0.9848 / 1.0250 | within 2e-3 of it | within 2e-3 |
+| A 0.6 m step released across the join, 120 s, depth field cell by cell | | worst difference **under 1e-4 m** | within 1e-4 m (the stage gate) |
+| Still water across the join, 600 s | | largest speed under 2e-5 m/s, volume within 1e-7 | as the CPU |
+| The plane job's line through the corridor | | peak within 1 %, volume within 0.1 % of the CPU run | within 1 % |
+
+Faydh 01 at 20 m, 16 h, 188,814 squares and 19,886 strip cells: no lines 88,589 steps in 13.4 s on the GPU against
+496 s on the CPU; with corridors 143,739 steps (the 10 m rows and the small gap triangles set the step, `dt_min` 0.04
+against 0.33 s) in 72 s against 1,317 s. [Certain, measured] The strip costs the GPU run 5 x: 1.6 x the steps and nine
+small launches plus a few CuPy reductions a step on 20,000 cells, which is launch-bound. The strip's own
+local-time-stepping class and one fused kernel are the next speed items; W40 said so.
+
+## Stage 7, second piece, and the race (2026-11-07): Faydh 01 at 20 m, passed
+
+Three things the Faydh run found, each now in the tests: **a strip that reaches an outflow boundary lost its outflow
+from the books** (a boundary cell's depth is reset after every step, so what the strip hands it has left; the boundary
+tally saw only lattice faces: 40 % of the rain missing at hour 10; the hybrid now tallies its interface faces onto
+boundary cells and the monitor adds that to the outflow; a corridor ending on the plane's free boundary closes to
+1e-6); **a result line across a corridor read a third of the flow** (it runs parallel to the station faces that carry
+the flow and cut only the row faces; the rule is now the lattice's, a cell left or right of the line by its centroid
+against the nearest stretch of it, a face counting when its two cells differ, ghosts included, and the staircase gives
+up a join slot the strip counts); and **a corridor whose row crosses itself two stations apart kept every cell's area
+while the cells overlapped**, which the fold test now catches, with a corridor past the active cells refused in words,
+and `fold_free_pieces` cutting a corridor clear of its folds and of what it must keep out of, so the bank builder
+gives what the mesher accepts. The run writes `maps/strip_mesh.gpkg`, the strip's cells with the largest depth and
+level of the run and its faces with the largest discharge; `map_close.py` draws a window of it.
+
+`race_faydh.py`: W36's base, W11's rain-on-grid job on the 20 m wadi domain, 16 h, no maps; the corridors from W26's
+suggested banks by `banks.py` (225 bank parts on 21 wadis, 41 pairs, 39 corridors along 36 km after 12 cuts, 6 rows of
+10 m, the banks on the rows at +-10 m), 10,716 corridor cells, 9,170 gap triangles, 10,215 squares replaced.
+
+| Faydh 01 at 20 m, GPU | No lines | **Corridors on W26's banks** | W36's staircase, banks as breakline faces |
+|---|---|---|---|
+| Dam axis, peak m3/s | 1,835.2 at 12.21 h | **1,881.7 at 12.21 h (+2.5 %)** | -11.1 % |
+| `box_mid`, 600 m downstream, peak | 1,838.5 | **1,875.0 (+2.0 %)** | |
+| Volume through the axis, Mm3 | 9.751 | 9.854 (+1.1 %) | |
+| Outflow / rain | 0.915 | 0.925 | |
+| Mass error | -2.0e-8 | -2.1e-8 | |
+
+[Certain, measured] The aligned corridors pass W36's rule, within 3 % of no lines, where the staircase of breakline
+faces on the same banks read -11.1 %; the peak sits 2.5 % above the squares, the direction W3 and stage 4 found on the
+45-degree channel (the aligned faces lose less to the staircase's cross-advection). The CPU twin on the same job is
+rerunning on the corrected lines for the parity record (`faydh20_strips`). Not in this race: 10 m, the W26 bank cases
+on Bidah, the flume; and the corridors here are 60 m wide on banks 20 m apart, so the flood's margins run on squares.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.

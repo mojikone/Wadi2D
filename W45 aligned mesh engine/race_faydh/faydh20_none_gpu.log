@@ -1,0 +1,12 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_faydh\\W45 aligned mesh engine\\race_faydh\\cache\\grid_db01fab1f96b7c0994350afe.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 7.62, "t": 0.0}
+{"ev": "step", "t": 18150.66, "dt": 0.6564, "steps": 9836, "active_tiles": 222, "volume": 92875.2, "mass_error": -3.637e-10, "wall": 2.0}
+{"ev": "step", "t": 25979.694, "dt": 0.5699, "steps": 22961, "active_tiles": 222, "volume": 342783.4, "mass_error": -2.129e-09, "wall": 4.0}
+{"ev": "step", "t": 33363.066, "dt": 0.5121, "steps": 36733, "active_tiles": 222, "volume": 648706.5, "mass_error": -4.973e-09, "wall": 6.0}
+{"ev": "step", "t": 40944.941, "dt": 0.4848, "steps": 50547, "active_tiles": 222, "volume": 1659917.9, "mass_error": -6.489e-09, "wall": 8.0}
+{"ev": "step", "t": 46628.704, "dt": 0.3348, "steps": 66110, "active_tiles": 222, "volume": 2447580.0, "mass_error": -1.574e-08, "wall": 10.0}
+{"ev": "step", "t": 53400.581, "dt": 0.5798, "steps": 80897, "active_tiles": 222, "volume": 1102021.1, "mass_error": -1.94e-08, "wall": 12.0}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_none_gpu\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 88589, "loop_s": 13.36, "tables_s": 7.62, "wet_area_km2": 5.3984, "dt_min": 0.328585847289284, "balance": {"rain_m3": 10739179.144878443, "inflow_m3": 0.0, "outflow_m3": 9829243.016964708, "storage_start_m3": 0.0, "storage_end_m3": 909936.346193709, "error_m3": -0.21827997313812375, "relative_error": -2.0325573323006008e-08}, "tile_steps": null, "products": "none"}
+exit 0
