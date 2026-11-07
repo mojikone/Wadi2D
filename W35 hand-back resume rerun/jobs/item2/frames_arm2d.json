@@ -1,0 +1,295 @@
+{
+ "project": {
+  "name": "frames_arm2d",
+  "description": "W32 combinations test"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\W1 research and design note\\validation\\block2_full\\domain_Bidah03.geojson",
+  "cache_dir": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\w35scratch\\cache"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\GGC_2_MERGE_HDSM_5.tif",
+  "manning": 0.05,
+  "cn_raster": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Hydrology Data\\CN_Include_Hill_Area.tif",
+  "objects": [
+   {
+    "kind": "crest_line",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ],
+     [
+      438800.2,
+      2726723.6
+     ],
+     [
+      438804.0,
+      2726713.5
+     ],
+     [
+      438814.8,
+      2726694.0
+     ],
+     [
+      438828.7,
+      2726674.3
+     ],
+     [
+      438854.3,
+      2726650.3
+     ],
+     [
+      438864.9,
+      2726625.5
+     ],
+     [
+      438859.8,
+      2726618.6
+     ],
+     [
+      438851.2,
+      2726603.5
+     ],
+     [
+      438843.2,
+      2726583.8
+     ],
+     [
+      438837.1,
+      2726568.1
+     ],
+     [
+      438823.4,
+      2726554.4
+     ],
+     [
+      438804.7,
+      2726543.3
+     ],
+     [
+      438734.6,
+      2726533.6
+     ],
+     [
+      438729.6471916152,
+      2726532.9146613223
+     ]
+    ],
+    "z_constant": 105.0,
+    "name": "Bidah 03"
+   },
+   {
+    "kind": "crest_line",
+    "coordinates": [
+     [
+      437652.7219230027,
+      2726911.019844357
+     ],
+     [
+      437647.8,
+      2726911.9
+     ],
+     [
+      437562.8,
+      2726927.1
+     ],
+     [
+      437552.9561539946,
+      2726928.8603112856
+     ]
+    ],
+    "z_constant": 105.0,
+    "name": "saddle 2"
+   },
+   {
+    "kind": "crest_line",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438147.3,
+      2727215.7
+     ],
+     [
+      438114.4,
+      2727197.5
+     ],
+     [
+      438029.0,
+      2727157.6
+     ],
+     [
+      438004.2,
+      2727143.4
+     ],
+     [
+      437921.6,
+      2727135.2
+     ],
+     [
+      437896.72228747344,
+      2727132.730299725
+     ]
+    ],
+    "z_constant": 105.0,
+    "name": "saddle 3"
+   },
+   {
+    "kind": "spillway",
+    "coordinates": [
+     [
+      438572.04178283754,
+      2726972.8066110923
+     ],
+     [
+      438624.6702294905,
+      2726923.671627599
+     ]
+    ],
+    "z_constant": 100.0,
+    "coefficient": 2.1,
+    "length": 72.0
+   }
+  ]
+ },
+ "storm": {
+  "kind": "gridded",
+  "rain_file": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\w35scratch\\item2\\rain_frames",
+  "rain_interval_min": 5.0,
+  "rain_units": "mm"
+ },
+ "hydrology": {
+  "basin_json": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\w35scratch\\basin2\\basin\\basin.json",
+  "time_step_min": 5.0,
+  "subbasins": [
+   {
+    "name": "S2",
+    "mode": "2d"
+   }
+  ]
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     440290.0,
+     2725700.0
+    ],
+    [
+     440290.0,
+     2728700.0
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     437300.0,
+     2728690.0
+    ],
+    [
+     440300.0,
+     2728690.0
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 0.0,
+  "live_every_s": 0.0,
+  "series_every_s": 60.0,
+  "pixels": {
+   "enabled": false
+  },
+  "smooth": {
+   "enabled": false
+  },
+  "lines": [
+   {
+    "name": "Bidah 03",
+    "coordinates": [
+     [
+      438100.0,
+      2727420.0
+     ],
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ],
+     [
+      438870.0,
+      2726640.0
+     ]
+    ]
+   },
+   {
+    "name": "axis",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ]
+    ]
+   },
+   {
+    "name": "above",
+    "coordinates": [
+     [
+      438088.71241842565,
+      2727082.0323380106
+     ],
+     [
+      438637.07241842564,
+      2726570.0723380107
+     ]
+    ]
+   },
+   {
+    "name": "below",
+    "coordinates": [
+     [
+      438361.6845489446,
+      2727374.412597194
+     ],
+     [
+      438910.04454894457,
+      2726862.452597194
+     ]
+    ]
+   }
+  ],
+  "points": [
+   {
+    "name": "pool",
+    "x": 438300.0,
+    "y": 2726860.0
+   }
+  ]
+ },
+ "run": {
+  "duration_s": 108000.0,
+  "backend": "auto",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0
+ }
+}

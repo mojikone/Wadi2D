@@ -1,0 +1,21 @@
+whole: exit 0, {'rain_m3': 4254615.476591174, 'inflow_m3': 376205.6682875814, 'outflow_m3': 4241930.594717611, 'storage_start_m3': 0.0, 'storage_end_m3': 388890.6427007089, 'error_m3': -0.09253956418251619, 'relative_error': -1.998340278912652e-08, 'handback_m3': 3251467.925040384, 'reentry_m3': 376205.6682875814, 'lateral_m3': 376205.6680030673, 'network_out_m3': 0.0, 'network_storage_m3': 3253336.5141254757, 'routing_defect_m3': -1868.589369605761, 'whole_error_m3': -1868.6819091699435, 'whole_relative_error': -0.0004035314366116984}
+stopped: exit 6 near 13.18 h, checkpoint True, {'rain_m3': 3817677.2972001527, 'inflow_m3': 327001.75814516644, 'outflow_m3': 3635896.861020519, 'storage_start_m3': 0.0, 'storage_end_m3': 508782.27529594913, 'error_m3': -0.08097114885458723, 'relative_error': -1.9536168608799797e-08, 'handback_m3': 2780608.2746056984, 'reentry_m3': 327001.75814516644, 'lateral_m3': 328575.0296162169, 'network_out_m3': 0.0, 'network_storage_m3': 2784218.6813473115, 'routing_defect_m3': -2037.1352705629542, 'whole_error_m3': -2037.2162417118088, 'whole_relative_error': -0.0004913391856390108}
+resumed: exit 0, {'rain_m3': 4254615.476591172, 'inflow_m3': 376205.6682875814, 'outflow_m3': 4241930.594717616, 'storage_start_m3': 0.0, 'storage_end_m3': 388890.6427007089, 'error_m3': -0.09253957163309678, 'relative_error': -1.9983404398037856e-08, 'handback_m3': 3251467.9250403875, 'reentry_m3': 376205.6682875814, 'lateral_m3': 376205.6680030673, 'network_out_m3': 0.0, 'network_storage_m3': 3253336.5141254794, 'routing_defect_m3': -1868.589369605761, 'whole_error_m3': -1868.6819091773941, 'whole_relative_error': -0.00040353143661330746}
+PASS the straight run finished 0
+PASS the run stopped on the stop file with a checkpoint (6, 62130.0)
+PASS stopped inside the flood 62130.0
+PASS the resumed run finished 0
+PASS resumed to the end 108000.0
+PASS whole error of the resumed run small -0.00040353143661330746
+PASS grid error of the resumed run small -1.9983404398037856e-08
+PASS storage_end_m3 as the straight run within 1e-3 (388890.6427007089, 388890.6427007089)
+PASS handback_m3 as the straight run within 1e-3 (3251467.925040384, 3251467.9250403875)
+PASS network_storage_m3 as the straight run within 1e-3 (3253336.5141254757, 3253336.5141254794)
+PASS outflow_m3 as the straight run within 1e-3 (4241930.594717611, 4241930.594717616)
+PASS reentry_m3 as the straight run within 1e-3 (376205.6682875814, 376205.6682875814)
+PASS inflow_m3 as the straight run within 1e-3 (376205.6682875814, 376205.6682875814)
+PASS rain_m3 as the straight run within 1e-3 (4254615.476591174, 4254615.476591172)
+PASS every series file is present after the resume []
+PASS every series equal to the last digit 19 of 19 identical; worst (0.0, 'point_pool')
+PASS line above peak within 1e-3 ((62.8703, 12.041666666666666), (62.8703, 12.041666666666666))
+item 4: 17 passed, 0 failed
