@@ -230,9 +230,11 @@ suggested banks by `banks.py` (225 bank parts on 21 wadis, 41 pairs, 39 corridor
 
 [Certain, measured] The aligned corridors pass W36's rule, within 3 % of no lines, where the staircase of breakline
 faces on the same banks read -11.1 %; the peak sits 2.5 % above the squares, the direction W3 and stage 4 found on the
-45-degree channel (the aligned faces lose less to the staircase's cross-advection). The CPU twin on the same job is
-rerunning on the corrected lines for the parity record (`faydh20_strips`). Not in this race: 10 m, the W26 bank cases
-on Bidah, the flume; and the corridors here are 60 m wide on banks 20 m apart, so the flood's margins run on squares.
+45-degree channel (the aligned faces lose less to the staircase's cross-advection). The CPU twin on the same job
+(`faydh20_strips`, 143,017 steps in 1,425 s, books closed to 3e-8): axis 1,889.2 m3/s (+2.96 % on no lines, 0.4 %
+above the GPU), `box_mid` 1,873.7 (0.07 % below the GPU), volumes within 0.1 %: W33's spread between the backends, and
+the CPU sits at the edge of the 3 % rule where the GPU has 0.5 % in hand. Not in this race: 10 m, the W26 bank cases on
+Bidah, the flume; and the corridors here are 60 m wide on banks 20 m apart, so the flood's margins run on squares.
 
 ## Iterations
 
