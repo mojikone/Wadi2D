@@ -1,6 +1,6 @@
 """Result lines that read a lumped inflow's pond rather than the flow (W31).
 
-Interface: :func:`inflow_crossings`.
+Interface: :func:`inflow_crossings`, :func:`touched_cells`.
 
 A lumped hydrograph enters the grid at a few cells with no momentum; in a gorge pocket it ponds and surges between them,
 a sawtooth of seconds. A line whose faces touch those cells reads the surge in its raw peak, and a ring on a lumped
@@ -14,7 +14,7 @@ import numpy as np
 from wadi2d.terrain.crest import NORTH, staircase
 
 
-def _touched(grid, coordinates) -> set[tuple[int, int]]:
+def touched_cells(grid, coordinates) -> set[tuple[int, int]]:
     """The cells either side of every face under the line."""
     st = staircase(grid, coordinates)
     north = st.axis == NORTH
@@ -30,7 +30,7 @@ def inflow_crossings(lines, inflows: dict[str, set[tuple[int, int]]], grid) -> l
     """
     notes = []
     for line in lines:
-        touched = _touched(grid, line.coordinates)
+        touched = touched_cells(grid, line.coordinates)
         hit = sorted(name for name, cells in inflows.items() if touched & cells)
         if hit:
             notes.append(

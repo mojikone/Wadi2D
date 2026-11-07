@@ -10,6 +10,7 @@ Run with the project venv: ``.venv\\Scripts\\python "W41 hybrid design lines\\in
 
 from __future__ import annotations
 
+import itertools
 import json
 import sys
 from pathlib import Path
@@ -28,7 +29,7 @@ def signed_distance(line: np.ndarray, point) -> float:
     """Distance to the nearest segment, signed by the side (cross product of the segment and the point)."""
     p = np.asarray(point, dtype=float)
     best = (np.inf, 0.0)
-    for a, b in zip(line[:-1], line[1:], strict=True):
+    for a, b in itertools.pairwise(line):
         d = b - a
         t = np.clip(np.dot(p - a, d) / np.dot(d, d), 0.0, 1.0)
         dist = float(np.linalg.norm(p - (a + t * d)))

@@ -8,6 +8,10 @@ The owner's rules (work order item 9), as built here:
 - A lumped polygon masks the rain under it, so a cell never gets two rainfalls (checked in :mod:`wadi2d.engine.rain_once`).
 - Where a reach is defined the flow is routed HMS style. Where none is, the junction's water enters the grid at the junction
   and runs over the ground to the next junction: an inflow is built there, and the link below it is cut in the lumped engine.
+  A junction built on a design line has an ``entry: wadi`` inflow, so it enters up the wadi, clear above the line
+  (W41); every other inflow enters at its junction.
+- A design line whose junction sends its water down a reach reads that water from the network
+  (:mod:`wadi2d.engine.design_lines`).
 - A reach-routed hydrograph stays out of the grid until the end of its reach. 2D flow that reaches a junction with a reach
   below leaves the grid at a hand-back line built there (the link of `W25`), into that junction; the lumped water above the
   junction stays in the network, because the routes already say what is on the grid.
@@ -38,7 +42,16 @@ from wadi2d.basin.contract import (
 from wadi2d.basin.geometry import ModelGeometry, first_direction, model_geometry
 from wadi2d.basin.loader import load_network
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH, JunctionRoute, junction_routes
-from wadi2d.config.schema import REACH_HMS, Handback, Hydrology, Inflow, RunConfig, Subbasin
+from wadi2d.config.schema import (
+    ENTRY_POINT,
+    ENTRY_WADI,
+    REACH_HMS,
+    Handback,
+    Hydrology,
+    Inflow,
+    RunConfig,
+    Subbasin,
+)
 from wadi2d.hydrology.model import Basin
 
 MODE_LUMPED, MODE_2D = "lumped", "2d"
@@ -215,7 +228,9 @@ def _plan(
         plans.append(plan)
         if enters:
             x, y = element["outlet"]
-            inflows.append(Inflow(name=name, x=x, y=y, element=name))
+            on_line = bool((element.get("pour_point") or {}).get("line"))
+            entry = ENTRY_WADI if on_line else ENTRY_POINT  # a junction on a design line enters above it
+            inflows.append(Inflow(name=name, x=x, y=y, element=name, entry=entry))
             below = basin.elements[name].downstream
             if below is not None:
                 cut.add((name, below))

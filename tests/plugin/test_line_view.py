@@ -236,3 +236,21 @@ def test_a_lumped_element_shows_its_inflow_and_outflow_of_record() -> None:
     assert [c.label for c in view.charts[0].curves] == ["Outflow, lumped network: number of record", "Inflow, lumped network"]
     assert view.charts[0].curves[0].values == [0.0, 40.0]
     assert "pond's surge" in view.limit
+
+
+DESIGN = {
+    **RECORD,
+    "design": {"t_s": [0.0, 300.0, 600.0], "grid_m3s": [0.0, -1.0, -0.5], "network_m3s": [0.0, -400.0, -200.0],
+               "total_m3s": [0.0, -401.0, -200.5]},
+}
+
+
+def test_a_design_record_is_the_number_of_record_and_the_grid_alone_is_drawn_beside_it() -> None:
+    view = record_view(entries({"lines": [DESIGN]})[0], [])
+    total, grid = view.charts[0].curves
+    assert total.values == [0.0, 401.0, 200.5] and "lumped water" in total.label
+    assert grid.values == [0.0, 12.0, 6.0] and "grid alone" in grid.label  # the faces' own record
+    assert "passes the line inside a reach" in view.limit
+    framed = line_view(entries({"lines": [DESIGN]})[0], READ)
+    assert [c.values[1] for c in framed.charts[0].curves][:2] == [401.0, 12.0]
+    assert "passes the line inside a reach" in framed.limit

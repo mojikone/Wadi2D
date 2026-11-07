@@ -39,6 +39,13 @@ FACES_LIMIT = (
     "A line that crosses a wadi twice reads the net flow through both crossings."
 )
 LINE_NOTE = "Computed during the run, at every series step, from the discharge on the faces: the number of record."
+DESIGN_LABEL = "Upfront, of record: the grid plus the lumped water passing in a reach"
+GRID_LABEL = "Upfront, on the grid alone"
+DESIGN_NOTE = (
+    "Of record: the discharge on the faces plus the lumped network's water that passes the line inside a reach, less "
+    "what a hand-back below the line took back. The grid alone is drawn grey: there the lumped water enters the grid "
+    "only at the reach's end, below the line."
+)
 POINT_NOTE = "Computed during the run, at every series step: the number of record."
 LUMPED_NOTE = (
     "Computed by the lumped network at its own step: the number of record for a lumped subbasin, reach or reservoir. "
@@ -163,10 +170,26 @@ def _hours(times_s: list[float]) -> list[float]:
 
 
 def _record_curve(entry: Entry) -> Curve | None:
+    """The line's number of record: with a design record, the grid plus the network's part (W41)."""
     record = entry.record
+    design = record.get("design") or {}
+    if "total_m3s" in design:
+        return Curve(DESIGN_LABEL, UPFRONT, RECORD_COLOUR, _hours(design["t_s"]), [abs(q) for q in design["total_m3s"]])
     if "discharge_m3s" not in record:
         return None
     return Curve(RECORD_LABEL, UPFRONT, RECORD_COLOUR, _hours(record["t_s"]), [abs(q) for q in record["discharge_m3s"]])
+
+
+def _grid_curve(entry: Entry) -> Curve | None:
+    """The faces' own discharge, drawn beside a design record so the network's part shows."""
+    record = entry.record
+    if not record.get("design") or "discharge_m3s" not in record:
+        return None
+    return Curve(GRID_LABEL, UPFRONT, INFLOW_COLOUR, _hours(record["t_s"]), [abs(q) for q in record["discharge_m3s"]])
+
+
+def _line_note(entry: Entry) -> str:
+    return DESIGN_NOTE if entry.record.get("design") else LINE_NOTE
 
 
 def point_view(entry: Entry, frames_s: list[float]) -> View:
@@ -194,9 +217,9 @@ def lumped_view(entry: Entry, frames_s: list[float]) -> View:
 
 def record_view(entry: Entry, frames_s: list[float]) -> View:
     """An upfront line that cannot be read from frames: its record alone."""
-    curve = _record_curve(entry)
-    charts = [Chart(FLOW_TITLE, "flow", "m3/s", [curve] if curve else [])]
-    return View(f"Upfront line: {entry.name}.", LINE_NOTE, charts, None, frames_s)
+    curves = [c for c in (_record_curve(entry), _grid_curve(entry)) if c is not None]
+    charts = [Chart(FLOW_TITLE, "flow", "m3/s", curves)]
+    return View(f"Upfront line: {entry.name}.", _line_note(entry), charts, None, frames_s)
 
 
 def line_view(entry: Entry, read: dict) -> View:
@@ -209,7 +232,7 @@ def line_view(entry: Entry, read: dict) -> View:
     frames = Curve(label, FRAMES, FRAMES_COLOUR, times, flows, markers=True)
     deepest = Curve(f"Saved frames, {interval}", FRAMES, FRAMES_COLOUR, times, read["deepest_m"], markers=True)
     record = _record_curve(entry)
-    flow = [record, frames] if record else [frames]
+    flow = [c for c in (record, _grid_curve(entry), frames) if c is not None]
     charts = [Chart(FLOW_TITLE, "flow", "m3/s", flow), Chart("Deepest water on the line, m", "deepest", "m", [deepest])]
     title = "Water surface and terrain along the line, m"
     if read["ground_source"] != "dem":
@@ -220,6 +243,8 @@ def line_view(entry: Entry, read: dict) -> View:
     else:
         heading = f"Upfront line: {entry.name}. Flow computed during the run; depth and water surface read from saved frames."
     limit = (FACES_LIMIT if of_record else LIMIT).format(every=interval)
+    if entry.record.get("design"):
+        limit = f"{DESIGN_NOTE} {limit}"
     return View(heading, limit, charts, section, read["t_s"])
 
 

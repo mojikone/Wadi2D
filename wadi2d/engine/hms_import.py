@@ -1,8 +1,11 @@
 """``hms-import``: a job.json from an HMS project, self-contained: the storm goes in as numbers.
 
-Every subbasin comes in lumped, entering at the icon of the element it drains to, junction, sink, reservoir or the
-head of a reach, and the terrain and grid stay for the user to fill. A subbasin that drains to nothing keeps no
-outlet, and the run refuses it by name. A grid-depth storm carries its raster; a storm that gives no depth at all
+Every subbasin comes in lumped, with ``entry: wadi``: the run puts its hydrograph at the wadi outlet of its polygon on
+the grid, clear above every result line (W41). HMS icons are schematic, and at all five Block 2 dams the dam junction's
+icon lies 0.4 to 87 m below the dam line, so a hydrograph entered there passes under the line. The icon of the element
+it drains to (junction, sink, reservoir or the head of a reach) stays as the outlet, for a subbasin without a polygon.
+The terrain and grid stay for the user to fill. A subbasin that drains to nothing keeps no outlet, and the run refuses
+it by name. A grid-depth storm carries its raster; a storm that gives no depth at all
 is refused here. The ARF table's nature is not in the project, so the job says so instead of guessing.
 """
 
@@ -10,7 +13,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from wadi2d.config.schema import ArfTableConfig, Hydrology, Project, RunConfig, Storm, Subbasin
+from wadi2d.config.schema import ENTRY_WADI, ArfTableConfig, Hydrology, Project, RunConfig, Storm, Subbasin
 from wadi2d.hms import load_basin, load_control, load_met, load_pdata
 from wadi2d.hms.basin import Basin, Element, Reach
 from wadi2d.hydrology.from_hms import find_grid_file, grid_from_hms, load_project_tables
@@ -81,7 +84,7 @@ def build_job(hms_dir: Path, basin: str, met: str, control: str) -> RunConfig:
     basin_path = hms_dir / basin
     model = load_basin(basin_path)
     subbasins = [
-        Subbasin(name=name, mode="lumped", outlet=_outlet(model, element))
+        Subbasin(name=name, mode="lumped", outlet=_outlet(model, element), entry=ENTRY_WADI)
         for name, element in model.subbasins.items()
     ]
     sqlite = basin_path.with_suffix(SQLITE_SUFFIX)

@@ -137,6 +137,7 @@ def test_other_projects_import_and_compute(block2_dir: Path, project: str):
         cfg = build_job(folder, basin.name, met, control)
         without = [s.name for s in cfg.hydrology.subbasins if s.outlet is None]
         assert not without, f"{basin.name}: {without}"
+        assert {s.entry for s in cfg.hydrology.subbasins} == {"wadi"}  # HMS icons are schematic (W41)
         try:
             assert hydrographs(cfg, build_storm(cfg))
             computed += 1

@@ -682,12 +682,24 @@ class Storm(_Part):
             raise ValueError("hyetograph_mm cannot go below zero and must hold some rain")
 
 
+ENTRY_POINT, ENTRY_WADI = "point", "wadi"
+EntryRule = Literal["point", "wadi"]
+"""Where lumped water enters the grid: at the point given, or on the wadi clear above every line (W41)."""
+
+
 class Subbasin(_Part):
     """A subbasin of the job. Lumped: its hydrograph enters at ``outlet`` and its polygon masks the rain."""
 
     name: str
     mode: Literal["lumped", "2d"] = "lumped"
     outlet: tuple[float, float] | None = Field(None, description="Where a lumped hydrograph enters, m")
+    entry: EntryRule = Field(
+        ENTRY_POINT,
+        description="'point' enters at outlet as given. 'wadi' enters at the wadi outlet of the subbasin's polygon on "
+        "the run's grid, the cell of largest drainage area inside the polygon eroded by hydrology.entry_erode_m, moved "
+        "up the wadi until the cells it reaches are clear of every result and hand-back line; outlet is kept for a "
+        "subbasin without a polygon. An HMS import writes 'wadi', because HMS icons are schematic",
+    )
     curve_number: float | None = Field(None, gt=0.0, le=100.0, description="CN of a 2D subbasin")
     parameters: dict[str, float] | None = Field(
         None,
@@ -703,6 +715,11 @@ class Inflow(_Part):
     x: float = Field(description="Easting, m")
     y: float = Field(description="Northing, m")
     element: str | None = Field(None, description="Lumped element whose outflow enters here")
+    entry: EntryRule = Field(
+        ENTRY_POINT,
+        description="'point' enters at x, y. 'wadi' starts there and moves up the wadi until the cells it reaches are "
+        "clear of every result and hand-back line; a generated basin's inflows are 'wadi'",
+    )
     times_s: list[float] | None = Field(None, description="Table times, s")
     flows: list[float] | None = Field(None, description="Table discharges, m3/s")
 
@@ -782,6 +799,13 @@ class Hydrology(_Part):
         ge=0.0,
         le=5000.0,
         description="An inflow point farther than this from the domain is refused, m",
+    )
+    entry_erode_m: float = Field(
+        80.0,
+        ge=0.0,
+        le=2000.0,
+        description="A 'wadi' entry looks for its wadi outlet this far inside the subbasin's polygon, m: W1's validated "
+        "mode (b) rule, so the entry lies above a dam line drawn on the polygon's edge",
     )
     overlap_share: float = Field(
         0.01,

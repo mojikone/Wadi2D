@@ -27,6 +27,7 @@ import rasterio
 from rasterio.windows import Window
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.engine.design_lines import DESIGN_KIND
 from wadi2d.engine.network_series import NETWORK_KIND
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.products.face_flow import (
@@ -342,6 +343,10 @@ def catalogue(run: Path) -> dict:
             {"name": line.name, "coordinates": [list(p) for p in line.coordinates], **_series(f, "lines", line.name)}
             for line in cfg.outputs.lines
         ]
+        for line in lines:
+            design = _series(f, DESIGN_KIND, line["name"])
+            if design:
+                line["design"] = design
         points = [{"name": p.name, "x": p.x, "y": p.y, **_series(f, "points", p.name)} for p in cfg.outputs.points]
         lumped = [
             {"name": str(group.attrs.get("name", key)), **_series(f, NETWORK_KIND, str(group.attrs.get("name", key)))}

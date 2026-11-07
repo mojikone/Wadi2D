@@ -23,8 +23,12 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
+from wadi2d.config.schema import ENTRY_POINT, REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
+from wadi2d.engine.design_lines import DESIGN_KIND, NETWORK, TOTAL
+from wadi2d.engine.design_lines import plans as design_plans
+from wadi2d.engine.design_lines import records as design_records
+from wadi2d.engine.entries import place_entries, with_entries
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
@@ -68,6 +72,8 @@ EDGE_REACH = 2
 """Cells around a boundary that do not count as a closed edge."""
 TERRAIN_DIR = "terrain"
 """Folder of a run that holds what the terrain objects did."""
+ENTRIES_FILE = "entries.json"
+"""Where each 'wadi' entry of a run was asked for, where it entered, and why (W41)."""
 PIXEL_KINDS = (*SHAPED_KINDS, "burn_line")
 """Terrain objects that change the ground, not only faces."""
 
@@ -243,6 +249,16 @@ def _object_key(obj: TerrainObject) -> dict:
     return data
 
 
+def _drop_point_entries(hydrology: dict) -> None:
+    """A job that asks for no 'wadi' entry hashes as it did before entries existed, so its checkpoint keeps."""
+    items = [*hydrology["subbasins"], *hydrology["inflows"]]
+    for item in items:
+        if item.get("entry") == ENTRY_POINT:
+            item.pop("entry")
+    if not any("entry" in item for item in items):
+        hydrology.pop("entry_erode_m")
+
+
 def job_hash(cfg: RunConfig) -> str:
     """What a checkpoint must match: everything that changes the water, the input files included."""
     data = cfg.model_dump(mode="json")
@@ -258,6 +274,7 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("reach_routing")
     if not cfg.dam_levels:
         data.pop("dam_levels")
+    _drop_point_entries(data["hydrology"])
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for part, name in PATH_FIELDS:
@@ -703,6 +720,20 @@ def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Prog
     return True
 
 
+def _placed_entries(cfg, tables, polygons, flows, crs, out: Path, progress):
+    """The hydrographs with every 'wadi' entry placed on the grid (W41); entries.json says where and why."""
+    placed = place_entries(cfg, tables, polygons, crs)
+    if not placed:
+        return flows
+    records = [p.record() for p in placed]
+    (out / ENTRIES_FILE).write_text(json.dumps(records, indent=2), encoding="utf-8")
+    progress.emit("entries", placed=records)
+    for p in placed:
+        if not p.clear:
+            progress.emit("warn", message=f"lumped {p.kind} {p.name} {p.note}")
+    return with_entries(flows, placed)
+
+
 def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files):
     """The simulation. Returns (tables, CRS WKT) for the step after it; the model is gone by then, GPU memory too."""
     check_inputs(cfg)
@@ -713,6 +744,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         with rasterio.open(cfg.terrain.dem) as dem:
             crs = dem.crs.to_wkt() if dem.crs is not None else ""
     cfg, generated = _resolved(cfg, crs)
+    design = design_plans(cfg, generated)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
     (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
@@ -755,6 +787,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         wanted = cfg.outputs.terrain_map
         report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
         progress.emit("terrain", volumes=report.volumes, files=report.files)
+    flows = _placed_entries(cfg, tables, polygons, flows, crs, out, progress)
     subs = cfg.hydrology.subbasins
     lumped_names = [s.name for s in subs if s.mode == "lumped"]
     two_d_names = [s.name for s in subs if s.mode == "2d"]
@@ -849,13 +882,34 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         summary.exit_code, summary.status = EXIT_NUMERICAL, "numerical failure"
         summary.message = f"{error} at cell {where}"
         progress.emit("error", code=EXIT_NUMERICAL, message=str(error), cell=where)
-        _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1)
+        _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1, design)
         return tables, crs
-    _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1)
+    _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1, design)
     return tables, crs
 
 
-def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1) -> None:
+def _design_records(design, monitor, results, out: Path, progress) -> dict:
+    """The record of every design line a reach carries lumped water past (W41), written beside its line series."""
+    if not design:
+        return {}
+    t = np.asarray(monitor.times)
+    grid_flow = {s.name: np.asarray(s.columns["discharge_m3s"]) for s in monitor.line_series}
+    made, notes = design_records(design, out, t, grid_flow)
+    for note in notes:
+        progress.emit("warn", message=note)
+    for name, columns in made.items():
+        results.series(DESIGN_KIND, name, t, columns)
+        write_series_csv(out / "series" / f"{DESIGN_KIND}_{safe_name(name)}.csv", t, columns)
+        total, network = np.abs(columns[TOTAL]), np.abs(columns[NETWORK])
+        progress.emit(
+            "design", line=name, peak_m3s=float(total.max()) if total.size else 0.0,
+            network_peak_m3s=float(network.max()) if network.size else 0.0,
+            elements=[p.element for plan in design if plan.line == name for p in plan.parts],
+        )  # fmt: skip
+    return made
+
+
+def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1, design=()) -> None:
     st = model.stepper
     monitor.finish(st.t)
     monitor.stop_file.unlink(missing_ok=True)
@@ -864,6 +918,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
         part.write(results, out)
     tags = {**arf_tags(cfg), **status_tags(summary, st.t, cfg)}
     _write_outputs(cfg, tables, monitor, results, out, crs, progress, tags)
+    made = _design_records(design, monitor, results, out, progress)
     summary.loop_s = time.monotonic() - t1
     summary.t_end, summary.steps, summary.balance = st.t, st.nsteps, monitor.balance
     summary.dt_min = monitor.dt_min
@@ -872,7 +927,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
     summary.wet_area_km2 = wet * tables.grid.dx**2 / M2_PER_KM2
     t = np.asarray(monitor.times)
     for s in monitor.line_series:
-        q = np.abs(np.asarray(s.columns["discharge_m3s"]))
+        q = np.abs(made[s.name][TOTAL] if s.name in made else np.asarray(s.columns["discharge_m3s"]))
         if q.size:
             summary.peaks[s.name] = (float(q.max()), float(t[int(np.argmax(q))]))
     b = monitor.balance
