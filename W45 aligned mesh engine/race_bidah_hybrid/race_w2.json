@@ -1,0 +1,99 @@
+{
+ "squares": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1463.79,
+   12.891666666666667
+  ],
+  "steps": 154098,
+  "loop_s": 14.0,
+  "mass_error": 2.345424221095108e-08,
+  "rain_m3": 8711043.569170946,
+  "inflow_m3": 23721807.436653838,
+  "outflow_m3": 31541708.113514014,
+  "strips": null
+ },
+ "corridors_w2": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1464.01,
+   12.891666666666667
+  ],
+  "steps": 154142,
+  "loop_s": 54.14,
+  "mass_error": 2.4647254302182108e-08,
+  "rain_m3": 8711036.595597373,
+  "inflow_m3": 23721807.454690028,
+  "outflow_m3": 31541303.022398453,
+  "strips": {
+   "ev": "strips",
+   "corridors": 7,
+   "cells": 702,
+   "triangles": 664,
+   "replaced": 876,
+   "cut": [
+    "free stretch 184 m under 300 m",
+    "pair1_7.9km2: folds or runs too close, 703 m cut to 0 m in 2 piece(s)",
+    "pair5_4.8km2: folds or runs too close, 333 m cut to 0 m in 1 piece(s)"
+   ],
+   "rules": [
+    {
+     "name": "pair2_7.9km2",
+     "area_km2": 7.9,
+     "width_m": 88.3,
+     "cells_across": 4,
+     "across_m": 22.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair3_7.2km2",
+     "area_km2": 7.2,
+     "width_m": 66.5,
+     "cells_across": 3,
+     "across_m": 22.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair4_4.8km2",
+     "area_km2": 4.84,
+     "width_m": 61.9,
+     "cells_across": 3,
+     "across_m": 20.6,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair6_4.3km2",
+     "area_km2": 4.34,
+     "width_m": 72.5,
+     "cells_across": 4,
+     "across_m": 18.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair7_4.2km2",
+     "area_km2": 4.22,
+     "width_m": 60.7,
+     "cells_across": 3,
+     "across_m": 20.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair8_4.2km2",
+     "area_km2": 4.22,
+     "width_m": 60.2,
+     "cells_across": 3,
+     "across_m": 20.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair9_2.5km2",
+     "area_km2": 2.45,
+     "width_m": 64.2,
+     "cells_across": 3,
+     "across_m": 21.4,
+     "rows_outside": 1
+    }
+   ]
+  }
+ }
+}

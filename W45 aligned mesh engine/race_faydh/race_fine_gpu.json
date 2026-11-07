@@ -1,0 +1,306 @@
+{
+ "faydh20_none_gpu": {
+  "axis_peak_m3s": 1835.17,
+  "at_h": 12.208333333333334,
+  "steps": 88589,
+  "loop_s": 13.36,
+  "mass_error": -2.0325573323006008e-08
+ },
+ "faydh20_strips_gpu_fine": {
+  "axis_peak_m3s": 1866.6,
+  "at_h": 12.175,
+  "steps": 136712,
+  "loop_s": 48.89,
+  "mass_error": 1.801442808541524e-08,
+  "strips": {
+   "corridors": 35,
+   "cells": 8265,
+   "triangles": 5915,
+   "replaced": 7765,
+   "cut": 4,
+   "rules": [
+    {
+     "name": "pair0_74.4km2",
+     "area_km2": 74.37,
+     "width_m": 48.2,
+     "cells_across": 5,
+     "across_m": 9.6,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair1_71.0km2",
+     "area_km2": 71.03,
+     "width_m": 40.9,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair2_69.8km2",
+     "area_km2": 69.78,
+     "width_m": 44.2,
+     "cells_across": 4,
+     "across_m": 11.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair3_69.8km2",
+     "area_km2": 69.78,
+     "width_m": 57.5,
+     "cells_across": 6,
+     "across_m": 9.6,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair4_59.7km2",
+     "area_km2": 59.69,
+     "width_m": 42.1,
+     "cells_across": 4,
+     "across_m": 10.5,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair5_59.7km2",
+     "area_km2": 59.69,
+     "width_m": 40.6,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair6_39.6km2",
+     "area_km2": 39.56,
+     "width_m": 44.6,
+     "cells_across": 4,
+     "across_m": 11.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair7_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 40.9,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair8_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 41.3,
+     "cells_across": 4,
+     "across_m": 10.3,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair9_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 40.6,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair10_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 40.5,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair11_32.1km2",
+     "area_km2": 32.14,
+     "width_m": 40.5,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair12_32.1km2",
+     "area_km2": 32.14,
+     "width_m": 41.0,
+     "cells_across": 4,
+     "across_m": 10.3,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair13_25.4km2",
+     "area_km2": 25.41,
+     "width_m": 43.2,
+     "cells_across": 4,
+     "across_m": 10.8,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair14_22.4km2",
+     "area_km2": 22.41,
+     "width_m": 40.4,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair15_22.4km2",
+     "area_km2": 22.41,
+     "width_m": 41.1,
+     "cells_across": 4,
+     "across_m": 10.3,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair16_19.5km2",
+     "area_km2": 19.5,
+     "width_m": 40.2,
+     "cells_across": 4,
+     "across_m": 10.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair17_18.0km2",
+     "area_km2": 18.05,
+     "width_m": 40.9,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair18_18.0km2",
+     "area_km2": 18.05,
+     "width_m": 41.3,
+     "cells_across": 4,
+     "across_m": 10.3,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair19_15.4km2",
+     "area_km2": 15.38,
+     "width_m": 40.3,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair20_15.4km2",
+     "area_km2": 15.38,
+     "width_m": 40.5,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair21_12.3km2",
+     "area_km2": 12.29,
+     "width_m": 40.4,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair22_12.3km2_0",
+     "area_km2": 12.29,
+     "width_m": 40.6,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair23_11.6km2",
+     "area_km2": 11.61,
+     "width_m": 40.8,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair24_11.6km2",
+     "area_km2": 11.61,
+     "width_m": 40.3,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair25_9.3km2",
+     "area_km2": 9.3,
+     "width_m": 40.4,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair26_7.1km2",
+     "area_km2": 7.11,
+     "width_m": 40.7,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair27_7.1km2",
+     "area_km2": 7.11,
+     "width_m": 52.6,
+     "cells_across": 5,
+     "across_m": 10.5,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair28_5.7km2",
+     "area_km2": 5.74,
+     "width_m": 40.4,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair29_5.7km2",
+     "area_km2": 5.73,
+     "width_m": 40.2,
+     "cells_across": 4,
+     "across_m": 10.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair30_5.7km2",
+     "area_km2": 5.73,
+     "width_m": 40.5,
+     "cells_across": 4,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair31_5.2km2",
+     "area_km2": 5.19,
+     "width_m": 40.1,
+     "cells_across": 4,
+     "across_m": 10.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair32_5.2km2",
+     "area_km2": 5.19,
+     "width_m": 40.6,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair34_4.2km2",
+     "area_km2": 4.16,
+     "width_m": 44.0,
+     "cells_across": 4,
+     "across_m": 11.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair35_1.7km2",
+     "area_km2": 1.7,
+     "width_m": 40.9,
+     "cells_across": 4,
+     "across_m": 10.2,
+     "rows_outside": 1
+    }
+   ]
+  }
+ },
+ "ratio": 1.0171264787458383
+}

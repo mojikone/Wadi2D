@@ -1,0 +1,77 @@
+=== faydh gpu --tag w2
+jobs written: faydh20_none_gpu, faydh20_strips_gpu_w2 (banks suggested_breaklines.gpkg, cells schema defaults)
+faydh20_strips_gpu_w2: exit 0 in 81 s
+faydh20_none_gpu: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+faydh20_strips_gpu_w2: axis peak 1875.0 m3/s at 12.18 h, 110084 steps, 42 s, mass error 1.9e-08
+  corridors 34, strip cells 5114, triangles 5603, squares replaced 8777, cut 9; cells across 2 to 3, cell across 18 to 24 m
+corridors against no lines: 1.0217 (+2.2 %); the rule is 3 %: PASS; the staircase of W36 read -11.1 %
+=== faydh gpu --cells 30 80 0.5 1 --tag coarse
+jobs written: faydh20_none_gpu, faydh20_strips_gpu_coarse (banks suggested_breaklines.gpkg, cells (30.0, 80.0, 0.5, 1))
+faydh20_strips_gpu_coarse: exit 0 in 77 s
+faydh20_none_gpu: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+faydh20_strips_gpu_coarse: axis peak 1883.6 m3/s at 12.18 h, 98820 steps, 38 s, mass error 1.5e-08
+  corridors 30, strip cells 3534, triangles 4967, squares replaced 9756, cut 15; cells across 1 to 2, cell across 24 to 45 m
+corridors against no lines: 1.0264 (+2.6 %); the rule is 3 %: PASS; the staircase of W36 read -11.1 %
+=== faydh gpu --cells 10 30 0.125 1 --tag fine
+jobs written: faydh20_none_gpu, faydh20_strips_gpu_fine (banks suggested_breaklines.gpkg, cells (10.0, 30.0, 0.125, 1))
+faydh20_strips_gpu_fine: exit 0 in 87 s
+faydh20_none_gpu: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+faydh20_strips_gpu_fine: axis peak 1866.6 m3/s at 12.18 h, 136712 steps, 49 s, mass error 1.8e-08
+  corridors 35, strip cells 8265, triangles 5915, squares replaced 7765, cut 4; cells across 4 to 6, cell across 10 to 11 m
+corridors against no lines: 1.0171 (+1.7 %); the rule is 3 %: PASS; the staircase of W36 read -11.1 %
+=== faydh gpu --cells 20 50 0.25 2 --tag out2
+jobs written: faydh20_none_gpu, faydh20_strips_gpu_out2 (banks suggested_breaklines.gpkg, cells (20.0, 50.0, 0.25, 2))
+faydh20_strips_gpu_out2: exit 0 in 77 s
+faydh20_none_gpu: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+faydh20_strips_gpu_out2: axis peak 1868.1 m3/s at 12.21 h, 98431 steps, 39 s, mass error 1.5e-08
+  corridors 30, strip cells 6587, triangles 5045, squares replaced 9982, cut 16; cells across 2 to 3, cell across 18 to 24 m
+corridors against no lines: 1.0179 (+1.8 %); the rule is 3 %: PASS; the staircase of W36 read -11.1 %
+=== bidah hybrid --tag w2
+corridors_w2: exit 2 in 11 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+Traceback (most recent call last):
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 121, in <module>
+    report(work, made, opts["tag"])
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 93, in report
+    grid = column_peak(line, "discharge_m3s")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 76, in column_peak
+    with path.open(newline="", encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'W45 aligned mesh engine\\race_bidah_hybrid\\corridors_w2\\series\\line_Bidah_03.csv'
+=== bidah hybrid --cells 30 80 0.5 1 --tag coarse
+corridors_coarse: exit 2 in 10 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+Traceback (most recent call last):
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 121, in <module>
+    report(work, made, opts["tag"])
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 93, in report
+    grid = column_peak(line, "discharge_m3s")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 76, in column_peak
+    with path.open(newline="", encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'W45 aligned mesh engine\\race_bidah_hybrid\\corridors_coarse\\series\\line_Bidah_03.csv'
+=== bidah hybrid --cells 10 30 0.125 1 --tag fine
+corridors_fine: exit 2 in 5 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+Traceback (most recent call last):
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 121, in <module>
+    report(work, made, opts["tag"])
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 93, in report
+    grid = column_peak(line, "discharge_m3s")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\race_bidah_hybrid.py", line 76, in column_peak
+    with path.open(newline="", encoding="utf-8") as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'W45 aligned mesh engine\\race_bidah_hybrid\\corridors_fine\\series\\line_Bidah_03.csv'
+__ALL_DONE__

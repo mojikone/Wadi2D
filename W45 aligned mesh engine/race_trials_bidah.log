@@ -1,0 +1,16 @@
+=== bidah hybrid --tag w2
+corridors_w2: exit 0 in 65 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+corridors_w2: record None, grid line (1464.01, 12.891666666666667), steps 154142, 54 s, mass 2.5e-08, rain 8711037, inflow 23721807
+  corridors 7, cells 702, triangles 664, replaced 876, cut 3; cells across 3 to 4, cell across 18 to 22 m
+=== bidah hybrid --cells 30 80 0.5 1 --tag coarse
+corridors_coarse: exit 0 in 64 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+corridors_coarse: record None, grid line (1463.95, 12.891666666666667), steps 154114, 54 s, mass 2.4e-08, rain 8710868, inflow 23721807
+  corridors 7, cells 532, triangles 668, replaced 1000, cut 3; cells across 2 to 2, cell across 30 to 44 m
+=== bidah hybrid --cells 10 30 0.125 1 --tag fine
+corridors_fine: exit 0 in 59 s
+squares: record None, grid line (1463.79, 12.891666666666667), steps 154098, 14 s, mass 2.3e-08, rain 8711044, inflow 23721807
+corridors_fine: record None, grid line (1464.02, 12.891666666666667), steps 154714, 54 s, mass 2.4e-08, rain 8711438, inflow 23721807
+  corridors 8, cells 1217, triangles 731, replaced 835, cut 2; cells across 6 to 8, cell across 10 to 11 m
+__ALL_DONE__

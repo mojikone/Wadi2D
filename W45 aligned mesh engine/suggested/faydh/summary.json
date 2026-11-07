@@ -1,0 +1,19 @@
+{
+ "ev": "breaklines",
+ "path": "W45 aligned mesh engine\\suggested\\faydh\\suggested_breaklines.gpkg",
+ "layer": "breaklines",
+ "thalweg_layer": "thalwegs",
+ "pixel_m": 5.0,
+ "banks": 274,
+ "crests": 216,
+ "crest_kinds": {
+  "other crest": 175,
+  "dam": 41
+ },
+ "thalwegs": 40,
+ "banks_from": "ground",
+ "bank_rule": "ground 2 m over the bed of the wadi",
+ "bank_km": 111.21,
+ "crest_km": 29.64,
+ "thalweg_km": 62.15
+}

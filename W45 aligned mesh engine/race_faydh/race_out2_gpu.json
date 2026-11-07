@@ -1,0 +1,266 @@
+{
+ "faydh20_none_gpu": {
+  "axis_peak_m3s": 1835.17,
+  "at_h": 12.208333333333334,
+  "steps": 88589,
+  "loop_s": 13.36,
+  "mass_error": -2.0325573323006008e-08
+ },
+ "faydh20_strips_gpu_out2": {
+  "axis_peak_m3s": 1868.06,
+  "at_h": 12.208333333333334,
+  "steps": 98431,
+  "loop_s": 38.8,
+  "mass_error": 1.4991349459854108e-08,
+  "strips": {
+   "corridors": 30,
+   "cells": 6587,
+   "triangles": 5045,
+   "replaced": 9982,
+   "cut": 16,
+   "rules": [
+    {
+     "name": "pair0_74.4km2_1",
+     "area_km2": 74.37,
+     "width_m": 48.2,
+     "cells_across": 2,
+     "across_m": 24.1,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair1_71.0km2",
+     "area_km2": 71.03,
+     "width_m": 40.9,
+     "cells_across": 2,
+     "across_m": 20.4,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair2_69.8km2",
+     "area_km2": 69.78,
+     "width_m": 44.2,
+     "cells_across": 2,
+     "across_m": 22.1,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair3_69.8km2_1",
+     "area_km2": 69.78,
+     "width_m": 57.5,
+     "cells_across": 3,
+     "across_m": 19.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair4_59.7km2",
+     "area_km2": 59.69,
+     "width_m": 42.1,
+     "cells_across": 2,
+     "across_m": 21.1,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair5_59.7km2_1",
+     "area_km2": 59.69,
+     "width_m": 40.6,
+     "cells_across": 2,
+     "across_m": 20.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair6_39.6km2",
+     "area_km2": 39.56,
+     "width_m": 44.6,
+     "cells_across": 2,
+     "across_m": 22.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair9_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 40.6,
+     "cells_across": 2,
+     "across_m": 20.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair10_37.2km2",
+     "area_km2": 37.17,
+     "width_m": 40.5,
+     "cells_across": 2,
+     "across_m": 20.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair11_32.1km2",
+     "area_km2": 32.14,
+     "width_m": 40.5,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair12_32.1km2",
+     "area_km2": 32.14,
+     "width_m": 41.0,
+     "cells_across": 2,
+     "across_m": 20.5,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair13_25.4km2_0",
+     "area_km2": 25.41,
+     "width_m": 43.2,
+     "cells_across": 2,
+     "across_m": 21.6,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair14_22.4km2",
+     "area_km2": 22.41,
+     "width_m": 40.4,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair15_22.4km2",
+     "area_km2": 22.41,
+     "width_m": 41.1,
+     "cells_across": 2,
+     "across_m": 20.6,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair17_18.0km2",
+     "area_km2": 18.05,
+     "width_m": 40.9,
+     "cells_across": 2,
+     "across_m": 20.5,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair18_18.0km2_0",
+     "area_km2": 18.05,
+     "width_m": 41.3,
+     "cells_across": 2,
+     "across_m": 20.6,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair19_15.4km2_1",
+     "area_km2": 15.38,
+     "width_m": 40.3,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair19_15.4km2_2",
+     "area_km2": 15.38,
+     "width_m": 40.3,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair20_15.4km2",
+     "area_km2": 15.38,
+     "width_m": 40.5,
+     "cells_across": 2,
+     "across_m": 20.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair21_12.3km2",
+     "area_km2": 12.29,
+     "width_m": 40.4,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair22_12.3km2_0",
+     "area_km2": 12.29,
+     "width_m": 40.6,
+     "cells_across": 2,
+     "across_m": 20.3,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair23_11.6km2",
+     "area_km2": 11.61,
+     "width_m": 40.8,
+     "cells_across": 2,
+     "across_m": 20.4,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair24_11.6km2",
+     "area_km2": 11.61,
+     "width_m": 40.3,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair25_9.3km2",
+     "area_km2": 9.3,
+     "width_m": 40.4,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair26_7.1km2_1",
+     "area_km2": 7.11,
+     "width_m": 40.7,
+     "cells_across": 2,
+     "across_m": 20.4,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair27_7.1km2",
+     "area_km2": 7.11,
+     "width_m": 52.6,
+     "cells_across": 3,
+     "across_m": 17.5,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair28_5.7km2",
+     "area_km2": 5.74,
+     "width_m": 40.4,
+     "cells_across": 2,
+     "across_m": 20.2,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair31_5.2km2",
+     "area_km2": 5.19,
+     "width_m": 40.1,
+     "cells_across": 2,
+     "across_m": 20.1,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair34_4.2km2",
+     "area_km2": 4.16,
+     "width_m": 44.0,
+     "cells_across": 2,
+     "across_m": 22.0,
+     "rows_outside": 2
+    },
+    {
+     "name": "pair35_1.7km2",
+     "area_km2": 1.7,
+     "width_m": 40.9,
+     "cells_across": 2,
+     "across_m": 20.4,
+     "rows_outside": 2
+    }
+   ]
+  }
+ },
+ "ratio": 1.0179220453690938
+}

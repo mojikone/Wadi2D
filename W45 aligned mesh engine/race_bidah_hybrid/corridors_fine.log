@@ -1,0 +1,35 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_bidah_hybrid\\W45 aligned mesh engine\\race_bidah_hybrid\\cache\\grid_2c3af34e3eb989c1dcdfa94d.h5"}
+{"ev": "strips", "corridors": 8, "cells": 1217, "triangles": 731, "replaced": 835, "cut": ["pair1_7.9km2: folds or runs too close, 703 m cut to 0 m in 2 piece(s)", "pair5_4.8km2: folds or runs too close, 333 m cut to 0 m in 1 piece(s)"], "rules": [{"name": "pair0_17.8km2", "area_km2": 17.75, "width_m": 68.8, "cells_across": 7, "across_m": 9.8, "rows_outside": 1}, {"name": "pair2_7.9km2", "area_km2": 7.9, "width_m": 88.3, "cells_across": 8, "across_m": 11.0, "rows_outside": 1}, {"name": "pair3_7.2km2", "area_km2": 7.2, "width_m": 66.5, "cells_across": 7, "across_m": 9.5, "rows_outside": 1}, {"name": "pair4_4.8km2", "area_km2": 4.84, "width_m": 61.9, "cells_across": 6, "across_m": 10.3, "rows_outside": 1}, {"name": "pair6_4.3km2", "area_km2": 4.34, "width_m": 72.5, "cells_across": 7, "across_m": 10.4, "rows_outside": 1}, {"name": "pair7_4.2km2", "area_km2": 4.22, "width_m": 60.7, "cells_across": 6, "across_m": 10.1, "rows_outside": 1}, {"name": "pair8_4.2km2", "area_km2": 4.22, "width_m": 60.2, "cells_across": 6, "across_m": 10.0, "rows_outside": 1}, {"name": "pair9_2.5km2", "area_km2": 2.45, "width_m": 64.2, "cells_across": 6, "across_m": 10.7, "rows_outside": 1}]}
+{"ev": "start", "backend": "gpu", "cells": 31136, "tiles": 49, "dx": 30.0, "duration_s": 172800.0, "tables_s": 2.72, "t": 0.0}
+{"ev": "step", "t": 17379.088, "dt": 3.05, "steps": 4170, "active_tiles": 49, "volume": 13162.7, "mass_error": -2.255e-09, "wall": 2.0}
+{"ev": "step", "t": 27289.623, "dt": 1.5696, "steps": 9514, "active_tiles": 49, "volume": 283253.2, "mass_error": 1.2e-08, "wall": 4.0}
+{"ev": "step", "t": 34526.484, "dt": 1.1505, "steps": 15129, "active_tiles": 49, "volume": 830540.7, "mass_error": 1.713e-08, "wall": 6.0}
+{"ev": "step", "t": 40953.65, "dt": 0.9123, "steps": 21689, "active_tiles": 49, "volume": 1839272.1, "mass_error": 1.842e-08, "wall": 8.0}
+{"ev": "step", "t": 45749.542, "dt": 0.8959, "steps": 27265, "active_tiles": 49, "volume": 2492544.5, "mass_error": 1.965e-08, "wall": 10.0}
+{"ev": "step", "t": 50790.991, "dt": 0.9911, "steps": 32749, "active_tiles": 49, "volume": 2203335.7, "mass_error": 2.179e-08, "wall": 12.0}
+{"ev": "step", "t": 56226.1, "dt": 1.0166, "steps": 38140, "active_tiles": 49, "volume": 1709964.7, "mass_error": 2.249e-08, "wall": 14.0}
+{"ev": "step", "t": 61481.199, "dt": 1.0181, "steps": 43395, "active_tiles": 49, "volume": 1404494.7, "mass_error": 2.279e-08, "wall": 16.0}
+{"ev": "step", "t": 66657.522, "dt": 1.0193, "steps": 48571, "active_tiles": 49, "volume": 1242846.5, "mass_error": 2.299e-08, "wall": 18.0}
+{"ev": "step", "t": 71730.0, "dt": 1.0202, "steps": 53644, "active_tiles": 49, "volume": 1126204.6, "mass_error": 2.311e-08, "wall": 20.0}
+{"ev": "step", "t": 77064.515, "dt": 1.0215, "steps": 58978, "active_tiles": 49, "volume": 1061249.2, "mass_error": 2.322e-08, "wall": 22.0}
+{"ev": "step", "t": 81817.157, "dt": 1.0225, "steps": 63731, "active_tiles": 49, "volume": 980289.7, "mass_error": 2.329e-08, "wall": 24.0}
+{"ev": "step", "t": 86654.319, "dt": 1.0227, "steps": 68568, "active_tiles": 49, "volume": 938799.3, "mass_error": 2.334e-08, "wall": 26.0}
+{"ev": "step", "t": 92248.642, "dt": 1.0229, "steps": 74162, "active_tiles": 49, "volume": 921422.1, "mass_error": 2.337e-08, "wall": 28.0}
+{"ev": "step", "t": 98384.322, "dt": 1.023, "steps": 80298, "active_tiles": 49, "volume": 912420.7, "mass_error": 2.339e-08, "wall": 30.0}
+{"ev": "step", "t": 104678.185, "dt": 1.0231, "steps": 86592, "active_tiles": 49, "volume": 906882.9, "mass_error": 2.342e-08, "wall": 32.0}
+{"ev": "step", "t": 110941.023, "dt": 1.0232, "steps": 92855, "active_tiles": 49, "volume": 903194.1, "mass_error": 2.346e-08, "wall": 34.0}
+{"ev": "step", "t": 117488.185, "dt": 1.0232, "steps": 99402, "active_tiles": 49, "volume": 900505.6, "mass_error": 2.348e-08, "wall": 36.0}
+{"ev": "step", "t": 123486.139, "dt": 1.0232, "steps": 105400, "active_tiles": 49, "volume": 898675.9, "mass_error": 2.349e-08, "wall": 38.0}
+{"ev": "step", "t": 129504.558, "dt": 1.0232, "steps": 111418, "active_tiles": 49, "volume": 897247.6, "mass_error": 2.351e-08, "wall": 40.0}
+{"ev": "step", "t": 135831.488, "dt": 1.0232, "steps": 117745, "active_tiles": 49, "volume": 896060.3, "mass_error": 2.352e-08, "wall": 42.0}
+{"ev": "step", "t": 142295.116, "dt": 1.0232, "steps": 124209, "active_tiles": 49, "volume": 895087.5, "mass_error": 2.353e-08, "wall": 44.0}
+{"ev": "step", "t": 148801.023, "dt": 1.0232, "steps": 130715, "active_tiles": 49, "volume": 894280.6, "mass_error": 2.354e-08, "wall": 46.0}
+{"ev": "step", "t": 155226.139, "dt": 1.0231, "steps": 137140, "active_tiles": 49, "volume": 893612.5, "mass_error": 2.355e-08, "wall": 48.0}
+{"ev": "step", "t": 161485.573, "dt": 1.0229, "steps": 143399, "active_tiles": 49, "volume": 893056.7, "mass_error": 2.356e-08, "wall": 50.0}
+{"ev": "step", "t": 168044.318, "dt": 1.0227, "steps": 149958, "active_tiles": 49, "volume": 892556.2, "mass_error": 2.356e-08, "wall": 52.0}
+{"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors_fine\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors_fine\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 172800.0, "duration_s": 172800.0, "steps": 154714, "loop_s": 53.78, "tables_s": 2.72, "wet_area_km2": 2.7054, "dt_min": 0.8313195310584219, "balance": {"rain_m3": 8711438.489728771, "inflow_m3": 23721807.442947365, "outflow_m3": 31541011.272967342, "storage_start_m3": 0.0, "storage_end_m3": 892233.8952704539, "error_m3": 0.7644383403239772, "relative_error": 2.356959096572613e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

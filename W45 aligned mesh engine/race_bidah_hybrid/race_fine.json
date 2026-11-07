@@ -1,0 +1,106 @@
+{
+ "squares": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1463.79,
+   12.891666666666667
+  ],
+  "steps": 154098,
+  "loop_s": 14.0,
+  "mass_error": 2.345424221095108e-08,
+  "rain_m3": 8711043.569170946,
+  "inflow_m3": 23721807.436653838,
+  "outflow_m3": 31541708.113514014,
+  "strips": null
+ },
+ "corridors_fine": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1464.02,
+   12.891666666666667
+  ],
+  "steps": 154714,
+  "loop_s": 53.78,
+  "mass_error": 2.356959096572613e-08,
+  "rain_m3": 8711438.489728771,
+  "inflow_m3": 23721807.442947365,
+  "outflow_m3": 31541011.272967342,
+  "strips": {
+   "ev": "strips",
+   "corridors": 8,
+   "cells": 1217,
+   "triangles": 731,
+   "replaced": 835,
+   "cut": [
+    "pair1_7.9km2: folds or runs too close, 703 m cut to 0 m in 2 piece(s)",
+    "pair5_4.8km2: folds or runs too close, 333 m cut to 0 m in 1 piece(s)"
+   ],
+   "rules": [
+    {
+     "name": "pair0_17.8km2",
+     "area_km2": 17.75,
+     "width_m": 68.8,
+     "cells_across": 7,
+     "across_m": 9.8,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair2_7.9km2",
+     "area_km2": 7.9,
+     "width_m": 88.3,
+     "cells_across": 8,
+     "across_m": 11.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair3_7.2km2",
+     "area_km2": 7.2,
+     "width_m": 66.5,
+     "cells_across": 7,
+     "across_m": 9.5,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair4_4.8km2",
+     "area_km2": 4.84,
+     "width_m": 61.9,
+     "cells_across": 6,
+     "across_m": 10.3,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair6_4.3km2",
+     "area_km2": 4.34,
+     "width_m": 72.5,
+     "cells_across": 7,
+     "across_m": 10.4,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair7_4.2km2",
+     "area_km2": 4.22,
+     "width_m": 60.7,
+     "cells_across": 6,
+     "across_m": 10.1,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair8_4.2km2",
+     "area_km2": 4.22,
+     "width_m": 60.2,
+     "cells_across": 6,
+     "across_m": 10.0,
+     "rows_outside": 1
+    },
+    {
+     "name": "pair9_2.5km2",
+     "area_km2": 2.45,
+     "width_m": 64.2,
+     "cells_across": 6,
+     "across_m": 10.7,
+     "rows_outside": 1
+    }
+   ]
+  }
+ }
+}

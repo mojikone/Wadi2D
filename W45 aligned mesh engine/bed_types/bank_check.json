@@ -1,0 +1,372 @@
+{
+ "rise_vs_flood": {
+  "rise 1.5 vs flood 0.2": {
+   "median_abs_m": 8.0,
+   "median_signed_m": -8.0,
+   "narrow": [
+    7.5,
+    -7.5,
+    118
+   ],
+   "medium": [
+    8.0,
+    -8.0,
+    112
+   ],
+   "wide": [
+    9.0,
+    -8.0,
+    118
+   ]
+  },
+  "rise 2.0 vs flood 0.2": {
+   "median_abs_m": 7.0,
+   "median_signed_m": -6.0,
+   "narrow": [
+    8.0,
+    -6.0,
+    118
+   ],
+   "medium": [
+    6.0,
+    -6.0,
+    112
+   ],
+   "wide": [
+    9.0,
+    -5.0,
+    113
+   ]
+  },
+  "rise 2.5 vs flood 0.2": {
+   "median_abs_m": 7.0,
+   "median_signed_m": -4.0,
+   "narrow": [
+    7.5,
+    -3.0,
+    118
+   ],
+   "medium": [
+    5.5,
+    -5.0,
+    112
+   ],
+   "wide": [
+    9.0,
+    0.0,
+    106
+   ]
+  },
+  "rise 3.0 vs flood 0.2": {
+   "median_abs_m": 8.0,
+   "median_signed_m": -3.0,
+   "narrow": [
+    9.0,
+    -2.0,
+    118
+   ],
+   "medium": [
+    5.0,
+    -4.0,
+    112
+   ],
+   "wide": [
+    11.0,
+    2.0,
+    101
+   ]
+  },
+  "rise 3.5 vs flood 0.2": {
+   "median_abs_m": 8.0,
+   "median_signed_m": -2.0,
+   "narrow": [
+    10.0,
+    -1.0,
+    118
+   ],
+   "medium": [
+    5.0,
+    -4.0,
+    112
+   ],
+   "wide": [
+    10.5,
+    6.0,
+    94
+   ]
+  },
+  "rise 4.0 vs flood 0.2": {
+   "median_abs_m": 8.0,
+   "median_signed_m": -1.0,
+   "narrow": [
+    11.0,
+    0.0,
+    118
+   ],
+   "medium": [
+    5.0,
+    -3.0,
+    112
+   ],
+   "wide": [
+    10.0,
+    6.0,
+    83
+   ]
+  },
+  "rise 5.0 vs flood 0.2": {
+   "median_abs_m": 7.5,
+   "median_signed_m": 1.0,
+   "narrow": [
+    11.0,
+    2.5,
+    118
+   ],
+   "medium": [
+    5.0,
+    -1.0,
+    112
+   ],
+   "wide": [
+    9.5,
+    1.0,
+    70
+   ]
+  },
+  "rise 7.0 vs flood 0.2": {
+   "median_abs_m": 10.0,
+   "median_signed_m": 5.0,
+   "narrow": [
+    11.5,
+    8.0,
+    118
+   ],
+   "medium": [
+    8.0,
+    4.0,
+    112
+   ],
+   "wide": [
+    8.0,
+    3.0,
+    68
+   ]
+  },
+  "rise 1.5 vs flood 0.5": {
+   "median_abs_m": 4.0,
+   "median_signed_m": -2.0,
+   "narrow": [
+    3.0,
+    -1.0,
+    118
+   ],
+   "medium": [
+    3.0,
+    -3.0,
+    112
+   ],
+   "wide": [
+    8.0,
+    -0.5,
+    118
+   ]
+  },
+  "rise 2.0 vs flood 0.5": {
+   "median_abs_m": 4.0,
+   "median_signed_m": 0.0,
+   "narrow": [
+    3.0,
+    0.0,
+    118
+   ],
+   "medium": [
+    2.0,
+    -2.0,
+    112
+   ],
+   "wide": [
+    13.0,
+    8.0,
+    113
+   ]
+  },
+  "rise 2.5 vs flood 0.5": {
+   "median_abs_m": 4.0,
+   "median_signed_m": 1.0,
+   "narrow": [
+    3.0,
+    1.5,
+    118
+   ],
+   "medium": [
+    2.5,
+    0.0,
+    112
+   ],
+   "wide": [
+    26.5,
+    16.0,
+    106
+   ]
+  },
+  "rise 3.0 vs flood 0.5": {
+   "median_abs_m": 4.0,
+   "median_signed_m": 3.0,
+   "narrow": [
+    3.0,
+    3.0,
+    118
+   ],
+   "medium": [
+    3.5,
+    1.0,
+    112
+   ],
+   "wide": [
+    55.0,
+    49.0,
+    101
+   ]
+  },
+  "rise 3.5 vs flood 0.5": {
+   "median_abs_m": 4.8,
+   "median_signed_m": 4.0,
+   "narrow": [
+    4.0,
+    4.0,
+    118
+   ],
+   "medium": [
+    3.8,
+    2.0,
+    112
+   ],
+   "wide": [
+    82.5,
+    82.5,
+    94
+   ]
+  },
+  "rise 4.0 vs flood 0.5": {
+   "median_abs_m": 5.0,
+   "median_signed_m": 5.0,
+   "narrow": [
+    5.0,
+    5.0,
+    118
+   ],
+   "medium": [
+    4.0,
+    3.8,
+    112
+   ],
+   "wide": [
+    38.0,
+    38.0,
+    83
+   ]
+  },
+  "rise 5.0 vs flood 0.5": {
+   "median_abs_m": 7.0,
+   "median_signed_m": 7.0,
+   "narrow": [
+    7.5,
+    7.5,
+    118
+   ],
+   "medium": [
+    6.0,
+    6.0,
+    112
+   ],
+   "wide": [
+    6.5,
+    5.5,
+    70
+   ]
+  },
+  "rise 7.0 vs flood 0.5": {
+   "median_abs_m": 11.0,
+   "median_signed_m": 11.0,
+   "narrow": [
+    13.0,
+    13.0,
+    118
+   ],
+   "medium": [
+    11.0,
+    11.0,
+    112
+   ],
+   "wide": [
+    6.0,
+    6.0,
+    68
+   ]
+  }
+ },
+ "widths": {
+  "narrow": {
+   "flood 0.2": 50.0,
+   "flood 0.5": 28.0,
+   "rise 1.5": 26.0,
+   "rise 2.0": 29.0,
+   "rise 2.5": 32.0,
+   "rise 3.0": 36.0,
+   "rise 3.5": 39.0,
+   "rise 4.0": 43.0,
+   "rise 5.0": 51.0,
+   "rise 7.0": 93.0
+  },
+  "medium": {
+   "flood 0.2": 59.0,
+   "flood 0.5": 47.0,
+   "rise 1.5": 41.5,
+   "rise 2.0": 45.5,
+   "rise 2.5": 48.5,
+   "rise 3.0": 52.0,
+   "rise 3.5": 54.5,
+   "rise 4.0": 56.0,
+   "rise 5.0": 62.0,
+   "rise 7.0": 69.0
+  },
+  "wide": {
+   "flood 0.2": 322.0,
+   "flood 0.5": 224.0,
+   "rise 1.5": 307.0,
+   "rise 2.0": 308.0,
+   "rise 2.5": 331.0,
+   "rise 3.0": 337.0,
+   "rise 3.5": 338.0,
+   "rise 4.0": 322.0,
+   "rise 5.0": 318.5,
+   "rise 7.0": 334.5
+  }
+ },
+ "strokes_vs_flood": {
+  "narrow flood 0.2": {
+   "median_m": 2.4,
+   "share_inside_stroke": 0.72
+  },
+  "narrow flood 0.5": {
+   "median_m": 0.3,
+   "share_inside_stroke": 0.92
+  },
+  "medium flood 0.2": {
+   "median_m": 0.9,
+   "share_inside_stroke": 0.72
+  },
+  "medium flood 0.5": {
+   "median_m": 0.4,
+   "share_inside_stroke": 0.79
+  },
+  "wide flood 0.2": {
+   "median_m": 11.5,
+   "share_inside_stroke": 0.38
+  },
+  "wide flood 0.5": {
+   "median_m": 10.8,
+   "share_inside_stroke": 0.36
+  }
+ }
+}

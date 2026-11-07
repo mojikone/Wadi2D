@@ -1,0 +1,15 @@
+narrow frame px [88, 1060, 797, 1771] width median 31 left median 15 right median 17
+medium frame px [43, 1069, 776, 1804] width median 44 left median 21 right median 22
+wide frame px [9, 1121, 744, 1856] width median 286 left median 131 right median 86
+best ten by mean median distance to his strokes (m), share within 25 m, widths narrow/medium/wide:
+  slope        {'s': 0.04, 'run': 40, 'h': 3.0}                0.5 m  0.97   36.0, 52.5, 249.0
+  slope        {'s': 0.06, 'run': 40, 'h': 2.0}                0.5 m  0.97   29.0, 46.0, 268.0
+  slope        {'s': 0.08, 'run': 40, 'h': 2.0}                0.5 m  0.95   30.0, 46.0, 321.0
+  slope        {'s': 0.04, 'run': 40, 'h': 2.0}                0.6 m  0.98   29.0, 46.0, 268.0
+  slope        {'s': 0.06, 'run': 40, 'h': 3.0}                0.6 m  0.97   45.0, 53.0, 255.5
+  slope        {'s': 0.12, 'run': 40, 'h': 2.0}                0.6 m  0.94   48.0, 46.0, 327.0
+  slope        {'s': 0.08, 'run': 40, 'h': 3.0}                0.7 m  0.95   56.0, 53.0, 275.2
+  slope        {'s': 0.18, 'run': 40, 'h': 2.0}                0.7 m  0.92   37.0, 49.0, None
+  slope        {'s': 0.12, 'run': 40, 'h': 3.0}                0.9 m  0.95   57.0, 54.0, None
+  slope        {'s': 0.18, 'run': 40, 'h': 3.0}                0.9 m  0.91   82.5, 55.0, None
+__EXIT__ 0
