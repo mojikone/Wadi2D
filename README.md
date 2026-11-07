@@ -76,7 +76,7 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
-| `W33 backend parity` | 2026-11-06 | Why CPU and GPU part on the Block 2 hybrid; the resume re-phase fixed; a driver crash with two CUDA processes | done: sensitivity, not a backend fault; resume byte for byte; the driver fault is open, his reboot or console test |
+| `W33 backend parity` | 2026-11-06 | Why CPU and GPU part on the Block 2 hybrid; the resume re-phase fixed; a driver crash with two CUDA processes | done: sensitivity, not a backend fault, Faydh 01 −2.5 % reproduced and explained; resume byte for byte; the driver fault cleared by a reboot |
 | `W32 combinations test` | 2026-11-02 | The combinations nobody ran: CPU twin through the new sections, generated basin with gridded storm, mesh, resume, full extent, hand-back at a dam | done, 4 of 6; CPU and GPU diverge on the Block 2 hybrid, resume re-phases the series clock |
 | `W30 face frames` | 2026-11-02 | Face discharges saved with every map; a line after the run of record | done, 42 of 42 through the dock; 1.001 of the upfront lines, 1.58 x disk |
 | `W29 conserving routing` | 2026-11-02 | A conserving Muskingum-Cunge (Todini 2007) beside the HMS-faithful one | done, 29 of 29 through the dock; volume 1.000000, peaks within 0.14 % |

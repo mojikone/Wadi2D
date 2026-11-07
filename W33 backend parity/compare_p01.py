@@ -1,6 +1,6 @@
 """The p01 variants set against ``gpu``: steps, the dam lines and rings (raw peak and 15-minute peak), the lumped network.
 
-usage: python compare_p01.py [variant ...]   (default: every variant in results_p01.json)
+usage: python compare_p01.py [--file results_p02.json] [variant ...]   (default: every variant in results_p01.json)
 """
 
 from __future__ import annotations
@@ -18,7 +18,10 @@ def rel(a: float, b: float) -> float:
 
 
 def main(names: list[str]) -> None:
-    results = json.loads((HERE / "results_p01.json").read_text(encoding="utf-8"))
+    source = "results_p01.json"
+    if names[:1] == ["--file"]:
+        source, names = names[1], names[2:]
+    results = json.loads((HERE / source).read_text(encoding="utf-8"))
     base = results[BASE]
     names = names or [n for n in results if n != BASE]
     table = {}
@@ -32,13 +35,13 @@ def main(names: list[str]) -> None:
             }
             for line, b in base["lines"].items()
         }
-        net = [abs(rel(other["network"][k], v)) for k, v in base["network"].items() if v]
+        net = [abs(rel(other["network"][k], v)) for k, v in base["network"].items() if v and k in other["network"]]
         table[name] = {"steps": other["steps"] - base["steps"], "lines": lines, "network_worst": max(net, default=0.0)}
         print(f"\n{name} against {BASE}: steps {other['steps']} vs {base['steps']}, lumped network worst {max(net, default=0.0):.1e}")
         print(f"  {'line':16s} {'raw peak':>9s} {'15-min':>9s} {'volume':>9s}")
         for line, d in lines.items():
             print(f"  {line:16s} {d['peak']:+9.2%} {d['peak_15min']:+9.2%} {d['volume']:+9.2%}")
-    (HERE / "compare_p01.json").write_text(json.dumps(table, indent=2), encoding="utf-8")
+    (HERE / source.replace("results_", "compare_")).write_text(json.dumps(table, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":
