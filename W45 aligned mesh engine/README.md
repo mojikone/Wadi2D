@@ -84,6 +84,23 @@ falling 0.2 %, 2:1 banks, 60 m3/s on 60 m, 20 m cells, 96 x 96, 3,000 s), the en
 [Certain, measured] On squares the polygon kernel is the tile kernel to 0.01 % on a straight channel; at 45 degrees
 its Perot advection reads 1.2 points closer to normal depth than the lattice's upwinding, as W3 found.
 
+## Stage 2 (2026-11-07): sub-grid tables for polygon cells and faces, passed
+
+`wadi2d/strips/geometry.py` (`MeshGeometry`: nodes, rings, faces, with areas, centroids, lengths and normals from them,
+and `from_rings` to find the faces of a set of rings) and `wadi2d/strips/tables.py` (`Pixels`, `build_poly_tables`:
+a cell's table from the pixels inside its ring by the crossing rule, a face's from the ground sampled along its
+segment at the pixel spacing, the higher pixel either side, both through the lattice's own `_cell_table` and
+`_face_table`). Tests `tests/strips/test_tables.py`:
+
+| Case | Result |
+|---|---|
+| An 8 x 8 lattice at 10 m on 1 m pixels, described as polygons, against `build_tables` | zmin, mean bed, hc and the cell tables equal; every face's invert, table top and table equal to float32 (112 faces); the skew is 0 |
+| A square cut into two triangles | the south-east triangle's table equals `_cell_table` on exactly its own pixels; one face, the diagonal |
+| A 30 x 10 m quad turned 30 degrees on a plane falling 5 % | area 300 m2; full to the brim the surface stands at the highest pixel; the mean bed is the plane's at the centroid |
+| A face along a one-pixel ridge | reads the ridge on every sample; a face short of it reads the plain |
+
+A breakline face on a strip will sample the line's own ground this way: nothing to lift, no ridge rule.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
