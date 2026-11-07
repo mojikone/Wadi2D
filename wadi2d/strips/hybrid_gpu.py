@@ -66,10 +66,27 @@ class HybridGpu(Hybrid):
     def watch_boundary(self, faces: np.ndarray) -> None:
         cp = self.state.cp
         self.b_faces_d = cp.asarray(np.asarray(faces, np.int32))
+        self.b_ghost_d = cp.asarray(np.asarray(self.mesh.right[np.asarray(faces, np.int64)] - self.nreal, np.int32))
         self.left_dev = cp.zeros(1, cp.float64)
+        self.left_ghost_dev = cp.zeros(max(self.ghost.size, 1), cp.float64)
 
     def boundary_outflow(self) -> float:
         return float(self.left_dev[0]) if self.b_faces.size else 0.0
+
+    def ghost_outflow(self) -> np.ndarray:
+        return self.state.cp.asnumpy(self.left_ghost_dev)[: self.ghost.size]
+
+    def put(self, name: str, values: np.ndarray) -> None:
+        getattr(self.state, name)[:] = self.state.cp.asarray(np.asarray(values, F))
+
+    def put_maxima(self, values: dict[str, np.ndarray]) -> None:
+        for name, a in values.items():
+            getattr(self, name)[:] = self.state.cp.asarray(np.asarray(a, F))
+
+    def put_ghost_outflow(self, values: np.ndarray) -> None:
+        cp = self.state.cp
+        self.left_ghost_dev[: self.ghost.size] = cp.asarray(np.asarray(values, np.float64))
+        self.left_dev[0] = float(np.asarray(values, np.float64).sum())
 
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         h, d, om = self.strip_start(hbar)
@@ -97,7 +114,7 @@ class HybridGpu(Hybrid):
         b, s = self.model.backend, self.state
         s.restore(self.ghost_d, self.saved, b.src)
         if self.b_faces.size:
-            s.tally(self.b_faces_d, dt, self.left_dev)
+            s.tally(self.b_faces_d, self.b_ghost_d, dt, self.left_dev, self.left_ghost_dev)
         s.maxima(float(self.speed_depth), self.max_d, self.max_h, self.max_s, self.max_dv, self.max_q)
         for axis, (nslot, maps) in self.edge_d.items():
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)

@@ -26,10 +26,12 @@ def save_checkpoint(path: str | Path, model, monitor, job_hash: str) -> Path:
     tmp = out.with_suffix(".tmp")
     st = model.stepper
     model.backend.synchronize()
-    monitor.balance.outflow = monitor.tally.volume()
+    tally = monitor.tally.volume()
+    monitor.balance.outflow = tally + sum(float(more()) for more in getattr(monitor, "extra_outflow", ()))
     with h5py.File(tmp, "w") as f:
         f.attrs["format"] = CHECKPOINT_FORMAT
         f.attrs["job_hash"] = job_hash
+        f.attrs["tally"] = tally
         f.attrs["t"], f.attrs["dt"], f.attrs["nsteps"] = st.t, st.dt, st.nsteps
         f.attrs["next_series"], f.attrs["next_map"] = monitor.next_series, monitor.next_map
         for name in SAVED_ARRAYS:
@@ -72,7 +74,7 @@ def load_checkpoint(path: str | Path, model, monitor) -> None:
         monitor.next_series, monitor.next_map = float(f.attrs["next_series"]), float(f.attrs["next_map"])
         saved = {k[len(BALANCE) :]: v.item() for k, v in f.attrs.items() if k.startswith(BALANCE)}
         monitor.balance = type(monitor.balance)(**saved)
-        monitor.tally.restore(monitor.balance.outflow)
+        monitor.tally.restore(float(f.attrs.get("tally", monitor.balance.outflow)))
         monitor.times = list(f["times"][()])
         for n, s in enumerate(monitor.series + monitor.line_series):
             for key in s.columns:

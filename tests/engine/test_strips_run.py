@@ -151,3 +151,104 @@ def test_a_job_builds_its_corridor_from_the_suggest_banks_file(tilted_dem, tmp_p
     on_banks = db.execute("SELECT COUNT(DISTINCT line) FROM strip_faces WHERE kind = 'breakline'").fetchone()[0]
     db.close()
     assert on_banks == 2  # both banks carry a row of faces
+
+
+def _strip_depths(out) -> list[tuple[float, float, float]]:
+    """(x, y, max depth) of every strip cell from the run's strip mesh."""
+    import sqlite3
+
+    import shapely
+
+    db = sqlite3.connect(out / "maps" / "strip_mesh.gpkg")
+    rows = db.execute("SELECT geom, max_depth_m FROM strip_cells").fetchall()
+    db.close()
+    out_rows = []
+    for blob, depth in rows:
+        c = shapely.get_parts(shapely.from_wkb(blob[40:]))[0].centroid
+        out_rows.append((c.x, c.y, float(depth)))
+    return out_rows
+
+
+def test_a_curve_number_takes_its_losses_on_the_corridor_as_on_the_squares(tilted_dem, tmp_path) -> None:  # noqa: F811
+    cfg = plane_job(tilted_dem, corridor())
+    lossy = cfg.model_copy(update={"hydrology": cfg.hydrology.model_copy(update={"curve_number": 75.0})})
+    full = run_job(cfg, tmp_path / "full")
+    less = run_job(lossy, tmp_path / "cn")
+    assert full.exit_code == 0 and less.exit_code == 0, (full.message, less.message)
+    assert abs(less.balance.relative) < 1e-6
+    assert 0.2 * full.balance.rain < less.balance.rain < 0.9 * full.balance.rain, (less.balance.rain, full.balance.rain)
+    # the strip's cells took the same excess as the squares: the rain booked is the excess over every cell's area
+    depths = _strip_depths(tmp_path / "cn")
+    assert max(d for _x, _y, d in depths) > 0.0
+
+
+def test_an_inflow_on_the_corridor_enters_the_strip(tilted_dem, tmp_path) -> None:  # noqa: F811
+    from wadi2d.config.schema import Inflow
+
+    cfg = plane_job(tilted_dem, corridor())
+    point = Inflow(name="in", x=X0 + 60.0, y=MID_Y, times_s=[0.0, 600.0, 601.0, 1800.0], flows=[1.0, 1.0, 0.0, 0.0])
+    dry_storm = cfg.storm.model_copy(update={"depth_mm": 0.01})
+    hydrology = cfg.hydrology.model_copy(update={"inflows": [point], "inject_radius": 6.0})  # on the corridor cells alone
+    cfg = cfg.model_copy(update={"storm": dry_storm, "hydrology": hydrology})
+    out = tmp_path / "inflow"
+    run = run_job(cfg, out)
+    assert run.exit_code == 0, run.message
+    assert run.balance.inflow == pytest.approx(600.0, rel=0.01), run.balance.inflow
+    assert abs(run.balance.relative) < 1e-6
+    depths = _strip_depths(out)
+    downstream = [d for x, y, d in depths if x > X0 + 70.0 and abs(y - MID_Y) < 6.0]
+    upstream = [d for x, y, d in depths if x < X0 + 50.0]
+    wet_share = float(np.mean([d > 0.02 for d in downstream]))
+    assert wet_share > 0.4 and max(upstream) < 0.01, (wet_share, max(upstream))  # the water runs down the corridor
+    import rasterio
+
+    with rasterio.open(out / "maps" / "max_depth.tif") as src:
+        grid_max = src.read(1)
+        grid_max = np.where(grid_max == src.nodata, 0.0, grid_max)
+    centre = max(d for x, y, d in depths if abs(y - MID_Y) < 4.0)
+    assert centre > 2.0 * float(grid_max.max()) > 0.0, (centre, float(grid_max.max()))  # deepest on the corridor's middle rows
+
+
+def test_a_stopped_run_with_a_corridor_resumes_to_the_unbroken_run(tilted_dem, tmp_path, monkeypatch) -> None:  # noqa: F811
+    from tests.engine.test_resume_exact import series, stop_asked_at
+    from wadi2d.engine.monitor import Monitor
+
+    cfg = plane_job(tilted_dem, corridor())
+    cfg = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"progress_every_s": 0.0})})
+    out = tmp_path / "broken"
+    with monkeypatch.context() as patch:
+        patch.setattr(Monitor, "stop_requested", stop_asked_at(905.0))
+        stopped = run_job(cfg, out)
+    assert stopped.exit_code == 6, stopped.message
+    assert stopped.t_end == pytest.approx(910.0, abs=1e-6)
+    resumed = run_job(cfg, out, resume=True)
+    whole = run_job(cfg, tmp_path / "whole")
+    assert resumed.exit_code == 0 and whole.exit_code == 0, (resumed.message, whole.message)
+    assert resumed.steps == whole.steps
+    assert series(out) == series(tmp_path / "whole")
+    assert resumed.balance.storage == pytest.approx(whole.balance.storage, rel=1e-9)
+    for name in ("rain", "outflow"):
+        assert getattr(resumed.balance, name) == pytest.approx(getattr(whole.balance, name), rel=1e-9), name
+    assert _strip_depths(out) == _strip_depths(tmp_path / "whole")
+
+
+def test_an_initial_level_fills_the_corridor_cells_inside_its_polygon(tilted_dem, tmp_path) -> None:  # noqa: F811
+    import rasterio
+
+    from wadi2d.config.schema import InitialLevel
+
+    with rasterio.open(tilted_dem) as src:
+        ground = float(next(src.sample([(X0 + 100.0, MID_Y)]))[0])
+    box = [(X0 + 80.0, MID_Y + 12.0), (X0 + 120.0, MID_Y + 12.0), (X0 + 120.0, MID_Y - 12.0), (X0 + 80.0, MID_Y - 12.0)]
+    cfg = plane_job(tilted_dem, corridor())
+    cfg = cfg.model_copy(update={
+        "initial_levels": [InitialLevel(coordinates=box, level=ground + 0.5)],
+        "storm": cfg.storm.model_copy(update={"depth_mm": 0.01}),
+        "run": cfg.run.model_copy(update={"duration_s": 20.0}),
+    })  # fmt: skip
+    out = tmp_path / "level"
+    run = run_job(cfg, out)
+    assert run.exit_code == 0, run.message
+    assert run.balance.storage0 > 100.0, run.balance.storage0  # 40 x 24 m to about 0.5 m, strip cells included
+    inside = [d for x, y, d in _strip_depths(out) if X0 + 82.0 < x < X0 + 118.0 and abs(y - MID_Y) < 10.0]
+    assert inside and min(inside) > 0.2, (len(inside), min(inside) if inside else None)

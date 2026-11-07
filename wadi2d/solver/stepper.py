@@ -28,6 +28,8 @@ class Stepper:
     def __post_init__(self) -> None:
         self.adaptive_active = True
         self.keep_active = np.zeros(self.grid.ntiles, bool)
+        self.pinned = np.zeros(self.grid.ntiles, bool)
+        """Tiles that stay active for the whole run, whatever the sources: a strip's ghost tiles (W45)."""
         self.refresh_due = True
         self.dt = self.num.cfl * self.grid.dx / self.num.wave_floor
         """Tiles that stay active whatever the water does: sources and boundaries."""

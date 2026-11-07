@@ -171,8 +171,10 @@ class BoundarySet:
         return int(self.cells.cell.size)
 
 
-def initial_depth(levels: list[InitialLevel], tables: GridTables) -> np.ndarray:
-    """Mean depth at the start: each polygon fills its cells to its level, later polygons on top of earlier ones."""
+def initial_depth(levels: list[InitialLevel], tables: GridTables, wet_elsewhere: list[bool] | None = None) -> np.ndarray:
+    """Mean depth at the start: each polygon fills its cells to its level, later polygons on top of earlier ones.
+    ``wet_elsewhere`` says which polygons wet cells that are not lattice cells (a strip's), so a polygon lying wholly
+    on a corridor is not refused for wetting no square."""
     grid = tables.grid
     out = np.zeros(grid.shape)
     if not levels:
@@ -182,10 +184,10 @@ def initial_depth(levels: list[InitialLevel], tables: GridTables) -> np.ndarray:
     hc = grid.from_tiles(tables.hc)[jj, ii]
     dtab = grid.from_tiles(tables.dtab)[jj, ii]
     zmin = tables.zmin[jj, ii]
-    for item in levels:
+    for k, item in enumerate(levels):
         inside = shapely.contains_xy(shapely.Polygon(item.coordinates), x, y)
         depth = np.asarray(hbar_at_level(item.level, zmin[inside], hc[inside], dtab[inside]))
-        if not (depth > 0.0).any():
+        if not (depth > 0.0).any() and not (wet_elsewhere is not None and wet_elsewhere[k]):
             raise ValueError(f"initial level {item.level} m wets no cell of its polygon: check the datum")
         out[jj[inside], ii[inside]] = depth
     return out
@@ -430,19 +432,37 @@ class Forcing:
         polygons: dict[str, shapely.Geometry],
         hydrographs: list[tuple[str, tuple[float, float], np.ndarray, np.ndarray]],
         crs: str = "",
+        extra: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] | None = None,
     ) -> None:
+        """``extra`` adds cells that are not lattice cells, a strip's (W45): their centres, areas and lowest ground.
+        They take rain, losses, storms, masks and inflows by their position like any cell; the run reads their part
+        of the source vector, after the lattice's ``n_lattice`` entries, into the strip."""
         grid = tables.grid
         self.model = model
         self.storm = storm
         self.area = grid.dx**2
         self.areas = None
-        """Cell areas on a quadtree, where one number will not do."""
+        """Cell areas on a quadtree or with a strip, where one number will not do."""
         interior = grid.mask & ~boundary.mask
         if getattr(grid, "quad", False):
             self.jj, self.ii, self.state, self.areas = grid.cells_of(interior)
         else:
             self.jj, self.ii = np.nonzero(interior)
             self.state = np.asarray(state_index(grid, self.jj, self.ii), np.int64)
+        self.n_lattice = int(self.state.size)
+        self.x, self.y = grid.xy_of(self.jj, self.ii)
+        self.zmin = tables.zmin[self.jj, self.ii]
+        self.strip_depth = None
+        """Callable giving the strip cells' level above zmin, set by the run; read for inflows on strip cells."""
+        if extra is not None and extra[0].size:
+            cx, cy, areas, zmin = (np.asarray(a, np.float64) for a in extra)
+            sj = np.clip(np.floor((grid.y0 - cy) / grid.dx).astype(np.int64), 0, grid.shape[0] - 1)
+            si = np.clip(np.floor((cx - grid.x0) / grid.dx).astype(np.int64), 0, grid.shape[1] - 1)
+            self.jj, self.ii = np.concatenate((self.jj, sj)), np.concatenate((self.ii, si))
+            self.x, self.y = np.concatenate((self.x, cx)), np.concatenate((self.y, cy))
+            self.zmin = np.concatenate((self.zmin, zmin))
+            lattice_areas = np.full(self.n_lattice, self.area) if self.areas is None else np.asarray(self.areas, np.float64)
+            self.areas = np.concatenate((lattice_areas, areas))
         self.tile = self.state // STRIDE2
 
         names = [s.name for s in cfg.hydrology.subbasins if s.mode == "lumped"]
@@ -473,7 +493,7 @@ class Forcing:
     def _at_cells(self, raster: np.ndarray, grid: TileGrid) -> np.ndarray:
         """A raster at the interior cells. A coarse cell hanging over the raster's edge reads the part that lies on it."""
         values = raster[self.jj, self.ii]
-        if self.areas is None or np.isfinite(values).all():
+        if not getattr(grid, "quad", False) or np.isfinite(values).all():
             return values
         jj, ii = np.nonzero(np.isfinite(raster) & grid.mask)
         index = np.asarray(grid.state_index(jj, ii), np.int64)
@@ -484,6 +504,8 @@ class Forcing:
 
     def _rain_pixels(self, storm: GriddedStorm, grid: TileGrid, crs: str) -> np.ndarray:
         """The rain pixel of each interior cell, read like any raster, so a coarse cell over the grid's edge finds it."""
+        if not getattr(grid, "quad", False):
+            return rain_pixels(storm, self.x, self.y, crs)
         jj, ii = np.nonzero(grid.mask)
         raster = np.full(grid.shape, np.nan)
         raster[jj, ii] = rain_pixels(storm, *grid.xy_of(jj, ii), crs)
@@ -519,9 +541,7 @@ class Forcing:
         return ScsCurveNumber(curve_number=unique), out
 
     def _injection(self, cfg, tables, name, point, times, flows) -> Injection:
-        grid = tables.grid
-        x, y = grid.xy_of(self.jj, self.ii)
-        dist = np.hypot(x - point[0], y - point[1])
+        dist = np.hypot(self.x - point[0], self.y - point[1])
         offset = float(dist.min())
         if offset > cfg.hydrology.inject_max_offset:
             raise ValueError(
@@ -531,12 +551,27 @@ class Forcing:
         near = np.nonzero(dist <= cfg.hydrology.inject_radius)[0]
         if near.size == 0:
             near = np.array([int(np.argmin(dist))])
-        lowest = int(np.argmin(tables.zmin[self.jj[near], self.ii[near]]))
-        index = self.model.device_index(self.state[near])
+        lowest = int(np.argmin(self.zmin[near]))
+        index = self.model.device_index(self.state[near]) if (near < self.n_lattice).all() else None
         return Injection(
             name, near, index, lowest, np.asarray(times, np.float64), np.asarray(flows, np.float64),
             cfg.hydrology.inject_min_depth,
         )  # fmt: skip
+
+    def depth_at(self, inj: Injection) -> np.ndarray:
+        """Level above zmin at an injection's cells, lattice cells from the device, strip cells from the strip."""
+        if inj.index is not None:
+            return self.model.read_cells("d", inj.index)
+        cells = np.asarray(inj.cells, np.int64)
+        out = np.zeros(cells.size, np.float32)
+        on_lattice = cells < self.n_lattice
+        if on_lattice.any():
+            out[on_lattice] = self.model.read_cells("d", self.model.device_index(self.state[cells[on_lattice]]))
+        if (~on_lattice).any():
+            if self.strip_depth is None:
+                raise RuntimeError("an inflow lands on strip cells but no strip reads them")
+            out[~on_lattice] = np.asarray(self.strip_depth())[cells[~on_lattice] - self.n_lattice]
+        return out
 
     def _excess_mm(self, t: float) -> np.ndarray:
         """Cumulative excess at time t: per class with the plain rain last, per cell under a depth grid, or per
@@ -562,7 +597,7 @@ class Forcing:
     def rate(self, t0: float, t1: float) -> tuple[np.ndarray, float, float]:
         """Mean net rate over [t0, t1] per interior cell, m/s, with rain and inflow volumes of the window."""
         step = t1 - t0
-        out = np.zeros(self.state.size, np.float32)
+        out = np.zeros(self.jj.size, np.float32)  # lattice cells first, then the strip's
         rain = 0.0
         if self.storm is not None:
             excess = (self._excess_mm(t1) - self._excess_mm(t0)) / (MM_PER_M * step)
@@ -578,12 +613,12 @@ class Forcing:
             if q <= 0.0:
                 continue
             if self.areas is None:
-                added = q * inj.share(self.model.read_cells("d", inj.index)) / self.area
+                added = q * inj.share(self.depth_at(inj)) / self.area
                 out[inj.cells] += added.astype(np.float32)
                 inj.window = float(np.float32(added).sum(dtype=np.float64)) * self.area * step
             else:
                 held = self.areas[inj.cells]
-                added = q * inj.share(self.model.read_cells("d", inj.index)) / held
+                added = q * inj.share(self.depth_at(inj)) / held
                 out[inj.cells] += added.astype(np.float32)
                 inj.window = float(np.dot(np.float32(added).astype(np.float64), held)) * step
             inflow += inj.window

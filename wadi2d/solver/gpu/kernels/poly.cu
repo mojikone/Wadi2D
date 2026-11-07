@@ -405,12 +405,15 @@ extern "C" __global__ void poly_face_maxima(const int nf, const float* __restric
     max_q[f] = fmaxf(max_q[f], fabsf(q[f]));
 }
 
-// What crossed the interface faces onto boundary cells this step, added to the running total in double.
-extern "C" __global__ void poly_tally(const int nb, const int* __restrict__ faces, const float* __restrict__ q,
-                                      const float dt, double* __restrict__ left) {
+// What crossed the interface faces onto boundary cells this step: the running total and each ghost's own, in double.
+extern "C" __global__ void poly_tally(const int nb, const int* __restrict__ faces, const int* __restrict__ ghosts,
+                                      const float* __restrict__ q, const float dt, double* __restrict__ left,
+                                      double* __restrict__ left_ghost) {
     __shared__ double part[256];
     const int i = blockIdx.x * blockDim.x + threadIdx.x;
-    part[threadIdx.x] = i < nb ? (double)q[faces[i]] : 0.0;
+    const double crossed = i < nb ? (double)q[faces[i]] : 0.0;
+    part[threadIdx.x] = crossed;
+    if (i < nb) atomicAdd(&left_ghost[ghosts[i]], crossed * (double)dt);
     __syncthreads();
     for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
         if (threadIdx.x < stride) part[threadIdx.x] += part[threadIdx.x + stride];

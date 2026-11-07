@@ -843,11 +843,6 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         progress.emit("warn", message=note)
     name = backend or cfg.run.backend
     strip = getattr(tables, "strip", None)
-    if strip is not None:
-        if continuing:
-            raise InvalidJob("a run with strips cannot resume yet")
-        if cfg.terrain.cn_raster or cfg.storm.kind == "gridded" or cfg.storm.depth_grid or cfg.hydrology.subbasins:
-            raise InvalidJob("strips take uniform rain without losses in this version: no CN raster, depth grid, gridded rain or subbasins")
     try:
         model = Model(tables, cfg.numerics, name)
     except (RuntimeError, ImportError, OSError) as error:
@@ -864,10 +859,25 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         raise InvalidJob(str(error)) from error
     for note in notes:
         progress.emit("warn", message=note)
-    model.set_depth(np.maximum(initial_depth(cfg.initial_levels, tables), pools))
+    hybrid = None
+    wet_in_strip = None
+    if strip is not None:
+        from wadi2d.strips.hybrid import make_hybrid
+
+        hybrid = make_hybrid(model, strip.mesh)
+        strip_start, wet_in_strip = hybrid.strip_initial_depth(cfg.initial_levels)
+        progress.emit(
+            "strips", corridors=len(strip.strip.polygons), cells=int((strip.strip.corridor >= 0).sum()),
+            triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size), cut=strip.strip.notes,
+        )  # fmt: skip
+    model.set_depth(np.maximum(initial_depth(cfg.initial_levels, tables, wet_in_strip), pools))
     if bset.size:
         model.set_boundary(bset.cells)
-    forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs)
+    if hybrid is not None:
+        hybrid.set_strip_depth(strip_start)
+    forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs, None if hybrid is None else hybrid.forcing_cells())
+    if hybrid is not None:
+        forcing.strip_depth = hybrid.strip_depth_real
     if forcing.injections and not getattr(grid, "quad", False):
         entering = {
             inj.name: set(zip(forcing.jj[inj.cells].tolist(), forcing.ii[inj.cells].tolist(), strict=True))
@@ -876,15 +886,6 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         for note in inflow_crossings(cfg.outputs.lines, entering, grid):
             progress.emit("warn", message=note)
 
-    hybrid = None
-    if strip is not None:
-        from wadi2d.strips.hybrid import make_hybrid
-
-        hybrid = make_hybrid(model, strip.mesh)
-        progress.emit(
-            "strips", corridors=len(strip.strip.polygons), cells=int((strip.strip.corridor >= 0).sum()),
-            triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size), cut=strip.strip.notes,
-        )  # fmt: skip
     results = Results(out / "results.h5", grid, crs, cfg.model_dump_json(), append=continuing)
     if results.salvaged:
         progress.emit(
@@ -922,11 +923,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
                 link.exchange(t)
                 t_next = link.window_end(t, t_next)
             rate, rain, inflow = forcing.rate(t, t_next)
-            if hybrid is not None:
-                rain += hybrid.rain(rate, t_next - t)
             loss = bed.apply(rate, t, t_next) if bed is not None else 0.0
             if rain + inflow + loss > 0.0 or not dry:
-                model.set_source_cells(forcing.state, rate)
+                model.set_source_cells(forcing.state, rate[: forcing.n_lattice])
+                if hybrid is not None:
+                    hybrid.set_strip_source(rate[forcing.n_lattice :])
             dry = rain + inflow + loss <= 0.0
             back = link.reentry_volume() if link is not None else 0.0
             monitor.open_window(t, t_next, rain, inflow, back, loss)

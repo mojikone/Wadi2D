@@ -133,6 +133,7 @@ class Hybrid:
         b.hooks = self
         tiles = np.unique(self.ghost // STRIDE2)
         model.stepper.keep_active[tiles] = True
+        model.stepper.pinned[tiles] = True  # a ghost's tile steps whatever the water does, or the join would leak
         model.stepper.rebuild_active(retain=True)
 
     def make_state(self):
@@ -180,6 +181,31 @@ class Hybrid:
     def strip_hbar_at_level(self, level: float | np.ndarray) -> np.ndarray:
         m, n = self.mesh, self.nreal
         return hbar_at_level(level, m.zmin[:n], m.hc[:n], m.dtab[:n])
+
+    def forcing_cells(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """The real cells as the forcing takes them: centres, areas and lowest ground."""
+        m, n = self.mesh, self.nreal
+        return m.cx[:n], m.cy[:n], m.area[:n], m.zmin[:n]
+
+    def strip_depth_real(self) -> np.ndarray:
+        return self.strip_host("d")[: self.nreal]
+
+    def strip_initial_depth(self, levels) -> tuple[np.ndarray, list[bool]]:
+        """Mean depth of the real cells at the start, each polygon filling its cells to its level as the squares; and
+        per polygon whether it wets a strip cell."""
+        import shapely
+
+        m, n = self.mesh, self.nreal
+        out = np.zeros(n)
+        wet = []
+        for item in levels:
+            inside = shapely.contains_xy(shapely.Polygon(item.coordinates), m.cx[:n], m.cy[:n])
+            depth = np.zeros(0)
+            if inside.any():
+                depth = np.asarray(hbar_at_level(item.level, m.zmin[:n][inside], m.hc[:n][inside], m.dtab[:n][inside]))
+                out[inside] = depth
+            wet.append(bool((depth > 0.0).any()))
+        return out, wet
 
     def strip_start(self, hbar: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Mean depth, level and wet share of the real cells for a depth."""
@@ -247,8 +273,11 @@ class Hybrid:
         n = self.nreal
         iface = np.nonzero(self.mesh.right >= n)[0]
         self.b_faces = iface[at_boundary[self.mesh.right[iface] - n]]
+        self.b_ghost = self.mesh.right[self.b_faces] - n
         self.watch_boundary(self.b_faces)
         monitor.extra_outflow.append(self.boundary_outflow)
+        monitor.extra_boundary_flow.append(self.flow_into)
+        monitor.parts.append(self)
         monitor.extra_products.append(lambda folder, crs: ("strip_mesh", write_strip_mesh(folder / STRIP_MESH_FILE, self, strip, crs)))
         self.speed_depth = F(monitor.cfg.outputs.speed_depth)
         monitor.extra_fields.append(self.strip_frame_fields)
@@ -286,6 +315,60 @@ class Hybrid:
         """Water that left the strip into boundary cells since the start, m3."""
         raise NotImplementedError
 
+    def ghost_outflow(self) -> np.ndarray:
+        """Water that left the strip into each ghost since the start, m3, on the host."""
+        raise NotImplementedError
+
+    def flow_into(self, cells: tuple[np.ndarray, np.ndarray]) -> float:
+        """What the strip has passed into these lattice cells (grid rows and columns), m3: a hand-back line's share."""
+        j, i = (np.asarray(a, np.int64) for a in cells)
+        if j.size == 0 or self.ghost.size == 0:
+            return 0.0
+        wanted = np.asarray(state_index(self.model.grid, j, i), np.int64)
+        on = np.isin(self.ghost, wanted)
+        return float(self.ghost_outflow()[on].sum()) if on.any() else 0.0
+
+    # ---- the checkpoint part (``monitor.parts``): the strip's state is state
+    STATE_NAMES = ("h", "d", "om", "u", "m", "q", "res")
+
+    def save(self, f) -> None:
+        group = f.create_group("strip")
+        for name in self.STATE_NAMES:
+            group.create_dataset(name, data=np.asarray(self.strip_host(name)))
+        max_d, max_h, max_q = self.strip_maxima()
+        max_s, max_dv = self.strip_speed_maxima()
+        for name, a in (("max_d", max_d), ("max_h", max_h), ("max_q", max_q), ("max_s", max_s), ("max_dv", max_dv)):
+            group.create_dataset(name, data=np.asarray(a))
+        group.create_dataset("ghost_outflow", data=np.asarray(self.ghost_outflow(), np.float64))
+
+    def load(self, f) -> None:
+        if "strip" not in f:
+            raise ValueError("this checkpoint has no strip: it was written by a run without corridors, so run without --resume")
+        group = f["strip"]
+        for name in self.STATE_NAMES:
+            self.put(name, group[name][()])
+        self.put_maxima({name: group[name][()] for name in ("max_d", "max_h", "max_q", "max_s", "max_dv")})
+        self.put_ghost_outflow(group["ghost_outflow"][()])
+        self.model.stepper.refresh_due = True
+
+    def put(self, name: str, values: np.ndarray) -> None:
+        raise NotImplementedError
+
+    def put_maxima(self, values: dict[str, np.ndarray]) -> None:
+        raise NotImplementedError
+
+    def put_ghost_outflow(self, values: np.ndarray) -> None:
+        raise NotImplementedError
+
+    def finish(self, t: float, balance) -> None:
+        """Nothing to add at the end: the strip's water and outflow are in the balance every window."""
+
+    def write(self, results, out) -> None:
+        """The strip's products are written with the maps (``extra_products``)."""
+
+    def figures(self, balance) -> dict[str, float]:
+        return {"strip_outflow_m3": self.boundary_outflow()}
+
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         raise NotImplementedError
 
@@ -307,6 +390,7 @@ class HybridCpu(Hybrid):
             raise ValueError("HybridCpu steps a CPU model; make_hybrid picks the class")
         self.saved = np.zeros(self.ghost.size, F)
         self.left_m3 = 0.0
+        self.left_ghost = np.zeros(self.ghost.size, np.float64)
         self.max_d, self.max_h = np.zeros(self.nreal, F), np.zeros(self.nreal, F)
         self.max_s, self.max_dv = np.zeros(self.nreal, F), np.zeros(self.nreal, F)
         self.max_q = np.zeros(self.mesh.nfaces, F)
@@ -327,6 +411,20 @@ class HybridCpu(Hybrid):
 
     def boundary_outflow(self) -> float:
         return self.left_m3
+
+    def ghost_outflow(self) -> np.ndarray:
+        return self.left_ghost
+
+    def put(self, name: str, values: np.ndarray) -> None:
+        getattr(self.state, name)[:] = np.asarray(values, F)
+
+    def put_maxima(self, values: dict[str, np.ndarray]) -> None:
+        for name, a in values.items():
+            getattr(self, name)[:] = np.asarray(a, F)
+
+    def put_ghost_outflow(self, values: np.ndarray) -> None:
+        self.left_ghost[:] = np.asarray(values, np.float64)
+        self.left_m3 = float(self.left_ghost.sum())
 
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         s, n = self.state, self.nreal
@@ -372,7 +470,9 @@ class HybridCpu(Hybrid):
         b.src[self.ghost] = self.saved
         dx = float(self.dx)
         if self.b_faces.size:
-            self.left_m3 += float(s.q[self.b_faces].astype(np.float64).sum()) * dt
+            crossed = s.q[self.b_faces].astype(np.float64) * dt
+            self.left_m3 += float(crossed.sum())
+            np.add.at(self.left_ghost, self.b_ghost, crossed)
         np.maximum(self.max_d, s.d[:n], out=self.max_d)
         np.maximum(self.max_h, s.h[:n], out=self.max_h)
         np.maximum(self.max_q, np.abs(s.q), out=self.max_q)

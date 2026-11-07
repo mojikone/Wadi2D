@@ -81,6 +81,7 @@ class HandBackLink:
         self.tallies = [self._tally(model, grid, inner, cells) for cells in self.cells]
         monitor.watch(self.tallies)
         monitor.parts.append(self)
+        self.monitor = monitor
         length = network.grid.n_times + 2
         self.flows = {line.name: np.zeros(length) for line in h.handbacks}
         self.last = {line.name: 0.0 for line in h.handbacks}
@@ -147,8 +148,8 @@ class HandBackLink:
         k = int(np.floor(t / self.step + ALIGNED_S))
         if k <= self.done:
             return
-        for line, tally in zip(self.handbacks, self.tallies, strict=True):
-            volume = tally.volume()
+        for line, tally, cells in zip(self.handbacks, self.tallies, self.cells, strict=True):
+            volume = tally.volume() + sum(float(more(cells)) for more in self.monitor.extra_boundary_flow)
             self.flows[line.name][k] = (volume - self.last[line.name]) / self.step
             self.last[line.name] = volume
         self.done = k

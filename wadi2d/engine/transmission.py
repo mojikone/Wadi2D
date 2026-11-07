@@ -62,10 +62,11 @@ class BedLoss:
     @staticmethod
     def _cells(area: str | None, tables: GridTables, forcing: Forcing, crs: str) -> np.ndarray:
         """Positions in the source vector of the cells it applies to."""
+        n = forcing.n_lattice  # a strip's cells take no bed loss yet
         if area is None:
-            return np.arange(forcing.state.size)
+            return np.arange(n)
         shape = shapely.union_all([geometry for _properties, geometry in read_features(area, crs)])
-        x, y = tables.grid.xy_of(forcing.jj, forcing.ii)
+        x, y = tables.grid.xy_of(forcing.jj[:n], forcing.ii[:n])
         return np.nonzero(shapely.contains_xy(shape, x, y))[0]
 
     def notes(self) -> list[str]:

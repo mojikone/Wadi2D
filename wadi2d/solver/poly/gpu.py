@@ -165,10 +165,10 @@ class PolyGpuState:
         self.k["poly_cell_maxima"](grid_of(n), (THREADS,), (n, F(speed_depth), self.d, self.h, self.Ux, self.Uy, max_d, max_h, max_s, max_dv))
         self.k["poly_face_maxima"](grid_of(nf), (THREADS,), (nf, self.q, max_q))
 
-    def tally(self, faces, dt: float, left) -> None:
+    def tally(self, faces, ghosts, dt: float, left, left_ghost) -> None:
         nb = int(faces.size)
         if nb:
-            self.k["poly_tally"](grid_of(nb), (THREADS,), (nb, faces, self.q, F(dt), left))
+            self.k["poly_tally"](grid_of(nb), (THREADS,), (nb, faces, ghosts, self.q, F(dt), left, left_ghost))
 
 
 __all__ = ["PolyGpuState", "cell_faces"]
