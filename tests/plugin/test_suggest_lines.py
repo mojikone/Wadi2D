@@ -60,7 +60,9 @@ def test_the_title_and_the_message_say_what_was_found():
     text = summary_text(EVENT)
     assert "4 bank lines along 2 thalwegs" in text
     assert "3 crests (1 road, 2 other crest)" in text
-    assert "delete what is wrong" in text and "Crest lines" in text and EVENT["path"] in text
+    assert "delete what is wrong" in text and EVENT["path"] in text
+    assert "bank lines as Refinement lines in the Mesh section" in text  # banks refine, they are never barriers
+    assert "never load them as Crest lines" in text and "road, dam and dyke crests as Crest lines" in text
     assert "no crests" in summary_text({**EVENT, "crests": 0, "crest_kinds": {}})
 
 

@@ -4,9 +4,12 @@
 
 Reached from the Mesh section's button. The job is the dock's own, as the terrain preview writes it; the engine's
 ``breaklines`` command writes a GeoPackage beside the run folder; the layer comes in editing, styled by kind, with
-the thalwegs beneath it as a read-only reference. The user deletes what is wrong, saves, and picks the layer as
-crest lines in the Structures section: every vertex carries its ground elevation, so no field is needed. A crest
-face passes at most critical flow and sets the step, so a line the flood crosses along its length costs the peak.
+the thalwegs beneath it as a read-only reference. The user deletes what is wrong and saves. The bank lines are
+refinement lines for the Mesh section: the layer's near_dx, rows and far_dx fields fill its table. They are never
+barriers (his rule of 2026-11-07): a face on high ground already reads that ground from the sub-grid tables, and a bank
+loaded as a crest line costs the dam peak 10 to 36 % (W26). The road, dam and dyke crests are crest lines for the
+Structures section, where every vertex carries its ground elevation, so no field is needed, and a crest face passes at
+most critical flow.
 """
 
 from __future__ import annotations
@@ -78,9 +81,10 @@ def summary_text(event: dict) -> str:
     crests = f"{event['crests']} crests ({kinds})" if kinds else "no crests"
     return (
         f"Suggested {event['banks']} bank lines along {event['thalwegs']} thalwegs and {crests}, "
-        f"from the ground at {event['pixel_m']:g} m. The layer is in editing: delete what is wrong, save it, then "
-        "choose it as Crest lines under Structures; its vertices carry the ground elevation. A crest face passes at "
-        "most critical flow, so keep the lines a flood overtops rarely. "
+        f"from the ground at {event['pixel_m']:g} m. The layer is in editing: delete what is wrong and save it. Use the "
+        "bank lines as Refinement lines in the Mesh section, where their near_dx, rows and far_dx fill the table; they "
+        "are not barriers, so never load them as Crest lines. Load only the road, dam and dyke crests as Crest lines "
+        "under Structures, where their vertices carry the ground elevation and a crest face passes at most critical flow. "
         f"File: {event['path']}"
     )
 
