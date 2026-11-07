@@ -18,7 +18,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from ..dam_rows import START_LEVEL, START_WORDS, DamRow, dam_levels, dam_names, merge_dams
+from ..dam_rows import START_LEVEL, START_TIPS, START_WORDS, DamRow, dam_levels, dam_names, merge_dams
 from ..job_builder import DAM_LEVELS, layer_features
 from .common import field_combo, layer_combo, number_box
 
@@ -89,6 +89,7 @@ class StartWater(QWidget):
             start = QComboBox()
             for key, words in START_WORDS.items():
                 start.addItem(words, key)
+                start.setItemData(start.count() - 1, START_TIPS[key], Qt.ToolTipRole)
             start.setCurrentIndex(start.findData(row.start))
             start.currentIndexChanged.connect(partial(self._start, row, start))
             self.table.setCellWidget(number, START_COLUMN, start)

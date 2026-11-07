@@ -11,10 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 START_EMPTY, START_SPILLWAY, START_LEVEL = "empty", "spillway", "level"
-START_WORDS = {
-    START_EMPTY: "Empty: a design run reads the attenuation",
-    START_SPILLWAY: "Full to the spillway crest",
-    START_LEVEL: "At a level, m",
+START_WORDS = {START_EMPTY: "Empty", START_SPILLWAY: "Spillway crest", START_LEVEL: "Level"}
+START_TIPS = {
+    START_EMPTY: "Empty pool: a design run reads the dam's attenuation",
+    START_SPILLWAY: "Full to the lowest spillway crest",
+    START_LEVEL: "Water at the level typed in the next column, m",
 }
 
 
