@@ -1,0 +1,323 @@
+    0.0 script loaded
+    4.2 === 0 the files' own rain, outside the engine, before any run
+    9.7 nc: 144 frames, 157.482 mm over the domain, 4530976 m3
+    9.7 dss: 144 frames, 157.899 mm over the domain, 4542979 m3
+    9.7 DSS row order: south row first {'south row first': {'points': 74764, 'correlation': 0.9998258136086459, 'median_abs_mm': 0.012602537870407104}, 'north row first': {'points': 71873, 'correlation': -0.11184866827853653, 'median_abs_mm': 17.47950269281864}}
+    9.7 PMP Clip_PMP_823mm_21c_27032024.tif: 1411.32 mm over the domain; ARF at 300 km2 0.8347
+    9.7 PASS the DSS row order is settled by the NetCDF {'south row first': {'points': 74764, 'correlation': 0.9998258136086459, 'median_abs_mm': 0.012602537870407104}, 'north row first': {'points': 71873, 'correlation': -0.11184866827853653, 'median_abs_mm': 17.47950269281864}}
+   10.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a2a67966816149443\plugin\wadi2d_qgis\__init__.py
+   10.6 PASS engine found Engine ready.
+   10.6 === 1, 2 full 2D, rain-on-grid everywhere with the project CN grid
+   12.4 rain label nc: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   12.4 PASS nc: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   12.7 dock says: Starting...
+   26.4 PASS full_nc: the run finished Finished. water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   26.4 PASS full_nc: mass error under 1e-06 2.3410838602740206e-08
+   26.4 full_nc: line {'peak_m3s': 661.579, 'peak_h': 12.425, 'volume_m3': -2428989.0813888283, 'end_m3s': -0.45048}, rain 3449023, inflow 0, error 2.34e-08
+   26.4   warn: water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   26.6 dock says: Finished. water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   31.8 rain label dss: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+   31.8 PASS dss: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+   31.9 dock says: Starting...
+   45.4 PASS full_dss: the run finished Finished. water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   45.4 PASS full_dss: mass error under 1e-06 2.2718855311892096e-08
+   45.4 full_dss: line {'peak_m3s': 663.423, 'peak_h': 12.425, 'volume_m3': -2438397.3982073753, 'end_m3s': -0.451678}, rain 3460466, inflow 0, error 2.27e-08
+   45.4   warn: water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   45.5 PASS the job carries the file as gridded rain, no area reduction {'kind': 'gridded', 'rain_file': 'D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP200_10min.nc', 'rain_units': 'auto', 'rain_stamp': 'end'}
+   45.5 === 1g, 2g full 2D without losses: the gross rain
+   45.5 dock says: Finished. water stood 8.5 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   47.3 rain label nc: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   47.3 PASS nc: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   47.3 dock says: Starting...
+   58.3 PASS gross_nc: the run finished Finished. water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   58.3 PASS gross_nc: mass error under 1e-06 2.3264147568231927e-08
+   58.3 gross_nc: line {'peak_m3s': 769.885, 'peak_h': 12.375, 'volume_m3': -3159524.4011921436, 'end_m3s': -0.457221}, rain 4503036, inflow 0, error 2.33e-08
+   58.3   warn: water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   58.5 dock says: Finished. water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   63.5 rain label dss: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+   63.5 PASS dss: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+   63.5 dock says: Starting...
+   78.0 PASS gross_dss: the run finished Finished. water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   78.0 PASS gross_dss: mass error under 1e-06 2.31078555310769e-08
+   78.0 gross_dss: line {'peak_m3s': 771.78, 'peak_h': 12.375, 'volume_m3': -3169410.2066170275, 'end_m3s': -0.457546}, rain 4514956, inflow 0, error 2.31e-08
+   78.0   warn: water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   78.1 === 3, 4 hybrid: the basin generated from the DEM, every subbasin lumped
+   78.1 dock says: Finished. water stood 9.3 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   79.9 rain label nc: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   79.9 PASS nc: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 161.9 mm on average, 360.9 mm at most.
+   83.5 basin: 8 subbasins, 4 reaches, 5 junctions, 0 reservoirs; 6.4311 km2 reach the edge without meeting a stream and rain on the grid.
+   83.5 PASS a basin was generated 8 subbasins, 4 reaches, 5 junctions, 0 reservoirs; 6.4311 km2 reach the edge without meeting a stream and rain on the grid.
+   83.5 PASS every subbasin lumped by default {'S1': 'lumped', 'S2': 'lumped', 'S3': 'lumped', 'S4': 'lumped', 'S5': 'lumped', 'S6': 'lumped', 'S7': 'lumped', 'S8': 'lumped'}
+   83.5 PASS the design line Bidah 03 is a junction of the basin ['R1', 'R2', 'R3', 'R4', 'J1', 'Bidah 03', 'J2', 'J3', 'J4']
+   89.4 dock says: Starting...
+   99.9 PASS hybrid_nc: the run finished Finished. water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   99.9 PASS hybrid_nc: mass error under 1e-06 2.2370938411758388e-08
+   99.9 hybrid_nc: line {'peak_m3s': 0.68773, 'peak_h': 12.375, 'volume_m3': -11456.619714539655, 'end_m3s': -0.0500084}, rain 737336, inflow 2707864, error 2.24e-08
+   99.9   warn: water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+  100.0 dock says: Finished. water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+  105.3 rain label dss: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+  105.3 PASS dss: the dock reads 144 frames of 10 min 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 606 x 528 pixels. Total 161.9 mm on average, 360.8 mm at most.
+  105.4 dock says: Starting...
+  119.0 dock says: water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+  119.2 PASS hybrid_dss: the run finished Finished. water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+  119.2 PASS hybrid_dss: mass error under 1e-06 2.2487960880159767e-08
+  119.2 hybrid_dss: line {'peak_m3s': 0.688831, 'peak_h': 12.375, 'volume_m3': -11514.884754462164, 'end_m3s': -0.0501731}, rain 739107, inflow 2717576, error 2.25e-08
+  119.2   warn: water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+  119.4 === 5, 6, 6g the HMS project's PMP storm through the HMS route
+  119.4 PASS FM_PMP.met is offered 
+  119.4 PASS the storm is the HMS project's As in the HMS project
+  119.4 dock says: Starting...
+  120.4 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  121.4 dock says: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  137.5 PASS pmp_hybrid: the run finished Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wal
+  137.5 PASS pmp_hybrid: mass error under 1e-06 2.2516707213907283e-08
+  137.5 pmp_hybrid: line {'peak_m3s': 24.3951, 'peak_h': 13.691666666666666, 'volume_m3': -404770.2209049432, 'end_m3s': -0.0186025}, rain 8711044, inflow 23721807, error 2.25e-08
+  137.5   warn: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  137.5   warn: water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there
+  137.8 dock says: Starting...
+  138.8 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  139.8 dock says: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  156.4 PASS pmp_full: the run finished Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. water stood 20.1 m deep against the domain edge at (432071, 2725085): an edge is a wal
+  156.4 PASS pmp_full: mass error under 1e-06 2.360661473775559e-08
+  156.4 pmp_full: line {'peak_m3s': 1701.06, 'peak_h': 12.158333333333333, 'volume_m3': -23076004.677355014, 'end_m3s': -0.0204542}, rain 32448107, inflow 0, error 2.36e-08
+  156.4   warn: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  156.4   warn: water stood 20.1 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there
+  156.5 dock says: Starting...
+  157.5 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  158.5 dock says: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  175.4 PASS pmp_gross: the run finished Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. water stood 20.1 m deep against the domain edge at (432071, 2725085): an edge is a wal
+  175.4 PASS pmp_gross: mass error under 1e-06 2.3919633772495498e-08
+  175.4 pmp_gross: line {'peak_m3s': 1707.36, 'peak_h': 12.158333333333333, 'volume_m3': -23943401.64421075, 'end_m3s': -0.0205009}, rain 33681352, inflow 0, error 2.39e-08
+  175.4   warn: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+  175.4   warn: water stood 20.1 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there
+  175.6 === rules
+  175.6 FAIL full 2D: DSS and NetCDF water within 0.1% +0.3318%; the files alone +0.2649%
+  175.6 PASS full 2D: DSS and NetCDF Bidah 03 peak within 0.5% 661.58 and 663.42, +0.2787%
+  175.6 FAIL full 2D without losses: DSS and NetCDF water within 0.1% +0.2647%; the files alone +0.2649%
+  175.6 FAIL hybrid: DSS and NetCDF water within 0.1% +0.3333%; the files alone +0.2649%
+  175.6 PASS hybrid: DSS and NetCDF Bidah 03 peak within 0.5% 0.69 and 0.69, +0.1601%
+  175.6 PASS nc: the run's rain is the file's own depth over the domain within 1% -0.6166% (over the active cells -0.6269%)
+  175.6 PASS dss: the run's rain is the file's own depth over the domain within 1% -0.6168% (over the active cells -0.6263%)
+  175.6 PASS hybrid nc: every lumped subbasin runs off its own polygon mean within 1% worst +0.0000% of 8
+  175.6 PASS hybrid dss: every lumped subbasin runs off its own polygon mean within 1% worst +0.0000% of 8
+  175.6 PASS PMP: the run's rain is the raster's depth over the domain x the pattern x the met's ARF within 1% -0.6218%; without the ARF -17.0523%
+  175.6 PASS PMP: S13 lumped runs off the raster's polygon mean (cell centres, as HMS) x ARF within 1% -0.0000%; area-weighted +0.1480%
+  175.6 {
+ "full 2D volume": {
+  "nc_m3": 3449023.045999179,
+  "dss_m3": 3460466.0089838775,
+  "dss_over_nc": 0.0033177403664994554,
+  "files_dss_over_nc": 0.0026490204613671686
+ },
+ "full 2D peak": {
+  "nc": 661.579,
+  "dss": 663.423,
+  "dss_over_nc": 0.0027872710590874927
+ },
+ "full 2D without losses volume": {
+  "nc_m3": 4503036.155416622,
+  "dss_m3": 4514955.862389263,
+  "dss_over_nc": 0.0026470378120999616,
+  "files_dss_over_nc": 0.0026490204613671686
+ },
+ "hybrid volume": {
+  "nc_m3": 3445199.3462888077,
+  "dss_m3": 3456683.002845537,
+  "dss_over_nc": 0.0033332342783298774,
+  "files_dss_over_nc": 0.0026490204613671686
+ },
+ "hybrid peak": {
+  "nc": 0.68773,
+  "dss": 0.688831,
+  "dss_over_nc": 0.0016009189652916866
+ },
+ "gross nc": {
+  "run_m3": 4503036.155416622,
+  "domain_m3": 4530976.185554887,
+  "cells_m3": 4531444.960186637,
+  "run_over_domain": -0.006166448242950429,
+  "run_over_cells": -0.006269259589295584
+ },
+ "gross dss": {
+  "run_m3": 4514955.862389263,
+  "domain_m3": 4542978.8341803895,
+  "cells_m3": 4543412.9785091,
+  "run_over_domain": -0.006168413460412414,
+  "run_over_cells": -0.006263378709891243
+ },
+ "hybrid nc subbasins": {
+  "S1": {
+   "polygon_mean_mm": 158.4785853261093,
+   "cn": 86.97,
+   "area_km2": 3.047,
+   "want_m3": 367097.355419684,
+   "run_m3": 367097.38080651,
+   "error": 6.915556749476082e-08,
+   "end_m3s": 0.0
+  },
+  "S2": {
+   "polygon_mean_mm": 158.46404999535787,
+   "cn": 86.12,
+   "area_km2": 1.5556,
+   "want_m3": 183722.0026074116,
+   "run_m3": 183721.98151049996,
+   "error": -1.1483062090089646e-07,
+   "end_m3s": 0.0
+  },
+  "S3": {
+   "polygon_mean_mm": 157.03867469066117,
+   "cn": 86.78,
+   "area_km2": 1.866,
+   "want_m3": 221251.54766025057,
+   "run_m3": 221251.52777412004,
+   "error": -8.988018718181223e-08,
+   "end_m3s": 0.0
+  },
+  "S4": {
+   "polygon_mean_mm": 156.01241794886948,
+   "cn": 88.34,
+   "area_km2": 7.9824,
+   "want_m3": 973288.5507092539,
+   "run_m3": 973288.99218126,
+   "error": 4.5358799893868706e-07,
+   "end_m3s": 0.0
+  },
+  "S5": {
+   "polygon_mean_mm": 158.15525135926856,
+   "cn": 87.45,
+   "area_km2": 0.2486,
+   "want_m3": 30206.565987459337,
+   "run_m3": 30206.56466223,
+   "error": -4.38722275175607e-08,
+   "end_m3s": 0.0
+  },
+  "S6": {
+   "polygon_mean_mm": 156.1213090220147,
+   "cn": 87.73,
+   "area_km2": 2.5355,
+   "want_m3": 305097.4683624779,
+   "run_m3": 305097.49287609,
+   "error": 8.034682230650958e-08,
+   "end_m3s": 0.0
+  },
+  "S7": {
+   "polygon_mean_mm": 159.27848594850127,
+   "cn": 87.55,
+   "area_km2": 2.8139,
+   "want_m3": 345737.59022288426,
+   "run_m3": 345737.5657251249,
+   "error": -7.085651099192347e-08,
+   "end_m3s": 0.0
+  },
+  "S8": {
+   "polygon_mean_mm": 157.7204044441751,
+   "cn": 87.35,
+   "area_km2": 2.3051,
+   "want_m3": 278477.65119196795,
+   "run_m3": 278477.66451333,
+   "error": 4.783637752581171e-08,
+   "end_m3s": 0.0
+  }
+ },
+ "hybrid dss subbasins": {
+  "S1": {
+   "polygon_mean_mm": 158.62819498125018,
+   "cn": 86.97,
+   "area_km2": 3.047,
+   "want_m3": 367534.734469748,
+   "run_m3": 367534.70226780005,
+   "error": -8.761606706819691e-08,
+   "end_m3s": 0.0
+  },
+  "S2": {
+   "polygon_mean_mm": 158.73617565191032,
+   "cn": 86.12,
+   "area_km2": 1.5556,
+   "want_m3": 184125.9459419797,
+   "run_m3": 184125.87538148998,
+   "error": -3.832186135088733e-07,
+   "end_m3s": 0.0
+  },
+  "S3": {
+   "polygon_mean_mm": 157.6406470022069,
+   "cn": 86.78,
+   "area_km2": 1.866,
+   "want_m3": 222327.39257266707,
+   "run_m3": 222327.45076520625,
+   "error": 2.6174255229882704e-07,
+   "end_m3s": 0.0
+  },
+  "S4": {
+   "polygon_mean_mm": 156.2167718020183,
+   "cn": 88.34,
+   "area_km2": 7.9824,
+   "want_m3": 974864.9985113115,
+   "run_m3": 974865.0116021701,
+   "error": 1.3428380851721045e-08,
+   "end_m3s": 0.0
+  },
+  "S5": {
+   "polygon_mean_mm": 158.41821009955717,
+   "cn": 87.45,
+   "area_km2": 0.2486,
+   "want_m3": 30269.46545205004,
+   "run_m3": 30269.45810349,
+   "error": -2.4277138466199943e-07,
+   "end_m3s": 0.0
+  },
+  "S6": {
+   "polygon_mean_mm": 157.31372766518825,
+   "cn": 87.73,
+   "area_km2": 2.5355,
+   "want_m3": 308009.526777737,
+   "run_m3": 308009.46322725,
+   "error": -2.0632636821282802e-07,
+   "end_m3s": 0.0
+  },
+  "S7": {
+   "polygon_mean_mm": 159.67976697878174,
+   "cn": 87.55,
+   "area_km2": 2.8139,
+   "want_m3": 346825.23994132364,
+   "run_m3": 346825.31574210897,
+   "error": 2.1855613896448745e-07,
+   "end_m3s": 0.0
+  },
+  "S8": {
+   "polygon_mean_mm": 158.6912762849107,
+   "cn": 87.35,
+   "area_km2": 2.3051,
+   "want_m3": 280629.5961049341,
+   "run_m3": 280629.62660061003,
+   "error": 1.0866878019655246e-07,
+   "end_m3s": 0.0
+  }
+ },
+ "gross pmp": {
+  "run_m3": 33681351.65159635,
+  "domain_x_arf_m3": 33892082.2131029,
+  "domain_no_arf_m3": 40605529.80803063,
+  "cells_x_arf_m3": 33896707.2000375,
+  "run_over_domain_x_arf": -0.006217692975649558,
+  "run_over_domain_no_arf": -0.17052303440367544
+ },
+ "pmp S13": {
+  "S13_centres": {
+   "depth_mm": 1173.2508459546639,
+   "want_m3": 23721807.44534676,
+   "run_m3": 23721804.2089347,
+   "error": -1.3643193386148056e-07
+  },
+  "S13": {
+   "depth_mm": 1171.5769951435852,
+   "want_m3": 23686736.570736807,
+   "run_m3": 23721804.2089347,
+   "error": 0.0014804757123534351
+  }
+ }
+}
+  175.6 SUMMARY 41 passed, 3 failed 
+  175.6   FAILED full 2D: DSS and NetCDF water within 0.1%: +0.3318%; the files alone +0.2649%
+  175.6   FAILED full 2D without losses: DSS and NetCDF water within 0.1%: +0.2647%; the files alone +0.2649%
+  175.6   FAILED hybrid: DSS and NetCDF water within 0.1%: +0.3333%; the files alone +0.2649%
+  175.6 DONE

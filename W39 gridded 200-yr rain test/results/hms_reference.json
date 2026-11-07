@@ -1,0 +1,60 @@
+{
+  "met_FM_200yr": {
+    "depth_mm": 251.0,
+    "duration_h": 24.0,
+    "storm_area_km2": 300.0,
+    "arf_at_storm_area": 0.8346666666666667
+  },
+  "hms_own_DA_200yr": {
+    "peak_m3s": 454.63478080435533,
+    "peak_h": 12.75,
+    "volume_m3": 4325914.289697277,
+    "file": "DA_200yr_B1.dss",
+    "record": "//Bidah 03/FLOW/31Dec1999-02Jan2000/5Minute/DAA:DA 200yr B1>Bidah 03/",
+    "units": "M3/S",
+    "s13_excess_mm": 206.28078249474407,
+    "s13_precip_mm": 244.70790689999998,
+    "met_record": "//S13/PRECIP-CUM/31Dec1999-02Jan2000/5Minute/MET:FM 200yr>Bidah 03/",
+    "met_s13_precip_mm": 244.70790689999998
+  },
+  "hms_own_DA_PMP": {
+    "peak_m3s": 1688.3726365802577,
+    "peak_h": 12.833333333333334,
+    "volume_m3": 27853357.685343426,
+    "file": "DA_PMP_B1.dss",
+    "record": "//Bidah 03/FLOW/31Dec1999-02Jan2000/5Minute/DAA:DA PMP B1>Bidah 03/",
+    "units": "M3/S",
+    "s13_excess_mm": 1328.1845255516396,
+    "s13_precip_mm": 1370.414947791359,
+    "met_record": "//S13/PRECIP-CUM/31Dec1999-02Jan2000/5Minute/MET:FM PMP>Bidah 03/",
+    "met_s13_precip_mm": 1370.414947791359
+  },
+  "replica_251mm_no_arf": {
+    "peak_m3s": 467.64697997127774,
+    "peak_h": 12.75,
+    "volume_m3": 4455636.093434227,
+    "s13_precip_mm": 251.0,
+    "s13_excess_mm": 212.4665534993194
+  },
+  "replica_251mm_arf_at_20.971": {
+    "peak_m3s": 454.63478080435556,
+    "peak_h": 12.75,
+    "volume_m3": 4325914.289697278,
+    "s13_precip_mm": 244.70790689999998,
+    "s13_excess_mm": 206.28078249474407
+  },
+  "replica_grid_nc_no_arf": {
+    "peak_m3s": 368.22625175858,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 2536297.120030372,
+    "s13_precip_mm": 157.1435112960168,
+    "s13_excess_mm": 120.94306995519392
+  },
+  "replica_grid_dss_no_arf": {
+    "peak_m3s": 369.2374870353922,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 2545815.9662684784,
+    "s13_precip_mm": 157.61500925274618,
+    "s13_excess_mm": 121.39697516897037
+  }
+}
