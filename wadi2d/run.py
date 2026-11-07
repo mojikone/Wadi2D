@@ -116,6 +116,9 @@ NOT_WATER = (
     ("outputs", "frame_bytes_per_cell"),
     ("outputs", "face_discharge"),
     ("hydrology", "overlap_share"),
+    ("arf", "bracket"),
+    ("arf", "bracket_ratio"),
+    ("arf", "bracket_max"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""
 
@@ -631,6 +634,40 @@ def _resolved(cfg: RunConfig, crs: str):
 def preflight(cfg: RunConfig, crs: str):
     """Everything that can refuse a job without a grid; it comes before the tables, which can take minutes."""
     return _preflight(_resolved(cfg, crs)[0], crs)[:3]
+
+
+@dataclass(frozen=True)
+class LumpedView:
+    """A job's lumped network as its runs see it, for the depth-area study (:mod:`wadi2d.arf_network`)."""
+
+    cfg: RunConfig
+    """The job resolved: on a generated basin every subbasin with its mode."""
+    basin: object
+    """The lumped engine's basin; on a generated basin its 2D subbasins are left out."""
+    hms_basin: object | None
+    live: frozenset[str]
+    """Elements a hand-back carries 2D water into, and everything below them on its route."""
+    cut: frozenset[tuple[str, str]]
+    """Links that carry no water, because the grid carries it instead."""
+    generated: object | None
+
+
+def lumped_view(cfg: RunConfig, crs: str) -> LumpedView | None:
+    """The network the runs of ``cfg`` route, or None when it has none; it refuses what a run would refuse."""
+    resolved, generated = _resolved(cfg, crs)
+    _storm, _polygons, _table, network, series = _preflight(resolved, crs)
+    if series is None:
+        return None
+    basin, hms_basin, decided = _lumped_basin(resolved, crs)
+    cut = network.routes.cut if network is not None else frozenset(decided)
+    return LumpedView(resolved, basin, hms_basin, frozenset(series.live), frozenset(cut), generated)
+
+
+def lumped_rain_at(view: LumpedView, area_km2: float, crs: str):
+    """The rain of the lumped network with the storm read at ``area_km2``, as a run at that storm area takes it."""
+    storm = view.cfg.storm.model_copy(update={"storm_area_km2": area_km2})
+    cfg = view.cfg.model_copy(update={"storm": storm})
+    return _lumped_rain(cfg, build_storm(cfg), view.basin, view.hms_basin, crs)
 
 
 def spillway_notes(cfg: RunConfig) -> list[str]:

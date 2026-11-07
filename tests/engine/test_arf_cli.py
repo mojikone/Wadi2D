@@ -99,6 +99,32 @@ def test_arf_study_end_to_end(arf_job, tmp_path):
     assert depth.max() > 0.0
 
 
+def test_a_study_names_each_run_and_its_folder_before_it_starts(arf_job, tmp_path):
+    """The dock follows the run in progress through its own progress file, so the study says where it is."""
+    out = tmp_path / "study"
+    arf_study(arf_job, out)
+    events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+    kinds = [(e["ev"], e.get("kind")) for e in events]
+    runs = [e for e in events if e["ev"] == "run"]
+    assert [(e["index"], e["of"], e["area_km2"]) for e in runs] == [(1, 2, 10.0), (2, 2, 900.0)]
+    for event in runs:
+        assert (out / event["folder"] / "progress.jsonl").is_file()
+    first = kinds.index(("run", None))
+    assert kinds.index(("start", None)) < first < kinds.index(("output", "run"))
+
+
+def test_a_study_stopped_before_its_first_run_writes_no_table(arf_job, tmp_path):
+    out = tmp_path / "study"
+    out.mkdir()
+    (out / "stop").touch()
+    study = arf_study(arf_job, out)
+    assert study.exit_code == 6
+    assert not (out / "design_points.csv").exists()
+    assert not (out / "stop").exists()
+    done = json.loads((out / "progress.jsonl").read_text(encoding="utf-8").splitlines()[-1])
+    assert done["ev"] == "done" and done["status"] == "stopped" and done["runs"] == 0
+
+
 def test_schema_prints_json(capsys):
     assert main(["schema"]) == 0
     schema = json.loads(capsys.readouterr().out)

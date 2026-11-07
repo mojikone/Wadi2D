@@ -41,6 +41,28 @@
           "title": "Exact Points",
           "type": "boolean"
         },
+        "bracket": {
+          "default": false,
+          "description": "Storm areas from the smallest to the largest drainage area of the design lines and of the lumped elements that take 2D water, log-spaced; areas_km2 and the log-spaced settings are then not used",
+          "title": "Bracket",
+          "type": "boolean"
+        },
+        "bracket_ratio": {
+          "default": 2.0,
+          "description": "Widest ratio of neighbouring bracketing storm areas, unless bracket_max caps them",
+          "exclusiveMinimum": 1.0,
+          "maximum": 100.0,
+          "title": "Bracket Ratio",
+          "type": "number"
+        },
+        "bracket_max": {
+          "default": 6,
+          "description": "Most bracketing storm areas",
+          "maximum": 32,
+          "minimum": 2,
+          "title": "Bracket Max",
+          "type": "integer"
+        },
         "accumulation": {
           "anyOf": [
             {
@@ -3246,6 +3268,9 @@
         "area_min_km2": 10.0,
         "area_max_km2": 600.0,
         "exact_points": false,
+        "bracket": false,
+        "bracket_ratio": 2.0,
+        "bracket_max": 6,
         "accumulation": null,
         "accumulation_units": "cells"
       }

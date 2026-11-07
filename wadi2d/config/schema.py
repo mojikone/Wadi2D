@@ -831,6 +831,15 @@ class ArfStudy(_Part):
     area_min_km2: float = Field(10.0, gt=0.0, description="Smallest log-spaced storm area, km2")
     area_max_km2: float = Field(600.0, gt=0.0, description="Largest log-spaced storm area, km2")
     exact_points: bool = Field(False, description="Add each design point's drainage area as a storm area")
+    bracket: bool = Field(
+        False,
+        description="Storm areas from the smallest to the largest drainage area of the design lines and of the lumped "
+        "elements that take 2D water, log-spaced; areas_km2 and the log-spaced settings are then not used",
+    )
+    bracket_ratio: float = Field(
+        2.0, gt=1.0, le=100.0, description="Widest ratio of neighbouring bracketing storm areas, unless bracket_max caps them"
+    )
+    bracket_max: int = Field(6, ge=2, le=32, description="Most bracketing storm areas")
     accumulation: str | None = Field(None, description="Flow accumulation raster for the composite map")
     accumulation_units: Literal["cells", "km2"] = "cells"
 
