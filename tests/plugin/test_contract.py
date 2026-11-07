@@ -79,6 +79,47 @@ def test_a_cpu_choice_from_the_dock_is_a_valid_job_and_the_default_is_left_out(t
     assert config.RunConfig.model_validate(left).run.backend == "auto"
 
 
+def test_every_study_path_the_dock_binds_exists_and_every_unit_has_words(real: SchemaView) -> None:
+    from wadi2d_qgis import study_rows as s
+
+    for path in (s.AREA_COUNT, s.AREA_MIN, s.AREA_MAX, s.BRACKET_RATIO, s.BRACKET_MAX, s.UNITS, "arf.bracket"):
+        assert real.has(path), path
+    assert set(real.enum(s.UNITS)) == set(s.UNIT_WORDS)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"spacing": "listed", "listed": "90, 10, 30, 30, 20.971"},
+        {"spacing": "spaced", "count": 6, "smallest": 10.0, "largest": 600.0},
+        {"spacing": "spaced", "count": 7, "smallest": 3.3, "largest": 777.0},
+        {"spacing": "spaced", "count": 2, "smallest": 20.971, "largest": 211.085},
+    ],
+)
+def test_the_storm_areas_the_dock_shows_are_the_engines(tmp_path: Path, changes: dict) -> None:
+    """The label answers at every key press, so it does the sum itself; this keeps it the engine's sum."""
+    from wadi2d_qgis import study_rows as s
+
+    from wadi2d.arf import storm_areas
+
+    form = {"spacing": "bracket", "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "composite": False,
+            "accumulation": None, "units": "cells", **changes}  # fmt: skip
+    job = build_job({**full_values(tmp_path), "study": s.study_job(form)}, tmp_path / "out")
+    assert s.study_areas(form) == storm_areas(config.RunConfig.model_validate(job))
+
+
+def test_a_bracketing_study_with_a_composite_from_the_dock_is_a_valid_job(tmp_path: Path) -> None:
+    from wadi2d_qgis import study_rows as s
+
+    form = {"spacing": "bracket", "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "composite": True,
+            "accumulation": str(tmp_path / "acc.tif"), "units": "km2"}  # fmt: skip
+    line = Feature("LineString", [[400000.0, 2700000.0], [400100.0, 2700050.0]], {"drainage_area_km2": 20.971})
+    job = build_job({**full_values(tmp_path, design=[line]), "study": s.study_job(form)}, tmp_path / "out")
+    cfg = config.RunConfig.model_validate(job)
+    assert cfg.arf.bracket and cfg.arf.accumulation_units == "km2"
+    assert cfg.outputs.lines[0].drainage_area_km2 == 20.971
+
+
 def test_the_frozen_sample_still_matches_the_engine() -> None:
     assert json.loads(SAMPLE.read_text("utf-8")) == config.json_schema()
 

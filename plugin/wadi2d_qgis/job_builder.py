@@ -21,6 +21,7 @@ from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .storm_rows import storm_job, storm_notes, storm_problems
+from .study_rows import AREA_KEY, line_area
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -376,7 +377,11 @@ def _design_outputs(features: list[Feature]) -> dict:
             x, y = feature.coordinates[:2]
             points.append({"name": feature.name(index), "x": x, "y": y})
         else:
-            lines.append({"name": feature.name(index), "coordinates": feature.xy()})
+            entry = {"name": feature.name(index), "coordinates": feature.xy()}
+            area = line_area(feature)
+            if area is not None:  # only when a field gives one: an old job stays the job it was
+                entry[AREA_KEY] = area
+            lines.append(entry)
     return {"points": points, "lines": lines}
 
 
@@ -462,6 +467,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["terrain_map"] = True
     if values.get("local_steps"):
         job["numerics"] = {"local_time_stepping": True}
+    if values.get("study"):  # the depth-area study's job only: a run never carries one
+        job["arf"] = values["study"]
     if values.get("mesh"):
         job["mesh"] = _mesh(values["mesh"])
         if values["mesh"].get("lines"):

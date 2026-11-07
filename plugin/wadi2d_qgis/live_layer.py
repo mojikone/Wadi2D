@@ -95,8 +95,8 @@ class LiveLayer:
         self._layer_id, self._path, self._stamp = None, None, None
 
 
-def load_maps(out_dir: Path | str, name: str, tucked: bool = False) -> list:
-    """``maps/*.tif`` into a group named after the run; loading a run again replaces its group.
+def load_maps(out_dir: Path | str, name: str, tucked: bool = False, folder: str = MAPS_DIR) -> list:
+    """``maps/*.tif``, or the ``folder`` given, into a group named after the run; loading a run again replaces its group.
 
     ``tucked`` puts them in a closed subgroup, switched off, under what the run made after them.
     """
@@ -106,7 +106,7 @@ def load_maps(out_dir: Path | str, name: str, tucked: bool = False) -> list:
     if old is not None:
         project.removeMapLayers(old.findLayerIds())
         root.removeChildNode(old)
-    paths = sorted((Path(out_dir) / MAPS_DIR).glob("*.tif"), key=_map_rank)
+    paths = sorted((Path(out_dir) / folder).glob("*.tif"), key=_map_rank)
     layers = [layer for layer in (QgsRasterLayer(str(path), path.stem) for path in paths) if layer.isValid()]
     if not layers:
         return []

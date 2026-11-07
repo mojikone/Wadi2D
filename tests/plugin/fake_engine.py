@@ -5,7 +5,8 @@
 It emits the fields ``wadi2d/run.py`` and ``wadi2d/engine/monitor.py`` emit, and answers ``schema`` from a frozen
 dump of the real schema, so a change of contract shows up in ``test_contract.py``. ``WADI2D_FAKE_MODE`` picks the
 behaviour: ok, error (numerical failure at a cell), refuse (exit 2), crash (exit 1 with no events), slow (obeys
-stop), deaf (ignores stop). ``WADI2D_FAKE_STEPS`` and ``WADI2D_FAKE_STEP_S`` set the pace.
+stop), deaf (ignores stop). ``WADI2D_FAKE_STEPS`` and ``WADI2D_FAKE_STEP_S`` set the pace. ``arf`` runs one such run
+per storm area inside the study's events.
 """
 
 from __future__ import annotations
@@ -60,8 +61,48 @@ class Events:
         self.stream.flush()
 
 
-def run(job_path: Path, out: Path, dry_run: bool) -> int:
+def study(job_path: Path, out: Path) -> int:
+    """``arf``: the study's events around one fake run per storm area, then its table; the study's stop file stops it."""
     job = json.loads(job_path.read_text(encoding="utf-8"))
+    out.mkdir(parents=True, exist_ok=True)
+    events = Events(out / "progress.jsonl")
+    arf = job.get("arf", {})
+    lines = [line for line in job.get("outputs", {}).get("lines", []) if line.get("drainage_area_km2")]
+    wanted = [line["drainage_area_km2"] for line in lines]
+    areas = sorted(arf.get("areas_km2") or ([min(wanted), max(wanted) * 2.0] if arf.get("bracket") else [10.0, 100.0]))
+    events.emit("start", areas_km2=areas, arf_table_type="fake table", elements={"exact": 1, "runs": 0, "grid": 0})
+    peaks = []
+    for number, area in enumerate(areas, 1):
+        if (out / "stop").exists():
+            (out / "stop").unlink()
+            events.emit("done", status="stopped", code=6, partial=True, runs=number - 1)
+            return 6
+        folder = f"runs/A{number}"
+        events.emit("run", index=number, of=len(areas), area_km2=area, folder=folder)
+        code = run(job_path, out / folder, False, stop=out / "stop")
+        peaks.append(100.0 / area)
+        events.emit("output", kind="run", area_km2=area, code=code, peaks={})
+        if code == 6:
+            events.emit("done", status="stopped", code=6, partial=True, runs=number)
+            return 6
+    row = {"storm_area_low_km2": areas[0], "storm_area_high_km2": areas[-1], "peak_low_m3s": peaks[0],
+           "peak_high_m3s": peaks[-1], "time_of_peak_s": 1800.0, "arf_table_type": "fake table"}  # fmt: skip
+    table = [
+        {"design_point": line["name"], "drainage_area_km2": line["drainage_area_km2"], **row,
+         "design_peak_m3s": 100.0 / line["drainage_area_km2"], "read_as": "design line, 2D runs either side"}
+        for line in lines
+    ]  # fmt: skip
+    table.append({**table[0], "design_point": "S1", "read_as": "lumped element, rerun lumped at its own area"})
+    data = {"areas_km2": areas, "arf_table_type": "fake table", "table": table, "on_grid": ["J1"]}
+    (out / "study.json").write_text(json.dumps(data), encoding="utf-8")
+    (out / "design_points.csv").write_text("design_point\n", encoding="utf-8")
+    events.emit("done", status="finished", code=0, rows=len(table))
+    return 0
+
+
+def run(job_path: Path, out: Path, dry_run: bool, stop: Path | None = None) -> int:
+    job = json.loads(job_path.read_text(encoding="utf-8"))
+    stop = stop or out / "stop"
     mode = os.environ.get("WADI2D_FAKE_MODE", "ok")
     if mode == "crash":
         print("something broke before the first event", file=sys.stderr)
@@ -91,8 +132,8 @@ def run(job_path: Path, out: Path, dry_run: bool) -> int:
             events.emit("error", code=5, message="time step below the floor", cell=FAILED_CELL)
             events.emit("done", status="numerical failure", code=5, t=t, steps=step)
             return 5
-        if mode != "deaf" and (out / "stop").exists():
-            (out / "stop").unlink()
+        if mode != "deaf" and stop.exists():
+            stop.unlink()
             write_tiff(out / "maps" / "max_depth.tif", float(step))
             events.emit("done", status="stopped", code=6, t=t, steps=step)
             return 6
@@ -127,6 +168,8 @@ def main(argv: list[str]) -> int:
     if command == "run":
         out = Path(argv[argv.index("--out") + 1])
         return run(Path(argv[1]), out, "--dry-run" in argv)
+    if command == "arf":
+        return study(Path(argv[1]), Path(argv[argv.index("--out") + 1]))
     print(f"unknown command {command}", file=sys.stderr)
     return 2
 

@@ -36,8 +36,10 @@ from .protocol import (
     pid_alive,
     read_run_info,
     run_args,
+    study_args,
     write_run_info,
 )
+from .study_state import StudyState
 
 MILLISECONDS = 1000
 
@@ -143,7 +145,7 @@ class EngineRun(QObject):
         out.mkdir(parents=True, exist_ok=True)
         (out / STOP_FILE).unlink(missing_ok=True)
         self.crs = crs
-        self.state = RunState(t_end=t_end)
+        self.state = self._fresh_state(out, t_end)
         process = _ReleasableProcess(self)
         process.setProcessEnvironment(engine_environment())
         process.setStandardOutputFile(str(out / STDOUT_FILE))
@@ -153,7 +155,13 @@ class EngineRun(QObject):
         process.errorOccurred.connect(self._failed)
         self._process = process
         self._watch(out)
-        process.start(program, [*base, *run_args(job, out, resume=resume)])
+        process.start(program, [*base, *self._arguments(job, out, resume)])
+
+    def _fresh_state(self, _out: Path, t_end: float | None):
+        return RunState(t_end=t_end)
+
+    def _arguments(self, job: Path | str, out: Path, resume: bool) -> list[str]:
+        return run_args(job, out, resume=resume)
 
     def attach(self, out_dir: Path | str) -> None:
         """Follow a run this object did not start; the events replay from the top of the file."""
@@ -243,3 +251,21 @@ class EngineRun(QObject):
             self._process.errorOccurred.disconnect(self._failed)
             self._process.forget()
             self._process = None
+
+
+class StudyRun(EngineRun):
+    """A depth-area study: one engine process that makes one run after another, each in its own folder.
+
+    The study's progress file says which run it is on; the state reads that run's own file too. Stop works as for a
+    run: the run in progress finishes its step and writes its maps, and the study ends with no table.
+    """
+
+    def _fresh_state(self, out: Path, t_end: float | None):
+        return StudyState(base=out, t_end=t_end)
+
+    def _arguments(self, job: Path | str, out: Path, resume: bool) -> list[str]:
+        return study_args(job, out)
+
+    def _drain(self) -> None:
+        self.state.poll_run()
+        super()._drain()

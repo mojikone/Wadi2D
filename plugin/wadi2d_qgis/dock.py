@@ -25,7 +25,7 @@ from qgis.PyQt.QtWidgets import (
 
 from . import settings
 from .basin_layers import load_basin_layers
-from .engine_process import EngineQuery, EngineRun
+from .engine_process import EngineQuery, EngineRun, StudyRun
 from .job_builder import (
     LayerError,
     SchemaView,
@@ -48,9 +48,11 @@ from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
     BASIN_DIR,
+    COMPOSITE_DIR,
     EXIT_STOPPED,
     FRAMES_TIMEOUT_S,
     POUR_POINTS_FILE,
+    STUDY_TABLE,
     basin_args,
     engine_error_text,
     estimate_text,
@@ -58,6 +60,7 @@ from .protocol import (
     mesh_args,
     mesh_text,
     next_run_dir,
+    next_study_dir,
     parse_basin,
     parse_estimate,
     parse_mesh,
@@ -73,8 +76,17 @@ from .sections.points import PointsSection
 from .sections.run import RunSection
 from .sections.storm import StormSection
 from .sections.structures import StructuresSection
+from .sections.study import StudySection
 from .sections.terrain import TerrainSection
 from .storm_rows import rain_args, rain_reply
+from .study_rows import (
+    form_problems,
+    read_study,
+    study_areas,
+    study_job,
+    study_notes,
+    study_problems,
+)
 from .time_layer import has_results, load_frames
 
 LOG_TAG = "Wadi2D"
@@ -117,9 +129,12 @@ class Wadi2DDock(QgsDockWidget):
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
         self.panel = RunSection()
+        self.study = StudySection()
+        self.study_run: StudyRun | None = None
+        self._study_dir: Path | None = None
         self.sections = (
             self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.panel,
+            self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -154,6 +169,9 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.map_button.clicked.connect(self.make_map)
         self.panel.frames_button.clicked.connect(self.time_slider)
         self.panel.lines_button.clicked.connect(self.result_lines)
+        self.study.start_button.clicked.connect(self.start_study)
+        self.study.stop_button.clicked.connect(self.stop_study)
+        self.study.open_button.clicked.connect(self.open_study)
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
         self.preview = TerrainPreview(iface.mapCanvas(), self)
@@ -198,10 +216,11 @@ class Wadi2DDock(QgsDockWidget):
         self.mesh.set_finest(snap_dx(self.terrain.dx.value(), pixel))
 
     def _set_ready(self, ready: bool) -> None:
-        idle = self.run is None
+        idle = self.run is None and self.study_run is None
         self.panel.run_button.setEnabled(ready and idle)
         self.panel.estimate_button.setEnabled(ready and idle)
         self.mesh.preview_button.setEnabled(ready and idle and self.mesh.enabled.isChecked())
+        self.study.start_button.setEnabled(ready and idle)
 
     def open_settings(self) -> None:
         dialog = settings.EngineDialog(self)
@@ -237,20 +256,24 @@ class Wadi2DDock(QgsDockWidget):
             values.update(section.values(crs))
         return values
 
-    def _checked_values(self) -> dict | None:
+    def _checked_values(self, say=None) -> dict | None:
+        say = say or self.panel.say
         try:
             values = self._collect()
         except LayerError as error:
-            self.panel.say(str(error), "bad")
+            say(str(error), "bad")
             return None
         found = problems(values)
         if found:
-            self.panel.say(" ".join(found), "bad")
+            say(" ".join(found), "bad")
             return None
         return values
 
-    def _prepare(self, values: dict, out: Path, then) -> None:
-        """Write the job in ``out``, through ``hms-import`` for an HMS project, then call ``then(job_path)``."""
+    def _prepare(self, values: dict, out: Path, then, failed=None, say=None) -> None:
+        """Write the job in ``out``, through ``hms-import`` for an HMS project, then call ``then(job_path)``.
+
+        ``failed`` and ``say`` speak for the section that asked: Run's by default."""
+        failed, say = failed or self._job_failed, say or self.panel.say
         job = build_job(values, out)
         hms = values.get("hms")
         if not hms:
@@ -261,23 +284,23 @@ class Wadi2DDock(QgsDockWidget):
 
         def merged(code: int, _out: str, err: str) -> None:
             if code != 0:
-                self._job_failed(f"The HMS project could not be read. {engine_error_text(err)}")
+                failed(f"The HMS project could not be read. {engine_error_text(err)}")
                 return
             data = json.loads(imported.read_text(encoding="utf-8"))
             complete = merge_hms(job, data, hms)
             for note in merge_notes(job, complete):
-                self.panel.say(note, "note")
+                say(note, "note")
             then(write_job(complete, out))
 
         self._query = EngineQuery(settings.engine_text(), self)
         self._query.done.connect(merged)
         self._query.start(hms_import_args(hms, imported))
 
-    def _safely(self, values: dict, out: Path, then) -> None:
+    def _safely(self, values: dict, out: Path, then, failed=None, say=None) -> None:
         try:
-            self._prepare(values, out, then)
+            self._prepare(values, out, then, failed, say)
         except OSError as problem:
-            self._job_failed(f"The job could not be written: {problem}")
+            (failed or self._job_failed)(f"The job could not be written: {problem}")
 
     def _job_failed(self, text: str) -> None:
         self.panel.set_running(False)
@@ -370,6 +393,7 @@ class Wadi2DDock(QgsDockWidget):
         values["name"] = out.name
         settings.set_last_folder(str(chosen))
         self.panel.set_running(True)
+        self.study.start_button.setEnabled(False)
         messages = list(notes(values))
         if out != chosen:
             messages.insert(0, f"That folder already holds a run; this one goes to {out.name}.")
@@ -391,6 +415,7 @@ class Wadi2DDock(QgsDockWidget):
         self.run = EngineRun("", self)
         self._follow(self.run)
         self.panel.set_running(True)
+        self.study.start_button.setEnabled(False)
         self.panel.say(f"Following the run in {Path(folder).name}.", "note")
         settings.set_last_run(folder)
         self.run.attach(folder)
@@ -476,6 +501,76 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.stop_button.setEnabled(False)
             self.panel.say("Stopping: the engine finishes the step and writes its maps.")
             self.run.stop()
+
+    # The depth-area study: the job of a run plus its storm areas, one engine process for all its runs.
+
+    def start_study(self) -> None:
+        box = self.study
+        values = self._checked_values(box.say)
+        if values is None:
+            return
+        form = box.form_values()
+        found = study_problems(values) + form_problems(form)
+        if found:
+            box.say(" ".join(found), "bad")
+            return
+        areas = study_areas(form)
+        chosen = Path(values["output"])
+        out = next_study_dir(chosen)
+        values["name"] = out.name
+        values["study"] = study_job(form)
+        settings.set_last_folder(str(chosen))
+        box.set_running(True)
+        self.panel.run_button.setEnabled(False)
+        self.panel.estimate_button.setEnabled(False)
+        count = f"{len(areas)} runs" if areas else "Storm areas picked when it starts"
+        messages = [f"{count}, into {out.name}.", *notes(values), *study_notes(values, areas)]
+        box.say(" ".join(messages), "note" if len(messages) > 1 else "info")
+        self._crs = values["crs"]
+        self._study_dir = out
+        self._safely(values, out, lambda job: self._launch_study(job, out), self._study_failed, box.say)
+
+    def _launch_study(self, job: Path, out: Path) -> None:
+        self.study_run = StudyRun(settings.engine_text(), self)
+        self.study_run.updated.connect(self.study.show_state)
+        self.study_run.ended.connect(self._study_ended)
+        self.study_run.start(job, out, self._crs, None)
+
+    def _study_failed(self, text: str) -> None:
+        self.study.set_running(False)
+        self._set_ready(self.schema is not None)
+        self.study.say(text, "bad")
+
+    def stop_study(self) -> None:
+        if self.study_run is not None:
+            self.study.stop_button.setEnabled(False)
+            self.study.say("Stopping: the run in progress finishes its step and writes its maps, then the study ends.")
+            self.study_run.stop()
+
+    def _study_ended(self, state) -> None:
+        study, self.study_run = self.study_run, None
+        box = self.study
+        box.set_running(False)
+        self._set_ready(self.schema is not None)
+        box.show_state(state)
+        if state.succeeded:
+            try:
+                rows, kind, on_grid = read_study(study.out_dir)
+            except (OSError, ValueError, KeyError) as problem:
+                box.say(f"The study finished, but its table could not be read: {problem}", "bad")
+                return
+            box.show_table(rows, kind or state.table_type, on_grid, study.out_dir / STUDY_TABLE)
+            box.bar.setValue(100)
+            load_maps(study.out_dir, f"{study.out_dir.name} composite", folder=COMPOSITE_DIR)  # only if one was made
+        else:
+            box.open_button.setVisible(study.out_dir.is_dir())
+        tone = "good" if state.succeeded and not state.warnings else ("bad" if state.error else "note")
+        box.say(state.outcome(), tone)
+        QgsMessageLog.logMessage(f"{study.out_dir}: {state.outcome()}", LOG_TAG, Qgis.Info)
+
+    def open_study(self) -> None:
+        if self._study_dir is not None:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(self._study_dir)))
 
     # Preview: the terrain as the objects leave it, with no run.
 
@@ -660,6 +755,9 @@ class Wadi2DDock(QgsDockWidget):
         if self.run is not None:
             self.run.release()
             self.run = None
+        if self.study_run is not None:
+            self.study_run.release()
+            self.study_run = None
         self.live.clear()
         self._clear_last_run()
         self._drop_book()
