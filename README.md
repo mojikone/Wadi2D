@@ -11,7 +11,7 @@ the HMS-file hydrology, rain-on-grid, the ARF multi-run, the dam objects and a Q
 UI, in-app delineation, most gridded-rainfall formats, local time stepping and multi-PC runs follow in version 2. The keep/defer list with
 its reasons is in `CLAUDE.md`.
 
-**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,787 tests pass. Fit to try
+**State (2026-11-01): version 1 built, not released. Engine and QGIS plugin work end to end on the RTX 5080 and on the CPU; 1,790 tests pass. Fit to try
 and to compare; not yet fit to sign a design with: rain-on-grid peaks disagree with HEC-HMS by 1.4 to 2.1 x on Block 2. HEC-RAS agrees with Wadi2D on one
 catchment, so the gap is method and not a solver defect, but no gauge says which method is right. Design flows stay on the lumped-hills mode.** The profile, the decisions with their reasons and
 the open questions are in `CLAUDE.md`.
@@ -76,6 +76,8 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
+| `W38 surge warning and lumped series` | 2026-11-07 | His choice (a) for the inflow surge: lines over an inflow's cells named; lumped elements' series in the Result lines panel | done, 10 of 10 through the dock; four dam lines sit on local inflow cells, his decision |
+| `W35 hand-back resume rerun` | 2026-11-07 | W32's hand-back resume case on the resume fix | done, 19 of 19 series to the last digit |
 | `W34 reservoir start level` | 2026-11-07 | Dams start empty; a start per dam (empty, spillway, level) for scenarios; one pool only; dock table and initial water | done, 23 of 23 through the dock; Bidah 3.833 Mm3 at 100 m, +2.5 % on W32's polygon |
 | `W33 backend parity` | 2026-11-06 | Why CPU and GPU part on the Block 2 hybrid; the resume re-phase fixed; a driver crash with two CUDA processes | done: sensitivity, not a backend fault, Faydh 01 −2.5 % reproduced and explained; resume byte for byte; the driver fault cleared by a reboot |
 | `W32 combinations test` | 2026-11-02 | The combinations nobody ran: CPU twin through the new sections, generated basin with gridded storm, mesh, resume, full extent, hand-back at a dam | done, 4 of 6; CPU and GPU diverge on the Block 2 hybrid, resume re-phases the series clock |
