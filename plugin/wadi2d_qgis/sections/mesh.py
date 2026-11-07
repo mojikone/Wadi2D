@@ -9,6 +9,12 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QCheckBox, QLabel, QPushButton, QSpinBox
 
 from ..job_builder import (
+    BREAK_CREST,
+    BREAK_DEPTH,
+    BREAK_DISC,
+    BREAK_REACH,
+    BREAK_RISE,
+    BREAK_SLOPE,
     CORRIDOR_NOTE,
     LOCAL_STEPS,
     MESH_COARSE,
@@ -21,6 +27,13 @@ from ..job_builder import (
     STRIPS_ROWS,
     ZONE_DX_FIELD,
     layer_features,
+    raster_path,
+)
+
+SUGGEST_NOTE = (
+    "Suggest breaklines reads the ground: a bank where it rises the given height over the bed of a defined wadi, or, "
+    "with a run's depth map, the edge of the flooded course; crests by the top-hat. On Bidah 2 m of rise is the lip of "
+    "the active channel, where the 0.5 m depth margin of the 100-yr flood lies; the 0.2 m margin is about 8 m further out."
 )
 from ..suggest_lines import suggest_breaklines
 from .common import Section, bind, field_combo, layer_combo, number_box
@@ -62,7 +75,24 @@ class MeshSection(Section):
         self.form.addRow(self.speed_note)
         self.form.addRow(self.preview_button)
         self.form.addRow(self.summary)
+        self.bank_rise = number_box(1)
+        self.bank_reach = number_box(0)
+        self.bank_depth_layer = layer_combo(QgsMapLayerProxyModel.RasterLayer, "The ground alone, no run's depth map")
+        self.bank_depth = number_box(2)
+        self.crest_height = number_box(2)
+        self.crest_disc = number_box(0)
+        self.crest_slope = number_box(2)
+        self.suggest_note = QLabel(SUGGEST_NOTE)
+        self.suggest_note.setWordWrap(True)
         self.form.addRow(self.suggest_button)
+        self.form.addRow("Bank where the ground rises, m", self.bank_rise)
+        self.form.addRow("Look for a bank within, m", self.bank_reach)
+        self.form.addRow("Banks from a run's depth map", self.bank_depth_layer)
+        self.form.addRow("Flooded course deeper than, m", self.bank_depth)
+        self.form.addRow("Crest higher than its ground, m", self.crest_height)
+        self.form.addRow("Crest narrower than twice, m", self.crest_disc)
+        self.form.addRow("Crests on ground flatter than, m/m", self.crest_slope)
+        self.form.addRow(self.suggest_note)
         self.corridors = QCheckBox("Corridors of cells aligned with the suggested banks")
         self.corridor_layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "Choose the Suggested breaklines layer")
         self.corridor_layer_m = number_box(1)
@@ -122,6 +152,29 @@ class MeshSection(Section):
         bind(self.corridor_layer_m, schema, STRIPS_LAYER_M)
         self.corridor_rows.setValue(int(schema.default(STRIPS_ROWS, 3)))
         self.corridor_rows.setToolTip(schema.tip(STRIPS_ROWS))
+        bind(self.bank_rise, schema, BREAK_RISE)
+        bind(self.bank_reach, schema, BREAK_REACH)
+        bind(self.bank_depth, schema, BREAK_DEPTH)
+        bind(self.crest_height, schema, BREAK_CREST)
+        bind(self.crest_disc, schema, BREAK_DISC)
+        bind(self.crest_slope, schema, BREAK_SLOPE)
+
+    def breakline_values(self) -> dict:
+        """The Suggest settings for the job's ``breaklines`` section; the depth map is the chosen raster's file."""
+        out = {
+            "bank_rise_m": self.bank_rise.value(),
+            "bank_reach_m": self.bank_reach.value(),
+            "bank_depth_m": self.bank_depth.value(),
+            "crest_height_m": self.crest_height.value(),
+            "disc_radius_m": self.crest_disc.value(),
+            "ground_slope_max": self.crest_slope.value(),
+        }
+        layer = self.bank_depth_layer.currentLayer()
+        if layer is not None:
+            path = raster_path(layer)
+            out["bank_depth_map"] = path
+            out["depth_map_unset"] = path is None
+        return out
 
     def corridor_values(self) -> dict | None:
         """What the corridors need, or None when they are off; the banks file is the chosen layer's."""
@@ -132,7 +185,7 @@ class MeshSection(Section):
         return {"banks": source, "layer_m": self.corridor_layer_m.value(), "rows_per_side": self.corridor_rows.value()}
 
     def values(self, crs) -> dict:
-        out: dict = {"local_steps": self.local_steps.isChecked()}
+        out: dict = {"local_steps": self.local_steps.isChecked(), "breaklines": self.breakline_values()}
         strips = self.corridor_values()
         if strips is not None:
             out["strips"] = strips

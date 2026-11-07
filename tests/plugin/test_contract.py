@@ -39,6 +39,12 @@ PATHS = (
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
     job_builder.BACKEND,
+    job_builder.BREAK_RISE,
+    job_builder.BREAK_REACH,
+    job_builder.BREAK_DEPTH,
+    job_builder.BREAK_CREST,
+    job_builder.BREAK_DISC,
+    job_builder.BREAK_SLOPE,
     basin_rows.STREAM_THRESHOLD,
     basin_rows.LAG_METHOD,
     basin_rows.REACH_ROUTING,
@@ -118,6 +124,28 @@ def test_a_bracketing_study_with_a_composite_from_the_dock_is_a_valid_job(tmp_pa
     cfg = config.RunConfig.model_validate(job)
     assert cfg.arf.bracket and cfg.arf.accumulation_units == "km2"
     assert cfg.outputs.lines[0].drainage_area_km2 == 20.971
+
+
+def test_the_suggest_settings_from_the_dock_pass_the_engine_validation(tmp_path: Path, real: SchemaView) -> None:
+    from wadi2d_qgis.suggest_lines import suggest_problems
+
+    lines = {
+        "bank_rise_m": 3.0, "bank_reach_m": 250.0, "bank_depth_m": 0.3, "crest_height_m": 0.7, "disc_radius_m": 30.0,
+        "ground_slope_max": 0.2, "bank_depth_map": str(tmp_path / "dem.tif"), "depth_map_unset": False,
+    }  # fmt: skip
+    job = build_job(full_values(tmp_path, breaklines=lines), tmp_path / "out")
+    parsed = config.RunConfig.model_validate(job)
+    assert parsed.breaklines.bank_rise_m == 3.0 and parsed.breaklines.bank_depth_map.endswith("dem.tif")
+    assert set(job_builder.BREAK_KEYS) <= set(config.Breaklines.model_fields) and "depth_map_unset" not in job["breaklines"]
+    without = build_job(full_values(tmp_path, breaklines={**lines, "bank_depth_map": None, "depth_map_unset": True}), tmp_path / "o2")
+    assert "bank_depth_map" not in without["breaklines"]
+    assert config.RunConfig.model_validate(without).breaklines.bank_depth_map is None
+    assert suggest_problems(full_values(tmp_path, breaklines={**lines, "depth_map_unset": True})) == [
+        "The depth map for the banks must be a raster layer backed by a file: a run's max_depth.tif, or none."
+    ]
+    assert suggest_problems(full_values(tmp_path, breaklines=lines)) == []
+    assert real.default(job_builder.BREAK_RISE) == 2.0
+    assert "breaklines" not in build_job(full_values(tmp_path), tmp_path / "o3")
 
 
 def test_the_frozen_sample_still_matches_the_engine() -> None:

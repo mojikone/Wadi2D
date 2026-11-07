@@ -2,9 +2,10 @@
 
 The rules they follow, his of 2026-11-01: a row of cells runs along the thalweg with a bank line either side,
 never a line on the thalweg; one bank only where one bank exists; no bank where the stream is not incised, so a
-wadi crossing an open plain gets none and the flow finds its own way. The bank stands where the ground is the
-mesher's incision depth above the bed, at least one cell from the thalweg, and no further than the half of the
-incision window; past that, that side has no bank.
+wadi crossing an open plain gets none and the flow finds its own way. The bank stands where the ground is
+``bank_rise_m`` above the bed, at least one cell from the thalweg, and no further than ``bank_reach_m``; past that,
+that side has no bank. Given a run's depth map, the bank is the edge of the flooded course instead: where the depth
+falls under ``bank_depth_m`` for ``bank_dry_m`` across (his check of 2026-11-07: the flow runs inside the wadi course).
 """
 
 from __future__ import annotations
@@ -81,6 +82,36 @@ def bank_points(
     return centres + sign * normals * d[:, None]
 
 
+def flood_points(
+    win: Window,
+    depth: np.ndarray,
+    centres: np.ndarray,
+    normals: np.ndarray,
+    sign: float,
+    depth_m: float,
+    dry_m: float,
+    reach: float,
+    offset: float,
+) -> np.ndarray:
+    """One bank point per section at the edge of the flooded course: the first stretch of ``dry_m`` across whose
+    depth stays under ``depth_m``. NaN where the course is dry at the thalweg, or never dries within ``reach``."""
+    distances = np.arange(win.pixel, reach + 1e-9, win.pixel)
+    d = np.stack([win.sample(depth, centres + sign * normals * dist) for dist in distances])
+    wet = np.nan_to_num(d, nan=0.0) > depth_m
+    n_dry = max(1, int(np.ceil(dry_m / win.pixel)))
+    if wet.shape[0] < n_dry:
+        return np.full(centres.shape, np.nan)
+    dry = (~wet).astype(np.int64)
+    sums = np.cumsum(np.vstack((np.zeros((1, dry.shape[1]), np.int64), dry)), axis=0)
+    full = (sums[n_dry:] - sums[:-n_dry]) == n_dry  # full[i]: samples i .. i + n_dry - 1 are all dry
+    found = full.any(axis=0)
+    first = np.argmax(full, axis=0)
+    flooded = wet[: min(3, wet.shape[0])].any(axis=0)
+    ok = found & flooded
+    dist = np.where(ok, np.maximum(distances[first], offset), np.nan)
+    return centres + sign * normals * dist[:, None]
+
+
 def split_runs(points: np.ndarray, jump: float) -> list[np.ndarray]:
     """Indices of consecutive finite points, split where one is missing or the bank jumps by over ``jump``."""
     out: list[list[int]] = []
@@ -104,22 +135,29 @@ def banks_of(
     others: list[shapely.LineString],
     mesh: Mesh,
     settings: Settings,
+    depth: np.ndarray | None = None,
 ) -> list[Bank]:
-    """The banks of one thalweg; ``others`` are the other thalwegs, so a bank breaks where it meets a tributary's mouth."""
+    """The banks of one thalweg; ``others`` are the other thalwegs, so a bank breaks where it meets a tributary's
+    mouth. With ``depth``, a run's maximum depth over the window, the banks are the edges of the flooded course."""
     centres, normals = sections(thalweg.xy, settings.section_step_m)
     if len(centres) == 0:
         return []
     incised = win.sample(cut, centres)
     keep = incised >= mesh.incision_depth
     bed = _bed(win, centres, normals)
-    reach = 0.5 * mesh.incision_width
+    reach = settings.bank_reach_m
     offset = settings.bank_offset_cells * win.dx
     jump = settings.bank_jump_steps * settings.section_step_m
     own = shapely.LineString(thalweg.xy)
     tree = shapely.STRtree(others) if others else None
     out = []
     for side, sign in ((LEFT, 1.0), (RIGHT, -1.0)):
-        points = bank_points(win, centres, normals, bed, sign, mesh.incision_depth, reach, offset)
+        if depth is None:
+            points = bank_points(win, centres, normals, bed, sign, settings.bank_rise_m, reach, offset)
+        else:
+            points = flood_points(
+                win, depth, centres, normals, sign, settings.bank_depth_m, settings.bank_dry_m, reach, offset
+            )
         points = clear_of(points, sign * normals, own, offset)
         points[~keep] = np.nan
         if others:
@@ -209,11 +247,13 @@ def near_thalweg(points: np.ndarray, thalwegs: list[shapely.LineString], offset:
     return out
 
 
-def all_banks(win: Window, thalwegs: list[Thalweg], mesh: Mesh, settings: Settings) -> list[Bank]:
+def all_banks(
+    win: Window, thalwegs: list[Thalweg], mesh: Mesh, settings: Settings, depth: np.ndarray | None = None
+) -> list[Bank]:
     cut = incision(win.z, win.pixel, mesh.incision_width)
     lines = [shapely.LineString(t.xy) if len(t.xy) >= 2 else None for t in thalwegs]
     out = []
     for n, t in enumerate(thalwegs):
         others = [ln for m, ln in enumerate(lines) if m != n and ln is not None]
-        out += banks_of(win, cut, t, others, mesh, settings)
+        out += banks_of(win, cut, t, others, mesh, settings, depth)
     return out

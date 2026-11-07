@@ -79,9 +79,11 @@ def layer_title(event: dict) -> str:
 def summary_text(event: dict) -> str:
     kinds = ", ".join(f"{n} {kind}" for kind, n in event.get("crest_kinds", {}).items())
     crests = f"{event['crests']} crests ({kinds})" if kinds else "no crests"
+    rule = event.get("bank_rule")
+    banks_by = f" Banks: {rule}." if rule else ""
     return (
         f"Suggested {event['banks']} bank lines along {event['thalwegs']} thalwegs and {crests}, "
-        f"from the ground at {event['pixel_m']:g} m. The layer is in editing: delete what is wrong and save it. Use the "
+        f"from the ground at {event['pixel_m']:g} m.{banks_by} The layer is in editing: delete what is wrong and save it. Use the "
         "bank lines as Refinement lines in the Mesh section, where their near_dx, rows and far_dx fill the table; they "
         "are not barriers, so never load them as Crest lines. Load only the road, dam and dyke crests as Crest lines "
         "under Structures, where their vertices carry the ground elevation and a crest face passes at most critical flow. "
@@ -90,10 +92,13 @@ def summary_text(event: dict) -> str:
 
 
 def suggest_problems(values: dict) -> list[str]:
-    """What stops a suggestion: it needs the ground and nothing else."""
+    """What stops a suggestion: it needs the ground, and a depth map for the banks only if one is chosen."""
     if not values.get("dem"):
         return ["Choose a DEM layer backed by a file."]
-    return ["The DEM must be in a projected CRS, in metres."] if values.get("geographic") else []
+    found = ["The DEM must be in a projected CRS, in metres."] if values.get("geographic") else []
+    if (values.get("breaklines") or {}).get("depth_map_unset"):
+        found.append("The depth map for the banks must be a raster layer backed by a file: a run's max_depth.tif, or none.")
+    return found
 
 
 def dock_of(widget):

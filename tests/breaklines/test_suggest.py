@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -86,7 +85,7 @@ def _coords(geometry) -> np.ndarray:
 @pytest.fixture(scope="module")
 def wadi(tmp_path_factory):
     folder = tmp_path_factory.mktemp("wadi")
-    summary = _suggest(folder, _ground(), replace(DEFAULTS, road_length_m=300.0))
+    summary = _suggest(folder, _ground(), DEFAULTS.model_copy(update={"road_length_m": 300.0}))
     return summary, _lines(summary["path"]), _lines(summary["path"], THALWEG_LAYER)
 
 
@@ -107,7 +106,7 @@ def test_a_bank_line_stands_either_side_and_never_on_the_thalweg(wadi):
     for geometry, row in banks:
         y = _coords(geometry)[:, 1]
         assert np.abs(y - AXIS_Y).min() >= DX
-        assert np.abs(y - AXIS_Y).max() <= 60.0
+        assert np.abs(y - AXIS_Y).max() <= 45.0  # the channel's lip at 30 m: the ground there stands 4.5 m over the bed
         assert (y > AXIS_Y).all() if row["side"] == LEFT else (y < AXIS_Y).all()
         assert row["length_m"] > 1500.0
         assert row["height_m"] == pytest.approx(float(row["why"].split(", ")[1].split(" m")[0]), abs=0.05)
@@ -171,12 +170,44 @@ def test_a_crest_across_the_wadi_reads_as_a_dam(tmp_path):
 
 def test_a_plain_has_no_banks_and_no_crest_along_its_edge(tmp_path):
     summary = _suggest(
-        tmp_path, _ground(valley=False, channel=False, road_gap=0.0), replace(DEFAULTS, road_length_m=300.0)
+        tmp_path,
+        _ground(valley=False, channel=False, road_gap=0.0),
+        DEFAULTS.model_copy(update={"road_length_m": 300.0}),
     )
     lines = _lines(summary["path"])
     assert summary["banks"] == 0 and summary["crests"] == 1
     assert all(r["kind"] == ROAD for _g, r in lines)
     assert np.abs(_coords(lines[0][0])[:, 0] - ROAD_X).max() < 2 * DX
+
+
+def test_the_settings_are_the_jobs_breaklines_section_and_the_rise_is_two_metres():
+    from wadi2d.config.schema import Breaklines, RunConfig
+
+    assert DEFAULTS == Breaklines() == RunConfig().breaklines
+    assert DEFAULTS.bank_rise_m == 2.0 and DEFAULTS.bank_depth_map is None
+    cfg = RunConfig.model_validate({"breaklines": {"bank_rise_m": 3.5, "bank_depth_map": "x.tif"}})
+    assert cfg.breaklines.bank_rise_m == 3.5 and cfg.breaklines.bank_reach_m == DEFAULTS.bank_reach_m
+
+
+def test_banks_from_a_runs_depth_map_follow_the_flooded_course(tmp_path):
+    """His check of 2026-11-07: the flow runs inside the wadi course, so a run's depth map places the banks."""
+    x = (np.arange(NX) + 0.5) * PIXEL
+    y = (np.arange(NY) + 0.5) * PIXEL
+    _xx, yy = np.meshgrid(x, y)
+    depth = np.where(np.abs(yy - AXIS) < 40.0, 1.0, 0.0)  # flooded 40 m either side of the axis, dry beyond
+    depth_map = write_dem(tmp_path / "max_depth.tif", depth, PIXEL)
+    dem = write_dem(tmp_path / "ground.tif", _ground(), PIXEL)
+    cfg = job(dem, NX * PIXEL / DX, NY * PIXEL / DX, DX, mesh=MESH)
+    settings = DEFAULTS.model_copy(update={"bank_depth_map": str(depth_map)})
+    summary = suggest(cfg, tmp_path / "out", settings)
+    assert summary["banks_from"] == "depth map" and "flooded course" in summary["bank_rule"]
+    banks = [(g, r) for g, r in _lines(summary["path"]) if r["kind"] == BANK]
+    assert sorted(r["side"] for _g, r in banks) == [LEFT, RIGHT]
+    for geometry, _row in banks:
+        off = np.abs(_coords(geometry)[:, 1] - AXIS_Y)
+        assert 36.0 <= off.min() and off.max() <= 50.0, (off.min(), off.max())
+    with pytest.raises(ValueError, match="depth map for the banks is not a file"):
+        suggest(cfg, tmp_path / "out2", DEFAULTS.model_copy(update={"bank_depth_map": str(tmp_path / "gone.tif")}))
 
 
 def test_one_bank_only_where_one_bank_exists(tmp_path):
@@ -249,3 +280,4 @@ def test_the_command_writes_the_file_and_says_what_it_holds(tmp_path, capsys):
     assert event["ev"] == "breaklines"
     assert Path(event["path"]).is_file() and event["layer"] == LAYER
     assert event["banks"] == 2 and event["crests"] == 2 and event["pixel_m"] == 5.0
+    assert event["banks_from"] == "ground" and event["bank_rule"] == "ground 2 m over the bed of the wadi"

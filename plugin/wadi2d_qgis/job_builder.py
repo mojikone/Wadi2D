@@ -45,6 +45,16 @@ CORRIDOR_NOTE = (
     "replaced and the gap triangulated; the rest of the domain stays squares. Press Suggest breaklines first and "
     "choose its layer. Corridors run on the uniform grid, without the mesh refinement above (W45)."
 )
+BREAK_RISE = "breaklines.bank_rise_m"
+BREAK_REACH = "breaklines.bank_reach_m"
+BREAK_DEPTH = "breaklines.bank_depth_m"
+BREAK_CREST = "breaklines.crest_height_m"
+BREAK_DISC = "breaklines.disc_radius_m"
+BREAK_SLOPE = "breaklines.ground_slope_max"
+BREAK_KEYS = frozenset(
+    {"bank_rise_m", "bank_reach_m", "bank_depth_m", "crest_height_m", "disc_radius_m", "ground_slope_max", "bank_depth_map"}
+)
+"""What the Mesh section's Suggest settings write into the job's ``breaklines`` section."""
 MESH_FINE_AREA = "mesh.stream_area_fine_km2"
 MESH_MID_AREA = "mesh.stream_area_mid_km2"
 MESH_ZONE_DX = "mesh.zones.dx"
@@ -505,7 +515,19 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             "layer_m": strips["layer_m"],
             "rows_per_side": strips["rows_per_side"],
         }
+    if values.get("breaklines"):
+        job["breaklines"] = _breaklines(values["breaklines"])
     return job
+
+
+def _breaklines(settings: dict) -> dict:
+    """The Suggest settings as the job carries them: the depth map only when a raster layer with a file was chosen."""
+    out = {key: value for key, value in settings.items() if key in BREAK_KEYS and value is not None}
+    if out.get("bank_depth_map"):
+        out["bank_depth_map"] = str(Path(out["bank_depth_map"]).resolve())
+    else:
+        out.pop("bank_depth_map", None)
+    return out
 
 
 def _mesh(mesh: dict) -> dict:

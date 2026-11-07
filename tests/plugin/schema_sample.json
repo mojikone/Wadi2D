@@ -381,6 +381,144 @@
       "title": "Boundary",
       "type": "object"
     },
+    "Breaklines": {
+      "additionalProperties": false,
+      "description": "What the Suggest breaklines command reads the ground with (W26; the bank rules of W45). The streams, and the\nincision that makes one a defined wadi, are the mesh's (``mesh.stream_area_mid_km2``, ``mesh.incision_depth``).",
+      "properties": {
+        "bank_rise_m": {
+          "default": 2.0,
+          "description": "A bank stands where the ground is this far above the bed of the wadi, m. At 2 m it is the lip of the active channel, where his strokes and the 0.5 m depth margin of the 100-yr flood lie on Bidah; the 0.2 m margin lies about 8 m further out, near 4 to 5 m of rise (W45 bank check)",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Bank Rise M",
+          "type": "number"
+        },
+        "bank_reach_m": {
+          "default": 300.0,
+          "description": "How far from the thalweg a bank is looked for, m; past it that side has no bank",
+          "exclusiveMinimum": 0.0,
+          "maximum": 5000.0,
+          "title": "Bank Reach M",
+          "type": "number"
+        },
+        "bank_depth_map": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Max-depth raster of a run on this ground (maps/max_depth.tif): a bank is then the edge of the flooded course, where the depth falls under bank_depth_m for bank_dry_m across; None reads the ground rise",
+          "title": "Bank Depth Map"
+        },
+        "bank_depth_m": {
+          "default": 0.2,
+          "description": "Depth that counts as flooded course in the depth map, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10.0,
+          "title": "Bank Depth M",
+          "type": "number"
+        },
+        "bank_dry_m": {
+          "default": 10.0,
+          "description": "Dry stretch across that ends the flooded course, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 500.0,
+          "title": "Bank Dry M",
+          "type": "number"
+        },
+        "bank_offset_cells": {
+          "default": 1.0,
+          "description": "A bank line stands at least this many cells from the thalweg, which keeps a row of cells of its own",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Bank Offset Cells",
+          "type": "number"
+        },
+        "section_step_m": {
+          "default": 10.0,
+          "description": "Spacing of the sections across a thalweg that find its banks, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 200.0,
+          "title": "Section Step M",
+          "type": "number"
+        },
+        "bank_jump_steps": {
+          "default": 3.0,
+          "description": "A bank that moves more than this many section steps between sections starts a new line",
+          "exclusiveMinimum": 0.0,
+          "title": "Bank Jump Steps",
+          "type": "number"
+        },
+        "disc_radius_m": {
+          "default": 40.0,
+          "description": "Top-hat disc radius: a raised feature narrower than twice this stands out of its ground, m. W5: 40 m finds 82 % of the highway at 0.5 m with the fewest lines elsewhere",
+          "exclusiveMinimum": 0.0,
+          "maximum": 500.0,
+          "title": "Disc Radius M",
+          "type": "number"
+        },
+        "crest_height_m": {
+          "default": 0.5,
+          "description": "Top-hat height that counts as a crest, m; an embankment stands 0.5 to 1 m above its fitted ground",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Crest Height M",
+          "type": "number"
+        },
+        "ground_slope_max": {
+          "default": 0.15,
+          "description": "A crest on ground steeper than this, m/m, is the mountain's own spur and is left out; one across a defined wadi stays",
+          "exclusiveMinimum": 0.0,
+          "maximum": 5.0,
+          "title": "Ground Slope Max",
+          "type": "number"
+        },
+        "min_length_m": {
+          "default": 100.0,
+          "description": "A line shorter than this is noise, whatever its height, m",
+          "exclusiveMinimum": 0.0,
+          "title": "Min Length M",
+          "type": "number"
+        },
+        "road_length_m": {
+          "default": 1000.0,
+          "description": "A straight crest at least this long reads as a road, m",
+          "exclusiveMinimum": 0.0,
+          "title": "Road Length M",
+          "type": "number"
+        },
+        "road_straightness": {
+          "default": 0.9,
+          "description": "Chord over length that makes a crest straight",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Road Straightness",
+          "type": "number"
+        },
+        "smooth_vertices": {
+          "default": 5,
+          "description": "Moving average over this many vertices before a line is simplified",
+          "maximum": 99,
+          "minimum": 1,
+          "title": "Smooth Vertices",
+          "type": "integer"
+        },
+        "simplify_pixels": {
+          "default": 0.5,
+          "description": "Douglas-Peucker tolerance, in analysis pixels",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Simplify Pixels",
+          "type": "number"
+        }
+      },
+      "title": "Breaklines",
+      "type": "object"
+    },
     "CorridorSpec": {
       "additionalProperties": false,
       "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\nnegative to the left of the line's direction; the snapped rows take the ground of their lines.",
@@ -3264,6 +3402,27 @@
         "along": null,
         "buffer_cells": 0.5,
         "smooth": 5
+      }
+    },
+    "breaklines": {
+      "$ref": "#/$defs/Breaklines",
+      "default": {
+        "bank_rise_m": 2.0,
+        "bank_reach_m": 300.0,
+        "bank_depth_map": null,
+        "bank_depth_m": 0.2,
+        "bank_dry_m": 10.0,
+        "bank_offset_cells": 1.0,
+        "section_step_m": 10.0,
+        "bank_jump_steps": 3.0,
+        "disc_radius_m": 40.0,
+        "crest_height_m": 0.5,
+        "ground_slope_max": 0.15,
+        "min_length_m": 100.0,
+        "road_length_m": 1000.0,
+        "road_straightness": 0.9,
+        "smooth_vertices": 5,
+        "simplify_pixels": 0.5
       }
     },
     "terrain": {

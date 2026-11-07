@@ -19,6 +19,8 @@ from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
 from wadi2d.mesh.streams import ANALYSIS_TRIES, ANALYSIS_WAIT_S, BREACH_DISTANCE_PIXELS, NODATA, read_coarse
+
+__all__ = ["POINTER_STEPS", "Window", "flow_fields", "pixel_factor", "read_field", "read_window"]
 from wadi2d.run import domain_mask, grid_window
 from wadi2d.terrain import RasterBed
 
@@ -84,6 +86,17 @@ def read_window(cfg: RunConfig) -> Window:
     z = read_coarse(cfg.terrain.dem, window.x0, window.y0, window.ny, window.nx, cfg.grid.dx, factor)
     inside = np.repeat(np.repeat(mask, factor, axis=0), factor, axis=1) if factor > 1 else mask.copy()
     return Window(z, inside & np.isfinite(z), window.x0, window.y0, cfg.grid.dx / factor, cfg.grid.dx, crs)
+
+
+def read_field(win: Window, path: str | Path, fill: float = 0.0) -> np.ndarray:
+    """Another raster on the same ground (a run's depth map) over the window, at the analysis pixel, by block mean;
+    where it has no data, ``fill``."""
+    factor = max(1, round(win.dx / win.pixel))
+    ny, nx = win.z.shape[0] // factor, win.z.shape[1] // factor
+    field = read_coarse(path, win.x0, win.y0, ny, nx, win.dx, factor)
+    if field.shape != win.z.shape:
+        raise ValueError(f"{path} does not cover the grid window as the DEM does ({field.shape} against {win.z.shape})")
+    return np.where(np.isfinite(field), field, fill)
 
 
 def flow_fields(win: Window) -> tuple[np.ndarray, np.ndarray]:

@@ -1022,6 +1022,53 @@ class Strips(_Part):
     smooth: int = Field(5, ge=1, le=51, description="Running mean on the centre line, points of 10 m")
 
 
+class Breaklines(_Part):
+    """What the Suggest breaklines command reads the ground with (W26; the bank rules of W45). The streams, and the
+    incision that makes one a defined wadi, are the mesh's (``mesh.stream_area_mid_km2``, ``mesh.incision_depth``)."""
+
+    bank_rise_m: float = Field(
+        2.0, gt=0.0, le=50.0,
+        description="A bank stands where the ground is this far above the bed of the wadi, m. At 2 m it is the lip of"
+        " the active channel, where his strokes and the 0.5 m depth margin of the 100-yr flood lie on Bidah; the 0.2 m"
+        " margin lies about 8 m further out, near 4 to 5 m of rise (W45 bank check)",
+    )
+    bank_reach_m: float = Field(
+        300.0, gt=0.0, le=5000.0,
+        description="How far from the thalweg a bank is looked for, m; past it that side has no bank",
+    )
+    bank_depth_map: str | None = Field(
+        None,
+        description="Max-depth raster of a run on this ground (maps/max_depth.tif): a bank is then the edge of the"
+        " flooded course, where the depth falls under bank_depth_m for bank_dry_m across; None reads the ground rise",
+    )
+    bank_depth_m: float = Field(0.2, gt=0.0, le=10.0, description="Depth that counts as flooded course in the depth map, m")
+    bank_dry_m: float = Field(10.0, gt=0.0, le=500.0, description="Dry stretch across that ends the flooded course, m")
+    bank_offset_cells: float = Field(
+        1.0, ge=0.0, le=10.0, description="A bank line stands at least this many cells from the thalweg, which keeps a row of cells of its own"
+    )
+    section_step_m: float = Field(10.0, gt=0.0, le=200.0, description="Spacing of the sections across a thalweg that find its banks, m")
+    bank_jump_steps: float = Field(
+        3.0, gt=0.0, description="A bank that moves more than this many section steps between sections starts a new line"
+    )
+    disc_radius_m: float = Field(
+        40.0, gt=0.0, le=500.0,
+        description="Top-hat disc radius: a raised feature narrower than twice this stands out of its ground, m. W5: 40 m"
+        " finds 82 % of the highway at 0.5 m with the fewest lines elsewhere",
+    )
+    crest_height_m: float = Field(
+        0.5, gt=0.0, le=50.0, description="Top-hat height that counts as a crest, m; an embankment stands 0.5 to 1 m above its fitted ground"
+    )
+    ground_slope_max: float = Field(
+        0.15, gt=0.0, le=5.0,
+        description="A crest on ground steeper than this, m/m, is the mountain's own spur and is left out; one across a defined wadi stays",
+    )
+    min_length_m: float = Field(100.0, gt=0.0, description="A line shorter than this is noise, whatever its height, m")
+    road_length_m: float = Field(1000.0, gt=0.0, description="A straight crest at least this long reads as a road, m")
+    road_straightness: float = Field(0.9, gt=0.0, le=1.0, description="Chord over length that makes a crest straight")
+    smooth_vertices: int = Field(5, ge=1, le=99, description="Moving average over this many vertices before a line is simplified")
+    simplify_pixels: float = Field(0.5, ge=0.0, le=10.0, description="Douglas-Peucker tolerance, in analysis pixels")
+
+
 class RunConfig(_Part):
     """The whole job."""
 
@@ -1029,6 +1076,7 @@ class RunConfig(_Part):
     grid: GridConfig = GridConfig()
     mesh: Mesh = Mesh()
     strips: Strips = Strips()
+    breaklines: Breaklines = Breaklines()
     terrain: Terrain = Terrain()
     tables: Tables = Tables()
     numerics: Numerics = Numerics()

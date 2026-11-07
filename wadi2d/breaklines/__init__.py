@@ -24,7 +24,9 @@ from wadi2d.breaklines.settings import (
     BANK,
     COLUMNS,
     DAM,
+    DEPTH_MAP,
     FILE,
+    GROUND,
     LAYER,
     ROAD,
     THALWEG_COLUMNS,
@@ -32,7 +34,7 @@ from wadi2d.breaklines.settings import (
     Settings,
 )
 from wadi2d.breaklines.thalweg import Thalweg, thalwegs
-from wadi2d.breaklines.window import Window, flow_fields, read_window
+from wadi2d.breaklines.window import Window, flow_fields, read_field, read_window
 from wadi2d.config.schema import RefineLine, RunConfig
 from wadi2d.io.geopackage import LINES, VectorLayer, write_geopackage
 
@@ -114,14 +116,28 @@ def layers(
     return [lines, ref]
 
 
-def suggest(cfg: RunConfig, out: str | Path, settings: Settings = DEFAULTS) -> dict:
-    """Write ``suggested_breaklines.gpkg`` in ``out`` and return what it holds."""
+def bank_rule(settings: Settings, from_depth: bool) -> str:
+    """The rule that placed the banks, in words for the layer's reader."""
+    if from_depth:
+        return f"edge of the flooded course of {settings.bank_depth_map}, deeper than {settings.bank_depth_m:g} m"
+    return f"ground {settings.bank_rise_m:g} m over the bed of the wadi"
+
+
+def suggest(cfg: RunConfig, out: str | Path, settings: Settings | None = None) -> dict:
+    """Write ``suggested_breaklines.gpkg`` in ``out`` and return what it holds; the settings are the job's
+    ``breaklines`` section unless given."""
+    settings = cfg.breaklines if settings is None else settings
     win = read_window(cfg)
+    depth = None
+    if settings.bank_depth_map:
+        if not Path(settings.bank_depth_map).is_file():
+            raise ValueError(f"the depth map for the banks is not a file: {settings.bank_depth_map}")
+        depth = read_field(win, settings.bank_depth_map)
     area, pointer = flow_fields(win)
     streams = thalwegs(
         win, area, pointer, cfg.mesh, settings.simplify_pixels * win.pixel, settings.smooth_vertices
     )
-    banks = all_banks(win, streams, cfg.mesh, settings)
+    banks = all_banks(win, streams, cfg.mesh, settings, depth)
     crests = crests_of(win, streams, cfg.mesh.incision_depth, settings)
     folder = Path(out)
     folder.mkdir(parents=True, exist_ok=True)
@@ -138,10 +154,12 @@ def suggest(cfg: RunConfig, out: str | Path, settings: Settings = DEFAULTS) -> d
         "crests": len(crests),
         "crest_kinds": kinds,
         "thalwegs": len(streams),
+        "banks_from": DEPTH_MAP if depth is not None else GROUND,
+        "bank_rule": bank_rule(settings, depth is not None),
         "bank_km": round(sum(length_of(b.xy) for b in banks) / 1000.0, 2),
         "crest_km": round(sum(length_of(c.xy) for c in crests) / 1000.0, 2),
         "thalweg_km": round(sum(length_of(t.xy) for t in streams) / 1000.0, 2),
     }
 
 
-__all__ = ["FILE", "LAYER", "THALWEG_LAYER", "Settings", "layers", "suggest"]
+__all__ = ["DEFAULTS", "FILE", "LAYER", "THALWEG_LAYER", "Settings", "bank_rule", "layers", "suggest"]
