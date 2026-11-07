@@ -63,10 +63,18 @@ class PolyMesh:
     fr: np.ndarray | None = None
     gl: np.ndarray | None = None
     gr: np.ndarray | None = None
+    nreal: int = -1
+    """Cells stepped here; the rest are ghosts, tile cells a hybrid mirrors each step. -1: every cell."""
+    ghost_state: np.ndarray | None = None
+    """The tile state index of each ghost, in order."""
 
     @property
     def ncells(self) -> int:
         return int(self.area.size)
+
+    @property
+    def real(self) -> int:
+        return self.ncells if self.nreal < 0 else int(self.nreal)
 
     @property
     def nfaces(self) -> int:

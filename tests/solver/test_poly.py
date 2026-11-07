@@ -42,9 +42,10 @@ def normal_depth_wide(b: float, bank: float, q: float) -> float:
     return brentq(f, 0.01, 20)
 
 
-def channel(theta: float):
-    """The grid, its tables, and the along and across coordinates of every cell centre."""
-    tg = TileGrid.from_mask(np.ones((SIDE, SIDE), bool), 0.0, 0.0, DX)
+def channel(theta: float, mask: np.ndarray | None = None):
+    """The grid, its tables, and the along and across coordinates of every cell centre; ``mask`` is the active
+    SIDE x SIDE area, all of it by default."""
+    tg = TileGrid.from_mask(np.ones((SIDE, SIDE), bool) if mask is None else mask, 0.0, 0.0, DX)
     ny, nx = tg.shape
     p = DX / K
     x = tg.x0 + (np.arange(nx * K) + 0.5) * p

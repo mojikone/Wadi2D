@@ -26,6 +26,26 @@ from wadi2d.tables.core import _cell_table, _face_table
 
 
 @dataclass
+class Ghosts:
+    """The tile cells a strip touches (W45, stage 3): per geometry face the ghost slot it opens onto, -1 none; per
+    ghost its tile state index, centre, lowest and mean bed, cell table and area, from the tile tables."""
+
+    face_slot: np.ndarray
+    state: np.ndarray
+    cx: np.ndarray
+    cy: np.ndarray
+    zmin: np.ndarray
+    zbar: np.ndarray
+    hc: np.ndarray
+    dtab: np.ndarray
+    area: np.ndarray
+
+    @property
+    def count(self) -> int:
+        return int(self.state.size)
+
+
+@dataclass
 class Pixels:
     """A window of DEM pixels: ``z`` rows south, the west edge ``x0`` and north edge ``y0`` of pixel (0, 0)."""
 
@@ -110,11 +130,13 @@ def build_poly_tables(
     manning: float | np.ndarray = 0.035,
     wall: np.ndarray | None = None,
     given_cw: np.ndarray | None = None,
+    ghosts: Ghosts | None = None,
 ) -> tuple[PolyMesh, np.ndarray]:
     """The mesh's tables; and the index of each kept face in the geometry (boundary faces and walls are left out).
 
-    ``manning`` is one value or one per cell; a face takes the mean of its two cells'. ``wall`` marks faces that are
-    closed; ``given_cw`` the crest coefficients objects gave the geometry's faces (stage 6).
+    ``manning`` is one value or one per cell; a face takes the mean of its two cells', an interface face the strip
+    cell's. ``wall`` marks faces that are closed; ``given_cw`` the crest coefficients objects gave the geometry's
+    faces (stage 6); ``ghosts`` the tile cells boundary faces open onto, kept as ghost cells after the real ones.
     """
     area, cx, cy = geo.areas_centroids()
     if (area <= 0.0).any():
@@ -141,10 +163,20 @@ def build_poly_tables(
     nman = np.full(n, float(manning)) if np.isscalar(manning) else np.asarray(manning, dtype=np.float64)
     length, nfx, nfy, xf, yf = geo.faces(cx, cy)
     left, right = geo.face_cell[:, 0], geo.face_cell[:, 1]
+    slot = np.full(right.size, -1, np.int64) if ghosts is None else np.asarray(ghosts.face_slot, np.int64)
+    right = np.where(slot >= 0, n + slot, right)
     keep = right >= 0
     if wall is not None:
         keep &= ~np.asarray(wall, bool)
     kept = np.nonzero(keep)[0]
+    if ghosts is not None:
+        g = ghosts
+        area = np.concatenate((area, g.area))
+        cx, cy = np.concatenate((cx, g.cx)), np.concatenate((cy, g.cy))
+        zmin, zbar, hc = np.concatenate((zmin, g.zmin)), np.concatenate((zbar, g.zbar)), np.concatenate((hc, g.hc))
+        dtab = np.concatenate((dtab, g.dtab))
+        nman = np.concatenate((nman, nman[left[slot >= 0]] if (slot >= 0).any() else np.zeros(0)))[: n + g.count]
+        nman = np.concatenate((nman[:n], np.full(g.count, float(np.mean(nman[:n])))))
     m = kept.size
     zf, ef = np.zeros(m), np.zeros(m)
     ftab = np.zeros((m, rows, 2))
@@ -152,7 +184,7 @@ def build_poly_tables(
     for k, f in enumerate(kept):
         a, b = geo.face_node[f]
         prof, spacing = face_profile(pix, geo.x[a], geo.y[a], geo.x[b], geo.y[b])
-        n_face = 0.5 * (nman[left[f]] + nman[right[f]])
+        n_face = nman[left[f]] if right[f] >= n else 0.5 * (nman[left[f]] + nman[right[f]])
         zf[k], ef[k] = _face_table(
             prof, np.nan, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, cfg.face_depth_min, cfg.face_depth_max, ftab_one
         )
@@ -162,5 +194,6 @@ def build_poly_tables(
         area=area, cx=cx, cy=cy, zmin=zmin, zbar=zbar, hc=hc, dtab=dtab,
         left=left[kept].astype(np.int64), right=right[kept].astype(np.int64), length=length[kept],
         nx=nfx[kept], ny=nfy[kept], xf=xf[kept], yf=yf[kept], zf=zf, ef=ef, ftab=ftab, cw=cw, dx=float(dx),
+        nreal=n if ghosts is not None else -1, ghost_state=None if ghosts is None else np.asarray(ghosts.state, np.int64),
     )  # fmt: skip
     return mesh.finish(cfg.crest_tolerance, given_cw=cw.copy()), kept

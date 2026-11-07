@@ -40,6 +40,11 @@ class CpuBackend:
         self.slot = (dst[: self.nhalo] - layout.STRIDE2).astype(np.int32)
         self.src_map = src
         self.bc = BoundaryCells.empty()
+        self.hooks = None
+        """A hybrid stepper (W45): ``before_update(dt, want_wave)`` runs after the faces and the positivity, before
+        the update, ``after_update(dt, want_wave)`` after it; both see the arrays."""
+        self.extra_wave = 0.0
+        """The largest wave speed of whatever a hook steps beside the tiles, m/s."""
         self.set_active(np.arange(1, self.grid.ntiles, dtype=np.int32))
         f = np.float32
         self._args = (
@@ -86,10 +91,14 @@ class CpuBackend:
         self._exch(self.u1, self.v1, self.qx1, self.qy1)
         kernels.limit(self.active, dtf, self.h, self.qx1, self.qy1, self.r, np.float32(self.num.dx))
         self._exch(self.r)
+        if self.hooks is not None:
+            self.hooks.before_update(dt, want_wave)
         kernels.update(
             self.active, dtf, want_wave, False, self.res, self.om, self.qx1, self.qy1, self.r, self.src, self.Hc, self.dtab, self.h, self.d, self.qx,
             self.qy, self.wet, self.rows, np.float32(self.num.dx),
         )  # fmt: skip
+        if self.hooks is not None:
+            self.hooks.after_update(dt, want_wave)
         if self.bc.cell.size:
             b = self.bc
             kernels.boundary(b.cell, b.ref, b.kind, b.d0, b.h0, self.h, self.d)
@@ -108,7 +117,7 @@ class CpuBackend:
         return CpuLevels(self)
 
     def max_wave(self) -> float:
-        return float(self.wave.max())
+        return max(float(self.wave.max()), float(self.extra_wave))
 
     def wet_flags(self) -> np.ndarray:
         return self.wet.copy()

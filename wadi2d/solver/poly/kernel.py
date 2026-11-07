@@ -15,6 +15,10 @@ order. What a general polygon adds:
 * the crest cap on the energy head takes the upstream cell's velocity with this face's own flow left out (W43);
 * the time step per face: ``(|u| + min(lead |du|, 2c) + c) / dn``, ``c^2 = g A rho dn / max(plan Ac, a_min dx^2)``.
 
+The cell list may end in ghost entries: tile cells a strip touches, whose state the hybrid stepper mirrors each step
+and whose lattice faces it adds to the sums before the face loops run (:mod:`wadi2d.strips.hybrid`). The sums here
+never zero their arrays, so a prefill survives; ``nreal`` cells are updated, the ghosts are not.
+
 Loops over face and cell lists, each statement as the CUDA kernels will carry it: the twin of the strip path.
 """
 
@@ -30,13 +34,9 @@ ZERO, ONE, HALF, TWO = F(0.0), F(1.0), F(0.5), F(2.0)
 
 
 @njit(cache=True)
-def cell_vectors(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy, Rx, Ry) -> None:
-    """[3a] Perot cell momentum vectors and the advection rate per cell, from the face discharges."""
-    for c in range(nc):
-        Ux[c] = ZERO
-        Uy[c] = ZERO
-        Rx[c] = ZERO
-        Ry[c] = ZERO
+def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy) -> None:
+    """[3a] Perot cell momentum vectors from the face discharges, added to what the arrays hold (zero, or a
+    ghost's lattice sums), then divided by the cell volume."""
     for f in range(nf):
         qf = q[f]
         if qf != ZERO:
@@ -53,6 +53,12 @@ def cell_vectors(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy, Rx, Ry) -> No
         else:
             Ux[c] = ZERO
             Uy[c] = ZERO
+
+
+@njit(cache=True)
+def advection_rate(nf, L, R, q, Ux, Uy, Rx, Ry) -> None:
+    """[3a] The advection rate per cell, sum of outflow times the upwind cell's velocity, added to what the arrays
+    hold (zero, or a ghost's lattice part)."""
     for f in range(nf):
         qf = q[f]
         if qf != ZERO:
@@ -66,10 +72,8 @@ def cell_vectors(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy, Rx, Ry) -> No
 
 @njit(cache=True)
 def level_gradients(nf, nc, L, R, ln, nfx, nfy, fl, fr, h, d, area, e_wet, Gx, Gy, Dl) -> None:
-    """[3b] Green-Gauss cell gradient of the face level differences; closed and dry faces contribute nothing."""
-    for c in range(nc):
-        Gx[c] = ZERO
-        Gy[c] = ZERO
+    """[3b] Green-Gauss cell gradient of the face level differences, added to what the arrays hold and then divided by
+    the cell area; closed and dry faces contribute nothing."""
     for f in range(nf):
         a, b = L[f], R[f]
         e_l = d[a] - fl[f]
@@ -203,8 +207,8 @@ def faces(
 
 
 @njit(cache=True)
-def update(nf, nc, dt, want_wave, L, R, area, hc, dtab, q1, r, src, out, div, h, d, om, q, rows) -> None:
-    """Positivity (a cell gives at most what it holds), the divergence, the new depth, level and wet share."""
+def outflows(nf, nc, L, R, q1, out) -> None:
+    """What each cell would give out through its faces this step, before positivity."""
     for c in range(nc):
         out[c] = ZERO
     for f in range(nf):
@@ -213,10 +217,20 @@ def update(nf, nc, dt, want_wave, L, R, area, hc, dtab, q1, r, src, out, div, h,
             out[L[f]] += qf
         elif qf < ZERO:
             out[R[f]] -= qf
-    for c in range(nc):
+
+
+@njit(cache=True)
+def positivity(nreal, dt, h, area, out, r) -> None:
+    """A real cell gives at most what it holds; a ghost's ratio is the hybrid stepper's and stays."""
+    for c in range(nreal):
         have = max(h[c], ZERO) * area[c]
         o = out[c]
         r[c] = have / (o * dt) if o * dt > have else ONE
+
+
+@njit(cache=True)
+def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, h, d, om, q, rows) -> None:
+    """The scaled discharges, the divergence of every cell, the new depth, level and wet share of the real ones."""
     for c in range(nc):
         div[c] = ZERO
     for f in range(nf):
@@ -226,7 +240,7 @@ def update(nf, nc, dt, want_wave, L, R, area, hc, dtab, q1, r, src, out, div, h,
         q[f] = qf
         div[a] += qf
         div[b] -= qf
-    for c in range(nc):
+    for c in range(nreal):
         hn = max(h[c] + dt * src[c] - dt * div[c] / area[c], ZERO)
         h[c] = hn
         tab = dtab[rows * c : rows * (c + 1)]

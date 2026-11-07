@@ -101,6 +101,31 @@ segment at the pixel spacing, the higher pixel either side, both through the lat
 
 A breakline face on a strip will sample the line's own ground this way: nothing to lift, no ridge rule.
 
+## Stage 3 (2026-11-07): the hybrid step on the CPU, passed
+
+`wadi2d/strips/hybrid.py` (`HybridCpu`, `ghosts_for`): the tile backend steps its faces and positivity as ever; in its
+new `before_update` hook (`solver/cpu/backend.py`) the strip mirrors the tile cells it touches into ghost entries of
+its own cell list, adds those cells' four lattice faces to the Perot velocity, the Green-Gauss gradient and the
+advection rate (a neighbour's velocity from that neighbour's own four faces), steps its faces, limits its outflows
+(a real cell gives what it holds, a ghost what its lattice faces left it), updates its real cells, and hands each
+ghost's net outflow to the tile update as a source term; `after_update` restores the sources and writes each
+interface's discharge and velocity into the tile's closed face on that edge, own slot and halo copies, so the next
+tile step's momentum stencil sees the flow the strip carries. One global step: the smaller of the tile and strip rules.
+Interface faces are lattice edges sampled from the DEM like any strip face. Tests `tests/strips/test_hybrid.py`: the
+middle 10 x 10 cells of W3's channel masked out of the tiles and carried by a strip of the same squares.
+
+| Case | All tiles | Tiles + strip | Rule |
+|---|---|---|---|
+| Channel along the axis, depth / normal depth | 0.9855 | **0.9848** (-0.077 points) | within 0.2 points |
+| Channel at 45 degrees | 1.0251 | **1.0250** (-0.005 points) | within 1 point |
+| Still water at 101 m across the join, 600 s: largest speed | 6.1e-6 m/s (tiles) | 1.6e-6 (strip) | under 2e-5 |
+| Still water, volume | | 1 + 7e-9 | within 1e-7 |
+| A closed box, a 0.6 m step released across the join, 300 s | | 9.9 m3/s crosses the join; volume 1 + 5e-9 | within 1e-7 |
+
+Two things were wrong on the way and are now in the tests: a ghost's advection rate left at zero read the straight
+channel +0.56 points high; with it, and the tile's closed face still reading zero discharge, +0.4; with the
+interface flow written into that face, -0.08.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
