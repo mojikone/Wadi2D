@@ -97,7 +97,7 @@ def test_a_triangle_takes_the_tables_of_its_own_pixels() -> None:
     zm, _rel, hc = _cell_table(np.sort(z[south_east]), Tables().rows, tab)
     assert mesh.zmin[0] == pytest.approx(zm) and mesh.hc[0] == pytest.approx(hc)
     np.testing.assert_allclose(mesh.dtab[0], tab)
-    assert south_east.sum() * P * P == pytest.approx(450.0, rel=0.02)
+    assert south_east.sum() * P * P == pytest.approx(450.0, rel=0.05)  # 1 m pixels on a 90 m perimeter
 
 
 def test_a_turned_quad_on_a_plane_holds_the_planes_volume() -> None:
