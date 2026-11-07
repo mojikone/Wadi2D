@@ -153,6 +153,8 @@ class Monitor:
             self.series.append(Series(p.name, "points", {"depth_m": [], "mean_depth_m": [], "level_m": []}))
         self.extra_storage: list = []
         """Callables giving water held beside the tiles, m3: a strip's (W45)."""
+        self.extra_outflow: list = []
+        """Callables giving water that left through faces beside the tiles, m3: a strip's flow into boundary cells."""
         self.extra_lines: dict[int, list] = {}
         """Per line index, callables giving discharge through faces beside the tiles, m3/s."""
         self.lines: list[tuple[object, np.ndarray, object, np.ndarray]] = []
@@ -226,7 +228,7 @@ class Monitor:
 
     def _accounts(self, t: float) -> None:
         self.settle(t)
-        self.balance.outflow = self.tally.volume()
+        self.balance.outflow = self.tally.volume() + sum(float(more()) for more in self.extra_outflow)
         self.balance.storage = self.storage()
 
     def _tick(self, st: Stepper, now: float) -> None:

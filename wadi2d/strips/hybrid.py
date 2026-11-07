@@ -126,6 +126,8 @@ class Hybrid:
         self.open_n = fly[j, i] < CLOSED
         self.open_s = np.where(j + 1 < ny, fly[np.minimum(j + 1, ny - 1), i] < CLOSED, False)
         self._edges(mesh, grid)
+        self.b_faces = np.zeros(0, np.int64)
+        """Interface faces whose ghost is a boundary cell: what crosses them has left the model (set by ``attach``)."""
         self.state = self.make_state()
         b = model.backend
         b.hooks = self
@@ -206,10 +208,18 @@ class Hybrid:
 
     # ---- the run's hooks
     def attach(self, monitor, strip, lines) -> None:
-        """The strip's water in the balance, and its faces in every result line that crosses it."""
+        """The strip's water in the balance, what it passes into boundary cells as outflow (a boundary cell's depth
+        is reset after every step, so that water has left), and its faces in every result line that crosses it."""
         from wadi2d.strips.build import line_crossings
 
         monitor.extra_storage.append(self.strip_volume)
+        j, i = self.cells_of(self.ghost)
+        at_boundary = np.asarray(monitor.boundary.mask)[j, i]
+        n = self.nreal
+        iface = np.nonzero(self.mesh.right >= n)[0]
+        self.b_faces = iface[at_boundary[self.mesh.right[iface] - n]]
+        self.watch_boundary(self.b_faces)
+        monitor.extra_outflow.append(self.boundary_outflow)
         for n, line in enumerate(lines):
             faces, signs = line_crossings(strip.strip.geometry, strip.kept, strip.mesh, line.coordinates)
             if faces.size:
@@ -226,6 +236,14 @@ class Hybrid:
         r = float(rate.max()) if rate.size else 0.0
         self.set_strip_source(np.full(self.nreal, r, F))
         return r * float(self.mesh.area[: self.nreal].sum()) * step
+
+    def watch_boundary(self, faces: np.ndarray) -> None:
+        """Start the tally of what crosses these interface faces into boundary cells (positive outward)."""
+        raise NotImplementedError
+
+    def boundary_outflow(self) -> float:
+        """Water that left the strip into boundary cells since the start, m3."""
+        raise NotImplementedError
 
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         raise NotImplementedError
@@ -247,10 +265,17 @@ class HybridCpu(Hybrid):
         if self.model.backend.name != "cpu":
             raise ValueError("HybridCpu steps a CPU model; make_hybrid picks the class")
         self.saved = np.zeros(self.ghost.size, F)
+        self.left_m3 = 0.0
         return PolyState(self.mesh, self.model.num)
 
     def strip_host(self, name: str) -> np.ndarray:
         return getattr(self.state, name)
+
+    def watch_boundary(self, faces: np.ndarray) -> None:
+        self.b_faces = np.asarray(faces, np.int64)
+
+    def boundary_outflow(self) -> float:
+        return self.left_m3
 
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         s, n = self.state, self.nreal
@@ -295,6 +320,8 @@ class HybridCpu(Hybrid):
         b, s, n = self.model.backend, self.state, self.nreal
         b.src[self.ghost] = self.saved
         dx = float(self.dx)
+        if self.b_faces.size:
+            self.left_m3 += float(s.q[self.b_faces].astype(np.float64).sum()) * dt
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
                 continue

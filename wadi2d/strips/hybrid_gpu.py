@@ -51,6 +51,14 @@ class HybridGpu(Hybrid):
     def strip_host(self, name: str) -> np.ndarray:
         return self.state.host(name)
 
+    def watch_boundary(self, faces: np.ndarray) -> None:
+        cp = self.state.cp
+        self.b_faces_d = cp.asarray(np.asarray(faces, np.int32))
+        self.left_dev = cp.zeros(1, cp.float64)
+
+    def boundary_outflow(self) -> float:
+        return float(self.left_dev[0]) if self.b_faces.size else 0.0
+
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         h, d, om = self.strip_start(hbar)
         self.state.set_real("h", h)
@@ -78,6 +86,8 @@ class HybridGpu(Hybrid):
     def after_update(self, dt: float, want_wave: bool) -> None:
         b, s = self.model.backend, self.state
         b.src[self.ghost_d] = self.saved
+        if self.b_faces.size:
+            self.left_dev += s.q[self.b_faces_d].sum(dtype=s.cp.float64) * dt
         for axis, (nslot, maps) in self.edge_d.items():
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
             s.edges(nslot, maps, discharge, velocity)

@@ -28,13 +28,13 @@ def plane_job(dem, strips: dict | None):
     return job(dem, 50, 24, 4.0, **parts)
 
 
-def corridor() -> dict:
+def corridor(x_end: float = 160.0) -> dict:
     return {
         "enabled": True,
         "corridors": [
             {
                 "name": "mid",
-                "centre": [(X0 + 40.0, MID_Y), (X0 + 160.0, MID_Y)],
+                "centre": [(X0 + 40.0, MID_Y), (X0 + x_end, MID_Y)],
                 "offsets": [-12.0, -8.0, -4.0, 0.0, 4.0, 8.0, 12.0],
                 # row 2 lies 4 m to the right of travel (eastward: south), so its line is at MID_Y - 4
                 "snap": [{"row": 2, "coordinates": [(X0, MID_Y - 4.0), (X0 + 200.0, MID_Y - 4.0)]}],
@@ -61,6 +61,19 @@ def test_a_job_with_a_corridor_runs_on_the_cpu_and_its_books_close(tilted_dem, t
     assert strips["corridors"] == 1 and strips["cells"] == 6 * 30 and strips["triangles"] > 0 and strips["replaced"] > 0
     assert abs(run.balance.relative) < 1e-6
     assert run.balance.rain > 0.0
+
+
+def test_a_corridor_ending_on_the_outflow_boundary_closes_the_books(tilted_dem, tmp_path) -> None:  # noqa: F811
+    """The free boundary opens the cells at x = 200 to 204 m; a corridor to x = 196 m has them as its ghosts, and
+    what it passes into them has left the model."""
+    cfg = plane_job(tilted_dem, corridor(196.0))
+    out = tmp_path / "outlet"
+    run = run_job(cfg, out)
+    assert run.exit_code == 0, run.message
+    assert abs(run.balance.relative) < 1e-6, run.balance
+    plain = run_job(plane_job(tilted_dem, None), tmp_path / "plain")
+    assert run.balance.outflow == pytest.approx(plain.balance.outflow, rel=0.05)
+    assert run.balance.outflow > 0.5 * run.balance.rain
 
 
 def test_the_line_across_the_corridor_reads_what_the_tiles_alone_read(tilted_dem, tmp_path) -> None:  # noqa: F811
