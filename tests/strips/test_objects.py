@@ -52,6 +52,19 @@ def test_a_spillway_sets_its_own_level_under_a_higher_crest() -> None:
     assert crest[f] == pytest.approx(100.4) and cw[f] == 1.7
 
 
+def test_two_crest_lines_on_one_face_leave_the_higher_whichever_comes_second() -> None:
+    """``~`` on a Python bool is an integer and never False, so the second line used to set its own level over a
+    higher first one (found 2026-11-07)."""
+    geo, _mesh, _kept, _pix = two_quads()
+    across = np.array([[20.0, -5.0], [20.0, 15.0]])
+    high = CrestPolyline(across, np.array([101.0, 101.0]), CRITICAL_WEIR_COEFF)
+    low = CrestPolyline(across, np.array([100.2, 100.2]), CRITICAL_WEIR_COEFF)
+    f = shared_face(geo)
+    for order in ((high, low), (low, high)):
+        crest, _cw, _wall = faces_from_objects(geo, None, list(order))
+        assert crest[f] == pytest.approx(101.0), [line.z[0] for line in order]
+
+
 def crest_across(z: float) -> dict:
     return {"kind": "crest_line", "coordinates": [(X0 + 120.0, Y0 + 2.0), (X0 + 120.0, Y0 - 98.0)], "z_constant": z}
 

@@ -132,7 +132,8 @@ def faces_from_objects(geo, ghosts, lines: list[CrestPolyline]) -> tuple[np.ndar
             continue
         z = np.interp(s, line_lengths(line.coordinates), line.z)
         old = crest[faces]
-        crest[faces] = np.where(np.isnan(old) | ~line.keep_max, z, np.maximum(old, z))
+        # ``~`` on a Python bool is an integer, never False: it set every face to the line's own level (found 2026-11-07)
+        crest[faces] = np.where(np.isnan(old) | (not line.keep_max), z, np.maximum(old, z))
         cw[faces] = line.coefficient
     return crest, cw, wall
 
