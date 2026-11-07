@@ -864,7 +864,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     if strip is not None:
         from wadi2d.strips.hybrid import make_hybrid
 
-        hybrid = make_hybrid(model, strip.mesh)
+        hybrid = make_hybrid(model, strip.mesh, cfg.strips.substeps)
         strip_start, wet_in_strip = hybrid.strip_initial_depth(cfg.initial_levels)
         progress.emit(
             "strips", corridors=len(strip.strip.polygons), cells=int((strip.strip.corridor >= 0).sum()),

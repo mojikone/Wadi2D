@@ -125,14 +125,14 @@ def test_every_interface_face_is_a_lattice_edge_with_a_tile_cell_across() -> Non
     assert sorted(faces) == ["axis:2", "axis:8"] and all(v.size == round(2 * HALF / DX) for v in faces.values())
 
 
-def run_strip_channel(theta: float) -> tuple[float, float, int]:
+def run_strip_channel(theta: float, substeps: int = 1) -> tuple[float, float, int]:
     """Depth at the axis over normal depth with the corridor, the largest skew in degrees, and the steps."""
     tg, tables, sc, tc, strip = strip_case(theta)
     _tg, _t, _sc, _tc, z = _bed(theta)
     model = Model(tables, Numerics(), "cpu")
     ghosts = ghosts_for(strip.geometry, model, tables)
     mesh, _kept = build_poly_tables(strip.geometry, Pixels(z, tg.x0, tg.y0, DX / K), Tables(), DX, 0.03, ghosts=ghosts)
-    hybrid = HybridCpu(model, mesh)
+    hybrid = HybridCpu(model, mesh, substeps)
     yn = normal_depth_wide(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
@@ -219,3 +219,14 @@ def test_joining_slivers_removes_most_of_the_close_gap_faces_and_leaves_quads_at
     assert before > 0 and after <= 0.25 * before, (before, after)
     assert np.diff(joined.geometry.ring_start).max() <= 4  # triangles and quads only
     assert (joined.corridor < 0).sum() < (raw.corridor < 0).sum()
+
+
+def test_the_strip_sub_cycling_inside_the_squares_step_keeps_the_channel_and_saves_the_squares_steps() -> None:
+    """Eight strip steps may share one step of the squares: the squares step at their own rule, the corridor at its
+    10 m rows' rule inside it; the depth stays the same to half a point and the squares take fewer steps."""
+    together, _skew, steps_together = run_strip_channel(45.0, 1)
+    nested, _skew2, steps_nested = run_strip_channel(45.0, 8)
+    yn_rule = 0.03
+    assert abs(together - 1.0) < yn_rule and abs(nested - 1.0) < yn_rule, (together, nested)
+    assert nested == pytest.approx(together, abs=0.005), (nested, together)
+    assert steps_nested < 0.8 * steps_together, (steps_nested, steps_together)

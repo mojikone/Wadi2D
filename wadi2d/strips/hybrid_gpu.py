@@ -36,6 +36,9 @@ class HybridGpu(Hybrid):
         self.flags = tuple(cp.asarray(np.asarray(f, np.uint8)) for f in (self.open_w, self.open_e, self.open_n, self.open_s))
         self.zmin_d = cp.asarray(self.zmin_state)
         self.saved = cp.zeros(self.ghost.size, F)
+        self.div_acc = cp.zeros(max(self.ghost.size, 1), cp.float64)
+        self.given = cp.zeros(max(self.ghost.size, 1), F)
+        self.q_mean = cp.zeros(self.mesh.nfaces, cp.float64)
         self.max_d, self.max_h = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
         self.max_s, self.max_dv = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
         self.max_q = cp.zeros(self.mesh.nfaces, F)
@@ -100,25 +103,33 @@ class HybridGpu(Hybrid):
     def before_update(self, dt: float, want_wave: bool) -> None:
         b, s, g = self.model.backend, self.state, self.ghost_d
         s.mirror(g, b.h, b.d, b.om)
-        s.levels()
-        s.sums(g, self.flags, self.zmin_d, b.h, b.d, b.qx, b.qy)
-        s.rates(g, self.flags, b.h, b.qx, b.qy)
-        s.faces(dt, want_wave)
-        s.limit(dt, g, b.h, b.r, b.qx1, b.qy1)
-        s.update(dt, want_wave)
-        s.ghost_src(g, self.saved, b.src)
+        k, dts = self.substeps(dt)
+        self.div_acc.fill(0.0)
+        self.given.fill(0.0)
+        self.q_mean.fill(0.0)
+        for sub in range(k):
+            last = sub == k - 1
+            s.levels()
+            s.sums(g, self.flags, self.zmin_d, b.h, b.d, b.qx, b.qy)
+            s.rates(g, self.flags, b.h, b.qx, b.qy)
+            s.faces(dts, want_wave and last)
+            s.limit(dt, dts, g, b.h, b.r, b.qx1, b.qy1, self.given)
+            s.update(dts, want_wave and last)
+            s.accumulate(g, dts, dt, self.div_acc, self.given, self.q_mean)
+            if self.b_faces.size:
+                s.tally(self.b_faces_d, self.b_ghost_d, dts, self.left_dev, self.left_ghost_dev)
+            s.maxima(float(self.speed_depth), self.max_d, self.max_h, self.max_s, self.max_dv, self.max_q)
+        s.ghost_src(g, self.saved, b.src, self.div_acc, dt)
         if want_wave:
-            b.extra_wave = s.wave[0] * float(self.dx)
+            self.strip_freq = float(s.wave[0])
+            b.extra_wave = self.cap_wave(self.strip_freq)
 
     def after_update(self, dt: float, want_wave: bool) -> None:
         b, s = self.model.backend, self.state
         s.restore(self.ghost_d, self.saved, b.src)
-        if self.b_faces.size:
-            s.tally(self.b_faces_d, self.b_ghost_d, dt, self.left_dev, self.left_ghost_dev)
-        s.maxima(float(self.speed_depth), self.max_d, self.max_h, self.max_s, self.max_dv, self.max_q)
         for axis, (nslot, maps) in self.edge_d.items():
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
-            s.edges(nslot, maps, discharge, velocity)
+            s.edges(nslot, maps, discharge, velocity, self.q_mean)
 
 
 __all__ = ["HybridGpu"]

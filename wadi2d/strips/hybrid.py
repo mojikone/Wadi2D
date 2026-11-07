@@ -91,15 +91,16 @@ def ghost_rates(ng, nreal, ghost, dx, open_w, open_e, open_n, open_s, h, qx, qy,
 
 
 @njit(cache=True)
-def ghost_ratios(ng, nreal, ghost, dt, dx, h, r_tile, qx1, qy1, out, r) -> None:
-    """A ghost gives through the strip's faces at most what its lattice faces, which come first, left it."""
+def ghost_ratios(ng, nreal, ghost, dt_tile, dt, dx, h, r_tile, qx1, qy1, out, given, r) -> None:
+    """A ghost gives through the strip's faces at most what its lattice faces, which come first, left it over the
+    squares' step, less what it has already given in this step's earlier sub-steps."""
     area = dx * dx
     for g in range(ng):
         c = nreal + g
         k = ghost[g]
         lattice = max(qx1[k + 1], ZERO) + max(-qx1[k], ZERO) + max(qy1[k + STRIDE], ZERO) + max(-qy1[k], ZERO)
         have = max(h[k], ZERO) * area
-        avail = max(have - dt * r_tile[k] * lattice, ZERO)
+        avail = max(have - dt_tile * r_tile[k] * lattice - given[g], ZERO)
         o = out[c]
         r[c] = avail / (o * dt) if o * dt > avail else F(1.0)
 
@@ -108,7 +109,7 @@ class Hybrid:
     """A tile model and a strip stepped together; installs itself as the tile backend's hooks. What the backends
     share: the ghosts and their open lattice faces, the interface edges, the strip's place in the run."""
 
-    def __init__(self, model: Model, mesh: PolyMesh) -> None:
+    def __init__(self, model: Model, mesh: PolyMesh, substeps: int = 1) -> None:
         if mesh.ghost_state is None:
             raise ValueError("the strip has no ghosts: build its tables with the tile cells it touches")
         self.model = model
@@ -126,6 +127,10 @@ class Hybrid:
         self.open_n = fly[j, i] < CLOSED
         self.open_s = np.where(j + 1 < ny, fly[np.minimum(j + 1, ny - 1), i] < CLOSED, False)
         self._edges(mesh, grid)
+        self.k_max = max(int(substeps), 1)
+        """How many strip steps may share one step of the squares; the squares' step is capped at that multiple."""
+        self.strip_freq = 0.0
+        """The strip's largest wave frequency of record, 1/s: what sets its own step."""
         self.b_faces = np.zeros(0, np.int64)
         """Interface faces whose ghost is a boundary cell: what crosses them has left the model (set by ``attach``)."""
         self.state = self.make_state()
@@ -181,6 +186,19 @@ class Hybrid:
     def strip_hbar_at_level(self, level: float | np.ndarray) -> np.ndarray:
         m, n = self.mesh, self.nreal
         return hbar_at_level(level, m.zmin[:n], m.hc[:n], m.dtab[:n])
+
+    def substeps(self, dt: float) -> tuple[int, float]:
+        """How many strip steps fit the squares' step ``dt`` at the strip's own rule, at most ``k_max``, and each."""
+        num = self.model.num
+        if self.k_max <= 1 or self.strip_freq <= 0.0:
+            return 1, dt
+        own = min(num.cfl / max(self.strip_freq, num.wave_floor / float(self.dx)), num.dt_max)
+        k = int(min(max(np.ceil(dt / own - 1e-9), 1), self.k_max))
+        return k, dt / k
+
+    def cap_wave(self, freq: float) -> float:
+        """The wave speed the squares' stepper reads for the strip: its step is capped at k_max strip steps."""
+        return float(freq) * float(self.dx) / float(self.k_max)
 
     def forcing_cells(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """The real cells as the forcing takes them: centres, areas and lowest ground."""
@@ -438,37 +456,50 @@ class HybridCpu(Hybrid):
         s.h[n:] = b.h[g]
         s.d[n:] = b.d[g]
         s.om[n:] = b.om[g]
-        s.zero_vectors()
-        ghost_sums(
-            g.size, n, g, self.dx, self.open_w, self.open_e, self.open_n, self.open_s, self.zmin_state,
-            b.h, b.d, b.qx, b.qy, s.Ux, s.Uy, s.Gx, s.Gy,
-        )  # fmt: skip
+        k, dts = self.substeps(dt)
+        ng = g.size
+        div_acc = np.zeros(ng, np.float64)
+        given = np.zeros(ng, F)
+        self.q_mean = np.zeros(s.mesh.nfaces, np.float64)
+        L, R = s.static[0], s.static[1]
+
         def rates() -> None:
             ghost_rates(
-                g.size, n, g, self.dx, self.open_w, self.open_e, self.open_n, self.open_s, b.h, b.qx, b.qy,
+                ng, n, g, self.dx, self.open_w, self.open_e, self.open_n, self.open_s, b.h, b.qx, b.qy,
                 s.Ux, s.Uy, s.Rx, s.Ry,
             )  # fmt: skip
 
-        s.step_faces(dt, want_wave, rates)
-        L, R = s.static[0], s.static[1]
-        kernel.outflows(s.mesh.nfaces, s.ncells, L, R, s.q1, s.out)
-        kernel.positivity(n, F(dt), s.h, s.area, s.out, s.r)
-        ghost_ratios(g.size, n, g, F(dt), self.dx, b.h, b.r, b.qx1, b.qy1, s.out, s.r)
-        kernel.update(
-            s.mesh.nfaces, s.ncells, n, F(dt), want_wave, L, R, s.area, s.hc, s.dtab, s.q1, s.r, s.src, s.div,
-            s.res, s.h, s.d, s.om, s.q, s.nums[0],
-        )  # fmt: skip
-        s.u, s.u1 = s.u1, s.u
-        s.m, s.m1 = s.m1, s.m
+        for sub in range(k):
+            last = sub == k - 1
+            s.zero_vectors()
+            ghost_sums(
+                ng, n, g, self.dx, self.open_w, self.open_e, self.open_n, self.open_s, self.zmin_state,
+                b.h, b.d, b.qx, b.qy, s.Ux, s.Uy, s.Gx, s.Gy,
+            )  # fmt: skip
+            s.step_faces(dts, want_wave and last, rates)
+            kernel.outflows(s.mesh.nfaces, s.ncells, L, R, s.q1, s.out)
+            kernel.positivity(n, F(dts), s.h, s.area, s.out, s.r)
+            ghost_ratios(ng, n, g, F(dt), F(dts), self.dx, b.h, b.r, b.qx1, b.qy1, s.out, given, s.r)
+            kernel.update(
+                s.mesh.nfaces, s.ncells, n, F(dts), want_wave and last, L, R, s.area, s.hc, s.dtab, s.q1, s.r, s.src,
+                s.div, s.res, s.h, s.d, s.om, s.q, s.nums[0],
+            )  # fmt: skip
+            s.u, s.u1 = s.u1, s.u
+            s.m, s.m1 = s.m1, s.m
+            loss = s.div[n:].astype(np.float64) * dts
+            div_acc += loss
+            given += np.maximum(loss, 0.0).astype(F)
+            self.q_mean += s.q.astype(np.float64) * (dts / dt)
+            self._book(dts)
         self.saved[:] = b.src[g]
-        b.src[g] = self.saved - s.div[n:] / (self.dx * self.dx)
+        b.src[g] = self.saved - (div_acc / (dt * float(self.dx) ** 2)).astype(F)
         if want_wave:
-            b.extra_wave = s.wave * float(self.dx)
+            self.strip_freq = float(s.wave)
+            b.extra_wave = self.cap_wave(s.wave)
 
-    def after_update(self, dt: float, want_wave: bool) -> None:
-        b, s, n = self.model.backend, self.state, self.nreal
-        b.src[self.ghost] = self.saved
-        dx = float(self.dx)
+    def _book(self, dt: float) -> None:
+        """One strip step's bookkeeping: the boundary tally and the run's maxima."""
+        s, n = self.state, self.nreal
         if self.b_faces.size:
             crossed = s.q[self.b_faces].astype(np.float64) * dt
             self.left_m3 += float(crossed.sum())
@@ -479,11 +510,16 @@ class HybridCpu(Hybrid):
         speed = np.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
         np.maximum(self.max_s, speed, out=self.max_s)
         np.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
+
+    def after_update(self, dt: float, want_wave: bool) -> None:
+        b, s, n = self.model.backend, self.state, self.nreal
+        b.src[self.ghost] = self.saved
+        dx = float(self.dx)
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
                 continue
             q_edge = np.zeros(unique.size, np.float64)
-            np.add.at(q_edge, group, s.q[faces].astype(np.float64) * signs)
+            np.add.at(q_edge, group, self.q_mean[faces] * signs)
             depth = np.maximum(s.h[n + ghost_of].astype(np.float64), 1e-6)
             speed = q_edge / (depth * dx)
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
@@ -491,13 +527,14 @@ class HybridCpu(Hybrid):
             velocity[all_copies] = speed[owner].astype(F)
 
 
-def make_hybrid(model: Model, mesh: PolyMesh) -> Hybrid:
-    """The hybrid stepper for the model's backend."""
+def make_hybrid(model: Model, mesh: PolyMesh, substeps: int = 1) -> Hybrid:
+    """The hybrid stepper for the model's backend; ``substeps`` as ``strips.substeps`` (1 steps the strip with the
+    squares at the smaller step)."""
     if model.backend.name == "gpu":
         from wadi2d.strips.hybrid_gpu import HybridGpu
 
-        return HybridGpu(model, mesh)
-    return HybridCpu(model, mesh)
+        return HybridGpu(model, mesh, substeps)
+    return HybridCpu(model, mesh, substeps)
 
 
 def ghosts_for(geo: MeshGeometry, grid_or_model, tables: GridTables) -> Ghosts:

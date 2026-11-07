@@ -2571,6 +2571,14 @@
           "title": "Min Length M",
           "type": "number"
         },
+        "substeps": {
+          "default": 8,
+          "description": "The strip takes up to this many steps of its own inside one step of the squares, the squares' step capped at this multiple of the strip's; 1 steps both together at the smaller step",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Substeps",
+          "type": "integer"
+        },
         "along": {
           "anyOf": [
             {
@@ -3252,6 +3260,7 @@
         "layer_m": 10.0,
         "rows_per_side": 3,
         "min_length_m": 300.0,
+        "substeps": 8,
         "along": null,
         "buffer_cells": 0.5,
         "smooth": 5

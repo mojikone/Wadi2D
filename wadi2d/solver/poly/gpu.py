@@ -78,7 +78,7 @@ class PolyGpuState:
         self.k = {n: self.module.get_function(n) for n in (
             "poly_levels", "poly_sums", "poly_rates", "poly_faces", "poly_limit", "poly_scale", "poly_update",
             "poly_ghost_src", "poly_edges", "poly_mirror", "poly_restore", "poly_cell_maxima", "poly_face_maxima",
-            "poly_tally",
+            "poly_tally", "poly_accumulate",
         )}  # fmt: skip
 
     # ---- host views
@@ -122,12 +122,19 @@ class PolyGpuState:
              self.Dl, self.u1, self.m1, self.q1, self.wave),
         )  # fmt: skip
 
-    def limit(self, dt: float, ghost, h_t, r_t, qx1_t, qy1_t) -> None:
+    def limit(self, dt_tile: float, dt: float, ghost, h_t, r_t, qx1_t, qy1_t, given) -> None:
         nc = self.ncells
         self.k["poly_limit"](
             grid_of(nc), (THREADS,),
-            (nc, self.nreal, F(dt), self.ptr, self.cf, self.cs, self.q1, self.h, self.area, ghost, h_t, r_t, qx1_t,
-             qy1_t, self.out, self.r),
+            (nc, self.nreal, F(dt_tile), F(dt), self.ptr, self.cf, self.cs, self.q1, self.h, self.area, ghost, h_t, r_t,
+             qx1_t, qy1_t, given, self.out, self.r),
+        )  # fmt: skip
+
+    def accumulate(self, ghost, dt: float, dt_tile: float, div_acc, given, q_mean) -> None:
+        ng, nf = int(ghost.size), self.mesh.nfaces
+        self.k["poly_accumulate"](
+            grid_of(max(ng, nf)), (THREADS,),
+            (ng, nf, self.nreal, F(dt), F(dt / dt_tile), self.div, self.q, div_acc, given, q_mean),
         )  # fmt: skip
 
     def update(self, dt: float, want_wave: bool) -> None:
@@ -141,14 +148,14 @@ class PolyGpuState:
         self.u, self.u1 = self.u1, self.u
         self.m, self.m1 = self.m1, self.m
 
-    def ghost_src(self, ghost, saved, src_t) -> None:
+    def ghost_src(self, ghost, saved, src_t, div_acc, dt_tile: float) -> None:
         ng = int(ghost.size)
         if ng:
-            self.k["poly_ghost_src"](grid_of(ng), (THREADS,), (ng, self.nreal, ghost, self.div, saved, src_t))
+            self.k["poly_ghost_src"](grid_of(ng), (THREADS,), (ng, self.nreal, ghost, div_acc, F(dt_tile), saved, src_t))
 
-    def edges(self, nslot: int, maps: tuple, discharge, velocity) -> None:
+    def edges(self, nslot: int, maps: tuple, discharge, velocity, q_mean) -> None:
         if nslot:
-            self.k["poly_edges"](grid_of(nslot), (THREADS,), (nslot, self.nreal, *maps, self.q, self.h, discharge, velocity))
+            self.k["poly_edges"](grid_of(nslot), (THREADS,), (nslot, self.nreal, *maps, q_mean, self.h, discharge, velocity))
 
     def mirror(self, ghost, h_t, d_t, om_t) -> None:
         ng = int(ghost.size)

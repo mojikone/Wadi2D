@@ -268,12 +268,13 @@ extern "C" __global__ void poly_faces(
 
 // What each cell would give out this step, and its ratio: a real cell gives at most what it holds, a ghost at most
 // what its lattice faces, which come first, left it.
-extern "C" __global__ void poly_limit(const int nc, const int nreal, const float dt, const int* __restrict__ ptr,
-                                      const int* __restrict__ cf, const float* __restrict__ cs,
-                                      const float* __restrict__ q1, const float* __restrict__ h,
-                                      const float* __restrict__ area, const int* __restrict__ ghost,
-                                      const float* __restrict__ h_t, const float* __restrict__ r_t,
-                                      const float* __restrict__ qx1_t, const float* __restrict__ qy1_t,
+extern "C" __global__ void poly_limit(const int nc, const int nreal, const float dt_tile, const float dt,
+                                      const int* __restrict__ ptr, const int* __restrict__ cf,
+                                      const float* __restrict__ cs, const float* __restrict__ q1,
+                                      const float* __restrict__ h, const float* __restrict__ area,
+                                      const int* __restrict__ ghost, const float* __restrict__ h_t,
+                                      const float* __restrict__ r_t, const float* __restrict__ qx1_t,
+                                      const float* __restrict__ qy1_t, const float* __restrict__ given,
                                       float* __restrict__ out, float* __restrict__ r) {
     const int c = blockIdx.x * blockDim.x + threadIdx.x;
     if (c >= nc) return;
@@ -291,7 +292,7 @@ extern "C" __global__ void poly_limit(const int nc, const int nreal, const float
         const float lattice = fmaxf(qx1_t[k + 1], 0.0f) + fmaxf(-qx1_t[k], 0.0f) + fmaxf(qy1_t[k + STRIDE], 0.0f) +
                               fmaxf(-qy1_t[k], 0.0f);
         const float have = fmaxf(h_t[k], 0.0f) * P.dx * P.dx;
-        const float avail = fmaxf(have - dt * r_t[k] * lattice, 0.0f);
+        const float avail = fmaxf(have - dt_tile * r_t[k] * lattice - given[c - nreal], 0.0f);
         r[c] = o * dt > avail ? avail / (o * dt) : 1.0f;
     }
 }
@@ -331,16 +332,32 @@ extern "C" __global__ void poly_update(const int nc, const int nreal, const floa
     if (want_wave) om[c] = cell_plan(hn, hc[c], tab);
 }
 
-// A ghost's net outflow into the tile's source term, and the source saved to restore after the tile update.
+// A ghost's net outflow over the squares' step into the tile's source term, and the source saved to restore after
+// the tile update.
 extern "C" __global__ void poly_ghost_src(const int ng, const int nreal, const int* __restrict__ ghost,
-                                          const float* __restrict__ div, float* __restrict__ saved,
-                                          float* __restrict__ src_t) {
+                                          const double* __restrict__ div_acc, const float dt_tile,
+                                          float* __restrict__ saved, float* __restrict__ src_t) {
     const int g = blockIdx.x * blockDim.x + threadIdx.x;
     if (g >= ng) return;
     const int k = ghost[g];
     const float s = src_t[k];
     saved[g] = s;
-    src_t[k] = s - div[nreal + g] / (P.dx * P.dx);
+    src_t[k] = s - (float)(div_acc[g] / ((double)dt_tile * (double)P.dx * (double)P.dx));
+}
+
+// After one strip sub-step: the ghosts' net loss summed over the squares' step (and the part given), and the faces'
+// discharge averaged over it.
+extern "C" __global__ void poly_accumulate(const int ng, const int nf, const int nreal, const float dt,
+                                           const float share, const float* __restrict__ div,
+                                           const float* __restrict__ q, double* __restrict__ div_acc,
+                                           float* __restrict__ given, double* __restrict__ q_mean) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < ng) {
+        const double loss = (double)div[nreal + i] * (double)dt;
+        div_acc[i] += loss;
+        given[i] += (float)fmax(loss, 0.0);
+    }
+    if (i < nf) q_mean[i] += (double)q[i] * (double)share;
 }
 
 // Each interface's discharge and velocity into the tile's closed face on that edge: one thread per unique slot sums
@@ -349,12 +366,12 @@ extern "C" __global__ void poly_edges(const int nslot, const int nreal, const in
                                       const int* __restrict__ slot_face, const float* __restrict__ slot_sign,
                                       const int* __restrict__ unique, const int* __restrict__ ghost_of,
                                       const int* __restrict__ copy_ptr, const int* __restrict__ copies,
-                                      const float* __restrict__ q, const float* __restrict__ h,
+                                      const double* __restrict__ q, const float* __restrict__ h,
                                       float* __restrict__ discharge, float* __restrict__ velocity) {
     const int s = blockIdx.x * blockDim.x + threadIdx.x;
     if (s >= nslot) return;
     double q_edge = 0.0;
-    for (int p = slot_ptr[s]; p < slot_ptr[s + 1]; ++p) q_edge += (double)q[slot_face[p]] * (double)slot_sign[p];
+    for (int p = slot_ptr[s]; p < slot_ptr[s + 1]; ++p) q_edge += q[slot_face[p]] * (double)slot_sign[p];
     const double depth = fmax((double)h[nreal + ghost_of[s]], 1e-6);
     const float speed = (float)(q_edge / (depth * (double)P.dx));
     discharge[unique[s]] = (float)q_edge;
