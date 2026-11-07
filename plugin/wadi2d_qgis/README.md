@@ -41,12 +41,12 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    **Suggest breaklines** reads the ground (the mesh need not be ticked) and puts an editable layer on the map: a bank line
    either side of every defined wadi, never on the thalweg, one bank where only one exists, and the crests the top-hat finds
    on ground under 15 %, roads, dams and terrace edges; each line has a kind, a height, a score and a reason, the biggest first.
-   Delete what is wrong, save, and choose the layer as Crest lines under Structures: its vertices carry the ground elevation,
-   so no field is needed. **A crest line is not free**: its faces pass at most critical flow and set the time step, so a
-   bank line the design flood crosses along its length costs the peak (Bidah: 7 to 15 %, three times the steps, `W26`). Use
-   the lines a flood overtops rarely, roads, dams and dykes, and delete the rest. The thalwegs come beneath it as a
-   read-only reference. The layer also carries `near_dx`, `rows` and `far_dx`, so it fills the Refinement lines table as
-   it is. The file sits beside the run folder. Needs `whitebox`, like the mesh.
+   Delete what is wrong and save. **The bank lines are Refinement lines, never barriers**: the layer carries `near_dx`,
+   `rows` and `far_dx`, so it fills the Refinement lines table as it is. A face on high ground already reads that ground
+   from the sub-grid tables, and a bank loaded as a crest line costs the dam peak 10 to 36 % with three times the steps
+   (`W26`). Only the road, dam and dyke crests go under Structures as Crest lines: their vertices carry the ground
+   elevation, so no field is needed, and a crest face passes at most critical flow. The thalwegs come beneath it as a
+   read-only reference. The file sits beside the run folder. Needs `whitebox`, like the mesh.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
    lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
    Or tick **Generate the basin from the DEM**: a stream threshold, pour points (the dams and the design lines are pour points
