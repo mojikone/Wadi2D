@@ -230,3 +230,22 @@ def test_the_strip_sub_cycling_inside_the_squares_step_keeps_the_channel_and_sav
     assert abs(together - 1.0) < yn_rule and abs(nested - 1.0) < yn_rule, (together, nested)
     assert nested == pytest.approx(together, abs=0.005), (nested, together)
     assert steps_nested < 0.8 * steps_together, (steps_nested, steps_together)
+
+
+def test_the_rows_between_two_snapped_rows_share_their_width_and_the_centre_need_not_be_a_row() -> None:
+    """A wadi's inner rows follow both banks in the proportion of their offsets; a snapped row finds its line out
+    from the station's centre, so a corridor of one cell across, with no row at offset zero, still snaps."""
+    centre = shapely.LineString([(0.0, 0.0), (600.0, 0.0)])
+    north = shapely.LineString([(-50.0, 6.0), (650.0, 6.0)])
+    south = shapely.LineString([(-50.0, -12.0), (650.0, -12.0)])
+    even = Corridor("even", centre, np.array([-20.0, -10.0, 0.0, 10.0, 20.0]), 20.0, {3: north, 1: south})
+    x, y = corridor_nodes(even, smooth=0)
+    assert np.allclose(y[:, 3], 6.0) and np.allclose(y[:, 1], -12.0)
+    assert np.allclose(y[:, 2], -3.0)  # midway between the banks, off the centre line
+    assert np.allclose(y[:, 4], 16.0) and np.allclose(y[:, 0], -22.0)  # the outer rows carried with their banks
+    assert folds(x, y) == []
+    odd = Corridor("odd", centre, np.array([-15.0, -5.0, 5.0, 15.0]), 20.0, {2: north, 1: south})
+    x, y = corridor_nodes(odd, smooth=0)
+    assert np.allclose(y[:, 2], 6.0) and np.allclose(y[:, 1], -12.0)
+    assert np.allclose(y[:, 3], 16.0) and np.allclose(y[:, 0], -22.0)
+    assert folds(x, y) == []

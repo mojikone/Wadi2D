@@ -137,13 +137,16 @@ def banks_file(path, left_y: float, right_y: float, x0: float, x1: float):
 
 def test_a_job_builds_its_corridor_from_the_suggest_banks_file(tilted_dem, tmp_path) -> None:  # noqa: F811
     banks = banks_file(tmp_path / "suggested_breaklines.gpkg", MID_Y + 4.0, MID_Y - 4.0, X0 + 30.0, X0 + 170.0)
-    strips = {"enabled": True, "banks": str(banks), "layer_m": 4.0, "rows_per_side": 2, "min_length_m": 60.0}
+    strips = {"enabled": True, "banks": str(banks), "cell_min_m": 2.0, "cell_max_m": 8.0, "width_fraction": 0.5, "min_length_m": 60.0}
     out = tmp_path / "banks"
     run = run_job(plane_job(tilted_dem, strips), out)
     assert run.exit_code == 0, run.message
     events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
     (built,) = [e for e in events if e.get("ev") == "strips"]
     assert built["corridors"] == 1 and built["cells"] > 0 and built["cut"] == []
+    (rule,) = built["rules"]  # the banks 8 m apart: half of that is 4 m, within the bounds, so two cells across
+    assert rule["cells_across"] == 2 and rule["rows_outside"] == 1
+    assert rule["width_m"] == pytest.approx(8.0, abs=0.5) and rule["across_m"] == pytest.approx(4.0, abs=0.3)
     assert abs(run.balance.relative) < 1e-6
     import sqlite3
 

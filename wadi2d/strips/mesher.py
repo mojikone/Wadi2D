@@ -37,7 +37,7 @@ MIN_FACING_M = 120.0
 
 @dataclass
 class Corridor:
-    """One strip: its centre line, the row offsets across it (sorted, metres, negative to the left of the line's
+    """One strip: its centre line, the row offsets across it (sorted, metres, positive to the left of the line's
     direction), the rows snapped to a breakline, and the station spacing along."""
 
     name: str
@@ -69,6 +69,8 @@ class StripMesh:
     polygons: list[shapely.Polygon]
     notes: list[str] = field(default_factory=list)
     """What the corridor builder cut or dropped, in words, when the corridors came from a banks file."""
+    rules: list[dict] = field(default_factory=list)
+    """Per corridor from a banks file: its name, the wadi width between the banks, the cells across and their size."""
 
 
 def resample(line: shapely.LineString, step: float, smooth: int = 0) -> np.ndarray:
@@ -100,32 +102,42 @@ def midline(left: shapely.LineString, right: shapely.LineString, step: float = 1
     return shapely.LineString(pts) if len(pts) >= 5 else None
 
 
-def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray]:
-    """(stations, rows + 1) node coordinates: the centre resampled, rows along the station normals, snapped rows on
-    their lines with the outer rows carried."""
+def _frame(c: Corridor, smooth: int) -> tuple[np.ndarray, np.ndarray]:
+    """The centre line resampled at the stations, and the unit normal to its left at each."""
     centre = resample(c.centre, c.along, smooth)
     n = centre.shape[0]
     ahead = centre[np.minimum(np.arange(n) + 1, n - 1)]
     behind = centre[np.maximum(np.arange(n) - 1, 0)]
     tangent = ahead - behind
     tangent /= np.maximum(np.hypot(tangent[:, 0], tangent[:, 1]), 1e-9)[:, None]
-    normal = np.column_stack((-tangent[:, 1], tangent[:, 0]))  # to the left of the direction of travel
+    return centre, np.column_stack((-tangent[:, 1], tangent[:, 0]))
+
+
+def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray]:
+    """(stations, rows + 1) node coordinates: the centre resampled, rows along the station normals, snapped rows on
+    their lines with the outer rows carried, and the rows between two snapped rows spaced between them in the
+    proportion of their offsets, so the cells across a wadi share its width wherever it is.
+
+    A snapped row looks for its line along its own cross line out from the station's centre, so the centre need not
+    be a row: a corridor of one cell across has none at offset zero.
+    """
+    centre, normal = _frame(c, smooth)
+    n = centre.shape[0]
     off = np.asarray(c.offsets, np.float64)
     x = centre[:, 0][:, None] + off[None, :] * normal[:, 0][:, None]
     y = centre[:, 1][:, None] + off[None, :] * normal[:, 1][:, None]
-    middle = int(np.argmin(np.abs(off)))
-    for j, line in sorted(c.snap.items(), key=lambda item: abs(item[0] - middle)):
-        outward = 1 if off[j] > off[middle] else -1
+    for j, line in sorted(c.snap.items(), key=lambda item: abs(off[item[0]])):
+        outward = 1 if off[j] >= 0.0 else -1
         carried = range(j, off.size) if outward > 0 else range(j, -1, -1)
         for i in range(n):
-            p0 = np.array([x[i, middle], y[i, middle]])
+            p0 = centre[i]
             pb = np.array([x[i, j], y[i, j]])
             d = pb - p0
             dn = np.hypot(*d)
             if dn < 1e-9:
                 continue
             u = d / dn
-            reach = SNAP_REACH * abs(off[j] - off[middle])
+            reach = SNAP_REACH * abs(off[j])
             seg = shapely.LineString([p0 + 0.05 * u, p0 + reach * u])
             hit = seg.intersection(line)
             if hit.is_empty:
@@ -137,6 +149,12 @@ def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray
             for jj in carried:
                 x[i, jj] += shift[0]
                 y[i, jj] += shift[1]
+    for ja, jb in itertools.pairwise(sorted(c.snap)):
+        if jb - ja < 2:
+            continue
+        t = (off[ja + 1 : jb] - off[ja]) / (off[jb] - off[ja])
+        x[:, ja + 1 : jb] = x[:, ja][:, None] + (x[:, jb] - x[:, ja])[:, None] * t[None, :]
+        y[:, ja + 1 : jb] = y[:, ja][:, None] + (y[:, jb] - y[:, ja])[:, None] * t[None, :]
     return x, y
 
 
@@ -181,8 +199,8 @@ def fold_free_pieces(
     one and at least ``min_stations`` long: what a corridor builder splits a corridor by, so the mesher's own
     geometry decides, not a copy of it; and whether the corridor is whole (nothing to cut)."""
     x, y = corridor_nodes(c, smooth)
+    centre, _normal = _frame(c, smooth)
     n = x.shape[0]
-    middle = int(np.argmin(np.abs(np.asarray(c.offsets, np.float64))))
     bad = np.zeros(max(n - 1, 0), bool)
     for i, _j in folds(x, y):
         bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
@@ -198,7 +216,7 @@ def fold_free_pieces(
             start = None
     if start is not None:
         pieces.append((start, n - 1))
-    out = [np.column_stack((x[a : b + 1, middle], y[a : b + 1, middle])) for a, b in pieces if b - a >= min_stations]
+    out = [centre[a : b + 1].copy() for a, b in pieces if b - a >= min_stations]
     return out, not bad.any()
 
 

@@ -37,20 +37,24 @@ class StripTables:
     """The geometry face of each mesh face."""
 
 
-def corridors_of(cfg: Strips, dx: float, domain: shapely.Geometry | None = None) -> tuple[list[Corridor], list[str]]:
-    """The corridors of a job: those given outright, else those built from the banks file inside ``domain``; and
-    what the builder cut or dropped, in words."""
+def corridors_of(
+    cfg: Strips, dx: float, domain: shapely.Geometry | None = None
+) -> tuple[list[Corridor], list[str], list[dict]]:
+    """The corridors of a job: those given outright, else those built from the banks file inside ``domain``; what the
+    builder cut or dropped, in words; and per built corridor the width rule's numbers."""
     along = cfg.along if cfg.along is not None else dx
     specs: list = list(cfg.corridors)
     notes: list[str] = []
+    rules: list[dict] = []
     if not specs and cfg.banks:
         from wadi2d.config.schema import CorridorSpec
-        from wadi2d.strips.banks import corridor_specs, pair_banks, read_layers
+        from wadi2d.strips.banks import CellRule, corridor_specs, pair_banks, read_layers
 
         if domain is None:
             raise ValueError("corridors from a banks file need the domain: give grid.domain or grid.extent")
         pairs = pair_banks(*read_layers(cfg.banks), min_length=cfg.min_length_m)
-        built, cut = corridor_specs(pairs, domain, cfg.layer_m, cfg.rows_per_side, along, cfg.min_length_m)
+        rule = CellRule(cfg.cell_min_m, cfg.cell_max_m, cfg.width_fraction, cfg.rows_outside)
+        built, cut, rules = corridor_specs(pairs, domain, rule, along, cfg.min_length_m)
         specs = [CorridorSpec.model_validate(s) for s in built]
         notes = [c["why"] for c in cut]
         if not specs:
@@ -59,7 +63,7 @@ def corridors_of(cfg: Strips, dx: float, domain: shapely.Geometry | None = None)
     for spec in specs:
         snap = {row.row: shapely.LineString(row.coordinates) for row in spec.snap}
         out.append(Corridor(spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap))
-    return out, notes
+    return out, notes, rules
 
 
 def mask_for_strips(
@@ -68,9 +72,10 @@ def mask_for_strips(
     """The domain mask with the cells under the strips taken out, and the strip mesh built on the padded grid the
     final mask gives (the padding is one cell north and west, whatever the mask)."""
     provisional = TileGrid.from_mask(mask, x0, y0, cfg.grid.dx)
-    corridors, notes = corridors_of(cfg.strips, cfg.grid.dx, domain)
+    corridors, notes, rules = corridors_of(cfg.strips, cfg.grid.dx, domain)
     strip = build_strip_mesh(provisional, corridors, cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth)
     strip.notes = notes
+    strip.rules = rules
     jj, ii = strip.masked
     out = mask.copy()
     out[jj - 1, ii - 1] = False

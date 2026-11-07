@@ -1,12 +1,14 @@
 # Wadi2D. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Corridors from suggested bank lines (W45, stage 7): the W44 recipe in the engine.
+"""Corridors from suggested bank lines (W45, stage 7): the W44 recipe in the engine, the rows set by the wadi's width.
 
 The Suggest breaklines layer gives each bank its side and the drainage area of the wadi it banks, and the thalwegs
 layer the wadi lines. Per wadi, the parts of one side are chained along its thalweg; a left chain and the right chain
 with the longest facing stretch make a pair; the pair's mid-line is the corridor's centre, its two banks the lines of
-the rows at ``+-layer``. Each corridor is cut clear of the accepted ones and of the domain edge. What W44 measured on
-Faydh 01: 39 pairs, 30 corridors along 29.3 km.
+two rows. The rows between the banks share the width: the cell across is a share of the width within two bounds (his
+rules of 2026-11-07: a narrow wadi runs on cells no smaller than about 20 m, since small cells set the step, a wide one
+needs none larger than about 50 m), one row stands beyond each bank at the same size, and a wadi with one bank or none
+keeps its squares. Each corridor is cut clear of the accepted ones and of the domain edge.
 """
 
 from __future__ import annotations
@@ -36,6 +38,39 @@ class BankPair:
     left: shapely.LineString
     right: shapely.LineString
     mid: shapely.LineString
+
+
+@dataclass(frozen=True)
+class CellRule:
+    """How the rows of a corridor follow the wadi's width (the job's ``strips`` section)."""
+
+    cell_min: float = 20.0
+    cell_max: float = 50.0
+    fraction: float = 0.25
+    rows_outside: int = 1
+
+    def layout(self, width: float) -> tuple[list[float], int, float]:
+        """Row offsets across a wadi of ``width`` between its banks, the cells across and their size, m.
+
+        The cell across is ``fraction`` of the width held between the bounds, then the width is split into the
+        nearest whole number of such cells, one at least, so the two bank rows stand at the banks; ``rows_outside``
+        rows follow beyond each bank at the size the inner cells got.
+        """
+        wanted = float(np.clip(width * self.fraction, self.cell_min, self.cell_max))
+        n = max(1, int(round(width / wanted)))
+        across = width / n
+        half = 0.5 * width
+        inner = np.linspace(-half, half, n + 1)
+        outer = half + across * np.arange(1, self.rows_outside + 1)
+        offsets = np.concatenate((-outer[::-1], inner, outer))
+        return [float(v) for v in offsets], n, across
+
+
+def pair_width(pair: BankPair, step: float = 10.0) -> float:
+    """The median distance between the two banks along the mid-line, m."""
+    stations = np.arange(0.0, pair.mid.length + 1e-9, step)
+    points = [pair.mid.interpolate(s) for s in stations]
+    return float(np.median([pair.left.distance(p) + pair.right.distance(p) for p in points]))
 
 
 def read_layers(path) -> tuple[list[dict], dict[float, shapely.LineString]]:
@@ -166,25 +201,33 @@ def fold_free_specs(
 def corridor_specs(
     pairs: list[BankPair],
     domain: shapely.Polygon,
-    layer: float,
-    rows_per_side: int = 3,
+    rule: CellRule = CellRule(),
     along: float = 20.0,
     min_length: float = MIN_LENGTH_M,
-) -> tuple[list[dict], list[dict]]:
+) -> tuple[list[dict], list[dict], list[dict]]:
     """Corridor specifications for the job (``strips.corridors``), biggest wadis first, each cut clear of the accepted
-    ones, the domain edge and its own folds; and the pairs rejected or cut, with why. The banks sit on the rows at
-    +-layer."""
-    half = rows_per_side * layer
-    offsets = [float(v) for v in np.arange(-half, half + 1e-9, layer)]
-    left_row = int(np.argmin(np.abs(np.asarray(offsets) + layer)))
-    right_row = int(np.argmin(np.abs(np.asarray(offsets) - layer)))
-    inside = domain.buffer(-(half + along))
-    outside = domain.envelope.buffer(4.0 * half).difference(domain.buffer(-along))  # a cell inside the edge
+    ones, the domain edge and its own folds; the pairs rejected or cut, with why; and per corridor the rule's
+    numbers: the wadi width between its banks, the cells across and their size. The bank lines are the rows at
+    half the width either side of the mid-line."""
     accepted: list[dict] = []
     polygons: list[shapely.Polygon] = []
     rejected: list[dict] = []
+    rules: list[dict] = []
+    edges: dict[float, tuple[shapely.Geometry, shapely.Geometry]] = {}
     for k, pr in enumerate(pairs):
         tag = f"pair {k} area {pr.area_km2:.2f} km2"
+        width = pair_width(pr, along)
+        offsets, cells, across = rule.layout(width)
+        half = 0.5 * width
+        left_row = int(np.argmin(np.abs(np.asarray(offsets) - half)))  # positive offsets lie left of travel
+        right_row = int(np.argmin(np.abs(np.asarray(offsets) + half)))
+        extent = round(offsets[-1], 1)
+        if extent not in edges:
+            edges[extent] = (
+                domain.buffer(-(extent + along)),
+                domain.envelope.buffer(4.0 * extent).difference(domain.buffer(-along)),  # a cell inside the edge
+            )
+        inside, outside = edges[extent]
         free = pr.mid.intersection(inside)
         if polygons:
             free = free.difference(shapely.unary_union([p.buffer(CLEAR_M) for p in polygons]))
@@ -207,8 +250,8 @@ def corridor_specs(
             "centre": [[float(x), float(y)] for x, y in centre],
             "offsets": offsets,
             "snap": [
-                {"row": right_row, "coordinates": [[float(x), float(y)] for x, y in np.asarray(left_line.coords)[:, :2]]},
-                {"row": left_row, "coordinates": [[float(x), float(y)] for x, y in np.asarray(right_line.coords)[:, :2]]},
+                {"row": left_row, "coordinates": [[float(x), float(y)] for x, y in np.asarray(left_line.coords)[:, :2]]},
+                {"row": right_row, "coordinates": [[float(x), float(y)] for x, y in np.asarray(right_line.coords)[:, :2]]},
             ],
         }
         keep_out = shapely.unary_union([outside, *[p.buffer(CLEAR_M) for p in polygons]])
@@ -217,6 +260,10 @@ def corridor_specs(
         snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
         for piece in pieces:
             accepted.append(piece)
+            rules.append({
+                "name": piece["name"], "area_km2": round(pr.area_km2, 2), "width_m": round(width, 1),
+                "cells_across": cells, "across_m": round(across, 1), "rows_outside": rule.rows_outside,
+            })  # fmt: skip
             built = Corridor(piece["name"], shapely.LineString(piece["centre"]), np.asarray(offsets), along, snap)
             polygons.append(corridor_polygon(*corridor_nodes(built)))
-    return accepted, rejected
+    return accepted, rejected, rules

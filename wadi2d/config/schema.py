@@ -982,7 +982,7 @@ class SnapRow(_Part):
 
 class CorridorSpec(_Part):
     """A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,
-    negative to the left of the line's direction; the snapped rows take the ground of their lines."""
+    positive to the left of the line's direction; the snapped rows take the ground of their lines."""
 
     name: str
     centre: list[tuple[float, float]] = Field(min_length=2, description="The centre line, m")
@@ -1006,8 +1006,23 @@ class Strips(_Part):
     banks: str | None = Field(
         None, description="The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair"
     )
-    layer_m: float = Field(10.0, gt=0.0, le=100.0, description="Row spacing across a corridor from the banks file, m")
-    rows_per_side: int = Field(3, ge=1, le=8, description="Rows either side of the centre line from the banks file")
+    cell_min_m: float = Field(
+        20.0, gt=0.0, le=500.0,
+        description="Smallest cell across a corridor from the banks file, m: a narrow wadi gets no finer cells than"
+        " this, since the smallest cells set the time step (his rule of 2026-11-07)",
+    )
+    cell_max_m: float = Field(
+        50.0, gt=0.0, le=1000.0, description="Largest cell across a corridor from the banks file, m: a wide wadi gets no coarser cells than this"
+    )
+    width_fraction: float = Field(
+        0.25, gt=0.0, le=1.0,
+        description="Cell across as a share of the wadi width between its banks, before the two bounds; 0.25 is four cells across",
+    )
+    rows_outside: int = Field(
+        1, ge=1, le=4,
+        description="Rows of cells beyond each bank, at the across size, so the bank's faces lie inside the corridor and"
+        " the join to the squares does not",
+    )
     min_length_m: float = Field(300.0, ge=20.0, description="A corridor from the banks file shorter than this is not built, m")
     substeps: int = Field(
         0, ge=0, le=64,
@@ -1020,6 +1035,12 @@ class Strips(_Part):
         0.5, ge=0.0, le=4.0, description="Lattice cells this many cells from a corridor are replaced too"
     )
     smooth: int = Field(5, ge=1, le=51, description="Running mean on the centre line, points of 10 m")
+
+    @model_validator(mode="after")
+    def _cells(self) -> Strips:
+        if self.cell_min_m > self.cell_max_m:
+            raise ValueError("strips.cell_min_m must not exceed strips.cell_max_m")
+        return self
 
 
 class Breaklines(_Part):

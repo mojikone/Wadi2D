@@ -22,9 +22,11 @@ from ..job_builder import (
     MESH_FINE_AREA,
     MESH_MID_AREA,
     SPEED_NOTE,
+    STRIPS_CELL_MAX,
+    STRIPS_CELL_MIN,
     STRIPS_ENABLED,
-    STRIPS_LAYER_M,
-    STRIPS_ROWS,
+    STRIPS_FRACTION,
+    STRIPS_OUTSIDE,
     ZONE_DX_FIELD,
     layer_features,
     raster_path,
@@ -95,15 +97,19 @@ class MeshSection(Section):
         self.form.addRow(self.suggest_note)
         self.corridors = QCheckBox("Corridors of cells aligned with the suggested banks")
         self.corridor_layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "Choose the Suggested breaklines layer")
-        self.corridor_layer_m = number_box(1)
-        self.corridor_rows = QSpinBox()
-        self.corridor_rows.setRange(1, 8)
+        self.corridor_cell_min = number_box(0)
+        self.corridor_cell_max = number_box(0)
+        self.corridor_fraction = number_box(2)
+        self.corridor_outside = QSpinBox()
+        self.corridor_outside.setRange(1, 4)
         self.corridor_note = QLabel(CORRIDOR_NOTE)
         self.corridor_note.setWordWrap(True)
         self.form.addRow(self.corridors)
         self.form.addRow("Suggested breaklines", self.corridor_layer)
-        self.form.addRow("Row spacing across, m", self.corridor_layer_m)
-        self.form.addRow("Rows either side", self.corridor_rows)
+        self.form.addRow("Smallest cell across, m", self.corridor_cell_min)
+        self.form.addRow("Largest cell across, m", self.corridor_cell_max)
+        self.form.addRow("Cell across, share of the width", self.corridor_fraction)
+        self.form.addRow("Rows beyond each bank", self.corridor_outside)
         self.form.addRow(self.corridor_note)
         self.suggest_button.clicked.connect(lambda: suggest_breaklines(self))
         self.enabled.toggled.connect(self._enabled_changed)
@@ -113,7 +119,13 @@ class MeshSection(Section):
         self._corridors_changed(False)
 
     def _corridors_changed(self, on: bool) -> None:
-        for widget in (self.corridor_layer, self.corridor_layer_m, self.corridor_rows):
+        for widget in (
+            self.corridor_layer,
+            self.corridor_cell_min,
+            self.corridor_cell_max,
+            self.corridor_fraction,
+            self.corridor_outside,
+        ):
             widget.setEnabled(on)
 
     def _enabled_changed(self, on: bool) -> None:
@@ -149,9 +161,11 @@ class MeshSection(Section):
         self.lines.apply_schema(schema)
         self.corridors.setChecked(bool(schema.default(STRIPS_ENABLED, False)))
         self.corridors.setToolTip(schema.tip(STRIPS_ENABLED))
-        bind(self.corridor_layer_m, schema, STRIPS_LAYER_M)
-        self.corridor_rows.setValue(int(schema.default(STRIPS_ROWS, 3)))
-        self.corridor_rows.setToolTip(schema.tip(STRIPS_ROWS))
+        bind(self.corridor_cell_min, schema, STRIPS_CELL_MIN)
+        bind(self.corridor_cell_max, schema, STRIPS_CELL_MAX)
+        bind(self.corridor_fraction, schema, STRIPS_FRACTION)
+        self.corridor_outside.setValue(int(schema.default(STRIPS_OUTSIDE, 1)))
+        self.corridor_outside.setToolTip(schema.tip(STRIPS_OUTSIDE))
         bind(self.bank_rise, schema, BREAK_RISE)
         bind(self.bank_reach, schema, BREAK_REACH)
         bind(self.bank_depth, schema, BREAK_DEPTH)
@@ -182,7 +196,13 @@ class MeshSection(Section):
             return None
         layer = self.corridor_layer.currentLayer()
         source = layer.source().split("|")[0] if layer is not None else ""
-        return {"banks": source, "layer_m": self.corridor_layer_m.value(), "rows_per_side": self.corridor_rows.value()}
+        return {
+            "banks": source,
+            "cell_min_m": self.corridor_cell_min.value(),
+            "cell_max_m": self.corridor_cell_max.value(),
+            "width_fraction": self.corridor_fraction.value(),
+            "rows_outside": self.corridor_outside.value(),
+        }
 
     def values(self, crs) -> dict:
         out: dict = {"local_steps": self.local_steps.isChecked(), "breaklines": self.breakline_values()}

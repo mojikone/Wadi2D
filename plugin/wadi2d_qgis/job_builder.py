@@ -38,12 +38,17 @@ DAM_LEVELS = "dam_levels"
 MESH_ENABLED = "mesh.enabled"
 MESH_COARSE = "mesh.coarse_dx"
 STRIPS_ENABLED = "strips.enabled"
-STRIPS_LAYER_M = "strips.layer_m"
-STRIPS_ROWS = "strips.rows_per_side"
+STRIPS_CELL_MIN = "strips.cell_min_m"
+STRIPS_CELL_MAX = "strips.cell_max_m"
+STRIPS_FRACTION = "strips.width_fraction"
+STRIPS_OUTSIDE = "strips.rows_outside"
+STRIPS_KEYS = ("cell_min_m", "cell_max_m", "width_fraction", "rows_outside")
 CORRIDOR_NOTE = (
-    "A corridor of cells aligned with each pair of suggested banks, its rows on the bank lines, the squares under it "
-    "replaced and the gap triangulated; the rest of the domain stays squares. Press Suggest breaklines first and "
-    "choose its layer. Corridors run on the uniform grid, without the mesh refinement above (W45)."
+    "A corridor of cells aligned with each pair of suggested banks: its rows span the wadi between the banks, the cell "
+    "across the given share of the width held between the two sizes, one row more beyond each bank; the squares under "
+    "it are replaced and the gap triangulated, the rest of the domain stays squares. A wadi with one bank or none keeps "
+    "its squares. Press Suggest breaklines first and choose its layer. Corridors run on the uniform grid, without the "
+    "mesh refinement above (W45)."
 )
 BREAK_RISE = "breaklines.bank_rise_m"
 BREAK_REACH = "breaklines.bank_reach_m"
@@ -253,6 +258,8 @@ def _strip_problems(values: dict) -> list[str]:
         found.append("Choose the Suggested breaklines layer for the corridors, or untick them.")
     elif not Path(banks).is_file():
         found.append("The corridors need the Suggest breaklines GeoPackage: choose the layer it wrote.")
+    if strips.get("cell_min_m", 0.0) > strips.get("cell_max_m", math.inf):
+        found.append("The smallest cell across a corridor must not exceed the largest.")
     if values.get("mesh"):
         found.append("Corridors run on the uniform grid: untick the mesh refinement or the corridors.")
     return found
@@ -512,8 +519,7 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["strips"] = {
             "enabled": True,
             "banks": str(Path(strips["banks"]).resolve()),
-            "layer_m": strips["layer_m"],
-            "rows_per_side": strips["rows_per_side"],
+            **{key: strips[key] for key in STRIPS_KEYS if key in strips},
         }
     if values.get("breaklines"):
         job["breaklines"] = _breaklines(values["breaklines"])

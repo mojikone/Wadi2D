@@ -869,6 +869,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         progress.emit(
             "strips", corridors=len(strip.strip.polygons), cells=int((strip.strip.corridor >= 0).sum()),
             triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size), cut=strip.strip.notes,
+            rules=strip.strip.rules,
         )  # fmt: skip
     model.set_depth(np.maximum(initial_depth(cfg.initial_levels, tables, wet_in_strip), pools))
     if bset.size:

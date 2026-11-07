@@ -2,7 +2,11 @@
 dam, the rest rain-on-grid, the design line's record from the network and the grid), with and without corridors from
 W26's suggested banks on Bidah, on the GPU. The dock wrote this job; the corridors are what the dock would add.
 
-    .venv\\Scripts\\python "W45 aligned mesh engine\\race_bidah_hybrid.py" <work folder> [build|run|report]
+    .venv\\Scripts\\python "W45 aligned mesh engine\\race_bidah_hybrid.py" <work folder> [build|run|report|all]
+        [--banks <gpkg>] [--cells <min> <max> <fraction> <rows_outside>] [--tag <name>]
+
+The corridors take the engine's width rule (``strips.cell_min_m`` and company) at the schema's defaults unless
+``--cells`` gives them; ``--tag`` names the corridor run, so several rules can sit side by side in one folder.
 """
 
 from __future__ import annotations
@@ -22,7 +26,19 @@ BANKS = ROOT / "W26 suggested breaklines" / "suggested" / "bidah" / "suggested_b
 LINE = "Bidah 03"
 
 
-def jobs(work: Path) -> dict[str, Path]:
+def options(argv: list[str]) -> dict:
+    out = {"banks": BANKS, "cells": None, "tag": ""}
+    if "--banks" in argv:
+        out["banks"] = Path(argv[argv.index("--banks") + 1])
+    if "--cells" in argv:
+        k = argv.index("--cells")
+        out["cells"] = (float(argv[k + 1]), float(argv[k + 2]), float(argv[k + 3]), int(argv[k + 4]))
+    if "--tag" in argv:
+        out["tag"] = argv[argv.index("--tag") + 1]
+    return out
+
+
+def jobs(work: Path, opts: dict) -> dict[str, Path]:
     work.mkdir(parents=True, exist_ok=True)
     base = json.loads(JOB.read_text(encoding="utf-8"))
     base["grid"]["cache_dir"] = str(work / "cache")
@@ -32,11 +48,16 @@ def jobs(work: Path) -> dict[str, Path]:
     base["run"]["backend"] = "gpu"
     base["run"]["checkpoint_every_s"] = 0.0
     base.setdefault("mesh", {})["enabled"] = False
+    strips = {"enabled": True, "banks": str(opts["banks"])}
+    if opts["cells"]:
+        lo, hi, share, outside = opts["cells"]
+        strips.update({"cell_min_m": lo, "cell_max_m": hi, "width_fraction": share, "rows_outside": outside})
+    corridors = "corridors" + (f"_{opts['tag']}" if opts["tag"] else "")
     out = {}
-    for name, strips in (("squares", None), ("corridors", {"enabled": True, "banks": str(BANKS), "layer_m": 10.0, "rows_per_side": 3})):
+    for name, section in (("squares", None), (corridors, strips)):
         data = json.loads(json.dumps(base))
-        if strips:
-            data["strips"] = strips
+        if section:
+            data["strips"] = section
         path = work / f"bidah_pmp_{name}.json"
         path.write_text(json.dumps(data, indent=1), encoding="utf-8")
         out[name] = path
@@ -60,9 +81,9 @@ def column_peak(path: Path, column: str) -> tuple[float, float]:
     return float(abs(q[k])), float(t[k] / 3600.0)
 
 
-def report(work: Path) -> None:
+def report(work: Path, made: dict[str, Path], tag: str) -> None:
     out = {}
-    for name in ("squares", "corridors"):
+    for name in made:
         folder = work / name
         done = [json.loads(s) for s in (folder / "progress.jsonl").read_text(encoding="utf-8").splitlines() if '"ev": "done"' in s]
         strips = [json.loads(s) for s in (folder / "progress.jsonl").read_text(encoding="utf-8").splitlines() if '"ev": "strips"' in s]
@@ -80,16 +101,21 @@ def report(work: Path) -> None:
         print(f"{name}: record {record}, grid line {grid}, steps {d['steps']}, {d['loop_s']:.0f} s, mass {d['balance']['relative_error']:.1e}, rain {d['balance']['rain_m3']:.0f}, inflow {d['balance']['inflow_m3']:.0f}")
         if strips:
             s = strips[-1]
-            print(f"  corridors {s['corridors']}, cells {s['cells']}, triangles {s['triangles']}, replaced {s['replaced']}, cut {len(s['cut'])}")
-    (work / "race.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+            rules = s.get("rules", [])
+            words = f"; cells across {min(r['cells_across'] for r in rules)} to {max(r['cells_across'] for r in rules)}, cell across {min(r['across_m'] for r in rules):.0f} to {max(r['across_m'] for r in rules):.0f} m" if rules else ""
+            print(f"  corridors {s['corridors']}, cells {s['cells']}, triangles {s['triangles']}, replaced {s['replaced']}, cut {len(s['cut'])}{words}")
+    (work / f"race{'_' + tag if tag else ''}.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":
     work = Path(sys.argv[1])
     what = sys.argv[2] if len(sys.argv) > 2 else "all"
-    made = jobs(work)
+    opts = options(sys.argv)
+    made = jobs(work, opts)
     if what in ("run", "all"):
         for name, job in made.items():
+            if name == "squares" and (work / name / "progress.jsonl").is_file() and "--rerun-squares" not in sys.argv:
+                continue
             run(work, name, job)
     if what in ("report", "all"):
-        report(work)
+        report(work, made, opts["tag"])

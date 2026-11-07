@@ -343,10 +343,12 @@ def test_a_mesh_without_local_steps_says_what_it_costs(tmp_path: Path) -> None:
 def test_corridors_reach_the_job_from_the_suggest_file_and_are_refused_without_it(tmp_path: Path) -> None:
     banks = tmp_path / "suggested_breaklines.gpkg"
     banks.write_bytes(b"x")
-    strips = {"banks": str(banks), "layer_m": 10.0, "rows_per_side": 3}
+    strips = {"banks": str(banks), "cell_min_m": 20.0, "cell_max_m": 50.0, "width_fraction": 0.25, "rows_outside": 1}
     job = build_job(values(tmp_path, strips=strips), tmp_path / "out")
-    assert job["strips"] == {"enabled": True, "banks": str(banks.resolve()), "layer_m": 10.0, "rows_per_side": 3}
+    assert job["strips"] == {"enabled": True, "banks": str(banks.resolve()), **{k: v for k, v in strips.items() if k != "banks"}}
     assert problems(values(tmp_path, strips=strips)) == []
+    upside_down = problems(values(tmp_path, strips={**strips, "cell_min_m": 60.0}))
+    assert upside_down == ["The smallest cell across a corridor must not exceed the largest."]
     assert "strips" not in build_job(values(tmp_path), tmp_path / "out")
     without = problems(values(tmp_path, strips={**strips, "banks": ""}))
     assert without and "Suggested breaklines" in without[0]

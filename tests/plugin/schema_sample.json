@@ -521,7 +521,7 @@
     },
     "CorridorSpec": {
       "additionalProperties": false,
-      "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\nnegative to the left of the line's direction; the snapped rows take the ground of their lines.",
+      "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\npositive to the left of the line's direction; the snapped rows take the ground of their lines.",
       "properties": {
         "name": {
           "title": "Name",
@@ -2686,20 +2686,36 @@
           "description": "The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair",
           "title": "Banks"
         },
-        "layer_m": {
-          "default": 10.0,
-          "description": "Row spacing across a corridor from the banks file, m",
+        "cell_min_m": {
+          "default": 20.0,
+          "description": "Smallest cell across a corridor from the banks file, m: a narrow wadi gets no finer cells than this, since the smallest cells set the time step (his rule of 2026-11-07)",
           "exclusiveMinimum": 0.0,
-          "maximum": 100.0,
-          "title": "Layer M",
+          "maximum": 500.0,
+          "title": "Cell Min M",
           "type": "number"
         },
-        "rows_per_side": {
-          "default": 3,
-          "description": "Rows either side of the centre line from the banks file",
-          "maximum": 8,
+        "cell_max_m": {
+          "default": 50.0,
+          "description": "Largest cell across a corridor from the banks file, m: a wide wadi gets no coarser cells than this",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "Cell Max M",
+          "type": "number"
+        },
+        "width_fraction": {
+          "default": 0.25,
+          "description": "Cell across as a share of the wadi width between its banks, before the two bounds; 0.25 is four cells across",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Width Fraction",
+          "type": "number"
+        },
+        "rows_outside": {
+          "default": 1,
+          "description": "Rows of cells beyond each bank, at the across size, so the bank's faces lie inside the corridor and the join to the squares does not",
+          "maximum": 4,
           "minimum": 1,
-          "title": "Rows Per Side",
+          "title": "Rows Outside",
           "type": "integer"
         },
         "min_length_m": {
@@ -3395,8 +3411,10 @@
         "enabled": false,
         "corridors": [],
         "banks": null,
-        "layer_m": 10.0,
-        "rows_per_side": 3,
+        "cell_min_m": 20.0,
+        "cell_max_m": 50.0,
+        "width_fraction": 0.25,
+        "rows_outside": 1,
         "min_length_m": 300.0,
         "substeps": 0,
         "along": null,
