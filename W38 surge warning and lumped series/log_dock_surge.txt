@@ -1,0 +1,23 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.5 PASS engine found Engine ready.
+    4.6 === 1 the run names the lines over an inflow
+    4.8 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+    5.8 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+    9.3 dock says: line S14 ring crosses the cells where the lumped hydrograph of S14 enters the grid: its raw peak reads the pond's surge there, not the flow; read the lumped element's own series (series/network_<name>.csv), or move the line downstream of the inflow
+   50.6 PASS the hybrid ran Finished. line Faydh 01 crosses the cells where the lumped hydrograph of S12 enters the grid: its raw peak reads the pond's surge there, not the flow; read the lumped element's own series (series/network_<name>.csv), or move the line downstream of the inflow. 
+   50.6 lines named: ['Bidah 03', 'Faydh 01', 'Faydh 01', 'R2A crosses', 'R2A ring', 'R5A crosses', 'R5A ring', 'S1 ring', 'S11 ring', 'S14 ring', 'S2 ring', 'S5 ring', 'S6 ring', 'Z4C crosses', 'Z4C ring']
+   50.6 PASS the S5 ring is named ['Bidah 03', 'Faydh 01', 'Faydh 01', 'R2A crosses', 'R2A ring', 'R5A crosses', 'R5A ring', 'S1 ring', 'S11 ring', 'S14 ring', 'S2 ring', 'S5 ring', 'S6 ring', 'Z4C crosses', 'Z4C ring']
+   50.6 PASS the S11 ring is named ['Bidah 03', 'Faydh 01', 'Faydh 01', 'R2A crosses', 'R2A ring', 'R5A crosses', 'R5A ring', 'S1 ring', 'S11 ring', 'S14 ring', 'S2 ring', 'S5 ring', 'S6 ring', 'Z4C crosses', 'Z4C ring']
+   50.6 dam lines over an inflow's cells (a finding, not a check): ['Faydh 01', 'R2A', 'R5A', 'Z4C']
+   50.6 === 2 the panel offers the lumped elements of record
+   50.6 dock says: Finished. line Faydh 01 crosses the cells where the lumped hydrograph of S12 enters the grid: its raw peak reads the pond's surge there, not the flow; read the lumped element's own series (series/network_<name>.csv), or move the line downstream of the inflow. line R5A crosses the cells where the lum
+   52.6 40 lumped elements listed, e.g. ['Lumped element: Bidah 03', 'Lumped element: Faydh 01', 'Lumped element: J1', 'Lumped element: J12']
+   52.6 PASS lumped elements are listed after the lines ['Upfront line: Bidah 03', 'Upfront line: Faydh 01', 'Upfront line: R5A']
+   52.6 PASS S5 is among them ['Lumped element: Bidah 03', 'Lumped element: Faydh 01', 'Lumped element: J1', 'Lumped element: J12', 'Lumped element: J13', 'Lumped element: J2', 'Lumped element: J4', 'Lumped element: J5', 'Lumped element: J6', 'Lumped element: J7', 'Lumped element: J9', 'Lu
+   52.6 PASS the S5 view is the network's Lumped element: S5.
+   52.6 S5 outflow of record 629.5 m3/s, plotted 629.5
+   52.6 PASS the plot holds the network's own peak (629.535, 629.535)
+   52.6 PASS its limit says why it is the number to read Computed by the lumped network at its own step: the number of record for a lumped subbasin, reach or reservoir. A line across the cells where its hydrograph enters the grid reads the pond's surge there, not this.
+   52.7 SUMMARY 10 passed, 0 failed 
+   52.7 DONE
