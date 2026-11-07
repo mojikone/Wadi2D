@@ -348,6 +348,9 @@ def smoke() -> None:
         job["outputs"]["points"] == [{"name": "Dam 1", "x": 400080.0, "y": 2699940.0}], "design point named"
     )
     check(job["storm"]["depth_mm"] == 12.5, "rain written as a depth")
+    engines = [dock.panel.backend.itemData(i) for i in range(dock.panel.backend.count())]
+    check(engines == dock.schema.enum("run.backend"), "the engine choices are the schema's")
+    check("backend" not in job["run"], "the automatic engine leaves the job as it was")
 
     check(added.count("Wadi2D live depth") == 1, "live layer added exactly once")
     check(len(live_values) >= 3, f"live layer showed the rewrites in place: {sorted(live_values)}")
@@ -374,12 +377,17 @@ def smoke() -> None:
     )
     check(dock.panel.open_button.isVisibleTo(dock.panel), "Open results folder offered")
 
+    dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("cpu"))
     start(dock)
+    check(not dock.panel.backend.isEnabled(), "the engine choice is held while it runs")
     finished_run(dock)
     check(
         (WORK / "study" / "run_2" / PROGRESS_FILE).is_file() and group("run_2"),
         "a second run never overwrites",
     )
+    second_job = json.loads((WORK / "study" / "run_2" / "job.json").read_text(encoding="utf-8"))
+    check(second_job["run"].get("backend") == "cpu", "a CPU choice reaches the job")
+    dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("auto"))
 
     mode("error")
     os.environ["WADI2D_FAKE_STEPS"] = "6"
@@ -489,6 +497,8 @@ def smoke() -> None:
     routing.setCurrentIndex(routing.findData("hms"))
     check(job["run"]["duration_s"] == 7200.0, "the HMS control file sets the simulated time")
 
+    study_smoke(dock)
+
     settings.set_engine_text(r"C:\no\such\python.exe -m wadi2d.engine.cli")
     dock.schema = None
     dock.load_engine()
@@ -496,6 +506,53 @@ def smoke() -> None:
     check(not dock.panel.run_button.isEnabled(), "no engine, no Run")
 
     second.unload()
+
+
+def study_smoke(dock) -> None:
+    """The depth-area study through the dock and the process wrapper: progress, its table, a stop."""
+    mode("ok")
+    os.environ["WADI2D_FAKE_STEPS"] = "6"
+    os.environ["WADI2D_FAKE_STEP_S"] = "0.2"
+    across = line_layer(
+        "across", "&field=name:string&field=area:double",
+        [QgsPointXY(400020, 2699940), QgsPointXY(400140, 2699940)], attributes=["Outlet", 20.0],
+    )  # fmt: skip
+    PROJECT.addMapLayer(across)
+    dock.points.layer.setLayer(across)
+    dock.points.name.setField("name")
+    dock.points.area.setField("area")
+    box = dock.study
+    check(box.spacing.currentData() == "bracket", "a study's storm areas bracket the drainage areas by default")
+    check(not box.composite.isChecked(), "the composite map is off by default")
+    box.start_button.click()
+    pump(lambda: dock.study_run is not None, what="the study to start")
+    check(not dock.panel.run_button.isEnabled() and not box.start_button.isEnabled(), "no run while a study runs")
+    pump(lambda: "Run 1 of 2" in box.status.text(), what="the first run of the study")
+    check("1 run left after it" in box.status.text(), f"the study says how many runs are left: {box.status.text()}")
+    pump(lambda: dock.study_run is None, 60.0, "the study to end")
+    check(box.table.rowCount() == 2 and box.table.item(0, 0).text() == "Outlet", "a table of design flows")
+    check(box.message.text().startswith("Finished: 2 runs, 2 design flows"), f"the study ends: {box.message.text()}")
+    label = box.file_label.text()
+    check("design_points.csv" in label and "J1" in label, "where it is written, and the elements on the grid")
+    job = json.loads((dock._study_dir / "job.json").read_text(encoding="utf-8"))
+    check(job["arf"] == {"bracket": True}, "the study's job asks for bracketing storm areas")
+    check(job["outputs"]["lines"][0]["drainage_area_km2"] == 20.0, "a line's drainage area from its field")
+    check(dock.panel.run_button.isEnabled() and box.start_button.isEnabled(), "Run and Start study are back")
+
+    mode("slow")
+    os.environ["WADI2D_FAKE_STEPS"] = "400"
+    box.start_button.click()
+    pump(lambda: dock.study_run is not None, what="a slow study to start")
+    follow = dock.study_run
+    pump(lambda: follow.state.run is not None and follow.state.run.t > 0.0, what="the first run of a slow study")
+    box.stop_button.click()
+    pump(lambda: dock.study_run is None, 60.0, "the stopped study")
+    said = box.message.text()
+    check(said.startswith("Stopped after 0 of 2 runs") and "no design table" in said, f"a stopped study: {said}")
+    check(box.table.rowCount() == 0 and box.start_button.isEnabled(), "no table, and a study can start again")
+    os.environ["WADI2D_FAKE_STEP_S"] = "0.08"
+    mode("ok")
+    dock.points.layer.setLayer(None)
 
 
 def real_engine() -> None:

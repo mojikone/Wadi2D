@@ -7,7 +7,13 @@ from __future__ import annotations
 from qgis.core import QgsMapLayerProxyModel
 
 from ..job_builder import layer_features
+from ..study_rows import AREA_KEY
 from .common import Section, field_combo, layer_combo
+
+AREA_TIP = (
+    "Each line's own drainage area, km2, for the depth-area study: a line reads the study's runs either side of it. "
+    "A line with none, and every point, gets no design flow. A run does not use it."
+)
 
 
 class PointsSection(Section):
@@ -17,11 +23,15 @@ class PointsSection(Section):
     def build(self) -> None:
         self.layer = layer_combo(QgsMapLayerProxyModel.PointLayer | QgsMapLayerProxyModel.LineLayer, "None")
         self.name = field_combo(self.layer)
+        self.area = field_combo(self.layer)
+        self.area.setToolTip(AREA_TIP)
         self.form.addRow("Design points", self.layer)
         self.form.addRow("Name field", self.name)
+        self.form.addRow("Drainage area field, km2", self.area)
 
     def values(self, crs) -> dict:
         layer = self.layer.currentLayer()
         if layer is None:
             return {"design": []}
-        return {"design": layer_features(layer, crs, {"name": self.name.currentField()})}
+        fields = {"name": self.name.currentField(), AREA_KEY: self.area.currentField()}
+        return {"design": layer_features(layer, crs, fields)}

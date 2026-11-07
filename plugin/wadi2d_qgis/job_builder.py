@@ -21,6 +21,7 @@ from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .storm_rows import storm_job, storm_notes, storm_problems
+from .study_rows import AREA_KEY, line_area
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -59,6 +60,18 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+BACKEND = "run.backend"
+BACKEND_WORDS = {
+    "auto": "Automatic: the GPU if there is one",
+    "gpu": "GPU only",
+    "cpu": "CPU only",
+}
+"""One phrase per engine choice of the schema; a contract test holds the keys to the engine's."""
+BACKEND_TIP = (
+    "Automatic takes an NVIDIA GPU when one answers and the CPU otherwise. GPU only refuses to run without one. "
+    "CPU only never touches the graphics card: choose it when there is no NVIDIA card or its driver misbehaves. "
+    "The method is the same; the CPU is many times slower."
+)
 
 ANIMATION_MAP_S = 300.0
 """Saved maps for a film: the dock's other choice. A display choice, so it lives here; the default is the schema's."""
@@ -364,7 +377,11 @@ def _design_outputs(features: list[Feature]) -> dict:
             x, y = feature.coordinates[:2]
             points.append({"name": feature.name(index), "x": x, "y": y})
         else:
-            lines.append({"name": feature.name(index), "coordinates": feature.xy()})
+            entry = {"name": feature.name(index), "coordinates": feature.xy()}
+            area = line_area(feature)
+            if area is not None:  # only when a field gives one: an old job stays the job it was
+                entry[AREA_KEY] = area
+            lines.append(entry)
     return {"points": points, "lines": lines}
 
 
@@ -389,6 +406,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         "outputs": {},
         "run": {"duration_s": values["duration_h"] * SECONDS_PER_HOUR},
     }
+    if values.get("backend"):  # only a choice away from the engine's default: an old job stays the job it was
+        job["run"]["backend"] = values["backend"]
     if values.get("domain"):
         job["grid"]["domain"] = str(write_geojson(inputs / "domain.geojson", values["domain"], crs))
     elif values.get("extent"):
@@ -448,6 +467,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["terrain_map"] = True
     if values.get("local_steps"):
         job["numerics"] = {"local_time_stepping": True}
+    if values.get("study"):  # the depth-area study's job only: a run never carries one
+        job["arf"] = values["study"]
     if values.get("mesh"):
         job["mesh"] = _mesh(values["mesh"])
         if values["mesh"].get("lines"):

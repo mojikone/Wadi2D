@@ -1,0 +1,2 @@
+design_point,drainage_area_km2,storm_area_low_km2,storm_area_high_km2,peak_low_m3s,peak_high_m3s,design_peak_m3s,time_of_peak_s,arf_table_type,read_as
+Bidah 03,20.971,10.0,20.971,628.7852735379711,618.7927552955225,618.7927552955226,44190.0,as supplied in the HMS project; check whether it is fixed-area or storm-centred,"design line, 2D runs either side"

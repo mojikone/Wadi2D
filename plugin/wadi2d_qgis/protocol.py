@@ -47,6 +47,10 @@ BASIN_FILE = "basin.json"
 BASIN_GEOMETRY = "basin.gpkg"
 BASIN_LAYERS = ("subbasins", "reaches", "junctions")
 POUR_POINTS_FILE = "pour_points.geojson"
+STUDY_SUFFIX = "_arf"  # a study's folder sits beside the run folders, so it shares their grid cache
+STUDY_FILE = "study.json"
+STUDY_TABLE = "design_points.csv"
+COMPOSITE_DIR = "composite"  # in a study's folder, when it was asked for a composite map
 RUN_FILE = "plugin_run.json"  # written by the plugin: lets a later QGIS session find and stop the process
 STDOUT_FILE = "engine.out"
 STDERR_FILE = "engine.err"
@@ -105,7 +109,7 @@ ACCESS_VIOLATION = (-1073741819, 3221225477)
 CRASH_MESSAGE = (
     "The engine crashed inside the graphics driver or a library. If another GPU program is running, close it and run "
     "again; if it keeps happening, restart the PC (a driver left damaged by earlier GPU faults does this) or choose "
-    "the CPU engine."
+    "CPU only as the Engine in the Run section."
 )
 EXIT_MESSAGES.update(dict.fromkeys(ACCESS_VIOLATION, CRASH_MESSAGE))
 
@@ -147,6 +151,11 @@ def run_args(job: Path | str, out_dir: Path | str, dry_run: bool = False, resume
     if resume:
         args.append("--resume")
     return args
+
+
+def study_args(job: Path | str, out_dir: Path | str) -> list[str]:
+    """The arguments of ``wadi2d arf``: the engine choice travels in the job."""
+    return ["arf", str(job), "--out", str(out_dir)]
 
 
 def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:
@@ -271,6 +280,12 @@ def next_run_dir(folder: Path | str) -> Path:
         number += 1
         candidate = base.with_name(f"{base.name}_{number}")
     return candidate
+
+
+def next_study_dir(folder: Path | str) -> Path:
+    """Beside the chosen output folder, named after it: a study never lands in a run's folder, nor a run in it."""
+    base = Path(folder)
+    return next_run_dir(base.with_name(base.name + STUDY_SUFFIX))
 
 
 def write_run_info(out_dir: Path | str, pid: int, crs: str, t_end: float | None) -> None:

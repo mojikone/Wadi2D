@@ -1,6 +1,7 @@
 # Wadi2D QGIS plugin
 
-One dock, one workflow from top to bottom: terrain, mesh, hydrology, storm, structures, boundaries, results points, run. GPL-3.0-or-later.
+One dock, one workflow from top to bottom: terrain, mesh, hydrology, storm, structures, boundaries, results points, run,
+and the depth-area study after it. GPL-3.0-or-later.
 
 The plugin never imports the engine. It writes `job.json`, starts a process, tails `progress.jsonl` and loads rasters
 (design note section 5), so either side can change alone. Defaults, bounds and tooltips come from `wadi2d schema`.
@@ -65,11 +66,26 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
    shows the result on the map in seconds, without a run.
 6. **Boundaries.** One line layer holds them all. The table lists each line with its kind and value, editable, and needs no fields in the layer; a value starts from the default of its kind. Kind and Value above it set every line you have not touched. If the layer has fields named `kind` and `value`, each line starts from its own; a `name` field names the row. Click a row to flash its line on the map.
-7. **Results points.** Points record depth and level; lines across the flow record discharge.
+7. **Results points.** Points record depth and level; lines across the flow record discharge. **Drainage area field**, km2,
+   is for the depth-area study only: a line with one gets a design flow there; a run does not use it.
 8. **Run.** Estimate gives cells, memory, time and the disk of the saved maps; on a mesh it counts the mesh, and its time is rough. **Save maps** is every 15 minutes for design
    work, or every 5 for an animation, three times the disk; peak depth and hazard hardly move between the two, because the
    run keeps its own peaks. A folder that already holds a run is never overwritten: the new run goes to `<folder>_2`, and
-   all runs share `wadi2d_cache` beside them, so tables are built once.
+   all runs share `wadi2d_cache` beside them, so tables are built once. **Engine** is Automatic (an NVIDIA GPU when one
+   answers, else the CPU), GPU only, or CPU only, for a PC with no NVIDIA card or a driver that misbehaves; only a choice
+   other than Automatic goes into the job.
+9. **Depth-area study.** One 2D run per storm area, the design storm read from its area reduction table at that area, on
+   lumped and 2D parts alike; it needs the HMS storm or a design storm with its table, and a design line with a drainage
+   area. Storm areas are **Around the drainage areas** by default: log-spaced from the smallest to the largest area of the
+   design lines and of the lumped elements a hand-back feeds, at most 6, neighbours at most 2 x apart; or log-spaced
+   between two areas; or listed. Each design line reads log Q against log A between the two runs either side of its own
+   area. A lumped element with no 2D water above it is rerun lumped at its own area, as HMS's depth-area analysis does,
+   in seconds and with no interpolation; one a hand-back feeds reads the 2D runs as a line does; one whose water runs on
+   the grid and never comes back has no flow of its own, and the dock names it. **Start study** shows which run of how
+   many and how many are left; **Stop study** ends the run in progress as Stop does and writes no table, since the table
+   needs every storm area. At the end the table appears in the dock and in `design_points.csv` and `study.json` of
+   `<folder>_arf`, beside the output folder, with each run in `runs/`. **Composite map (experimental)**, off by default,
+   needs a flow accumulation raster and loads depth, speed and hazard read per cell at its own drainage area.
 
 During a run the depth appears as a blue layer. When the simulation ends the bar restarts for the pixel maps, unless the
 box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons, a depth drawing with a soft wet edge. At
@@ -159,6 +175,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `basin_layers.py` | the three layers of `basin.gpkg`, styled, in their group | yes |
 | `storm_rows.py` | the Storm section as plain values: pasted tables, problems, the job's storm block | no |
 | `mesh_rows.py` | the rows of the mesh lines table: what each size becomes, who set what | no |
+| `study_rows.py`, `study_state.py` | the depth-area study as plain values, and its progress folded with its run's | no |
 | `job_builder.py` | values to a job dict; layers to features at the end of the file | adapters only |
 | `shaped.py` | embankments and channels to job entries, their problems, the volumes sentence | no |
 | `preview.py`, `profile_view.py` | Preview terrain and its sections dialog | yes |

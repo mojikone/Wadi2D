@@ -1,0 +1,76 @@
+    0.0 script loaded
+    4.3 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac062536216557d25\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.8 === 1 the widgets
+    4.8 PASS the engine choices are the schema's ['auto', 'gpu', 'cpu']
+    4.8 PASS the engine starts automatic Automatic: the GPU if there is one
+    4.8 PASS the study comes after Run 
+    4.8 PASS bracketing areas by default Around the drainage areas
+    4.8 PASS the label says the rule Up to 6 runs, picked when the study starts: log-spaced from the smallest to the largest drainage area of the design lines and of the lumped elements a hand-back feeds, neighbours at most 2 x apart. A lumped element with no 2D water above it needs no run: it is
+    4.8 PASS the composite map is off by default 
+    4.8 PASS no per-point exact tick 
+    4.8 PASS steady rain is refused A study needs a design storm with an area reduction table: in Storm, choose As in the HMS project, or Design storm with area reduction and fill its table. The study needs a design line with a drainage area: in Results points, choose the line layer and the fiel
+    4.8 PASS a line without its area field is refused The study needs a design line with a drainage area: in Results points, choose the line layer and the field that holds each line's drainage area in km2.
+    4.8 PASS listed areas are counted 3 runs, one per storm area: 10, 20.97 and 30 km2.
+    5.2 === 2 study A: the HMS storm, automatic engine, three storm areas, composite map
+    6.2 PASS Run is held while a study runs 
+    7.7 status: Run 1 of 3, storm area 10 km2; 2 runs left after it. 0 h 00 min
+    7.7 PASS the study says how many runs are left Run 1 of 3, storm area 10 km2; 2 runs left after it. 0 h 00 min
+   36.7 PASS the last run says so Run 3 of 3, storm area 30 km2; the last run. 0 h 00 min
+   49.3 dock says: Finished: 3 runs, 1 design flow, for design lines and lumped elements. water stood 11.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there. water stood 11.5 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   49.3 PASS study A finished Finished: 3 runs, 1 design flow, for design lines and lumped elements. water stood 11.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there. water stood 11.5 m deep against the domain edge at (432606, 27272
+   49.3 PASS the study job's areas and composite {'areas_km2': [10.0, 20.971, 30.0], 'accumulation': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ac062536216557d25\\_dock_tmp\\dock_backend_arf\\acc_constant.tif', 'accumulation_units': 'km2'}
+   49.3 PASS an automatic engine is not in the job {'duration_s': 172800.0}
+   49.3 PASS the HMS control file set 48 h 172800.0
+   49.3 PASS one run per storm area [10.0, 20.971, 30.0]
+   49.3 PASS each run started on the GPU {10.0: 'gpu', 20.971: 'gpu', 30.0: 'gpu'}
+   49.3 PASS one row: the line with an area; axis has none ['Bidah 03']
+   49.3 PASS the dock's table is the file's 618.8
+   49.3 PASS the dock names the file Written to D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac062536216557d25\_dock_tmp\dock_backend_arf\runs\bidah_arf\design_points.csv. Area reduction table: as supplied in the HMS project; check whether it is fixed-area or storm-centred.
+   49.3 PASS the csv holds the same row 618.7927552955226
+   49.3 line peaks by storm area: {10.0: 628.785, 20.971: 618.793, 30.0: 610.5}
+   49.3 PASS the row reads the runs either side (10.0, 20.971)
+   49.3 PASS its peaks are those runs' series peaks (628.7852735379711, 628.785, 618.7927552955225, 618.793)
+   49.3 PASS at its own area the design peak is that run's (618.7927552955226, 618.793)
+   49.3 INTERPOLATION Bidah 03 at 20.971 km2 from 10 and 30 km2: 616.400 against the exact-area run 618.793 m3/s, -0.3867%
+   49.3 PASS the interpolation between 10 and 30 is within 1 % of the exact run -0.3867%
+   56.7 storm depth read by each run {10.0: 202.7298, 20.971: 200.25101226, 30.0: 198.211} mm; ARF {10.0: 0.987, 20.971: 0.9749319, 30.0: 0.965}; net rain on the grid {10.0: 4978044, 20.971: 4908635, 30.0: 4851533} m3 (after the HMS losses)
+   56.7 PASS each run read the storm at the ARF factor of its storm area 0.00e+00
+   56.7 PASS each run's storm area is its own {10.0: 10.0, 20.971: 20.971, 30.0: 30.0}
+   56.7 PASS the composite map was written 
+   56.7 PASS on a constant 20.971 km2 raster the composite is the 20.971 run 0.0
+   56.7 PASS the composite is loaded as a group 
+   56.7 === 3 study C: stopped in its second run
+   72.3 status before the stop: Run 2 of 3, storm area 30 km2; 1 run left after it. 11 h 00 min of 48 h 00 min | step 1.93 s | mass error -8.4e-09
+   72.3 PASS the second run says one is left Run 2 of 3, storm area 30 km2; 1 run left after it. 11 h 00 min of 48 h 00 min | step 1.93 s | mass error -8.4e-09
+   74.1 dock says: Stopped after 1 of 3 runs. A stopped study writes no design table, because it needs every storm area; the finished runs stay in its runs folder. water stood 11.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there. water stood 11.3 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   74.1 PASS a stopped study says how far it got Stopped after 1 of 3 runs. A stopped study writes no design table, because it needs every storm area; the finished runs stay in its runs folder. water stood 11.6 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygo
+   74.1 PASS the engine stopped it {'ev': 'done', 'status': 'stopped', 'code': 6, 'partial': True, 'runs': 2}
+   74.1 PASS no table, no stop file left 
+   74.1 PASS the third run never started 2
+   74.1 PASS the run in progress stopped too stopped
+   74.1 PASS Start study is back, the table empty 
+   74.1 === 4 study B: generated basin, a hand-back, bracketing areas, the CPU engine
+   76.1 basin: 8 subbasins, 4 reaches, 5 junctions, 0 reservoirs; 6.4311 km2 reach the edge without meeting a stream and rain on the grid.
+   76.1 S2 in 2D above Bidah 03
+   99.5 dock says: Finished: 2 runs, 17 design flows, for design lines and lumped elements. water stood 6.4 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   99.5 PASS study B finished Finished: 2 runs, 17 design flows, for design lines and lumped elements. water stood 6.4 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+   99.5 PASS the CPU choice is in the job {'duration_s': 14400.0, 'backend': 'cpu'}
+   99.5 PASS bracketing areas asked {'bracket': True}
+   99.5 PASS each run of B read the storm at its own area {19.3071: 19.3071, 22.3541: 22.3541}
+   99.5 PASS each run started on the CPU {19.3071: 'cpu', 22.3541: 'cpu'}
+   99.5 PASS one 2D run per storm area (2, [19.3071, 22.3541])
+   99.5 storm areas [19.3071, 22.3541]; elements {'exact': 13, 'runs': 3, 'grid': 0}; rows by kind {'design line, 2D runs either side': ['Bidah 03'], 'lumped element, rerun lumped at its own area': ['S1', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'J4', 'R4', 'J3', 'R3', 'J2', 'R2'], 'lumped element with 2D water, 2D runs either side': ['Bidah 03', 'R1', 'J1']}; on the grid []
+   99.5 PASS the areas span the line and the fed elements ([19.3071, 22.3541], [20.971, 19.3071, 19.3071, 22.3541])
+   99.5 PASS at most 6, neighbours at most 2 x apart [1.1578175904201045]
+   99.5 PASS rows for the line, fed elements and lumped elements ['design line, 2D runs either side', 'lumped element with 2D water, 2D runs either side', 'lumped element, rerun lumped at its own area']
+   99.5 PASS each fed element's peaks are its network series in the runs either side ['Bidah 03', 'R1', 'J1']
+   99.5 PASS each lumped element reads its own area, no interpolation 
+   99.5 INTERPOLATION lumped elements, the 2D runs' network series interpolated to each element's area against its exact rerun: {'S1': '-2.800%', 'S3': '-3.020%', 'S4': '-1.810%', 'S5': '-3.164%', 'S6': '-2.840%', 'S7': '-2.779%', 'S8': '-2.905%', 'J4': '-2.457%', 'R4': '-2.473%', 'J3': '-1.856%', 'R3': '-1.876%', 'J2': '-0.244%', 'R2': '-0.246%'}
+   99.5 === 5 a plain run on the CPU
+   99.6 dock says: Starting...
+  118.2 PASS the plain run finished Finished. water stood 6.4 m deep against the domain edge at (432606, 2727280): an edge is a wall, so check the domain polygon there.
+  118.2 PASS its job says cpu and carries no study {'duration_s': 14400.0, 'backend': 'cpu'}
+  118.2 PASS its engine started on the CPU cpu
+  118.2 SUMMARY 55 passed, 0 failed 
+  118.2 DONE
