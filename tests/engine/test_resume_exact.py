@@ -2,29 +2,28 @@
 
 from __future__ import annotations
 
-import threading
-import time
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from tests.engine.test_run import full_job, valley_dem  # noqa: F401
+from wadi2d.engine.monitor import Monitor
 from wadi2d.run import run_job
 
 SOURCE_EVERY_S = 30.0
+STOP_ASKED_AT_S = 1000.0
+"""Inside the 34th window: a stop asked here, mid-window, must land at 1,020 s."""
 
 
-def stop_once_started(out: Path) -> threading.Thread:
-    def stop_soon() -> None:
-        while not (out / "results.h5").exists():
-            time.sleep(0.02)
-        time.sleep(0.3)
-        (out / "stop").touch()
+def stop_asked_at(t_s: float):
+    """``Monitor.stop_requested`` that reads true once the run passes ``t_s``: a stop file at a set simulated time,
+    the same on any backend however fast it runs."""
 
-    thread = threading.Thread(target=stop_soon, daemon=True)
-    thread.start()
-    return thread
+    def asked(self: Monitor) -> bool:
+        return self.last_t >= t_s
+
+    return asked
 
 
 def series(out: Path) -> dict[str, str]:
@@ -32,25 +31,26 @@ def series(out: Path) -> dict[str, str]:
 
 
 @pytest.mark.parametrize("backend", ["cpu", pytest.param("gpu", marks=pytest.mark.gpu)])
-def test_a_stop_lands_on_a_source_window_and_the_resumed_run_is_the_unbroken_one(valley_dem, tmp_path, backend):  # noqa: F811
+def test_a_stop_lands_on_a_source_window_and_the_resumed_run_is_the_unbroken_one(
+    valley_dem, tmp_path, backend, monkeypatch  # noqa: F811
+):
     cfg = full_job(valley_dem, backend, 2400.0)
-    cfg = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"progress_every_s": 0.01})})
+    cfg = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"progress_every_s": 0.0})})
     out = tmp_path / "broken"
-    thread = stop_once_started(out)
-    stopped = run_job(cfg, out)
-    thread.join()
+    with monkeypatch.context() as patch:
+        patch.setattr(Monitor, "stop_requested", stop_asked_at(STOP_ASKED_AT_S))
+        stopped = run_job(cfg, out)
     assert stopped.exit_code == 6
-    assert 0.0 < stopped.t_end < 2400.0
-    assert stopped.t_end / SOURCE_EVERY_S == pytest.approx(round(stopped.t_end / SOURCE_EVERY_S), abs=1e-9)
+    assert stopped.t_end == pytest.approx(1020.0, abs=1e-6)
 
     resumed = run_job(cfg, out, resume=True)
     whole = run_job(cfg, tmp_path / "whole")
     assert resumed.exit_code == whole.exit_code == 0
     assert resumed.steps == whole.steps
     assert series(out) == series(tmp_path / "whole")
-    for name in ("outflow", "storage"):
-        assert getattr(resumed.balance, name) == getattr(whole.balance, name), name
-    # The books credit a window's rain in pieces at wall-clock progress ticks, so even two unbroken runs part in the 16th digit.
-    for name in ("rain", "inflow"):
+    assert resumed.balance.storage == whole.balance.storage
+    # The books add in another order across a checkpoint (rain credited at progress ticks, the GPU's outflow tally
+    # restarted from the saved sum), so they agree to round-off, not to the digit; the water above is the same.
+    for name in ("rain", "inflow", "outflow"):
         assert getattr(resumed.balance, name) == pytest.approx(getattr(whole.balance, name), rel=1e-12), name
     np.testing.assert_array_equal(np.asarray(resumed.dt_min), np.asarray(whole.dt_min))
