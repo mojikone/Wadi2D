@@ -359,6 +359,39 @@
       "title": "Boundary",
       "type": "object"
     },
+    "DamLevel": {
+      "additionalProperties": false,
+      "description": "Where a dam's pool stands when the run starts. A dam not named here starts empty, as a design run that reads the\nattenuation wants; a scenario sets a level, a breach from a full pool say.",
+      "properties": {
+        "name": {
+          "description": "A reservoir of the lumped network that routes in this run, else a crest line or embankment on the grid, by name",
+          "title": "Name",
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "enum": [
+                "empty",
+                "spillway"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "default": "empty",
+          "description": "'empty'; 'spillway', the lowest spillway crest; or a water level on the datum of the DEM, m",
+          "title": "Start"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "DamLevel",
+      "type": "object"
+    },
     "DesignLine": {
       "additionalProperties": false,
       "description": "A line across the flow; discharge is summed over the lattice faces it crosses, positive to its right.",
@@ -3109,6 +3142,14 @@
         "$ref": "#/$defs/InitialLevel"
       },
       "title": "Initial Levels",
+      "type": "array"
+    },
+    "dam_levels": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DamLevel"
+      },
+      "title": "Dam Levels",
       "type": "array"
     },
     "outputs": {

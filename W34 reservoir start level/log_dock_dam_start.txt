@@ -1,0 +1,33 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.9 === 1 the table lists the dam once, empty
+    4.9 PASS no crest layer, no rows 0
+    4.9 PASS three pieces, one dam 1
+    4.9 PASS named by the layer Bidah dam
+    4.9 PASS starts empty empty
+    4.9 PASS no level for an empty dam 
+    5.0 === 2 empty: no dam_levels in the job, no water at the start
+    5.1 dock says: Starting...
+    7.9 PASS empty finished Finished.
+    7.9 PASS empty writes nothing None
+    7.9 PASS no water at the start 0.0
+    7.9 === 3 full to the spillway: the pool behind the dam, as W32 measured it
+   10.1 PASS spillway finished Finished. dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3.
+   10.1 PASS the job names the start [{'name': 'Bidah dam', 'start': 'spillway'}]
+   10.1 start storage 3,832,907 m3; notes ['dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3']
+   10.1 PASS the run says what it filled ['dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3']
+   10.1 PASS within 3 % of W32's grid pool with crest lines 1.0248
+   10.1 PASS no less than W32's polygon, which stopped 3 km up 3,832,907
+   10.1 === 4 a level: less water, and the level in the job
+   10.1 PASS a level box once asked 
+   12.2 PASS level finished Finished. dam Bidah dam: the pool on the grid starts at 98 m, 1469 cells, 2,599,163 m3.
+   12.2 PASS the job holds the level [{'name': 'Bidah dam', 'start': 98.0}]
+   12.2 PASS a lower level holds less (2599162.9943313194, 3832906.8999122363)
+   12.2 === 5 initial water, a pond drawn as a polygon
+   12.3 PASS a pond without its level field is stopped ['Every initial water polygon needs a level: choose the field that holds it.']
+   14.5 PASS pond finished Finished.
+   14.5 PASS the pond reaches the job [{'coordinates': [[435242.99487, 2725400.19673], [435642.99487, 2725400.19673], [435642.99487, 2725800.19673], [435242.99487, 2725800.19673], [435242.99487, 2725400.19673]], 'level': 159.83456420898438}]
+   14.5 PASS the pond holds water at the start 555590.2648164425
+   14.5 SUMMARY 23 passed, 0 failed 
+   14.5 DONE

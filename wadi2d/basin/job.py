@@ -114,9 +114,23 @@ def with_overrides(model: Model, subbasins: list[Subbasin]) -> Model:
     return refresh(model)
 
 
+def dry_start(model: Model) -> Model:
+    """A reservoir whose start the file only derived starts empty, at the foot of its table, in place.
+
+    Files written before 2026-11-07 derived the lowest spillway crest; a design run reads a dam's attenuation from an
+    empty pool, and a scenario names its level in ``RunConfig.dam_levels`` (his decision of 2026-11-07).
+    """
+    for element in model["elements"]:
+        start = element["parameters"].get("initial_elevation_m")
+        table = value_of(element, "elevation_m") if element["kind"] == RESERVOIR else None
+        if table and start is not None and start["source"] == SOURCE_DERIVED:
+            start["value"] = table[0]
+    return model
+
+
 def load_model(h: Hydrology) -> Model:
-    """The job's basin model with its overrides."""
-    return with_overrides(read_model(h.basin_json), h.subbasins)
+    """The job's basin model with its overrides; a derived reservoir start is the empty pool."""
+    return with_overrides(dry_start(read_model(h.basin_json)), h.subbasins)
 
 
 def _modes(model: Model, subbasins: list[Subbasin]) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:

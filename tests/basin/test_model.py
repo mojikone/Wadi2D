@@ -32,7 +32,8 @@ from wadi2d.basin.elements import Namer
 from wadi2d.basin.kernels import NONE
 from wadi2d.basin.parameters import hms_kirpich_lag_minutes, index_celerity, nrcs_lag_minutes
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH
-from wadi2d.config.schema import REACH_CONSERVING, REACH_HMS, BasinSettings, DesignPoint, RunConfig
+from wadi2d.config.schema import REACH_CONSERVING, REACH_HMS, BasinSettings, DamLevel, DesignPoint, RunConfig
+from wadi2d.dam_levels import with_dam_starts
 from wadi2d.engine.cli import main
 from wadi2d.hydrology import LumpedEngine, TimeGrid
 from wadi2d.hydrology.model import Junction, Reach, Reservoir, Subbasin
@@ -348,7 +349,7 @@ def test_a_dam_becomes_a_reservoir_with_the_pool_on_the_ground(tmp_path: Path) -
     h = levels[index] - bed
     assert areas[index] == pytest.approx(h**2 / (SIDE_SLOPE * BED_SLOPE), rel=0.05)
     assert volumes[index] == pytest.approx(h**3 / (3.0 * SIDE_SLOPE * BED_SLOPE), rel=0.05)
-    assert value_of(dam, "initial_elevation_m") == 120.0
+    assert value_of(dam, "initial_elevation_m") == levels[0]  # empty: a design run reads the dam's attenuation
     assert value_of(dam, "spillways") == [
         {"crest_elevation_m": 120.0, "crest_length_m": 50.0, "coefficient": 2.0, "outlet": 0}
     ]
@@ -362,15 +363,18 @@ def test_the_reservoir_loads_and_routes_with_the_spillway_rating(tmp_path: Path)
     assert isinstance(dam, Reservoir)
     assert isinstance(dam.routing, ReservoirOutflowStructures)
     pulse = HypotheticalStorm(depth_mm=100.0, pattern=STORM.pattern, duration_hours=1.0)
-    run = LumpedEngine(basin).run(pulse, GRID)
-    assert 0.0 < run.outflow["Dam A"].max() < 0.9 * run.inflow["Dam A"].max()
+    empty = LumpedEngine(basin).run(pulse, GRID)
+    with_dam_starts(basin, [DamLevel(name="Dam A", start="spillway")])
+    full = LumpedEngine(basin).run(pulse, GRID)
+    assert 0.0 < full.outflow["Dam A"].max() < 0.9 * full.inflow["Dam A"].max()
+    assert empty.outflow["Dam A"].max() < full.outflow["Dam A"].max()
 
 
 def test_a_dam_without_a_spillway_says_so_and_passes_as_a_junction(tmp_path: Path) -> None:
     dem = write_raster(tmp_path / "dem.tif", valley_dem())
     model = model_of(dam_job(tmp_path, dem, spillway=False))
     dam = by_kind(model, "reservoir")[0]
-    assert dam["missing"] == ["spillways", "initial_elevation_m"]
+    assert dam["missing"] == ["spillways"]  # an empty pool needs no spillway to start from
     assert isinstance(load_network(model, skip_incomplete=True).elements["Dam A"], Junction)
 
 
