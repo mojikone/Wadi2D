@@ -71,19 +71,18 @@ def with_dam_starts(basin: Basin, levels: list[DamLevel]) -> dict[str, float]:
     return taken
 
 
-def _dam(cfg: RunConfig, name: str) -> TerrainObject:
+def _dam(cfg: RunConfig, name: str) -> list[TerrainObject]:
+    """Every crest line and embankment of that name: a dam drawn in pieces is one dam."""
     found = [o for o in cfg.terrain.objects if o.kind in DAM_KINDS and o.name == name]
     if not found:
         raise ValueError(
             f"dam_levels names {name}: no reservoir of that name routes in this run's lumped network, and no crest "
             "line or embankment carries the name"
         )
-    if len(found) > 1:
-        raise ValueError(f"dam_levels names {name}: {len(found)} crest lines or embankments carry the name")
-    return found[0]
+    return found
 
 
-def _grid_level(cfg: RunConfig, dam: TerrainObject, start: str | float) -> float | None:
+def _grid_level(cfg: RunConfig, name: str, pieces: list[TerrainObject], start: str | float) -> float | None:
     """The level to fill to, None for an empty pool."""
     if start == DAM_EMPTY:
         return None
@@ -91,11 +90,11 @@ def _grid_level(cfg: RunConfig, dam: TerrainObject, start: str | float) -> float
         return float(start)
     from wadi2d.basin.reservoirs import spillways_of
 
-    ratings = spillways_of(dam, cfg, cfg.basin)
+    ratings = [rating for piece in pieces for rating in spillways_of(piece, cfg, cfg.basin)]
     if not ratings:
         raise ValueError(
-            f"dam_levels: {dam.name} starts at its spillway, but no spillway lies within {cfg.basin.dam_join_m:g} m "
-            "of its line"
+            f"dam_levels: {name} starts at its spillway, but no spillway lies within {cfg.basin.dam_join_m:g} m of its "
+            "line"
         )
     return min(r["crest_elevation_m"] for r in ratings)
 
@@ -140,11 +139,10 @@ def _side(line: shapely.LineString, x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return np.sign(cross)
 
 
-def _pool(tables: GridTables, open_cells: np.ndarray, dam: TerrainObject, level: float) -> np.ndarray:
-    """The cells of the pool behind ``dam`` at ``level``, as a mask."""
+def _beside(tables: GridTables, component: np.ndarray, piece: TerrainObject) -> tuple[np.ndarray, np.ndarray]:
+    """The components of the wet cells either side of one piece of a dam, and the side of the line each lies on."""
     grid = tables.grid
-    component, _flat = _components(tables, level)
-    st = staircase(grid, dam.coordinates)
+    st = staircase(grid, piece.coordinates)
     north = st.axis == NORTH
     jb, ib = st.j, st.i
     ja, ia = np.where(north, jb - 1, jb), np.where(north, ib, ib - 1)
@@ -154,25 +152,42 @@ def _pool(tables: GridTables, open_cells: np.ndarray, dam: TerrainObject, level:
     labels = component[js, is_]
     keep = labels >= 0
     js, is_, labels = js[keep], is_[keep], labels[keep]
-    if labels.size == 0:
-        raise ValueError(f"dam_levels: {dam.name} at {level:g} m wets no cell beside its line: check the datum")
     x, y = grid.xy_of(js, is_)
-    sides = _side(shapely.LineString(dam.coordinates), np.asarray(x, np.float64), np.asarray(y, np.float64))
+    sides = _side(shapely.LineString(piece.coordinates), np.asarray(x, np.float64), np.asarray(y, np.float64))
+    return labels, sides
+
+
+def _pool(tables: GridTables, open_cells: np.ndarray, name: str, pieces: list[TerrainObject], level: float) -> np.ndarray:
+    """The cells of the pool behind the dam ``name`` at ``level``, as a mask.
+
+    Each piece is judged alone, as the pieces of one dam may be drawn either way: water held on both sides of one piece
+    is refused. Water held below the dam that touches only another piece would be filled: the count of cells and the
+    volume in the run's notes are the check.
+    """
+    component, _flat = _components(tables, level)
     leaking = set(np.unique(component[open_cells & (component >= 0)]).tolist())
-    held = {}
-    for label, side in zip(labels.tolist(), sides.tolist(), strict=True):
-        if label not in leaking and side != 0:
-            held.setdefault(label, set()).add(side)
-    sides_held = set().union(*held.values()) if held else set()
+    held: set[int] = set()
+    wet_beside = False
+    for piece in pieces:
+        labels, sides = _beside(tables, component, piece)
+        wet_beside = wet_beside or labels.size > 0
+        kept = {
+            (label, side)
+            for label, side in zip(labels.tolist(), sides.tolist(), strict=True)
+            if label not in leaking and side != 0
+        }
+        if len({side for _label, side in kept}) > 1:
+            raise ValueError(
+                f"dam_levels: water at {level:g} m beside {name} is held on both sides of one of its lines, so which "
+                "side is the pool cannot be told; draw it as a polygon in initial_levels"
+            )
+        held |= {label for label, _side in kept}
+    if not wet_beside:
+        raise ValueError(f"dam_levels: {name} at {level:g} m wets no cell beside its line: check the datum")
     if not held:
         raise ValueError(
-            f"dam_levels: water at {level:g} m behind {dam.name} reaches an open boundary on both sides: the line does "
-            "not close the valley at that level, or the pool runs out of the domain"
-        )
-    if len(sides_held) > 1:
-        raise ValueError(
-            f"dam_levels: water at {level:g} m beside {dam.name} is held on both sides of its line, so which side is "
-            "the pool cannot be told; draw it as a polygon in initial_levels"
+            f"dam_levels: water at {level:g} m behind {name} reaches an open boundary on both sides: the line does not "
+            "close the valley at that level, or the pool runs out of the domain"
         )
     return np.isin(component, list(held))
 
@@ -195,12 +210,12 @@ def grid_pool_depth(
     hc, dtab = grid.from_tiles(tables.hc), grid.from_tiles(tables.dtab)
     zmin = np.asarray(tables.zmin, np.float64)
     for item in wanted:
-        dam = _dam(cfg, item.name)
-        level = _grid_level(cfg, dam, item.start)
+        pieces = _dam(cfg, item.name)
+        level = _grid_level(cfg, item.name, pieces, item.start)
         if level is None:
             notes.append(f"dam {item.name}: the pool on the grid starts empty")
             continue
-        pool = _pool(tables, open_cells, dam, level)
+        pool = _pool(tables, open_cells, item.name, pieces, level)
         depth = np.asarray(hbar_at_level(level, zmin[pool], hc[pool], dtab[pool]))
         out[pool] = np.maximum(out[pool], depth)
         volume = float(depth.sum()) * grid.dx * grid.dx

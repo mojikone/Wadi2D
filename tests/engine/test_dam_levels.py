@@ -144,3 +144,18 @@ def test_a_derived_start_is_the_empty_pool_and_a_given_one_stays() -> None:
 
     model = dry_start({"elements": [reservoir(100.0, "derived"), reservoir(95.0, "user")]})
     assert [e["parameters"]["initial_elevation_m"]["value"] for e in model["elements"]] == [86.96, 95.0]
+
+
+def test_a_dam_drawn_in_two_pieces_either_way_holds_the_same_pool(dem, tmp_path) -> None:
+    whole = dam_job(dem, dam_levels=[{"name": "Dam", "start": "spillway"}])
+    top, bottom, mid = (X0 + CREST_X, Y0), (X0 + CREST_X, Y0 - NY * DX), (X0 + CREST_X, Y0 - NY * DX / 2.0)
+    objects = [o.model_dump() for o in whole.terrain.objects if o.kind != "crest_line"]
+    objects += [
+        {"kind": "crest_line", "name": "Dam", "coordinates": [top, mid], "z_constant": CREST_Z},
+        {"kind": "crest_line", "name": "Dam", "coordinates": [bottom, mid], "z_constant": CREST_Z},
+    ]
+    pieces = whole.model_copy(update={"terrain": whole.terrain.model_copy(update={"objects": []})})
+    pieces = type(whole).model_validate({**pieces.model_dump(), "terrain": {**pieces.terrain.model_dump(), "objects": objects}})
+    one, _notes, _t = pool_of(whole, tmp_path / "one")
+    two, _notes, _t = pool_of(pieces, tmp_path / "two")
+    assert float(two.sum()) == pytest.approx(float(one.sum()), rel=1e-6)
