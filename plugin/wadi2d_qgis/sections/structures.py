@@ -1,6 +1,7 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""5. Structures: line layers for crests, walls, spillways, burn lines, embankments and channels, each with its fields."""
+"""5. Structures: line layers for crests, walls, spillways, burn lines, embankments and channels, each with its fields;
+where each dam's pool and any other pond stand when the run starts."""
 
 from __future__ import annotations
 
@@ -13,6 +14,7 @@ from ..profile_table import EDGE_KINDS, ProfileStore, apply_levels, keyed
 from ..shaped import SHAPED_KINDS
 from .common import Section, field_combo, layer_combo
 from .shaped_rows import ROWS, ProfileRow, ShapedRows, lines_of
+from .start_water import StartWater
 
 NAME_FIELDS = ("name", "Name", "NAME")
 """A field that names a structure; a crest line's name names its reservoir in a generated basin."""
@@ -65,6 +67,8 @@ class StructuresSection(Section):
             self.form.addRow(self.shaped[kind])
         for kind, row in self.profile_rows.items():
             row.button.clicked.connect(lambda _checked=False, name=kind: self.edit_requested.emit(name))
+        self.start_water = StartWater(self.layers)
+        self.form.addRow(self.start_water)
         self.terrain_map = QCheckBox("Write the modified terrain with the run")
         self.preview_button = QPushButton("Preview terrain")
         self.profile_button = QPushButton("Sections and long profile...")
@@ -82,6 +86,7 @@ class StructuresSection(Section):
         self.fields["spillway"]["coefficient"].setToolTip(tip)
         for rows in self.shaped.values():
             rows.apply_schema(schema)
+        self.start_water.apply_schema(schema)
 
     def values(self, crs) -> dict:
         structures = {}
@@ -95,7 +100,7 @@ class StructuresSection(Section):
             structures[kind] = [
                 apply_levels(feature, self.profiles.table(layer, kind, key)) for key, _fid, feature in self._parts(kind, crs)
             ]
-        return {"structures": structures, "terrain_map": self.terrain_map.isChecked()}
+        return {"structures": structures, "terrain_map": self.terrain_map.isChecked(), **self.start_water.values(crs)}
 
     def _parts(self, kind: str, crs) -> list:
         layer = self.layers[kind].currentLayer()

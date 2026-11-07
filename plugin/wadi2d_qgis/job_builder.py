@@ -15,6 +15,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .dam_rows import dam_problems, initial_problems, initial_water
 from .mesh_rows import reversed_note, rounded_note
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
@@ -32,6 +33,7 @@ BOUNDARY_KIND = "boundaries.kind"
 BOUNDARY_STAGE = "boundaries.stage"
 BOUNDARY_SLOPE = "boundaries.slope"
 SPILLWAY_C = "terrain.objects.coefficient"
+DAM_LEVELS = "dam_levels"
 MESH_ENABLED = "mesh.enabled"
 MESH_COARSE = "mesh.coarse_dx"
 MESH_FINE_AREA = "mesh.stream_area_fine_km2"
@@ -204,6 +206,8 @@ def problems(values: dict) -> list[str]:
     if any(not feature.properties.get("element") for feature in values.get("handbacks") or []):
         found.append("Every hand-back line needs an element to enter: choose one in the table.")
     found.extend(_structure_problems(values.get("structures", {})))
+    found.extend(dam_problems(values.get("dam_rows") or []))
+    found.extend(initial_problems(values.get("initial_water") or []))
     return found + _mesh_problems(values)
 
 
@@ -412,6 +416,11 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
                 _shaped(kind, n, feature, inputs) if kind in SHAPED_KINDS else _object(kind, feature)
                 for n, feature in enumerate(features)
             )
+    if values.get("dam_levels"):
+        job["dam_levels"] = values["dam_levels"]
+    if values.get("initial_water"):
+        write_geojson(inputs / "initial_water.geojson", values["initial_water"], crs)
+        job["initial_levels"] = initial_water(values["initial_water"])
     if values.get("boundaries"):
         write_geojson(inputs / "boundaries.geojson", values["boundaries"], crs)
         job["boundaries"] = [_boundary(feature) for feature in values["boundaries"]]
