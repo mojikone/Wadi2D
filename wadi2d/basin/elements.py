@@ -223,14 +223,13 @@ def _reservoir_parameters(
     low = min((rating["crest_elevation_m"] for rating in ratings), default=None)
     if low is not None and not table.elevation_m[0] <= low <= table.elevation_m[-1]:
         notes.append(f"dam {pour.name}: spillway {low:g} m is off its table: another datum?")
-        low = None
     return {
         "crest_elevation_m": parameter(level, SOURCE_JOB),
         "elevation_m": parameter([round(float(v), TABLE_DIGITS) for v in table.elevation_m], SOURCE_TERRAIN),
         "area_m2": parameter([round(float(v), 1) for v in table.area_m2], SOURCE_TERRAIN),
         "volume_m3": parameter([round(float(v), 1) for v in table.volume_m3], SOURCE_TERRAIN),
         "spillways": parameter(ratings or None, SOURCE_JOB),
-        "initial_elevation_m": parameter(low, SOURCE_DERIVED),
+        "initial_elevation_m": parameter(round(float(table.elevation_m[0]), TABLE_DIGITS), SOURCE_DERIVED),
     }
 
 

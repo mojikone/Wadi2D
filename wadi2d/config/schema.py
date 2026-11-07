@@ -438,6 +438,23 @@ class InitialLevel(_Part):
     level: float = Field(description="Water level on the datum of the DEM, m")
 
 
+DAM_EMPTY, DAM_SPILLWAY = "empty", "spillway"
+
+
+class DamLevel(_Part):
+    """Where a dam's pool stands when the run starts. A dam not named here starts empty, as a design run that reads the
+    attenuation wants; a scenario sets a level, a breach from a full pool say."""
+
+    name: str = Field(
+        description="A reservoir of the lumped network that routes in this run, else a crest line or embankment on the "
+        "grid, by name"
+    )
+    start: Literal["empty", "spillway"] | float = Field(
+        DAM_EMPTY,
+        description="'empty'; 'spillway', the lowest spillway crest; or a water level on the datum of the DEM, m",
+    )
+
+
 class DesignPoint(_Part):
     """A point where depth and level are recorded."""
 
@@ -937,6 +954,7 @@ class RunConfig(_Part):
     transmission: Transmission = Transmission()
     boundaries: list[Boundary] = []
     initial_levels: list[InitialLevel] = []
+    dam_levels: list[DamLevel] = []
     outputs: Outputs = Outputs()
     run: Run = Run()
     arf: ArfStudy = ArfStudy()

@@ -24,6 +24,7 @@ from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
+from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.rain_once import check_rain_once
@@ -40,6 +41,7 @@ from wadi2d.forcing import (
 from wadi2d.grid.quad import lattice_view
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
+from wadi2d.hydrology.model import Reservoir
 from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
 from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoint
 from wadi2d.io.geotiff import write_map
@@ -250,6 +252,8 @@ def job_hash(cfg: RunConfig) -> str:
         data.pop("transmission")
     if cfg.hydrology.reach_routing == REACH_HMS:  # an old job's checkpoint keeps its hash
         data["hydrology"].pop("reach_routing")
+    if not cfg.dam_levels:
+        data.pop("dam_levels")
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for part, name in PATH_FIELDS:
@@ -443,12 +447,28 @@ def _lumped_basin(cfg: RunConfig, crs: str):
         from wadi2d.basin.job import engine_basin, generated_basin
 
         gen = generated_basin(cfg, crs)
-        return engine_basin(gen.model, gen.modes, h.reach_routing), None, gen.cut
+        basin = engine_basin(gen.model, gen.modes, h.reach_routing)
+        with_dam_starts(basin, cfg.dam_levels)
+        return basin, None, gen.cut
     from wadi2d.hms import load_basin
     from wadi2d.hydrology.from_hms import basin_from_hms
 
     hms_basin = load_basin(h.hms_basin)
-    return basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing), hms_basin, ()
+    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing)
+    with_dam_starts(basin, cfg.dam_levels)
+    return basin, hms_basin, ()
+
+
+def _taken_starts(cfg: RunConfig, lumped) -> dict[str, float]:
+    """The dams of ``dam_levels`` a reservoir of the run's lumped network took, with the level it starts at."""
+    if lumped is None or not cfg.dam_levels:
+        return {}
+    named = {item.name for item in cfg.dam_levels}
+    return {
+        name: float(element.routing.initial_elevation_m)
+        for name, element in lumped.basin.elements.items()
+        if name in named and isinstance(element, Reservoir)
+    }
 
 
 def _network(cfg: RunConfig, storm, crs: str = ""):
@@ -664,7 +684,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         for note in generated.notes:
             progress.emit("warn", message=note)
         progress.emit("basin", path=str(generated.path), **generated.report())
-    still = storm is None and not flows and not cfg.initial_levels
+    still = storm is None and not flows and not cfg.initial_levels and not cfg.dam_levels
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
     if cfg.storm.depth_grid is not None:
@@ -712,7 +732,14 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     bset = boundary_set(lines, tables, cfg.grid.line_samples)
     for note in boundary_notes(lines, bset, grid.dx, line_labels(cfg)):
         progress.emit("warn", message=note)
-    model.set_depth(initial_depth(cfg.initial_levels, tables))
+    taken = _taken_starts(cfg, lumped)
+    try:
+        pools, notes = grid_pool_depth(cfg, tables, bset.mask, taken)
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
+    for note in notes:
+        progress.emit("warn", message=note)
+    model.set_depth(np.maximum(initial_depth(cfg.initial_levels, tables), pools))
     if bset.size:
         model.set_boundary(bset.cells)
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs)
