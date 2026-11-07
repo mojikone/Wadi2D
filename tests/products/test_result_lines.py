@@ -183,6 +183,7 @@ def test_the_catalogue_holds_the_frames_and_the_series_of_record(finished: Path)
     assert max(np.abs(line["discharge_m3s"])) > 1.0
     point = found["points"][0]
     assert point["name"] == "mid" and len(point["level_m"]) == len(point["t_s"])
+    assert found["lumped"] == []  # no lumped network in this run
 
 
 def test_flow_from_frames_is_the_upfront_line_at_the_frames(finished: Path) -> None:

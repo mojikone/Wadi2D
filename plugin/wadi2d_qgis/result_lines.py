@@ -32,6 +32,7 @@ from .job_builder import LayerError, layer_features
 from .line_plot import LinePlot
 from .line_tool import DrawLine, add_line, remove_line, scratch_layer
 from .line_view import (
+    LUMPED,
     TEMPORARY,
     UPFRONT_LINE,
     UPFRONT_POINT,
@@ -40,6 +41,7 @@ from .line_view import (
     entries,
     frame_at,
     line_view,
+    lumped_view,
     point_view,
     record_view,
     step_showing,
@@ -213,6 +215,10 @@ class ResultLinesPanel(QgsDockWidget):
     def _show(self, entry: Entry) -> None:
         if entry.kind == UPFRONT_POINT:
             self.plot.show_view(point_view(entry, self.frames_s), self.frame)
+            self.say("")
+            return
+        if entry.kind == LUMPED:
+            self.plot.show_view(lumped_view(entry, self.frames_s), self.frame)
             self.say("")
             return
         known = self.read.get(id(entry))
