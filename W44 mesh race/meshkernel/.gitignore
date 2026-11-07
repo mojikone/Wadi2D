@@ -1,0 +1,4 @@
+# the intermediate meshes of the trial (60 MB); the final hybrid mesh and the lattice stay
+*.npz
+!mesh_faydh01_hybrid_20m.npz
+!lattice.npz

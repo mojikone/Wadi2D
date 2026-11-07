@@ -1,0 +1,7 @@
+s00_inputs.py                                 exit 0  0.7 s
+s01_lattice.py                                exit 0  21.1 s
+s02_strips.py                                 exit 0  6.5 s
+s03_join.py --gap-buffer 10 --suffix _gap10   exit 0  7.4 s
+s04_orthogonalize.py --in _gap10              exit 0  22.6 s
+s05_measure_export.py --in _gap10             exit 0  1.6 s
+measured 2026-11-07 08:07, AMD Ryzen 9 9950X3D, one process, wall clock per script including figures

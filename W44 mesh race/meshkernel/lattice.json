@@ -1,0 +1,51 @@
+{
+ "dx": 20.0,
+ "origin": [
+  418765.98973783385,
+  2726180.393463373
+ ],
+ "box_cells": [
+  678,
+  482
+ ],
+ "summary": {
+  "nodes": 190223,
+  "edges": 379036,
+  "faces": 188814,
+  "faces_by_nodes": {
+   "4": 188814
+  }
+ },
+ "expected_cells": 188814.0,
+ "shapely_centre_inside": 188814,
+ "orthogonality_meshkernel": {
+  "n": 376220,
+  "median": 0.0,
+  "p90": 0.0,
+  "p99": 0.0,
+  "max": 0.0,
+  "share_gt_0.01": 0.0,
+  "share_gt_0.02": 0.0,
+  "share_gt_0.05": 0.0
+ },
+ "orthogonality_centroid": {
+  "n": 376220,
+  "median": 0.0,
+  "p90": 0.0,
+  "p99": 0.0,
+  "max": 0.0,
+  "share_gt_0.01": 0.0,
+  "share_gt_0.02": 0.0,
+  "share_gt_0.05": 0.0
+ },
+ "area_min_max": [
+  400.0,
+  400.0
+ ],
+ "timing_s": {
+  "make_rectangular_s": 0.3691075999995519,
+  "delete_outside_s": 17.791271099998994,
+  "shapely_check_s": 0.019263099999079714,
+  "orthogonality_s": 0.5242113000022073
+ }
+}
