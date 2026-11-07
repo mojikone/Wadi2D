@@ -263,6 +263,44 @@ replaced, two pairs cut); the GPU took the run, books closed to 1e-8; faces on t
 corridor layers under Model setup beside the cell grid; the pixel maps carry 41,744 strip pixels; the dam lines P1 and
 P6 at 1.008 and 0.942 of the same 2 h storm on squares; corridors with the mesh refinement refused in words.
 
+## Speed, first cut (2026-11-07): the strip's bookkeeping fused into kernels
+
+`profile_hybrid.py`, Faydh 01 at 20 m on the GPU, uniform rain, 3,000 steps after a warm-up, ms per step:
+
+| | Tiles alone | Hybrid | Hybrid without maxima and tally | Strip hooks alone |
+|---|---|---|---|---|
+| Before | 0.087 | 0.320 | 0.216 | 0.257 |
+| After (mirror, restore, maxima, tally as kernels) | 0.085 | **0.208** | 0.187 | 0.109 |
+
+[Certain, measured] The strip's per-step bookkeeping through CuPy array operations (about ten launches of 10 us) cost
+a third of the hybrid step; as four RawKernel launches it costs a tenth. The hybrid is now 2.4 x the tiles per step on
+19,886 strip cells and 3,710 ghosts, launch-bound still (13 launches a step beside the tiles' own). Left for later:
+folding the level differences into the sums kernel, the scaling and the ghosts' source into the update kernel (about
+four launches), the strip's own time stepping (the strip takes 1.6 x the tiles' steps over the 16 h run), and the
+sliver triangles that set the smallest step.
+
+## Stage 6 (2026-11-07): terrain objects on the strip's ground and faces, passed
+
+`wadi2d/strips/objects.py`. Burn lines and shaped objects rebuild the strip's ground through the same `edit` hook as
+the squares', in the tables and in the pixel products. Crest lines, spillways, walls and the standing stretches of
+shaped objects land on the strip's own faces by the rule the result lines use: a face carries the object when its two
+cells lie on different sides of its line, so a crest along a bank row sits on that row's faces exactly, no staircase
+and no length factor; the face's invert is lifted to the crest's elevation at the nearest point of the line, the
+higher of two crests wins, a spillway sets its own level, a shaped crest reads the energy head (W8's negative
+coefficient, W43's form in the kernel), a wall closes the face. Tests `tests/strips/test_objects.py`:
+
+| Case | Result |
+|---|---|
+| A crest between two cells, a wall there | the shared face lifted to the crest with the critical coefficient, the outer faces untouched; the wall closes that face alone |
+| A spillway under a higher crest | the face takes the spillway's level and coefficient |
+| A crest 200 m high across the plane and its corridor, squares alone against corridor | outflow 422.2 against 422.1 m3 (the rain east of the crest), 63 % of the rain held on both; the 8 lifted strip faces, one per row, carry nothing |
+| A burn line 1 m deep along the corridor | the strip's ground on the centre row 1.00 m lower |
+
+[Certain] The first form of the crest test asked for no outflow at all and failed on both grids by the same 422 m3: the
+rain east of the crest. The test now compares the two grids; the lesson is recorded so nobody reads that first failure
+as a leak. Not done: the levee and flume cases on aligned faces (EA Tests 1, 3 and 7, the Iber flume), which need the
+stage-series and line-inflow boundaries on strips.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.

@@ -77,7 +77,8 @@ class PolyGpuState:
         self.module = load_module(cp, source, self.rec, mesh.dx, m.rows)
         self.k = {n: self.module.get_function(n) for n in (
             "poly_levels", "poly_sums", "poly_rates", "poly_faces", "poly_limit", "poly_scale", "poly_update",
-            "poly_ghost_src", "poly_edges",
+            "poly_ghost_src", "poly_edges", "poly_mirror", "poly_restore", "poly_cell_maxima", "poly_face_maxima",
+            "poly_tally",
         )}  # fmt: skip
 
     # ---- host views
@@ -148,6 +149,26 @@ class PolyGpuState:
     def edges(self, nslot: int, maps: tuple, discharge, velocity) -> None:
         if nslot:
             self.k["poly_edges"](grid_of(nslot), (THREADS,), (nslot, self.nreal, *maps, self.q, self.h, discharge, velocity))
+
+    def mirror(self, ghost, h_t, d_t, om_t) -> None:
+        ng = int(ghost.size)
+        if ng:
+            self.k["poly_mirror"](grid_of(ng), (THREADS,), (ng, self.nreal, ghost, h_t, d_t, om_t, self.h, self.d, self.om))
+
+    def restore(self, ghost, saved, src_t) -> None:
+        ng = int(ghost.size)
+        if ng:
+            self.k["poly_restore"](grid_of(ng), (THREADS,), (ng, ghost, saved, src_t))
+
+    def maxima(self, speed_depth: float, max_d, max_h, max_s, max_dv, max_q) -> None:
+        n, nf = self.nreal, self.mesh.nfaces
+        self.k["poly_cell_maxima"](grid_of(n), (THREADS,), (n, F(speed_depth), self.d, self.h, self.Ux, self.Uy, max_d, max_h, max_s, max_dv))
+        self.k["poly_face_maxima"](grid_of(nf), (THREADS,), (nf, self.q, max_q))
+
+    def tally(self, faces, dt: float, left) -> None:
+        nb = int(faces.size)
+        if nb:
+            self.k["poly_tally"](grid_of(nb), (THREADS,), (nb, faces, self.q, F(dt), left))
 
 
 __all__ = ["PolyGpuState", "cell_faces"]

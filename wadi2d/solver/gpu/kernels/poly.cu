@@ -360,3 +360,61 @@ extern "C" __global__ void poly_edges(const int nslot, const int nreal, const in
     discharge[unique[s]] = (float)q_edge;
     for (int p = copy_ptr[s]; p < copy_ptr[s + 1]; ++p) velocity[copies[p]] = speed;
 }
+
+// The ghosts' state from the tile arrays, one launch in place of three gathers.
+extern "C" __global__ void poly_mirror(const int ng, const int nreal, const int* __restrict__ ghost,
+                                       const float* __restrict__ h_t, const float* __restrict__ d_t,
+                                       const float* __restrict__ om_t, float* __restrict__ h, float* __restrict__ d,
+                                       float* __restrict__ om) {
+    const int g = blockIdx.x * blockDim.x + threadIdx.x;
+    if (g >= ng) return;
+    const int k = ghost[g];
+    h[nreal + g] = h_t[k];
+    d[nreal + g] = d_t[k];
+    om[nreal + g] = om_t[k];
+}
+
+// The tile's source restored after its update took the ghosts' outflow.
+extern "C" __global__ void poly_restore(const int ng, const int* __restrict__ ghost, const float* __restrict__ saved,
+                                        float* __restrict__ src_t) {
+    const int g = blockIdx.x * blockDim.x + threadIdx.x;
+    if (g >= ng) return;
+    src_t[ghost[g]] = saved[g];
+}
+
+// The run's maxima per real cell: depth, mean depth, speed where deeper than speed_depth, and depth x speed.
+extern "C" __global__ void poly_cell_maxima(const int n, const float speed_depth, const float* __restrict__ d,
+                                            const float* __restrict__ h, const float* __restrict__ Ux,
+                                            const float* __restrict__ Uy, float* __restrict__ max_d,
+                                            float* __restrict__ max_h, float* __restrict__ max_s,
+                                            float* __restrict__ max_dv) {
+    const int c = blockIdx.x * blockDim.x + threadIdx.x;
+    if (c >= n) return;
+    const float dc = d[c];
+    const float s = dc > speed_depth ? hypotf(Ux[c], Uy[c]) : 0.0f;
+    max_d[c] = fmaxf(max_d[c], dc);
+    max_h[c] = fmaxf(max_h[c], h[c]);
+    max_s[c] = fmaxf(max_s[c], s);
+    max_dv[c] = fmaxf(max_dv[c], dc * s);
+}
+
+// The largest discharge of every face.
+extern "C" __global__ void poly_face_maxima(const int nf, const float* __restrict__ q, float* __restrict__ max_q) {
+    const int f = blockIdx.x * blockDim.x + threadIdx.x;
+    if (f >= nf) return;
+    max_q[f] = fmaxf(max_q[f], fabsf(q[f]));
+}
+
+// What crossed the interface faces onto boundary cells this step, added to the running total in double.
+extern "C" __global__ void poly_tally(const int nb, const int* __restrict__ faces, const float* __restrict__ q,
+                                      const float dt, double* __restrict__ left) {
+    __shared__ double part[256];
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    part[threadIdx.x] = i < nb ? (double)q[faces[i]] : 0.0;
+    __syncthreads();
+    for (int stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx.x < stride) part[threadIdx.x] += part[threadIdx.x + stride];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) atomicAdd(left, part[0] * (double)dt);
+}

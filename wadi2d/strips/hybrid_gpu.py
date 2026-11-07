@@ -38,7 +38,7 @@ class HybridGpu(Hybrid):
         self.saved = cp.zeros(self.ghost.size, F)
         self.max_d, self.max_h = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
         self.max_s, self.max_dv = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
-        self.max_q, self.abs_q = cp.zeros(self.mesh.nfaces, F), cp.zeros(self.mesh.nfaces, F)
+        self.max_q = cp.zeros(self.mesh.nfaces, F)
         self.speed_depth = F(0.0)
         self.edge_d = {}
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
@@ -81,10 +81,8 @@ class HybridGpu(Hybrid):
         self.state.set_real("src", rate)
 
     def before_update(self, dt: float, want_wave: bool) -> None:
-        b, s, n, g = self.model.backend, self.state, self.nreal, self.ghost_d
-        s.h[n:] = b.h[g]
-        s.d[n:] = b.d[g]
-        s.om[n:] = b.om[g]
+        b, s, g = self.model.backend, self.state, self.ghost_d
+        s.mirror(g, b.h, b.d, b.om)
         s.levels()
         s.sums(g, self.flags, self.zmin_d, b.h, b.d, b.qx, b.qy)
         s.rates(g, self.flags, b.h, b.qx, b.qy)
@@ -97,17 +95,10 @@ class HybridGpu(Hybrid):
 
     def after_update(self, dt: float, want_wave: bool) -> None:
         b, s = self.model.backend, self.state
-        b.src[self.ghost_d] = self.saved
+        s.restore(self.ghost_d, self.saved, b.src)
         if self.b_faces.size:
-            self.left_dev += s.q[self.b_faces_d].sum(dtype=s.cp.float64) * dt
-        cp, n = s.cp, self.nreal
-        cp.maximum(self.max_d, s.d[:n], out=self.max_d)
-        cp.maximum(self.max_h, s.h[:n], out=self.max_h)
-        cp.abs(s.q, out=self.abs_q)
-        cp.maximum(self.max_q, self.abs_q, out=self.max_q)
-        speed = cp.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
-        cp.maximum(self.max_s, speed, out=self.max_s)
-        cp.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
+            s.tally(self.b_faces_d, dt, self.left_dev)
+        s.maxima(float(self.speed_depth), self.max_d, self.max_h, self.max_s, self.max_dv, self.max_q)
         for axis, (nslot, maps) in self.edge_d.items():
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
             s.edges(nslot, maps, discharge, velocity)
