@@ -129,6 +129,8 @@ class Monitor:
         self.times: list[float] = []
         self.dt_min = np.inf
         self.checkpoint_due = False
+        self.stop_due = False
+        """A stop asked for: the run ends at the end of this source window, on the grid an unbroken run steps on."""
         self.window = (0.0, 1.0, 0.0, 0.0, 0.0, 0.0)
         self.settled = 0.0
         self.live = None
@@ -237,7 +239,7 @@ class Monitor:
             wall=round(now - self.started, 2),
         )
         if self.stop_requested():
-            raise StopRequested
+            self.stop_due = True
         if self.live is not None and now >= self.next_live:
             self.next_live = now + o.live_every_s
             self.live.write(self.model.field("d"))

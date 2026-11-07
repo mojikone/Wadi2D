@@ -764,6 +764,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             if monitor.checkpoint_due:
                 monitor.checkpoint_due = False
                 save_checkpoint(checkpoint, model, monitor, key)
+            if monitor.stop_due and t < end - 1e-9:
+                raise StopRequested  # at a window's end, so a resume carries on the unbroken run's windows
         summary.exit_code, summary.status = EXIT_DONE, "finished"
     except StopRequested:
         monitor.settle(model.stepper.t)
