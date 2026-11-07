@@ -309,6 +309,59 @@ rain east of the crest. The test now compares the two grids; the lesson is recor
 as a leak. Not done: the levee and flume cases on aligned faces (EA Tests 1, 3 and 7, the Iber flume), which need the
 stage-series and line-inflow boundaries on strips.
 
+## One set of cells (2026-11-07): the strip takes what the squares take, by construction
+
+His remark: the strip's behaviour was kept separate, each feature (losses, storms, inflows, resume) a question to
+him. The fault was in the design: the strip was a second cell list with its own kernels, and every feature written
+against the lattice's cell index had to be taught the strip one by one. The fix is one principle, the model has one
+set of cells and the squares and the strip cells are two storage layouts of it:
+
+- **Forcing by cell position.** `Forcing` takes the strip's cells after the lattice's, by their centres, areas and
+  lowest ground; rain, curve-number losses, depth grids, gridded storms, the lumped subbasins' masks and inflow
+  placement are evaluated per cell position, so every storm kind and every loss works on a corridor the day it works
+  on the squares. The run reads the strip's share of the source vector into it. The uniform-rain shortcut and the four
+  refusals (CN raster, gridded rain, depth grid, subbasins, resume) are gone.
+- **State is state.** The strip is a checkpoint part: its cells' state, its maxima and its outflow per ghost; a stopped
+  run with corridors resumes to the unbroken one byte for byte (the series of record identical).
+- **One balance.** The checkpoint keeps the lattice tally apart from the strip's outflow; the hand-back link reads the
+  strip's share of each line through the monitor; a ghost's tile stays pinned active through every source window.
+- **Initial water** polygons fill corridor cells too, and a polygon lying wholly on a corridor is not refused for
+  wetting no square.
+- **The strip in the local time stepping.** With `numerics.local_time_stepping` the strip is the finest class: its hooks
+  run on every smallest step between the tiles' positivity and their update, its ghost tiles are pinned to the smallest
+  level, its own wave caps the smallest step; before this a job with corridors and local stepping skipped the strip
+  without a word. Faydh 01 at 20 m on the GPU: no lines 100,401 smallest steps in 19.6 s (uniform 88,589 in 13.4 s);
+  corridors 140,689 in 50.5 s (uniform 134,632 in 35.7 s), tile-steps 24.0 M against 29.9 M, the dam axis 1,883.8
+  against 1,879.9 m3/s. [Certain, measured] Correct, and no faster: W10's finding holds (local stepping saves no time on a
+  uniform grid, the lists cost more than the tile-steps they save), and the strip itself still steps 140,000 times.
+  The lever left is the reverse: the strip sub-cycling inside one tile step at the tiles' own step, worth about 1.5 x
+  on the tiles' share [Guessing].
+- Not yet: the bed (transmission) loss stays on the squares and says so in the code.
+
+**The Block 2 hybrid with corridors** (`race_bidah_hybrid.py`): W41's PMP job as the dock wrote it, Bidah 03 at 30 m
+through the HMS route, S13 lumped above the dam and the rest rain-on-grid, the CN raster, the PMP depth grid, the
+design line, 48 h on the GPU; with and without corridors from W26's suggested banks on Bidah (7 corridors, 1,170 cells,
+871 triangles, 969 squares replaced, one pair cut). Every one of those inputs was refused with corridors a day ago.
+
+| Bidah 03, PMP, HMS route | Squares | Corridors |
+|---|---|---|
+| Dam line peak, m3/s | 1,463.79 at 12.89 h (W41's 1,463.8) | **1,464.63 (+0.06 %)** |
+| Rain / lumped inflow, Mm3 | 8.711 / 23.722 | the same to the digit |
+| Mass error | 2.3e-8 | 2.3e-8 |
+| Steps, time | 154,098, 14 s | 154,098, 35 s |
+
+[Certain, measured] The lumped inflow carries this peak and the corridors change it by 0.06 %; the strip's cost is its
+fixed launch cost a step (2.5 x on a run this small, the same 0.12 ms a step as on Faydh). The first timing of this
+pair, 86 s, overlapped the full suite's GPU tests and is discarded. This is the dock's own job on the engine CLI, not
+clicked through the dock; the dock path with corridors is `dock_corridors.py` (rain on grid).
+
+Tests on the plane with a corridor (`tests/engine/test_strips_run.py`): a curve number of 75 leaves 20 to 90 % of the
+rain with the books closed; an inflow of 1 m3/s landing on the corridor's cells runs down it, the corridor's middle
+rows the deepest of the run, nothing upstream; a run stopped at 910 s and resumed gives the unbroken run's series and
+strip depths; an initial level fills the corridor cells inside its polygon. The lumped-subbasin mask and the gridded
+storm run through the same cell positions as the squares' and have no strip code of their own; their Block 2 and W39
+checks with corridors are the next dock run.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.

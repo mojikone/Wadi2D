@@ -1,0 +1,26 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_bidah_hybrid\\W45 aligned mesh engine\\race_bidah_hybrid\\cache\\grid_4058b83c00bfb84c8c074357.h5"}
+{"ev": "strips", "corridors": 7, "cells": 1170, "triangles": 871, "replaced": 969, "cut": ["pair2_7.2km2: folds or runs too close, 1175 m cut to 1026 m in 1 piece(s)"]}
+{"ev": "start", "backend": "gpu", "cells": 31002, "tiles": 49, "dx": 30.0, "duration_s": 172800.0, "tables_s": 0.81, "t": 0.0}
+{"ev": "step", "t": 22719.069, "dt": 1.7932, "steps": 6488, "active_tiles": 49, "volume": 115702.2, "mass_error": 4.398e-09, "wall": 2.0}
+{"ev": "step", "t": 34021.228, "dt": 1.2283, "steps": 14524, "active_tiles": 49, "volume": 771556.7, "mass_error": 1.601e-08, "wall": 4.0}
+{"ev": "step", "t": 42600.922, "dt": 0.9211, "steps": 23126, "active_tiles": 49, "volume": 2176518.1, "mass_error": 1.918e-08, "wall": 6.0}
+{"ev": "step", "t": 50535.704, "dt": 0.9818, "steps": 31866, "active_tiles": 49, "volume": 2227543.5, "mass_error": 2.175e-08, "wall": 8.0}
+{"ev": "step", "t": 59167.121, "dt": 1.0173, "steps": 40465, "active_tiles": 49, "volume": 1519646.2, "mass_error": 2.26e-08, "wall": 10.0}
+{"ev": "step", "t": 67794.479, "dt": 1.02, "steps": 49092, "active_tiles": 49, "volume": 1208523.0, "mass_error": 2.286e-08, "wall": 12.0}
+{"ev": "step", "t": 76387.147, "dt": 1.021, "steps": 57685, "active_tiles": 49, "volume": 1071292.6, "mass_error": 2.301e-08, "wall": 14.0}
+{"ev": "step", "t": 85035.34, "dt": 1.0227, "steps": 66333, "active_tiles": 49, "volume": 946641.9, "mass_error": 2.312e-08, "wall": 16.0}
+{"ev": "step", "t": 93697.161, "dt": 1.023, "steps": 74995, "active_tiles": 49, "volume": 917415.9, "mass_error": 2.317e-08, "wall": 18.0}
+{"ev": "step", "t": 102878.185, "dt": 1.0231, "steps": 84176, "active_tiles": 49, "volume": 906976.7, "mass_error": 2.321e-08, "wall": 20.0}
+{"ev": "step", "t": 112021.023, "dt": 1.0231, "steps": 93319, "active_tiles": 49, "volume": 901537.3, "mass_error": 2.325e-08, "wall": 22.0}
+{"ev": "step", "t": 121148.186, "dt": 1.0232, "steps": 102446, "active_tiles": 49, "volume": 898251.4, "mass_error": 2.327e-08, "wall": 24.0}
+{"ev": "step", "t": 130332.279, "dt": 1.0232, "steps": 111630, "active_tiles": 49, "volume": 896026.9, "mass_error": 2.33e-08, "wall": 26.0}
+{"ev": "step", "t": 139419.209, "dt": 1.0232, "steps": 120717, "active_tiles": 49, "volume": 894467.5, "mass_error": 2.331e-08, "wall": 28.0}
+{"ev": "step", "t": 148629.209, "dt": 1.0232, "steps": 129927, "active_tiles": 49, "volume": 893286.3, "mass_error": 2.332e-08, "wall": 30.0}
+{"ev": "step", "t": 157748.184, "dt": 1.023, "steps": 139046, "active_tiles": 49, "volume": 892374.1, "mass_error": 2.334e-08, "wall": 32.0}
+{"ev": "step", "t": 166898.182, "dt": 1.0227, "steps": 148196, "active_tiles": 49, "volume": 891641.2, "mass_error": 2.335e-08, "wall": 34.0}
+{"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 172800.0, "duration_s": 172800.0, "steps": 154098, "loop_s": 35.48, "tables_s": 0.81, "wet_area_km2": 2.7828, "dt_min": 0.8496685843934851, "balance": {"rain_m3": 8711043.569170946, "inflow_m3": 23721807.426624183, "outflow_m3": 31541610.901202172, "storage_start_m3": 0.0, "storage_end_m3": 891239.3371472225, "error_m3": 0.7574457362061366, "relative_error": 2.335427546299702e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

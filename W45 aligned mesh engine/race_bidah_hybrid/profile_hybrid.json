@@ -1,0 +1,17 @@
+{
+ "tiles": {
+  "ms_per_step": 0.0580977490911091,
+  "steps": 3021
+ },
+ "hybrid": {
+  "ms_per_step": 0.18201807348622326,
+  "steps": 3021
+ },
+ "hybrid_no_bookkeeping": {
+  "ms_per_step": 0.1932279761921751,
+  "steps": 3024
+ },
+ "strip_hooks_only": {
+  "ms_per_step": 0.11192160000791773
+ }
+}

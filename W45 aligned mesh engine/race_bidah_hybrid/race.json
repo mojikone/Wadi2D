@@ -1,0 +1,39 @@
+{
+ "squares": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1463.79,
+   12.891666666666667
+  ],
+  "steps": 154098,
+  "loop_s": 14.0,
+  "mass_error": 2.345424221095108e-08,
+  "rain_m3": 8711043.569170946,
+  "inflow_m3": 23721807.436653838,
+  "outflow_m3": 31541708.113514014,
+  "strips": null
+ },
+ "corridors": {
+  "record_peak_m3s": null,
+  "grid_line_peak_m3s": [
+   1464.63,
+   12.891666666666667
+  ],
+  "steps": 154098,
+  "loop_s": 35.48,
+  "mass_error": 2.335427546299702e-08,
+  "rain_m3": 8711043.569170946,
+  "inflow_m3": 23721807.426624183,
+  "outflow_m3": 31541610.901202172,
+  "strips": {
+   "ev": "strips",
+   "corridors": 7,
+   "cells": 1170,
+   "triangles": 871,
+   "replaced": 969,
+   "cut": [
+    "pair2_7.2km2: folds or runs too close, 1175 m cut to 1026 m in 1 piece(s)"
+   ]
+  }
+ }
+}

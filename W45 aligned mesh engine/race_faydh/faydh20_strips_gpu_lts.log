@@ -1,0 +1,31 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_faydh\\W45 aligned mesh engine\\race_faydh\\cache\\grid_b58dfa42f0849d76a64aaae9.h5"}
+{"ev": "strips", "corridors": 39, "cells": 10716, "triangles": 7719, "replaced": 10215, "cut": []}
+{"ev": "start", "backend": "gpu", "cells": 178599, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 17.47, "t": 0.0}
+{"ev": "step", "t": 12340.307, "dt": 1.2806, "steps": 4321, "active_tiles": 222, "volume": 11031.2, "mass_error": -2.054e-09, "wall": 2.0}
+{"ev": "step", "t": 16535.173, "dt": 0.6427, "steps": 9817, "active_tiles": 222, "volume": 61874.5, "mass_error": -8.766e-09, "wall": 4.0}
+{"ev": "step", "t": 19586.455, "dt": 0.5785, "steps": 15665, "active_tiles": 222, "volume": 126183.8, "mass_error": -1.145e-08, "wall": 6.0}
+{"ev": "step", "t": 22299.595, "dt": 0.4598, "steps": 21521, "active_tiles": 222, "volume": 204986.7, "mass_error": -1.332e-08, "wall": 8.0}
+{"ev": "step", "t": 24546.663, "dt": 0.4164, "steps": 27185, "active_tiles": 222, "volume": 278655.7, "mass_error": -1.475e-08, "wall": 10.0}
+{"ev": "step", "t": 26673.281, "dt": 0.4101, "steps": 32857, "active_tiles": 222, "volume": 342982.8, "mass_error": -1.799e-08, "wall": 12.0}
+{"ev": "step", "t": 28790.778, "dt": 0.366, "steps": 38529, "active_tiles": 222, "volume": 411459.4, "mass_error": -1.683e-08, "wall": 14.0}
+{"ev": "step", "t": 30722.814, "dt": 0.3517, "steps": 44201, "active_tiles": 222, "volume": 479333.0, "mass_error": -1.814e-08, "wall": 16.0}
+{"ev": "step", "t": 32672.793, "dt": 0.349, "steps": 49929, "active_tiles": 222, "volume": 558918.3, "mass_error": -1.828e-08, "wall": 18.0}
+{"ev": "step", "t": 34601.228, "dt": 0.3509, "steps": 55585, "active_tiles": 222, "volume": 652264.2, "mass_error": -1.787e-08, "wall": 20.0}
+{"ev": "step", "t": 36523.353, "dt": 0.3338, "steps": 61281, "active_tiles": 222, "volume": 769964.0, "mass_error": -1.801e-08, "wall": 22.0}
+{"ev": "step", "t": 38257.104, "dt": 0.2957, "steps": 67065, "active_tiles": 222, "volume": 933711.7, "mass_error": -1.731e-08, "wall": 24.0}
+{"ev": "step", "t": 39960.0, "dt": 0.301, "steps": 72833, "active_tiles": 222, "volume": 1219291.5, "mass_error": -1.697e-08, "wall": 26.0}
+{"ev": "step", "t": 41612.149, "dt": 0.2466, "steps": 78617, "active_tiles": 222, "volume": 1997239.8, "mass_error": -1.684e-08, "wall": 28.0}
+{"ev": "step", "t": 42918.672, "dt": 0.1964, "steps": 84905, "active_tiles": 222, "volume": 4906722.6, "mass_error": -1.704e-08, "wall": 30.0}
+{"ev": "step", "t": 44030.694, "dt": 0.1849, "steps": 91345, "active_tiles": 222, "volume": 4740985.2, "mass_error": -1.904e-08, "wall": 32.0}
+{"ev": "step", "t": 45231.263, "dt": 0.2048, "steps": 97785, "active_tiles": 222, "volume": 3286071.1, "mass_error": -1.969e-08, "wall": 34.0}
+{"ev": "step", "t": 46579.664, "dt": 0.25, "steps": 103969, "active_tiles": 222, "volume": 2149205.8, "mass_error": -1.93e-08, "wall": 36.0}
+{"ev": "step", "t": 48002.295, "dt": 0.2869, "steps": 109825, "active_tiles": 222, "volume": 1603631.5, "mass_error": -1.972e-08, "wall": 38.0}
+{"ev": "step", "t": 49556.66, "dt": 0.3032, "steps": 115625, "active_tiles": 222, "volume": 1305668.0, "mass_error": -1.97e-08, "wall": 40.0}
+{"ev": "step", "t": 51298.492, "dt": 0.324, "steps": 121401, "active_tiles": 222, "volume": 1118031.3, "mass_error": -1.961e-08, "wall": 42.0}
+{"ev": "step", "t": 53102.631, "dt": 0.329, "steps": 127177, "active_tiles": 222, "volume": 990004.3, "mass_error": -1.994e-08, "wall": 44.0}
+{"ev": "step", "t": 54957.776, "dt": 0.3474, "steps": 132937, "active_tiles": 222, "volume": 899093.6, "mass_error": -2.024e-08, "wall": 46.0}
+{"ev": "step", "t": 56910.0, "dt": 0.3462, "steps": 138665, "active_tiles": 222, "volume": 827469.2, "mass_error": -2.034e-08, "wall": 48.0}
+{"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu_lts\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu_lts\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 140689, "loop_s": 50.53, "tables_s": 17.47, "wet_area_km2": 3.2724, "dt_min": 0.037161688349736606, "balance": {"rain_m3": 10739179.144496482, "inflow_m3": 0.0, "outflow_m3": 9933195.10309939, "storage_start_m3": 0.0, "storage_end_m3": 805984.2601737226, "error_m3": -0.21877663163468242, "relative_error": -2.0371820666274956e-08, "strip_outflow_m3": 8157110.94566831}, "tile_steps": 24003391, "products": "none"}

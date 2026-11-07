@@ -1,0 +1,8 @@
+# run outputs and caches are rebuilt by race_bidah_hybrid.py in a minute on the GPU; the jobs, series and progress are the record
+cache/
+squares/*
+corridors/*
+!squares/series/
+!squares/progress.jsonl
+!corridors/series/
+!corridors/progress.jsonl

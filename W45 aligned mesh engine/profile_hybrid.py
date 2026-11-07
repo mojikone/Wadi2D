@@ -22,10 +22,12 @@ from wadi2d.strips.hybrid import make_hybrid  # noqa: E402
 
 W = ROOT / "W45 aligned mesh engine" / "race_faydh"
 STEPS = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
+NONE_JOB = Path(sys.argv[2]) if len(sys.argv) > 2 else W / "faydh20_none_gpu.json"
+STRIPS_JOB = Path(sys.argv[3]) if len(sys.argv) > 3 else W / "faydh20_strips_gpu.json"
 
 
-def model_of(job: str):
-    cfg = RunConfig.model_validate(json.loads((W / job).read_text(encoding="utf-8")))
+def model_of(job):
+    cfg = RunConfig.model_validate(json.loads(Path(job).read_text(encoding="utf-8")))
     tables, _crs = prepare_grid(cfg, Path(cfg.grid.cache_dir))
     model = Model(tables, cfg.numerics, "gpu")
     hybrid = make_hybrid(model, tables.strip.mesh) if getattr(tables, "strip", None) is not None else None
@@ -54,7 +56,7 @@ def main() -> None:
     import cupy as cp
 
     out = {}
-    tiles, _ = model_of("faydh20_none_gpu.json")
+    tiles, _ = model_of(NONE_JOB)
     tiles.advance(300.0)  # warm up: compile, first wet
     secs, n = timed(tiles, STEPS)
     out["tiles"] = {"ms_per_step": 1e3 * secs / n, "steps": n}
@@ -62,7 +64,7 @@ def main() -> None:
     del tiles
     cp.get_default_memory_pool().free_all_blocks()
 
-    model, hybrid = model_of("faydh20_strips_gpu.json")
+    model, hybrid = model_of(STRIPS_JOB)
     model.advance(300.0)
     secs, n = timed(model, STEPS)
     out["hybrid"] = {"ms_per_step": 1e3 * secs / n, "steps": n}
@@ -95,7 +97,7 @@ def main() -> None:
     strip_ms = 1e3 * (time.perf_counter() - t0) / 500
     out["strip_hooks_only"] = {"ms_per_step": strip_ms}
     print(f"strip hooks alone: {strip_ms:.3f} ms/step")
-    (W / "profile_hybrid.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
+    (STRIPS_JOB.parent / "profile_hybrid.json").write_text(json.dumps(out, indent=1), encoding="utf-8")
 
 
 if __name__ == "__main__":

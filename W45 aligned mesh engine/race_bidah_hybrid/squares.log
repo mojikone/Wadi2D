@@ -1,0 +1,14 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_bidah_hybrid\\W45 aligned mesh engine\\race_bidah_hybrid\\cache\\grid_27d026184b756dcb3d1d94cd.h5"}
+{"ev": "start", "backend": "gpu", "cells": 31971, "tiles": 49, "dx": 30.0, "duration_s": 172800.0, "tables_s": 0.27, "t": 0.0}
+{"ev": "step", "t": 37122.732, "dt": 1.0168, "steps": 17363, "active_tiles": 49, "volume": 1210445.3, "mass_error": 1.659e-08, "wall": 2.0}
+{"ev": "step", "t": 57451.017, "dt": 1.0166, "steps": 38749, "active_tiles": 49, "volume": 1630551.8, "mass_error": 2.261e-08, "wall": 4.0}
+{"ev": "step", "t": 78711.462, "dt": 1.0221, "steps": 60009, "active_tiles": 49, "volume": 1035446.7, "mass_error": 2.313e-08, "wall": 6.0}
+{"ev": "step", "t": 101120.461, "dt": 1.023, "steps": 82418, "active_tiles": 49, "volume": 908864.9, "mass_error": 2.329e-08, "wall": 8.0}
+{"ev": "step", "t": 125164.093, "dt": 1.0232, "steps": 106462, "active_tiles": 49, "volume": 897234.7, "mass_error": 2.338e-08, "wall": 10.0}
+{"ev": "step", "t": 148818.418, "dt": 1.0232, "steps": 130116, "active_tiles": 49, "volume": 893216.3, "mass_error": 2.342e-08, "wall": 12.0}
+{"ev": "step", "t": 172725.338, "dt": 1.0225, "steps": 154023, "active_tiles": 49, "volume": 891147.0, "mass_error": 2.345e-08, "wall": 14.0}
+{"ev": "warn", "message": "water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\squares\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 172800.0, "duration_s": 172800.0, "steps": 154098, "loop_s": 14.0, "tables_s": 0.27, "wet_area_km2": 2.8323, "dt_min": 0.8330899427691816, "balance": {"rain_m3": 8711043.569170946, "inflow_m3": 23721807.436653838, "outflow_m3": 31541708.113514014, "storage_start_m3": 0.0, "storage_end_m3": 891142.1316228253, "error_m3": 0.7606879430823028, "relative_error": 2.345424221095108e-08}, "tile_steps": null, "products": "none"}
+
