@@ -332,10 +332,13 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             save_tables(path, tables, key)
             emit("output", kind="grid_cache_saved", path=str(path))
         if strip is not None:  # not cached: seconds, and the mesher's rules are what a user changes
-            from wadi2d.strips.build import strip_tables
+            from wadi2d.strips.build import strip_squares, strip_tables
 
             bed.bind(tables.grid.x0, tables.grid.y0)
-            tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs))
+            jj, ii = np.nonzero(tables.grid.mask)
+            sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
+            cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
+            tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
     return tables, crs
 
 

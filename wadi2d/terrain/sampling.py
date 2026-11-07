@@ -25,9 +25,16 @@ def _same_system(raster: CRS | None, dem: str, name: str) -> bool:
     return raster == CRS.from_user_input(dem)
 
 
-def raster_at_cells(path: str | Path, grid: TileGrid, crs: str) -> np.ndarray:
-    """Nearest value at each active cell centre on a (ny, nx) grid; NaN off the raster, on nodata and off the mask."""
-    jj, ii = np.nonzero(grid.mask)
+def raster_at_cells(
+    path: str | Path, grid: TileGrid, crs: str, cells: tuple[np.ndarray, np.ndarray] | None = None
+) -> np.ndarray:
+    """Nearest value at each cell centre on a (ny, nx) grid, at the active cells or at ``cells`` (rows, columns),
+    which may name cells the mask dropped: the squares a strip replaced, whose centres the strip's cells read.
+    NaN off the raster, on nodata and at cells not asked for."""
+    if cells is None:
+        jj, ii = np.nonzero(grid.mask)
+    else:
+        jj, ii = np.asarray(cells[0], np.int64), np.asarray(cells[1], np.int64)
     out = np.full(grid.shape, np.nan)
     if jj.size == 0:
         return out

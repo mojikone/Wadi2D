@@ -172,6 +172,49 @@ def _strip_depths(out) -> list[tuple[float, float, float]]:
     return out_rows
 
 
+def test_a_cn_raster_and_a_manning_raster_reach_the_corridor_cells(tilted_dem, tmp_path) -> None:  # noqa: F811
+    """The squares under a corridor leave the mask, and a raster read on the mask alone gave the strip no curve
+    number: Bidah's corridors were refused for 585 rained cells (2026-11-07). The strip's cells now read the raster
+    at the squares they stand in, and take their own roughness from a Manning raster instead of one mean."""
+    from tests.engine.conftest import write_dem
+
+    cn = write_dem(tmp_path / "cn.tif", np.full((48, 100), 75.0), 2.0)
+    rough = write_dem(tmp_path / "n.tif", np.full((48, 100), 0.3), 2.0)
+    base = plane_job(tilted_dem, corridor())
+    lossy = base.model_copy(update={"terrain": base.terrain.model_copy(update={"cn_raster": str(cn)})})
+    run = run_job(lossy, tmp_path / "cn")
+    assert run.exit_code == 0, run.message
+    assert abs(run.balance.relative) < 1e-6
+    full = run_job(base, tmp_path / "full")
+    assert 0.2 * full.balance.rain < run.balance.rain < 0.9 * full.balance.rain
+    slow = base.model_copy(update={"terrain": base.terrain.model_copy(update={"manning_raster": str(rough)})})
+    on_strip = run_job(slow, tmp_path / "rough")
+    assert on_strip.exit_code == 0, on_strip.message
+    peak_slow, _v = peak_and_volume(tmp_path / "rough")
+    peak_fast, _v = peak_and_volume(tmp_path / "full")
+    assert peak_slow < 0.8 * peak_fast, (peak_slow, peak_fast)
+
+
+def test_the_strip_takes_the_roughness_of_the_square_each_cell_stands_in() -> None:
+    from tests.strips.test_pixels import two_quads
+    from wadi2d.grid.tiles import TileGrid
+    from wadi2d.strips.build import strip_manning, strip_squares
+
+    geo, _mesh, _kept, _pix = two_quads()
+    _area, cx, cy = geo.areas_centroids()
+    dx = 10.0
+    x0, y0 = float(cx.min()) - 2 * dx, float(cy.max()) + 2 * dx
+    shape = (int(np.ceil((y0 - cy.min()) / dx)) + 2, int(np.ceil((cx.max() - x0) / dx)) + 2)
+    grid = TileGrid.from_mask(np.ones(shape, bool), x0, y0, dx)
+    sj, si = strip_squares(geo, grid)
+    assert np.all((grid.y0 - cy) // dx == sj) and np.all((cx - grid.x0) // dx == si)
+    manning = np.arange(shape[0] * shape[1], dtype=np.float64).reshape(shape) * 0.001 + 0.02
+    manning[sj[0], si[0]] = np.nan  # a square the raster does not cover
+    n = strip_manning(geo, grid, manning, 0.05)
+    assert n[0] == 0.05 and np.allclose(n[1:], manning[sj[1:], si[1:]])
+    assert strip_manning(geo, grid, 0.03, 0.05) == 0.03
+
+
 def test_a_curve_number_takes_its_losses_on_the_corridor_as_on_the_squares(tilted_dem, tmp_path) -> None:  # noqa: F811
     cfg = plane_job(tilted_dem, corridor())
     lossy = cfg.model_copy(update={"hydrology": cfg.hydrology.model_copy(update={"curve_number": 75.0})})

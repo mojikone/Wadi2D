@@ -82,8 +82,28 @@ def mask_for_strips(
     return out, strip
 
 
+def strip_squares(geo: MeshGeometry, grid: TileGrid) -> tuple[np.ndarray, np.ndarray]:
+    """The lattice square each strip cell's centroid stands in, as (row, column) on the grid."""
+    _area, cx, cy = geo.areas_centroids()
+    sj = np.clip(np.floor((grid.y0 - cy) / grid.dx).astype(np.int64), 0, grid.shape[0] - 1)
+    si = np.clip(np.floor((cx - grid.x0) / grid.dx).astype(np.int64), 0, grid.shape[1] - 1)
+    return sj, si
+
+
+def strip_manning(geo: MeshGeometry, grid: TileGrid, manning: float | np.ndarray, fallback: float) -> float | np.ndarray:
+    """Each strip cell's roughness: where a raster gave the squares theirs, the value of the square the cell stands
+    in (read at those squares too, since the mask dropped them); one value otherwise. Before this the strip took one
+    mean of the squares' grid, NaN where the squares under it had left the mask."""
+    if np.isscalar(manning):
+        return float(manning)
+    sj, si = strip_squares(geo, grid)
+    n = np.asarray(manning, np.float64)[sj, si]
+    return np.where(np.isfinite(n), n, fallback)
+
+
 def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, manning: float | np.ndarray) -> StripTables:
-    """The strip's polygon mesh with its tables from the DEM window under it, and its ghosts on the lattice."""
+    """The strip's polygon mesh with its tables from the DEM window under it, and its ghosts on the lattice.
+    ``manning`` is the squares' grid, read at the squares under the strip as well, or one value."""
     grid = tables.grid
     geo = strip.geometry
     pad = 2.0 * grid.dx
@@ -103,7 +123,7 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     ghosts = ghosts_for(geo, grid, tables)
     lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
     crest, cw, wall = faces_from_objects(geo, ghosts, lines)
-    n = float(np.mean(manning)) if not np.isscalar(manning) else float(manning)
+    n = strip_manning(geo, grid, manning, cfg.terrain.manning)
     mesh, kept = build_poly_tables(
         geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest
     )

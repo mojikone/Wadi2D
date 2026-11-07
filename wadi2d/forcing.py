@@ -115,11 +115,13 @@ def _labels(grid: TileGrid, polygons: list[shapely.Geometry]) -> np.ndarray:
     )
 
 
-def manning_grid(cfg: RunConfig, grid: TileGrid, crs: str = "") -> float | np.ndarray:
-    """One value, or a grid where a Manning raster gives one."""
+def manning_grid(
+    cfg: RunConfig, grid: TileGrid, crs: str = "", cells: tuple[np.ndarray, np.ndarray] | None = None
+) -> float | np.ndarray:
+    """One value, or a grid where a Manning raster gives one; ``cells`` names the cells to read, the mask by default."""
     if cfg.terrain.manning_raster is None:
         return cfg.terrain.manning
-    n = raster_at_cells(cfg.terrain.manning_raster, grid, crs)
+    n = raster_at_cells(cfg.terrain.manning_raster, grid, crs, cells)
     return np.where(np.isfinite(n), n, cfg.terrain.manning)
 
 
@@ -136,9 +138,14 @@ def _subbasin_curve_numbers(h: Hydrology) -> dict[str, float]:
 
 
 def curve_numbers(
-    cfg: RunConfig, grid: TileGrid, polygons: dict[str, shapely.Geometry], crs: str = ""
+    cfg: RunConfig,
+    grid: TileGrid,
+    polygons: dict[str, shapely.Geometry],
+    crs: str = "",
+    cells: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> np.ndarray:
-    """CN per cell, NaN for no losses. A raster beats a subbasin value, which beats the job's default."""
+    """CN per cell, NaN for no losses. A raster beats a subbasin value, which beats the job's default; ``cells``
+    names the cells the raster is read at, the mask by default."""
     h = cfg.hydrology
     cn = np.full(grid.shape, np.nan if h.curve_number is None else h.curve_number)
     named = [(name, value) for name, value in _subbasin_curve_numbers(h).items() if name in polygons]
@@ -146,7 +153,7 @@ def curve_numbers(
     for n, (_name, value) in enumerate(named):
         cn[labels == n + 1] = value
     if cfg.terrain.cn_raster is not None:
-        raster = raster_at_cells(cfg.terrain.cn_raster, grid, crs)
+        raster = raster_at_cells(cfg.terrain.cn_raster, grid, crs, cells)
         cn = np.where(np.isfinite(raster), raster, cn)
     return cn
 
@@ -473,7 +480,7 @@ class Forcing:
                 "give hydrology.hms_sqlite or hydrology.polygons"
             )
         self.rained = _labels(grid, [polygons[name] for name in names])[self.jj, self.ii] == 0
-        cn = curve_numbers(cfg, grid, polygons, crs)
+        cn = curve_numbers(cfg, grid, polygons, crs, self._read_cells(grid))
         cn = self._at_cells(cn, grid) if cfg.terrain.cn_raster else cn[self.jj, self.ii]
         self._check_curve_numbers(cfg, cn)
         self.depths = None
@@ -489,6 +496,16 @@ class Forcing:
             self.gridded = CellRain(storm, self._rain_pixels(storm, grid, crs), cn, self.rained)
             self.class_of = self.gridded.pair_of
         self.injections = [self._injection(cfg, tables, *h) for h in hydrographs]
+
+    def _read_cells(self, grid: TileGrid) -> tuple[np.ndarray, np.ndarray]:
+        """The cells a raster is read at: the active squares, and the squares the strip's cells stand in, which the
+        mask dropped. Read on the mask alone, a CN raster gave the strip no curve number and the run was refused for
+        585 rained cells on Bidah (2026-11-07)."""
+        jj, ii = np.nonzero(grid.mask)
+        if self.jj.size > self.n_lattice:
+            jj = np.concatenate((jj, self.jj[self.n_lattice :]))
+            ii = np.concatenate((ii, self.ii[self.n_lattice :]))
+        return jj, ii
 
     def _at_cells(self, raster: np.ndarray, grid: TileGrid) -> np.ndarray:
         """A raster at the interior cells. A coarse cell hanging over the raster's edge reads the part that lies on it."""
@@ -524,7 +541,7 @@ class Forcing:
 
     def _read_depths(self, cfg: RunConfig, grid: TileGrid, crs: str) -> np.ndarray:
         """The depth grid per interior cell; a rained cell without a depth is refused."""
-        values = self._at_cells(raster_at_cells(cfg.storm.depth_grid, grid, crs), grid)
+        values = self._at_cells(raster_at_cells(cfg.storm.depth_grid, grid, crs, self._read_cells(grid)), grid)
         holes = int(np.count_nonzero(~np.isfinite(values) & self.rained))
         if holes:
             raise ValueError(f"storm.depth_grid has no depth on {holes} rained cells of {self.rained.size}")
