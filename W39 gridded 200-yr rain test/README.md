@@ -114,6 +114,15 @@ The ratios use the NetCDF runs. The fair comparison for the gridded storm is the
 5. Hybrid result lines that read nothing: a design line routed through a reach, or a lumped inflow placed below the line, gives no warning. The options are to warn, to enter the flow at the line, or to read the network series in the dock (W38's open question, here on both routes).
 6. Network series of subbasins set to rain-on-grid: keep, label or drop.
 
+## His answers (2026-11-07)
+
+1. **The grid's 157 mm governs.** In his words, the new grids are station data interpolated locally and are more accurate; the 251 mm of `FM_200yr.met` is the regional depth. NetCDF or DSS, either one, since they agree within 0.3 %.
+2. Answered with 1: the 0.27 % difference is accepted.
+3. **The PMP raster's values are the depths to use.** 823 mm is only in the layer's name: it is the maximum observed 24 h rainfall the PMP was built from.
+4. **The ARF is the drainage area's own: 0.975 at Bidah 03.** The met's 300 km2 was a fixed area that simplified the work in HMS. The dock's depth-area study (`W37`) applies the right one.
+5. **"A big issue and very important to solve."** Taken up in `W41 hybrid design lines`.
+6. Left blank: still open.
+
 ## Not tested
 
 - Any other return period, any extent other than Bidah 03, and other cell sizes.

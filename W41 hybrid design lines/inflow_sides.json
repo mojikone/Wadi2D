@@ -1,0 +1,58 @@
+[
+ {
+  "dam": "Bidah 03",
+  "subbasin": "S13",
+  "dock_entry_m": 87.3,
+  "w1_entry_m": -420.7,
+  "subbasin_icon_m": -3557.1
+ },
+ {
+  "dam": "Faydh 01",
+  "subbasin": "S12",
+  "dock_entry_m": 0.4,
+  "w1_entry_m": -94.8,
+  "subbasin_icon_m": -4087.1
+ },
+ {
+  "dam": "R5A",
+  "subbasin": "S16",
+  "dock_entry_m": 12.1,
+  "w1_entry_m": -85.1,
+  "subbasin_icon_m": -3837.6
+ },
+ {
+  "dam": "R5A",
+  "subbasin": "S17",
+  "dock_entry_m": 12.1,
+  "w1_entry_m": -301.3,
+  "subbasin_icon_m": -4879.4
+ },
+ {
+  "dam": "R5A",
+  "subbasin": "S18",
+  "dock_entry_m": 12.1,
+  "w1_entry_m": -82.5,
+  "subbasin_icon_m": -1043.8
+ },
+ {
+  "dam": "R2A",
+  "subbasin": "S9",
+  "dock_entry_m": 7.6,
+  "w1_entry_m": -462.3,
+  "subbasin_icon_m": -8130.7
+ },
+ {
+  "dam": "R2A",
+  "subbasin": "S10",
+  "dock_entry_m": 7.6,
+  "w1_entry_m": -85.1,
+  "subbasin_icon_m": -1305.9
+ },
+ {
+  "dam": "Z4C",
+  "subbasin": "S4",
+  "dock_entry_m": 6.7,
+  "w1_entry_m": -80.7,
+  "subbasin_icon_m": -3678.8
+ }
+]
