@@ -274,10 +274,18 @@ P6 at 1.008 and 0.942 of the same 2 h storm on squares; corridors with the mesh 
 
 [Certain, measured] The strip's per-step bookkeeping through CuPy array operations (about ten launches of 10 us) cost
 a third of the hybrid step; as four RawKernel launches it costs a tenth. The hybrid is now 2.4 x the tiles per step on
-19,886 strip cells and 3,710 ghosts, launch-bound still (13 launches a step beside the tiles' own). Left for later:
-folding the level differences into the sums kernel, the scaling and the ghosts' source into the update kernel (about
-four launches), the strip's own time stepping (the strip takes 1.6 x the tiles' steps over the 16 h run), and the
-sliver triangles that set the smallest step.
+19,886 strip cells and 3,710 ghosts, launch-bound still (13 launches a step beside the tiles' own). The 16 h Faydh run
+with corridors: 72 s before, 41.5 s after.
+
+**The slivers.** The faces that set the step were gap triangles: the smallest centre-to-centre distances (3.0 m, the
+`DN_MIN` floor) all lay between two gap triangles, where a corridor node stands near a lattice corner and the
+constrained Delaunay on the existing nodes leaves a sliver. `merge_slivers` joins pairs of gap triangles closer than
+half a cell along their shared face into one quad when it is convex, closest first, until nothing merges. Faydh 01:
+9,170 gap cells to 7,719; the smallest step 0.040 to 0.057 s; 143,739 to 134,632 steps; **35.7 s on the GPU against
+13.4 with no lines (2.7 x)**; the dam axis 1,879.9 m3/s (+2.4 % on no lines, 0.1 % from the unmerged mesh), `box_mid`
+1,868.4. Left for later: folding the level differences into the sums kernel and the scaling and the ghosts' source into
+the update kernel (about four launches), and the strip's own time stepping (the strip still takes 1.5 x the tiles'
+steps over the run).
 
 ## Stage 6 (2026-11-07): terrain objects on the strip's ground and faces, passed
 
