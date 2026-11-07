@@ -126,6 +126,29 @@ Two things were wrong on the way and are now in the tests: a ghost's advection r
 channel +0.56 points high; with it, and the tile's closed face still reading zero discharge, +0.4; with the
 interface flow written into that face, -0.08.
 
+## Stage 4 (2026-11-07): the strip mesher in the engine, and the first race, passed
+
+`wadi2d/strips/mesher.py`: a `Corridor` is a curvilinear grid, stations every `along` metres on the smoothed centre
+line, rows at fixed offsets along the station normals, the rows that carry a breakline snapped onto it along their own
+cross lines with the outer rows carried (the step of the W44 trial that MeshKernel could not do; the engine needs no
+MeshKernel). The lattice cells under a corridor and within half a cell of it are removed, the gap triangulated on the
+existing nodes alone (shapely's constrained Delaunay), so every gap face shares its edge with a lattice cell, a corridor
+cell or another triangle, and every interface face is a lattice edge. A corridor that folds at a bend is refused by
+name with its stations. `breakline_faces` names the faces on each snapped row for stage 6. Tests
+`tests/strips/test_mesher.py`: a corridor of ten 10 m rows along W3's channel's middle 1,152 m, the toes at +-30 m on
+its rows, through the hybrid of stage 3 with the tables of stage 2.
+
+| W3's channel, depth / normal depth | Square tiles (the staircase) | The lattice as polygons | **Tiles + an aligned corridor** |
+|---|---|---|---|
+| Along the axis | 0.9855 (-1.45 %) | 0.9856 (-1.44 %) | **0.9868 (-1.32 %)** |
+| At 45 degrees | 1.0251 (+2.51 %) | 1.0132 (+1.32 %) | **0.9914 (-0.86 %)** |
+| Steps, 3,000 s, axis / 45 degrees | 1,535 / 2,909 | 1,549 / 2,840 | 3,313 / 4,692 |
+
+The corridor: 580 cells of 20 x 10 m, 272 to 320 gap triangles, 464 to 476 lattice cells replaced; the largest skew
+27 to 37 degrees, in the gap triangles. [Certain, measured] The aligned faces take the 45-degree channel from +2.5 %
+to under 1 %, the best of the three; [Certain] the 10 m rows halve the time step, the cost the strip's own
+local-time-stepping class will have to pay back (W40's finding, now measured here).
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
