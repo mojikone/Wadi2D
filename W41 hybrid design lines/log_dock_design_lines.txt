@@ -1,0 +1,49 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.7 PASS engine found Engine ready.
+    4.7 === 1 a generated basin: the design line's record holds the network's water
+    8.2 PASS a basin was generated with the design line as a junction 8 subbasins, 4 reaches, 5 junctions, 0 reservoirs; 6.4311 km2 reach the edge without meeting a stream and rain on the grid.
+    8.3 dock says: Starting...
+   19.8 dock says: water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   20.1 PASS generated: the run finished Finished. water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   20.1 PASS the run wrote the design line's record ['design_Bidah_03.csv', 'line_Bidah_03.csv', 'network_Bidah_03.csv', 'network_J1.csv', 'network_J2.csv', 'network_J3.csv', 'network_J4.csv', 'network_R1.csv', 'network_R2.csv', 'network_R3.csv', 'network_R4.csv', 'network_S1.csv', 'network_S2.csv', 'network_S3
+   20.1 record peak 410.4 m3/s; grid alone 0.69; network 410.2
+   20.1 PASS the record is the grid plus the network, within 0.5 % (410.411, 410.41130999999996)
+   20.1 PASS the record holds W39's network peak within 1 % 410.411
+   20.1 PASS the run names the record and its junction [{'ev': 'design', 'line': 'Bidah 03', 'peak_m3s': 410.4113095705705, 'network_peak_m3s': 409.9632, 'elements': ['Bidah 03']}]
+   20.1 dock says: Finished. water stood 8.1 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   22.1 PASS the panel offers the design line ['Upfront line: Bidah 03', 'Lumped element: Bidah 03', 'Lumped element: J1', 'Lumped element: J2', 'Lumped element: J3', 'Lumped element: J4']
+   22.1 PASS the panel draws the record and the grid alone ['Upfront, of record: the grid plus the lumped water passing in a reach', 'Upfront, on the grid alone', 'Saved frames, every 15 min: from the faces, of record']
+   22.1 PASS its peak is the record's 410.411
+   22.1 PASS its words say why Of record: the discharge on the faces plus the lumped network's water that passes the line inside a reach, less what a hand-back below the line took back. The grid alone is drawn grey: there the lumpe
+   22.2 === 2 the HMS route: S13 enters up the wadi from the dam line
+   22.3 dock says: Starting...
+   23.1 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+   24.6 dock says: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+   44.8 dock says: water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there
+   45.0 PASS pmp_hybrid: the run finished Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wal
+   45.0 PASS the HMS import asks for wadi entries [{'name': 'S1', 'mode': 'lumped', 'outlet': [424978.48973783385, 2705532.893463373], 'entry': 'wadi', 'curve_number': None, 'parameters': None}, {'name': 'S2', 'mode': 'lumped', 'outlet': [424978.48973783385, 2705532.893463373], 'entry': 'wadi', 'curve_number'
+   45.0 S13: {'name': 'S13', 'kind': 'subbasin', 'asked': [438602.1048061085, 2727064.1474835714], 'point': [438490.98973783385, 2726915.393463373], 'moved_m': 185.67260681862763, 'clear': True, 'note': 'enters at the wadi outlet of its polygon, moved up the wadi clear of every line'}
+   45.0 PASS S13 moved off the HMS icon, clear of the lines {'name': 'S13', 'kind': 'subbasin', 'asked': [438602.1048061085, 2727064.1474835714], 'point': [438490.98973783385, 2726915.393463373], 'moved_m': 185.67260681862763, 'clear': True, 'note': 'enters at the wadi outlet of its polygon, moved up the wadi clear of 
+   45.0 Bidah 03 line peak 1463.9 m3/s at 12.86 h
+   45.0 PASS the Bidah 03 line within 2% of 1463.8 1463.89
+   45.0 === 3 the Block 2 hybrid at 80 m: the five dam lines against W1's outlets
+   45.4 dock says: Starting...
+   46.4 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form.
+  100.6 dock says: water stood 20.7 m deep against the domain edge at (430711, 2728400): an edge is a wall, so check the domain polygon there
+  100.9 PASS block2: the run finished Finished. water stood 20.7 m deep against the domain edge at (430711, 2728400): an edge is a wall, so check the domain polygon there.
+  100.9 PASS no dam line crosses a lumped inflow's cells any more []
+  125.6 PASS the reference on W1's outlets ran 
+  125.6 Bidah 03: dock 302.6, W1's outlets 302.0, ratio 1.0020; lumped network 302.3
+  125.6 PASS Bidah 03 within 2% of W1's outlets {'dock': 302.571, 'w1': 301.982, 'network': 302.266, 'ratio': 1.0019504473776584}
+  125.6 Faydh 01: dock 895.6, W1's outlets 936.1, ratio 0.9568; lumped network 877.9
+  125.6 FAIL Faydh 01 within 2% of W1's outlets {'dock': 895.633, 'w1': 936.11, 'network': 877.855, 'ratio': 0.9567604234545086}
+  125.6 R5A: dock 994.0, W1's outlets 1002.5, ratio 0.9916; lumped network 801.1
+  125.6 PASS R5A within 2% of W1's outlets {'dock': 994.027, 'w1': 1002.47, 'network': 801.097, 'ratio': 0.9915778028270172}
+  125.6 R2A: dock 1435.3, W1's outlets 1442.4, ratio 0.9951; lumped network 1277.3
+  125.6 PASS R2A within 2% of W1's outlets {'dock': 1435.27, 'w1': 1442.38, 'network': 1277.35, 'ratio': 0.9950706471248907}
+  125.6 Z4C: dock 1669.8, W1's outlets 1674.1, ratio 0.9974; lumped network 1605.7
+  125.6 PASS Z4C within 2% of W1's outlets {'dock': 1669.82, 'w1': 1674.13, 'network': 1605.73, 'ratio': 0.997425528483451}
+  125.6 SUMMARY 23 passed, 1 failed 
+  125.6   FAILED Faydh 01 within 2% of W1's outlets: {'dock': 895.633, 'w1': 936.11, 'network': 877.855, 'ratio': 0.9567604234545086}
+  125.6 DONE

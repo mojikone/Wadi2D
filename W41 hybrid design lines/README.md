@@ -1,7 +1,12 @@
 # W41 hybrid design lines
 
-**Status (2026-11-07): root cause found and confirmed by test runs. No engine or plugin code has changed. The fix is
-[BROAD] and waits for his go-ahead. The water is not lost: the books close to 2e-8 in every run. A hybrid's design line
+**Status (2026-11-07): fixed on his "Yes", branch `fix/hybrid-design-lines`, 23 of 24 through the real dock. A lumped
+subbasin from an HMS project now enters at the wadi outlet of its own polygon, up the wadi and clear of every line. A
+design line on a generated basin whose junction drains down a reach now reads the network's water too: Bidah 03 reads
+410.4 m3/s, against 0.69 before. The one failure is Faydh 01's raw peak at 80 m, 0.957 of W1's placement, while its
+15-minute peak agrees to the digit; see "Through the real dock".**
+
+**The finding, as first written. The water is not lost: the books close to 2e-8 in every run. A hybrid's design line
 reads only the grid, and the lumped water is put on the grid below the line, or carried past it inside a lumped reach.
 The cause is not specific to Bidah 03. In every dock hybrid built from an HMS project, at all five Block 2 dams, the
 local subbasin's hydrograph enters 0.4 to 87 m on the downstream side of the dam line. W1's validated mode (b) put it
@@ -90,9 +95,98 @@ writes, through its own `_outlet`. Mass error is 5e-9 and 3e-9. The lumped netwo
   the same cause on the generated route. Comparisons inside one placement (W20's storm forms, W33's backends) are not
   affected. W1's mode (b) record is not affected: it used W1's own outlets.
 
-## The fix, proposed (waits for his go-ahead)
+## The fix (his "Yes", 2026-11-07; branch `fix/hybrid-design-lines`)
 
-See the [PRESERVE-CHECK] in the chat of 2026-11-07, repeated here once agreed.
+[PRESERVE-CHECK] [BROAD], as agreed:
+- KEEP:
+  - Every job that gives explicit outlets or inflow points runs to the last digit (W1's validation jobs, every test job).
+  - The lumped engine, the hand-back, and his D6 routing rules: a defined reach still routes HMS-style.
+  - The grid's own `line_<name>.csv`.
+  - The W38 warning.
+- CHANGE:
+  1. A subbasin with `entry: wadi` enters at the wadi outlet of its polygon on the run's grid, W1's rule: the largest
+     drainage area inside the polygon eroded `hydrology.entry_erode_m` (80 m). From there the entry walks up the wadi
+     until the injection's cells and one more are clear of every result and hand-back line. `hms-import` writes
+     `wadi`, so every dock HMS-route job takes it. A subbasin with no polygon walks up from its outlet.
+  2. On a generated basin, a junction built on a design line gets an `entry: wadi` inflow, so it enters above the line.
+     Where a reach carries that junction's water past the line instead, the line's record adds the junction's network
+     outflow, less the 2D water a hand-back below the line took back.
+  3. A record per such line, `series/design_<line>.csv` (grid, network, total). The run's peak for the line is the
+     total's, so the depth-area study reads it. The Result lines panel draws the total as the number of record, with the
+     grid alone in grey.
+  4. `entries.json` in the run folder: where each entry was asked for, where it entered, and why.
+- FILES: `wadi2d/config/schema.py` (`entry`, `entry_erode_m`); new `wadi2d/engine/entries.py`; new
+  `wadi2d/engine/design_lines.py`; `wadi2d/run.py` (placement before the forcing, the records after the line series,
+  the job hash dropping `point` entries so old checkpoints keep); `wadi2d/engine/hms_import.py`;
+  `wadi2d/basin/job.py`; `wadi2d/engine/line_checks.py` (its cell helper made public); `wadi2d/products/result_lines.py`;
+  `plugin/wadi2d_qgis/line_view.py`. Tests: new `tests/engine/test_entries.py` and `tests/engine/test_design_lines.py`;
+  amended `tests/engine/test_basin_run.py` (a resolved inflow now carries `entry`), `tests/engine/test_block2.py`
+  (the import asks for `wadi`), `tests/plugin/test_line_view.py`, `tests/plugin/schema_sample.json`.
+- The coverage check per line, also in the proposal, is not built. The line-to-network mapping is exact on a generated
+  basin, and on the HMS route the entries now lie above the lines, so the check would only re-measure what the runs
+  already show.
+
+### The fix on the CLI, the same jobs as above (`jobs/`)
+
+The dock's own entry points (the HMS icons), now with `entry: wadi`:
+
+| Dam | Line peak, m3/s | Volume, Mm3 | Against W1's outlets, peak / volume | Lumped network |
+|---|---|---|---|---|
+| Faydh 01 | 877.6 | 10.69 | 1.003 / 1.000 | 877.9 |
+| Bidah 03 | 301.6 | 2.84 | 1.009 / 1.000 | 302.3 |
+| R5A | 789.4 | 16.33 | 0.998 / 1.000 | 801.1 |
+| R2A | 1,304.4 | 24.48 | 1.000 / 1.000 | 1,277.3 |
+| Z4C | 1,582.3 | 29.51 | 0.997 / 1.000 | 1,605.7 |
+
+All 18 entries are clear of every line, dam lines and rings alike. They moved 128 to 944 m from the icons. W38's
+warning fires 0 times, against 15 with the icons and 1 with W1's hand-placed outlets.
+The rings round the lumped subbasins in the same three 80 m runs, against each subbasin's own network outflow:
+
+| Ring | HMS icons | W1's outlets | `entry: wadi` | Network | `wadi` / network |
+|---|---|---|---|---|---|
+| S1 | 18.6 | 549.7 | 549.3 | 549.2 | 1.000 |
+| S2 | 15.5 | 439.8 | 439.9 | 441.6 | 0.996 |
+| S5 | 41.1 | 653.4 | 659.9 | 629.5 | 1.048 |
+| S6 | 2.0 | 326.5 | 326.5 | 326.9 | 0.999 |
+| S11 | 52.6 | 508.3 | 507.0 | 492.7 | 1.029 |
+| S14 | 451.4 | 455.2 | 453.7 | 447.9 | 1.013 |
+
+[Likely] W31's finding that "a ring on a lumped subbasin's edge passes about half its hydrograph" (S5 0.50, S11 0.48,
+S14 0.00, at 40 m on W20's dock job) is this same cause. That job took the HMS icons, which sit on the rings. The surge
+itself, a pond where a hydrograph enters with no momentum, is a separate finding and still stands, now up the wadi from
+the rings. S5's +4.8 % at 80 m may be its trace [Guessing].
+
+W39's PMP run 5 with `entry: wadi` on S13: the Bidah 03 line reads 1,463.9 m3/s (S13 moved 186 m up the wadi), against
+24.4 with the icon and 1,463.8 with W1's point.
+
+### Through the real dock (`dock_design_lines.py`, `log_dock_design_lines.txt`): 23 of 24
+
+QGIS 3.44.8, throwaway profile, the plugin and engine of this branch. The rules were fixed before the runs.
+
+| Case | Result | |
+|---|---|---|
+| 1. W39's generated hybrid, Bidah 03, 30 m, RP200 NetCDF | The record's peak is 410.4 m3/s: the grid alone gives 0.69 and the network 410.2. The record equals grid plus network within 0.5 %, and holds W39's 410.16 within 1 %. The panel draws the record as the number of record, the grid alone in grey, and says why | PASS |
+| 2. W39's PMP through the HMS route, S13 lumped | The import asks for `wadi` entries. S13 moved 186 m up the wadi, clear of the lines. The Bidah 03 line reads 1,463.9 m3/s against the 1,463.8 the CLI found with W1's point (24.4 before) | PASS |
+| 3. Block 2 hybrid at 80 m, HMS 100-yr storm, dock Manning 0.035, 48 h | No dam line is warned of an inflow's cells. Against the same dock job on W1's outlets: Bidah 03 1.002, R5A 0.992, R2A 0.995, Z4C 0.997 | PASS 4 of 5 |
+| | **Faydh 01 reads 0.957 on the raw peak, 895.6 against 936.1 m3/s** | **FAIL** |
+
+**The failure, with its evidence.** At Faydh 01 the 15-minute peaks agree to the digit, 889.9 against 890.0 m3/s, and
+the volumes within 0.11 %. The raw peak of the W1 placement is a spike 5 % above its own 15-minute peak. W33 measured
+the same thing at Faydh 01: its raw peak moved 1.9 % under a Courant number nudged by 1e-6, while its 15-minute peak
+moved 0.05 %. So the rule failed on the raw peak, which near a lumped inflow carries the pond's surge (W31), and not on
+the flow. The rule stays as it was written, and the case is recorded as a fail. On the CLI job (Manning 0.1) the same
+dam reads 1.003 of W1's.
+
+| Dam | Raw peak, dock / W1's outlets | 15-minute peak | Volume |
+|---|---|---|---|
+| Faydh 01 | 895.6 / 936.1 = **0.957** | 889.9 / 890.0 = 1.000 | 0.9989 |
+| Bidah 03 | 302.6 / 302.0 = 1.002 | 1.001 | 1.0000 |
+| R5A | 994.0 / 1,002.5 = 0.992 | 0.996 | 1.0000 |
+| R2A | 1,435.3 / 1,442.4 = 0.995 | 0.998 | 0.9999 |
+| Z4C | 1,669.8 / 1,674.1 = 0.997 | 0.998 | 1.0000 |
+
+The entries sit 4 to 433 m from W1's hand-placed points (S11 117 m, S12 106 m at Faydh 01). W1 read HMS's own 5 m
+accumulation; the engine reads its own D8 drainage on the run's cells.
 
 ## Rerun
 
