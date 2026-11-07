@@ -14,6 +14,8 @@ AHEAD = 3
 """Maps held ready."""
 WAIT_S = 0.2
 FIELDS = ("depth", "mean_depth", "speed")
+STRIP_FIELDS = ("strip_depth", "strip_mean_depth", "strip_speed")
+"""A strip's cells in a map, each a (1, cells) row (W45)."""
 
 
 def frame_names(results: Path) -> list[str]:
@@ -25,6 +27,23 @@ def run_maxima(results: Path) -> dict[str, np.ndarray]:
     """The run's own maxima, each taken at its own peak."""
     with h5py.File(results, "r") as f:
         return {name: f["maxima"][name][:] for name in ("depth", "mean_depth", "speed", "hazard")}
+
+
+def strip_run_maxima(results: Path) -> dict[str, np.ndarray] | None:
+    """The strip's own maxima per real cell, or None on a run without a strip."""
+    with h5py.File(results, "r") as f:
+        if "maxima" not in f or "strip_depth" not in f["maxima"]:
+            return None
+        return {name: f["maxima"][f"strip_{name}"][0] for name in ("depth", "mean_depth", "speed", "hazard")}
+
+
+def read_strip_frames(results: Path, names: list[str]) -> Iterator[tuple[np.ndarray, np.ndarray, np.ndarray]]:
+    """(level above zmin, mean depth, speed) of the strip's cells in each map that holds them."""
+    with h5py.File(results, "r") as f:
+        for name in names:
+            group = f["maps"][name]
+            if STRIP_FIELDS[0] in group:
+                yield tuple(group[field][0] for field in STRIP_FIELDS)
 
 
 def read_frames(results: Path, names: list[str]) -> Iterator[tuple[np.ndarray, np.ndarray, np.ndarray]]:

@@ -103,34 +103,58 @@ def pixel_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp
     return PixelResult(cells, classify(depth, speed, dv, rule), depth, speed, dv, len(names))
 
 
-def spread(cells: CellPixels, values: np.ndarray, fill: float, dtype) -> np.ndarray:
-    """(cells, k * k) values as one raster over the kept cells' bounding box."""
+def pixel_box(cells: CellPixels, strip=None) -> tuple[int, int, int, int]:
+    """(top, left, height, width) in pixels of the kept cells and, with a strip, its pixels too."""
     k = cells.k
-    top, left = int(cells.rows.min()), int(cells.cols.min())
-    height = (int(cells.rows.max()) + 1 - top) * k
-    width = (int(cells.cols.max()) + 1 - left) * k
+    boxes = []
+    if cells.rows.size:
+        boxes.append((int(cells.rows.min()) * k, int(cells.cols.min()) * k, (int(cells.rows.max()) + 1) * k, (int(cells.cols.max()) + 1) * k))
+    if strip is not None and strip.rows.size:
+        boxes.append((int(strip.rows.min()), int(strip.cols.min()), int(strip.rows.max()) + 1, int(strip.cols.max()) + 1))
+    top, left = min(b[0] for b in boxes), min(b[1] for b in boxes)
+    bottom, right = max(b[2] for b in boxes), max(b[3] for b in boxes)
+    return top, left, bottom - top, right - left
+
+
+def spread(cells: CellPixels, values: np.ndarray, fill: float, dtype, box=None, strip=None, strip_values=None) -> np.ndarray:
+    """(cells, k * k) values as one raster over the kept cells' bounding box; a strip's pixels painted after them."""
+    k = cells.k
+    top, left, height, width = pixel_box(cells, strip) if box is None else box
     out = np.full((height, width), fill, dtype)
-    down, across = np.meshgrid(np.arange(k), np.arange(k), indexing="ij")
-    rows = (cells.rows - top)[:, None] * k + down.ravel()[None, :]
-    cols = (cells.cols - left)[:, None] * k + across.ravel()[None, :]
-    out[rows, cols] = values
+    if cells.rows.size:
+        down, across = np.meshgrid(np.arange(k), np.arange(k), indexing="ij")
+        rows = (cells.rows * k - top)[:, None] + down.ravel()[None, :]
+        cols = (cells.cols * k - left)[:, None] + across.ravel()[None, :]
+        out[rows, cols] = values
+    if strip is not None and strip_values is not None and strip.rows.size:
+        out[strip.rows - top, strip.cols - left] = strip_values
     return out
 
 
-def write_pixels(cfg: RunConfig, tables: GridTables, crs, found: PixelResult, folder: Path, tags) -> dict:
-    """The rasters of record and the statistics; the class raster comes back for the smoothing."""
+def write_pixels(cfg: RunConfig, tables: GridTables, crs, found: PixelResult, folder: Path, tags, strip=None) -> dict:
+    """The rasters of record and the statistics; the class raster and the depth come back for the smoothing.
+    ``strip`` is a :class:`wadi2d.strips.pixels.StripPixelResult`: its pixels fill the cells the strip replaced."""
     rule = cfg.outputs.pixels
     cells = found.cells
     grid = tables.grid
-    x0 = grid.x0 + int(cells.cols.min()) * grid.dx
-    y0 = grid.y0 - int(cells.rows.min()) * grid.dx
-    classes = spread(cells, found.classes, DRY, np.uint8)
+    box = pixel_box(cells, strip)
+    x0 = grid.x0 + box[1] * cells.pixel
+    y0 = grid.y0 - box[0] * cells.pixel
+    classes = spread(cells, found.classes, DRY, np.uint8, box, strip, None if strip is None else strip.classes)
     profile = raster_profile(classes.shape, cells.pixel, x0, y0, crs)
     write_band(folder / HAZARD_FILE, classes, profile, DRY, tags)
     wet = found.classes > DRY
-    for name, values in ((DEPTH_FILE, found.depth), (SPEED_FILE, found.speed), (DV_FILE, found.dv)):
-        band = spread(cells, np.where(wet, values, NO_DEPTH), NO_DEPTH, np.float32)
+    depth_band = None
+    for name, values, more in (
+        (DEPTH_FILE, found.depth, None if strip is None else strip.depth),
+        (SPEED_FILE, found.speed, None if strip is None else strip.speed),
+        (DV_FILE, found.dv, None if strip is None else strip.dv),
+    ):
+        on_strip = None if more is None else np.where(strip.classes > DRY, more, NO_DEPTH)
+        band = spread(cells, np.where(wet, values, NO_DEPTH), NO_DEPTH, np.float32, box, strip, on_strip)
         write_band(folder / name, band, profile, NO_DEPTH, tags)
+        if name == DEPTH_FILE:
+            depth_band = np.where(band == NO_DEPTH, 0.0, band).astype(np.float32)
     km2 = cells.pixel**2 / M2_PER_KM2
     names = class_names(rule)
     stats = {
@@ -145,7 +169,10 @@ def write_pixels(cfg: RunConfig, tables: GridTables, crs, found: PixelResult, fo
         "dv_max_m2s": float(found.dv.max(initial=0.0)),
         "origin": [x0, y0],
     }
-    return {"stats": stats, "classes": classes, "profile": profile}
+    if strip is not None:
+        stats["strip_pixels"] = int(strip.rows.size)
+        stats["strip_depth_max_m"] = float(strip.depth.max(initial=0.0))
+    return {"stats": stats, "classes": classes, "profile": profile, "depth": depth_band}
 
 
 def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp) -> MeshResult:
@@ -196,7 +223,14 @@ def make_products(
         found = maxima_of(cfg, tables, out, watch, np)
     folder = out / PIXEL_DIR
     folder.mkdir(parents=True, exist_ok=True)
-    if (found.kept if on_mesh else found.cells.rows.size) == 0:
+    strip = None
+    if not on_mesh and getattr(tables, "strip", None) is not None:
+        from wadi2d.strips.pixels import strip_pixel_maxima
+
+        strip = strip_pixel_maxima(cfg, tables, tables.strip, out, watch, xp, found.cells.datum)
+        _free_device(xp)
+    nothing = (found.kept if on_mesh else found.cells.rows.size) == 0 and (strip is None or strip.rows.size == 0)
+    if nothing:
         (folder / STATS_FILE).write_text(json.dumps({"class_km2": {}, "maps": found.maps}), encoding="utf-8")
         return {"class_km2": {}}
     watch.tick("rasters", 0, 1)
@@ -204,13 +238,13 @@ def make_products(
         files = {"hazard": HAZARD_FILE, "depth": DEPTH_FILE, "speed": SPEED_FILE, "dv": DV_FILE, "nodata": NO_DEPTH}
         written = write_mesh_pixels(cfg, tables, crs, found, folder, tags, files)
     else:
-        written = write_pixels(cfg, tables, crs, found, folder, tags)
+        written = write_pixels(cfg, tables, crs, found, folder, tags, strip)
     stats = written["stats"]
     if cfg.outputs.smooth.enabled:
         if on_mesh:
             depth = mesh_spread(found.cells, found.depth, 0.0, np.float32)
         else:
-            depth = spread(found.cells, found.depth, 0.0, np.float32)
+            depth = written["depth"]
         del found
         stats["smooth"] = make_drawings(cfg, tables, written, depth, folder, crs, watch)
     (folder / STATS_FILE).write_text(json.dumps(stats, indent=1), encoding="utf-8")

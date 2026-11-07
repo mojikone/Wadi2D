@@ -37,7 +37,9 @@ class HybridGpu(Hybrid):
         self.zmin_d = cp.asarray(self.zmin_state)
         self.saved = cp.zeros(self.ghost.size, F)
         self.max_d, self.max_h = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
+        self.max_s, self.max_dv = cp.zeros(self.nreal, F), cp.zeros(self.nreal, F)
         self.max_q, self.abs_q = cp.zeros(self.mesh.nfaces, F), cp.zeros(self.mesh.nfaces, F)
+        self.speed_depth = F(0.0)
         self.edge_d = {}
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
@@ -56,6 +58,10 @@ class HybridGpu(Hybrid):
     def strip_maxima(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         cp = self.state.cp
         return cp.asnumpy(self.max_d), cp.asnumpy(self.max_h), cp.asnumpy(self.max_q)
+
+    def strip_speed_maxima(self) -> tuple[np.ndarray, np.ndarray]:
+        cp = self.state.cp
+        return cp.asnumpy(self.max_s), cp.asnumpy(self.max_dv)
 
     def watch_boundary(self, faces: np.ndarray) -> None:
         cp = self.state.cp
@@ -99,6 +105,9 @@ class HybridGpu(Hybrid):
         cp.maximum(self.max_h, s.h[:n], out=self.max_h)
         cp.abs(s.q, out=self.abs_q)
         cp.maximum(self.max_q, self.abs_q, out=self.max_q)
+        speed = cp.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
+        cp.maximum(self.max_s, speed, out=self.max_s)
+        cp.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
         for axis, (nslot, maps) in self.edge_d.items():
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
             s.edges(nslot, maps, discharge, velocity)

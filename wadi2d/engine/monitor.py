@@ -157,6 +157,10 @@ class Monitor:
         """Callables giving water that left through faces beside the tiles, m3: a strip's flow into boundary cells."""
         self.extra_products: list = []
         """Callables ``(maps folder, crs) -> (kind, path)`` writing a map product beside the tiles': a strip's mesh."""
+        self.extra_fields: list = []
+        """Callables giving fields saved with every map beside the tiles', name to (1, n) array: a strip's cells."""
+        self.extra_maxima: list = []
+        """Callables giving the run's maxima beside the tiles', name to (1, n) array: a strip's cells."""
         self.extra_lines: dict[int, list] = {}
         """Per line index, callables giving discharge through faces beside the tiles, m3/s."""
         self.lines: list[tuple[object, np.ndarray, object, np.ndarray]] = []
@@ -225,6 +229,8 @@ class Monitor:
         fields = {"depth": m.field("d"), "mean_depth": m.field("h"), "speed": m.cell_speed()}
         if self.cfg.outputs.face_discharge:
             fields.update({name: m.field(name) for name in FACE_FIELDS})
+        for more in self.extra_fields:
+            fields.update(more())
         self.results.snapshot(t, fields)
         self.progress.emit("output", kind="map", t=t)
 

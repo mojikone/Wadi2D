@@ -198,6 +198,29 @@ class Hybrid:
         """The largest depth and mean depth of each real cell and the largest discharge of each face, on the host."""
         raise NotImplementedError
 
+    def strip_speed_maxima(self) -> tuple[np.ndarray, np.ndarray]:
+        """The largest cell speed (where the cell is deeper than ``speed_depth``) and depth x speed, on the host."""
+        raise NotImplementedError
+
+    def strip_frame_fields(self) -> dict[str, np.ndarray]:
+        """The strip's cells in a saved map: level above zmin, mean depth and cell speed, each (1, n)."""
+        n = self.nreal
+        ux, uy = self.strip_host("Ux")[:n], self.strip_host("Uy")[:n]
+        speed = np.hypot(ux.astype(np.float64), uy.astype(np.float64)).astype(F)
+        return {
+            "strip_depth": self.strip_host("d")[:n][None, :],
+            "strip_mean_depth": self.strip_host("h")[:n][None, :],
+            "strip_speed": speed[None, :],
+        }
+
+    def strip_maxima_fields(self) -> dict[str, np.ndarray]:
+        max_d, max_h, _max_q = self.strip_maxima()
+        max_s, max_dv = self.strip_speed_maxima()
+        return {
+            "strip_depth": max_d[None, :], "strip_mean_depth": max_h[None, :],
+            "strip_speed": max_s[None, :], "strip_hazard": max_dv[None, :],
+        }  # fmt: skip
+
     def strip_volume(self) -> float:
         """Water in the strip, the clamp residual of each cell included, as the tiles count theirs."""
         n = self.nreal
@@ -227,6 +250,9 @@ class Hybrid:
         self.watch_boundary(self.b_faces)
         monitor.extra_outflow.append(self.boundary_outflow)
         monitor.extra_products.append(lambda folder, crs: ("strip_mesh", write_strip_mesh(folder / STRIP_MESH_FILE, self, strip, crs)))
+        self.speed_depth = F(monitor.cfg.outputs.speed_depth)
+        monitor.extra_fields.append(self.strip_frame_fields)
+        monitor.extra_maxima.append(self.strip_maxima_fields)
         joins = {axis: set(self.edge[axis][3].tolist()) for axis in self.edge}
         idx = self.model.device_index
         for n, line in enumerate(lines):
@@ -282,7 +308,9 @@ class HybridCpu(Hybrid):
         self.saved = np.zeros(self.ghost.size, F)
         self.left_m3 = 0.0
         self.max_d, self.max_h = np.zeros(self.nreal, F), np.zeros(self.nreal, F)
+        self.max_s, self.max_dv = np.zeros(self.nreal, F), np.zeros(self.nreal, F)
         self.max_q = np.zeros(self.mesh.nfaces, F)
+        self.speed_depth = F(0.0)
         return PolyState(self.mesh, self.model.num)
 
     def strip_host(self, name: str) -> np.ndarray:
@@ -290,6 +318,9 @@ class HybridCpu(Hybrid):
 
     def strip_maxima(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.max_d, self.max_h, self.max_q
+
+    def strip_speed_maxima(self) -> tuple[np.ndarray, np.ndarray]:
+        return self.max_s, self.max_dv
 
     def watch_boundary(self, faces: np.ndarray) -> None:
         self.b_faces = np.asarray(faces, np.int64)
@@ -345,6 +376,9 @@ class HybridCpu(Hybrid):
         np.maximum(self.max_d, s.d[:n], out=self.max_d)
         np.maximum(self.max_h, s.h[:n], out=self.max_h)
         np.maximum(self.max_q, np.abs(s.q), out=self.max_q)
+        speed = np.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
+        np.maximum(self.max_s, speed, out=self.max_s)
+        np.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
                 continue

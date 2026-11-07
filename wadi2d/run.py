@@ -656,6 +656,8 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
         kind, path = make(out / "maps", crs)
         progress.emit("output", kind=kind, path=str(path))
     results.maxima(fields_)
+    for more in monitor.extra_maxima:
+        results.maxima(more())
     deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask)
     if deep > cfg.outputs.edge_depth:
         progress.emit(
