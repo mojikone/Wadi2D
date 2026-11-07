@@ -1010,9 +1010,10 @@ class Strips(_Part):
     rows_per_side: int = Field(3, ge=1, le=8, description="Rows either side of the centre line from the banks file")
     min_length_m: float = Field(300.0, ge=20.0, description="A corridor from the banks file shorter than this is not built, m")
     substeps: int = Field(
-        8, ge=1, le=64,
+        0, ge=0, le=64,
         description="The strip takes up to this many steps of its own inside one step of the squares, the squares'"
-        " step capped at this multiple of the strip's; 1 steps both together at the smaller step",
+        " step capped at this multiple of the strip's; 1 steps both together at the smaller step; 0 chooses: 8 on a"
+        " grid of two million squares or more, where the squares' step is the cost, else 1",
     )
     along: float | None = Field(None, gt=0.0, description="Station spacing along a corridor, m; None takes grid.dx")
     buffer_cells: float = Field(

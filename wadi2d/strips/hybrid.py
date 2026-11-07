@@ -37,6 +37,11 @@ from wadi2d.tables.builder import GridTables, hbar_at_level
 
 F = np.float32
 ZERO, HALF = F(0.0), F(0.5)
+AUTO_SUBSTEPS = 8
+AUTO_SUBSTEP_CELLS = 2_000_000
+"""Sub-cycling pays where the squares' step costs more than the strip's launches: Faydh 01 at 20 m (189,000 squares,
+20,000 strip cells) ran 40 % slower with it, the strip taking its own steps whatever the squares do; the full extent
+(17 M squares) stands to gain up to the strip's share of the step. The boundary is a guess from those two points."""
 
 
 @njit(cache=True)
@@ -127,7 +132,10 @@ class Hybrid:
         self.open_n = fly[j, i] < CLOSED
         self.open_s = np.where(j + 1 < ny, fly[np.minimum(j + 1, ny - 1), i] < CLOSED, False)
         self._edges(mesh, grid)
-        self.k_max = max(int(substeps), 1)
+        wanted = int(substeps)
+        if wanted <= 0:
+            wanted = AUTO_SUBSTEPS if int(grid.mask.sum()) >= AUTO_SUBSTEP_CELLS else 1
+        self.k_max = max(wanted, 1)
         """How many strip steps may share one step of the squares; the squares' step is capped at that multiple."""
         self.strip_freq = 0.0
         """The strip's largest wave frequency of record, 1/s: what sets its own step."""
