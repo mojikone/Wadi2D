@@ -38,6 +38,8 @@ def test_every_exit_code_of_the_protocol_has_a_sentence(code: int) -> None:
 
 def test_unknown_and_missing_exit_codes_still_read_plainly() -> None:
     assert "unknown code (42)" in exit_message(42)
+    assert exit_message(-1073741819) == exit_message(3221225477)
+    assert "graphics driver" in exit_message(-1073741819) and "restart the PC" in exit_message(-1073741819)
     assert "without reporting" in exit_message(None)
 
 

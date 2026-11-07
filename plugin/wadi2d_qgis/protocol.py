@@ -100,6 +100,14 @@ EXIT_MESSAGES = {
     EXIT_STOPPED: "Stopped on request.",
     7: "Out of memory: try a larger cell size or a smaller domain.",
 }
+ACCESS_VIOLATION = (-1073741819, 3221225477)
+"""0xC0000005 as Windows reports it, signed or not: a crash inside a library, on this project the GPU driver (W33)."""
+CRASH_MESSAGE = (
+    "The engine crashed inside the graphics driver or a library. If another GPU program is running, close it and run "
+    "again; if it keeps happening, restart the PC (a driver left damaged by earlier GPU faults does this) or choose "
+    "the CPU engine."
+)
+EXIT_MESSAGES.update(dict.fromkeys(ACCESS_VIOLATION, CRASH_MESSAGE))
 
 _QGIS_ENV_PREFIXES = ("PYTHONHOME", "PYTHONPATH", "GDAL_", "PROJ_", "QGIS_", "O4W_", "OSGEO4W", "VSI_")
 _QGIS_ENV_NAMES = ("QT_PLUGIN_PATH", "PYQGIS_STARTUP")
