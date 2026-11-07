@@ -1,7 +1,7 @@
 # W37 dock backend and ARF
 
 **Status (2026-11-07): done on QGIS 3.44.8, branch `feature/dock-backend-arf`, not merged, not pushed. 55 of 55 through
-the real dock on Bidah at 40 m (`log_dock_backend_arf.txt`).** The Run section has an Engine choice (Automatic, GPU only,
+the real dock on Bidah at 40 m (`log_dock_backend_arf.txt`); the full suite, 1,830 tests, passes on the branch.** The Run section has an Engine choice (Automatic, GPU only,
 CPU only), written into the job only when it is not Automatic. A new section, **9. Depth-area study**, runs the study from
 the dock with storm areas that bracket the drainage areas by default, shows which run of how many and how many are left,
 stops on request, and ends with a table of design flows and the file it is in. Folded in his amendment of 2026-11-07:
