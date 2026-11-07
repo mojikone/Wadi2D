@@ -66,7 +66,7 @@ from .protocol import (
     parse_mesh,
     run_args,
 )
-from .result_layers import has_products, load_cell_grid, load_products
+from .result_layers import has_products, load_cell_grid, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
@@ -656,6 +656,7 @@ class Wadi2DDock(QgsDockWidget):
         if products:
             load_products(run.out_dir, run.out_dir.name)
         load_cell_grid(run.out_dir, run.out_dir.name)
+        load_strip_mesh(run.out_dir, run.out_dir.name)
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
         self.panel.frames_button.setEnabled(has_results(run.out_dir))

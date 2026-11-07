@@ -1001,8 +1001,14 @@ class CorridorSpec(_Part):
 class Strips(_Part):
     """Strips of cells aligned with breaklines inside the square tiles (W45). Off, a job runs as before."""
 
-    enabled: bool = False
-    corridors: list[CorridorSpec] = []
+    enabled: bool = Field(False, description="Corridors of cells aligned with breaklines inside the square grid")
+    corridors: list[CorridorSpec] = Field([], description="Corridors given outright; empty, they come from the banks file")
+    banks: str | None = Field(
+        None, description="The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair"
+    )
+    layer_m: float = Field(10.0, gt=0.0, le=100.0, description="Row spacing across a corridor from the banks file, m")
+    rows_per_side: int = Field(3, ge=1, le=8, description="Rows either side of the centre line from the banks file")
+    min_length_m: float = Field(300.0, ge=20.0, description="A corridor from the banks file shorter than this is not built, m")
     along: float | None = Field(None, gt=0.0, description="Station spacing along a corridor, m; None takes grid.dx")
     buffer_cells: float = Field(
         0.5, ge=0.0, le=4.0, description="Lattice cells this many cells from a corridor are replaced too"

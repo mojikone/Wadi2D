@@ -32,6 +32,9 @@ from .protocol import (
     PIXEL_HAZARD,
     PIXEL_SPEED,
     REACH_LAYER,
+    STRIP_CELLS_LAYER,
+    STRIP_FACES_LAYER,
+    STRIP_MESH_FILE,
     SUBBASIN_LAYER,
     cell_grid_scale,
     cell_grid_title,
@@ -174,6 +177,37 @@ def load_cell_grid(run: Path | str, group_name: str):
     setup = top.findGroup(GROUP_SETUP) or top.insertGroup(0, GROUP_SETUP)
     _add(setup, [layer], (layer,))
     return layer
+
+
+def open_strip_mesh(run: Path | str) -> list:
+    """The aligned cells and their faces of a run with corridors, styled; empty for a run without."""
+    path = Path(run) / STRIP_MESH_FILE
+    if not path.is_file():
+        return []
+    options = QgsVectorLayer.LayerOptions()
+    options.forceReadOnly = True
+    out = []
+    for name, title, styler in (
+        (STRIP_FACES_LAYER, "Corridor faces: on a bank (red), the join (orange)", style.style_strip_faces),
+        (STRIP_CELLS_LAYER, "Corridor cells, aligned with the banks", style.style_strip_cells),
+    ):
+        layer = QgsVectorLayer(f"{path}|layername={name}", title, "ogr", options)
+        if layer.isValid() and layer.featureCount() > 0:
+            styler(layer)
+            out.append(layer)
+    return out
+
+
+def load_strip_mesh(run: Path | str, group_name: str) -> list:
+    """Under Model setup beside the cell grid: the corridors a run stepped, their cells and faces."""
+    layers = open_strip_mesh(run)
+    if not layers:
+        return []
+    root = QgsProject.instance().layerTreeRoot()
+    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
+    setup = top.findGroup(GROUP_SETUP) or top.insertGroup(0, GROUP_SETUP)
+    _add(setup, layers, tuple(layers))
+    return layers
 
 
 def load_products(run: Path | str, group_name: str) -> RunLayers | None:

@@ -6,15 +6,19 @@ from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QCheckBox, QLabel, QPushButton
+from qgis.PyQt.QtWidgets import QCheckBox, QLabel, QPushButton, QSpinBox
 
 from ..job_builder import (
+    CORRIDOR_NOTE,
     LOCAL_STEPS,
     MESH_COARSE,
     MESH_ENABLED,
     MESH_FINE_AREA,
     MESH_MID_AREA,
     SPEED_NOTE,
+    STRIPS_ENABLED,
+    STRIPS_LAYER_M,
+    STRIPS_ROWS,
     ZONE_DX_FIELD,
     layer_features,
 )
@@ -59,10 +63,28 @@ class MeshSection(Section):
         self.form.addRow(self.preview_button)
         self.form.addRow(self.summary)
         self.form.addRow(self.suggest_button)
+        self.corridors = QCheckBox("Corridors of cells aligned with the suggested banks")
+        self.corridor_layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "Choose the Suggested breaklines layer")
+        self.corridor_layer_m = number_box(1)
+        self.corridor_rows = QSpinBox()
+        self.corridor_rows.setRange(1, 8)
+        self.corridor_note = QLabel(CORRIDOR_NOTE)
+        self.corridor_note.setWordWrap(True)
+        self.form.addRow(self.corridors)
+        self.form.addRow("Suggested breaklines", self.corridor_layer)
+        self.form.addRow("Row spacing across, m", self.corridor_layer_m)
+        self.form.addRow("Rows either side", self.corridor_rows)
+        self.form.addRow(self.corridor_note)
         self.suggest_button.clicked.connect(lambda: suggest_breaklines(self))
         self.enabled.toggled.connect(self._enabled_changed)
+        self.corridors.toggled.connect(self._corridors_changed)
         self.coarse.valueChanged.connect(self._sizes_changed)
         self._enabled_changed(False)
+        self._corridors_changed(False)
+
+    def _corridors_changed(self, on: bool) -> None:
+        for widget in (self.corridor_layer, self.corridor_layer_m, self.corridor_rows):
+            widget.setEnabled(on)
 
     def _enabled_changed(self, on: bool) -> None:
         for widget in (
@@ -95,9 +117,25 @@ class MeshSection(Section):
         bind(self.fine_area, schema, MESH_FINE_AREA)
         bind(self.mid_area, schema, MESH_MID_AREA)
         self.lines.apply_schema(schema)
+        self.corridors.setChecked(bool(schema.default(STRIPS_ENABLED, False)))
+        self.corridors.setToolTip(schema.tip(STRIPS_ENABLED))
+        bind(self.corridor_layer_m, schema, STRIPS_LAYER_M)
+        self.corridor_rows.setValue(int(schema.default(STRIPS_ROWS, 3)))
+        self.corridor_rows.setToolTip(schema.tip(STRIPS_ROWS))
+
+    def corridor_values(self) -> dict | None:
+        """What the corridors need, or None when they are off; the banks file is the chosen layer's."""
+        if not self.corridors.isChecked():
+            return None
+        layer = self.corridor_layer.currentLayer()
+        source = layer.source().split("|")[0] if layer is not None else ""
+        return {"banks": source, "layer_m": self.corridor_layer_m.value(), "rows_per_side": self.corridor_rows.value()}
 
     def values(self, crs) -> dict:
         out: dict = {"local_steps": self.local_steps.isChecked()}
+        strips = self.corridor_values()
+        if strips is not None:
+            out["strips"] = strips
         if not self.enabled.isChecked():
             return out
         layer = self.zones.currentLayer()

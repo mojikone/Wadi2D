@@ -98,7 +98,9 @@ def chain_parts(parts: list[dict], order_line: shapely.LineString) -> list[shape
     return out
 
 
-def pair_banks(banks: list[dict], thalwegs: dict[float, shapely.LineString]) -> list[BankPair]:
+def pair_banks(
+    banks: list[dict], thalwegs: dict[float, shapely.LineString], min_length: float = MIN_LENGTH_M
+) -> list[BankPair]:
     """One pair per left chain: the right chain it faces longest; biggest wadis first."""
     by_area: dict[float, dict[str, list]] = defaultdict(lambda: {"left": [], "right": []})
     for b in banks:
@@ -117,7 +119,7 @@ def pair_banks(banks: list[dict], thalwegs: dict[float, shapely.LineString]) -> 
                 if k in used:
                     continue
                 mid = midline(left, right)
-                if mid is None or mid.length < MIN_LENGTH_M:
+                if mid is None or mid.length < min_length:
                     continue
                 if best is None or mid.length > best[1].length:
                     best = (k, mid, right)
@@ -128,7 +130,7 @@ def pair_banks(banks: list[dict], thalwegs: dict[float, shapely.LineString]) -> 
 
 
 def fold_free_specs(
-    spec: dict, along: float, smooth: int = 5, keep_out: shapely.Geometry | None = None
+    spec: dict, along: float, smooth: int = 5, keep_out: shapely.Geometry | None = None, min_length: float = MIN_LENGTH_M
 ) -> tuple[list[dict], list[str]]:
     """The spec split into the pieces whose corridor does not fold and stays off ``keep_out`` (the mesher's own
     geometry), each at least MIN_LENGTH_M; and what was cut, in words. A corridor with nothing to cut comes back
@@ -147,7 +149,7 @@ def fold_free_specs(
             kept = 0.0
             for k, piece in enumerate(pieces):
                 length = float(np.hypot(*np.diff(piece, axis=0).T).sum())
-                if length < MIN_LENGTH_M:
+                if length < min_length:
                     continue
                 kept += length
                 again.append({**s, "name": f"{s['name']}_{k}" if len(pieces) > 1 else s["name"], "centre": [[float(x), float(y)] for x, y in piece]})
@@ -162,7 +164,12 @@ def fold_free_specs(
 
 
 def corridor_specs(
-    pairs: list[BankPair], domain: shapely.Polygon, layer: float, rows_per_side: int = 3, along: float = 20.0
+    pairs: list[BankPair],
+    domain: shapely.Polygon,
+    layer: float,
+    rows_per_side: int = 3,
+    along: float = 20.0,
+    min_length: float = MIN_LENGTH_M,
 ) -> tuple[list[dict], list[dict]]:
     """Corridor specifications for the job (``strips.corridors``), biggest wadis first, each cut clear of the accepted
     ones, the domain edge and its own folds; and the pairs rejected or cut, with why. The banks sit on the rows at
@@ -186,8 +193,8 @@ def corridor_specs(
             continue
         parts = list(free.geoms) if hasattr(free, "geoms") else [free]
         part = max(parts, key=lambda g: g.length)
-        if part.length < MIN_LENGTH_M:
-            rejected.append({"tag": tag, "why": f"free stretch {part.length:.0f} m under {MIN_LENGTH_M:.0f} m"})
+        if part.length < min_length:
+            rejected.append({"tag": tag, "why": f"free stretch {part.length:.0f} m under {min_length:.0f} m"})
             continue
         centre = np.asarray(part.coords)[:, :2]
         # which bank is to the left of the direction of travel: the left bank's side of the first stretch
@@ -205,7 +212,7 @@ def corridor_specs(
             ],
         }
         keep_out = shapely.unary_union([outside, *[p.buffer(CLEAR_M) for p in polygons]])
-        pieces, cut = fold_free_specs(spec, along, keep_out=keep_out)
+        pieces, cut = fold_free_specs(spec, along, keep_out=keep_out, min_length=min_length)
         rejected.extend({"tag": tag, "why": words} for words in cut)
         snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
         for piece in pieces:

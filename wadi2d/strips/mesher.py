@@ -64,6 +64,8 @@ class StripMesh:
     breakline_edges: dict[str, set[tuple[int, int]]]
     """Per snapped line (``corridor.name:row``) the node pairs of the faces lying on it."""
     polygons: list[shapely.Polygon]
+    notes: list[str] = field(default_factory=list)
+    """What the corridor builder cut or dropped, in words, when the corridors came from a banks file."""
 
 
 def resample(line: shapely.LineString, step: float, smooth: int = 0) -> np.ndarray:

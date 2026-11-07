@@ -338,3 +338,20 @@ def test_a_mesh_without_local_steps_says_what_it_costs(tmp_path: Path) -> None:
     assert not any(
         "local time stepping" in text for text in notes(values(tmp_path, mesh=MESH, local_steps=True))
     )
+
+
+def test_corridors_reach_the_job_from_the_suggest_file_and_are_refused_without_it(tmp_path: Path) -> None:
+    banks = tmp_path / "suggested_breaklines.gpkg"
+    banks.write_bytes(b"x")
+    strips = {"banks": str(banks), "layer_m": 10.0, "rows_per_side": 3}
+    job = build_job(values(tmp_path, strips=strips), tmp_path / "out")
+    assert job["strips"] == {"enabled": True, "banks": str(banks.resolve()), "layer_m": 10.0, "rows_per_side": 3}
+    assert problems(values(tmp_path, strips=strips)) == []
+    assert "strips" not in build_job(values(tmp_path), tmp_path / "out")
+    without = problems(values(tmp_path, strips={**strips, "banks": ""}))
+    assert without and "Suggested breaklines" in without[0]
+    missing = problems(values(tmp_path, strips={**strips, "banks": str(tmp_path / "gone.gpkg")}))
+    assert missing and "GeoPackage" in missing[0]
+    mesh = {"coarse_dx": 40.0, "fine_km2": 5.0, "mid_km2": 1.0, "zones": [], "lines": []}
+    both = problems(values(tmp_path, strips=strips, mesh=mesh))
+    assert any("uniform grid" in text for text in both), both

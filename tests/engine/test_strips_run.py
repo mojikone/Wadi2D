@@ -115,3 +115,39 @@ def test_the_same_job_on_the_gpu_closes_its_books_and_reads_the_cpu_line(tilted_
     assert cpu.exit_code == 0
     assert volume_g == pytest.approx(volume_c, rel=1e-3)
     assert peak_g == pytest.approx(peak_c, rel=1e-2)
+
+
+def banks_file(path, left_y: float, right_y: float, x0: float, x1: float):
+    """A Suggest-breaklines GeoPackage of one bank pair and its thalweg, as the engine's command writes them."""
+    import fiona
+
+    crs = "EPSG:32640"
+    bank_schema = {"geometry": "LineString", "properties": {"name": "str", "kind": "str", "side": "str", "area_km2": "float"}}
+    with fiona.open(path, "w", driver="GPKG", layer="breaklines", schema=bank_schema, crs=crs) as dst:
+        for side, y in (("left", left_y), ("right", right_y)):
+            dst.write({
+                "geometry": {"type": "LineString", "coordinates": [(x0, y), (x1, y)]},
+                "properties": {"name": f"bank {side}", "kind": "stream bank", "side": side, "area_km2": 12.0},
+            })  # fmt: skip
+    mid = 0.5 * (left_y + right_y)
+    with fiona.open(path, "w", driver="GPKG", layer="thalwegs", schema={"geometry": "LineString", "properties": {"area_km2": "float"}}, crs=crs) as dst:
+        dst.write({"geometry": {"type": "LineString", "coordinates": [(x0 - 10.0, mid), (x1 + 10.0, mid)]}, "properties": {"area_km2": 12.0}})
+    return path
+
+
+def test_a_job_builds_its_corridor_from_the_suggest_banks_file(tilted_dem, tmp_path) -> None:  # noqa: F811
+    banks = banks_file(tmp_path / "suggested_breaklines.gpkg", MID_Y + 4.0, MID_Y - 4.0, X0 + 30.0, X0 + 170.0)
+    strips = {"enabled": True, "banks": str(banks), "layer_m": 4.0, "rows_per_side": 2, "min_length_m": 60.0}
+    out = tmp_path / "banks"
+    run = run_job(plane_job(tilted_dem, strips), out)
+    assert run.exit_code == 0, run.message
+    events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+    (built,) = [e for e in events if e.get("ev") == "strips"]
+    assert built["corridors"] == 1 and built["cells"] > 0 and built["cut"] == []
+    assert abs(run.balance.relative) < 1e-6
+    import sqlite3
+
+    db = sqlite3.connect(out / "maps" / "strip_mesh.gpkg")
+    on_banks = db.execute("SELECT COUNT(DISTINCT line) FROM strip_faces WHERE kind = 'breakline'").fetchone()[0]
+    db.close()
+    assert on_banks == 2  # both banks carry a row of faces

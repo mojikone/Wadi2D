@@ -37,6 +37,14 @@ SPILLWAY_C = "terrain.objects.coefficient"
 DAM_LEVELS = "dam_levels"
 MESH_ENABLED = "mesh.enabled"
 MESH_COARSE = "mesh.coarse_dx"
+STRIPS_ENABLED = "strips.enabled"
+STRIPS_LAYER_M = "strips.layer_m"
+STRIPS_ROWS = "strips.rows_per_side"
+CORRIDOR_NOTE = (
+    "A corridor of cells aligned with each pair of suggested banks, its rows on the bank lines, the squares under it "
+    "replaced and the gap triangulated; the rest of the domain stays squares. Press Suggest breaklines first and "
+    "choose its layer. Corridors run on the uniform grid, without the mesh refinement above (W45)."
+)
 MESH_FINE_AREA = "mesh.stream_area_fine_km2"
 MESH_MID_AREA = "mesh.stream_area_mid_km2"
 MESH_ZONE_DX = "mesh.zones.dx"
@@ -221,7 +229,23 @@ def problems(values: dict) -> list[str]:
     found.extend(_structure_problems(values.get("structures", {})))
     found.extend(dam_problems(values.get("dam_rows") or []))
     found.extend(initial_problems(values.get("initial_water") or []))
-    return found + _mesh_problems(values)
+    return found + _mesh_problems(values) + _strip_problems(values)
+
+
+def _strip_problems(values: dict) -> list[str]:
+    """What stops the corridors: they need the Suggest breaklines file and the uniform grid."""
+    strips = values.get("strips")
+    if not strips:
+        return []
+    found = []
+    banks = strips.get("banks") or ""
+    if not banks:
+        found.append("Choose the Suggested breaklines layer for the corridors, or untick them.")
+    elif not Path(banks).is_file():
+        found.append("The corridors need the Suggest breaklines GeoPackage: choose the layer it wrote.")
+    if values.get("mesh"):
+        found.append("Corridors run on the uniform grid: untick the mesh refinement or the corridors.")
+    return found
 
 
 def _rain_problems(values: dict) -> list[str]:
@@ -473,6 +497,14 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["mesh"] = _mesh(values["mesh"])
         if values["mesh"].get("lines"):
             write_geojson(inputs / "mesh_lines.geojson", values["mesh"]["lines"], crs)
+    if values.get("strips"):
+        strips = values["strips"]
+        job["strips"] = {
+            "enabled": True,
+            "banks": str(Path(strips["banks"]).resolve()),
+            "layer_m": strips["layer_m"],
+            "rows_per_side": strips["rows_per_side"],
+        }
     return job
 
 

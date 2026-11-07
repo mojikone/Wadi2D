@@ -2522,16 +2522,54 @@
       "properties": {
         "enabled": {
           "default": false,
+          "description": "Corridors of cells aligned with breaklines inside the square grid",
           "title": "Enabled",
           "type": "boolean"
         },
         "corridors": {
           "default": [],
+          "description": "Corridors given outright; empty, they come from the banks file",
           "items": {
             "$ref": "#/$defs/CorridorSpec"
           },
           "title": "Corridors",
           "type": "array"
+        },
+        "banks": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair",
+          "title": "Banks"
+        },
+        "layer_m": {
+          "default": 10.0,
+          "description": "Row spacing across a corridor from the banks file, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Layer M",
+          "type": "number"
+        },
+        "rows_per_side": {
+          "default": 3,
+          "description": "Rows either side of the centre line from the banks file",
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Rows Per Side",
+          "type": "integer"
+        },
+        "min_length_m": {
+          "default": 300.0,
+          "description": "A corridor from the banks file shorter than this is not built, m",
+          "minimum": 20.0,
+          "title": "Min Length M",
+          "type": "number"
         },
         "along": {
           "anyOf": [
@@ -3210,6 +3248,10 @@
       "default": {
         "enabled": false,
         "corridors": [],
+        "banks": null,
+        "layer_m": 10.0,
+        "rows_per_side": 3,
+        "min_length_m": 300.0,
         "along": null,
         "buffer_cells": 0.5,
         "smooth": 5

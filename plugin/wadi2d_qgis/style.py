@@ -209,6 +209,23 @@ def style_cell_grid(layer, largest_scale: int) -> None:
     layer.setMinimumScale(largest_scale)
 
 
+def style_strip_cells(layer) -> None:
+    """The aligned cells as outlines only, so the depth drawing shows through them."""
+    symbol = QgsFillSymbol.createSimple({"color": "0,0,0,0", "outline_color": "80,80,80,220", "outline_width": "0.12"})
+    layer.setRenderer(QgsSingleSymbolRenderer(symbol))
+
+
+def style_strip_faces(layer) -> None:
+    """A corridor's faces by kind: on a bank line red, the join to the squares orange, the inner ones hidden."""
+    categories = [
+        QgsRendererCategory("breakline", QgsLineSymbol.createSimple({"color": "#c00000", "width": "0.5"}), "On a bank line"),
+        QgsRendererCategory("interface", QgsLineSymbol.createSimple({"color": "#e08a00", "width": "0.35"}), "Join to the squares"),
+    ]
+    inner = QgsRendererCategory("inner", QgsLineSymbol.createSimple({"color": "0,0,0,0", "width": "0.0"}), "Inner face")
+    inner.setRenderState(False)
+    layer.setRenderer(QgsCategorizedSymbolRenderer("kind", [*categories, inner]))
+
+
 def _frame_shader(kind, items) -> QgsColorRampShader:
     shader = QgsColorRampShader(items[0].value, items[-1].value)
     shader.setColorRampType(kind)

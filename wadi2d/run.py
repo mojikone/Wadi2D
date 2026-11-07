@@ -213,7 +213,11 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
     limit = cfg.grid.content_hash_limit_mb
     extras = {
         key: file_identity(name, limit)
-        for key, name in (("domain", cfg.grid.domain), ("manning", cfg.terrain.manning_raster))
+        for key, name in (
+            ("domain", cfg.grid.domain),
+            ("manning", cfg.terrain.manning_raster),
+            ("banks", cfg.strips.banks if cfg.strips.enabled else None),
+        )
         if name is not None
     }
     t = cfg.terrain
@@ -295,6 +299,8 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
         if cfg.mesh.enabled:
+            if cfg.strips.enabled:
+                raise InvalidJob("corridors run on the uniform grid in this version: untick the mesh refinement or the corridors")
             return _mesh_tables(cfg, bed, window, crs), crs
         key = grid_key(cfg, bed, window)
         path = cache_path(cache_dir, key)
@@ -306,9 +312,12 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
         if cfg.strips.enabled:
             from wadi2d.strips.build import mask_for_strips
 
+            polygon = _domain_polygon(cfg.grid.domain, crs)
+            if polygon is None:
+                polygon = shapely.box(window.x0, window.y0 - mask.shape[0] * cfg.grid.dx, window.x0 + mask.shape[1] * cfg.grid.dx, window.y0)
             try:
-                mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0)
-            except ValueError as error:
+                mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0, polygon)
+            except (ValueError, OSError) as error:
                 raise InvalidJob(str(error)) from error
         if hit is not None:
             emit("output", kind="grid_cache_hit", path=str(path))
@@ -873,8 +882,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
 
         hybrid = make_hybrid(model, strip.mesh)
         progress.emit(
-            "strips", corridors=len(cfg.strips.corridors), cells=int((strip.strip.corridor >= 0).sum()),
-            triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size),
+            "strips", corridors=len(strip.strip.polygons), cells=int((strip.strip.corridor >= 0).sum()),
+            triangles=int((strip.strip.corridor < 0).sum()), replaced=int(strip.strip.masked[0].size), cut=strip.strip.notes,
         )  # fmt: skip
     results = Results(out / "results.h5", grid, crs, cfg.model_dump_json(), append=continuing)
     if results.salvaged:

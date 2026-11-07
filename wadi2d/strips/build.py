@@ -35,22 +35,40 @@ class StripTables:
     """The geometry face of each mesh face."""
 
 
-def corridors_of(cfg: Strips, dx: float) -> list[Corridor]:
+def corridors_of(cfg: Strips, dx: float, domain: shapely.Geometry | None = None) -> tuple[list[Corridor], list[str]]:
+    """The corridors of a job: those given outright, else those built from the banks file inside ``domain``; and
+    what the builder cut or dropped, in words."""
     along = cfg.along if cfg.along is not None else dx
+    specs: list = list(cfg.corridors)
+    notes: list[str] = []
+    if not specs and cfg.banks:
+        from wadi2d.config.schema import CorridorSpec
+        from wadi2d.strips.banks import corridor_specs, pair_banks, read_layers
+
+        if domain is None:
+            raise ValueError("corridors from a banks file need the domain: give grid.domain or grid.extent")
+        pairs = pair_banks(*read_layers(cfg.banks), min_length=cfg.min_length_m)
+        built, cut = corridor_specs(pairs, domain, cfg.layer_m, cfg.rows_per_side, along, cfg.min_length_m)
+        specs = [CorridorSpec.model_validate(s) for s in built]
+        notes = [c["why"] for c in cut]
+        if not specs:
+            raise ValueError(f"no corridor could be built from {cfg.banks}: {len(pairs)} bank pairs, all cut or dropped")
     out = []
-    for spec in cfg.corridors:
+    for spec in specs:
         snap = {row.row: shapely.LineString(row.coordinates) for row in spec.snap}
         out.append(Corridor(spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap))
-    return out
+    return out, notes
 
 
-def mask_for_strips(cfg: RunConfig, mask: np.ndarray, x0: float, y0: float) -> tuple[np.ndarray, StripMesh]:
+def mask_for_strips(
+    cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, domain: shapely.Geometry | None = None
+) -> tuple[np.ndarray, StripMesh]:
     """The domain mask with the cells under the strips taken out, and the strip mesh built on the padded grid the
     final mask gives (the padding is one cell north and west, whatever the mask)."""
     provisional = TileGrid.from_mask(mask, x0, y0, cfg.grid.dx)
-    strip = build_strip_mesh(
-        provisional, corridors_of(cfg.strips, cfg.grid.dx), cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth
-    )
+    corridors, notes = corridors_of(cfg.strips, cfg.grid.dx, domain)
+    strip = build_strip_mesh(provisional, corridors, cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth)
+    strip.notes = notes
     jj, ii = strip.masked
     out = mask.copy()
     out[jj - 1, ii - 1] = False
