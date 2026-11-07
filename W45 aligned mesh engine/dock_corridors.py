@@ -70,7 +70,15 @@ def scenario(h):
     built = h.events(folder, "strips")
     h.check("corridors built from the banks", built and built[-1]["corridors"] >= 1 and built[-1]["cells"] > 0, built[-1] if built else None)
     rules = built[-1].get("rules", []) if built else []
-    h.check("the width rule reported per corridor", rules and all(r["cells_across"] >= 1 and 20.0 - 0.5 <= r["across_m"] <= 50.0 + 0.5 or r["cells_across"] == 1 for r in rules), rules[:4])
+
+    def expected_cells(width):  # the schema's rule: a quarter of the width held between 20 and 50 m, the nearest whole number of cells
+        return max(1, round(width / min(max(0.25 * width, 20.0), 50.0)))
+
+    h.check(
+        "the width rule reported per corridor",
+        rules and all(r["cells_across"] == expected_cells(r["width_m"]) and abs(r["across_m"] - r["width_m"] / r["cells_across"]) < 0.2 for r in rules),
+        rules[:4],
+    )
     h.check("job carries the width rule", strips_job.get("cell_min_m") == 20.0 and strips_job.get("cell_max_m") == 50.0 and strips_job.get("width_fraction") == 0.25 and strips_job.get("rows_outside") == 1, strips_job)
     h.log(f"strips event: {built[-1] if built else None}")
     h.check("books close", done and abs(done[-1]["balance"]["relative_error"]) < 1e-6, done[-1]["balance"]["relative_error"] if done else None)

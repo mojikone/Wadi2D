@@ -1,34 +1,36 @@
 {"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
-{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_bidah_hybrid\\W45 aligned mesh engine\\race_bidah_hybrid\\cache\\grid_bbcc95b994e46d4325696069.h5"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_bidah_hybrid\\W45 aligned mesh engine\\race_bidah_hybrid\\cache\\grid_bbcc95b994e46d4325696069.h5"}
 {"ev": "strips", "corridors": 7, "cells": 702, "triangles": 664, "replaced": 876, "cut": ["free stretch 184 m under 300 m", "pair1_7.9km2: folds or runs too close, 703 m cut to 0 m in 2 piece(s)", "pair5_4.8km2: folds or runs too close, 333 m cut to 0 m in 1 piece(s)"], "rules": [{"name": "pair2_7.9km2", "area_km2": 7.9, "width_m": 88.3, "cells_across": 4, "across_m": 22.1, "rows_outside": 1}, {"name": "pair3_7.2km2", "area_km2": 7.2, "width_m": 66.5, "cells_across": 3, "across_m": 22.2, "rows_outside": 1}, {"name": "pair4_4.8km2", "area_km2": 4.84, "width_m": 61.9, "cells_across": 3, "across_m": 20.6, "rows_outside": 1}, {"name": "pair6_4.3km2", "area_km2": 4.34, "width_m": 72.5, "cells_across": 4, "across_m": 18.1, "rows_outside": 1}, {"name": "pair7_4.2km2", "area_km2": 4.22, "width_m": 60.7, "cells_across": 3, "across_m": 20.2, "rows_outside": 1}, {"name": "pair8_4.2km2", "area_km2": 4.22, "width_m": 60.2, "cells_across": 3, "across_m": 20.1, "rows_outside": 1}, {"name": "pair9_2.5km2", "area_km2": 2.45, "width_m": 64.2, "cells_across": 3, "across_m": 21.4, "rows_outside": 1}]}
-{"ev": "start", "backend": "gpu", "cells": 31095, "tiles": 49, "dx": 30.0, "duration_s": 172800.0, "tables_s": 7.75, "t": 0.0}
-{"ev": "step", "t": 17973.45, "dt": 2.8618, "steps": 4316, "active_tiles": 49, "volume": 18084.1, "mass_error": 1.518e-09, "wall": 2.0}
-{"ev": "step", "t": 26791.568, "dt": 1.5498, "steps": 9060, "active_tiles": 49, "volume": 263048.4, "mass_error": 1.248e-08, "wall": 4.0}
-{"ev": "step", "t": 33541.233, "dt": 1.0632, "steps": 14147, "active_tiles": 49, "volume": 717154.3, "mass_error": 1.674e-08, "wall": 6.0}
-{"ev": "step", "t": 38999.271, "dt": 1.0067, "steps": 19201, "active_tiles": 49, "volume": 1527252.9, "mass_error": 1.758e-08, "wall": 8.0}
-{"ev": "step", "t": 43860.904, "dt": 0.9035, "steps": 24593, "active_tiles": 49, "volume": 2340760.6, "mass_error": 2.079e-08, "wall": 10.0}
-{"ev": "step", "t": 48090.922, "dt": 0.9217, "steps": 29302, "active_tiles": 49, "volume": 2434634.4, "mass_error": 2.18e-08, "wall": 12.0}
-{"ev": "step", "t": 53054.595, "dt": 1.0423, "steps": 34417, "active_tiles": 49, "volume": 1980202.8, "mass_error": 2.339e-08, "wall": 14.0}
-{"ev": "step", "t": 58408.482, "dt": 1.0172, "steps": 39750, "active_tiles": 49, "volume": 1562368.4, "mass_error": 2.391e-08, "wall": 16.0}
-{"ev": "step", "t": 64081.019, "dt": 1.0187, "steps": 45423, "active_tiles": 49, "volume": 1311091.0, "mass_error": 2.408e-08, "wall": 18.0}
-{"ev": "step", "t": 70580.404, "dt": 1.0202, "steps": 51922, "active_tiles": 49, "volume": 1144832.0, "mass_error": 2.425e-08, "wall": 20.0}
-{"ev": "step", "t": 76594.085, "dt": 1.0212, "steps": 57936, "active_tiles": 49, "volume": 1068042.7, "mass_error": 2.43e-08, "wall": 22.0}
-{"ev": "step", "t": 82616.586, "dt": 1.0225, "steps": 63958, "active_tiles": 49, "volume": 968993.3, "mass_error": 2.438e-08, "wall": 24.0}
-{"ev": "step", "t": 88141.023, "dt": 1.0228, "steps": 69483, "active_tiles": 49, "volume": 931779.5, "mass_error": 2.442e-08, "wall": 26.0}
-{"ev": "step", "t": 93883.298, "dt": 1.0229, "steps": 75225, "active_tiles": 49, "volume": 917714.1, "mass_error": 2.445e-08, "wall": 28.0}
-{"ev": "step", "t": 99653.531, "dt": 1.023, "steps": 80995, "active_tiles": 49, "volume": 910360.6, "mass_error": 2.448e-08, "wall": 30.0}
-{"ev": "step", "t": 105990.0, "dt": 1.0232, "steps": 87332, "active_tiles": 49, "volume": 905264.5, "mass_error": 2.451e-08, "wall": 32.0}
-{"ev": "step", "t": 112159.44, "dt": 1.0231, "steps": 93501, "active_tiles": 49, "volume": 901903.8, "mass_error": 2.454e-08, "wall": 34.0}
-{"ev": "step", "t": 118981.023, "dt": 1.0232, "steps": 100323, "active_tiles": 49, "volume": 899297.7, "mass_error": 2.456e-08, "wall": 36.0}
-{"ev": "step", "t": 125390.464, "dt": 1.0232, "steps": 106732, "active_tiles": 49, "volume": 897478.7, "mass_error": 2.458e-08, "wall": 38.0}
-{"ev": "step", "t": 131469.209, "dt": 1.0232, "steps": 112811, "active_tiles": 49, "volume": 896148.5, "mass_error": 2.459e-08, "wall": 40.0}
-{"ev": "step", "t": 136637.395, "dt": 1.0232, "steps": 117979, "active_tiles": 49, "volume": 895226.1, "mass_error": 2.46e-08, "wall": 42.0}
-{"ev": "step", "t": 142398.418, "dt": 1.0232, "steps": 123740, "active_tiles": 49, "volume": 894374.1, "mass_error": 2.46e-08, "wall": 44.0}
-{"ev": "step", "t": 148201.023, "dt": 1.0233, "steps": 129543, "active_tiles": 49, "volume": 893651.0, "mass_error": 2.461e-08, "wall": 46.0}
-{"ev": "step", "t": 154531.023, "dt": 1.0232, "steps": 135873, "active_tiles": 49, "volume": 892983.2, "mass_error": 2.462e-08, "wall": 48.0}
-{"ev": "step", "t": 160915.573, "dt": 1.0229, "steps": 142257, "active_tiles": 49, "volume": 892408.6, "mass_error": 2.463e-08, "wall": 50.0}
-{"ev": "step", "t": 167202.272, "dt": 1.0227, "steps": 148544, "active_tiles": 49, "volume": 891922.3, "mass_error": 2.464e-08, "wall": 52.0}
+{"ev": "start", "backend": "gpu", "cells": 31095, "tiles": 49, "dx": 30.0, "duration_s": 172800.0, "tables_s": 8.38, "t": 0.0}
+{"ev": "step", "t": 17869.531, "dt": 3.5468, "steps": 4282, "active_tiles": 49, "volume": 17152.3, "mass_error": 2.008e-09, "wall": 2.0}
+{"ev": "step", "t": 26841.756, "dt": 1.5847, "steps": 9092, "active_tiles": 49, "volume": 265117.7, "mass_error": 1.243e-08, "wall": 4.0}
+{"ev": "step", "t": 33600.0, "dt": 1.2274, "steps": 14199, "active_tiles": 49, "volume": 723720.4, "mass_error": 1.681e-08, "wall": 6.0}
+{"ev": "step", "t": 39189.814, "dt": 0.9813, "steps": 19396, "active_tiles": 49, "volume": 1562114.3, "mass_error": 1.758e-08, "wall": 8.0}
+{"ev": "step", "t": 44008.977, "dt": 0.9056, "steps": 24760, "active_tiles": 49, "volume": 2355862.4, "mass_error": 2.088e-08, "wall": 10.0}
+{"ev": "step", "t": 48800.677, "dt": 0.9401, "steps": 30079, "active_tiles": 49, "volume": 2384870.5, "mass_error": 2.211e-08, "wall": 12.0}
+{"ev": "step", "t": 54070.297, "dt": 1.0296, "steps": 35412, "active_tiles": 49, "volume": 1893802.3, "mass_error": 2.351e-08, "wall": 14.0}
+{"ev": "step", "t": 59361.364, "dt": 1.0173, "steps": 40703, "active_tiles": 49, "volume": 1510466.7, "mass_error": 2.392e-08, "wall": 16.0}
+{"ev": "step", "t": 64643.434, "dt": 1.0189, "steps": 45985, "active_tiles": 49, "volume": 1294342.0, "mass_error": 2.409e-08, "wall": 18.0}
+{"ev": "step", "t": 69891.424, "dt": 1.0202, "steps": 51233, "active_tiles": 49, "volume": 1158807.1, "mass_error": 2.423e-08, "wall": 20.0}
+{"ev": "step", "t": 75183.057, "dt": 1.0181, "steps": 56525, "active_tiles": 49, "volume": 1089190.2, "mass_error": 2.429e-08, "wall": 22.0}
+{"ev": "step", "t": 80435.111, "dt": 1.0222, "steps": 61777, "active_tiles": 49, "volume": 1002820.3, "mass_error": 2.436e-08, "wall": 24.0}
+{"ev": "step", "t": 85734.545, "dt": 1.0227, "steps": 67076, "active_tiles": 49, "volume": 942908.9, "mass_error": 2.441e-08, "wall": 26.0}
+{"ev": "step", "t": 90970.229, "dt": 1.0229, "steps": 72312, "active_tiles": 49, "volume": 923470.2, "mass_error": 2.444e-08, "wall": 28.0}
+{"ev": "step", "t": 96576.138, "dt": 1.023, "steps": 77918, "active_tiles": 49, "volume": 913820.9, "mass_error": 2.446e-08, "wall": 30.0}
+{"ev": "step", "t": 102164.323, "dt": 1.0231, "steps": 83506, "active_tiles": 49, "volume": 908076.9, "mass_error": 2.448e-08, "wall": 32.0}
+{"ev": "step", "t": 107740.231, "dt": 1.0231, "steps": 89082, "active_tiles": 49, "volume": 904184.7, "mass_error": 2.452e-08, "wall": 34.0}
+{"ev": "step", "t": 113279.671, "dt": 1.0231, "steps": 94621, "active_tiles": 49, "volume": 901411.8, "mass_error": 2.455e-08, "wall": 36.0}
+{"ev": "step", "t": 118893.07, "dt": 1.0232, "steps": 100235, "active_tiles": 49, "volume": 899326.1, "mass_error": 2.456e-08, "wall": 38.0}
+{"ev": "step", "t": 124572.278, "dt": 1.0232, "steps": 105914, "active_tiles": 49, "volume": 897685.2, "mass_error": 2.458e-08, "wall": 40.0}
+{"ev": "step", "t": 130224.557, "dt": 1.0232, "steps": 111566, "active_tiles": 49, "volume": 896396.4, "mass_error": 2.459e-08, "wall": 42.0}
+{"ev": "step", "t": 135749.673, "dt": 1.0233, "steps": 117091, "active_tiles": 49, "volume": 895373.0, "mass_error": 2.46e-08, "wall": 44.0}
+{"ev": "step", "t": 141347.395, "dt": 1.0232, "steps": 122689, "active_tiles": 49, "volume": 894518.4, "mass_error": 2.46e-08, "wall": 46.0}
+{"ev": "step", "t": 146921.256, "dt": 1.0232, "steps": 128263, "active_tiles": 49, "volume": 893800.5, "mass_error": 2.461e-08, "wall": 48.0}
+{"ev": "step", "t": 152556.139, "dt": 1.0232, "steps": 133898, "active_tiles": 49, "volume": 893180.1, "mass_error": 2.462e-08, "wall": 50.0}
+{"ev": "step", "t": 158067.622, "dt": 1.023, "steps": 139409, "active_tiles": 49, "volume": 892653.7, "mass_error": 2.463e-08, "wall": 52.0}
+{"ev": "step", "t": 163721.251, "dt": 1.0228, "steps": 145063, "active_tiles": 49, "volume": 892183.2, "mass_error": 2.464e-08, "wall": 54.0}
+{"ev": "step", "t": 169394.317, "dt": 1.0226, "steps": 150736, "active_tiles": 49, "volume": 891767.3, "mass_error": 2.464e-08, "wall": 56.0}
 {"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors_w2\\maps\\strip_mesh.gpkg"}
 {"ev": "warn", "message": "water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there"}
 {"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_bidah_hybrid\\corridors_w2\\maps"}
-{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 172800.0, "duration_s": 172800.0, "steps": 154142, "loop_s": 54.14, "tables_s": 7.75, "wet_area_km2": 2.7135, "dt_min": 0.7930638643886393, "balance": {"rain_m3": 8711036.595597373, "inflow_m3": 23721807.454690028, "outflow_m3": 31541303.022398453, "storage_start_m3": 0.0, "storage_end_m3": 891540.2285083949, "error_m3": 0.7993805550504476, "relative_error": 2.4647254302182108e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 172800.0, "duration_s": 172800.0, "steps": 154142, "loop_s": 57.44, "tables_s": 8.38, "wet_area_km2": 2.7135, "dt_min": 0.7930638643886393, "balance": {"rain_m3": 8711036.59559737, "inflow_m3": 23721807.454690028, "outflow_m3": 31541303.022398453, "storage_start_m3": 0.0, "storage_end_m3": 891540.2285083949, "error_m3": 0.799380547599867, "relative_error": 2.4647254072458795e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}

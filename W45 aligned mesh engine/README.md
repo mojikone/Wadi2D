@@ -362,6 +362,136 @@ strip depths; an initial level fills the corridor cells inside its polygon. The 
 storm run through the same cell positions as the squares' and have no strip code of their own; their Block 2 and W39
 checks with corridors are the next dock run.
 
+## The banks and the cell size (2026-11-07): his rules as parameters, calibrated on small models
+
+His words of the day: the banks the Suggest command drew were wrong; he sketched the approximately correct banks on
+three Bidah windows (`bed_types/sketches/`, a narrow wadi of 7.9 km2, a medium one of 7.2 km2, a fan belt of 20 km2);
+the banks are to be checked against the 2D depth results, since the flow runs inside the wadi course; a narrow wadi runs
+on cells no smaller than about 20 m, a wide one needs none larger than about 50 m and a fraction of its width, a fan
+with no defined wadi gets no corridor, the total run time matters, and all of it is to be parameters in the dock.
+
+**The sketches, and a mistake on record.** `digitise_sketch.py` maps the purple strokes of his phone screenshots to
+the ground through the map frame; its first frame finder took the first row that was mostly grey, which was the
+title's own text, and so stretched the frame and pulled every stroke south, by up to 90 m on the narrow wadi and
+140 m on the fan. He saw it on the first figure ("they are not in correct location"). The finder now takes the
+longest grey run and the dark axes spines, and the map is square, which gives the edge the screen cut off; the
+independent check is the thalweg, known on the ground, drawn back onto his screenshot by the same frame, where it
+lies on his blue dashed line (`bed_types/sketch_check_*.png`). The first sweep's conclusion, "a rise of 5 m matches
+his strokes", was built on the misplaced strokes and is withdrawn. His strokes are 10 to 12 m wide bands, so a
+distance under about 6 m to them says nothing.
+
+**What his strokes are** (`bank_check.py`, against the 100-yr run at 5 m, `conv_dx5_s1`): the 0.5 m depth margin of
+the flood lies inside his stroke band on 92 % of its length on the narrow wadi and 79 % on the medium one; the 0.2 m
+margin lies about 8 m further out each side. On the fan he drew the hill toe and the margin is 11 m off. Widths
+between the banks, m:
+
+| Bidah window | His strokes | Flood 0.5 m | Flood 0.2 m | Rise 1.5 | Rise 2.0 | Rise 2.5 | Rise 3.5 | Rise 5.0 |
+|---|---|---|---|---|---|---|---|---|
+| Narrow, 7.9 km2 | 31 | 28 | 50 | 26 | 29 | 32 | 39 | 51 |
+| Medium, 7.2 km2 | 44 | 47 | 59 | 42 | 46 | 49 | 55 | 62 |
+| Fan, 20 km2 | 286 (one side drawn in part) | 224 | 322 | 307 | 308 | 331 | 338 | 319 |
+
+[Certain, measured] The ground rising 2 m over the bed is the lip of the active channel, where his strokes and the 0.5 m
+margin lie (within 3 to 4 m per side on the two wadis); the 0.2 m margin is nearest 4 to 5 m of rise by bias but with
+8 m of scatter, because the shallow skirt follows the flood, not the ground. The slope-break detector of W5's kind
+(slope over 4 % for 40 m, 3 m up) matches the strokes as well on the two wadis and finds the fan's open side on 4
+of 59 sections, so it is not the rule. [Likely] A corridor on the 2 m banks leaves a skirt under 0.5 m deep on the
+squares either side; that is sheet flow, which the squares carry.
+
+**In the engine.** The job has a `breaklines` section (`Breaklines` in the schema), the one place the Suggest command
+reads its numbers from, so the dock sets them and the run folder records them: the bank where the ground rises
+`bank_rise_m` (2 m) over the bed, looked for within `bank_reach_m` (300 m); or, given `bank_depth_map` (a run's
+`maps/max_depth.tif`), the edge of the flooded course, where the depth falls under `bank_depth_m` (0.2 m) for
+`bank_dry_m` (10 m) across; the top-hat's disc, height and ground-slope limit. Before this the rise was the mesher's
+incision depth, 0.5 m, and the reach half its window: the low-flow channel's lip, which W26 had noted. The Mesh section
+has the controls under the Suggest button, with a raster picker for the depth map, and the dock's words name the rule
+that placed the banks.
+
+**The corridor rows follow the width.** A corridor from the banks file spans the wadi between its two banks; the cell
+across is `strips.width_fraction` (0.25) of the width held between `strips.cell_min_m` (20 m) and `strips.cell_max_m`
+(50 m), the width split into the nearest whole number of such cells, one at least, and `strips.rows_outside` (1) rows
+stand beyond each bank at that size, so the bank's faces lie inside the corridor and the join to the squares does not.
+A 16 m wadi gets one cell across, a 60 m one three of 20 m, a 300 m one six of 50 m. The fixed rows of the first
+build (`layer_m`, `rows_per_side`) put two cells across every wadi whatever its width, and all the spacing set was the
+rows outside the banks. In the mesher a snapped row finds its line out from the station's centre, so a corridor with no
+row at offset zero snaps, and the rows between two snapped rows are spaced in the proportion of their offsets. The
+strips event reports the rule per corridor. A wadi with one bank or none keeps its squares (his rule for fans).
+
+**The races and the cell-size trials** (`race_faydh.py`, `race_bidah_hybrid.py`, the banks re-suggested with the 2 m
+rule by `suggest_banks.py`: Faydh 274 banks over 111 km on 40 thalwegs, Bidah 03 128 over 39 km on 21). Faydh 01 at
+20 m, 16 h, on the GPU, the dam axis against the same run with no lines (1,835.2 m3/s; the 10 m squares of W11 read
+1,873.8 and HEC-RAS 1,872.2):
+
+| Rule (smallest, largest, share, rows outside) | Corridors | Strip cells, triangles | Cells across, size | Dam axis, m3/s | Against no lines | Steps | GPU time |
+|---|---|---|---|---|---|---|---|
+| Fixed rows of 10 m on W26's 0.5 m banks (the first build) | 30 | about 20,000 | 6 of 10 m | 1,879.9 | +2.4 % | 134,632 | 36 s |
+| **20, 50, 0.25, 1 (the defaults)** | 34 | 5,114, 5,603 | 2 to 3 of 18 to 24 m | **1,875.0** | **+2.2 %** | 110,084 | 42 s |
+| 30, 80, 0.5, 1 | 30 | 3,534, 4,967 | 1 to 2 of 24 to 45 m | 1,883.6 | +2.6 % | 98,820 | 38 s |
+| 10, 30, 0.125, 1 | 35 | 8,265, 5,915 | 4 to 6 of 10 to 11 m | 1,866.6 | +1.7 % | 136,712 | 49 s |
+| 20, 50, 0.25, 2 | 30 | 6,587, 5,045 | 2 to 3 of 18 to 24 m | 1,868.1 | +1.8 % | 98,431 | 39 s |
+
+[Certain, measured] Every rule passes the 3 % gate, and all four land within 0.6 % of the 10 m squares' 1,873.8
+where the 20 m squares with no lines read 2.1 % under it: the corridors give the 10 m answer on the 20 m grid.
+Finer cells across move the peak down toward the 10 m figure and cost steps; a second row outside the banks changes
+the peak as much as halving the cells, which says the join's position matters as much as the cells inside [Likely].
+The default rule keeps a quarter of the strip cells the fixed rows had and the run time within 3 x the squares'
+(the step is the strip's: 110,000 against 88,600). Timings were taken with CPU studies running alongside.
+
+The Block 2 PMP hybrid on Bidah 03 at 30 m (W41's job through the HMS route, S13 lumped, the CN raster, the PMP
+depth grid), the dam line against the same run on squares (1,463.79 m3/s, 14 s):
+
+| Rule | Corridors | Strip cells | Cells across, size | Dam line, m3/s | GPU time |
+|---|---|---|---|---|---|
+| 20, 50, 0.25, 1 (the defaults) | 7 | 702 | 3 to 4 of 18 to 22 m | 1,464.01 (+0.015 %) | 54 s |
+| 30, 80, 0.5, 1 | 7 | 532 | 2 of 30 to 44 m | 1,463.95 | 54 s |
+| 10, 30, 0.125, 1 | 8 | 1,217 | 6 to 8 of 10 to 11 m | 1,464.02 | 54 s |
+
+[Certain, measured] The lumped inflow carries this peak; the corridors move it by a hundredth of a per cent whatever
+the rule. **The first attempt was refused**: the new banks reach 300 m from the thalweg, the corridors spread into
+the rained part of the catchment, and a curve-number raster was read at the active squares alone, so the strip's
+cells, standing where squares had left the mask, read no CN (585 rained cells). The same read served the depth grid
+and the Manning raster, and the strip took one mean of the squares' Manning grid. Fixed: a raster is read at the
+squares under the strip too, and each strip cell takes its own square's roughness. The old corridors had passed this
+job by lying inside the lumped S13, where no CN is read. **The timings of this afternoon are not the morning's:** the
+squares-only run re-timed at 20.0 s against the 14 s on record, the GPU idling at 1,717 of 3,090 MHz with a dozen
+desktop programs holding it, so the 57 s of the default corridors alone (54 to 57 s in every trial, with or without
+eight sub-steps) reads as about 40 s on the morning's machine, against the first build's 35 s on the same step count.
+[Likely] No regression in the strip's step; a clean timing needs a quiet machine.
+
+**Roads and dams** (`crest_sweep.py`): the crest settings through the Suggest command on a 4 km by 4 km job across
+the Batinah Highway (the one surveyed line he named, 4.19 km in the window), scored as W5 scored the top-hat: the
+share of the highway within 30 m of a suggested crest, and the crest length farther from it (other roads, bunds,
+noise; no layer separates them).
+
+| Height, m | Disc, m | Highway found | Crest km elsewhere | Pieces on the highway (median length) |
+|---|---|---|---|---|
+| 0.3 | 20 / 40 / 80 | 65 / 65 / 75 % | 9.0 / 23.8 / 42.7 | 10 / 13 / 16 (140 to 180 m) |
+| **0.5** | 20 / **40** / 80 | 26 / **72** / 66 % | 1.3 / **6.9** / 17.1 | 4 / **12 (177 m, longest 487)** / 15 |
+| 1.0 | 20 / 40 / 80 | 10 / 30 / 54 % | 0.0 / 0.5 / 1.8 | 1 / 4 / 7 |
+
+[Certain, measured] W26's setting, 0.5 m over a 40 m disc, stands (`crest_sweep/crest_sweep.png` shows it against
+0.3 m and 1 m on an 80 m disc): nothing finds more of this highway without 2.5 to 6 times the lines elsewhere, 1 m loses it (the embankment stands under 1 m over its fitted ground on this plain), and
+the ground-slope limit changes nothing on a plain. The `road` kind never fires: culverts and underpasses cut the
+highway's crest into pieces of 140 to 240 m median (longest 579 m), straight to 0.99, under the 1,000 m a road needs;
+`road_length_m` is his to lower (300 m would read most of these as road). Dams: the kind is "a crest across a defined
+wadi"; no built dam lies in a small window of this ground, so it rests on the synthetic test alone.
+
+Found on the way: `~` on a Python bool in `faces_from_objects` made the second crest line on a face set its own level
+over a higher first one; fixed with a test in both orders.
+
+**Through the real dock** (`dock_corridors.py`, `log_dock_corridors.txt`, 34 of 34 on QGIS 3.44.8): the Suggest
+settings start at the schema's numbers, a rise typed as 3 m reaches the suggestion's job and the dock's words ("Banks:
+ground 3 m over the bed of the wadi"), the width rule reaches the run's job and the strips event reports it per
+corridor as the schema's rule gives it, a run on Bidah with corridors closes its books on the GPU, its lines stay
+within 0.1 % of the squares, the corridor layers load under Model setup and the pixel maps carry the corridors, and
+corridors with the mesh refinement are refused in words. The full suite passes.
+
+**Still open after this:** the Suggest command's speed on the full domain (the measurement of the old rule on Block 2
+at 30 m with 0.1 km2 streams, `scale_block2.py`, had run over two hours and not finished when this was written; the
+banks are found per thalweg in Python loops, and the new reach is three times the old), confluences, the strips with
+the quadtree (coarser cells on the dry mountains, his wish), the bed loss on strips, and his full-domain run at 30 m
+with smooth streams as corridors, which waits on the first of these.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
