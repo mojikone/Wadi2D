@@ -1,0 +1,16 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\plugin\wadi2d_qgis\__init__.py
+    4.5 PASS engine found Engine ready.
+    4.6 dock says: Starting...
+    6.6 dock says: depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead
+    8.6 dock says: line S14 ring crosses no active face
+   24.7 dock says: water stood 19.9 m deep against the domain edge at (432071, 2725085): an edge is a wall, so check the domain polygon there
+   24.9 PASS the run finished Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. line Faydh 01 crosses no active face. line R5A crosses no active face. line R2A crosse
+   24.9 network series: ['network_S13']
+   24.9 PASS only S13's network series is written ['network_S13']
+   25.0 dock says: Finished. depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead. line Faydh 01 crosses no active face. line R5A crosses no active face. line R2A crosses no active face. line Z4C crosses no ac
+   27.0 panel: ['Lumped element: S13']
+   27.0 PASS the panel offers S13 alone as a lumped element ['Lumped element: S13']
+   27.0 PASS the dam lines are still offered ['Upfront line: Bidah 03', 'Upfront line: Faydh 01', 'Upfront line: R5A', 'Upfront line: R2A', 'Upfront line: Z4C', 'Upfront line: Bidah 03 ring']
+   27.0 SUMMARY 6 passed, 0 failed 
+   27.0 DONE

@@ -529,9 +529,26 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
     times = grid.minutes * SECONDS_PER_MINUTE
     for name, point, element in wanted:
         table.append((name, point, times, run.outflow[element]))
+    keep = None if generated else _ran(basin, wanted, routes)
     if routes is None or not routes.live:
-        return table, None, NetworkSeries(basin, run)
-    return table, LiveNetwork(basin, routes, run, _live_reentries(routes, wanted)), NetworkSeries(basin, run, routes.live)
+        return table, None, NetworkSeries(basin, run, keep=keep)
+    live = LiveNetwork(basin, routes, run, _live_reentries(routes, wanted))
+    return table, live, NetworkSeries(basin, run, routes.live, keep=keep)
+
+
+def _ran(basin, wanted, routes) -> set[str]:
+    """The elements of an HMS network whose water this run put on the grid: each entering element and what feeds it.
+
+    The rest of the network is computed whole, as HMS would route it, and never reaches the grid: a subbasin switched
+    to rain-on-grid, and the junctions and reaches below the lumped subbasins, whose water the grid routes instead. Their
+    series would look like design flows and are not (W39: Z4C read 9,130 m3/s that the run never carried), so none
+    is written.
+    """
+    cut = routes.cut if routes is not None else ()
+    found: set[str] = set()
+    for _name, _point, element in wanted:
+        found |= _above(basin, element, cut) | {element}
+    return found
 
 
 @dataclass

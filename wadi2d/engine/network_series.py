@@ -2,7 +2,8 @@
 
 A part of the monitor with nothing to book and nothing to checkpoint: it writes, at the end, what the base run gave,
 as ``series/network/<element>`` in ``results.h5`` and ``series/network_<element>.csv``. Elements the hand-back link runs
-live are left to it (:mod:`wadi2d.engine.handback`), which writes their final series under the same names.
+live are left to it (:mod:`wadi2d.engine.handback`), which writes their final series under the same names. On an HMS
+network only the elements whose water reached the grid are written (``keep``); the rest never ran in this model (W39; his word of 2026-11-07).
 
 Interface: :class:`NetworkSeries`.
 """
@@ -25,10 +26,12 @@ NETWORK_KIND = "network"
 class NetworkSeries:
     """The base lumped run, written once the 2D run ends."""
 
-    def __init__(self, basin: Basin, run: Run, live: Iterable[str] = ()) -> None:
+    def __init__(self, basin: Basin, run: Run, live: Iterable[str] = (), keep: Iterable[str] | None = None) -> None:
         self.basin = basin
         self.run = run
         self.live = set(live)
+        self.keep = None if keep is None else set(keep)
+        """The elements to write; None writes every one, as on a generated basin."""
 
     def notes(self) -> list[str]:
         return []
@@ -43,7 +46,7 @@ class NetworkSeries:
         run = self.run
         t = run.grid.minutes * SECONDS_PER_MINUTE
         for name in self.basin.elements:
-            if name in self.live or name not in run.outflow:
+            if name in self.live or name not in run.outflow or (self.keep is not None and name not in self.keep):
                 continue
             columns = {"inflow_m3s": run.inflow[name], "outflow_m3s": run.outflow[name]}
             if name in run.branched:
