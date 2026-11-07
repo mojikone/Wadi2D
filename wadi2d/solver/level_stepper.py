@@ -3,6 +3,10 @@
 A cycle is a run of smallest steps at whose end all tiles stand at one time. Nothing outside looks between cycles,
 except the boundary tally, which counts every smallest step through ``substep_hook``. See solver/levels.py for the
 levels and gpu/kernels/levels.cu for what happens at an edge between levels.
+
+A strip (W45) is the finest class of all: its ghost tiles are pinned to the smallest level, its hooks run on every
+smallest step between the tiles' positivity and their update, as they do in the uniform step, and its own wave caps
+the smallest step. The tiles away from it climb to their own levels, which is what the strip's time stepping means.
 """
 
 from __future__ import annotations
@@ -103,6 +107,9 @@ class LevelStepper(Stepper):
         self.level, self.dt = assign_levels(
             wave, active, self.grid.nbr, self.tile_dx, self.rule, pinned, keep, self.interfaces, may_climb
         )
+        extra = float(getattr(self.backend, "extra_wave", 0.0))
+        if extra > 0.0:  # the strip's own wave caps the smallest step, as it does the uniform step
+            self.dt = min(self.dt, self.num.cfl * self.grid.dx / max(extra, self.num.wave_floor))
         if self.dt < self.num.dt_min:
             raise NumericalFailure(f"time step {self.dt:.2e} s below the minimum at t = {self.t:.3f} s")
         if not np.array_equal(keep, self.level):
@@ -138,6 +145,9 @@ class LevelStepper(Stepper):
             for s, g in lists.groups[a]:
                 ops.limit(g, dts[a], s)
         ops.limit_done(tiles)
+        hooks = getattr(self.backend, "hooks", None)
+        if hooks is not None:
+            hooks.before_update(dt0, wave_step)
         for a in due:
             if lists.coarse[a] is not None:
                 ops.save(lists.coarse[a])
@@ -159,6 +169,8 @@ class LevelStepper(Stepper):
         for a in due:
             for s, g in lists.groups[a]:
                 ops.update(g, dts[a], wet_step, wave_step, s)
+        if hooks is not None:
+            hooks.after_update(dt0, wave_step)
         ops.boundary()
         ops.commit(tiles)
         for a in due:

@@ -252,3 +252,20 @@ def test_an_initial_level_fills_the_corridor_cells_inside_its_polygon(tilted_dem
     assert run.balance.storage0 > 100.0, run.balance.storage0  # 40 x 24 m to about 0.5 m, strip cells included
     inside = [d for x, y, d in _strip_depths(out) if X0 + 82.0 < x < X0 + 118.0 and abs(y - MID_Y) < 10.0]
     assert inside and min(inside) > 0.2, (len(inside), min(inside) if inside else None)
+
+
+@pytest.mark.parametrize("backend", ["cpu", pytest.param("gpu", marks=pytest.mark.gpu)])
+def test_local_time_stepping_steps_the_corridor_every_smallest_step(tilted_dem, tmp_path, backend) -> None:  # noqa: F811
+    """With the tiles on their own levels the strip runs as the finest class; the water is the uniform run's."""
+    cfg = plane_job(tilted_dem, corridor())
+    cfg = cfg.model_copy(update={"run": cfg.run.model_copy(update={"backend": backend})})
+    stepped = cfg.model_copy(update={"numerics": cfg.numerics.model_copy(update={"local_time_stepping": True})})
+    uniform = run_job(cfg, tmp_path / "uniform")
+    levels = run_job(stepped, tmp_path / "levels")
+    assert uniform.exit_code == 0 and levels.exit_code == 0, (uniform.message, levels.message)
+    assert abs(levels.balance.relative) < 1e-6, levels.balance
+    peak_u, volume_u = peak_and_volume(tmp_path / "uniform")
+    peak_l, volume_l = peak_and_volume(tmp_path / "levels")
+    assert volume_l == pytest.approx(volume_u, rel=0.02)
+    assert peak_l == pytest.approx(peak_u, rel=0.05)
+    assert levels.balance.storage == pytest.approx(uniform.balance.storage, rel=0.05)
