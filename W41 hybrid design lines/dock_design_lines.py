@@ -199,7 +199,8 @@ def scenario(h):
             name = dam.replace(" ", "_")
             got, _ = peak(folder / "series" / f"line_{name}.csv", "discharge_m3s")
             ref, _ = peak(h.RUNS / "block2_w1" / "series" / f"line_{name}.csv", "discharge_m3s") if code == 0 else (float("nan"), 0)
-            net, _ = peak(folder / "series" / f"network_{name}.csv", "outflow_m3s")
+            path = folder / "series" / f"network_{name}.csv"  # gone since the HMS route writes only what entered
+            net = peak(path, "outflow_m3s")[0] if path.is_file() else float("nan")
             rows[dam] = {"dock": got, "w1": ref, "network": net, "ratio": got / ref if ref else float("nan")}
             h.log(f"{dam}: dock {got:.1f}, W1's outlets {ref:.1f}, ratio {got / ref:.4f}; lumped network {net:.1f}")
             h.check(f"{dam} within {DAM_TOLERANCE:.0%} of W1's outlets", abs(got / ref - 1.0) < DAM_TOLERANCE, rows[dam])
