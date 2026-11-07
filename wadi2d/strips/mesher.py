@@ -136,16 +136,65 @@ def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray
 
 
 def folds(x: np.ndarray, y: np.ndarray) -> list[tuple[int, int]]:
-    """The (station, row) cells whose ring is not counter-clockwise or has no area."""
-    out = []
-    for i in range(x.shape[0] - 1):
-        for j in range(x.shape[1] - 1):
+    """The (station, row) cells whose ring is not counter-clockwise or has no area, and the cells on a row whose
+    line crosses itself two or more stations apart (a bend tighter than the row's offset: the cells overlap though
+    each keeps its area, and the corridor's ring is no longer simple)."""
+    out = set()
+    ns, nr = x.shape
+    for i in range(ns - 1):
+        for j in range(nr - 1):
             xq = np.array([x[i, j], x[i + 1, j], x[i + 1, j + 1], x[i, j + 1]])
             yq = np.array([y[i, j], y[i + 1, j], y[i + 1, j + 1], y[i, j + 1]])
             a = 0.5 * np.sum(xq * np.roll(yq, -1) - np.roll(xq, -1) * yq)
             if a <= 1e-6:
-                out.append((i, j))
-    return out
+                out.add((i, j))
+    if ns > 2:
+        for j in range(nr):
+            pts = np.column_stack((x[:, j], y[:, j]))
+            segments = shapely.linestrings(np.stack((pts[:-1], pts[1:]), axis=1))
+            a, b = shapely.STRtree(segments).query(segments, predicate="intersects")
+            for i, k in zip(a.tolist(), b.tolist(), strict=True):
+                if k > i + 1:  # not itself, not its neighbour, which shares a node with it
+                    out.update(((i, min(j, nr - 2)), (k, min(j, nr - 2))))
+    return sorted(out)
+
+
+def station_strips(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """The polygon between each pair of stations, all rows: shapely polygons, one per station cell row."""
+    rings = [
+        np.concatenate((np.column_stack((x[i], y[i])), np.column_stack((x[i + 1, ::-1], y[i + 1, ::-1]))))
+        for i in range(x.shape[0] - 1)
+    ]
+    return shapely.polygons([shapely.linearrings(r) for r in rings]) if rings else np.empty(0, object)
+
+
+def fold_free_pieces(
+    c: Corridor, smooth: int = 5, min_stations: int = 3, margin: int = 1, keep_out: shapely.Geometry | None = None
+) -> tuple[list[np.ndarray], bool]:
+    """The stretches of a corridor's centre line (its resampled middle row) whose cells do not fold and stay off
+    ``keep_out`` (the ground beyond the active cells, other corridors), each cut ``margin`` stations clear of a bad
+    one and at least ``min_stations`` long: what a corridor builder splits a corridor by, so the mesher's own
+    geometry decides, not a copy of it; and whether the corridor is whole (nothing to cut)."""
+    x, y = corridor_nodes(c, smooth)
+    n = x.shape[0]
+    middle = int(np.argmin(np.abs(np.asarray(c.offsets, np.float64))))
+    bad = np.zeros(max(n - 1, 0), bool)
+    for i, _j in folds(x, y):
+        bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
+    if keep_out is not None and n > 1:
+        for i in np.nonzero(shapely.intersects(station_strips(x, y), keep_out))[0]:
+            bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
+    pieces, start = [], None
+    for i in range(n - 1):
+        if not bad[i]:
+            start = i if start is None else start
+        elif start is not None:
+            pieces.append((start, i))
+            start = None
+    if start is not None:
+        pieces.append((start, n - 1))
+    out = [np.column_stack((x[a : b + 1, middle], y[a : b + 1, middle])) for a, b in pieces if b - a >= min_stations]
+    return out, not bad.any()
 
 
 def corridor_polygon(x: np.ndarray, y: np.ndarray) -> shapely.Polygon:
@@ -221,6 +270,13 @@ def build_strip_mesh(grid: TileGrid, corridors: list[Corridor], buffer: float | 
     removed = np.zeros(jj.size, bool)
     removed[hit[1]] = True
     hole = shapely.unary_union(boxes[removed])
+    for k, p in enumerate(polygons):
+        if not hole.buffer(NODE_TOLERANCE).covers(p):
+            at = p.difference(hole).representative_point()
+            raise ValueError(
+                f"corridor {corridors[k].name} reaches outside the active cells near ({at.x:.0f}, {at.y:.0f}): "
+                "keep it a cell inside the domain"
+            )
     gap = hole.difference(shapely.unary_union(polygons))
     gaps = [g for g in (gap.geoms if hasattr(gap, "geoms") else [gap]) if g.area > 1e-6]
     # nodes: the corridors', then every lattice corner on the hole's boundary

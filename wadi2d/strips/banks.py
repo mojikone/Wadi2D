@@ -17,7 +17,7 @@ from dataclasses import dataclass
 import numpy as np
 import shapely
 
-from wadi2d.strips.mesher import midline
+from wadi2d.strips.mesher import Corridor, corridor_nodes, corridor_polygon, fold_free_pieces, midline
 
 BANK = "stream bank"
 GAP_CHAIN_M = 30.0
@@ -26,6 +26,8 @@ MIN_LENGTH_M = 300.0
 """A corridor shorter than this is not built."""
 CLEAR_M = 25.0
 """A corridor stays this far from an accepted one."""
+SPLIT_ROUNDS = 3
+"""A piece cut clear of a fold is checked again this many times, its own resampling may fold anew."""
 
 
 @dataclass
@@ -125,16 +127,52 @@ def pair_banks(banks: list[dict], thalwegs: dict[float, shapely.LineString]) -> 
     return pairs
 
 
+def fold_free_specs(
+    spec: dict, along: float, smooth: int = 5, keep_out: shapely.Geometry | None = None
+) -> tuple[list[dict], list[str]]:
+    """The spec split into the pieces whose corridor does not fold and stays off ``keep_out`` (the mesher's own
+    geometry), each at least MIN_LENGTH_M; and what was cut, in words. A corridor with nothing to cut comes back
+    as it is."""
+    offsets = np.asarray(spec["offsets"], np.float64)
+    snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
+    todo, done, cut = [spec], [], []
+    for _round in range(SPLIT_ROUNDS):
+        again = []
+        for s in todo:
+            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap)
+            pieces, whole = fold_free_pieces(c, smooth, keep_out=keep_out)
+            if whole:
+                done.append(s)
+                continue
+            kept = 0.0
+            for k, piece in enumerate(pieces):
+                length = float(np.hypot(*np.diff(piece, axis=0).T).sum())
+                if length < MIN_LENGTH_M:
+                    continue
+                kept += length
+                again.append({**s, "name": f"{s['name']}_{k}" if len(pieces) > 1 else s["name"], "centre": [[float(x), float(y)] for x, y in piece]})
+            cut.append(f"{s['name']}: folds or runs too close, {c.centre.length:.0f} m cut to {kept:.0f} m in {len(pieces)} piece(s)")
+        todo = again
+        if not todo:
+            break
+    else:
+        cut.extend(f"{s['name']}: still folds after {SPLIT_ROUNDS} rounds, dropped" for s in todo)
+        todo = []
+    return done + todo, cut
+
+
 def corridor_specs(
     pairs: list[BankPair], domain: shapely.Polygon, layer: float, rows_per_side: int = 3, along: float = 20.0
 ) -> tuple[list[dict], list[dict]]:
     """Corridor specifications for the job (``strips.corridors``), biggest wadis first, each cut clear of the accepted
-    ones and the domain edge; and the pairs rejected, with why. The banks sit on the rows at +-layer."""
+    ones, the domain edge and its own folds; and the pairs rejected or cut, with why. The banks sit on the rows at
+    +-layer."""
     half = rows_per_side * layer
     offsets = [float(v) for v in np.arange(-half, half + 1e-9, layer)]
     left_row = int(np.argmin(np.abs(np.asarray(offsets) + layer)))
     right_row = int(np.argmin(np.abs(np.asarray(offsets) - layer)))
-    inside = domain.buffer(-(half + 5.0))
+    inside = domain.buffer(-(half + along))
+    outside = domain.envelope.buffer(4.0 * half).difference(domain.buffer(-along))  # a cell inside the edge
     accepted: list[dict] = []
     polygons: list[shapely.Polygon] = []
     rejected: list[dict] = []
@@ -166,6 +204,12 @@ def corridor_specs(
                 {"row": left_row, "coordinates": [[float(x), float(y)] for x, y in np.asarray(right_line.coords)[:, :2]]},
             ],
         }
-        accepted.append(spec)
-        polygons.append(shapely.LineString(centre).buffer(half + 1.0))
+        keep_out = shapely.unary_union([outside, *[p.buffer(CLEAR_M) for p in polygons]])
+        pieces, cut = fold_free_specs(spec, along, keep_out=keep_out)
+        rejected.extend({"tag": tag, "why": words} for words in cut)
+        snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
+        for piece in pieces:
+            accepted.append(piece)
+            built = Corridor(piece["name"], shapely.LineString(piece["centre"]), np.asarray(offsets), along, snap)
+            polygons.append(corridor_polygon(*corridor_nodes(built)))
     return accepted, rejected

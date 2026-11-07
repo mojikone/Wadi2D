@@ -13,7 +13,14 @@ from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import level_of
 from wadi2d.strips.hybrid import HybridCpu, ghosts_for
-from wadi2d.strips.mesher import Corridor, breakline_faces, build_strip_mesh, corridor_nodes, folds
+from wadi2d.strips.mesher import (
+    Corridor,
+    breakline_faces,
+    build_strip_mesh,
+    corridor_nodes,
+    fold_free_pieces,
+    folds,
+)
 from wadi2d.strips.tables import Pixels, build_poly_tables
 from wadi2d.tables.builder import hbar_at_level
 
@@ -53,6 +60,33 @@ def test_a_corridor_too_bent_for_its_width_is_refused_by_name() -> None:
     bend = shapely.LineString([(0.0, 0.0), (200.0, 0.0), (200.0, 20.0), (0.0, 20.0)])
     with pytest.raises(ValueError, match="corridor hairpin folds at stations"):
         build_strip_mesh(_grid(), [Corridor("hairpin", bend, OFFSETS, DX)])
+
+
+def test_a_corridor_past_the_active_cells_is_refused_in_words() -> None:
+    grid = _grid()
+    x1 = grid.x0 + grid.mask.shape[1] * DX  # the east edge of the lattice
+    past = shapely.LineString([(x1 - 300.0, grid.y0 - 500.0), (x1 + 100.0, grid.y0 - 500.0)])
+    with pytest.raises(ValueError, match="corridor past reaches outside the active cells near"):
+        build_strip_mesh(grid, [Corridor("past", past, OFFSETS, DX)])
+
+
+def test_the_fold_free_pieces_of_a_hairpin_are_its_two_legs_and_a_straight_corridor_is_whole() -> None:
+    straight = axis_corridor(0.0)
+    whole, is_whole = fold_free_pieces(straight)
+    assert is_whole and len(whole) == 1 and whole[0].shape[0] == round(2 * HALF / DX) + 1
+    hairpin = shapely.LineString([(0.0, 0.0), (600.0, 0.0), (600.0, 20.0), (0.0, 20.0)])
+    assert fold_free_pieces(Corridor("hairpin", hairpin, OFFSETS, DX, {})) == ([], False)  # its legs overlap each other
+    square = shapely.LineString([(0.0, 0.0), (600.0, 0.0), (600.0, 400.0), (0.0, 400.0)])
+    pieces, is_whole = fold_free_pieces(Corridor("corners", square, OFFSETS, DX, {}))
+    assert not is_whole and len(pieces) == 3  # two legs and the cross, cut clear of the two corners
+    for k, piece in enumerate(pieces):
+        length = np.hypot(*np.diff(piece, axis=0).T).sum()
+        assert (400.0 < length < 600.0) if k != 1 else (200.0 < length < 400.0), (k, length)
+        assert folds(*corridor_nodes(Corridor("leg", shapely.LineString(piece), OFFSETS, DX, {}))) == []
+    wall = shapely.box(250.0, -100.0, 350.0, 100.0)  # something to keep out of, across the straight corridor
+    straight_pieces, is_whole = fold_free_pieces(Corridor("kept", shapely.LineString([(0.0, 0.0), (600.0, 0.0)]), OFFSETS, DX, {}), keep_out=wall)
+    assert not is_whole and len(straight_pieces) == 2
+    assert all(not shapely.LineString(p).intersects(wall) for p in straight_pieces)
 
 
 def _grid():
