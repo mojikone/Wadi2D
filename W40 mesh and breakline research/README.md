@@ -65,6 +65,26 @@ from frozen engine jobs, not from the dock.
 4. **Downloads:** the UK EA benchmark data (Test 7, the levee case, and Tests 1 and 3) and the Iber weir flume set on
    Zenodo (194 runs on 9 weirs, oblique ones included). Both need his yes.
 
+## His answers (2026-11-07)
+
+1. **He rejects the recommendation until an aligned mesh is tested.** In his words: "you are still using the Square mesh
+   that do not align the breakline... i am sure the breaklines are worth it, and you can not agreen until use a proper
+   mesh generator"; and "the cells may sit on both sides of a breakline and the high ground do not match the face".
+   [Certain] He is right on the geometry. A staircase face lies up to half a cell off the line. A cell that a ridge cuts
+   through holds both sides at one water level, so its storage sits on the wrong side for up to half a cell along the
+   line. The ridge rule (G) fixes only the crest height on the face. None of the three measured errors tested that,
+   and this report never raced an aligned mesh on his cases. **Next: a prototype race.** MeshKernel (or Gmsh) strips
+   along the breaklines, joined to the square tiles, against squares plus rule G. The cases: Faydh 01 at 20 m, the
+   overfall flume, the W26 banks, a diagonal road through cells (his shared-level case) and EA Test 7. Both accuracy
+   and run time are measured, including the strip's two risks: the false sideways drive at the join and the time step
+   of thin cells. The strip goes into the engine if it wins.
+2. **The cap: TUFLOW HPC's way, on breakline faces.** The upstream energy head, critical flow in free fall, a drowned
+   curve. He agrees to test it on the EA benchmarks and the flume data. The line-normal split of tier 1 is not
+   documented in any production code, so it is dropped in favour of the documented form.
+3. **Breaklines are never barriers** (his rule): a breakline aligns faces so that a face on high ground reflects it.
+   The dock's Suggest message now sends bank lines to refinement only (merged, 6 of 6 through the dock).
+4. **Downloads: yes.** Both datasets are in `W42 benchmark data`.
+
 ## Not done, and why
 
 - **Nothing has gone through the dock.** No engine code exists for the face law yet, and his rule puts the research

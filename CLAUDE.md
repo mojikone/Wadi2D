@@ -1,11 +1,25 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
-**His answers on W39 (2026-11-07): the RP200 grid governs (157 mm over Bidah 03, NetCDF or DSS, the 0.27 % accepted); the PMP raster's values are the depths (823 mm is only its name, the maximum observed 24 h rain); the ARF is the drainage area's own (0.975 at Bidah 03), not the met's fixed 300 km2; W39's question 6 left blank. Hybrid lines that read nothing: "a big issue and very important to solve". **Root cause (`W41 hybrid design lines`, no code changed yet): the dock's HMS route puts every subbasin's hydrograph at the icon of the element it drains to, and at all five Block 2 dams that icon sits 0.4 to 87 m below the dam line, where W1's validated mode (b) put it 80 to 460 m above. On a generated basin a design-line junction sends its water down a lumped reach past the line. Confirmed: S13 moved 421 m above the line, the Bidah 03 line reads 1,463.8 m3/s against 24.4. On Block 2 at 80 m the dock's entry points make the dam lines read 0.57 (Faydh 01), 0.003 (Bidah 03), 0.86 (R5A), 0.81 (R2A) and 1.00 (Z4C) of W1's, which match the lumped network within 2.2 %. So dock hybrid dam-line numbers from an HMS project since W20 are not design flows. The fix is [BROAD] and waits for his word.** **Mesh research done (`W40 mesh and breakline research`, no engine code): fix the faces, keep the tiles, no aligned strip now.** All three of his issues are face rules:
-- **Staircase:** W36's ridge-only lift already brought all four bank cases within 0.3 %.
-- **Overfall:** a face carrying full depth at full-head velocity passes 2.60 x critical at any cell size, so no mesh helps; a cap on the energy head along the face normal does.
-- **W26 bank loss:** [Likely] today's crest cap reads static depth, not energy (step [6] of `faces.cu`), so it binds at a face Froude number of 0.544 on flow running along a line.
+**State (2026-11-07, `main`):**
 
-Proposed order, each behind a dock gate against today's numbers: ridge rule, tier 0 energy cap, tier 1 line-normal cap with D-Flow FM's projection, tier 2 structures. If a mesher is ever needed, MeshKernel (LGPL core, MIT wrapper); Triangle and JIGSAW cannot ship under GPL-3.0. Four decisions are his (W40 README).**
+- **The hybrid's dam lines are fixed (`W41 hybrid design lines`, merged, 23 of 24 through the real dock).**
+  - A lumped subbasin from an HMS project now enters at the wadi outlet of its own polygon on the run's grid, up the wadi and clear of every line. That is W1's validated rule, now done by the engine (`entry: wadi`, `wadi2d/engine/entries.py`).
+  - Before the fix, the dock put each hydrograph at the dam junction's HMS icon, 0.4 to 87 m below every dam line. At 80 m four dam lines then read 0.003 to 0.86 of their flow, and the rings about half. So dock HMS-route dam-line numbers from W20 to W39 are not design flows.
+  - A design line on a generated basin whose junction drains down a reach now adds the network's flow (`series/design_<line>.csv`): Bidah 03 reads 410.4 m3/s, against 0.69 before.
+  - The one failure is Faydh 01's raw peak, 0.957 of W1's placement, while its 15-minute peak agrees to the digit.
+  - Full suite 1,845 passed.
+- **Suggested bank lines are refinement lines, never barriers.** This is his rule: a breakline aligns faces and reflects high ground, it is not a barrier. The dock's message and README now say so, 6 of 6 through the dock.
+- **His answers on W39:**
+  - The RP200 grid governs: 157 mm over Bidah 03, NetCDF or DSS.
+  - The PMP raster's values are the depths; 823 mm is only its name.
+  - The ARF is the drainage area's own, 0.975 at Bidah 03.
+  - The phantom network series of rain-on-grid subbasins are "totally unnecessary": drop them. Next on the list.
+- **His position on W40 (`W40 mesh and breakline research`):** he rejects "fix the faces, keep the tiles". In his words, square cells cannot follow a breakline: the high ground does not match the face, and a cell may sit on both sides of it. "You can not agree until use a proper mesh generator."
+  - [Certain] He is right that a staircase face lies up to half a cell off the line, and that a cell cut by a ridge holds both sides at one level. The ridge rule fixes only the crest height on the face.
+  - Agreed with him: a prototype race of MeshKernel (or Gmsh) aligned strips joined to the square tiles, against squares plus the ridge rule. The cases are Faydh 01, the flume, the W26 banks, a diagonal road through cells and EA Test 7, scored on accuracy and run time. The strip goes into the engine if it wins.
+- **The cap, his word:** TUFLOW HPC's weir on breakline faces: upstream energy head, critical in free fall, a drowned curve. It will be tested on EA Tests 1, 3 and 7 and the Iber flume (`W42 benchmark data`, downloaded on his permission) before it ships. Order: the phantom series, the cap, the mesh race.
+
+W40's own build order (ridge rule, then an energy cap, then a line-normal crest cap, then structures, with no strip) is set aside by his position above. It stands: MeshKernel (LGPL core, MIT wrapper) leads if a mesher is used, and Triangle and JIGSAW cannot ship under GPL-3.0.
 
 **His gridded design storms tested (2026-11-07, `W39 gridded 200-yr rain test`, pushed): the 200-yr grid in DSS and NetCDF (point depths, no ARF, his word) and the PMP raster with its HMS pattern, on Bidah 03 at 30 m, hybrid and full 2D, through the real dock: 41 of 44. The model reads both formats and puts the file's rain on every interior cell to 8e-10, mass error 2e-8; the three failures are the files: the DSS is the NetCDF resampled to the SHG grid, +0.265 % water over this catchment, peaks within 0.3 %. Bidah 03, 200-yr: full 2D 661.6 m3/s, hybrid 410.2; PMP: full 2D 1,701, hybrid 1,444, HMS's own 1,688. **For his decision: the 200-yr grid holds 157 mm over S13 against the 251 mm point depth of FM_200yr.met; the PMP raster named 823 mm holds about 1,405 mm over S13; FM_PMP.met applies an ARF of 0.835 (300 km2) where HMS's depth-area run uses 0.975; and hybrid result lines can read almost nothing where the lumped flow enters below them, with no warning.**
 
