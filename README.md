@@ -76,6 +76,7 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W13 time step test` | 2026-11-01 | Does a design peak depend on the step | done: 0.23 % at a quarter of the step |
 | `W14 cell edge steps` | 2026-11-01 | Why depth maps drew as cell-sized blocks, the edge blend | live, merged |
 | `W15 final plugin test` | 2026-11-02 | The five dock checks on merged `main`, small areas | done: 207 of 207 |
+| `W39 gridded 200-yr rain test` | 2026-11-07 | His 200-yr grid (DSS, NetCDF) and PMP raster through the dock, hybrid and full 2D on Bidah 03 at 30 m | done, 41 of 44; the 3 are the two files differing by 0.265 %; four findings for his decision |
 | `W37 dock backend and ARF` | 2026-11-07 | The engine choice and the depth-area study in the dock, his option A with interpolation and lumped-only exact reruns | done, 55 of 55 through the dock; -0.39 % against an exact-area run |
 | `W36 breakline faces` | 2026-11-07 | A face that follows the ground along a line without the weir law | built, not merged: 3 of 4 bank cases within 3 %, Faydh 01 20 m -11.1 %; free overfall 2.6-3.8 x critical; his decision |
 | `W38 surge warning and lumped series` | 2026-11-07 | His choice (a) for the inflow surge: lines over an inflow's cells named; lumped elements' series in the Result lines panel | done, 10 of 10 through the dock; four dam lines sit on local inflow cells, his decision |
