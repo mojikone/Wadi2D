@@ -59,6 +59,18 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+BACKEND = "run.backend"
+BACKEND_WORDS = {
+    "auto": "Automatic: the GPU if there is one",
+    "gpu": "GPU only",
+    "cpu": "CPU only",
+}
+"""One phrase per engine choice of the schema; a contract test holds the keys to the engine's."""
+BACKEND_TIP = (
+    "Automatic takes an NVIDIA GPU when one answers and the CPU otherwise. GPU only refuses to run without one. "
+    "CPU only never touches the graphics card: choose it when there is no NVIDIA card or its driver misbehaves. "
+    "The method is the same; the CPU is many times slower."
+)
 
 ANIMATION_MAP_S = 300.0
 """Saved maps for a film: the dock's other choice. A display choice, so it lives here; the default is the schema's."""
@@ -389,6 +401,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         "outputs": {},
         "run": {"duration_s": values["duration_h"] * SECONDS_PER_HOUR},
     }
+    if values.get("backend"):  # only a choice away from the engine's default: an old job stays the job it was
+        job["run"]["backend"] = values["backend"]
     if values.get("domain"):
         job["grid"]["domain"] = str(write_geojson(inputs / "domain.geojson", values["domain"], crs))
     elif values.get("extent"):

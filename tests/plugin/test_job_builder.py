@@ -47,6 +47,20 @@ def test_the_reach_routing_choice_reaches_the_job_and_no_choice_leaves_it_out(tm
     assert "reach_routing" not in build_job(values(tmp_path, reach_routing=None), tmp_path / "out")["hydrology"]
 
 
+def test_the_engine_choice_reaches_the_job_only_when_one_was_made(tmp_path: Path) -> None:
+    """The Run section passes None for the engine's default, so an old job keeps every byte, and its hash."""
+    assert build_job(values(tmp_path, backend="cpu"), tmp_path / "out")["run"]["backend"] == "cpu"
+    assert build_job(values(tmp_path, backend="gpu"), tmp_path / "out")["run"]["backend"] == "gpu"
+    assert build_job(values(tmp_path, backend=None), tmp_path / "out")["run"] == {"duration_s": 43200.0}
+    assert build_job(values(tmp_path), tmp_path / "out")["run"] == {"duration_s": 43200.0}
+
+
+def test_the_engine_choice_survives_the_hms_merge(tmp_path: Path) -> None:
+    job = build_job(values(tmp_path, hms={"folder": "x"}, backend="cpu"), tmp_path / "out")
+    merged = merge_hms(job, {"run": {"duration_s": 7200.0}, "hydrology": {}}, {"modes": {}})
+    assert merged["run"] == {"duration_s": 7200.0, "backend": "cpu"}
+
+
 def test_a_snapped_cell_size_is_said() -> None:
     said = " ".join(notes({"boundaries": [1], "dx": 20.0, "pixel": 3.0}))
     assert "21 m" in said

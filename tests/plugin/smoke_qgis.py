@@ -348,6 +348,9 @@ def smoke() -> None:
         job["outputs"]["points"] == [{"name": "Dam 1", "x": 400080.0, "y": 2699940.0}], "design point named"
     )
     check(job["storm"]["depth_mm"] == 12.5, "rain written as a depth")
+    engines = [dock.panel.backend.itemData(i) for i in range(dock.panel.backend.count())]
+    check(engines == dock.schema.enum("run.backend"), "the engine choices are the schema's")
+    check("backend" not in job["run"], "the automatic engine leaves the job as it was")
 
     check(added.count("Wadi2D live depth") == 1, "live layer added exactly once")
     check(len(live_values) >= 3, f"live layer showed the rewrites in place: {sorted(live_values)}")
@@ -374,12 +377,17 @@ def smoke() -> None:
     )
     check(dock.panel.open_button.isVisibleTo(dock.panel), "Open results folder offered")
 
+    dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("cpu"))
     start(dock)
+    check(not dock.panel.backend.isEnabled(), "the engine choice is held while it runs")
     finished_run(dock)
     check(
         (WORK / "study" / "run_2" / PROGRESS_FILE).is_file() and group("run_2"),
         "a second run never overwrites",
     )
+    second_job = json.loads((WORK / "study" / "run_2" / "job.json").read_text(encoding="utf-8"))
+    check(second_job["run"].get("backend") == "cpu", "a CPU choice reaches the job")
+    dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("auto"))
 
     mode("error")
     os.environ["WADI2D_FAKE_STEPS"] = "6"

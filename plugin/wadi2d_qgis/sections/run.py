@@ -17,7 +17,16 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from ..job_builder import ANIMATION_MAP_S, DURATION, MAP_EVERY, PIXELS_ON, SECONDS_PER_HOUR
+from ..job_builder import (
+    ANIMATION_MAP_S,
+    BACKEND,
+    BACKEND_TIP,
+    BACKEND_WORDS,
+    DURATION,
+    MAP_EVERY,
+    PIXELS_ON,
+    SECONDS_PER_HOUR,
+)
 from .common import Section, bind, number_box
 
 COLOURS = {"info": "#444444", "note": "#a06000", "good": "#1a7a30", "bad": "#b00020"}
@@ -44,6 +53,9 @@ class RunSection(Section):
         self.maps_note.setText(MAPS_NOTE)
         self.pixels = QCheckBox("Make pixel depth, hazard and their drawing after the run")
         self.pixels.setChecked(True)
+        self.backend = QComboBox()
+        self.backend.setToolTip(BACKEND_TIP)
+        self._backend_default: str | None = None
         self.estimate_button = QPushButton("Estimate")
         self.run_button = QPushButton("Run")
         self.stop_button = QPushButton("Stop")
@@ -80,6 +92,7 @@ class RunSection(Section):
         self.form.addRow("Save maps", self.maps)
         self.form.addRow(self.maps_note)
         self.form.addRow(self.pixels)
+        self.form.addRow("Engine", self.backend)
         self.form.addRow(buttons)
         self.form.addRow(self.estimate_label)
         self.form.addRow(self.bar)
@@ -108,6 +121,18 @@ class RunSection(Section):
         self.maps.setToolTip(schema.tip(MAP_EVERY))
         self.pixels.setChecked(bool(schema.default(PIXELS_ON, True)))
         self.pixels.setToolTip(schema.tip(PIXELS_ON))
+        self._backend_default = schema.default(BACKEND)
+        held = self.backend.currentData()
+        self.backend.clear()
+        for key in schema.enum(BACKEND):
+            self.backend.addItem(BACKEND_WORDS.get(key, key), key)
+        wanted = held if held is not None else self._backend_default
+        self.backend.setCurrentIndex(max(self.backend.findData(wanted), 0))
+
+    def chosen_backend(self) -> str | None:
+        """The engine the user chose, or None for the engine's own default."""
+        key = self.backend.currentData()
+        return key if key is not None and key != self._backend_default else None
 
     def values(self, crs) -> dict:
         return {
@@ -115,6 +140,7 @@ class RunSection(Section):
             "duration_h": self.duration.value(),
             "map_every_s": self.maps.currentData(),
             "pixels": self.pixels.isChecked(),
+            "backend": self.chosen_backend(),
         }
 
     def set_running(self, running: bool) -> None:
@@ -127,6 +153,7 @@ class RunSection(Section):
             self.lines_button.setEnabled(False)
         self.maps.setEnabled(not running)
         self.pixels.setEnabled(not running)
+        self.backend.setEnabled(not running)
         if running:
             self.map_button.setEnabled(False)
             self.bar.setValue(0)

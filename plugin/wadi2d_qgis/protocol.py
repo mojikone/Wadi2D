@@ -105,7 +105,7 @@ ACCESS_VIOLATION = (-1073741819, 3221225477)
 CRASH_MESSAGE = (
     "The engine crashed inside the graphics driver or a library. If another GPU program is running, close it and run "
     "again; if it keeps happening, restart the PC (a driver left damaged by earlier GPU faults does this) or choose "
-    "the CPU engine."
+    "CPU only as the Engine in the Run section."
 )
 EXIT_MESSAGES.update(dict.fromkeys(ACCESS_VIOLATION, CRASH_MESSAGE))
 

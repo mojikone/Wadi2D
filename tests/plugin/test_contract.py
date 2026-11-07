@@ -38,6 +38,7 @@ PATHS = (
     job_builder.LOCAL_STEPS,
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
+    job_builder.BACKEND,
     basin_rows.STREAM_THRESHOLD,
     basin_rows.LAG_METHOD,
     basin_rows.REACH_ROUTING,
@@ -63,6 +64,19 @@ def test_every_path_the_dock_binds_exists_in_the_engine(real: SchemaView, path: 
 def test_every_reach_routing_scheme_of_the_engine_has_words_in_the_dock(real: SchemaView) -> None:
     assert set(real.enum(basin_rows.REACH_ROUTING)) == set(basin_rows.ROUTING_WORDS)
     assert real.default(basin_rows.REACH_ROUTING) == "hms"
+
+
+def test_every_engine_choice_has_words_in_the_dock_and_the_default_is_automatic(real: SchemaView) -> None:
+    assert set(real.enum(job_builder.BACKEND)) == set(job_builder.BACKEND_WORDS)
+    assert real.default(job_builder.BACKEND) == "auto"
+
+
+def test_a_cpu_choice_from_the_dock_is_a_valid_job_and_the_default_is_left_out(tmp_path: Path) -> None:
+    chosen = build_job(full_values(tmp_path, backend="cpu"), tmp_path / "out")
+    assert config.RunConfig.model_validate(chosen).run.backend == "cpu"
+    left = build_job(full_values(tmp_path, backend=None), tmp_path / "out")
+    assert "backend" not in left["run"]
+    assert config.RunConfig.model_validate(left).run.backend == "auto"
 
 
 def test_the_frozen_sample_still_matches_the_engine() -> None:
