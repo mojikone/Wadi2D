@@ -6,3 +6,7 @@ versioned data contracts (``wadi2d.io``), registries for every method family.
 """
 
 __version__ = "0.1.1"
+
+from wadi2d.gis_env import own_gis_data
+
+own_gis_data()  # before any module loads rasterio: another GIS program's PROJ or GDAL data must not reach it
