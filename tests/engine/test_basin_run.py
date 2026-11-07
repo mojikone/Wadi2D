@@ -143,7 +143,7 @@ def test_one_arm_in_2d_gives_the_same_water_and_a_line_at_the_fork_that_closes(v
     (line,) = h["handbacks"]
     assert line["element"] == valley["fork"]
     assert h["inflows"] == [{"name": valley["outlet"], "x": h["inflows"][0]["x"], "y": h["inflows"][0]["y"],
-                             "element": valley["outlet"], "times_s": None, "flows": None}]  # fmt: skip
+                             "element": valley["outlet"], "entry": "point", "times_s": None, "flows": None}]  # fmt: skip
     (event,) = events(out, "basin")
     fork = next(j for j in event["junctions"] if j["junction"] == valley["fork"])
     assert fork["handback"] and fork["two_d_sources"] == [arm]

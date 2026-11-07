@@ -798,6 +798,14 @@
           "title": "Inject Max Offset",
           "type": "number"
         },
+        "entry_erode_m": {
+          "default": 80.0,
+          "description": "A 'wadi' entry looks for its wadi outlet this far inside the subbasin's polygon, m: W1's validated mode (b) rule, so the entry lies above a dam line drawn on the polygon's edge",
+          "maximum": 2000.0,
+          "minimum": 0.0,
+          "title": "Entry Erode M",
+          "type": "number"
+        },
         "overlap_share": {
           "default": 0.01,
           "description": "Two subbasin polygons sharing more than this share of the smaller stop the run: a cell never gets two rainfalls. Less is a sliver along a digitised edge, warned and masked once",
@@ -840,6 +848,16 @@
           "default": null,
           "description": "Lumped element whose outflow enters here",
           "title": "Element"
+        },
+        "entry": {
+          "default": "point",
+          "description": "'point' enters at x, y. 'wadi' starts there and moves up the wadi until the cells it reaches are clear of every result and hand-back line; a generated basin's inflows are 'wadi'",
+          "enum": [
+            "point",
+            "wadi"
+          ],
+          "title": "Entry",
+          "type": "string"
         },
         "times_s": {
           "anyOf": [
@@ -2449,6 +2467,16 @@
           "description": "Where a lumped hydrograph enters, m",
           "title": "Outlet"
         },
+        "entry": {
+          "default": "point",
+          "description": "'point' enters at outlet as given. 'wadi' enters at the wadi outlet of the subbasin's polygon on the run's grid, the cell of largest drainage area inside the polygon eroded by hydrology.entry_erode_m, moved up the wadi until the cells it reaches are clear of every result and hand-back line; outlet is kept for a subbasin without a polygon. An HMS import writes 'wadi', because HMS icons are schematic",
+          "enum": [
+            "point",
+            "wadi"
+          ],
+          "title": "Entry",
+          "type": "string"
+        },
         "curve_number": {
           "anyOf": [
             {
@@ -3136,6 +3164,7 @@
         "inject_radius": 30.0,
         "inject_min_depth": 0.1,
         "inject_max_offset": 200.0,
+        "entry_erode_m": 80.0,
         "overlap_share": 0.01
       }
     },
