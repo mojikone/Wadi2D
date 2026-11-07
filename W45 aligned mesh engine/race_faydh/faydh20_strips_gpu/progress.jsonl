@@ -1,31 +1,23 @@
-{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_faydh\\W45 aligned mesh engine\\race_faydh\\cache\\grid_e05c5ec7077d594428790179.h5"}
-{"ev": "strips", "corridors": 39, "cells": 10716, "triangles": 9170, "replaced": 10215}
-{"ev": "start", "backend": "gpu", "cells": 178599, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 17.3, "t": 0.0}
-{"ev": "step", "t": 12498.264, "dt": 1.213, "steps": 4485, "active_tiles": 222, "volume": 12180.8, "mass_error": -5.372e-09, "wall": 2.0}
-{"ev": "step", "t": 16830.618, "dt": 0.6129, "steps": 9913, "active_tiles": 222, "volume": 67059.5, "mass_error": -7.461e-09, "wall": 4.02}
-{"ev": "step", "t": 19667.598, "dt": 0.5024, "steps": 15697, "active_tiles": 222, "volume": 128166.7, "mass_error": -9.844e-09, "wall": 6.02}
-{"ev": "step", "t": 22427.953, "dt": 0.46, "steps": 21499, "active_tiles": 222, "volume": 209121.1, "mass_error": -1.185e-08, "wall": 8.02}
-{"ev": "step", "t": 24850.773, "dt": 0.4143, "steps": 27387, "active_tiles": 222, "volume": 288108.3, "mass_error": -1.25e-08, "wall": 10.02}
-{"ev": "step", "t": 27237.0, "dt": 0.4091, "steps": 33231, "active_tiles": 222, "volume": 361007.6, "mass_error": -1.226e-08, "wall": 12.02}
-{"ev": "step", "t": 29503.042, "dt": 0.3525, "steps": 39141, "active_tiles": 222, "volume": 435693.9, "mass_error": -1.38e-08, "wall": 14.02}
-{"ev": "step", "t": 31586.888, "dt": 0.3498, "steps": 45127, "active_tiles": 222, "volume": 512535.7, "mass_error": -1.24e-08, "wall": 16.02}
-{"ev": "step", "t": 33647.726, "dt": 0.3517, "steps": 51091, "active_tiles": 222, "volume": 604226.3, "mass_error": -1.442e-08, "wall": 18.02}
-{"ev": "step", "t": 35670.0, "dt": 0.3494, "steps": 57051, "active_tiles": 222, "volume": 713537.0, "mass_error": -1.602e-08, "wall": 20.02}
-{"ev": "step", "t": 37555.576, "dt": 0.0925, "steps": 63011, "active_tiles": 222, "volume": 858859.5, "mass_error": -1.728e-08, "wall": 22.02}
-{"ev": "step", "t": 39301.578, "dt": 0.3226, "steps": 68997, "active_tiles": 222, "volume": 1085185.3, "mass_error": -1.838e-08, "wall": 24.02}
-{"ev": "step", "t": 40980.266, "dt": 0.2759, "steps": 75065, "active_tiles": 222, "volume": 1566845.9, "mass_error": -1.775e-08, "wall": 26.02}
-{"ev": "step", "t": 42323.803, "dt": 0.1745, "steps": 81135, "active_tiles": 222, "volume": 3507012.3, "mass_error": -1.539e-08, "wall": 28.02}
-{"ev": "step", "t": 43253.777, "dt": 0.1092, "steps": 87313, "active_tiles": 222, "volume": 5259706.7, "mass_error": -1.747e-08, "wall": 30.02}
-{"ev": "step", "t": 44221.462, "dt": 0.1624, "steps": 93472, "active_tiles": 222, "volume": 4521120.5, "mass_error": -1.982e-08, "wall": 32.02}
-{"ev": "step", "t": 45235.787, "dt": 0.1773, "steps": 99616, "active_tiles": 222, "volume": 3295222.4, "mass_error": -2.026e-08, "wall": 34.02}
-{"ev": "step", "t": 46444.818, "dt": 0.2305, "steps": 105735, "active_tiles": 222, "volume": 2241526.1, "mass_error": -2.021e-08, "wall": 36.02}
-{"ev": "step", "t": 47921.635, "dt": 0.2482, "steps": 111816, "active_tiles": 222, "volume": 1630945.0, "mass_error": -2.016e-08, "wall": 38.02}
-{"ev": "step", "t": 49501.068, "dt": 0.2635, "steps": 117894, "active_tiles": 222, "volume": 1318819.0, "mass_error": -2.018e-08, "wall": 40.02}
-{"ev": "step", "t": 51195.469, "dt": 0.3216, "steps": 123827, "active_tiles": 222, "volume": 1130622.2, "mass_error": -2.042e-08, "wall": 42.02}
-{"ev": "step", "t": 53010.324, "dt": 0.3267, "steps": 129829, "active_tiles": 222, "volume": 997820.2, "mass_error": -2.067e-08, "wall": 44.02}
-{"ev": "step", "t": 54900.339, "dt": 0.3314, "steps": 135812, "active_tiles": 222, "volume": 903228.5, "mass_error": -2.091e-08, "wall": 46.02}
-{"ev": "step", "t": 56932.713, "dt": 0.3452, "steps": 141798, "active_tiles": 222, "volume": 828003.7, "mass_error": -2.094e-08, "wall": 48.02}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W45 aligned mesh engine\\race_faydh\\W45 aligned mesh engine\\race_faydh\\cache\\grid_b58dfa42f0849d76a64aaae9.h5"}
+{"ev": "strips", "corridors": 39, "cells": 10716, "triangles": 7719, "replaced": 10215, "cut": []}
+{"ev": "start", "backend": "gpu", "cells": 178599, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 17.5, "t": 0.0}
+{"ev": "step", "t": 13620.932, "dt": 0.9316, "steps": 5586, "active_tiles": 222, "volume": 22115.9, "mass_error": -3.67e-09, "wall": 2.0}
+{"ev": "step", "t": 18651.724, "dt": 0.5816, "steps": 12990, "active_tiles": 222, "volume": 103982.3, "mass_error": -1.005e-08, "wall": 4.0}
+{"ev": "step", "t": 22499.031, "dt": 0.4652, "steps": 20793, "active_tiles": 222, "volume": 211411.4, "mass_error": -1.268e-08, "wall": 6.0}
+{"ev": "step", "t": 25740.412, "dt": 0.4118, "steps": 28739, "active_tiles": 222, "volume": 314608.5, "mass_error": -1.326e-08, "wall": 8.0}
+{"ev": "step", "t": 28944.384, "dt": 0.3528, "steps": 36739, "active_tiles": 222, "volume": 416820.8, "mass_error": -1.394e-08, "wall": 10.0}
+{"ev": "step", "t": 31765.923, "dt": 0.3503, "steps": 44819, "active_tiles": 222, "volume": 519266.8, "mass_error": -1.407e-08, "wall": 12.0}
+{"ev": "step", "t": 34560.351, "dt": 0.3509, "steps": 52871, "active_tiles": 222, "volume": 650226.4, "mass_error": -1.594e-08, "wall": 14.0}
+{"ev": "step", "t": 37378.938, "dt": 0.3486, "steps": 60976, "active_tiles": 222, "volume": 841518.9, "mass_error": -1.432e-08, "wall": 16.0}
+{"ev": "step", "t": 40057.082, "dt": 0.3126, "steps": 68979, "active_tiles": 222, "volume": 1241379.9, "mass_error": -1.447e-08, "wall": 18.0}
+{"ev": "step", "t": 42352.416, "dt": 0.2264, "steps": 77140, "active_tiles": 222, "volume": 3602407.6, "mass_error": -1.421e-08, "wall": 20.0}
+{"ev": "step", "t": 43844.323, "dt": 0.1837, "steps": 85576, "active_tiles": 222, "volume": 4962460.5, "mass_error": -1.882e-08, "wall": 22.0}
+{"ev": "step", "t": 45466.761, "dt": 0.2124, "steps": 94022, "active_tiles": 222, "volume": 3035189.0, "mass_error": -1.929e-08, "wall": 24.0}
+{"ev": "step", "t": 47411.991, "dt": 0.2642, "steps": 102321, "active_tiles": 222, "volume": 1780671.5, "mass_error": -2.093e-08, "wall": 26.0}
+{"ev": "step", "t": 49636.711, "dt": 0.304, "steps": 110604, "active_tiles": 222, "volume": 1295111.6, "mass_error": -2.087e-08, "wall": 28.0}
+{"ev": "step", "t": 52226.482, "dt": 0.3354, "steps": 118753, "active_tiles": 222, "volume": 1046556.8, "mass_error": -2.07e-08, "wall": 30.0}
+{"ev": "step", "t": 54900.347, "dt": 0.3468, "steps": 126802, "active_tiles": 222, "volume": 901950.9, "mass_error": -2.041e-08, "wall": 32.0}
 {"ev": "output", "kind": "strip_mesh", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu\\maps\\strip_mesh.gpkg"}
 {"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
 {"ev": "output", "kind": "maps", "path": "W45 aligned mesh engine\\race_faydh\\faydh20_strips_gpu\\maps"}
-{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 143739, "loop_s": 50.45, "tables_s": 17.3, "wet_area_km2": 3.28, "dt_min": 0.03965886426959722, "balance": {"rain_m3": 10739179.144496482, "inflow_m3": 0.0, "outflow_m3": 9932103.412429394, "storage_start_m3": 0.0, "storage_end_m3": 807075.9574207664, "error_m3": -0.22535367868840694, "relative_error": -2.098425546834221e-08}, "tile_steps": null, "products": "none"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 134632, "loop_s": 35.7, "tables_s": 17.5, "wet_area_km2": 3.2768, "dt_min": 0.056994748057807604, "balance": {"rain_m3": 10739179.144496482, "inflow_m3": 0.0, "outflow_m3": 9932879.615649942, "storage_start_m3": 0.0, "storage_end_m3": 806299.7498076397, "error_m3": -0.22096110018901527, "relative_error": -2.0575231795276592e-08}, "tile_steps": null, "products": "none"}
