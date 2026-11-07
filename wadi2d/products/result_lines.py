@@ -27,6 +27,7 @@ import rasterio
 from rasterio.windows import Window
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.engine.network_series import NETWORK_KIND
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.products.face_flow import (
     FLOW_ESTIMATE,
@@ -330,7 +331,7 @@ def _series(f: h5py.File, kind: str, name: str) -> dict:
 
 
 def catalogue(run: Path) -> dict:
-    """What a run holds: its saved frames, and its upfront lines and points with their recorded series."""
+    """What a run holds: its saved frames, its upfront lines and points, and its lumped elements, with their series."""
     results = run / "results.h5"
     cfg = _read_config(run)
     names = frame_names(results)
@@ -342,10 +343,15 @@ def catalogue(run: Path) -> dict:
             for line in cfg.outputs.lines
         ]
         points = [{"name": p.name, "x": p.x, "y": p.y, **_series(f, "points", p.name)} for p in cfg.outputs.points]
+        lumped = [
+            {"name": str(group.attrs.get("name", key)), **_series(f, NETWORK_KIND, str(group.attrs.get("name", key)))}
+            for key, group in (f["series"][NETWORK_KIND].items() if f"series/{NETWORK_KIND}" in f else ())
+        ]
     return {
         "crs": crs,
         "frames_s": times.tolist(),
         "interval_s": float(np.median(np.diff(times))) if times.size > 1 else 0.0,
         "lines": lines,
         "points": points,
+        "lumped": lumped,
     }

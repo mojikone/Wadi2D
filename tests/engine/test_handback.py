@@ -639,3 +639,15 @@ def test_old_jobs_keep_their_hash_their_events_and_their_checkpoints(tmp_path):
     assert set(done["balance"]) == {
         "rain_m3", "inflow_m3", "outflow_m3", "storage_start_m3", "storage_end_m3", "error_m3", "relative_error",
     }  # fmt: skip
+
+
+def test_the_run_listing_holds_every_lumped_element_with_its_series_of_record(tmp_path):
+    from wadi2d.products.result_lines import catalogue
+
+    out = tmp_path / "run"
+    assert run_job(box(tmp_path, write_basin(tmp_path, lag_reach(), SINK)), out).exit_code == 0
+    lumped = {item["name"]: item for item in catalogue(out)["lumped"]}
+    assert "R1" in lumped
+    recorded = series(out, "network", "R1", "outflow_m3s")
+    assert lumped["R1"]["outflow_m3s"] == pytest.approx(recorded.tolist(), abs=1e-3)
+    assert len(lumped["R1"]["t_s"]) == len(recorded)

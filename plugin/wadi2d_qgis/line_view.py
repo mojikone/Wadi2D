@@ -15,6 +15,7 @@ import math
 from dataclasses import dataclass, field
 
 UPFRONT_LINE, UPFRONT_POINT, TEMPORARY = "upfront line", "upfront point", "temporary line"
+LUMPED = "lumped element"
 SECONDS_PER_HOUR = 3600.0
 SECONDS_PER_MINUTE = 60.0
 FRAME_TOLERANCE_S = 0.5
@@ -39,6 +40,11 @@ FACES_LIMIT = (
 )
 LINE_NOTE = "Computed during the run, at every series step, from the discharge on the faces: the number of record."
 POINT_NOTE = "Computed during the run, at every series step: the number of record."
+LUMPED_NOTE = (
+    "Computed by the lumped network at its own step: the number of record for a lumped subbasin, reach or reservoir. "
+    "A line across the cells where its hydrograph enters the grid reads the pond's surge there, not this."
+)
+INFLOW_COLOUR = "#7a7a7a"
 NO_DEM = "The DEM is not where the run found it: the ground drawn is each cell's lowest point."
 MOST_TICKS = 6
 STEP_TOLERANCE = 1e-6
@@ -57,7 +63,9 @@ class Entry:
 
     @property
     def label(self) -> str:
-        words = {UPFRONT_LINE: "Upfront line", UPFRONT_POINT: "Upfront point", TEMPORARY: "Temporary line"}
+        words = {
+            UPFRONT_LINE: "Upfront line", UPFRONT_POINT: "Upfront point", TEMPORARY: "Temporary line", LUMPED: "Lumped element",
+        }  # fmt: skip
         return f"{words[self.kind]}: {self.name}"
 
 
@@ -104,7 +112,8 @@ def entries(listing: dict) -> list[Entry]:
     """The upfront lines, then the upfront points, of what ``wadi2d lines`` wrote."""
     lines = [Entry(UPFRONT_LINE, item["name"], item["coordinates"], item) for item in listing.get("lines", [])]
     points = [Entry(UPFRONT_POINT, item["name"], None, item) for item in listing.get("points", [])]
-    return lines + points
+    lumped = [Entry(LUMPED, item["name"], None, item) for item in listing.get("lumped", [])]
+    return lines + points + lumped
 
 
 def frame_at(times_s: list[float], t_s: float) -> int:
@@ -171,6 +180,16 @@ def point_view(entry: Entry, frames_s: list[float]) -> View:
         Chart("Water level at the point, m", "level", "m", [level], from_zero=False),
     ]
     return View(f"Upfront point: {entry.name}.", POINT_NOTE, charts, None, frames_s)
+
+
+def lumped_view(entry: Entry, frames_s: list[float]) -> View:
+    """A lumped element: its inflow and outflow as the network computed them."""
+    record = entry.record
+    times = _hours(record.get("t_s", []))
+    curves = [Curve("Outflow, lumped network: number of record", UPFRONT, RECORD_COLOUR, times, record.get("outflow_m3s", []))]
+    if record.get("inflow_m3s"):
+        curves.append(Curve("Inflow, lumped network", UPFRONT, INFLOW_COLOUR, times, record["inflow_m3s"]))
+    return View(f"Lumped element: {entry.name}.", LUMPED_NOTE, [Chart(FLOW_TITLE, "flow", "m3/s", curves)], None, frames_s)
 
 
 def record_view(entry: Entry, frames_s: list[float]) -> View:

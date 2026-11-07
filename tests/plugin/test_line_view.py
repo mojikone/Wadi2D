@@ -12,6 +12,7 @@ from wadi2d_qgis.line_view import (
     FLOW_ESTIMATE,
     FLOW_FACES,
     FRAMES,
+    LUMPED,
     NO_DEM,
     TEMPORARY,
     UPFRONT,
@@ -23,6 +24,7 @@ from wadi2d_qgis.line_view import (
     every,
     frame_at,
     line_view,
+    lumped_view,
     point_view,
     readout,
     record_view,
@@ -224,3 +226,13 @@ def test_an_upfront_line_read_off_the_faces_shows_the_record_beside_its_own_fram
 def test_the_flow_source_words_are_the_engines() -> None:
     engine = pytest.importorskip("wadi2d.products.face_flow")
     assert (FLOW_FACES, FLOW_ESTIMATE) == (engine.FLOW_FACES, engine.FLOW_ESTIMATE)
+
+
+def test_a_lumped_element_shows_its_inflow_and_outflow_of_record() -> None:
+    item = {"name": "S5", "t_s": [0.0, 3600.0], "inflow_m3s": [0.0, 50.0], "outflow_m3s": [0.0, 40.0]}
+    entry = entries({"lumped": [item]})[0]
+    assert entry.kind == LUMPED and entry.label == "Lumped element: S5"
+    view = lumped_view(entry, [0.0, 3600.0])
+    assert [c.label for c in view.charts[0].curves] == ["Outflow, lumped network: number of record", "Inflow, lumped network"]
+    assert view.charts[0].curves[0].values == [0.0, 40.0]
+    assert "pond's surge" in view.limit

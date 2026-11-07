@@ -26,6 +26,7 @@ from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
+from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
@@ -743,6 +744,13 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     if bset.size:
         model.set_boundary(bset.cells)
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs)
+    if forcing.injections and not getattr(grid, "quad", False):
+        entering = {
+            inj.name: set(zip(forcing.jj[inj.cells].tolist(), forcing.ii[inj.cells].tolist(), strict=True))
+            for inj in forcing.injections
+        }
+        for note in inflow_crossings(cfg.outputs.lines, entering, grid):
+            progress.emit("warn", message=note)
 
     results = Results(out / "results.h5", grid, crs, cfg.model_dump_json(), append=continuing)
     if results.salvaged:
