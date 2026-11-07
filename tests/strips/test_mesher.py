@@ -180,3 +180,42 @@ def test_the_race_at_45_degrees_the_corridor_against_the_staircase() -> None:
     tiles, _ = run_channel(45.0, "tiles")
     # the record, not a rule: the corridor's error against the tiles' +2.5 %
     assert abs(corridor - 1.0) < abs(tiles - 1.0) + 0.005, (corridor, tiles, skew, steps)
+
+
+def test_gap_slivers_are_joined_into_convex_quads_and_nothing_wider() -> None:
+    from wadi2d.strips.mesher import MERGE_DN, merge_slivers
+
+    # a thin sliver pair: two triangles on a 20 m edge with apexes 1 m either side of it, and a fat pair to keep
+    xy = np.array([[0.0, 0.0], [20.0, 0.0], [10.0, 1.0], [10.0, -1.0], [40.0, 0.0], [60.0, 0.0], [50.0, 15.0], [50.0, -15.0]])
+    thin = [np.array([0, 1, 2]), np.array([0, 3, 1])]
+    fat = [np.array([4, 5, 6]), np.array([4, 7, 5])]
+    out = merge_slivers(xy, thin + fat, MERGE_DN * 20.0)
+    assert len(out) == 3 and sorted(r.size for r in out) == [3, 3, 4]
+    quad = next(r for r in out if r.size == 4)
+    assert set(quad.tolist()) == {0, 1, 2, 3}
+    p = xy[quad]
+    d = np.roll(p, -1, axis=0) - p
+    assert (d[:, 0] * np.roll(d, -1, axis=0)[:, 1] - d[:, 1] * np.roll(d, -1, axis=0)[:, 0] > 0).all()  # counter-clockwise, convex
+
+
+def _close_gap_faces(mesh, limit: float) -> int:
+    geo = mesh.geometry
+    _area, cx, cy = geo.areas_centroids()
+    _length, nfx, nfy, _xf, _yf = geo.faces(cx, cy)
+    inner = geo.face_cell[:, 1] >= 0
+    L, R = geo.face_cell[inner, 0], geo.face_cell[inner, 1]
+    gap = (mesh.corridor[L] < 0) & (mesh.corridor[R] < 0)
+    dn = (cx[R] - cx[L]) * nfx[inner] + (cy[R] - cy[L]) * nfy[inner]
+    return int((dn[gap] < limit).sum())
+
+
+def test_joining_slivers_removes_most_of_the_close_gap_faces_and_leaves_quads_at_most() -> None:
+    from wadi2d.strips.mesher import MERGE_DN
+
+    grid = _grid()
+    raw = build_strip_mesh(grid, [axis_corridor(30.0)], merge=0.0)
+    joined = build_strip_mesh(grid, [axis_corridor(30.0)])
+    before, after = _close_gap_faces(raw, MERGE_DN * DX), _close_gap_faces(joined, MERGE_DN * DX)
+    assert before > 0 and after <= 0.25 * before, (before, after)
+    assert np.diff(joined.geometry.ring_start).max() <= 4  # triangles and quads only
+    assert (joined.corridor < 0).sum() < (raw.corridor < 0).sum()

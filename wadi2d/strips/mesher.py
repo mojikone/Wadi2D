@@ -27,6 +27,9 @@ from wadi2d.strips.geometry import MeshGeometry
 SNAP_REACH = 2.5
 """A snapped row looks for its line this many rows out along the cross line, else takes the nearest point."""
 NODE_TOLERANCE = 1e-3
+MERGE_DN = 0.5
+"""Two gap triangles whose centres stand closer than this share of the lattice cell along their shared face are joined
+into one quad when it is convex: a sliver sets the time step for the whole model (W45, speed)."""
 """Two nodes closer than this, m, are one node."""
 MIN_FACING_M = 120.0
 """Two banks farther apart than this do not face each other (W44's midline rule)."""
@@ -232,7 +235,9 @@ def _conform_ring(coords: np.ndarray, tree: cKDTree, xy: np.ndarray) -> np.ndarr
     return np.asarray(out)
 
 
-def build_strip_mesh(grid: TileGrid, corridors: list[Corridor], buffer: float | None = None, smooth: int = 5) -> StripMesh:
+def build_strip_mesh(
+    grid: TileGrid, corridors: list[Corridor], buffer: float | None = None, smooth: int = 5, merge: float = MERGE_DN
+) -> StripMesh:
     """The corridors as cells, the lattice cells under them removed, the gap triangulated: one polygon mesh."""
     dx = float(grid.dx)
     buffer = 0.5 * dx if buffer is None else buffer
@@ -296,6 +301,7 @@ def build_strip_mesh(grid: TileGrid, corridors: list[Corridor], buffer: float | 
             raise RuntimeError(f"no node at {p} (nearest {d:.4f} m away)")
         return int(i)
 
+    gap_start = len(rings)
     for g in gaps:
         shell = _conform_ring(np.asarray(g.exterior.coords), tree_nodes, xy)
         holes = [_conform_ring(np.asarray(r.coords), tree_nodes, xy) for r in g.interiors]
@@ -308,11 +314,69 @@ def build_strip_mesh(grid: TileGrid, corridors: list[Corridor], buffer: float | 
             rings.append(np.array(ids))
             corridor_of.append(-1)
             row_of.append(-1)
+    merged = merge_slivers(xy, rings[gap_start:], merge * dx) if merge > 0.0 else rings[gap_start:]
+    rings = rings[:gap_start] + merged
+    corridor_of = corridor_of[:gap_start] + [-1] * len(merged)
+    row_of = row_of[:gap_start] + [-1] * len(merged)
     geometry = MeshGeometry.from_rings(xy[:, 0], xy[:, 1], rings)
     return StripMesh(
         geometry, (jj[removed], ii[removed]), np.array(corridor_of, np.int64), np.array(row_of, np.int64),
         breakline_edges, polygons,
     )  # fmt: skip
+
+
+def _convex(xy: np.ndarray, ring: np.ndarray) -> bool:
+    p = xy[ring]
+    d = np.roll(p, -1, axis=0) - p
+    cross = d[:, 0] * np.roll(d, -1, axis=0)[:, 1] - d[:, 1] * np.roll(d, -1, axis=0)[:, 0]
+    return bool((cross > 1e-9 * float(np.abs(cross).max())).all())
+
+
+def merge_slivers(xy: np.ndarray, triangles: list[np.ndarray], dn_min: float) -> list[np.ndarray]:
+    """Pairs of gap triangles whose centres stand closer than ``dn_min`` along their shared face become one quad when
+    it is convex; closest pairs first, each triangle in one pair a pass, passes until nothing merges. The time step
+    of the whole model follows the smallest centre-to-centre distance across a wet face, and the constrained Delaunay
+    of a gap on the existing nodes leaves slivers where a corridor node stands near a lattice corner."""
+    rings = [np.asarray(r, np.int64) for r in triangles]
+    while True:
+        edges: dict[tuple[int, int], list[int]] = {}
+        for k, r in enumerate(rings):
+            if r.size != 3:
+                continue
+            for m in range(3):
+                a, b = int(r[m]), int(r[(m + 1) % 3])
+                edges.setdefault((min(a, b), max(a, b)), []).append(k)
+        pairs = []
+        for (a, b), ks in edges.items():
+            if len(ks) != 2:
+                continue
+            ca, cb = xy[rings[ks[0]]].mean(axis=0), xy[rings[ks[1]]].mean(axis=0)
+            ex, ey = xy[b] - xy[a]
+            length = float(np.hypot(ex, ey))
+            if length < 1e-9:
+                continue
+            dn = abs((cb[0] - ca[0]) * ey - (cb[1] - ca[1]) * ex) / length
+            if dn < dn_min:
+                pairs.append((dn, ks[0], ks[1], a, b))
+        pairs.sort()
+        used: set[int] = set()
+        gone: set[int] = set()
+        for _dn, ka, kb, a, b in pairs:
+            if ka in used or kb in used:
+                continue
+            ra, rb = rings[ka], rings[kb]
+            w = int(next(v for v in rb if v != a and v != b))
+            m = int(np.nonzero((ra == a) | (ra == b))[0].min())
+            if {int(ra[m]), int(ra[(m + 1) % 3])} != {a, b}:
+                m = (m + 2) % 3  # the shared edge runs from the last node to the first
+            quad = np.concatenate((ra[: m + 1], [w], ra[m + 1 :]))
+            if _convex(xy, quad):
+                rings[ka] = quad
+                used.update((ka, kb))
+                gone.add(kb)
+        if not gone:
+            return rings
+        rings = [r for k, r in enumerate(rings) if k not in gone]
 
 
 def breakline_faces(mesh: StripMesh) -> dict[str, np.ndarray]:
