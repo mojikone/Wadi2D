@@ -1,0 +1,130 @@
+{
+  "domain_area_km2": 28.77133893040056,
+  "s13_polygon_area_km2": 20.9713,
+  "tables": {
+    "arf_areas_km2": [
+      1.0,
+      5.0,
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      100.0,
+      200.0,
+      500.0,
+      1000.0,
+      2000.0
+    ],
+    "arf_factors": [
+      0.999,
+      0.994,
+      0.987,
+      0.976,
+      0.965,
+      0.956,
+      0.948,
+      0.913,
+      0.864,
+      0.776,
+      0.694,
+      0.606
+    ],
+    "arf_at_300": 0.8346666666666667,
+    "arf_at_20.971": 0.9749319,
+    "pmp_pattern_end_percent": 100.0,
+    "pmp_pattern_time_end_percent": 100.0,
+    "rp200_pattern_end_percent": 100.0
+  },
+  "dss_meta": {
+    "llx": 4737,
+    "lly": 4854,
+    "cell": 2000.0,
+    "x0": 0.0,
+    "y0": 0.0,
+    "type": 420,
+    "first": "///PRECIPITATION/01JAN2000:0000/01JAN2000:0010//",
+    "last": "///PRECIPITATION/01JAN2000:2350/01JAN2000:2400//",
+    "units": "MM",
+    "frames": 144,
+    "crs": "USA_Contiguous_Albers_Equal_Area_Conic_USGS_version"
+  },
+  "dss_orientation": {
+    "south row first": {
+      "points": 74764,
+      "correlation": 0.9998258136086459,
+      "median_abs_mm": 0.012602537870407104
+    },
+    "north row first": {
+      "points": 71873,
+      "correlation": -0.11184866827853653,
+      "median_abs_mm": 17.47950269281864
+    }
+  },
+  "dss_order_used": "south row first",
+  "nc": {
+    "frames": 144,
+    "crs": "WGS 84 / UTM zone 40N",
+    "domain": {
+      "mean_mm": 157.482284592857,
+      "covered": 1.000000000000008,
+      "pixels": 17,
+      "area_m2": 28771338.93040056,
+      "volume_m3": 4530976.185554887
+    },
+    "S13": {
+      "mean_mm": 157.1435112960168,
+      "covered": 1.0000000000000004,
+      "pixels": 12,
+      "area_m2": 20971300.0,
+      "volume_m3": 3295503.7184421574
+    }
+  },
+  "dss": {
+    "frames": 144,
+    "crs": "USA_Contiguous_Albers_Equal_Area_Conic_USGS_version",
+    "domain": {
+      "mean_mm": 157.89945838704634,
+      "covered": 1.0000000000000024,
+      "pixels": 18,
+      "area_m2": 28771338.93040056,
+      "volume_m3": 4542978.8341803895
+    },
+    "S13": {
+      "mean_mm": 157.61500925400108,
+      "covered": 1.000000000000002,
+      "pixels": 13,
+      "area_m2": 20971300.0,
+      "volume_m3": 3305391.6435684324
+    }
+  },
+  "pmp": {
+    "file": "Clip_PMP_823mm_21c_27032024.tif",
+    "pixel_m": [
+      957.7564759493672,
+      957.7564760330575
+    ],
+    "domain": {
+      "mean_mm": 1411.318740023105,
+      "covered": 0.999999999999958,
+      "pixels": 49,
+      "area_m2": 28771338.93040056,
+      "volume_m3": 40605529.80803063
+    },
+    "domain_centres": {
+      "mean_mm": 1412.3286323547363,
+      "pixels": 32
+    },
+    "S13": {
+      "mean_mm": 1403.6465596768194,
+      "covered": 0.9999999999999261,
+      "pixels": 39,
+      "area_m2": 20971300.0,
+      "volume_m3": 29436293.09695048
+    },
+    "S13_centres": {
+      "mean_mm": 1405.651971990412,
+      "pixels": 22
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "ev": "done",
+  "status": "finished",
+  "code": 0,
+  "partial": false,
+  "t": 108000.0,
+  "duration_s": 108000.0,
+  "steps": 68662,
+  "loop_s": 7.45,
+  "tables_s": 4.72,
+  "wet_area_km2": 5.0229,
+  "dt_min": 1.0036656781816602,
+  "balance": {
+    "rain_m3": 3449023.045999179,
+    "inflow_m3": 0.0,
+    "outflow_m3": 3124052.08901709,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 324970.87623756734,
+    "error_m3": 0.08074452186701819,
+    "relative_error": 2.3410838602740206e-08
+  },
+  "tile_steps": null,
+  "products": "none"
+}
