@@ -13,7 +13,7 @@
   - The RP200 grid governs: 157 mm over Bidah 03, NetCDF or DSS.
   - The PMP raster's values are the depths; 823 mm is only its name.
   - The ARF is the drainage area's own, 0.975 at Bidah 03.
-  - The phantom network series of rain-on-grid subbasins are "totally unnecessary": drop them. Next on the list.
+  - The phantom network series of rain-on-grid subbasins were "totally unnecessary": dropped. On the HMS route a run now writes network series only for the elements whose water entered the grid (merged; 6 of 6 through the dock, W39's PMP hybrid lists S13 alone).
 - **His position on W40 (`W40 mesh and breakline research`):** he rejects "fix the faces, keep the tiles". In his words, square cells cannot follow a breakline: the high ground does not match the face, and a cell may sit on both sides of it. "You can not agree until use a proper mesh generator."
   - [Certain] He is right that a staircase face lies up to half a cell off the line, and that a cell cut by a ridge holds both sides at one level. The ridge rule fixes only the crest height on the face.
   - Agreed with him: a prototype race of MeshKernel (or Gmsh) aligned strips joined to the square tiles, against squares plus the ridge rule. The cases are Faydh 01, the flume, the W26 banks, a diagonal road through cells and EA Test 7, scored on accuracy and run time. The strip goes into the engine if it wins.
