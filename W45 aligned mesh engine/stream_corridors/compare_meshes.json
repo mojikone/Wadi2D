@@ -1,0 +1,63 @@
+{
+ "streams": {
+  "what": "every 1 km2 stream as two 30 m cells, no banks",
+  "corridors": 391,
+  "corridor_km": 694.3,
+  "cut": 376,
+  "build_s": 58.5,
+  "corridor_cells": 45858,
+  "gap_triangles": 91629,
+  "squares_replaced": 100154,
+  "total_cells": 938194,
+  "extra_cells": 37333,
+  "extra_share": 0.0414,
+  "mesh_s": 66.4
+ },
+ "floor": {
+  "what": "under 5 % is floodplain: 30 m cells repeated across the floor between its edges",
+  "bank_lines": 3336,
+  "bank_km": 1004.7,
+  "pairs": 264,
+  "corridors": 258,
+  "corridor_km": 140.2,
+  "cut": 6,
+  "cells_across": {
+   "2": 237,
+   "3": 21
+  },
+  "across_m_median": 30.3,
+  "width_m_median": 60.7,
+  "build_s": 119.9,
+  "corridor_cells": 9615,
+  "gap_triangles": 21722,
+  "squares_replaced": 22896,
+  "total_cells": 909302,
+  "extra_cells": 8441,
+  "extra_share": 0.0094,
+  "mesh_s": 6.8
+ },
+ "dock": {
+  "what": "the Mesh section today: banks 2 m over the bed, cells a quarter of the width within 20 to 50 m, a row outside",
+  "bank_lines": 3552,
+  "bank_km": 1114.1,
+  "pairs": 315,
+  "corridors": 300,
+  "corridor_km": 163.1,
+  "cut": 30,
+  "cells_across": {
+   "3": 251,
+   "4": 49
+  },
+  "across_m_median": 20.2,
+  "width_m_median": 60.8,
+  "build_s": 501.4,
+  "corridor_cells": 27881,
+  "gap_triangles": 27037,
+  "squares_replaced": 35252,
+  "total_cells": 920527,
+  "extra_cells": 19666,
+  "extra_share": 0.0218,
+  "mesh_s": 9.2
+ },
+ "squares": 900861
+}

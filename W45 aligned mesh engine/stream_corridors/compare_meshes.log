@@ -1,0 +1,8 @@
+lattice: 900,861 squares written
+streams: 391 corridors along 694.3 km, 45,858 cells, 91,629 triangles, 100,154 replaced: 938,194 against 900,861 (+4.14 %)
+floor: 258 corridors along 140.2 km, 9,615 cells, 21,722 triangles, 22,896 replaced: 909,302 against 900,861 (+0.94 %)
+dock: 300 corridors along 163.1 km, 27,881 cells, 27,037 triangles, 35,252 replaced: 920,527 against 900,861 (+2.18 %)
+wrote W45 aligned mesh engine\stream_corridors\mesh_streams.png
+wrote W45 aligned mesh engine\stream_corridors\mesh_floor.png
+wrote W45 aligned mesh engine\stream_corridors\mesh_dock.png
+wrote W45 aligned mesh engine\stream_corridors\mesh_compare.png

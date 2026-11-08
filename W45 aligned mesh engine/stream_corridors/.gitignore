@@ -1,3 +1,5 @@
 # the mesh layers are rebuilt by stream_layers.py in about three minutes; the squares file alone is 192 MB
 stream_mesh.gpkg
 stream_squares.gpkg
+mesh_*.gpkg
+lattice_squares.gpkg
