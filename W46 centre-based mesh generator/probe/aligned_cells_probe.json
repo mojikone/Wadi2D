@@ -1,0 +1,50 @@
+{
+ "incised_0/squares": {
+  "depth_over_normal": 4.165784915350734,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.673748914684568,
+  "steps": 1591,
+  "cells_read": 56,
+  "wall_s": 9.6
+ },
+ "incised_0/centres": {
+  "depth_over_normal": 4.166468234194362,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.6740234617858096,
+  "steps": 1590,
+  "cells_read": 58,
+  "wall_s": 1.1
+ },
+ "incised_45/squares": {
+  "depth_over_normal": 2.916894121619276,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.171963620185852,
+  "steps": 2931,
+  "cells_read": 20,
+  "wall_s": 1.1
+ },
+ "incised_45/centres": {
+  "depth_over_normal": 4.001494481007843,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.6077395210739722,
+  "steps": 2928,
+  "cells_read": 58,
+  "wall_s": 1.7
+ },
+ "sinuous_incised/squares": {
+  "depth_over_normal": 3.5345331648411857,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.4201215782335852,
+  "steps": 2248,
+  "cells_read": 28,
+  "wall_s": 3.1
+ },
+ "sinuous_incised/centres": {
+  "depth_over_normal": 3.8603226849124495,
+  "normal_depth_m": 0.4017847653432315,
+  "depth_m": 1.5510188441067019,
+  "steps": 2422,
+  "cells_read": 38,
+  "wall_s": 3.7
+ }
+}

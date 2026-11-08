@@ -1,0 +1,13 @@
+control_0/squares {"depth_over_normal": 0.9855488176261693, "normal_depth_m": 0.7779372689784979, "depth_m": 0.7666951556290899, "steps": 1535, "cells_read": 56, "wall_s": 11.3}
+control_0/centres {"depth_over_normal": 0.9859849470337787, "normal_depth_m": 0.7779372689784979, "depth_m": 0.7670344369493667, "steps": 1537, "cells_read": 58, "wall_s": 1.3}
+control_45/squares {"depth_over_normal": 1.0256861610206165, "normal_depth_m": 0.7779372689784979, "depth_m": 0.7979194909334183, "steps": 2908, "cells_read": 20, "wall_s": 1.4}
+control_45/centres {"depth_over_normal": 0.9901440233029983, "normal_depth_m": 0.7779372689784979, "depth_m": 0.7702699373837167, "steps": 2930, "cells_read": 58, "wall_s": 2.1}
+incised_0/squares {"depth_over_normal": 4.867147433297795, "normal_depth_m": 0.4017847653432315, "depth_m": 1.955545689378466, "steps": 2756, "cells_read": 56, "wall_s": 1.2}
+incised_0/centres {"depth_over_normal": 4.868016307127907, "normal_depth_m": 0.4017847653432315, "depth_m": 1.9558947896464103, "steps": 2746, "cells_read": 58, "wall_s": 1.8}
+incised_45/squares {"depth_over_normal": 5.016231774868305, "normal_depth_m": 0.4017847653432315, "depth_m": 2.0154455065727235, "steps": 3073, "cells_read": 20, "wall_s": 1.5}
+incised_45/centres {"depth_over_normal": 4.853226451931549, "normal_depth_m": 0.4017847653432315, "depth_m": 1.9499524511468815, "steps": 3331, "cells_read": 58, "wall_s": 2.4}
+sinuous/squares {"depth_over_normal": 1.0156896221310685, "normal_depth_m": 0.7779372689784979, "depth_m": 0.790142810770446, "steps": 2740, "cells_read": 28, "wall_s": 4.3}
+sinuous/centres {"depth_over_normal": 0.9976750466087017, "normal_depth_m": 0.7779372689784979, "depth_m": 0.776128601086769, "steps": 2453, "cells_read": 38, "wall_s": 5.0}
+sinuous_incised/squares {"depth_over_normal": 5.0517447363135215, "normal_depth_m": 0.4017847653432315, "depth_m": 2.029714073453633, "steps": 3896, "cells_read": 28, "wall_s": 5.1}
+sinuous_incised/centres {"depth_over_normal": 4.80161789246625, "normal_depth_m": 0.4017847653432315, "depth_m": 1.9292169181924137, "steps": 6447, "cells_read": 38, "wall_s": 7.3}
+__EXIT__ 0

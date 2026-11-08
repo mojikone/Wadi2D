@@ -122,8 +122,35 @@ and W45's own ring generator with fixed 20 m cells on the thalweg, run on this j
 the thalweg on a face, whichever construction makes them, and it is an error. The corridors that passed W45's gate
 at +2.2 to +2.4 % had 20 to 50 m cells across on the bank pairs' mid-line, coarser across the channel. The channel
 gate passes within 2 % on both constructions, so the defect lives in the aligned cells' physics on real sinuous
-ground, the sub-grid tables of polygon cells and faces or the hybrid step on them, not in the geometry. [Likely]
-That is the next investigation, before any mesh of this kind carries a design flow.
+ground, the sub-grid tables of polygon cells and faces or the hybrid step on them, not in the geometry.
+
+**The investigation, his go of 2026-11-08** (`aligned_cells_probe.py`, `probe/`; the Faydh variants in `race_faydh/`):
+
+| Experiment | Result |
+|---|---|
+| Centres at 10 m on Faydh | 1,918.8: +2.5 % on the 10 m squares, +1.7 % on the 5 m squares. **The aligned cells converge from above (1,987 at 20 m, 1,919 at 10 m), the squares from below (1,835, 1,871, 1,887): a coarse-cell error of the aligned cells, not a bias that refinement keeps** |
+| W3's channel, straight, flat bed, squares against centres | 0 degrees -1.4 against -1.4 %, 45 degrees +2.6 against -1.0 % of the normal depth: no difference to hunt |
+| The same section along a sine wave, 120 m amplitude, 800 m wavelength, radius 135 m at the bends | squares +1.6 %, centres -0.2 % of the straight channel's normal depth: on a bend the aligned cells lose the staircase's friction and sit closer to the answer, so bends are not the mechanism |
+| The same with a 10 m by 1.5 m slot on the axis, the thalweg on a face | the probe's initial and boundary state put the flow three to four normal depths deep, for squares and centres alike: not a valid test yet, to be rebuilt |
+| Squares against centres at 20 m on a DEM averaged to 20 m blocks, no sub-grid content | centres 1,050 against squares 1,158, -9.3 %, where on the 0.5 m DEM the centres read +8.3 %: **the sign of the difference turns with the sub-grid content, so the mechanism is in how the aligned cells read sub-grid ground**, and the one arrangement where they read it differently from the squares is the deepest line lying on a face, each pair cell holding half the channel |
+
+| The same Faydh job with every thalweg shifted 5 m sideways before the mesh is built (`race_faydh/thalwegs_shift5.gpkg`), so the deepest line lies inside one pair cell and not on the face between them, everything else equal | 1,994.2, +8.7 %: **no change. The deepest line on a face is not the mechanism** |
+
+Two traps of the night that are not the engine's: a fiona write whose geometry type differs from the layer's schema
+(a LineString into a MultiLineString layer) dies mid-transaction and leaves a 64 KB GeoPackage that opens nowhere,
+with the error reported only by the opener; and the venv has no GDAL Python bindings, so an in-place edit through
+`osgeo` silently did nothing and a run went out on unshifted lines. Both cost relaunches before the shifted run ran.
+
+[Certain, measured] The 20 m aligned cells are not wrong in kind; they are wrong by 5 % at 20 m and by 1.7 % at 10 m
+on this ground, where the squares are wrong by -2.8 and -0.8 %. A design line read from them at 20 m is not within
+the 3 % rule, at 10 m it is. Rejected tonight as the mechanism: bends on aligned cells, oblique faces sampling a
+channel, the band's relaxation, the floor's width, and the deepest line lying on a face. [Likely] What every probe
+shares, and the Faydh number does not, is steady flow: each read a normal depth, where the race reads the peak of a
+wave that attenuates along 15 km of gorge, and the aligned cells' excess is a narrower flood with the same volume.
+The next experiment is an unsteady wave down a long sinuous, incised channel, squares against centres against a fine
+reference, the peak read downstream; the suspects it can tell apart are the momentum carried across coarse compound
+sections (the mean velocity of a face spanning channel and wall) and the strip's uniform rain, which takes the
+lattice's largest rate.
 
 ## Found on the way, in order
 
