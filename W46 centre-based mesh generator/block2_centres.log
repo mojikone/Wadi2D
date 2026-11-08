@@ -15,11 +15,11 @@ squares_replaced: 198158
 squares_kept: 702703
 total_cells: 892235
 against_uniform: 0.9904
-build_s: 100.7
+build_s: 81.6
 notes: 234
 cells_across_hist: {'2': 122, '3': 23, '4': 5, '5': 9, '6': 12, '7': 4, '8': 8, '9': 3, '10': 5, '11': 1, '12': 3, '13': 1, '14': 3, '15': 1, '16': 2, '17': 1}
 TOTAL 892,235 cells against 900,861 squares (-1.0 %)
-wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres.gpkg
+wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres.gpkg with 619 bed-edge lines
 wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres.png
 wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres_overview.png
 __EXIT__ 0

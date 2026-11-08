@@ -105,7 +105,50 @@ def main(work: Path) -> None:
     write_layer(path, "thalwegs", crs, {"geometry": "LineString", "properties": {"area_km2": "float", "incised_m": "float"}}, (
         {"geometry": shapely.geometry.mapping(t["line"]), "properties": {"area_km2": float(t["area_km2"]), "incised_m": float(t["incised_m"])}} for t in thalwegs
     ))
-    print("wrote", path, flush=True)
+    # the bed as the floor rule reads it: one bank point per station and side on the stems, as lines, broken where a
+    # side has no bank within the reach (his question of 2026-11-08: how is the bed defined, where are the banks)
+    from wadi2d.breaklines.window import read_window
+    from wadi2d.strips.centres import CentreSettings, Line, chain_streams, stations_of
+    from wadi2d.strips.floor import FloorRule, floor_of_line
+
+    win = read_window(cfg)
+    rule = FloorRule.from_settings(cfg.breaklines, cfg.grid.dx)
+    settings = CentreSettings(dx=cfg.grid.dx)
+    records = []
+    stems = chain_streams(thalwegs)
+    outlines = [p for p in strip.polygons]  # one per stem, in the stems' order; empty where a stem built no cell
+    others = shapely.STRtree([p if not p.is_empty else shapely.Point() for p in outlines])
+    for k, t in enumerate(stems):
+        if k < len(outlines) and outlines[k].is_empty:
+            continue  # a stem with no cells, a braid's twin or a plain reach: its bed is not drawn
+        pts, normals, _notes = stations_of(Line(f"t{k}", np.asarray(t["line"].coords), t["area_km2"]), settings)
+        if pts.shape[0] < 2:
+            continue
+        seg = np.diff(pts, axis=0)
+        normals = np.column_stack((-seg[:, 1], seg[:, 0])) / np.maximum(np.hypot(seg[:, 0], seg[:, 1]), 1e-12)[:, None]
+        left, right = floor_of_line(win, pts, rule)
+        mids = 0.5 * (pts[:-1] + pts[1:])
+        for side, sign, dist in (("left", 1.0, 0.5 * (left[:-1] + left[1:])), ("right", -1.0, 0.5 * (right[:-1] + right[1:]))):
+            bank = mids + sign * np.where(np.isfinite(dist), dist, np.nan)[:, None] * normals
+            # a bank point inside another stem's cells is a station this stem gave up at a junction: no edge there
+            ok = np.isfinite(bank[:, 0])
+            if ok.any():
+                hits = others.query(shapely.points(bank[ok]), predicate="within")
+                inside = np.zeros(int(ok.sum()), bool)
+                inside[hits[0][hits[1] != k]] = True
+                bank[np.nonzero(ok)[0][inside]] = np.nan
+            run: list[list[float]] = []
+            for p in bank.tolist() + [[np.nan, np.nan]]:
+                if np.isfinite(p[0]):
+                    run.append(p)
+                elif len(run) >= 2:
+                    records.append({"geometry": {"type": "LineString", "coordinates": [tuple(q) for q in run]}, "properties": {"stem": k, "side": side, "area_km2": float(t["area_km2"]), "stations": len(run)}})
+                    run = []
+                else:
+                    run = []
+    write_layer(path, "bed_edges", crs, {"geometry": "LineString", "properties": {"stem": "int", "side": "str", "area_km2": "float", "stations": "int"}}, records)
+    report["bed_edge_lines"] = len(records)
+    print("wrote", path, f"with {len(records)} bed-edge lines", flush=True)
 
     # maps
     picks = pick_windows(thalwegs, [p if not p.is_empty else shapely.Polygon() for p in strip.polygons], domain)

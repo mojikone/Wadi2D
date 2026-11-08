@@ -81,6 +81,14 @@ with the flow forced into the band polygons (floor 20 m).**
 | Total cells against 900,861 squares | 892,235, -1.0 % |
 | Build | 101 s |
 
+**How the bed is defined, his question:** station by station along each stem, going outward along the station's
+normal, the bank is the first of a 1 m scarp within 10 m read on the 5 m pixels, the ground 2 m above the thalweg's
+lowest pixel, and the 5 % slope cap where a climb begins and holds over 40 m; never inside the first cell; none
+within 300 m is no bank on that side. The distance, rounded to whole cells and smoothed over five stations, is the
+row count, so the strip's outer edge is the bed quantised to the cell. The rule's own bank points are now written as
+the `bed_edges` layer of `mesh_centres.gpkg`, one line per stem and side, broken where a side has no bank, and drawn
+green in the QGIS group 6; the green "floor edges" of groups 4 and 5 are W45's older 5 % rule from the Suggest file.
+
 The 278 three-sided cells are the end cells of stems, most over half a square; the two cells under the minimum and
 the one over the face limit are what three merge rounds left, a rounds setting away. With the two-cell clearance a
 tributary ends two cells short of the main's outer row and a band cell sits between; the main's rows run whole

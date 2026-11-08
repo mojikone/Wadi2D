@@ -64,6 +64,8 @@ def main() -> None:
     group = root.insertGroup(0, GROUP)
     add(project, group, QgsVectorLayer(f"{MESH}|layername=thalwegs", "Thalwegs, 1 km2 streams", "ogr"),
         QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#d40000", "width": "0.45", "line_style": "dash"})))
+    add(project, group, QgsVectorLayer(f"{MESH}|layername=bed_edges", "Bed edges, the floor rule (scarp 1 m in 10 m, rise 2 m, 5 % cap)", "ogr"),
+        QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#008000", "width": "0.7"})))
     add(project, group, QgsVectorLayer(f"{MESH}|layername=line_faces", "Faces on the lines", "ogr"),
         QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#08306b", "width": "0.6"})))
     cells = add(project, group, QgsVectorLayer(f"{MESH}|layername=line_cells", "Cells on the lines, 4-sided", "ogr"),
