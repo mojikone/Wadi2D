@@ -486,11 +486,66 @@ corridor as the schema's rule gives it, a run on Bidah with corridors closes its
 within 0.1 % of the squares, the corridor layers load under Model setup and the pixel maps carry the corridors, and
 corridors with the mesh refinement are refused in words. The full suite passes.
 
-**Still open after this:** the Suggest command's speed on the full domain (the measurement of the old rule on Block 2
-at 30 m with 0.1 km2 streams, `scale_block2.py`, had run over two hours and not finished when this was written; the
-banks are found per thalweg in Python loops, and the new reach is three times the old), confluences, the strips with
-the quadtree (coarser cells on the dry mountains, his wish), the bed loss on strips, and his full-domain run at 30 m
-with smooth streams as corridors, which waits on the first of these.
+**Why Suggest was slow, and the fix** (his question of the evening: the Block 2 measurement at 30 m with 0.1 km2
+streams had run over six CPU hours; he had it stopped). The profile on Bidah 03 (25 s): 20 of the 25 s in
+`Window.sample`, which made a copy of the whole ground array on every call (`nan_to_num` with NaN for NaN, a no-op
+copy) and was called once per distance per side per thalweg, 3,200 times; on Block 2 each copy is 24 M pixels. The
+field is now read in place and each side's samples go in one call: Bidah 03 25 s to 3.1 s, Faydh 01 176 s to 20.6 s,
+of which 14 s is reading the window (`read_coarse` 7.8 s, the domain mask 6.0 s) and 5.6 s the crests' thinning. The
+bank search no longer appears in the profile.
+
+**The final bank maps** (`bank_maps.py`, `bank_maps_bidah.png`, `bank_maps_faydh.png`), his request: the banks the
+engine draws on the three windows he sketched, with the corridor cells built on them, and over Faydh 01. Two things
+they show. [Certain] Every bank stands at least `bank_offset_cells` (1) cells off the thalweg, W26's rule that keeps
+the thalweg a row of squares for refinement lines, so on the 30 m Bidah job the narrow and medium wadis read about
+60 m wide between their banks where he drew 31 and 44 and the 2 m rise alone would give 29 and 46; the number is now
+in the dock beside the rise and the reach, and for corridors a fraction of a cell is the better value (his call).
+[Certain] On the medium wadi the S-bend at 434,400 is too tight for a corridor of its width, so the fold test cut that
+piece and only the straight stretch got cells: bends and confluences are the next mesher piece. The fan has one bank,
+the hill toe, so no corridor, his rule. Through the real dock 35 of 35 with the offset control.
+
+## His direction of the evening (2026-11-07): streams as breaklines, all cells 30 m, banks an option for later
+
+His words: the bank detection matters but needs more work to be specific, keep it as an option and leave it; the
+streams at a 1 km2 threshold; all cells 30 m, the stream only guides the cells, no bank, no other modification; first
+the cell count against the plain squares; then, his question, can "under 5 % slope" be taken as floodplain, with
+cells repeated across a wide wadi. No model was run for any of it; everything below is the built mesh geometry.
+
+**The count** (`stream_corridors.py`, Block 2's job domain at 30 m, 900,861 squares): the 1 km2 streams are 432
+thalwegs over 773 km (771 km incised over 0.5 m); as corridors of two 30 m cells with the stream on the shared face,
+391 corridors along 694 km, 45,858 corridor cells, 91,629 gap triangles, 100,154 squares replaced: 938,194 cells,
++4.1 %. The Suggest took 71 s, the corridors 57 s, the mesh 65 s. [Likely] The full boundary (17.1 M squares) scales
+to about +4 %; the run time will not follow the count, the triangles (two per corridor cell, merged to 15 m) and the
+strip's step do.
+
+**Under 5 % is floodplain**, his rule, tested on the three Bidah windows against the flood margins and his strokes:
+the edge where the ground climbs over 5 % for a 40 m run (and stands 2 m over the bed) gives floors of 29, 46 m and
+no wall on the fan's open side, within 1 m of his strokes and 3 m inside the 0.5 m margin on both wadis; the run
+(20 to 60 m) and the height guard (2 or 3 m) hardly move it. It is in the engine as `breaklines.bank_method:
+slope` with `bank_slope` and `bank_run_m`; the rise method stays the default until he decides.
+
+**Three meshes side by side** (`compare_meshes.py`, `mesh_compare.png`, the QGIS project `compare_meshes.qgz`
+with the three as groups in the map colours over one lattice of squares and the hillshade):
+
+| Mesh of Block 2 at 30 m | Corridors, km of stream | Cells across | Corridor cells | Triangles | Total | Over the squares |
+|---|---|---|---|---|---|---|
+| Streams as two 30 m cells, no banks | 391, 694 of 773 km | 2 | 45,858 | 91,629 | 938,194 | +4.1 % |
+| Under 5 % floor, 30 m cells across, no row outside | 258, 140 km | 2 (237), 3 (21) | 9,615 | 21,722 | 909,302 | +0.9 % |
+| The Mesh section today: 2 m banks, a quarter of the width in 20 to 50 m, a row outside | 300, 163 km | 3 (251), 4 (49) | 27,881 | 27,037 | 920,527 | +2.2 % |
+
+[Certain, measured] **The bank-based rules find the banks and then lose them.** Both leave the gorge reach, the
+gooseneck and the plain with banks drawn on both sides and no corridor: the bank lines break into pieces of 230 to
+240 m median (at tributary mouths, jumps and gaps), and the builder pairs one left chain with one right chain whose
+facing stretch must run 300 m, which rejects most of them. Chaining across gaps of up to 200 m lifts the paired length
+only from 143 to 249 km of 1,000 km of banks: the pairing, not the chaining, is the limit. The stream-centred build
+has no pairing and covers 90 % of the stream length. The cure is to build every corridor on the thalweg and let its
+edge rows take the bank or floor edge where one exists on that side, at the nominal half-width where none does; not
+built.
+
+**Still open after this:** that thalweg-centred corridor with bank-snapped edges, bends and confluences in the mesher
+(10 % of the stream length is dropped at goosenecks and junctions), the strips with the quadtree (coarser cells on
+the dry mountains, his wish), the bed loss on strips, the Suggest time on the full boundary, and his full-domain run
+at 30 m with the streams as corridors, which waits on his choice of mesh.
 
 ## Iterations
 
