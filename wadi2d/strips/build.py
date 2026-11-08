@@ -79,6 +79,64 @@ def corridors_of(
     return out, notes, rules
 
 
+HARD_KINDS = ("crest_line", "wall", "embankment", "channel_dyke")
+"""Terrain objects whose line is a hard breakline for the centre generator: its faces carry the physics."""
+
+
+def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
+    """The centre generator's mesh of a job (W46): guide lines are the thalwegs of the banks file, ranked by drainage
+    area, their banks read on the DEM by the floor rule; hard lines are the job's crests and walls."""
+    from wadi2d.breaklines.window import read_window
+    from wadi2d.strips.banks import read_thalwegs
+    from wadi2d.strips.centres import CentreSettings, Line, build_centre_mesh
+    from wadi2d.strips.floor import FloorRule, floor_of_line
+
+    s = cfg.strips
+    settings = CentreSettings(
+        dx=cfg.grid.dx, min_area_fraction=s.min_area_fraction, max_faces=s.max_faces, clearance_cells=s.clearance_cells,
+        relax_rounds=s.relax_rounds, hard_rows=s.hard_rows, smooth=s.smooth,
+    )  # fmt: skip
+    lines: list[Line] = []
+    for obj in cfg.terrain.objects:
+        if obj.kind in HARD_KINDS and len(obj.coordinates) >= 2:
+            lines.append(Line(f"{obj.kind}:{obj.name}" if getattr(obj, "name", None) else obj.kind, np.asarray(obj.coordinates, np.float64)[:, :2], np.inf, hard=True))
+    if s.banks:
+        for k, t in enumerate(read_thalwegs(s.banks)):
+            lines.append(Line(f"t{k}_{t['area_km2']:.1f}km2", np.asarray(t["line"].coords, np.float64), t["area_km2"]))
+    if not lines:
+        raise ValueError("the centre generator needs lines: a banks file with thalwegs (strips.banks) or crest and wall objects")
+    floors: list[tuple[np.ndarray, np.ndarray] | None] = [None] * len(lines)
+    if any(not line.hard for line in lines):
+        from wadi2d.strips.centres import stations_of
+
+        win = read_window(cfg)
+        rule = FloorRule.from_settings(cfg.breaklines, cfg.grid.dx)
+        for k, line in enumerate(lines):
+            if line.hard:
+                continue
+            pts, _normals, _notes = stations_of(line, settings)
+            if pts.shape[0] >= 2:
+                floors[k] = floor_of_line(win, pts, rule)
+    # the cells of the job's boundary lines, as the run itself picks them, and one ring of squares round them stay
+    # squares: the boundaries are applied on the lattice, a strip face against a boundary cell passed nothing, and
+    # the strip ponded 20 m deep against Faydh's outlet (2026-11-08); with a plain square between, the water goes
+    # strip to square to boundary as it does with the ring corridors
+    keep_out = np.zeros(grid.shape, bool)
+    if cfg.boundaries:
+        from scipy import ndimage
+
+        from wadi2d.forcing import cells_along
+
+        for boundary in cfg.boundaries:
+            try:
+                bj, bi = cells_along(grid, boundary.coordinates, 4, boundary.snap_m)
+            except ValueError:
+                continue  # a line off the domain is the run's own refusal, not the mesher's
+            keep_out[bj, bi] = True
+        keep_out = ndimage.binary_dilation(keep_out, structure=np.ones((3, 3), bool)) & grid.mask
+    return build_centre_mesh(grid, lines, floors, settings, keep_out=keep_out)
+
+
 def snap_geometry(coordinates) -> shapely.Geometry:
     """A snapped row's line, or the pieces of it when the spec gives a list of lines."""
     first = coordinates[0]
@@ -93,10 +151,13 @@ def mask_for_strips(
     """The domain mask with the cells under the strips taken out, and the strip mesh built on the padded grid the
     final mask gives (the padding is one cell north and west, whatever the mask)."""
     provisional = TileGrid.from_mask(mask, x0, y0, cfg.grid.dx)
-    corridors, notes, rules = corridors_of(cfg.strips, cfg.grid.dx, domain)
-    strip = build_strip_mesh(provisional, corridors, cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth)
-    strip.notes = notes
-    strip.rules = rules
+    if cfg.strips.generator == "centres":
+        strip = centre_mesh_of(cfg, provisional)
+    else:
+        corridors, notes, rules = corridors_of(cfg.strips, cfg.grid.dx, domain)
+        strip = build_strip_mesh(provisional, corridors, cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth)
+        strip.notes = notes
+        strip.rules = rules
     jj, ii = strip.masked
     out = mask.copy()
     out[jj - 1, ii - 1] = False

@@ -1027,6 +1027,24 @@ class Strips(_Part):
     """Strips of cells aligned with breaklines inside the square tiles (W45). Off, a job runs as before."""
 
     enabled: bool = Field(False, description="Corridors of cells aligned with breaklines inside the square grid")
+    generator: Literal["rings", "centres"] = Field(
+        "rings",
+        description="How the aligned cells are made. 'rings': corridors of quads along each line with gap triangles"
+        " to the squares (W45). 'centres': cells from their centres as a Voronoi diagram (W46, his rules of"
+        " 2026-11-08): every breakline a chain of faces with 4-sided cells either side, rows repeated outward to the"
+        " bank, polygons of up to max_faces in the transition, no triangle; lines ranked by drainage area, hard lines"
+        " (crests, walls) first, a tributary stopping short of the main stream",
+    )
+    min_area_fraction: float = Field(
+        0.4, gt=0.0, le=1.0, description="Centres: a cell under this share of a square merges into its neighbours by losing a centre"
+    )
+    max_faces: int = Field(8, ge=4, le=16, description="Centres: faces per cell at most, HEC-RAS's 8; a cell over it loses its centre")
+    clearance_cells: float = Field(
+        1.0, ge=0.5, le=4.0,
+        description="Centres: a lower line's station whose cell centres would land within this many cells of a higher line's ends it there",
+    )
+    relax_rounds: int = Field(2, ge=0, le=10, description="Centres: rounds of moving the band's lattice centres to their cell's centroid")
+    hard_rows: int = Field(1, ge=0, le=6, description="Centres: rows of cells beyond the pair on each side of a hard line (a crest, a wall)")
     corridors: list[CorridorSpec] = Field([], description="Corridors given outright; empty, they come from the banks file")
     banks: str | None = Field(
         None, description="The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair"
@@ -1108,6 +1126,16 @@ class Breaklines(_Part):
     bank_reach_m: float = Field(
         300.0, gt=0.0, le=5000.0,
         description="How far from the thalweg a bank is looked for, m; past it that side has no bank, and the floor is plain",
+    )
+    bank_scarp_m: float = Field(
+        1.0, gt=0.0, le=50.0,
+        description="For the centre generator's floor (W46, his rule of 2026-11-08): going outward, a rise of this much"
+        " within bank_scarp_run_m, read on the sub-grid pixels, is the bank where a terrace edge or a channel wall"
+        " exists; the rise above the bed, bank_rise_m, decides where none does",
+    )
+    bank_scarp_run_m: float = Field(10.0, gt=0.0, le=500.0, description="The run the scarp is read over, m; shorter than a cell, else it is the slope again")
+    bank_slope_cap: bool = Field(
+        True, description="For the centre generator's floor: ground climbing more than bank_slope over bank_run_m ends the bed too, a cap on the rise"
     )
     bank_depth_map: str | None = Field(
         None,

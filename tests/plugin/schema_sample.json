@@ -427,6 +427,28 @@
           "title": "Bank Reach M",
           "type": "number"
         },
+        "bank_scarp_m": {
+          "default": 1.0,
+          "description": "For the centre generator's floor (W46, his rule of 2026-11-08): going outward, a rise of this much within bank_scarp_run_m, read on the sub-grid pixels, is the bank where a terrace edge or a channel wall exists; the rise above the bed, bank_rise_m, decides where none does",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Bank Scarp M",
+          "type": "number"
+        },
+        "bank_scarp_run_m": {
+          "default": 10.0,
+          "description": "The run the scarp is read over, m; shorter than a cell, else it is the slope again",
+          "exclusiveMinimum": 0.0,
+          "maximum": 500.0,
+          "title": "Bank Scarp Run M",
+          "type": "number"
+        },
+        "bank_slope_cap": {
+          "default": true,
+          "description": "For the centre generator's floor: ground climbing more than bank_slope over bank_run_m ends the bed too, a cap on the rise",
+          "title": "Bank Slope Cap",
+          "type": "boolean"
+        },
         "bank_depth_map": {
           "anyOf": [
             {
@@ -2792,6 +2814,56 @@
           "title": "Enabled",
           "type": "boolean"
         },
+        "generator": {
+          "default": "rings",
+          "description": "How the aligned cells are made. 'rings': corridors of quads along each line with gap triangles to the squares (W45). 'centres': cells from their centres as a Voronoi diagram (W46, his rules of 2026-11-08): every breakline a chain of faces with 4-sided cells either side, rows repeated outward to the bank, polygons of up to max_faces in the transition, no triangle; lines ranked by drainage area, hard lines (crests, walls) first, a tributary stopping short of the main stream",
+          "enum": [
+            "rings",
+            "centres"
+          ],
+          "title": "Generator",
+          "type": "string"
+        },
+        "min_area_fraction": {
+          "default": 0.4,
+          "description": "Centres: a cell under this share of a square merges into its neighbours by losing a centre",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Min Area Fraction",
+          "type": "number"
+        },
+        "max_faces": {
+          "default": 8,
+          "description": "Centres: faces per cell at most, HEC-RAS's 8; a cell over it loses its centre",
+          "maximum": 16,
+          "minimum": 4,
+          "title": "Max Faces",
+          "type": "integer"
+        },
+        "clearance_cells": {
+          "default": 1.0,
+          "description": "Centres: a lower line's station whose cell centres would land within this many cells of a higher line's ends it there",
+          "maximum": 4.0,
+          "minimum": 0.5,
+          "title": "Clearance Cells",
+          "type": "number"
+        },
+        "relax_rounds": {
+          "default": 2,
+          "description": "Centres: rounds of moving the band's lattice centres to their cell's centroid",
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Relax Rounds",
+          "type": "integer"
+        },
+        "hard_rows": {
+          "default": 1,
+          "description": "Centres: rows of cells beyond the pair on each side of a hard line (a crest, a wall)",
+          "maximum": 6,
+          "minimum": 0,
+          "title": "Hard Rows",
+          "type": "integer"
+        },
         "corridors": {
           "default": [],
           "description": "Corridors given outright; empty, they come from the banks file",
@@ -3553,6 +3625,12 @@
       "$ref": "#/$defs/Strips",
       "default": {
         "enabled": false,
+        "generator": "rings",
+        "min_area_fraction": 0.4,
+        "max_faces": 8,
+        "clearance_cells": 1.0,
+        "relax_rounds": 2,
+        "hard_rows": 1,
         "corridors": [],
         "banks": null,
         "centre": "pairs",
@@ -3576,6 +3654,9 @@
         "bank_slope": 0.05,
         "bank_run_m": 40.0,
         "bank_reach_m": 300.0,
+        "bank_scarp_m": 1.0,
+        "bank_scarp_run_m": 10.0,
+        "bank_slope_cap": true,
         "bank_depth_map": null,
         "bank_depth_m": 0.2,
         "bank_dry_m": 10.0,

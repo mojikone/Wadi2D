@@ -208,9 +208,15 @@ def grid_window(cfg: RunConfig, bed: RasterBed) -> GridWindow:
     return bed.snap(extent, cfg.grid.dx)
 
 
-def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
-    """Hash of everything the tables depend on."""
+def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, replaced: tuple[np.ndarray, np.ndarray] | None = None) -> str:
+    """Hash of everything the tables depend on; ``replaced`` are the (j, i) of the lattice cells a strip takes out,
+    which shape the mask the tables are built on."""
     limit = cfg.grid.content_hash_limit_mb
+    strip_cells = None
+    if replaced is not None and replaced[0].size:
+        import hashlib
+
+        strip_cells = hashlib.sha1(np.ascontiguousarray(np.stack(replaced).astype(np.int64)).tobytes()).hexdigest()
     extras = {
         key: file_identity(name, limit)
         for key, name in (
@@ -242,6 +248,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> str:
             "manning": t.manning,
             "extras": extras,
             **({"strips": cfg.strips.model_dump()} if cfg.strips.enabled else {}),
+            **({"strip_cells": strip_cells} if strip_cells is not None else {}),
         }
     )
 
@@ -302,9 +309,6 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             if cfg.strips.enabled:
                 raise InvalidJob("corridors run on the uniform grid in this version: untick the mesh refinement or the corridors")
             return _mesh_tables(cfg, bed, window, crs), crs
-        key = grid_key(cfg, bed, window)
-        path = cache_path(cache_dir, key)
-        hit = load_tables(path, key)
         mask = domain_mask(cfg, bed, window)
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
@@ -319,6 +323,13 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
                 mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0, polygon)
             except (ValueError, OSError) as error:
                 raise InvalidJob(str(error)) from error
+        # the strip's cells are part of the key: the tables are built on the mask the strip leaves, and a mesher that
+        # draws the strip differently (a code change, with the job unchanged) must not meet the old tables; a cached
+        # lattice masked where the new strip is not left a wall between them and ponded 20 m deep at Faydh's outlet
+        # across four reruns (2026-11-08)
+        key = grid_key(cfg, bed, window, replaced=strip.masked if strip is not None else None)
+        path = cache_path(cache_dir, key)
+        hit = load_tables(path, key)
         if hit is not None:
             emit("output", kind="grid_cache_hit", path=str(path))
             tables = hit
