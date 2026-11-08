@@ -101,6 +101,47 @@ class Placed:
         return Placed(self.xy[mask], self.line[mask], self.station[mask], self.side[mask], self.row[mask], self.relaxable[mask], self.notes)
 
 
+JUNCTION_M = 5.0
+"""A segment ending this close to another's start meets it at a junction."""
+
+
+def chain_streams(thalwegs: list[dict], tolerance: float = JUNCTION_M) -> list[dict]:
+    """The Suggest file cuts every stream into segments at the junctions, each running downstream with the drainage
+    area at its outlet. Here the segments are chained into stems: at every junction the inflow with the larger area
+    continues into the downstream segment, the smaller one is a tributary ending there. A stem carries its outlet's
+    area as its rank, so it is placed first and its rows run unbroken through every junction, and the tributaries end
+    short of it (his circles of 2026-11-08: the main channel runs uninterrupted, a branch never disturbs its bed).
+    Returns dicts like the input (line, area_km2, incised_m), the chained stems first."""
+    if not thalwegs:
+        return []
+    starts = np.array([np.asarray(t["line"].coords)[0, :2] for t in thalwegs])
+    ends = np.array([np.asarray(t["line"].coords)[-1, :2] for t in thalwegs])
+    areas = np.array([float(t["area_km2"]) for t in thalwegs])
+    d, k = cKDTree(starts).query(ends)
+    feeds: dict[int, list[int]] = {}  # downstream segment -> the segments ending at its start
+    for i in range(len(thalwegs)):
+        if d[i] <= tolerance and k[i] != i:
+            feeds.setdefault(int(k[i]), []).append(i)
+    continues: dict[int, int] = {}  # upstream segment -> the downstream segment it continues into
+    for down, ups in feeds.items():
+        main = max(ups, key=lambda i: areas[i])
+        continues[main] = down
+    fed = set(continues.values())
+    out = []
+    for head in range(len(thalwegs)):
+        if head in fed:
+            continue  # not the top of a chain
+        chain = [head]
+        while chain[-1] in continues:
+            chain.append(continues[chain[-1]])
+        coords = [np.asarray(thalwegs[chain[0]]["line"].coords)[:, :2]]
+        for i in chain[1:]:
+            coords.append(np.asarray(thalwegs[i]["line"].coords)[1:, :2])  # the junction point once
+        incised = float(np.mean([thalwegs[i].get("incised_m", 0.0) for i in chain]))
+        out.append({"line": shapely.LineString(np.vstack(coords)), "area_km2": float(areas[chain[-1]]), "incised_m": incised, "segments": len(chain)})
+    return sorted(out, key=lambda t: -t["area_km2"])
+
+
 def turns_of(pts: np.ndarray) -> np.ndarray:
     """The turn at every interior vertex, radians, left positive; zero at the ends."""
     t = np.diff(pts, axis=0)
@@ -645,4 +686,4 @@ def build_centre_mesh(
     return mesh
 
 
-__all__ = ["BAND", "FRAME", "NEAR", "RELAX", "CentreSettings", "Line", "Placed", "build_centre_mesh", "counts_of", "place_centres", "stations_of"]
+__all__ = ["BAND", "FRAME", "NEAR", "RELAX", "CentreSettings", "Line", "Placed", "build_centre_mesh", "chain_streams", "counts_of", "place_centres", "stations_of"]

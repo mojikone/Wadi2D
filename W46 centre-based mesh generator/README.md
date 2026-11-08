@@ -28,7 +28,11 @@ Mirrored centres half a cell either side of each segment of the line, at its mid
 that segment a face by construction, HEC-RAS's way of enforcing a breakline: the four centres round every vertex of
 the line are equidistant from it, so the diagram's vertex falls on the line's vertex and the chain of faces is the
 polyline itself (mirroring across the station along the mean normal left a short jog at every bend, which he circled);
-rows of centres a cell apart repeat outward to the bank; the lattice centres
+rows of centres a cell apart repeat outward to the bank. The Suggest file cuts every stream into segments at the
+junctions, each with its outlet's area; the generator chains them into stems first, the larger inflow at every
+junction continuing downstream, so a stem carries its outlet's rank along its whole length, is placed first and runs
+unbroken through every junction, and the tributaries alone end short of it (his circles of 2026-11-08, where the
+main's upstream segment ranked below its downstream one and the band filled the seam); the lattice centres
 within 3.5 cells of a line centre join the diagram (those within 0.75 of a line centre go); the mesh is the clipped
 Voronoi diagram of all of them, bounded by the lattice positions beyond. A cell under 0.4 of a square loses a centre,
 a mirrored pair never (the centre behind it goes, outward); the lattice centres within one cell of a line relax to
@@ -59,17 +63,17 @@ with the flow forced into the band polygons (floor 20 m).**
 
 | | Count |
 |---|---|
-| Thalwegs, 1 km2 | 432, 402 with cells |
-| Cells on the lines | 57,591 |
-| Cells around them | 128,886, of which exact squares 67,876 |
-| Faces per cell | 3: 287, 4: 113,919, 5: 53,494, 6: 17,038, 7: 1,641, 8: 97, 9: 1 |
-| Cells under 0.4 of a square | 2, smallest 340 m2 |
-| Faces on the lines | 23,264 |
-| Squares replaced | 195,167 |
-| Total cells against 900,861 squares | 892,171, -1.0 % |
-| Build | 113 s |
+| Thalwegs, 1 km2 | 432 segments chained into 218 stems with cells |
+| Cells on the lines | 58,568 |
+| Cells around them | 129,607, of which exact squares 68,273 |
+| Faces per cell | 3: 294, 4: 115,174, 5: 53,860, 6: 17,125, 7: 1,605, 8: 116, 9: 1 |
+| Cells under 0.4 of a square | 1, smallest 340 m2 |
+| Faces on the lines | 23,558 |
+| Squares replaced | 196,854 |
+| Total cells against 900,861 squares | 892,182, -1.0 % |
+| Build | 100 s |
 
-The 287 three-sided cells are the end cells of lines, most over half a square; the two cells under the minimum and
+The 294 three-sided cells are the end cells of stems, most over half a square; the one cell under the minimum and
 the one over the face limit are what three merge rounds left, a rounds setting away. The strip ends 3.5 cells before
 the job's boundary lines, which took three lines' cells away at the domain's edge. Maps `block2/mesh_centres.png`
 (four windows), `block2/mesh_centres_overview.png`; the QGIS group 6 of `W45 .../compare_meshes.qgz` (`qgis_centres.py`).

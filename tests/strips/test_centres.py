@@ -196,6 +196,45 @@ def test_the_main_stream_keeps_its_rows_through_a_junction_and_the_tributary_sto
     assert all(lattice_edge(mesh, g, f) for f in np.nonzero(geo.face_cell[:, 1] < 0)[0])
 
 
+def test_the_main_stem_is_chained_through_a_junction_and_runs_unbroken_there() -> None:
+    """His circles of 2026-11-08: the Suggest file cuts the main stream into segments at every junction, each with
+    its own area, so the upstream piece ranked below the downstream one and ended short of it, and the band filled
+    the gap. The segments are chained into one stem, the largest inflow continuing downstream, so the stem's chain of
+    faces is whole through the junction and the tributary alone ends short."""
+    from wadi2d.strips.centres import chain_streams
+
+    s = settings()
+    xj = X0 + 900.0  # the junction
+    segments = [
+        {"line": shapely.LineString([[X0 + 157.5, YL], [xj, YL]]), "area_km2": 50.0, "incised_m": 2.0},  # the main, upstream
+        {"line": shapely.LineString([[xj, YL - 500.0], [xj, YL]]), "area_km2": 5.0, "incised_m": 1.0},  # the tributary
+        {"line": shapely.LineString([[xj, YL], [X0 + 1657.5, YL]]), "area_km2": 55.0, "incised_m": 2.0},  # the main, downstream
+    ]
+    stems = chain_streams(segments)
+    assert [round(t["area_km2"]) for t in stems] == [55, 5] and stems[0]["segments"] == 2 and stems[1]["segments"] == 1
+    assert stems[0]["line"].length == pytest.approx(1500.0) and stems[0]["line"].coords[0] == (X0 + 157.5, YL)
+    lines = [Line(f"stem{k}", np.asarray(t["line"].coords), t["area_km2"]) for k, t in enumerate(stems)]
+    floors = []
+    for line in lines:
+        pts, _n, _w = stations_of(line, s)
+        floors.append((np.full(pts.shape[0], 95.0), np.full(pts.shape[0], 95.0)))
+    mesh = build_centre_mesh(grid(), lines, floors, s)
+    pts_m, _n, _w = stations_of(lines[0], s)
+    assert len(mesh.breakline_edges["stem0:0"]) == pts_m.shape[0] - 1, "the stem's chain is whole through the junction"
+    geo = mesh.geometry
+    _area, cx, cy = geo.areas_centroids()
+    near_junction = (mesh.corridor == 0) & (np.abs(cx - xj) < 2 * DX)
+    assert near_junction.sum() >= 6, "the stem keeps its rows at the junction"
+    trib = mesh.corridor == 1
+    assert trib.any() and np.all(np.abs(cy[trib] - YL) > 3 * DX - 1e-6), "the tributary never reaches the stem's rows"
+    # unchained, the file's two main segments are two lines with a seam at the junction; on Block 2 the seam lost
+    # stations wherever the segments' ends fell inside a cell and the two ranked apart (his circles)
+    seg_lines = [Line(f"seg{k}", np.asarray(t["line"].coords), t["area_km2"]) for k, t in enumerate(segments)]
+    seg_floors = [(np.full(stations_of(line, s)[0].shape[0], 95.0),) * 2 for line in seg_lines]
+    broken = build_centre_mesh(grid(), seg_lines, seg_floors, s)
+    assert "seg0:0" in broken.breakline_edges and "seg2:0" in broken.breakline_edges and "stem0:0" not in broken.breakline_edges
+
+
 def test_a_hard_line_outranks_a_stream_and_its_faces_lie_on_it() -> None:
     g = grid()
     s = settings()

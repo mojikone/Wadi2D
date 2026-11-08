@@ -88,7 +88,7 @@ def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
     area, their banks read on the DEM by the floor rule; hard lines are the job's crests and walls."""
     from wadi2d.breaklines.window import read_window
     from wadi2d.strips.banks import read_thalwegs
-    from wadi2d.strips.centres import CentreSettings, Line, build_centre_mesh
+    from wadi2d.strips.centres import CentreSettings, Line, build_centre_mesh, chain_streams
     from wadi2d.strips.floor import FloorRule, floor_of_line
 
     s = cfg.strips
@@ -101,7 +101,7 @@ def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
         if obj.kind in HARD_KINDS and len(obj.coordinates) >= 2:
             lines.append(Line(f"{obj.kind}:{obj.name}" if getattr(obj, "name", None) else obj.kind, np.asarray(obj.coordinates, np.float64)[:, :2], np.inf, hard=True))
     if s.banks:
-        for k, t in enumerate(read_thalwegs(s.banks)):
+        for k, t in enumerate(chain_streams(read_thalwegs(s.banks))):  # stems, not the file's segments: the main runs unbroken
             lines.append(Line(f"t{k}_{t['area_km2']:.1f}km2", np.asarray(t["line"].coords, np.float64), t["area_km2"]))
     if not lines:
         raise ValueError("the centre generator needs lines: a banks file with thalwegs (strips.banks) or crest and wall objects")
