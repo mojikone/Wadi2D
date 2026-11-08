@@ -1,0 +1,13 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\skew\\cache\\grid_7ad268bd664c0b087ce2db86.h5"}
+{"ev": "strips", "corridors": 1, "cells": 1099, "triangles": 2349, "replaced": 3594, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 418, "cells": 1099, "cells_across": 4}]}
+{"ev": "start", "backend": "gpu", "cells": 17406, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 5.52, "t": 0.0}
+{"ev": "step", "t": 4428.516, "dt": 0.3268, "steps": 6106, "active_tiles": 28, "volume": 2436845.6, "mass_error": -2.087e-09, "wall": 2.0}
+{"ev": "step", "t": 6030.0, "dt": 0.2359, "steps": 12887, "active_tiles": 28, "volume": 1317354.6, "mass_error": -1.291e-08, "wall": 4.0}
+{"ev": "step", "t": 8330.579, "dt": 0.8967, "steps": 19504, "active_tiles": 28, "volume": 310168.9, "mass_error": -1.96e-08, "wall": 6.0}
+{"ev": "step", "t": 14099.858, "dt": 0.9256, "steps": 25646, "active_tiles": 28, "volume": 294809.4, "mass_error": -1.876e-08, "wall": 8.0}
+{"ev": "step", "t": 17850.0, "dt": 0.9711, "steps": 29634, "active_tiles": 28, "volume": 294776.8, "mass_error": -1.732e-08, "wall": 10.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\skew\\skew_sharp_ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 4.7 m deep against the domain edge at (400730, 2700390): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\skew\\skew_sharp_ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 33617, "loop_s": 12.56, "tables_s": 5.52, "wet_area_km2": 0.686, "dt_min": 0.21312156940413504, "balance": {"rain_m3": 0.0, "inflow_m3": 3689999.999994412, "outflow_m3": 3395208.8563330406, "storage_start_m3": 0.0, "storage_end_m3": 294791.220800218, "error_m3": -0.07713884656550363, "relative_error": -2.0904836467647815e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

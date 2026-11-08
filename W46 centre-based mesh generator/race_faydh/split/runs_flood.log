@@ -1,0 +1,14 @@
+main_flood: 1 stems
+main10_flood: 1 stems
+jobs written: none_flood, main_flood, none10_flood, main10_flood
+none_flood: exit 0 in 13 s
+main_flood: exit 0 in 51 s
+none10_flood: exit 0 in 16 s
+main10_flood: exit 0 in 63 s
+
+Faydh 01 at 20 m: peak m3/s (centroid h) per line; in brackets the peak against no lines with the same rain
+run                           axis                    m05                    m10                    m15                  t3mid                  t6mid   strip cells  stored at end Mm3
+none_flood    209.9 ( 3.119)          274.4 ( 2.104)          266.9 ( 2.406)          256.2 ( 2.712)            0.0 ( 0.000)            0.0 ( 0.000)               -  0.2782
+main_flood    234.1 ( 2.939) +11.6%   275.3 ( 2.078)  +0.4%   272.4 ( 2.326)  +2.1%   269.3 ( 2.593)  +5.1%     0.0 ( 0.000)            0.0 ( 0.000)            2189  0.2394
+none10_flood   218.3 ( 3.072)          275.5 ( 2.109)          266.5 ( 2.404)          257.4 ( 2.677)            0.0 ( 0.000)            0.0 ( 0.000)               -  0.2637
+main10_flood   234.0 ( 3.000) +11.5%   277.2 ( 2.091)  +1.0%   271.4 ( 2.350)  +1.7%   265.4 ( 2.614)  +3.6%     0.0 ( 0.000)            0.0 ( 0.000)            4558  0.2427

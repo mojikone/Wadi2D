@@ -1,0 +1,13 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_6f658c0a861da5ebaf2475f1.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 14.76, "t": 0.0}
+{"ev": "step", "t": 17997.815, "dt": 0.6846, "steps": 9607, "active_tiles": 222, "volume": 89551.9, "mass_error": -2.865e-10, "wall": 2.0}
+{"ev": "step", "t": 24375.247, "dt": 0.5998, "steps": 20081, "active_tiles": 222, "volume": 281567.5, "mass_error": -7.557e-10, "wall": 4.0}
+{"ev": "step", "t": 30270.54, "dt": 0.5297, "steps": 30832, "active_tiles": 222, "volume": 505021.6, "mass_error": -4.343e-09, "wall": 6.0}
+{"ev": "step", "t": 36038.16, "dt": 0.5832, "steps": 41772, "active_tiles": 222, "volume": 810409.4, "mass_error": -6.063e-09, "wall": 8.0}
+{"ev": "step", "t": 41972.561, "dt": 0.5486, "steps": 52506, "active_tiles": 222, "volume": 2497329.2, "mass_error": -4.898e-09, "wall": 10.0}
+{"ev": "step", "t": 47040.338, "dt": 0.3382, "steps": 67341, "active_tiles": 222, "volume": 2220347.3, "mass_error": -1.655e-08, "wall": 12.0}
+{"ev": "step", "t": 53940.582, "dt": 0.5824, "steps": 81853, "active_tiles": 222, "volume": 1068841.4, "mass_error": -1.942e-08, "wall": 14.0}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\none\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 88589, "loop_s": 15.22, "tables_s": 14.76, "wet_area_km2": 5.3984, "dt_min": 0.328585847289284, "balance": {"rain_m3": 10739179.144878443, "inflow_m3": 0.0, "outflow_m3": 9829243.016964708, "storage_start_m3": 0.0, "storage_end_m3": 909936.346193709, "error_m3": -0.21827997313812375, "relative_error": -2.0325573323006008e-08}, "tile_steps": null, "products": "none"}
+

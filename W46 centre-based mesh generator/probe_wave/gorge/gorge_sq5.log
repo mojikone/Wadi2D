@@ -1,0 +1,16 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache\\grid_f8e85a8e21a2576e8672238a.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 2.26, "t": 0.0}
+{"ev": "step", "t": 4904.691, "dt": 0.0869, "steps": 17793, "active_tiles": 277, "volume": 1504356.4, "mass_error": 1.562e-09, "wall": 2.0}
+{"ev": "step", "t": 6656.442, "dt": 0.0796, "steps": 39233, "active_tiles": 301, "volume": 2449675.7, "mass_error": -5.68e-09, "wall": 4.0}
+{"ev": "step", "t": 8274.114, "dt": 0.0788, "steps": 59681, "active_tiles": 305, "volume": 3343125.6, "mass_error": -9.012e-09, "wall": 6.0}
+{"ev": "step", "t": 9821.512, "dt": 0.0786, "steps": 79731, "active_tiles": 305, "volume": 3135914.2, "mass_error": -1.272e-08, "wall": 8.0}
+{"ev": "step", "t": 11342.492, "dt": 0.0785, "steps": 99346, "active_tiles": 305, "volume": 2575003.8, "mass_error": -1.561e-08, "wall": 10.0}
+{"ev": "step", "t": 12647.04, "dt": 0.0789, "steps": 115955, "active_tiles": 305, "volume": 2046309.1, "mass_error": -1.74e-08, "wall": 12.0}
+{"ev": "step", "t": 13890.0, "dt": 0.0792, "steps": 131698, "active_tiles": 305, "volume": 1510829.3, "mass_error": -1.884e-08, "wall": 14.0}
+{"ev": "step", "t": 15153.518, "dt": 0.0838, "steps": 147489, "active_tiles": 305, "volume": 1010705.2, "mass_error": -2e-08, "wall": 16.0}
+{"ev": "step", "t": 16514.006, "dt": 0.0886, "steps": 163321, "active_tiles": 305, "volume": 625006.9, "mass_error": -2.076e-08, "wall": 18.0}
+{"ev": "step", "t": 18124.612, "dt": 0.0887, "steps": 181521, "active_tiles": 305, "volume": 352280.5, "mass_error": -2.13e-08, "wall": 20.0}
+{"ev": "step", "t": 20936.653, "dt": 0.2067, "steps": 201119, "active_tiles": 305, "volume": 285735.8, "mass_error": -2.138e-08, "wall": 22.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 204313, "loop_s": 22.47, "tables_s": 2.26, "wet_area_km2": 2.033, "dt_min": 0.06909289453360153, "balance": {"rain_m3": 0.0, "inflow_m3": 11519999.999051185, "outflow_m3": 11234316.360951785, "storage_start_m3": 0.0, "storage_end_m3": 285683.8852005788, "error_m3": -0.24710117845097557, "relative_error": -2.144975507563606e-08}, "tile_steps": null, "products": "none"}
+

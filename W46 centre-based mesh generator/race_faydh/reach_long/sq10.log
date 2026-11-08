@@ -1,0 +1,9 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long\\cache\\grid_bc8c8d20104323e941a3f121.h5"}
+{"ev": "start", "backend": "gpu", "cells": 78465, "tiles": 128, "dx": 10.0, "duration_s": 21600.0, "tables_s": 3.62, "t": 0.0}
+{"ev": "step", "t": 6239.91, "dt": 0.3278, "steps": 22465, "active_tiles": 126, "volume": 628798.2, "mass_error": 1.735e-08, "wall": 2.0}
+{"ev": "step", "t": 13481.784, "dt": 0.3272, "steps": 44712, "active_tiles": 126, "volume": 212135.1, "mass_error": 8.494e-08, "wall": 4.0}
+{"ev": "step", "t": 20700.327, "dt": 0.3278, "steps": 66849, "active_tiles": 126, "volume": 212137.7, "mass_error": 1.05e-07, "wall": 6.0}
+{"ev": "warn", "message": "water stood 8.6 m deep against the domain edge at (421338, 2729523): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long\\sq10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 69608, "loop_s": 6.33, "tables_s": 3.62, "wet_area_km2": 0.6997, "dt_min": 0.15289661584188677, "balance": {"rain_m3": 0.0, "inflow_m3": 935999.9997391133, "outflow_m3": 723859.2478976967, "storage_start_m3": 0.0, "storage_end_m3": 212140.6536332178, "error_m3": 0.09820819878950715, "relative_error": 1.0492328933427377e-07}, "tile_steps": null, "products": "none"}
+

@@ -1,0 +1,11 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache\\grid_f8e85a8e21a2576e8672238a.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 0.75, "t": 0.0}
+{"ev": "step", "t": 4568.603, "dt": 0.0797, "steps": 21329, "active_tiles": 301, "volume": 2400906.0, "mass_error": -1.568e-09, "wall": 2.0}
+{"ev": "step", "t": 6128.814, "dt": 0.0789, "steps": 41145, "active_tiles": 305, "volume": 1087357.7, "mass_error": -1.368e-08, "wall": 4.0}
+{"ev": "step", "t": 7729.5, "dt": 0.0826, "steps": 60886, "active_tiles": 305, "volume": 340418.3, "mass_error": -1.942e-08, "wall": 6.0}
+{"ev": "step", "t": 10366.154, "dt": 0.2106, "steps": 80057, "active_tiles": 305, "volume": 285939.2, "mass_error": -1.992e-08, "wall": 8.0}
+{"ev": "step", "t": 14241.827, "dt": 0.2074, "steps": 98758, "active_tiles": 305, "volume": 285614.2, "mass_error": -1.991e-08, "wall": 10.0}
+{"ev": "step", "t": 18163.951, "dt": 0.2098, "steps": 117625, "active_tiles": 305, "volume": 285581.0, "mass_error": -2.176e-08, "wall": 12.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_sharp_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 134143, "loop_s": 13.88, "tables_s": 0.75, "wet_area_km2": 1.9939, "dt_min": 0.07416261144371301, "balance": {"rain_m3": 0.0, "inflow_m3": 3690000.0001414446, "outflow_m3": 3404428.4430520497, "storage_start_m3": 0.0, "storage_end_m3": 285571.63491114526, "error_m3": -0.07782175036845729, "relative_error": -2.1089905248095998e-08}, "tile_steps": null, "products": "none"}
+

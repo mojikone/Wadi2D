@@ -1,0 +1,15 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_8c21abb72a16a5fd57b9d3a6.h5"}
+{"ev": "strips", "corridors": 1, "cells": 2189, "triangles": 6061, "replaced": 8626, "cut": ["line t0_74.4km2: 5 of 1088 stations given up to higher lines, the domain's edge or too short to stand"], "rules": [{"name": "t0_74.4km2", "hard": false, "rank_km2": 74.372576, "stations": 1083, "cells": 2189, "cells_across": 3}]}
+{"ev": "start", "backend": "gpu", "cells": 180188, "tiles": 222, "dx": 20.0, "duration_s": 21600.0, "tables_s": 32.8, "t": 0.0}
+{"ev": "step", "t": 2230.096, "dt": 0.5311, "steps": 4304, "active_tiles": 108, "volume": 66206.6, "mass_error": 1.729e-08, "wall": 2.0}
+{"ev": "step", "t": 4660.48, "dt": 0.478, "steps": 10281, "active_tiles": 108, "volume": 565295.8, "mass_error": 1.51e-08, "wall": 4.0}
+{"ev": "step", "t": 7755.198, "dt": 0.5066, "steps": 16777, "active_tiles": 108, "volume": 509327.3, "mass_error": 2.759e-08, "wall": 6.0}
+{"ev": "step", "t": 10859.888, "dt": 0.5066, "steps": 22986, "active_tiles": 108, "volume": 258548.0, "mass_error": 4.814e-08, "wall": 8.0}
+{"ev": "step", "t": 13945.328, "dt": 0.5066, "steps": 29157, "active_tiles": 108, "volume": 239517.0, "mass_error": 6.719e-08, "wall": 10.0}
+{"ev": "step", "t": 17025.198, "dt": 0.5066, "steps": 35317, "active_tiles": 108, "volume": 239492.0, "mass_error": 1.075e-07, "wall": 12.0}
+{"ev": "step", "t": 20121.276, "dt": 0.5066, "steps": 41509, "active_tiles": 108, "volume": 239484.2, "mass_error": 1.479e-07, "wall": 14.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\main_flood\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 5.7 m deep against the domain edge at (421256, 2729470): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\main_flood\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 44467, "loop_s": 16.19, "tables_s": 32.8, "wet_area_km2": 0.0092, "dt_min": 0.16583141650690672, "balance": {"rain_m3": 0.0, "inflow_m3": 935999.9994905056, "outflow_m3": 696520.8862454098, "storage_start_m3": 0.0, "storage_end_m3": 239478.96246492036, "error_m3": 0.15078017534688115, "relative_error": 1.6108993101384143e-07, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

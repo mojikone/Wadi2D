@@ -1,0 +1,43 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_10b190b5e83def09f2272213.h5"}
+{"ev": "start", "backend": "gpu", "cells": 755256, "tiles": 818, "dx": 10.0, "duration_s": 57600.0, "tables_s": 17.12, "t": 0.0}
+{"ev": "step", "t": 8671.5, "dt": 1.5, "steps": 5781, "active_tiles": 8, "volume": 0.0, "mass_error": 0.0, "wall": 2.0}
+{"ev": "step", "t": 12253.029, "dt": 0.86, "steps": 8289, "active_tiles": 818, "volume": 10429.7, "mass_error": 1.601e-10, "wall": 4.0}
+{"ev": "step", "t": 14640.691, "dt": 0.7078, "steps": 11429, "active_tiles": 818, "volume": 33561.5, "mass_error": 3.129e-10, "wall": 6.0}
+{"ev": "step", "t": 16560.501, "dt": 0.5018, "steps": 14920, "active_tiles": 818, "volume": 62364.0, "mass_error": 1.336e-09, "wall": 8.0}
+{"ev": "step", "t": 18317.194, "dt": 0.44, "steps": 18521, "active_tiles": 818, "volume": 96573.2, "mass_error": 4.944e-10, "wall": 10.0}
+{"ev": "step", "t": 19796.979, "dt": 0.4349, "steps": 22273, "active_tiles": 818, "volume": 131599.0, "mass_error": 1.642e-10, "wall": 12.0}
+{"ev": "step", "t": 21368.628, "dt": 0.4095, "steps": 26017, "active_tiles": 818, "volume": 175706.9, "mass_error": 8.017e-10, "wall": 14.0}
+{"ev": "step", "t": 22890.42, "dt": 0.4205, "steps": 29802, "active_tiles": 818, "volume": 225357.4, "mass_error": 1.003e-09, "wall": 16.0}
+{"ev": "step", "t": 24358.755, "dt": 0.3668, "steps": 33729, "active_tiles": 818, "volume": 279062.6, "mass_error": 6.389e-10, "wall": 18.0}
+{"ev": "step", "t": 25829.081, "dt": 0.3511, "steps": 37529, "active_tiles": 818, "volume": 329871.8, "mass_error": -1.323e-09, "wall": 20.0}
+{"ev": "step", "t": 27242.123, "dt": 0.3531, "steps": 41265, "active_tiles": 818, "volume": 376340.6, "mass_error": -2.781e-09, "wall": 22.0}
+{"ev": "step", "t": 28609.544, "dt": 0.3832, "steps": 45129, "active_tiles": 818, "volume": 423496.8, "mass_error": -3.862e-09, "wall": 24.0}
+{"ev": "step", "t": 30043.167, "dt": 0.3657, "steps": 49001, "active_tiles": 818, "volume": 477604.2, "mass_error": -3.706e-09, "wall": 26.0}
+{"ev": "step", "t": 31470.361, "dt": 0.3613, "steps": 52963, "active_tiles": 818, "volume": 537397.7, "mass_error": -5.482e-09, "wall": 28.0}
+{"ev": "step", "t": 32850.356, "dt": 0.3563, "steps": 56895, "active_tiles": 818, "volume": 600345.7, "mass_error": -6.076e-09, "wall": 30.0}
+{"ev": "step", "t": 34177.639, "dt": 0.3516, "steps": 60785, "active_tiles": 818, "volume": 668579.6, "mass_error": -6.457e-09, "wall": 32.0}
+{"ev": "step", "t": 35520.346, "dt": 0.3459, "steps": 64741, "active_tiles": 818, "volume": 750519.3, "mass_error": -7.816e-09, "wall": 34.0}
+{"ev": "step", "t": 36875.421, "dt": 0.3389, "steps": 68721, "active_tiles": 818, "volume": 850465.0, "mass_error": -8.756e-09, "wall": 36.0}
+{"ev": "step", "t": 38207.487, "dt": 0.33, "steps": 72721, "active_tiles": 818, "volume": 984379.3, "mass_error": -9.326e-09, "wall": 38.0}
+{"ev": "step", "t": 39607.433, "dt": 0.3546, "steps": 76721, "active_tiles": 818, "volume": 1199173.8, "mass_error": -9.769e-09, "wall": 40.0}
+{"ev": "step", "t": 40950.326, "dt": 0.326, "steps": 80682, "active_tiles": 818, "volume": 1618262.3, "mass_error": -8.94e-09, "wall": 42.0}
+{"ev": "step", "t": 42182.024, "dt": 0.3163, "steps": 84641, "active_tiles": 818, "volume": 3104492.7, "mass_error": -8.293e-09, "wall": 44.0}
+{"ev": "step", "t": 43080.486, "dt": 0.1621, "steps": 88849, "active_tiles": 818, "volume": 5225908.3, "mass_error": -6.318e-09, "wall": 46.0}
+{"ev": "step", "t": 43789.563, "dt": 0.1552, "steps": 93337, "active_tiles": 818, "volume": 5155779.1, "mass_error": -8.407e-09, "wall": 48.0}
+{"ev": "step", "t": 44489.755, "dt": 0.155, "steps": 97881, "active_tiles": 818, "volume": 4317328.9, "mass_error": -1.088e-08, "wall": 50.0}
+{"ev": "step", "t": 45196.528, "dt": 0.1574, "steps": 102417, "active_tiles": 818, "volume": 3515517.2, "mass_error": -1.316e-08, "wall": 52.0}
+{"ev": "step", "t": 45915.758, "dt": 0.1592, "steps": 106977, "active_tiles": 818, "volume": 2839766.4, "mass_error": -1.541e-08, "wall": 54.0}
+{"ev": "step", "t": 46630.021, "dt": 0.1616, "steps": 111445, "active_tiles": 818, "volume": 2335036.3, "mass_error": -1.712e-08, "wall": 56.0}
+{"ev": "step", "t": 47377.777, "dt": 0.1853, "steps": 115905, "active_tiles": 818, "volume": 1973832.2, "mass_error": -1.779e-08, "wall": 58.0}
+{"ev": "step", "t": 48354.987, "dt": 0.2757, "steps": 120217, "active_tiles": 818, "volume": 1663464.7, "mass_error": -1.888e-08, "wall": 60.0}
+{"ev": "step", "t": 49611.213, "dt": 0.3446, "steps": 124194, "active_tiles": 818, "volume": 1419157.3, "mass_error": -1.954e-08, "wall": 62.0}
+{"ev": "step", "t": 50880.326, "dt": 0.316, "steps": 127890, "active_tiles": 818, "volume": 1257539.8, "mass_error": -1.967e-08, "wall": 64.0}
+{"ev": "step", "t": 52113.646, "dt": 0.3316, "steps": 131657, "active_tiles": 818, "volume": 1145825.5, "mass_error": -2.003e-08, "wall": 66.0}
+{"ev": "step", "t": 53374.003, "dt": 0.3337, "steps": 135457, "active_tiles": 818, "volume": 1058601.4, "mass_error": -2.034e-08, "wall": 68.0}
+{"ev": "step", "t": 54677.901, "dt": 0.3377, "steps": 139361, "active_tiles": 818, "volume": 990164.8, "mass_error": -2.032e-08, "wall": 70.0}
+{"ev": "step", "t": 55967.395, "dt": 0.3412, "steps": 143185, "active_tiles": 818, "volume": 933291.0, "mass_error": -2.038e-08, "wall": 72.0}
+{"ev": "step", "t": 57238.584, "dt": 0.3445, "steps": 146913, "active_tiles": 818, "volume": 888581.9, "mass_error": -2.045e-08, "wall": 74.0}
+{"ev": "warn", "message": "water stood 8.7 m deep against the domain edge at (424371, 2726845): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\none10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 147968, "loop_s": 75.59, "tables_s": 17.12, "wet_area_km2": 4.4296, "dt_min": 0.15404312470475778, "balance": {"rain_m3": 10740487.635302294, "inflow_m3": 0.0, "outflow_m3": 9863566.929209743, "storage_start_m3": 0.0, "storage_end_m3": 876920.9259101325, "error_m3": -0.21981758112087846, "relative_error": -2.046625708113779e-08}, "tile_steps": null, "products": "none"}
+

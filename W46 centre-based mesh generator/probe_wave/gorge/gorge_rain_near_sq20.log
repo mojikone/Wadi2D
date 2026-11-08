@@ -1,0 +1,6 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache\\grid_2072e654dacd3c1b6ab66c01.h5"}
+{"ev": "start", "backend": "gpu", "cells": 21000, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 0.42, "t": 0.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_rain_near_sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 13576, "loop_s": 1.36, "tables_s": 0.42, "wet_area_km2": 0.4944, "dt_min": 1.2152428426238406, "balance": {"rain_m3": 267819.9944696019, "inflow_m3": 0.0, "outflow_m3": 227559.2573150748, "storage_start_m3": 0.0, "storage_end_m3": 40260.7423982942, "error_m3": -0.005243767096544616, "relative_error": -1.9579445914520002e-08}, "tile_steps": null, "products": "none"}
+

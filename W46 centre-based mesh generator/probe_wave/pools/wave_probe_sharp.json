@@ -1,0 +1,116 @@
+{
+ "sq20": {
+  "dx": 20.0,
+  "s1": {
+   "peak_m3s": 1398.09,
+   "at_h": 0.95,
+   "half_width_min": 33.0
+  },
+  "s2": {
+   "peak_m3s": 1331.96,
+   "at_h": 1.1833333333333333,
+   "half_width_min": 34.5
+  },
+  "s3": {
+   "peak_m3s": 1276.03,
+   "at_h": 1.425,
+   "half_width_min": 34.0
+  },
+  "attenuation_s3_s1": 0.912695176991467,
+  "steps": 31650,
+  "loop_s": 2.77,
+  "mass_error": -2.2626600204497798e-08,
+  "outflow_Mm3": 3.343230619951943,
+  "storage_end_Mm3": 0.34676946463544717,
+  "wet_km2": 1.8572,
+  "s3_against_sq5": 0.9965947875256757
+ },
+ "ce20": {
+  "dx": 20.0,
+  "s1": {
+   "peak_m3s": 1397.04,
+   "at_h": 0.95,
+   "half_width_min": 33.0
+  },
+  "s2": {
+   "peak_m3s": 1325.52,
+   "at_h": 1.1916666666666667,
+   "half_width_min": 35.5
+  },
+  "s3": {
+   "peak_m3s": 1261.71,
+   "at_h": 1.45,
+   "half_width_min": 36.0
+  },
+  "attenuation_s3_s1": 0.9031309053427247,
+  "steps": 30912,
+  "loop_s": 12.39,
+  "mass_error": -1.8340454914046664e-08,
+  "outflow_Mm3": 3.3502475481019864,
+  "storage_end_Mm3": 0.33975252029793,
+  "strips": {
+   "cells": 1005,
+   "triangles": 2370,
+   "replaced": 3561
+  },
+  "wet_km2": 1.863308759399414,
+  "s3_against_sq5": 0.9854106951788126
+ },
+ "ce10": {
+  "dx": 10.0,
+  "s1": {
+   "peak_m3s": 1397.29,
+   "at_h": 0.95,
+   "half_width_min": 33.0
+  },
+  "s2": {
+   "peak_m3s": 1325.57,
+   "at_h": 1.2,
+   "half_width_min": 35.0
+  },
+  "s3": {
+   "peak_m3s": 1265.06,
+   "at_h": 1.4416666666666667,
+   "half_width_min": 36.0
+  },
+  "attenuation_s3_s1": 0.905366817196144,
+  "steps": 56268,
+  "loop_s": 27.62,
+  "mass_error": -1.6232213881570756e-08,
+  "outflow_Mm3": 3.360268941497805,
+  "storage_end_Mm3": 0.32973111917997816,
+  "strips": {
+   "cells": 3639,
+   "triangles": 4603,
+   "replaced": 8563
+  },
+  "wet_km2": 1.795494636779785,
+  "s3_against_sq5": 0.9880270854973874
+ },
+ "sq5": {
+  "dx": 5.0,
+  "s1": {
+   "peak_m3s": 1398.28,
+   "at_h": 0.9555547222222222,
+   "half_width_min": 33.0
+  },
+  "s2": {
+   "peak_m3s": 1334.89,
+   "at_h": 1.1812922222222222,
+   "half_width_min": 34.5
+  },
+  "s3": {
+   "peak_m3s": 1280.39,
+   "at_h": 1.4234622222222222,
+   "half_width_min": 35.0
+  },
+  "attenuation_s3_s1": 0.915689275395486,
+  "steps": 101069,
+  "loop_s": 10.84,
+  "mass_error": -1.939570155426217e-08,
+  "outflow_Mm3": 3.3586831165571938,
+  "storage_end_Mm3": 0.3313169551571815,
+  "wet_km2": 1.754875,
+  "s3_against_sq5": 1.0
+ }
+}

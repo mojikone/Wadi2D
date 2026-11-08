@@ -1,0 +1,6 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_6f658c0a861da5ebaf2475f1.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 21600.0, "tables_s": 6.56, "t": 0.0}
+{"ev": "step", "t": 10834.976, "dt": 0.6221, "steps": 20379, "active_tiles": 94, "volume": 331344.5, "mass_error": 7.047e-08, "wall": 2.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\none_flood\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 38395, "loop_s": 3.81, "tables_s": 6.56, "wet_area_km2": 1.0504, "dt_min": 0.25992181290070615, "balance": {"rain_m3": 0.0, "inflow_m3": 935999.9997150153, "outflow_m3": 657788.7445568084, "storage_start_m3": 0.0, "storage_end_m3": 278211.12521570164, "error_m3": 0.129942505271174, "relative_error": 1.3882746293882235e-07}, "tile_steps": null, "products": "none"}
+

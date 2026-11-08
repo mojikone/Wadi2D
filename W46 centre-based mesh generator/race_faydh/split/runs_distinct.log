@@ -1,0 +1,13 @@
+main_flood: exit 0 in 51 s
+main: exit 0 in 62 s
+
+Faydh 01 at 20 m: peak m3/s (centroid h) per line; in brackets the peak against no lines with the same rain
+run                           axis                    m05                    m10                    m15                  t3mid                  t6mid   strip cells  stored at end Mm3
+none_flood    209.9 ( 3.119)          274.4 ( 2.104)          266.9 ( 2.406)          256.2 ( 2.712)            0.0 ( 0.000)            0.0 ( 0.000)               -  0.2782
+main_flood    233.8 ( 2.938) +11.4%   272.9 ( 2.080)  -0.5%   271.5 ( 2.326)  +1.7%   267.8 ( 2.594)  +4.5%     0.0 ( 0.000)            0.0 ( 0.000)            2189  0.2395
+
+Faydh 01 at 20 m: peak m3/s (centroid h) per line; in brackets the peak against no lines with the same rain
+run                           axis                    m05                    m10                    m15                  t3mid                  t6mid   strip cells  stored at end Mm3
+none         1835.2 (12.576)          356.4 (12.242)          629.1 (12.404)          883.9 (12.443)          404.4 (12.087)           12.9 (11.875)               -  0.9099
+none5        1887.1 (12.530)          367.7 (12.290)          646.1 (12.404)          904.5 (12.423)          413.4 (12.037)           14.5 (12.123)               -  0.8704
+main         1913.9 (12.521)  +4.3%   399.8 (12.192) +12.2%   715.7 (12.327) +13.8%   996.3 (12.378) +12.7%   405.2 (12.087)  +0.2%    15.5 (11.928) +20.2%     2189  0.8425

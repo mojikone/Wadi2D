@@ -1,0 +1,13 @@
+pools: DEM 16800 x 2000 pixels at 0.5 m written in 45 s
+pools: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\probe_wave\pools
+pools sharp: jobs written for sq20, ce20, ce10, sq5
+pools_sharp_sq20: exit 0 in 7 s
+pools_sharp_ce20: exit 0 in 20 s
+pools_sharp_ce10: exit 0 in 37 s
+pools_sharp_sq5: exit 0 in 15 s
+
+pools sharp: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20   1398.1 (0.95) /  1332.0 (1.18) /  1276.0 (1.43)    -0.3 %   34.0 min  1.857  0.3468  31650  3
+  ce20   1397.0 (0.95) /  1325.5 (1.19) /  1261.7 (1.45)    -1.5 %   36.0 min  1.863  0.3398  30912  12  strip cells 1005
+  ce10   1397.3 (0.95) /  1325.6 (1.20) /  1265.1 (1.44)    -1.2 %   36.0 min  1.795  0.3297  56268  28  strip cells 3639
+  sq5    1398.3 (0.96) /  1334.9 (1.18) /  1280.4 (1.42)    +0.0 %   35.0 min  1.755  0.3313  101069  11

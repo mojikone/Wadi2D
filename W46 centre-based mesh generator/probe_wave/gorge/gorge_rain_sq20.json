@@ -1,0 +1,111 @@
+{
+ "project": {
+  "name": "wave_gorge_rain_sq20",
+  "description": "W46 unsteady wave probe: a flood down a sinuous synthetic valley"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\domain.geojson",
+  "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\dem.tif",
+  "pixel_stride": 1,
+  "manning": 0.05
+ },
+ "storm": {
+  "kind": "hyetograph",
+  "hyetograph_min": [
+   60.0,
+   120.0,
+   125.0,
+   130.0,
+   135.0,
+   140.0,
+   200.0,
+   240.0
+  ],
+  "hyetograph_mm": [
+   4.0,
+   8.0,
+   7.0,
+   8.0,
+   8.0,
+   7.0,
+   18.0,
+   10.0
+  ]
+ },
+ "hydrology": {},
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.01,
+   "coordinates": [
+    [
+     408395.0,
+     2700000.0
+    ],
+    [
+     408395.0,
+     2701000.0
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 0.0,
+  "series_every_s": 30.0,
+  "live_every_s": 0.0,
+  "lines": [
+   {
+    "name": "s1",
+    "coordinates": [
+     [
+      401500.0,
+      2700000.0
+     ],
+     [
+      401500.0,
+      2701000.0
+     ]
+    ]
+   },
+   {
+    "name": "s2",
+    "coordinates": [
+     [
+      404500.0,
+      2700000.0
+     ],
+     [
+      404500.0,
+      2701000.0
+     ]
+    ]
+   },
+   {
+    "name": "s3",
+    "coordinates": [
+     [
+      407500.0,
+      2700000.0
+     ],
+     [
+      407500.0,
+      2701000.0
+     ]
+    ]
+   }
+  ],
+  "pixels": {
+   "enabled": false
+  }
+ },
+ "run": {
+  "duration_s": 21600.0,
+  "backend": "gpu",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0
+ }
+}

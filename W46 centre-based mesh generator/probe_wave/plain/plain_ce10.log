@@ -1,0 +1,14 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\cache\\grid_ffdfb5d0446b3388ab208714.h5"}
+{"ev": "strips", "corridors": 1, "cells": 19104, "triangles": 4721, "replaced": 24044, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 796, "cells": 19104, "cells_across": 24}]}
+{"ev": "start", "backend": "gpu", "cells": 59956, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 68.02, "t": 0.0}
+{"ev": "step", "t": 4497.311, "dt": 0.5246, "steps": 6677, "active_tiles": 107, "volume": 1201676.6, "mass_error": -4.019e-09, "wall": 2.0}
+{"ev": "step", "t": 7628.946, "dt": 0.3575, "steps": 13793, "active_tiles": 108, "volume": 4117739.2, "mass_error": -5.454e-09, "wall": 4.0}
+{"ev": "step", "t": 9584.481, "dt": 0.2376, "steps": 21074, "active_tiles": 108, "volume": 4118127.0, "mass_error": -1.041e-08, "wall": 6.0}
+{"ev": "step", "t": 11488.91, "dt": 0.2925, "steps": 28379, "active_tiles": 108, "volume": 3458233.2, "mass_error": -1.405e-08, "wall": 8.0}
+{"ev": "step", "t": 13929.035, "dt": 0.3765, "steps": 35596, "active_tiles": 108, "volume": 2514899.4, "mass_error": -1.673e-08, "wall": 10.0}
+{"ev": "step", "t": 16710.403, "dt": 0.402, "steps": 42791, "active_tiles": 108, "volume": 1239854.1, "mass_error": -1.871e-08, "wall": 12.0}
+{"ev": "step", "t": 19566.659, "dt": 0.4449, "steps": 49994, "active_tiles": 108, "volume": 375361.9, "mass_error": -1.996e-08, "wall": 14.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\plain_ce10\\maps\\strip_mesh.gpkg"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\plain_ce10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 52901, "loop_s": 17.5, "tables_s": 68.02, "wet_area_km2": 0.402, "dt_min": 0.19951773337052012, "balance": {"rain_m3": 0.0, "inflow_m3": 11519999.999169856, "outflow_m3": 11195386.81432649, "storage_start_m3": 0.0, "storage_end_m3": 324613.4161379264, "error_m3": -0.23129455943126231, "relative_error": -2.0077652729855006e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

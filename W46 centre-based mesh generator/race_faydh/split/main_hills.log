@@ -1,0 +1,31 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_80c5458e6d580ca75d9edef6.h5"}
+{"ev": "strips", "corridors": 1, "cells": 2189, "triangles": 6061, "replaced": 8626, "cut": ["line t0_74.4km2: 5 of 1088 stations given up to higher lines, the domain's edge or too short to stand"], "rules": [{"name": "t0_74.4km2", "hard": false, "rank_km2": 74.372576, "stations": 1083, "cells": 2189, "cells_across": 3}]}
+{"ev": "start", "backend": "gpu", "cells": 180188, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 48.49, "t": 0.0}
+{"ev": "step", "t": 8343.0, "dt": 3.0, "steps": 2781, "active_tiles": 108, "volume": 0.0, "mass_error": 0.0, "wall": 2.0}
+{"ev": "step", "t": 14311.115, "dt": 1.1143, "steps": 5557, "active_tiles": 222, "volume": 27017.4, "mass_error": -2.998e-10, "wall": 4.0}
+{"ev": "step", "t": 17486.446, "dt": 0.7462, "steps": 8897, "active_tiles": 222, "volume": 72441.6, "mass_error": -1.867e-09, "wall": 6.0}
+{"ev": "step", "t": 19800.643, "dt": 0.6456, "steps": 12431, "active_tiles": 222, "volume": 120488.5, "mass_error": -1.328e-09, "wall": 8.0}
+{"ev": "step", "t": 21947.09, "dt": 0.6045, "steps": 15970, "active_tiles": 222, "volume": 177999.5, "mass_error": -9.755e-10, "wall": 10.0}
+{"ev": "step", "t": 24134.119, "dt": 0.5867, "steps": 19666, "active_tiles": 222, "volume": 249537.1, "mass_error": -2.975e-10, "wall": 12.0}
+{"ev": "step", "t": 26393.714, "dt": 0.4839, "steps": 23996, "active_tiles": 222, "volume": 324916.5, "mass_error": -3.824e-11, "wall": 14.0}
+{"ev": "step", "t": 29162.835, "dt": 0.4725, "steps": 29843, "active_tiles": 222, "volume": 416325.8, "mass_error": -6.992e-10, "wall": 16.0}
+{"ev": "step", "t": 31656.928, "dt": 0.4617, "steps": 35217, "active_tiles": 222, "volume": 507532.7, "mass_error": 1.019e-09, "wall": 18.0}
+{"ev": "step", "t": 33330.454, "dt": 0.4545, "steps": 38898, "active_tiles": 222, "volume": 581183.7, "mass_error": 6.355e-09, "wall": 20.0}
+{"ev": "step", "t": 35010.444, "dt": 0.4444, "steps": 42667, "active_tiles": 222, "volume": 669115.6, "mass_error": 9.49e-09, "wall": 22.0}
+{"ev": "step", "t": 37161.471, "dt": 0.5634, "steps": 47602, "active_tiles": 222, "volume": 812887.5, "mass_error": 1.102e-08, "wall": 24.0}
+{"ev": "step", "t": 40200.515, "dt": 0.5145, "steps": 53289, "active_tiles": 222, "volume": 1247469.2, "mass_error": 9.804e-09, "wall": 26.0}
+{"ev": "step", "t": 42035.928, "dt": 0.5058, "steps": 57185, "active_tiles": 222, "volume": 2418416.1, "mass_error": 2.56e-09, "wall": 28.0}
+{"ev": "step", "t": 43500.323, "dt": 0.196, "steps": 61053, "active_tiles": 222, "volume": 4988102.4, "mass_error": -2.411e-09, "wall": 30.0}
+{"ev": "step", "t": 44796.712, "dt": 0.3352, "steps": 64928, "active_tiles": 222, "volume": 3685454.1, "mass_error": -5.5e-09, "wall": 32.0}
+{"ev": "step", "t": 46140.0, "dt": 0.3468, "steps": 68896, "active_tiles": 222, "volume": 2401588.7, "mass_error": -2.766e-09, "wall": 34.0}
+{"ev": "step", "t": 47752.156, "dt": 0.5039, "steps": 72743, "active_tiles": 222, "volume": 1669945.7, "mass_error": -6.566e-11, "wall": 36.0}
+{"ev": "step", "t": 49542.137, "dt": 0.5279, "steps": 76481, "active_tiles": 222, "volume": 1318754.0, "mass_error": 2.416e-09, "wall": 38.0}
+{"ev": "step", "t": 51510.546, "dt": 0.5463, "steps": 80177, "active_tiles": 222, "volume": 1109222.2, "mass_error": 2.773e-09, "wall": 40.0}
+{"ev": "step", "t": 53527.848, "dt": 0.5603, "steps": 83855, "active_tiles": 222, "volume": 974802.1, "mass_error": 4.539e-09, "wall": 42.0}
+{"ev": "step", "t": 56250.438, "dt": 0.4371, "steps": 89816, "active_tiles": 222, "volume": 857104.5, "mass_error": 8.281e-09, "wall": 44.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\main_hills\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\main_hills\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 92901, "loop_s": 46.12, "tables_s": 48.49, "wet_area_km2": 3.9928, "dt_min": 0.1848202600730904, "balance": {"rain_m3": 9827389.024438629, "inflow_m3": 0.0, "outflow_m3": 9012668.326064639, "storage_start_m3": 0.0, "storage_end_m3": 814720.6048218474, "error_m3": 0.09355214273091406, "relative_error": 9.519531840885686e-09, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

@@ -1,0 +1,233 @@
+{
+ "project": {
+  "name": "ras_rog_10m_n050_em",
+  "description": "Faydh rain-on-grid head-to-head, same case as the RAS project"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long_steady_ramp\\domain.geojson",
+  "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long_steady_ramp\\cache"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\Wadi2D\\W11 validation round two\\t2_faydh\\terrain\\faydh_0p5m.tif",
+  "pixel_stride": 1,
+  "manning": 0.05
+ },
+ "storm": {
+  "kind": "none"
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.015,
+   "coordinates": [
+    [
+     431140.61647372507,
+     2733171.3401159737
+    ],
+    [
+     430806.71989149426,
+     2733595.7374208365
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 0.0,
+  "series_every_s": 30.0,
+  "live_every_s": 0.0,
+  "lines": [
+   {
+    "name": "k06a",
+    "coordinates": [
+     [
+      422781.4331438133,
+      2730455.4947327175
+     ],
+     [
+      422444.02870951104,
+      2730173.0797052965
+     ]
+    ]
+   },
+   {
+    "name": "k06b",
+    "coordinates": [
+     [
+      422639.0429841184,
+      2730569.2690789346
+     ],
+     [
+      422431.91192817286,
+      2730181.0723174037
+     ]
+    ]
+   },
+   {
+    "name": "k06c",
+    "coordinates": [
+     [
+      422497.45616699936,
+      2730624.192554279
+     ],
+     [
+      422389.2394132708,
+      2730197.7079306263
+     ]
+    ]
+   },
+   {
+    "name": "k10a",
+    "coordinates": [
+     [
+      424482.71513135056,
+      2730974.887741084
+     ],
+     [
+      424079.1362484298,
+      2731150.170613209
+     ]
+    ]
+   },
+   {
+    "name": "k10b",
+    "coordinates": [
+     [
+      424498.20441806817,
+      2731199.68520134
+     ],
+     [
+      424065.6013741945,
+      2731119.3446360487
+     ]
+    ]
+   },
+   {
+    "name": "k10c",
+    "coordinates": [
+     [
+      424486.51626777503,
+      2731249.0820964323
+     ],
+     [
+      424046.87239473505,
+      2731266.7813873338
+     ]
+    ]
+   },
+   {
+    "name": "k14a",
+    "coordinates": [
+     [
+      426535.6907080014,
+      2732044.2251460943
+     ],
+     [
+      426672.8330848154,
+      2732462.3064402007
+     ]
+    ]
+   },
+   {
+    "name": "k14b",
+    "coordinates": [
+     [
+      426817.3381590326,
+      2732065.953526429
+     ],
+     [
+      426576.2487478824,
+      2732434.0240303157
+     ]
+    ]
+   },
+   {
+    "name": "k14c",
+    "coordinates": [
+     [
+      426865.378855673,
+      2732118.0518150455
+     ],
+     [
+      426674.8080918334,
+      2732514.640750808
+     ]
+    ]
+   },
+   {
+    "name": "k18a",
+    "coordinates": [
+     [
+      429820.96694422566,
+      2732074.3341260958
+     ],
+     [
+      429637.84573733766,
+      2732474.417396913
+     ]
+    ]
+   },
+   {
+    "name": "k18b",
+    "coordinates": [
+     [
+      429956.63633464056,
+      2732163.071637613
+     ],
+     [
+      429667.59755860316,
+      2732494.8194122044
+     ]
+    ]
+   },
+   {
+    "name": "k18c",
+    "coordinates": [
+     [
+      430012.9529133068,
+      2732209.957113304
+     ],
+     [
+      429765.9233484825,
+      2732574.067528018
+     ]
+    ]
+   }
+  ],
+  "pixels": {
+   "enabled": false
+  }
+ },
+ "run": {
+  "duration_s": 21600.0,
+  "backend": "gpu",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0
+ },
+ "hydrology": {
+  "inflows": [
+   {
+    "name": "head",
+    "x": 421334.15563142457,
+    "y": 2729570.2436760464,
+    "times_s": [
+     0.0,
+     3600.0,
+     21600.0
+    ],
+    "flows": [
+     0.0,
+     300.0,
+     300.0
+    ]
+   }
+  ],
+  "inject_radius": 60.0
+ },
+ "strips": {
+  "enabled": true,
+  "generator": "centres",
+  "banks": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long_steady_ramp\\thalweg_reach.gpkg",
+  "along": 20.0
+ }
+}

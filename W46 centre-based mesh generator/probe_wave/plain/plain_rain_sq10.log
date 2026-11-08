@@ -1,0 +1,6 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\cache\\grid_7a823f16daee97fde92236b5.h5"}
+{"ev": "start", "backend": "gpu", "cells": 84000, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 0.51, "t": 0.0}
+{"ev": "step", "t": 18878.833, "dt": 0.9829, "steps": 18105, "active_tiles": 108, "volume": 88535.7, "mass_error": -1.919e-08, "wall": 2.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\plain_rain_sq10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 20852, "loop_s": 2.38, "tables_s": 0.51, "wet_area_km2": 0.6396, "dt_min": 0.7154213622306277, "balance": {"rain_m3": 587300.0030956083, "inflow_m3": 0.0, "outflow_m3": 531392.587951934, "storage_start_m3": 0.0, "storage_end_m3": 55907.42716412963, "error_m3": -0.012020455273159314, "relative_error": -2.0467316890516802e-08}, "tile_steps": null, "products": "none"}
+

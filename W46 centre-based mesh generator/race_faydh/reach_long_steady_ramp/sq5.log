@@ -1,0 +1,13 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long_steady_ramp\\cache\\grid_c017951a6dbe34d0388b73c2.h5"}
+{"ev": "start", "backend": "gpu", "cells": 313857, "tiles": 418, "dx": 5.0, "duration_s": 21600.0, "tables_s": 4.75, "t": 0.0}
+{"ev": "step", "t": 3715.433, "dt": 0.1551, "steps": 20843, "active_tiles": 226, "volume": 574630.0, "mass_error": -4.583e-10, "wall": 2.0}
+{"ev": "step", "t": 6759.919, "dt": 0.1334, "steps": 41029, "active_tiles": 371, "volume": 1261679.5, "mass_error": -3.47e-09, "wall": 4.0}
+{"ev": "step", "t": 9556.218, "dt": 0.1559, "steps": 59953, "active_tiles": 371, "volume": 1262688.7, "mass_error": -8.556e-09, "wall": 6.0}
+{"ev": "step", "t": 12321.837, "dt": 0.155, "steps": 78720, "active_tiles": 371, "volume": 1262544.8, "mass_error": -1.248e-08, "wall": 8.0}
+{"ev": "step", "t": 15094.411, "dt": 0.1558, "steps": 97554, "active_tiles": 371, "volume": 1262836.9, "mass_error": -1.396e-08, "wall": 10.0}
+{"ev": "step", "t": 17877.549, "dt": 0.155, "steps": 116426, "active_tiles": 371, "volume": 1262767.7, "mass_error": -1.537e-08, "wall": 12.0}
+{"ev": "step", "t": 20730.0, "dt": 0.155, "steps": 135259, "active_tiles": 371, "volume": 1263283.4, "mass_error": -1.578e-08, "wall": 14.0}
+{"ev": "warn", "message": "water stood 8.4 m deep against the domain edge at (421336, 2729515): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long_steady_ramp\\sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 140862, "loop_s": 14.84, "tables_s": 4.75, "wet_area_km2": 0.6359, "dt_min": 0.06184046208399749, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000143366, "outflow_m3": 4676722.793796338, "storage_start_m3": 0.0, "storage_end_m3": 1263277.3010207547, "error_m3": -0.09467372694052756, "relative_error": -1.5938337868391e-08}, "tile_steps": null, "products": "none"}
+

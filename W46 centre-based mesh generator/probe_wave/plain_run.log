@@ -1,0 +1,15 @@
+plain: DEM 16800 x 2000 pixels at 0.5 m written in 60 s
+plain: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\probe_wave\plain
+plain: jobs written for sq20, ce20, sq10, ce10, sq5
+plain_sq20: exit 0 in 13 s
+plain_ce20: exit 0 in 19 s
+plain_sq10: exit 0 in 8 s
+plain_ce10: exit 0 in 87 s
+plain_sq5: exit 0 in 17 s
+
+plain: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, steps, GPU s
+  sq20   1479.6 (2.11) /  1470.8 (2.32) /  1463.2 (2.52)    -0.0 %  126.5 min  2.311  21745  8
+  ce20   1479.9 (2.11) /  1473.2 (2.33) /  1463.1 (2.52)    -0.0 %  126.5 min  2.308  21506  7  strip cells 4776
+  sq10   1479.6 (2.11) /  1470.0 (2.32) /  1462.5 (2.53)    -0.1 %  127.0 min  2.243  52392  5
+  ce10   1479.8 (2.11) /  1470.4 (2.32) /  1463.3 (2.53)    -0.0 %  126.5 min  2.249  52901  18  strip cells 19104
+  sq5    1479.7 (2.11) /  1470.5 (2.32) /  1463.5 (2.53)    +0.0 %  126.5 min  2.214  119756  13

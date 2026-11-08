@@ -1,0 +1,15 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long\\cache\\grid_c017951a6dbe34d0388b73c2.h5"}
+{"ev": "start", "backend": "gpu", "cells": 313857, "tiles": 418, "dx": 5.0, "duration_s": 21600.0, "tables_s": 3.14, "t": 0.0}
+{"ev": "step", "t": 2007.765, "dt": 0.2026, "steps": 9489, "active_tiles": 95, "volume": 45198.6, "mass_error": 2.34e-09, "wall": 2.0}
+{"ev": "step", "t": 3758.0, "dt": 0.1553, "steps": 19881, "active_tiles": 159, "volume": 421873.5, "mass_error": 1.783e-09, "wall": 4.0}
+{"ev": "step", "t": 5705.007, "dt": 0.1789, "steps": 31521, "active_tiles": 325, "volume": 618100.1, "mass_error": 1.873e-08, "wall": 6.0}
+{"ev": "step", "t": 7798.836, "dt": 0.2, "steps": 43770, "active_tiles": 364, "volume": 405082.0, "mass_error": 3.332e-08, "wall": 8.0}
+{"ev": "step", "t": 10020.0, "dt": 0.2031, "steps": 55633, "active_tiles": 364, "volume": 231274.5, "mass_error": 4.667e-08, "wall": 10.0}
+{"ev": "step", "t": 12372.595, "dt": 0.2032, "steps": 67239, "active_tiles": 364, "volume": 205793.3, "mass_error": 5.815e-08, "wall": 12.0}
+{"ev": "step", "t": 14730.0, "dt": 0.2032, "steps": 78869, "active_tiles": 364, "volume": 205732.5, "mass_error": 6.527e-08, "wall": 14.0}
+{"ev": "step", "t": 17094.174, "dt": 0.2031, "steps": 90532, "active_tiles": 364, "volume": 205725.0, "mass_error": 7.02e-08, "wall": 16.0}
+{"ev": "step", "t": 19456.861, "dt": 0.2032, "steps": 102188, "active_tiles": 364, "volume": 205724.7, "mass_error": 7.32e-08, "wall": 18.0}
+{"ev": "warn", "message": "water stood 8.4 m deep against the domain edge at (421336, 2729515): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\reach_long\\sq5first\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 112761, "loop_s": 20.11, "tables_s": 3.14, "wet_area_km2": 0.6253, "dt_min": 0.06913667652255964, "balance": {"rain_m3": 0.0, "inflow_m3": 935999.9998141575, "outflow_m3": 730275.3880414872, "storage_start_m3": 0.0, "storage_end_m3": 205724.54211681115, "error_m3": 0.06965585914440453, "relative_error": 7.441865294683193e-08}, "tile_steps": null, "products": "none"}
+

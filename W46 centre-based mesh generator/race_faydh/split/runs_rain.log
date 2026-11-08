@@ -1,0 +1,18 @@
+main_near: 1 stems
+main_hills: 1 stems
+jobs written: none_near, main_near, none_hills, main_hills
+none_near: exit 0 in 23 s
+main_near: exit 0 in 82 s
+none_hills: exit 0 in 25 s
+main_hills: exit 0 in 98 s
+
+Faydh 01 at 20 m: peak m3/s (centroid h) per line; in brackets the peak against no lines with the same rain
+run                           axis                    m05                    m10                    m15                  t3mid                  t6mid   strip cells  stored at end Mm3
+none_near      77.8 (13.136)           40.9 (12.432)           54.2 (12.693)           63.4 (12.847)            0.0 ( 0.000)            0.0 ( 0.000)               -  0.1557
+Traceback (most recent call last):
+  File "D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\faydh_split.py", line 187, in <module>
+    report(names)
+  File "D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\faydh_split.py", line 170, in report
+    ratio = f"{100 * (p / ref[line]['peak'] - 1):+.1f}%" if ref and stem_set != "none" else ""
+                      ~~^~~~~~~~~~~~~~~~~~~
+ZeroDivisionError: float division by zero

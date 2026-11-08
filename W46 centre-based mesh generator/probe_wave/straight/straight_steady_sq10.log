@@ -1,0 +1,9 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\cache\\grid_f838b9802224c75579f86c9b.h5"}
+{"ev": "start", "backend": "gpu", "cells": 84000, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 0.17, "t": 0.0}
+{"ev": "step", "t": 5746.376, "dt": 0.3484, "steps": 11473, "active_tiles": 83, "volume": 754073.5, "mass_error": -8.675e-09, "wall": 2.0}
+{"ev": "step", "t": 9963.833, "dt": 0.3484, "steps": 23704, "active_tiles": 83, "volume": 754079.2, "mass_error": -1.578e-08, "wall": 4.0}
+{"ev": "step", "t": 14138.014, "dt": 0.3484, "steps": 35809, "active_tiles": 83, "volume": 754079.2, "mass_error": -1.8e-08, "wall": 6.0}
+{"ev": "step", "t": 18326.131, "dt": 0.3484, "steps": 47954, "active_tiles": 83, "volume": 754079.2, "mass_error": -1.91e-08, "wall": 8.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\straight_steady_sq10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 57449, "loop_s": 9.58, "tables_s": 0.17, "wet_area_km2": 0.4998, "dt_min": 0.18281633563936622, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000170257, "outflow_m3": 5185920.928454915, "storage_start_m3": 0.0, "storage_end_m3": 754079.1883998063, "error_m3": -0.11668446438852698, "relative_error": -1.9643849223094693e-08}, "tile_steps": null, "products": "none"}
+

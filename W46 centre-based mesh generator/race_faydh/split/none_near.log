@@ -1,0 +1,12 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\cache\\grid_6f658c0a861da5ebaf2475f1.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 7.47, "t": 0.0}
+{"ev": "step", "t": 17357.572, "dt": 1.0977, "steps": 7203, "active_tiles": 111, "volume": 6487.2, "mass_error": -2.02e-09, "wall": 2.0}
+{"ev": "step", "t": 26910.929, "dt": 0.9292, "steps": 17404, "active_tiles": 111, "volume": 33246.6, "mass_error": -8.548e-10, "wall": 4.0}
+{"ev": "step", "t": 33870.0, "dt": 0.6693, "steps": 25884, "active_tiles": 111, "volume": 72989.1, "mass_error": -2.435e-09, "wall": 6.0}
+{"ev": "step", "t": 39584.558, "dt": 0.5828, "steps": 35402, "active_tiles": 111, "volume": 141553.9, "mass_error": -1.65e-09, "wall": 8.0}
+{"ev": "step", "t": 44668.045, "dt": 0.5925, "steps": 44537, "active_tiles": 111, "volume": 534789.7, "mass_error": -6.744e-09, "wall": 10.0}
+{"ev": "step", "t": 50858.033, "dt": 0.5693, "steps": 55782, "active_tiles": 111, "volume": 252942.5, "mass_error": -1.793e-08, "wall": 12.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\race_faydh\\split\\none_near\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 67170, "loop_s": 13.86, "tables_s": 7.47, "wet_area_km2": 0.9024, "dt_min": 0.4466543181642634, "balance": {"rain_m3": 911790.2750052246, "inflow_m3": 0.0, "outflow_m3": 756075.211456529, "storage_start_m3": 0.0, "storage_end_m3": 155715.08159641732, "error_m3": -0.01804772167815827, "relative_error": -1.9793720302681286e-08}, "tile_steps": null, "products": "none"}
+

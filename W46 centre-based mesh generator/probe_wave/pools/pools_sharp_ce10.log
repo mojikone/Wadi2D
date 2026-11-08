@@ -1,0 +1,21 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\pools\\cache\\grid_fae1c7942bfb38f21917186c.h5"}
+{"ev": "strips", "corridors": 1, "cells": 3639, "triangles": 4603, "replaced": 8563, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 796, "cells": 3639, "cells_across": 6}]}
+{"ev": "start", "backend": "gpu", "cells": 75437, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 7.58, "t": 0.0}
+{"ev": "step", "t": 3389.941, "dt": 0.3282, "steps": 6742, "active_tiles": 107, "volume": 1558978.1, "mass_error": -7.548e-10, "wall": 2.0}
+{"ev": "step", "t": 4811.492, "dt": 0.1771, "steps": 11700, "active_tiles": 108, "volume": 2678534.7, "mass_error": 8.108e-10, "wall": 4.0}
+{"ev": "step", "t": 5506.668, "dt": 0.1634, "steps": 15969, "active_tiles": 108, "volume": 2100953.7, "mass_error": -2.431e-09, "wall": 6.0}
+{"ev": "step", "t": 6129.226, "dt": 0.1648, "steps": 19777, "active_tiles": 108, "volume": 1413023.3, "mass_error": -8.924e-09, "wall": 8.0}
+{"ev": "step", "t": 6602.654, "dt": 0.1659, "steps": 22651, "active_tiles": 108, "volume": 995648.1, "mass_error": -1.151e-08, "wall": 10.0}
+{"ev": "step", "t": 7025.127, "dt": 0.1606, "steps": 25385, "active_tiles": 108, "volume": 713618.9, "mass_error": -1.357e-08, "wall": 12.0}
+{"ev": "step", "t": 7466.876, "dt": 0.1667, "steps": 28197, "active_tiles": 108, "volume": 533114.7, "mass_error": -1.491e-08, "wall": 14.0}
+{"ev": "step", "t": 8017.475, "dt": 0.2437, "steps": 31017, "active_tiles": 108, "volume": 418202.7, "mass_error": -1.575e-08, "wall": 16.0}
+{"ev": "step", "t": 8940.0, "dt": 0.5201, "steps": 33774, "active_tiles": 108, "volume": 344641.5, "mass_error": -1.631e-08, "wall": 18.0}
+{"ev": "step", "t": 10440.591, "dt": 0.5531, "steps": 36461, "active_tiles": 108, "volume": 330311.4, "mass_error": -1.633e-08, "wall": 20.0}
+{"ev": "step", "t": 11940.0, "dt": 0.5863, "steps": 39120, "active_tiles": 108, "volume": 329958.3, "mass_error": -1.659e-08, "wall": 22.0}
+{"ev": "step", "t": 15445.582, "dt": 0.5775, "steps": 45331, "active_tiles": 108, "volume": 329765.0, "mass_error": -1.633e-08, "wall": 24.0}
+{"ev": "step", "t": 19850.918, "dt": 0.5662, "steps": 53167, "active_tiles": 108, "volume": 329735.6, "mass_error": -1.579e-08, "wall": 26.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\pools\\pools_sharp_ce10\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 4.6 m deep against the domain edge at (400765, 2700365): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\pools\\pools_sharp_ce10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 56268, "loop_s": 27.62, "tables_s": 7.58, "wet_area_km2": 1.2603, "dt_min": 0.07419097486785506, "balance": {"rain_m3": 0.0, "inflow_m3": 3690000.000780914, "outflow_m3": 3360268.941497805, "storage_start_m3": 0.0, "storage_end_m3": 329731.11917997815, "error_m3": -0.05989686923567206, "relative_error": -1.6232213881570756e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

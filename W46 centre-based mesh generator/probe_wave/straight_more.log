@@ -1,0 +1,19 @@
+straight rain: jobs written for sq10, ce10
+straight_rain_sq10: exit 0 in 14 s
+straight_rain_ce10: exit 0 in 24 s
+
+straight rain: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20     32.4 (2.38) /    64.5 (2.56) /    83.4 (2.70)    +2.9 %   73.5 min  0.280  0.0299  17488  2
+  ce20     32.4 (2.38) /    64.5 (2.56) /    83.4 (2.70)    +2.9 %   73.5 min  0.280  0.0299  17509  9  strip cells 700
+  sq10     32.9 (2.38) /    64.5 (2.58) /    82.5 (2.72)    +1.7 %   74.5 min  0.280  0.0300  26044  4
+  ce10     32.9 (2.38) /    64.6 (2.57) /    82.6 (2.73)    +1.8 %   74.5 min  0.281  0.0300  25795  14  strip cells 1400
+  sq5      32.9 (2.40) /    63.7 (2.59) /    81.1 (2.74)    +0.0 %   76.5 min  0.332  0.0294  46694  11
+straight sharp: jobs written for sq20, ce20, sq5
+straight_sharp_sq20: exit 0 in 7 s
+straight_sharp_ce20: exit 0 in 20 s
+straight_sharp_sq5: exit 0 in 13 s
+
+straight sharp: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20   1404.3 (0.94) /  1322.2 (1.17) /  1266.0 (1.39)    -0.4 %   38.5 min  1.400  0.2396  29300  6
+  ce20   1404.9 (0.94) /  1322.7 (1.17) /  1265.9 (1.39)    -0.4 %   38.5 min  1.400  0.2396  29346  16  strip cells 700
+  sq5    1404.8 (0.95) /  1330.2 (1.17) /  1271.0 (1.41)    +0.0 %   38.0 min  1.470  0.2436  90076  10

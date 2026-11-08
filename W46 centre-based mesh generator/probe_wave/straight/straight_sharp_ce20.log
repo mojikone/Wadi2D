@@ -1,0 +1,16 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\cache\\grid_f27e2150be971715b769d102.h5"}
+{"ev": "strips", "corridors": 1, "cells": 700, "triangles": 2136, "replaced": 2836, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 350, "cells": 700, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 18164, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 1.67, "t": 0.0}
+{"ev": "step", "t": 3079.826, "dt": 0.6833, "steps": 3600, "active_tiles": 28, "volume": 1137753.6, "mass_error": 2.39e-08, "wall": 2.0}
+{"ev": "step", "t": 4760.728, "dt": 0.3185, "steps": 7305, "active_tiles": 28, "volume": 1972545.7, "mass_error": 1.054e-08, "wall": 4.0}
+{"ev": "step", "t": 5939.284, "dt": 0.3182, "steps": 11041, "active_tiles": 28, "volume": 781345.3, "mass_error": -1.054e-08, "wall": 6.0}
+{"ev": "step", "t": 8226.374, "dt": 0.9108, "steps": 14635, "active_tiles": 28, "volume": 243443.5, "mass_error": -1.852e-08, "wall": 8.0}
+{"ev": "step", "t": 11490.0, "dt": 0.9198, "steps": 18225, "active_tiles": 28, "volume": 239683.8, "mass_error": -1.842e-08, "wall": 10.0}
+{"ev": "step", "t": 14850.0, "dt": 0.92, "steps": 21921, "active_tiles": 28, "volume": 239633.7, "mass_error": -1.817e-08, "wall": 12.0}
+{"ev": "step", "t": 18195.64, "dt": 0.92, "steps": 25601, "active_tiles": 28, "volume": 239620.6, "mass_error": -1.793e-08, "wall": 14.0}
+{"ev": "step", "t": 21584.72, "dt": 0.92, "steps": 29329, "active_tiles": 28, "volume": 239614.8, "mass_error": -1.932e-08, "wall": 16.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\straight_sharp_ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 4.3 m deep against the domain edge at (400730, 2700510): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\straight_sharp_ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 29346, "loop_s": 16.41, "tables_s": 1.67, "wet_area_km2": 0.5488, "dt_min": 0.31418045145222645, "balance": {"rain_m3": 0.0, "inflow_m3": 3689999.999497086, "outflow_m3": 3450385.307326208, "storage_start_m3": 0.0, "storage_end_m3": 239614.76352379716, "error_m3": -0.07135291921440512, "relative_error": -1.933683447808398e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

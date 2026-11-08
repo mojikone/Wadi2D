@@ -1,0 +1,1 @@
+{"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {"name": "gorge"}, "geometry": {"type": "Polygon", "coordinates": [[[400000.0, 2700000.0], [408400.0, 2700000.0], [408400.0, 2701000.0], [400000.0, 2701000.0], [400000.0, 2700000.0]]]}}]}

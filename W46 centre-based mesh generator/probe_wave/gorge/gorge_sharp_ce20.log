@@ -1,0 +1,12 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache\\grid_2f0500eaf138be32dfd8da48.h5"}
+{"ev": "strips", "corridors": 1, "cells": 796, "triangles": 2258, "replaced": 3226, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 398, "cells": 796, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 17774, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 2.86, "t": 0.0}
+{"ev": "step", "t": 4810.396, "dt": 0.2415, "steps": 6961, "active_tiles": 28, "volume": 2409543.5, "mass_error": -7.32e-09, "wall": 2.0}
+{"ev": "step", "t": 6524.766, "dt": 0.2338, "steps": 14392, "active_tiles": 28, "volume": 836883.8, "mass_error": -1.96e-08, "wall": 4.0}
+{"ev": "step", "t": 10720.266, "dt": 0.9396, "steps": 21551, "active_tiles": 28, "volume": 289494.0, "mass_error": -2.319e-08, "wall": 6.0}
+{"ev": "step", "t": 17130.944, "dt": 0.9448, "steps": 28519, "active_tiles": 28, "volume": 289120.4, "mass_error": -2.37e-08, "wall": 8.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_sharp_ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 4.6 m deep against the domain edge at (400730, 2700370): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_sharp_ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 33386, "loop_s": 9.86, "tables_s": 2.86, "wet_area_km2": 0.8312, "dt_min": 0.2208827986936314, "balance": {"rain_m3": 0.0, "inflow_m3": 3689999.9979659915, "outflow_m3": 3400861.7592911194, "storage_start_m3": 0.0, "storage_end_m3": 289138.3125325175, "error_m3": -0.0738576453877613, "relative_error": -2.0015622067336923e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

@@ -1,0 +1,9 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\cache\\grid_bce7e6cab78f2fb79e9b3713.h5"}
+{"ev": "strips", "corridors": 1, "cells": 4776, "triangles": 2318, "replaced": 7226, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 398, "cells": 4776, "cells_across": 12}]}
+{"ev": "start", "backend": "gpu", "cells": 13774, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 8.23, "t": 0.0}
+{"ev": "step", "t": 10673.965, "dt": 1.3311, "steps": 5791, "active_tiles": 28, "volume": 295167.6, "mass_error": -7.376e-09, "wall": 2.0}
+{"ev": "step", "t": 19348.922, "dt": 1.5231, "steps": 12256, "active_tiles": 28, "volume": 79345.1, "mass_error": -1.185e-08, "wall": 4.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\plain_rain_ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\plain\\plain_rain_ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 13881, "loop_s": 5.49, "tables_s": 8.23, "wet_area_km2": 0.0964, "dt_min": 1.2225842416277866, "balance": {"rain_m3": 586600.0030919145, "inflow_m3": 0.0, "outflow_m3": 531517.5838531, "storage_start_m3": 0.0, "storage_end_m3": 55082.42662331428, "error_m3": -0.007384499775071163, "relative_error": -1.2588645987296533e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

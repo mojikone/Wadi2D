@@ -1,0 +1,11 @@
+straight steady: jobs written for sq20, ce20, sq10, sq5
+straight_steady_sq20: exit 0 in 5 s
+straight_steady_ce20: exit 0 in 12 s
+straight_steady_sq10: exit 0 in 11 s
+straight_steady_sq5: exit 0 in 19 s
+
+straight steady: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20    300.0 (1.35) /   300.0 (1.81) /   300.0 (1.67)    -0.1 %  298.0 min  0.560  0.7429  32908  4
+  ce20    300.0 (1.54) /   300.0 (1.52) /   300.0 (1.84)    -0.1 %  298.0 min  0.560  0.7426  32896  9  strip cells 700
+  sq10    300.0 (1.40) /   300.0 (1.53) /   300.0 (1.68)    -0.1 %  297.5 min  0.420  0.7541  57449  10
+  sq5     300.0 (1.73) /   300.1 (1.35) /   300.2 (1.59)    +0.0 %  297.0 min  0.350  0.7621  117475  17

@@ -1,0 +1,10 @@
+{"ev": "warn", "message": "depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; HMS with Uniform Depth: Yes uses the mean above each analysis point instead"}
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\cache\\grid_f8e85a8e21a2576e8672238a.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 0.8, "t": 0.0}
+{"ev": "step", "t": 6360.711, "dt": 0.7095, "steps": 8508, "active_tiles": 359, "volume": 36684.1, "mass_error": -4.69e-09, "wall": 2.0}
+{"ev": "step", "t": 10584.942, "dt": 0.2708, "steps": 19268, "active_tiles": 359, "volume": 147245.4, "mass_error": -6.649e-09, "wall": 4.0}
+{"ev": "step", "t": 13710.273, "dt": 0.2782, "steps": 31555, "active_tiles": 359, "volume": 115019.9, "mass_error": -1.295e-08, "wall": 6.0}
+{"ev": "step", "t": 17803.339, "dt": 0.4306, "steps": 43409, "active_tiles": 359, "volume": 57286.2, "mass_error": -1.803e-08, "wall": 8.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\gorge\\gorge_rain_near_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 51540, "loop_s": 9.67, "tables_s": 0.8, "wet_area_km2": 0.4018, "dt_min": 0.24380246933992486, "balance": {"rain_m3": 268344.99445875816, "inflow_m3": 0.0, "outflow_m3": 237225.26846290685, "storage_start_m3": 0.0, "storage_end_m3": 31119.731453703775, "error_m3": -0.005457852472318336, "relative_error": -2.0338938996520585e-08}, "tile_steps": null, "products": "none"}
+

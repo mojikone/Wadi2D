@@ -1,0 +1,13 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\cache\\grid_9cfa38d407d6054b082443fe.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 0.34, "t": 0.0}
+{"ev": "step", "t": 3862.876, "dt": 0.262, "steps": 10969, "active_tiles": 164, "volume": 618862.7, "mass_error": 4.97e-10, "wall": 2.0}
+{"ev": "step", "t": 6062.968, "dt": 0.1649, "steps": 23217, "active_tiles": 167, "volume": 762107.6, "mass_error": -8.267e-09, "wall": 4.0}
+{"ev": "step", "t": 8070.165, "dt": 0.1649, "steps": 35394, "active_tiles": 167, "volume": 762103.5, "mass_error": -1.277e-08, "wall": 6.0}
+{"ev": "step", "t": 10083.134, "dt": 0.1649, "steps": 47606, "active_tiles": 167, "volume": 762103.6, "mass_error": -1.509e-08, "wall": 8.0}
+{"ev": "step", "t": 12142.102, "dt": 0.1649, "steps": 60097, "active_tiles": 167, "volume": 762103.7, "mass_error": -1.654e-08, "wall": 10.0}
+{"ev": "step", "t": 14166.598, "dt": 0.1649, "steps": 72379, "active_tiles": 167, "volume": 762103.6, "mass_error": -1.748e-08, "wall": 12.0}
+{"ev": "step", "t": 16463.422, "dt": 0.1649, "steps": 86313, "active_tiles": 167, "volume": 762103.6, "mass_error": -1.821e-08, "wall": 14.0}
+{"ev": "step", "t": 20116.494, "dt": 0.1649, "steps": 108475, "active_tiles": 167, "volume": 762103.7, "mass_error": -1.901e-08, "wall": 16.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\straight_steady_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 117475, "loop_s": 16.86, "tables_s": 0.34, "wet_area_km2": 0.4173, "dt_min": 0.0825365826627334, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000049418, "outflow_m3": 5177896.451361846, "storage_start_m3": 0.0, "storage_end_m3": 762103.6629895162, "error_m3": -0.1143019445007667, "relative_error": -1.9242751599295582e-08}, "tile_steps": null, "products": "none"}
+

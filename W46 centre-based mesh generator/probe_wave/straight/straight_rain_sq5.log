@@ -1,0 +1,10 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\cache\\grid_9cfa38d407d6054b082443fe.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 2.75, "t": 0.0}
+{"ev": "step", "t": 4758.75, "dt": 0.75, "steps": 6345, "active_tiles": 371, "volume": 52825.6, "mass_error": -2.837e-09, "wall": 2.0}
+{"ev": "step", "t": 9060.343, "dt": 0.3428, "steps": 13586, "active_tiles": 371, "volume": 298726.8, "mass_error": -4.085e-09, "wall": 4.0}
+{"ev": "step", "t": 11280.257, "dt": 0.2611, "steps": 23092, "active_tiles": 371, "volume": 208753.8, "mass_error": -1.174e-08, "wall": 6.0}
+{"ev": "step", "t": 14323.564, "dt": 0.4001, "steps": 32449, "active_tiles": 371, "volume": 165522.9, "mass_error": -1.526e-08, "wall": 8.0}
+{"ev": "step", "t": 18698.77, "dt": 0.5164, "steps": 42177, "active_tiles": 371, "volume": 54278.3, "mass_error": -1.964e-08, "wall": 10.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\straight\\straight_rain_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 46694, "loop_s": 11.26, "tables_s": 2.75, "wet_area_km2": 0.3837, "dt_min": 0.1897267987366215, "balance": {"rain_m3": 587650.0030974525, "inflow_m3": 0.0, "outflow_m3": 558210.8852118019, "storage_start_m3": 0.0, "storage_end_m3": 29439.129970302667, "error_m3": -0.01208465206582332, "relative_error": -2.0564369951716432e-08}, "tile_steps": null, "products": "none"}
+

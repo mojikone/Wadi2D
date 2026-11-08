@@ -1,0 +1,10 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\pools\\cache\\grid_91ef3503c8a22efa3075a4d1.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 2.42, "t": 0.0}
+{"ev": "step", "t": 4836.169, "dt": 0.0801, "steps": 20241, "active_tiles": 306, "volume": 2671157.8, "mass_error": -2.309e-10, "wall": 2.0}
+{"ev": "step", "t": 6391.034, "dt": 0.0796, "steps": 39881, "active_tiles": 306, "volume": 1149169.4, "mass_error": -1.307e-08, "wall": 4.0}
+{"ev": "step", "t": 8042.54, "dt": 0.1102, "steps": 59449, "active_tiles": 306, "volume": 426108.3, "mass_error": -1.876e-08, "wall": 6.0}
+{"ev": "step", "t": 12926.502, "dt": 0.3724, "steps": 77274, "active_tiles": 306, "volume": 331451.7, "mass_error": -1.962e-08, "wall": 8.0}
+{"ev": "step", "t": 19239.226, "dt": 0.3689, "steps": 94593, "active_tiles": 306, "volume": 331323.1, "mass_error": -1.975e-08, "wall": 10.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W46 centre-based mesh generator\\probe_wave\\pools\\pools_sharp_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 101069, "loop_s": 10.84, "tables_s": 2.42, "wet_area_km2": 2.0723, "dt_min": 0.077417002420922, "balance": {"rain_m3": 0.0, "inflow_m3": 3690000.0001442367, "outflow_m3": 3358683.116557194, "storage_start_m3": 0.0, "storage_end_m3": 331316.95515718154, "error_m3": -0.07157013873802498, "relative_error": -1.939570155426217e-08}, "tile_steps": null, "products": "none"}
+

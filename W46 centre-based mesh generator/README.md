@@ -143,14 +143,224 @@ with the error reported only by the opener; and the venv has no GDAL Python bind
 
 [Certain, measured] The 20 m aligned cells are not wrong in kind; they are wrong by 5 % at 20 m and by 1.7 % at 10 m
 on this ground, where the squares are wrong by -2.8 and -0.8 %. A design line read from them at 20 m is not within
-the 3 % rule, at 10 m it is. Rejected tonight as the mechanism: bends on aligned cells, oblique faces sampling a
-channel, the band's relaxation, the floor's width, and the deepest line lying on a face. [Likely] What every probe
-shares, and the Faydh number does not, is steady flow: each read a normal depth, where the race reads the peak of a
-wave that attenuates along 15 km of gorge, and the aligned cells' excess is a narrower flood with the same volume.
-The next experiment is an unsteady wave down a long sinuous, incised channel, squares against centres against a fine
-reference, the peak read downstream; the suspects it can tell apart are the momentum carried across coarse compound
-sections (the mean velocity of a face spanning channel and wall) and the strip's uniform rain, which takes the
-lattice's largest rate.
+the 3 % rule, at 10 m it is. Rejected as the mechanism: bends on aligned cells, oblique faces sampling a channel, the
+band's relaxation, the floor's width, and the deepest line lying on a face. What every probe above shares, and the
+Faydh number does not, is steady flow: each read a normal depth, where the race reads the peak of a wave. The
+unsteady probe below took it from there.
+
+## The unsteady probe and the Faydh split (`wave_probe.py`, `probe_wave/`; `faydh_split.py`, `race_faydh/split/`)
+
+The race's own hydrographs, read first (`race_faydh/`): the centre mesh passes the axis 0.9 % more water than the
+squares (9.85 against 9.76 Mm3, the same rain, 0.10 Mm3 less left standing in the catchment at 16 h), its centroid
+comes 5.5 min earlier, its rising limb runs 7 to 14 % above the squares from hour 9 to 12.5 and its recession 8 to
+16 % below. The squares' centroids converge from late (12.576, 12.542, 12.530 h at 20, 10, 5 m), the centre mesh's
+from early (12.484, 12.501): **the aligned cells route the flood faster than the converged answer, the squares
+slower.** So the question was whether the speed sits in the channel cells or in how the hills' water reaches them.
+
+**The synthetic valley** (`wave_probe.py`): an 8.4 km valley on a 0.5 m DEM whose centreline is a sine wave of 150 m
+amplitude and 1,200 m wavelength (radius 243 m at the bends), bed slope 1 %, Manning 0.05, one section translated
+along it: `gorge`, a channel 40 m wide and 3 m deep with 2:1 banks, a floodplain 80 m each side at 1.5 %, hills at
+25 % to the edge, so the floor rule stops at the lip and the aligned cells are the channel pair with the band on the
+floodplain; `plain`, a wadi 60 m wide and 0.8 m deep with 4:1 banks (under the scarp and the rise) and a floodplain
+100 m each side, so the rows reach the hill toe; `straight`, the gorge section with no bends, the thalweg on a
+lattice line, where the squares have no staircase and the centre generator's cells are squares. Forcings: a wave
+with a 1.5 h rise (hardly attenuates, 1.6 % over 7 km), a flash flood of 1,500 m3/s with a 20 min rise and a 40 min
+fall (Faydh's own half-peak width is 50 min), and rain on the whole valley, hills included, 70 mm in 4 h with 30 mm
+in the 20 min after hour 2, as Faydh's storm has; and the rain as a depth grid falling only within 200 m of the
+thalweg (the pair, the band, the nearest squares) or only beyond it, the run handing every strip cell its own rate
+by position. Read at a section across the whole valley 7.5 km down, against the 5 m squares of the same run:
+
+| Ground, forcing | Squares 20 m | Centres 20 m | Squares 10 m | Centres 10 m |
+|---|---|---|---|---|
+| gorge, slow wave | +0.2 % | +0.2 % | +0.1 % | +0.1 % |
+| plain, slow wave | 0.0 % | 0.0 % | -0.1 % | 0.0 % |
+| gorge, flash flood | +1.5 % | +0.1 % | +0.6 % | +0.1 % |
+| plain, flash flood | +0.4 % | +0.4 % | +0.2 % | +0.3 % |
+| straight, flash flood | -0.4 % | -0.4 % | | |
+| gorge, rain everywhere | **-3.0 %** | **+2.2 %** | +1.2 % | +2.4 % |
+| plain, rain everywhere | **-3.6 %** | **+2.3 %** | +0.4 % | +2.4 % |
+| gorge, rain within 200 m of the thalweg only | -6.4 % | -2.4 % | | |
+| gorge, rain beyond 200 m only | -5.7 % | -1.6 % | | |
+| straight, rain everywhere | **+2.9 %** | **+2.9 %, the squares' numbers to the digit** | +1.7 % | +1.8 % |
+
+[Certain, measured] Four things follow. A flood that enters as a hydrograph routes the same on both meshes and both
+converge: there is no coarse-cell error of the aligned cells in the channel, flash flood or slow wave, gorge or
+plain. Rain-fed, the pattern of Faydh appears at a third of its size: squares on the sinuous channel -3 %, centres
++2 %, the squares converging from below and the centres staying above at 10 m. On the straight valley the centre
+mesh gives the squares' numbers to the last digit (the polygon kernel on square cells is the lattice kernel), and
+both stand +2.9 % over the 5 m squares at 20 m and +1.7 % at 10 m under rain, -0.4 % under the flash flood: **the
+coarse-cell error under rain belongs to the scheme on coarse cells, squares and polygons alike, and the inflow runs
+say it is in how rain on the ground becomes flow, not in the channel.** Whether the rain falls on the strip's own
+cells or only on the hills beyond the band changes nothing between the meshes (a spread of 4.3 % either way). So on
+the synthetic sinuous channel the aligned cells carry the scheme's coarse-cell error and nothing else, while the
+squares carry it plus the staircase's slowdown of 5 to 6 %, which lands them below the converged answer. That is the
+synthetic valley's verdict; Faydh's own, below, is harsher on the strip.
+
+**Faydh itself, split** (`faydh_split.py`, 20 m, GPU, the race job with lines across the main stem 5, 10 and 15 km
+from its head and across two tributaries at mid-length; the centre mesh on all 21 stems, on the main stem alone
+(22 km, 2,189 cells) and on the 20 tributaries alone; then the rain as a depth grid within 150 m of the main stem
+only, or beyond it only). Peaks against the 20 m squares with the same rain:
+
+| Rain | Strip on | Axis | Main 5 km | Main 10 km | Main 15 km | Tributary 3 | Tributary 6 |
+|---|---|---|---|---|---|---|---|
+| everywhere | all stems | +9.0 % | +12.8 % | +15.6 % | +16.4 % | +5.0 % | +85 % of 13 m3/s |
+| everywhere | the main stem alone | +4.3 % | +11.1 % | +13.6 % | +12.7 % | -0.6 % | +23 % |
+| everywhere | the tributaries alone | +5.2 % | +1.0 % | -0.4 % | +5.6 % | +4.0 % | +94 % |
+| within 150 m of the main stem | the main stem alone | +13.7 % of 78 m3/s | +16.1 % | +18.4 % | +18.0 % | dry | dry |
+| beyond 150 m of the main stem | the main stem alone | +3.4 % of 1,699 m3/s | +11.1 % | +12.4 % | +11.1 % | -0.3 % | +4.7 % |
+
+The squares' peaks: axis 1,835, main stem 356, 629 and 884 m3/s at 5, 10 and 15 km. [Certain, measured] **The excess
+sits on each strip's own channel**: the main stem's strip alone reads 11 to 14 % above the squares on its own lines
+from 5 km on, where its catchment is a few square kilometres, and a flat 11 to 13 % along the next 10 km; the
+tributaries' strips leave the main's lines untouched (+1.0, -0.4 %) and add their own excess where they join. Whether
+the water falls on the strip and its band or comes off the hills through the squares makes no difference (+11 to
+12 % either way), so it is not the rain on polygon cells. The strip's hydrographs peak 3 to 4 min earlier.
+
+**The two kernels read side by side** (a read of `solver/cpu/kernels.py`, `faces.cu`, `cells.cu` against
+`solver/poly/kernel.py`, `poly.cu`, `strips/hybrid.py` and the two table builders; `poly.cu` matches `kernel.py`
+statement for statement). [Certain, read] The same on both paths: the rain source, each cell's own rate by position
+once per source window and `dt x source` every step with no depth gate; the dry-face threshold, the thin-sheet fade
+and the disconnected mean-surface drive; the velocity desingularisation; the upwind depth rule and the table read at
+it; the friction law; the sub-steps, each applying its own share of the source; the CFL test; the cell table and the
+Lotter sum of the face table with its depth limits. Different, none of it large: the polygon's thin-sheet section is
+the cell volume times the face length over the cell area where the lattice reads volume over the cell size, the same
+on a rectangle and not on a 5- to 8-faced band cell, and not the same as the kernel's own momentum section, volume
+over the face spacing; a polygon face's Manning n is the mean of its two cells where the lattice takes the right
+cell's, and the lining weights of the pixels are ignored on polygons; the lattice's second-order upwinding of the
+advection is first order on polygons; the strip always steps at the finest step while thin squares climb to coarser
+levels; the join face hands the lattice a velocity of q over h times dx with the depth floored and no clamp; and the
+invert clamp of a polygon face is applied after its table is built, so that face reads too little area, which slows
+polygons, not speeds them. The straight valley's identity to the digit says the physics are the same where the cells
+are squares, and the synthetic sinuous valley says the band's polygons add at most a per cent; what remains
+is the aligned cells on Faydh's real ground, read against the fine squares on the same lines.
+
+**Faydh's main stem against the converged peak** (the no-lines job at 10 and 5 m with the same lines, the main
+stem's strip at 10 m; the 5 m squares' peaks 1,887, 368, 646 and 905 m3/s at the axis and 5, 10 and 15 km):
+
+| Against the 5 m squares on the same lines | Axis | Main 5 km | Main 10 km | Main 15 km |
+|---|---|---|---|---|
+| Squares, 20 m | -2.8 % | -3.1 % | -2.6 % | -2.3 % |
+| Squares, 10 m | -0.8 % | -2.0 % | -1.6 % | -1.7 % |
+| The main stem's strip, 20 m | +1.4 % | **+7.7 %** | **+10.7 %** | **+10.1 %** |
+| The main stem's strip, 10 m | 0.0 % | +5.2 % | +6.0 % | +4.9 % |
+
+[Certain, measured] **This overturns the synthetic valley's comfort.** On Faydh's own channel the squares' staircase
+costs 2 to 3 % at 20 m, not the 8 % the axis figures suggested, and the strip stands 8 to 11 % above the converged
+peak on its own lines at 20 m and 5 to 6 % at 10 m: an excess of the aligned cells themselves, on real ground, fed
+by lateral inflow along the channel, halving with refinement and so a coarse-cell error, but one the synthetic
+channel does not have at any size (+2 %, the scheme's own) and the squares do not have on the same ground. The axis
+hides it: the main stem's strip alone reads +1.4 % there because the tributaries' water arrives through squares and
+dilutes it, and with every stem aligned the tributaries add their own share to make the race's +5 %.
+
+**A flood down the strip with no rain** (`*_flood` in `race_faydh/split/`: a flash flood of 300 m3/s, 20 min up and
+40 min down, entering the main stem 2 km below its head, read against the 10 m squares on the same lines; the
+squares at 20 and 10 m agree within 0.5 % along the stem, so the lattice is converged here):
+
+| Flood, no rain, against the 10 m squares | Main 5 km | Main 10 km | Main 15 km | Axis, 20 km |
+|---|---|---|---|---|
+| Squares, 20 m | -0.4 % | +0.1 % | -0.5 % | -3.9 % |
+| The main stem's strip, 20 m | -0.1 % | +2.2 % | +4.6 % | +7.2 % |
+| The main stem's strip, 10 m | +0.6 % | +1.8 % | +3.1 % | +7.2 % |
+
+[Certain, measured] **The strip attenuates a flood wave less than the squares on this ground, by about 0.4 % per
+kilometre, the same at 20 and 10 m.** The squares take the wave from 275 to 218 m3/s over 16 km, the strip to 234;
+the strip's centroid runs 7 min ahead at 15 km. A difference that does not shrink with the cell size is not a
+coarse-cell error but a difference of construction between the two paths; and it is not the face reading: making a
+polygon face read two distinct pixels as a lattice face does (the one sampling rule that differed on oblique faces)
+moved the axis from +7.2 to +7.1 % and the rain lines by under 1 %, so that change was taken out again. Under rain
+the strip's excess on its own lines (+8 to 11 %) is larger than the flood's at the same stations because the hills'
+water enters all along the channel and each parcel is routed with the same deficit of attenuation.
+
+[Likely] The 5 m squares are not above suspicion as the reference on this channel: Faydh's gorge channel is 5 to
+15 m wide, one to three cells at 5 m, where W3 measured the staircase's own depth error at +3.5 to +8 % on an
+oblique channel, and a deeper, slower lattice flood attenuates more. The synthetic valley, 40 m wide, 8 cells at 5 m,
+had no such bias. So the test went to a reference the staircase cannot bias.
+
+**The reach, squares to 2 m** (`faydh_reach.py`, `race_faydh/reach/` and `reach_long/`): the main stem from 4 km
+below its head in a domain 250 m either side, the same flash flood entering at 4 km, no rain, squares at 20, 10, 5
+and 2 m against the strip at 20 and 10 m, read on lines across the valley at kilometre marks. Each mark is read as
+the median of three lines 100 m apart, because on 20 m cells one line is not a reading: across the strip a line that
+falls between two station faces at a bend read half the flow (-55 %), and across 20 m squares one line read 15 %
+high where its neighbours read 5 and 3 % high; the 2 m squares' three agree to 1 %. The lattice is converged here:
+5 m within 0.2 % of 2 m on every mark.
+
+| Flood, no rain, against the 2 m squares | 6 km | 10 km | 14 km | 18 km |
+|---|---|---|---|---|
+| Squares, 20 m | +6.4 % (one line's noise) | +3.2 % | +2.5 % | **-5.0 %** |
+| Squares, 10 m | +1.8 % | +0.7 % | +0.6 % | -0.7 % |
+| Squares, 5 m | +0.1 % | 0.0 % | 0.0 % | +0.2 % |
+| The main stem's strip, 20 m | +2.0 % | +2.2 % | (two lines over-read) | **+4.2 %** |
+| The main stem's strip, 10 m | +1.4 % | +0.8 % | +1.3 % | **+3.7 %** |
+
+The 2 m squares' peaks: 288, 278, 274 and 253 m3/s, a flood that loses 16 % of its peak over the 14 km; the strip's
+loses 12 %. (The 4 to 12 km reach read alike: at 10 m both constructions within 2 % of the 2 m squares at every mark
+to 12 km, the strip +0.9 to +1.5 %, the squares +0.5 to +2.0 %.)
+
+[Certain, measured] **The strip under-attenuates a flood on Faydh's channel by about 4 % over 14 km, at 20 and 10 m
+alike, against a lattice converged to 0.2 %.** The squares at 20 m under-read the same wave by 5 % there and are
+within 0.7 % at 10 m. So on this ground the strip's error is of construction, not of cell size: it does not come
+from the sub-grid reading of the faces (tested), not from the band's polygons (the synthetic valley), not from the
+rain (the flood has none), and the lattice's own asymptote is not the culprit (5 m and 2 m agree). [Likely] What
+the synthetic channel has and Faydh's does not is a guide line that is the channel's own centreline: on Faydh the
+strip follows a D8 thalweg smoothed over five stations, so its station faces stand at an angle to the flow wherever
+the line and the channel part, and a face oblique to the flow by an angle phi reads its conveyance 1 / sqrt(cos phi)
+too high in this scheme (+3 % at 20 degrees, +7.5 % at 30), at every cell size, since the misalignment is the
+line's and not the cells'. [Certain, measured] **Tested and rejected.** The synthetic gorge with a guide line that
+wobbles 30 m either side of the true centreline every 400 m (station faces up to 25 degrees off the flow) gives the
+flash flood's peak at +0.1 % against the 5 m squares at 20 and 10 m, the gorge's own number to the digit; and the
+Faydh reach with the line smoothed over 1 and 15 stations in place of 5 moves the 18 km excess from +3.7 to +3.9
+and +2.5 % at 10 m, from +4.2 to +4.0 and +5.4 % at 20 m, a per cent either way and not with the smoothing. The
+excess does not follow the faces' alignment. What is left between the two paths is the momentum advection, a
+limited second-order upwinding on the lattice and a first-order Perot scheme on the polygons, which a prismatic
+channel never exercises and a real channel of pools and constrictions does. [Certain, measured] **Not that either:**
+the lattice run first order on the same reach (`numerics.limiter: none`, `sq*first` in `reach_long/`) moves the
+18 km peak by -0.5 % at 5 m, -0.5 % at 10 m and +1.4 % at 20 m, nowhere near the strip's +4 %, so the order of the
+advection does not make a lattice behave like the strip. Nor do expansions and contractions as such: on a synthetic
+gorge whose bed widens from 40 to 80 m and back every 300 m, the strip reads the flash flood's peak at -1.5 % (20 m)
+and -1.2 % (10 m) against the 5 m squares, the squares at 20 m -0.3 %: a little more attenuation on the strip there,
+not less.
+
+**The steady reach: where the water is** (`reach_long_steady_ramp/`, a constant 300 m3/s for 6 h down the same
+16 km, ramped up over the first hour so the maximum level is the final one; the first set, `reach_long_steady/`,
+started at 300 m3/s into a dry channel and its maximum-level rasters carried the arrival bore, with the same stored
+volumes. `reach_levels.py`, and the pixel comparison of the session: each run's final water surface laid over the
+0.5 m DEM inside the 20 m strip's footprint, the strip's cells at their own final level, the squares at theirs):
+
+| Steady 300 m3/s, against the 2 m squares | Water stored in the reach | Water surface on the footprint, mean | Water in the footprint |
+|---|---|---|---|
+| Squares, 20 m | +1.0 % | +0.08 m | +4.3 % |
+| Squares, 10 m | -1.1 % | -0.01 m | -0.1 % |
+| Squares, 5 m | -0.7 % | -0.01 m | -0.4 % |
+| The main stem's strip, 20 m | **-9.3 %** | **-0.20 m** | **-8.4 %** |
+| The main stem's strip, 10 m | **-4.2 %** | **-0.08 m** | **-3.5 %** |
+
+[Certain, measured] **At the same discharge the strip's water surface lies 0.20 m (20 m cells) and 0.08 m (10 m)
+below the converged one, over the same ground with the same storage tables** (the water under the strip's own
+final levels, counted pixel by pixel on the 0.5 m DEM, is the water the balance reports), **so it holds 8 to 9 and
+4 % less water; a flood has less to fill and rides through with less attenuation: the race's "same volume, narrower
+flood".** The depression halves with the cell size. The 20 m squares on the same channel stand 0.08 m *above* the
+converged surface and hold 1 % more water. The strip at 5 m was refused by the tiling guard, 233 m2 of 660,625
+between the diagram and the lattice (3.5e-4, not a sliver): a mesher defect at that size, recorded, not fixed.
+
+**The straight valley at steady state, the inflow ramped over an hour** (`probe_wave/straight/straight_steady_*`;
+the 5 m squares hold 2.107 m on the axis against the section's normal depth of 2.111 m by the same Lotter sum):
+
+| Steady 300 m3/s, straight valley, against the 5 m squares | Water stored | Surface on the axis |
+|---|---|---|
+| Squares, 20 m | -2.5 % | -0.11 m |
+| Centres, 20 m (the same cells) | -2.5 %, the squares' number | |
+| Squares, 10 m | -1.0 % | -0.09 m |
+
+[Certain, measured] **Where neither construction has a staircase, both stand low by about half the bed's drop within
+one cell (1 % over 20 m is 0.2 m; the surface sits 0.11 m low) and hold 2.5 % less water at 20 m, 1.0 % at 10 m,
+to the digit the same for squares and aligned cells.** [Likely] The reading behind it: a face takes its depth from
+the upwind cell's level over the face's own invert, which lies half a cell downstream of where that level is held,
+so a cell that conveys the right discharge through its downstream face stands too low over its length and its
+storage table is read too low. On Faydh's channel, steeper (1.5 to 3 %) and 2 to 3 m deep in a 20 m cell, that
+reading is 5 to 10 % of the depth, which is the strip's 9 and 4 %; the 20 m squares on the same channel hold 1.5 %
+*more* water than the converged lattice, because the lattice carries the same reading and also the staircase's
+deepening of an oblique channel one cell wide (W3's +3.5 to +8 % of depth), which here more than covers it. So
+the aligned cells do not add an error; they take one away, the one that happened to cancel the scheme's own.
 
 ## Found on the way, in order
 
@@ -175,9 +385,20 @@ lattice's largest rate.
 
 ## Not done
 
-**First, the physics of 20 m cells aligned along a thalweg on real ground**, which over-read Faydh's peak by 8 to 16 %
-under both generators while the channel gate passes: the sub-grid tables of polygon cells and faces where the deepest
-pixels lie on a face, and the hybrid step on them, against the converged squares and a bend case with an analytic
-answer. Then the split rule for over-long outer cells on a bend (his square rule's mirror: a cell over about 1.6 squares gets a
-centre); the dock controls (`generator`, the face limit, the minimum area, the bank numbers); the Bidah hybrid race;
-his drawn bank lines for calibrating `bank_rise_m` and `bank_scarp_m`; the full Block 2 run.
+**First, his call on the scheme's face reading**, found by the hunt above: a cell holds its level about half a cell's
+bed drop too low at steady flow because a face reads its depth from the upwind cell's level over the face's own
+invert, half a cell downstream; squares and aligned cells share it (2.5 % of the stored water at 20 m, 1.0 % at
+10 m on a 1 % channel; 9 and 4 % on Faydh's gorge for the strip), the squares' staircase deepening hides it on real
+channels. The candidate fix is to read the face depth from the level carried to the face (the upwind level less the
+bed's drop from the cell's centre to the face, or the two cells' mean), which touches the core kernels on both paths
+and every validation number; not built. With it, the 3 % rule should be read against the converged peak (5 m
+squares, HEC-RAS at 10 m), not against the 20 m squares, whose own error the rule had inside it. Then: the mesher
+defect that refuses the centre mesh at 5 m on the Faydh reach (233 m2 of 660,625 between the diagram and the
+lattice, over the loosened guard's 1e-4; the guard now notes a sliver under that and refuses over it); result lines
+on 20 m cells of either kind that read 15 % high or 55 % low at some stations (the reach was read as the median of
+three lines 100 m apart); the split rule for over-long outer cells on a bend (his square rule's mirror: a cell over
+about 1.6 squares gets a centre); the dock controls (`generator`, the face limit, the minimum area, the bank
+numbers); the Bidah hybrid race; his drawn bank lines for calibrating `bank_rise_m` and `bank_scarp_m`; the full
+Block 2 run. The two-pixel face reading tried and withdrawn, the small kernel differences listed above (the
+polygon's thin-sheet section, the mean Manning, the ignored lining weights, the invert clamp after the table) stay
+recorded, none measured to matter here.

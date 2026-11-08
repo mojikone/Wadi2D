@@ -1,0 +1,38 @@
+straight: DEM 16800 x 2000 pixels at 0.5 m written in 13 s
+straight: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\probe_wave\straight
+gorge rain_all: jobs written for sq20, ce20, sq5
+gorge_rain_all_sq20: exit 0 in 6 s
+gorge_rain_all_ce20: exit 0 in 11 s
+gorge_rain_all_sq5: exit 0 in 18 s
+
+gorge rain_all: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20     30.8 (2.40) /    54.8 (2.57) /    69.9 (2.84)    -3.0 %  105.0 min  0.446  0.0484  15646  2
+  ce20     31.1 (2.39) /    58.8 (2.56) /    73.6 (2.83)    +2.2 %   94.5 min  0.394  0.0441  18395  6  strip cells 796
+  sq5      31.9 (2.41) /    57.0 (2.58) /    72.0 (2.86)    +0.0 %   98.0 min  0.363  0.0377  81665  15
+gorge rain_near: jobs written for sq20, ce20, sq5
+gorge_rain_near_sq20: exit 0 in 3 s
+gorge_rain_near_ce20: exit 0 in 10 s
+gorge_rain_near_sq5: exit 0 in 12 s
+
+gorge rain_near: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20     10.9 (2.48) /    18.5 (2.87) /    25.3 (3.35)    -6.4 %  130.0 min  0.430  0.0403  13576  1
+  ce20     11.1 (2.45) /    19.6 (2.79) /    26.4 (3.25)    -2.4 %  125.5 min  0.354  0.0371  16840  6  strip cells 796
+  sq5      12.3 (2.45) /    20.2 (2.80) /    27.0 (3.28)    +0.0 %  124.5 min  0.345  0.0311  51540  10
+gorge rain_hills: jobs written for sq20, ce20, sq5
+gorge_rain_hills_sq20: exit 0 in 3 s
+gorge_rain_hills_ce20: exit 0 in 14 s
+gorge_rain_hills_sq5: exit 0 in 15 s
+
+gorge rain_hills: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20     13.5 (2.49) /    23.3 (2.90) /    31.3 (3.35)    -5.7 %  126.5 min  0.435  0.0446  13803  1
+  ce20     13.7 (2.48) /    24.6 (2.83) /    32.7 (3.22)    -1.6 %  123.0 min  0.358  0.0410  16984  8  strip cells 796
+  sq5      15.2 (2.48) /    25.2 (2.83) /    33.2 (3.25)    +0.0 %  122.0 min  0.348  0.0352  56142  13
+straight rain: jobs written for sq20, ce20, sq5
+straight_rain_sq20: exit 0 in 8 s
+straight_rain_ce20: exit 0 in 15 s
+straight_rain_sq5: exit 0 in 18 s
+
+straight rain: peak m3/s at s1 / s2 / s3 (hour), s3 against 5 m squares, half-peak width at s3, wet km2, stored at end Mm3, steps, GPU s
+  sq20     32.4 (2.38) /    64.5 (2.56) /    83.4 (2.70)    +2.9 %   73.5 min  0.280  0.0299  17488  2
+  ce20     32.4 (2.38) /    64.5 (2.56) /    83.4 (2.70)    +2.9 %   73.5 min  0.280  0.0299  17509  9  strip cells 700
+  sq5      32.9 (2.40) /    63.7 (2.59) /    81.1 (2.74)    +0.0 %   76.5 min  0.332  0.0294  46694  11
