@@ -1,0 +1,41 @@
+{
+ "dx": 30.0,
+ "coarse_dx": 60.0,
+ "steep": 0.2,
+ "steep_share": 0.9,
+ "squares_uniform": 900861,
+ "thalwegs": 432,
+ "thalweg_km": 773.1,
+ "corridors": 387,
+ "corridor_km": 555.1,
+ "rejected": {
+  "a bank on one side": 28,
+  "banks on both sides": 24,
+  "inside an accepted": 0,
+  "free stretches": 9
+ },
+ "cells_across": {
+  "2": 278,
+  "3": 48,
+  "4": 19,
+  "5": 16,
+  "6": 12,
+  "7": 9,
+  "8": 4,
+  "9": 1
+ },
+ "width_m_median": 61.7,
+ "corridor_cells": 44783,
+ "gap_triangles": 75922,
+ "squares_replaced": 90612,
+ "corridor_s": 534.0,
+ "steep_km2": 597.6,
+ "domain_km2": 810.8,
+ "coarse_tiles": 6,
+ "fine_tiles": 933,
+ "cells_30": 789644,
+ "cells_60": 5164,
+ "mountain_s": 4.3,
+ "total_cells": 915513,
+ "against_uniform": 1.0163
+}

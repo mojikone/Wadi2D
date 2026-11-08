@@ -542,10 +542,39 @@ has no pairing and covers 90 % of the stream length. The cure is to build every 
 edge rows take the bank or floor edge where one exists on that side, at the nominal half-width where none does; not
 built.
 
-**Still open after this:** that thalweg-centred corridor with bank-snapped edges, bends and confluences in the mesher
-(10 % of the stream length is dropped at goosenecks and junctions), the strips with the quadtree (coarser cells on
-the dry mountains, his wish), the bed loss on strips, the Suggest time on the full boundary, and his full-domain run
-at 30 m with the streams as corridors, which waits on his choice of mesh.
+**His rule, late in the evening, built** (`his_mesh.py`, `mesh_his.png`, `mesh_his_overview.png`, the QGIS group
+4 in `compare_meshes.qgz`): the convex idea set aside as hard to develop (`convex_check.py`: the first strong
+convex break lands 4 to 6 m outside his strokes and 11 to 12 m outside the 0.5 m margin at its best, where the 5 %
+limit lands within 0.5 and 3 m), the centre lines drive the cells, the under-5 % floor says how far the 30 m cells
+repeat across a defined wadi, 30 m on wadis and plains, bigger cells on mountains steeper than 20 % over a
+continuous slope (50 m his word; the quadtree doubles, so 60 m on 30 m).
+
+- **The corridor on the thalweg** (`strips.centre: thalweg`, in the engine with tests): the median distance from
+  the stations to the nearest floor edge of each side gives the half-widths, the rows run from one to the other in
+  30 m cells, the edge rows snap to the edge pieces where the cross line meets one and keep the median in a gap, and
+  a thalweg with edges on both sides along under half its length keeps the squares. Block 2: 387 corridors along
+  555 of 773 km (the pair-built rule covered 140 km), 44,783 cells, 75,922 triangles, 90,612 squares replaced; 278
+  corridors 2 cells across, 48 three, 61 four to nine; 28 thalwegs one-sided, 24 under the half-length gate, 9 too
+  short, all left as squares. With the 60 m mountains: 915,513 cells, +1.6 % on the uniform squares.
+- **The 60 m mountains come to 6 tiles of 957.** [Certain, counted] 74 % of the domain's cells are steeper than
+  20 %, but the engine's quadtree coarsens by tiles of 32 cells, 960 m, a 1 km2 stream network lays a stream in
+  almost every hill tile, and a tile with a corridor or a thalweg must stay at 30 m. What would change it:
+
+  | Rule for a 960 m tile at 60 m | Coarse tiles | Squares against 900,861 |
+  |---|---|---|
+  | Nine in ten cells over 20 %, every 1 km2 stream keeps its tile fine (as built) | 7 | -2 % |
+  | The same, only streams over 5 km2 keep their tile fine | 10 | -3 % |
+  | The same, only streams over 20 km2 | 54 | -17 % |
+  | The same, no stream keeps a tile fine: a corridor inside a coarse tile, which the engine cannot do yet | 95 | -31 % |
+  | Seven in ten cells over 20 %, no stream | 141 | -47 % |
+
+  [Likely] The saving he wants from the mountains, a third to a half of the cells, needs corridors inside coarse
+  tiles, which is the strips-with-quadtree join; thresholds alone give 2 to 3 %. Nothing of this was run.
+
+**Still open after this:** the strips with the quadtree (the mountain saving above), bends and confluences in the
+mesher (the thalweg corridors drop 28 % of the stream length at goosenecks, junction clearances and the half-length
+gate), the dock controls for `bank_method`, `bank_slope`, `bank_run_m` and `strips.centre`, the bed loss on strips,
+the Suggest time on the full boundary, and his full-domain run at 30 m, which waits on his choice of mesh.
 
 ## Iterations
 
