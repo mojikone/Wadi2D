@@ -1,0 +1,18 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_gentle\\cache\\grid_f9e25ef7b291fd6464f9e7fd.h5"}
+{"ev": "strips", "corridors": 1, "cells": 712, "triangles": 1990, "replaced": 2866, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 356, "cells": 712, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 18134, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 5.16, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "step", "t": 3405.447, "dt": 0.2292, "steps": 8171, "active_tiles": 28, "volume": 434102.0, "mass_error": -8.146e-09, "wall": 2.0}
+{"ev": "step", "t": 5762.67, "dt": 0.2967, "steps": 16526, "active_tiles": 28, "volume": 512084.4, "mass_error": -1.37e-08, "wall": 4.0}
+{"ev": "step", "t": 8253.56, "dt": 0.2967, "steps": 24995, "active_tiles": 28, "volume": 512076.6, "mass_error": -1.667e-08, "wall": 6.0}
+{"ev": "step", "t": 10748.01, "dt": 0.2967, "steps": 33476, "active_tiles": 28, "volume": 512061.4, "mass_error": -1.802e-08, "wall": 8.0}
+{"ev": "output", "kind": "map", "t": 10803.26346248882}
+{"ev": "step", "t": 13238.307, "dt": 0.2967, "steps": 41943, "active_tiles": 28, "volume": 512135.7, "mass_error": -1.825e-08, "wall": 10.0}
+{"ev": "step", "t": 15730.681, "dt": 0.2967, "steps": 50417, "active_tiles": 28, "volume": 512141.6, "mass_error": -1.922e-08, "wall": 12.0}
+{"ev": "step", "t": 18212.67, "dt": 0.2967, "steps": 58856, "active_tiles": 28, "volume": 512096.9, "mass_error": -1.953e-08, "wall": 14.0}
+{"ev": "step", "t": 20717.801, "dt": 0.2967, "steps": 67373, "active_tiles": 28, "volume": 512139.7, "mass_error": -1.988e-08, "wall": 16.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_gentle\\narrow_gentle_steady_ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 5.5 m deep against the domain edge at (407870, 2700470): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_gentle\\narrow_gentle_steady_ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 70373, "loop_s": 17.0, "tables_s": 5.16, "wet_area_km2": 0.042, "dt_min": 0.13978534887325458, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.0003017485, "outflow_m3": 5427881.948305128, "storage_start_m3": 0.0, "storage_end_m3": 512118.1711356953, "error_m3": -0.11913907492998987, "relative_error": -2.0057083320528228e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

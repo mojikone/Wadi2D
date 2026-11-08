@@ -1,0 +1,17 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_sine\\cache\\grid_1dd6e4c229d69a5e088c9e8d.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 2.25, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 0.75}
+{"ev": "step", "t": 3716.856, "dt": 0.0819, "steps": 23940, "active_tiles": 236, "volume": 524148.2, "mass_error": -3.167e-09, "wall": 2.0}
+{"ev": "step", "t": 5823.0, "dt": 0.0811, "steps": 49862, "active_tiles": 238, "volume": 603072.4, "mass_error": -1.183e-08, "wall": 4.0}
+{"ev": "step", "t": 7937.678, "dt": 0.0811, "steps": 75943, "active_tiles": 238, "volume": 603075.5, "mass_error": -1.537e-08, "wall": 6.0}
+{"ev": "step", "t": 10035.497, "dt": 0.0812, "steps": 101816, "active_tiles": 238, "volume": 603069.0, "mass_error": -1.632e-08, "wall": 8.0}
+{"ev": "output", "kind": "map", "t": 10800.80996673882}
+{"ev": "step", "t": 12103.955, "dt": 0.081, "steps": 127327, "active_tiles": 238, "volume": 603070.8, "mass_error": -1.746e-08, "wall": 10.0}
+{"ev": "step", "t": 14211.905, "dt": 0.0811, "steps": 153325, "active_tiles": 238, "volume": 603072.0, "mass_error": -1.819e-08, "wall": 12.0}
+{"ev": "step", "t": 16322.028, "dt": 0.0811, "steps": 179350, "active_tiles": 238, "volume": 603075.8, "mass_error": -1.866e-08, "wall": 14.0}
+{"ev": "step", "t": 18418.393, "dt": 0.0811, "steps": 205205, "active_tiles": 238, "volume": 603073.8, "mass_error": -1.894e-08, "wall": 16.0}
+{"ev": "step", "t": 20521.217, "dt": 0.0811, "steps": 231140, "active_tiles": 238, "volume": 603075.5, "mass_error": -1.956e-08, "wall": 18.0}
+{"ev": "warn", "message": "water stood 3.1 m deep against the domain edge at (400002, 2700508): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_sine\\narrow_sine_steady_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 244445, "loop_s": 19.09, "tables_s": 2.25, "wet_area_km2": 0.1827, "dt_min": 0.07739195778334204, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.999102613, "outflow_m3": 5336929.961945701, "storage_start_m3": 0.0, "storage_end_m3": 603070.1542994279, "error_m3": -0.11714251630473882, "relative_error": -1.972096234384447e-08}, "tile_steps": null, "products": "none"}
+

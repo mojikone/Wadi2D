@@ -1,0 +1,19 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow\\cache\\grid_42363c8010d5b8142cfd20c7.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 1.36, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 0.75}
+{"ev": "step", "t": 3644.936, "dt": 0.0691, "steps": 23036, "active_tiles": 167, "volume": 433661.0, "mass_error": -4.75e-09, "wall": 2.0}
+{"ev": "step", "t": 5357.238, "dt": 0.0696, "steps": 47993, "active_tiles": 167, "volume": 480831.1, "mass_error": -1.216e-08, "wall": 4.0}
+{"ev": "step", "t": 7092.507, "dt": 0.0696, "steps": 72981, "active_tiles": 167, "volume": 480830.7, "mass_error": -1.551e-08, "wall": 6.0}
+{"ev": "step", "t": 8825.202, "dt": 0.0696, "steps": 97932, "active_tiles": 167, "volume": 480830.7, "mass_error": -1.721e-08, "wall": 8.0}
+{"ev": "step", "t": 10566.663, "dt": 0.0696, "steps": 123009, "active_tiles": 167, "volume": 480830.7, "mass_error": -1.825e-08, "wall": 10.0}
+{"ev": "output", "kind": "map", "t": 10800.766897501106}
+{"ev": "step", "t": 12280.351, "dt": 0.0696, "steps": 147686, "active_tiles": 167, "volume": 480830.7, "mass_error": -1.89e-08, "wall": 12.0}
+{"ev": "step", "t": 14009.76, "dt": 0.0696, "steps": 172589, "active_tiles": 167, "volume": 480830.7, "mass_error": -1.939e-08, "wall": 14.0}
+{"ev": "step", "t": 15741.482, "dt": 0.0696, "steps": 197526, "active_tiles": 167, "volume": 480830.8, "mass_error": -1.976e-08, "wall": 16.0}
+{"ev": "step", "t": 17472.02, "dt": 0.0696, "steps": 222446, "active_tiles": 167, "volume": 480830.7, "mass_error": -2.004e-08, "wall": 18.0}
+{"ev": "step", "t": 19203.463, "dt": 0.0696, "steps": 247379, "active_tiles": 167, "volume": 480830.7, "mass_error": -2.027e-08, "wall": 20.0}
+{"ev": "step", "t": 20940.279, "dt": 0.0698, "steps": 272389, "active_tiles": 167, "volume": 480830.7, "mass_error": -2.048e-08, "wall": 22.0}
+{"ev": "warn", "message": "water stood 3.4 m deep against the domain edge at (400002, 2700508): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow\\narrow_steady_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 281889, "loop_s": 22.8, "tables_s": 1.36, "wet_area_km2": 0.168, "dt_min": 0.0610656737807318, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.0001058215, "outflow_m3": 5459169.389905946, "storage_start_m3": 0.0, "storage_end_m3": 480830.7322254259, "error_m3": -0.12202555069234222, "relative_error": -2.0543022001711838e-08}, "tile_steps": null, "products": "none"}
+

@@ -1,0 +1,32 @@
+narrow: DEM 16800 x 2000 pixels at 0.5 m written in 10 s
+narrow: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\probe\narrow
+narrow_steady_sq20: exit 0 in 12 s
+narrow_steady_ce20: exit 0 in 20 s
+narrow_steady_sq10: exit 0 in 14 s
+narrow_steady_ce10: exit 0 in 39 s
+narrow_steady_sq5: exit 0 in 26 s
+narrow_steady_sq2: exit 0 in 77 s
+
+narrow: steady 300 m3/s; depth on the axis, level and stored water against the 2 m squares
+  sq2   depth 4.407 m  (reference)
+  sq20  depth 4.384 m  level -0.037 m  stored -7.63 %
+  ce20  depth 4.382 m  level -1.124 m  stored -7.67 %
+  sq10  depth 4.384 m  level -0.037 m  stored -7.42 %
+  ce10  depth 4.378 m  level -0.975 m  stored -7.45 %
+  sq5   depth 4.382 m  level -0.025 m  stored -7.48 %
+narrow_sine: DEM 16800 x 2000 pixels at 0.5 m written in 41 s
+narrow_sine: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\probe\narrow_sine
+narrow_sine_steady_sq20: exit 0 in 9 s
+narrow_sine_steady_ce20: exit 0 in 21 s
+narrow_sine_steady_sq10: exit 0 in 13 s
+narrow_sine_steady_ce10: exit 0 in 37 s
+narrow_sine_steady_sq5: exit 0 in 23 s
+narrow_sine_steady_sq2: exit 0 in 141 s
+
+narrow_sine: steady 300 m3/s; depth on the axis, level and stored water against the 2 m squares
+  sq2   depth 4.798 m  (reference)
+  sq20  depth 7.083 m  level +2.266 m  stored +55.07 %
+  ce20  depth 4.628 m  level -0.161 m  stored +3.66 %
+  sq10  depth 5.034 m  level +0.261 m  stored +6.40 %
+  ce10  depth 4.562 m  level -0.217 m  stored -3.02 %
+  sq5   depth 4.823 m  level +0.039 m  stored +1.26 %

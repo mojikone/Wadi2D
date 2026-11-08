@@ -1,0 +1,28 @@
+narrow_sine_steady_ce5: exit 0 in 397 s
+narrow_gentle: DEM 16800 x 2000 pixels at 0.5 m written in 33 s
+narrow_gentle: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\probe\narrow_gentle
+narrow_gentle_steady_sq20: exit 0 in 10 s
+narrow_gentle_steady_ce20: exit 0 in 23 s
+narrow_gentle_steady_sq10: exit 0 in 12 s
+narrow_gentle_steady_ce10: exit 0 in 33 s
+narrow_gentle_steady_sq5: exit 0 in 23 s
+narrow_gentle_steady_ce5: exit 0 in 382 s
+narrow_gentle_steady_sq2: exit 0 in 109 s
+
+narrow_sine: steady 300 m3/s, 1 to 8 km; depth on the axis, and against the 2 m squares the level and the water held
+  sq2   depth 4.806 m  (reference)
+  sq20  depth 7.082 m  level +2.251 m  water +54.78 %
+  ce20  depth 4.569 m  level -0.220 m  water -3.26 %
+  sq10  depth 5.075 m  level +0.293 m  water +6.67 %
+  ce10  depth 4.532 m  level -0.255 m  water -4.68 %
+  sq5   depth 4.843 m  level +0.051 m  water +1.48 %
+  ce5   depth 5.368 m  level +0.645 m  water +58.78 %
+
+narrow_gentle: steady 300 m3/s, 1 to 8 km; depth on the axis, and against the 2 m squares the level and the water held
+  sq2   depth 4.605 m  (reference)
+  sq20  depth 4.697 m  level +0.105 m  water +3.22 %
+  ce20  depth 4.525 m  level -0.058 m  water -1.03 %
+  sq10  depth 4.549 m  level +0.028 m  water +0.18 %
+  ce10  depth 4.508 m  level -0.079 m  water -1.57 %
+  sq5   depth 4.561 m  level -0.025 m  water -0.54 %
+  ce5   depth 4.818 m  level +0.223 m  water +24.39 %

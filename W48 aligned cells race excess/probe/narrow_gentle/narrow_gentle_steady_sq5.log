@@ -1,0 +1,17 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_gentle\\cache\\grid_26207ac53a92c1ac2a556095.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 2.25, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 0.75}
+{"ev": "step", "t": 3678.42, "dt": 0.0867, "steps": 23326, "active_tiles": 208, "volume": 458188.8, "mass_error": -3.598e-09, "wall": 2.0}
+{"ev": "step", "t": 5782.489, "dt": 0.0812, "steps": 48858, "active_tiles": 208, "volume": 506255.3, "mass_error": -1.28e-08, "wall": 4.0}
+{"ev": "step", "t": 7837.58, "dt": 0.0817, "steps": 74136, "active_tiles": 208, "volume": 506254.9, "mass_error": -1.586e-08, "wall": 6.0}
+{"ev": "step", "t": 9924.609, "dt": 0.0816, "steps": 99806, "active_tiles": 208, "volume": 506255.1, "mass_error": -1.742e-08, "wall": 8.0}
+{"ev": "output", "kind": "map", "t": 10800.817901412081}
+{"ev": "step", "t": 11964.936, "dt": 0.0816, "steps": 124902, "active_tiles": 208, "volume": 506254.6, "mass_error": -1.831e-08, "wall": 10.0}
+{"ev": "step", "t": 14042.446, "dt": 0.0811, "steps": 150456, "active_tiles": 208, "volume": 506254.0, "mass_error": -1.901e-08, "wall": 12.0}
+{"ev": "step", "t": 16105.264, "dt": 0.0817, "steps": 175828, "active_tiles": 208, "volume": 506255.3, "mass_error": -1.944e-08, "wall": 14.0}
+{"ev": "step", "t": 18179.492, "dt": 0.0815, "steps": 201341, "active_tiles": 208, "volume": 506254.1, "mass_error": -1.978e-08, "wall": 16.0}
+{"ev": "step", "t": 20254.807, "dt": 0.0813, "steps": 226868, "active_tiles": 208, "volume": 506254.0, "mass_error": -2.004e-08, "wall": 18.0}
+{"ev": "warn", "message": "water stood 3.4 m deep against the domain edge at (400002, 2700508): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W48 aligned cells race excess\\probe\\narrow_gentle\\narrow_gentle_steady_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 243414, "loop_s": 19.36, "tables_s": 2.25, "wet_area_km2": 0.1584, "dt_min": 0.06614145149796218, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000702072, "outflow_m3": 5433744.55492772, "storage_start_m3": 0.0, "storage_end_m3": 506255.5653343836, "error_m3": -0.11956003139493987, "relative_error": -2.012795141091054e-08}, "tile_steps": null, "products": "none"}
+
