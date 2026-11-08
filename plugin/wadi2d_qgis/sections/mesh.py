@@ -12,6 +12,7 @@ from ..job_builder import (
     BREAK_CREST,
     BREAK_DEPTH,
     BREAK_DISC,
+    BREAK_OFFSET,
     BREAK_REACH,
     BREAK_RISE,
     BREAK_SLOPE,
@@ -81,6 +82,7 @@ class MeshSection(Section):
         self.bank_reach = number_box(0)
         self.bank_depth_layer = layer_combo(QgsMapLayerProxyModel.RasterLayer, "The ground alone, no run's depth map")
         self.bank_depth = number_box(2)
+        self.bank_offset = number_box(1)
         self.crest_height = number_box(2)
         self.crest_disc = number_box(0)
         self.crest_slope = number_box(2)
@@ -91,6 +93,7 @@ class MeshSection(Section):
         self.form.addRow("Look for a bank within, m", self.bank_reach)
         self.form.addRow("Banks from a run's depth map", self.bank_depth_layer)
         self.form.addRow("Flooded course deeper than, m", self.bank_depth)
+        self.form.addRow("Bank at least this many cells off the thalweg", self.bank_offset)
         self.form.addRow("Crest higher than its ground, m", self.crest_height)
         self.form.addRow("Crest narrower than twice, m", self.crest_disc)
         self.form.addRow("Crests on ground flatter than, m/m", self.crest_slope)
@@ -169,6 +172,7 @@ class MeshSection(Section):
         bind(self.bank_rise, schema, BREAK_RISE)
         bind(self.bank_reach, schema, BREAK_REACH)
         bind(self.bank_depth, schema, BREAK_DEPTH)
+        bind(self.bank_offset, schema, BREAK_OFFSET)
         bind(self.crest_height, schema, BREAK_CREST)
         bind(self.crest_disc, schema, BREAK_DISC)
         bind(self.crest_slope, schema, BREAK_SLOPE)
@@ -179,6 +183,7 @@ class MeshSection(Section):
             "bank_rise_m": self.bank_rise.value(),
             "bank_reach_m": self.bank_reach.value(),
             "bank_depth_m": self.bank_depth.value(),
+            "bank_offset_cells": self.bank_offset.value(),
             "crest_height_m": self.crest_height.value(),
             "disc_radius_m": self.crest_disc.value(),
             "ground_slope_max": self.crest_slope.value(),

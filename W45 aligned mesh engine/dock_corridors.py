@@ -42,6 +42,7 @@ def scenario(h):
         (m.bank_rise.value(), m.bank_reach.value(), m.bank_depth.value(), m.crest_height.value(), m.crest_disc.value()),
     )
     h.check("no depth map chosen", m.bank_depth_layer.currentLayer() is None and "bank_depth_map" not in m.breakline_values())
+    h.check("the bank offset is one cell and reaches the values", m.bank_offset.value() == 1.0 and m.breakline_values()["bank_offset_cells"] == 1.0, m.breakline_values())
     m.bank_rise.setValue(3.0)
     m.suggest_button.click()
     yield lambda: dock.panel.message.text() != suggest_lines.WORKING

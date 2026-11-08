@@ -56,9 +56,13 @@ BREAK_DEPTH = "breaklines.bank_depth_m"
 BREAK_CREST = "breaklines.crest_height_m"
 BREAK_DISC = "breaklines.disc_radius_m"
 BREAK_SLOPE = "breaklines.ground_slope_max"
+BREAK_OFFSET = "breaklines.bank_offset_cells"
 BREAK_KEYS = frozenset(
-    {"bank_rise_m", "bank_reach_m", "bank_depth_m", "crest_height_m", "disc_radius_m", "ground_slope_max", "bank_depth_map"}
-)
+    {
+        "bank_rise_m", "bank_reach_m", "bank_depth_m", "bank_offset_cells", "crest_height_m", "disc_radius_m",
+        "ground_slope_max", "bank_depth_map",
+    }
+)  # fmt: skip
 """What the Mesh section's Suggest settings write into the job's ``breaklines`` section."""
 MESH_FINE_AREA = "mesh.stream_area_fine_km2"
 MESH_MID_AREA = "mesh.stream_area_mid_km2"

@@ -45,6 +45,7 @@ PATHS = (
     job_builder.BREAK_CREST,
     job_builder.BREAK_DISC,
     job_builder.BREAK_SLOPE,
+    job_builder.BREAK_OFFSET,
     job_builder.STRIPS_ENABLED,
     job_builder.STRIPS_CELL_MIN,
     job_builder.STRIPS_CELL_MAX,

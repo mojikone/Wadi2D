@@ -21,7 +21,7 @@ import shapely
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from wadi2d.config.schema import RunConfig  # noqa: E402
-from wadi2d.strips.banks import corridor_specs, pair_banks, read_layers  # noqa: E402
+from wadi2d.strips.banks import CellRule, corridor_specs, pair_banks, read_layers  # noqa: E402
 from wadi2d.terrain.vector import read_features  # noqa: E402
 
 SOURCE = ROOT / "W33 backend parity" / "dock_hms_job.json"
@@ -73,7 +73,7 @@ def main(work: Path) -> None:
     cfg = RunConfig.model_validate(data)
     domain = shapely.union_all([shape for _p, shape in read_features(cfg.grid.domain, "")])
     t0 = time.perf_counter()
-    specs, cut = corridor_specs(pairs, domain, 10.0, 3, DX)
+    specs, cut, _rules = corridor_specs(pairs, domain, CellRule(), DX)
     report["corridors"], report["cut"], report["corridor_s"] = len(specs), len(cut), round(time.perf_counter() - t0, 1)
     km = sum(float(np.hypot(*np.diff(np.asarray(s["centre"]), axis=0).T).sum()) for s in specs) / 1000.0
     report["corridor_km"] = round(km, 1)
