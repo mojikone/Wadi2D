@@ -33,7 +33,11 @@ rows of centres a cell apart repeat outward to the bank. The Suggest file cuts e
 junctions, each with its outlet's area; the generator chains them into stems first, the larger inflow at every
 junction continuing downstream, so a stem carries its outlet's rank along its whole length, is placed first and runs
 unbroken through every junction, and the tributaries alone end short of it (his circles of 2026-11-08, where the
-main's upstream segment ranked below its downstream one and the band filled the seam); the lattice centres
+main's upstream segment ranked below its downstream one and the band filled the seam). The D8 streams hold braids,
+twin segments carrying the same area into one junction (a 74 m piece beside the 425 m main, a 1.4 km twin beside a
+2.1 km one): inflows within 2 % of each other's area are one stream, the longest path upstream continues, and at
+equal rank the longer stem is placed first, so a braid's twin never takes the main's continuation or its stations
+(his second round of circles); the lattice centres
 within 3.5 cells of a line centre join the diagram (those within 0.75 of a line centre go); the mesh is the clipped
 Voronoi diagram of all of them, bounded by the lattice positions beyond. A cell under 0.4 of a square loses a centre:
 a cell of a higher line squeezed by a lower line's centre drops that centre (his rule: the main stem wins the cells
@@ -67,17 +71,17 @@ with the flow forced into the band polygons (floor 20 m).**
 
 | | Count |
 |---|---|
-| Thalwegs, 1 km2 | 432 segments chained into 214 stems with cells |
-| Cells on the lines | 57,734 |
-| Cells around them | 130,222, of which exact squares 68,405 |
-| Faces per cell | 3: 290, 4: 115,095, 5: 53,734, 6: 17,093, 7: 1,627, 8: 116, 9: 1 |
-| Cells under 0.4 of a square | 1, smallest 340 m2 |
-| Faces on the lines | 23,249 |
-| Squares replaced | 196,560 |
-| Total cells against 900,861 squares | 892,257, -1.0 % |
+| Thalwegs, 1 km2 | 432 segments chained into 203 stems with cells |
+| Cells on the lines | 58,519 |
+| Cells around them | 131,013, of which exact squares 68,861 |
+| Faces per cell | 3: 278, 4: 116,116, 5: 54,373, 6: 16,984, 7: 1,664, 8: 116, 9: 1 |
+| Cells under 0.4 of a square | 2, smallest 340 m2 |
+| Faces on the lines | 23,351 |
+| Squares replaced | 198,158 |
+| Total cells against 900,861 squares | 892,235, -1.0 % |
 | Build | 101 s |
 
-The 290 three-sided cells are the end cells of stems, most over half a square; the one cell under the minimum and
+The 278 three-sided cells are the end cells of stems, most over half a square; the two cells under the minimum and
 the one over the face limit are what three merge rounds left, a rounds setting away. With the two-cell clearance a
 tributary ends two cells short of the main's outer row and a band cell sits between; the main's rows run whole
 through every junction. The strip ends 3.5 cells before

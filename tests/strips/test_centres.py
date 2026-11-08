@@ -220,6 +220,13 @@ def test_the_main_stem_is_chained_through_a_junction_and_runs_unbroken_there() -
     stems = chain_streams(segments)
     assert [round(t["area_km2"]) for t in stems] == [55, 5] and stems[0]["segments"] == 2 and stems[1]["segments"] == 1
     assert stems[0]["line"].length == pytest.approx(1500.0) and stems[0]["line"].coords[0] == (X0 + 157.5, YL)
+    # a braid: a short twin carrying the main's own area into the junction (Block 2's 74 m piece beside the 425 m
+    # main, 2026-11-08) must not take the continuation from the long path, and ranks after it at equal area
+    twin = {"line": shapely.LineString([[xj - 60.0, YL + 60.0], [xj, YL]]), "area_km2": 50.0, "incised_m": 2.0}
+    braided = chain_streams(segments + [twin])
+    assert [round(t["area_km2"]) for t in braided] == [55, 50, 5], [t["area_km2"] for t in braided]
+    assert braided[0]["segments"] == 2 and braided[0]["line"].length == pytest.approx(1500.0), "the long path continues, not the twin"
+    assert braided[1]["segments"] == 1 and braided[1]["line"].length == pytest.approx(np.hypot(60.0, 60.0))
     lines = [Line(f"stem{k}", np.asarray(t["line"].coords), t["area_km2"]) for k, t in enumerate(stems)]
     floors = []
     for line in lines:

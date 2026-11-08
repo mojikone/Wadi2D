@@ -119,14 +119,27 @@ def chain_streams(thalwegs: list[dict], tolerance: float = JUNCTION_M) -> list[d
     starts = np.array([np.asarray(t["line"].coords)[0, :2] for t in thalwegs])
     ends = np.array([np.asarray(t["line"].coords)[-1, :2] for t in thalwegs])
     areas = np.array([float(t["area_km2"]) for t in thalwegs])
+    lengths = np.array([t["line"].length for t in thalwegs])
     d, k = cKDTree(starts).query(ends)
     feeds: dict[int, list[int]] = {}  # downstream segment -> the segments ending at its start
     for i in range(len(thalwegs)):
         if d[i] <= tolerance and k[i] != i:
             feeds.setdefault(int(k[i]), []).append(i)
+    # the longest path upstream of each segment's start: the D8 streams hold braids, twin segments carrying the
+    # same area into one junction (a 74 m piece beside the 425 m main on Block 2, 2026-11-08), and the stem must
+    # continue along the long path, not the braid
+    upstream: dict[int, float] = {}
+
+    def path_above(i: int) -> float:
+        if i not in upstream:
+            upstream[i] = max((path_above(u) + lengths[u] for u in feeds.get(i, [])), default=0.0)
+        return upstream[i]
+
     continues: dict[int, int] = {}  # upstream segment -> the downstream segment it continues into
     for down, ups in feeds.items():
-        main = max(ups, key=lambda i: areas[i])
+        top = max(areas[i] for i in ups)
+        tied = [i for i in ups if areas[i] >= 0.98 * top]  # within 2 % is the same stream, split by a braid
+        main = max(tied, key=lambda i: path_above(i) + lengths[i])
         continues[main] = down
     fed = set(continues.values())
     out = []
@@ -141,7 +154,7 @@ def chain_streams(thalwegs: list[dict], tolerance: float = JUNCTION_M) -> list[d
             coords.append(np.asarray(thalwegs[i]["line"].coords)[1:, :2])  # the junction point once
         incised = float(np.mean([thalwegs[i].get("incised_m", 0.0) for i in chain]))
         out.append({"line": shapely.LineString(np.vstack(coords)), "area_km2": float(areas[chain[-1]]), "incised_m": incised, "segments": len(chain)})
-    return sorted(out, key=lambda t: -t["area_km2"])
+    return sorted(out, key=lambda t: (-t["area_km2"], -t["line"].length))  # a braid's twin stem, same area, after the long one
 
 
 def turns_of(pts: np.ndarray) -> np.ndarray:
@@ -216,7 +229,9 @@ def place_centres(
     a lower line's station within the clearance of a placed centre ends it there, and so does a station whose pair
     would stand outside the active cells (``inside``: points to a boolean array). Returns the centres and per line
     the stations it kept, for the record."""
-    order = sorted(range(len(lines)), key=lambda k: (not lines[k].hard, -lines[k].rank))
+    # hard lines first, then by rank, and at equal rank the longer line: a braid's twin stem carries the main's area
+    # and must never be placed before the main (circle 2 of 2026-11-08, where the main's stations gave way to it)
+    order = sorted(range(len(lines)), key=lambda k: (not lines[k].hard, -lines[k].rank, -shapely.LineString(lines[k].xy).length))
     xs, ls, st, sd, rw = [], [], [], [], []
     notes: list[str] = []
     kept_stations: list[list[int]] = [[] for _ in lines]
