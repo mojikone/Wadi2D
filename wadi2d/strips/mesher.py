@@ -50,10 +50,22 @@ class Corridor:
     """Where a snapped row's cross line misses its line, take the line's nearest point (the pair-built corridors,
     whose banks run the corridor's whole length); off, the node keeps its nominal offset, which a corridor on a
     thalweg wants where its floor edge has a gap."""
+    edges: dict[str, shapely.Geometry] | None = None
+    """The floor's 'left' and 'right' edges. Given, the corridor is ragged: rows of ``cell`` across stand at whole
+    multiples of it either side of the centre line, as many at each station as fit out to the nearest edge on that
+    side, one at least, so every cell is ``cell`` wide and the corridor's edge steps with the floor (his rule of
+    2026-11-07: fixed 30 m cells repeated to the 5 % extent); ``offsets`` and ``snap`` are then ignored."""
+    cell: float = 0.0
+    max_cells: int = 12
+    """Cells on one side at most: a floor wider than that is a plain, and the corridor stops at this many."""
 
     @property
     def rows(self) -> int:
         return int(self.offsets.size - 1)
+
+    @property
+    def ragged(self) -> bool:
+        return self.edges is not None
 
 
 @dataclass
@@ -164,37 +176,115 @@ def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray
     return x, y
 
 
-def folds(x: np.ndarray, y: np.ndarray) -> list[tuple[int, int]]:
+RAGGED_WINDOW = 5
+"""Stations of running median on the cells per side of a ragged corridor: the floor edge's own noise."""
+RAGGED_HOLD = 3
+"""A change of the cells per side holds only when it lasts this many stations, else the edge would notch at every bar."""
+
+
+def ragged_counts(centre: np.ndarray, edges: dict[str, shapely.Geometry], cell: float, max_cells: int) -> tuple[np.ndarray, np.ndarray]:
+    """Cells on the left and on the right at every station of a ragged corridor: the distance to the nearest edge
+    of that side over the cell, rounded, one at least, ``max_cells`` at most, smoothed by a running median and held
+    against short changes."""
+    points = shapely.points(centre)
+    out = []
+    for side in ("left", "right"):
+        d = shapely.distance(points, edges[side])
+        n = np.clip(np.round(np.where(np.isfinite(d), d, cell) / cell), 1, max_cells).astype(np.int64)
+        if n.size >= RAGGED_WINDOW:
+            n = np.array([int(np.median(n[max(0, i - RAGGED_WINDOW // 2) : i + RAGGED_WINDOW // 2 + 1])) for i in range(n.size)])
+        held = n.copy()
+        current = int(n[0]) if n.size else 1
+        i = 0
+        while i < n.size:
+            if n[i] == current:
+                held[i] = current
+                i += 1
+                continue
+            run = 1
+            while i + run < n.size and n[i + run] == n[i]:
+                run += 1
+            if run >= RAGGED_HOLD:
+                current = int(n[i])
+            held[i : i + run] = current
+            i += run
+        out.append(held)
+    return out[0], out[1]
+
+
+def corridor_cells(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """The nodes of a corridor, (stations, rows + 1), and which of its (stations - 1, rows) cells exist: all of them
+    for a structured corridor, those within the floor for a ragged one."""
+    if not c.ragged:
+        x, y = corridor_nodes(c, smooth)
+        return x, y, np.ones((x.shape[0] - 1, x.shape[1] - 1), bool)
+    centre, normal = _frame(c, smooth)
+    left, right = ragged_counts(centre, c.edges, c.cell, c.max_cells)
+    off = c.cell * np.arange(-int(right.max()), int(left.max()) + 1, dtype=np.float64)
+    x = centre[:, 0][:, None] + off[None, :] * normal[:, 0][:, None]
+    y = centre[:, 1][:, None] + off[None, :] * normal[:, 1][:, None]
+    lo = -c.cell * np.minimum(right[:-1], right[1:])  # a cell exists where both its stations reach it
+    hi = c.cell * np.minimum(left[:-1], left[1:])
+    valid = (off[None, :-1] >= lo[:, None] - 1e-9) & (off[None, 1:] <= hi[:, None] + 1e-9)
+    return x, y, valid
+
+
+def folds(x: np.ndarray, y: np.ndarray, valid: np.ndarray | None = None) -> list[tuple[int, int]]:
     """The (station, row) cells whose ring is not counter-clockwise or has no area, and the cells on a row whose
     line crosses itself two or more stations apart (a bend tighter than the row's offset: the cells overlap though
-    each keeps its area, and the corridor's ring is no longer simple)."""
+    each keeps its area, and the corridor's ring is no longer simple). ``valid`` names the cells that exist."""
     out = set()
     ns, nr = x.shape
-    for i in range(ns - 1):
-        for j in range(nr - 1):
-            xq = np.array([x[i, j], x[i + 1, j], x[i + 1, j + 1], x[i, j + 1]])
-            yq = np.array([y[i, j], y[i + 1, j], y[i + 1, j + 1], y[i, j + 1]])
-            a = 0.5 * np.sum(xq * np.roll(yq, -1) - np.roll(xq, -1) * yq)
-            if a <= 1e-6:
-                out.add((i, j))
+    if valid is None:
+        valid = np.ones((ns - 1, nr - 1), bool)
+    for i, j in np.argwhere(valid):
+        xq = np.array([x[i, j], x[i + 1, j], x[i + 1, j + 1], x[i, j + 1]])
+        yq = np.array([y[i, j], y[i + 1, j], y[i + 1, j + 1], y[i, j + 1]])
+        a = 0.5 * np.sum(xq * np.roll(yq, -1) - np.roll(xq, -1) * yq)
+        if a <= 1e-6:
+            out.add((int(i), int(j)))
     if ns > 2:
         for j in range(nr):
+            use = np.zeros(ns - 1, bool)
+            if j > 0:
+                use |= valid[:, j - 1]
+            if j < nr - 1:
+                use |= valid[:, j]
+            which = np.nonzero(use)[0]
+            if which.size < 3:
+                continue
             pts = np.column_stack((x[:, j], y[:, j]))
-            segments = shapely.linestrings(np.stack((pts[:-1], pts[1:]), axis=1))
+            segments = shapely.linestrings(np.stack((pts[which], pts[which + 1]), axis=1))
             a, b = shapely.STRtree(segments).query(segments, predicate="intersects")
-            for i, k in zip(a.tolist(), b.tolist(), strict=True):
-                if k > i + 1:  # not itself, not its neighbour, which shares a node with it
-                    out.update(((i, min(j, nr - 2)), (k, min(j, nr - 2))))
+            for ia, ib in zip(which[a].tolist(), which[b].tolist(), strict=True):
+                if ib > ia + 1:  # not itself, not its neighbour, which shares a node with it
+                    out.update(((ia, min(j, nr - 2)), (ib, min(j, nr - 2))))
     return sorted(out)
 
 
-def station_strips(x: np.ndarray, y: np.ndarray) -> np.ndarray:
-    """The polygon between each pair of stations, all rows: shapely polygons, one per station cell row."""
-    rings = [
-        np.concatenate((np.column_stack((x[i], y[i])), np.column_stack((x[i + 1, ::-1], y[i + 1, ::-1]))))
-        for i in range(x.shape[0] - 1)
-    ]
-    return shapely.polygons([shapely.linearrings(r) for r in rings]) if rings else np.empty(0, object)
+def _quad(x: np.ndarray, y: np.ndarray, i: int, j: int) -> np.ndarray:
+    return np.array([[x[i, j], y[i, j]], [x[i + 1, j], y[i + 1, j]], [x[i + 1, j + 1], y[i + 1, j + 1]], [x[i, j + 1], y[i, j + 1]]])
+
+
+def station_strips(x: np.ndarray, y: np.ndarray, valid: np.ndarray | None = None) -> np.ndarray:
+    """The polygon between each pair of stations over the cells that exist: one shapely geometry per station."""
+    ns, nr = x.shape
+    if valid is None or valid.all():
+        rings = [
+            np.concatenate((np.column_stack((x[i], y[i])), np.column_stack((x[i + 1, ::-1], y[i + 1, ::-1]))))
+            for i in range(ns - 1)
+        ]
+        return shapely.polygons([shapely.linearrings(r) for r in rings]) if rings else np.empty(0, object)
+    out = []
+    for i in range(ns - 1):
+        js = np.nonzero(valid[i])[0]
+        if js.size == 0:
+            out.append(shapely.Polygon())
+            continue
+        a, b = int(js.min()), int(js.max()) + 1  # the cells of one station are one run of rows
+        ring = np.concatenate((np.column_stack((x[i, a : b + 1], y[i, a : b + 1])), np.column_stack((x[i + 1, b : a - 1 if a > 0 else None : -1], y[i + 1, b : a - 1 if a > 0 else None : -1]))))
+        out.append(shapely.make_valid(shapely.Polygon(ring)))
+    return np.array(out, dtype=object)
 
 
 def fold_free_pieces(
@@ -204,14 +294,14 @@ def fold_free_pieces(
     ``keep_out`` (the ground beyond the active cells, other corridors), each cut ``margin`` stations clear of a bad
     one and at least ``min_stations`` long: what a corridor builder splits a corridor by, so the mesher's own
     geometry decides, not a copy of it; and whether the corridor is whole (nothing to cut)."""
-    x, y = corridor_nodes(c, smooth)
+    x, y, valid = corridor_cells(c, smooth)
     centre, _normal = _frame(c, smooth)
     n = x.shape[0]
     bad = np.zeros(max(n - 1, 0), bool)
-    for i, _j in folds(x, y):
+    for i, _j in folds(x, y, valid):
         bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
     if keep_out is not None and n > 1:
-        for i in np.nonzero(shapely.intersects(station_strips(x, y), keep_out))[0]:
+        for i in np.nonzero(shapely.intersects(station_strips(x, y, valid), keep_out))[0]:
             bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
     pieces, start = [], None
     for i in range(n - 1):
@@ -226,7 +316,11 @@ def fold_free_pieces(
     return out, not bad.any()
 
 
-def corridor_polygon(x: np.ndarray, y: np.ndarray) -> shapely.Polygon:
+def corridor_polygon(x: np.ndarray, y: np.ndarray, valid: np.ndarray | None = None) -> shapely.Geometry:
+    """The corridor's outline: the ring of a structured corridor, the union of the cells of a ragged one."""
+    if valid is not None and not valid.all():
+        quads = [shapely.Polygon(_quad(x, y, i, j)) for i, j in np.argwhere(valid)]
+        return shapely.make_valid(shapely.unary_union(quads)) if quads else shapely.Polygon()
     ring = np.concatenate(
         (
             np.column_stack((x[:, 0], y[:, 0])),
@@ -273,25 +367,29 @@ def build_strip_mesh(
     polygons: list[shapely.Polygon] = []
     breakline_edges: dict[str, set[tuple[int, int]]] = {}
     for k, c in enumerate(corridors):
-        x, y = corridor_nodes(c, smooth)
-        bad = folds(x, y)
+        x, y, valid = corridor_cells(c, smooth)
+        bad = folds(x, y, valid)
         if bad:
             stations = sorted({i for i, _j in bad})[:8]
             raise ValueError(f"corridor {c.name} folds at stations {stations}: a bend too tight for its width")
-        base = len(xs)
         ns, nr = x.shape
-        xs.extend(x.ravel().tolist())
-        ys.extend(y.ravel().tolist())
-        for i in range(ns - 1):
-            for j in range(nr - 1):
-                a, b = base + i * nr + j, base + (i + 1) * nr + j
-                rings.append(np.array([a, b, b + 1, a + 1]))
-                corridor_of.append(k)
-                row_of.append(j)
-        for j in c.snap:
-            pairs = {(base + i * nr + j, base + (i + 1) * nr + j) for i in range(ns - 1)}
-            breakline_edges[f"{c.name}:{j}"] = {(min(p), max(p)) for p in pairs}
-        polygons.append(corridor_polygon(x, y))
+        used = np.zeros((ns, nr), bool)  # the nodes of the cells that exist, and no other
+        cells_ij = np.argwhere(valid)
+        for i, j in cells_ij:
+            used[i, j] = used[i + 1, j] = used[i + 1, j + 1] = used[i, j + 1] = True
+        index = np.full((ns, nr), -1, np.int64)
+        index[used] = len(xs) + np.arange(int(used.sum()))
+        xs.extend(x[used].tolist())
+        ys.extend(y[used].tolist())
+        for i, j in cells_ij:
+            rings.append(np.array([index[i, j], index[i + 1, j], index[i + 1, j + 1], index[i, j + 1]]))
+            corridor_of.append(k)
+            row_of.append(int(j))
+        if not c.ragged:
+            for j in c.snap:
+                pairs = {(int(index[i, j]), int(index[i + 1, j])) for i in range(ns - 1)}
+                breakline_edges[f"{c.name}:{j}"] = {(min(p), max(p)) for p in pairs}
+        polygons.append(corridor_polygon(x, y, valid))
     # the lattice cells to remove: those whose box meets a buffered corridor
     jj, ii = np.nonzero(grid.mask)
     cx, cy = grid.xy_of(jj, ii)

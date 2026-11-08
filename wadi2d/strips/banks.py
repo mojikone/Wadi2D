@@ -19,7 +19,7 @@ from dataclasses import dataclass
 import numpy as np
 import shapely
 
-from wadi2d.strips.mesher import Corridor, corridor_nodes, corridor_polygon, fold_free_pieces, midline
+from wadi2d.strips.mesher import Corridor, corridor_cells, corridor_nodes, corridor_polygon, fold_free_pieces, midline
 
 BANK = "stream bank"
 GAP_CHAIN_M = 30.0
@@ -121,16 +121,20 @@ def corridor_specs_thalweg(
     reach: float = 300.0,
     min_share: float = 0.5,
     min_length: float = MIN_LENGTH_M,
+    fixed: bool = True,
+    max_cells: int = 12,
 ) -> tuple[list[dict], list[dict], list[dict]]:
-    """Corridors on the thalwegs themselves, their edge rows on the banks (his direction of 2026-11-07: the centre
-    lines drive the cells, the floor's edges say how far the cells repeat across).
+    """Corridors on the thalwegs themselves out to the banks (his direction of 2026-11-07: the centre lines drive
+    the cells, the floor's edges say how far the cells repeat across).
 
     Per thalweg, biggest first: the distance from each station to the nearest bank of its own on each side; the
     thalweg is a defined wadi where both sides have one on at least ``min_share`` of its stations, else it keeps the
-    squares. The corridor's rows run from the median right half-width to the median left one in cells of about
-    ``cell`` m, the two edge rows snapped to the bank lines where they exist and kept at the median where they do
-    not. Each corridor is cut clear of the accepted ones, the domain edge and its own folds. Returns the specs, the
-    rejected or cut pieces with why, and per corridor the width, the cells across and their size."""
+    squares. With ``fixed`` the corridor is ragged: cells of ``cell`` across at whole multiples of it either side,
+    as many at each station as fit to the bank on that side, one at least, ``max_cells`` at most (his word: not
+    varying cell sizes). Otherwise the rows run from the median right half-width to the median left one in cells of
+    about ``cell``, the two edge rows snapped to the bank lines where they exist and kept at the median where they
+    do not. Each corridor is cut clear of the accepted ones, the domain edge and its own folds. Returns the specs,
+    the rejected or cut pieces with why, and per corridor the width, the cells across and their size."""
     by_area: dict[float, dict[str, list]] = defaultdict(lambda: {"left": [], "right": []})
     for b in banks:
         by_area[b["area_km2"]][b["side"]].append(b["line"])
@@ -163,9 +167,18 @@ def corridor_specs_thalweg(
         hl = float(np.nanmedian(half["left"]))
         hr = float(np.nanmedian(half["right"]))
         width = hl + hr
-        n = max(1, int(round(width / cell)))
-        offsets = [float(v) for v in np.linspace(-hr, hl, n + 1)]
-        extent = round(max(hl, hr), 1)
+        if fixed:
+            n_left = np.clip(np.round(np.where(np.isfinite(half["left"]), half["left"], cell) / cell), 1, max_cells)
+            n_right = np.clip(np.round(np.where(np.isfinite(half["right"]), half["right"], cell) / cell), 1, max_cells)
+            n = int(np.median(n_left + n_right))
+            offsets = []
+            extent = round(cell * float(max(n_left.max(), n_right.max())), 1)
+            floor = {"left": shapely.union_all(sides["left"]), "right": shapely.union_all(sides["right"])}
+        else:
+            n = max(1, int(round(width / cell)))
+            offsets = [float(v) for v in np.linspace(-hr, hl, n + 1)]
+            extent = round(max(hl, hr), 1)
+            floor = None
         if extent not in edges:
             edges[extent] = (
                 domain.buffer(-(extent + along)),
@@ -182,9 +195,10 @@ def corridor_specs_thalweg(
         if not parts:
             rejected.append({"tag": tag, "why": f"free stretches all under {min_length:.0f} m"})
             continue
-        snap_rows = [
-            {"row": n, "coordinates": [[[float(x), float(y)] for x, y in np.asarray(ln.coords)[:, :2]] for ln in sides["left"]], "lines": sides["left"]},
-            {"row": 0, "coordinates": [[[float(x), float(y)] for x, y in np.asarray(ln.coords)[:, :2]] for ln in sides["right"]], "lines": sides["right"]},
+        lines_of = {side: [[[float(x), float(y)] for x, y in np.asarray(ln.coords)[:, :2]] for ln in sides[side]] for side in ("left", "right")}
+        snap_rows = [] if fixed else [
+            {"row": n, "coordinates": lines_of["left"], "lines": sides["left"]},
+            {"row": 0, "coordinates": lines_of["right"], "lines": sides["right"]},
         ]
         for m, part in enumerate(parts):
             spec = {
@@ -193,18 +207,22 @@ def corridor_specs_thalweg(
                 "offsets": offsets,
                 "snap": [{"row": r["row"], "coordinates": r["coordinates"]} for r in snap_rows],
             }
+            if fixed:
+                spec.update(edges_left=lines_of["left"], edges_right=lines_of["right"], cell_m=cell, max_cells=max_cells)
             snap = {r["row"]: shapely.union_all(r["lines"]) for r in snap_rows}
             keep_out = shapely.unary_union([outside, *[p.buffer(CLEAR_M) for p in polygons]])
-            pieces, cut = fold_free_specs(spec, along, keep_out=keep_out, min_length=min_length, snap=snap, snap_nearest=False)
+            pieces, cut = fold_free_specs(
+                spec, along, keep_out=keep_out, min_length=min_length, snap=snap, snap_nearest=False, edges=floor, cell=cell if fixed else 0.0
+            )
             rejected.extend({"tag": tag, "why": words} for words in cut)
             for piece in pieces:
                 accepted.append(piece)
                 rules.append({
                     "name": piece["name"], "area_km2": round(t["area_km2"], 2), "width_m": round(width, 1),
-                    "cells_across": n, "across_m": round(width / n, 1), "rows_outside": 0, "left_m": round(hl, 1), "right_m": round(hr, 1),
+                    "cells_across": n, "across_m": round(cell if fixed else width / n, 1), "rows_outside": 0, "left_m": round(hl, 1), "right_m": round(hr, 1),
                 })  # fmt: skip
-                built = Corridor(piece["name"], shapely.LineString(piece["centre"]), np.asarray(offsets), along, snap, snap_nearest=False)
-                polygons.append(corridor_polygon(*corridor_nodes(built)))
+                built = Corridor(piece["name"], shapely.LineString(piece["centre"]), np.asarray(offsets), along, snap, snap_nearest=False, edges=floor, cell=cell if fixed else 0.0, max_cells=max_cells)
+                polygons.append(corridor_polygon(*corridor_cells(built)))
     return accepted, rejected, rules
 
 
@@ -283,10 +301,13 @@ def fold_free_specs(
     min_length: float = MIN_LENGTH_M,
     snap: dict[int, shapely.Geometry] | None = None,
     snap_nearest: bool = True,
+    edges: dict[str, shapely.Geometry] | None = None,
+    cell: float = 0.0,
 ) -> tuple[list[dict], list[str]]:
     """The spec split into the pieces whose corridor does not fold and stays off ``keep_out`` (the mesher's own
     geometry), each at least MIN_LENGTH_M; and what was cut, in words. A corridor with nothing to cut comes back
-    as it is. ``snap`` gives the snapped rows' geometry when the spec's coordinates do not (several lines per row)."""
+    as it is. ``snap`` gives the snapped rows' geometry when the spec's coordinates do not (several lines per row);
+    ``edges`` and ``cell`` make the corridor ragged."""
     offsets = np.asarray(spec["offsets"], np.float64)
     if snap is None:
         snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
@@ -294,7 +315,7 @@ def fold_free_specs(
     for _round in range(SPLIT_ROUNDS):
         again = []
         for s in todo:
-            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap, snap_nearest=snap_nearest)
+            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap, snap_nearest=snap_nearest, edges=edges, cell=cell, max_cells=int(s.get("max_cells", 12)))
             pieces, whole = fold_free_pieces(c, smooth, keep_out=keep_out)
             if whole:
                 done.append(s)

@@ -992,15 +992,30 @@ class SnapRow(_Part):
 
 class CorridorSpec(_Part):
     """A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,
-    positive to the left of the line's direction; the snapped rows take the ground of their lines."""
+    positive to the left of the line's direction; the snapped rows take the ground of their lines. With the floor's
+    edges given instead, the corridor is ragged: cells of cell_m across at whole multiples of it either side of the
+    centre, as many at each station as fit out to the nearest edge on that side, one at least."""
 
     name: str
     centre: list[tuple[float, float]] = Field(min_length=2, description="The centre line, m")
-    offsets: list[float] = Field(min_length=2, description="Row offsets across, m, ascending")
+    offsets: list[float] = Field([], description="Row offsets across, m, ascending; empty for a ragged corridor")
     snap: list[SnapRow] = []
+    edges_left: list[list[tuple[float, float]]] | None = Field(None, description="The floor's left edge, as lines, m")
+    edges_right: list[list[tuple[float, float]]] | None = Field(None, description="The floor's right edge, as lines, m")
+    cell_m: float | None = Field(None, gt=0.0, description="Cell across of a ragged corridor, m")
+    max_cells: int = Field(12, ge=1, le=64, description="Cells on one side of a ragged corridor at most")
 
     @model_validator(mode="after")
     def _ascending(self) -> CorridorSpec:
+        ragged = self.edges_left is not None or self.edges_right is not None
+        if ragged:
+            if self.edges_left is None or self.edges_right is None or self.cell_m is None:
+                raise ValueError(f"corridor {self.name}: a ragged corridor needs edges_left, edges_right and cell_m")
+            if any(len(part) < 2 for part in self.edges_left + self.edges_right):
+                raise ValueError(f"corridor {self.name}: every edge line needs two points or more")
+            return self
+        if len(self.offsets) < 2:
+            raise ValueError(f"corridor {self.name}: offsets need two values or more")
         if any(b <= a for a, b in zip(self.offsets, self.offsets[1:], strict=False)):
             raise ValueError(f"corridor {self.name}: offsets must ascend")
         if any(r.row >= len(self.offsets) for r in self.snap):
@@ -1019,10 +1034,16 @@ class Strips(_Part):
     centre: Literal["pairs", "thalweg"] = Field(
         "pairs",
         description="From the banks file, 'pairs' builds a corridor on the mid-line of each left and right bank pair;"
-        " 'thalweg' builds it on the thalweg itself, its edge rows on the banks where they exist and at the median"
-        " half-width where they do not, in cells of cell_min_m across, a thalweg with banks on both sides along under"
+        " 'thalweg' builds it on the thalweg itself between the banks, a thalweg with banks on both sides along under"
         " half its length keeping the squares (his direction of 2026-11-07: the centre lines drive the cells, the"
         " floor's edges say how far they repeat)",
+    )
+    fixed_cells: bool = Field(
+        True,
+        description="On the thalweg: cells of cell_min_m across repeated at whole multiples of it out to the floor's"
+        " edge on each side, as many as fit at each station, so every cell has that width and the corridor's edge"
+        " steps with the floor (his word: not varying cell sizes); off, the rows span the median width and stretch"
+        " with it, the edge rows snapped to the banks",
     )
     cell_min_m: float = Field(
         20.0, gt=0.0, le=500.0,

@@ -71,7 +71,8 @@ def quad_cells(quad: QuadGrid, level: int) -> list[np.ndarray]:
     return out
 
 
-def main(work: Path) -> None:
+def main(work: Path, fixed: bool = False) -> None:
+    suffix = "_fixed" if fixed else ""
     cfg = base_config()
     banks, _by_area = read_layers(work / "suggest_floor" / "suggested_breaklines.gpkg")
     thalwegs = read_thalwegs(work / "suggest_floor" / "suggested_breaklines.gpkg")
@@ -81,11 +82,18 @@ def main(work: Path) -> None:
         mask = domain_mask(cfg, bed, window)
         crs = bed.crs.to_wkt() if bed.crs is not None else None
     grid = TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
-    report: dict = {"dx": DX, "coarse_dx": 2 * DX, "steep": STEEP, "steep_share": STEEP_SHARE, "squares_uniform": int(mask.sum())}
+    report: dict = {"dx": DX, "coarse_dx": 2 * DX, "steep": STEEP, "steep_share": STEEP_SHARE, "squares_uniform": int(mask.sum()), "fixed_cells": fixed}
 
     t0 = time.perf_counter()
-    specs, cut, rules = corridor_specs_thalweg(thalwegs, banks, domain, cell=DX, along=DX)
-    corridors = [Corridor(s["name"], shapely.LineString(s["centre"]), np.asarray(s["offsets"]), DX, {r["row"]: snap_geometry(r["coordinates"]) for r in s["snap"]}, snap_nearest=False) for s in specs]
+    specs, cut, rules = corridor_specs_thalweg(thalwegs, banks, domain, cell=DX, along=DX, fixed=fixed)
+    if fixed:
+        corridors = [
+            Corridor(s["name"], shapely.LineString(s["centre"]), np.zeros(0), DX, {}, snap_nearest=False,
+                     edges={"left": snap_geometry(s["edges_left"]), "right": snap_geometry(s["edges_right"])}, cell=DX, max_cells=s["max_cells"])
+            for s in specs
+        ]  # fmt: skip
+    else:
+        corridors = [Corridor(s["name"], shapely.LineString(s["centre"]), np.asarray(s["offsets"]), DX, {r["row"]: snap_geometry(r["coordinates"]) for r in s["snap"]}, snap_nearest=False) for s in specs]
     strip = build_strip_mesh(grid, corridors, 0.5 * DX, 5)
     cells_c, tri, replaced = int((strip.corridor >= 0).sum()), int((strip.corridor < 0).sum()), int(strip.masked[0].size)
     across = [r["cells_across"] for r in rules]
@@ -138,10 +146,10 @@ def main(work: Path) -> None:
     report.update(total_cells=total, against_uniform=round(total / report["squares_uniform"], 4))
     print(f"mountains: {steep_km2:.0f} of {report['domain_km2']} km2 steeper than 20 %; {report['coarse_tiles']} coarse tiles of 60 m cells ({len(coarse):,} cells) and {report['fine_tiles']} fine; 30 m squares kept {report['cells_30']:,}", flush=True)
     print(f"TOTAL {total:,} cells against {report['squares_uniform']:,} uniform squares ({100 * (report['against_uniform'] - 1):+.1f} %)", flush=True)
-    (work / "his_mesh.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
+    (work / f"his_mesh{suffix}.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
 
     # layers
-    path = work / "mesh_his.gpkg"
+    path = work / f"mesh_his{suffix}.gpkg"
     if path.exists():
         path.unlink()
     rings = cell_rings(strip.geometry)
@@ -217,7 +225,7 @@ def main(work: Path) -> None:
             ax.ticklabel_format(useOffset=False, style="plain")
         axes.ravel()[-1].axis("off")
         axes.ravel()[-1].text(0.02, 0.95, "\n".join([
-            "His rule, Block 2 at 30 m, geometry only:",
+            "His rule, Block 2 at 30 m, geometry only" + (", fixed 30 m cells to the 5 % edge:" if fixed else ", rows stretched to the median width:"),
             f"  uniform squares {report['squares_uniform']:,}",
             f"  30 m squares kept {report['cells_30']:,}",
             f"  60 m cells on the mountains {report['cells_60']:,} ({report['coarse_tiles']} tiles)",
@@ -229,9 +237,9 @@ def main(work: Path) -> None:
             "colours: blue corridor cells, orange triangles, grey 30 m squares,",
             "dark grey 60 m cells, red dashed thalwegs, green the 5 % floor edges",
         ]), va="top", fontsize=11, family="monospace")
-    fig.suptitle("His rule: 30 m cells on wadis and plains, corridors across the under-5 % floor on the 1 km2 streams, 60 m cells where the mountains are steeper than 20 %", fontsize=11)
-    fig.savefig(work / "mesh_his.png", bbox_inches="tight")
-    print("wrote", work / "mesh_his.png", flush=True)
+    fig.suptitle("His rule: 30 m cells on wadis and plains, corridors across the under-5 % floor on the 1 km2 streams" + (" in fixed 30 m cells repeated to the edge" if fixed else "") + ", 60 m cells where the mountains are steeper than 20 %", fontsize=11)
+    fig.savefig(work / f"mesh_his{suffix}.png", bbox_inches="tight")
+    print("wrote", work / f"mesh_his{suffix}.png", flush=True)
 
     x0, y0, x1, y1 = domain.bounds
     fig, ax = plt.subplots(figsize=(12, 12 * (y1 - y0) / (x1 - x0)), dpi=120)
@@ -266,9 +274,9 @@ def main(work: Path) -> None:
     ax.set_aspect("equal")
     ax.tick_params(labelsize=6)
     ax.ticklabel_format(useOffset=False, style="plain")
-    fig.savefig(work / "mesh_his_overview.png", bbox_inches="tight")
-    print("wrote", work / "mesh_his_overview.png", flush=True)
+    fig.savefig(work / f"mesh_his{suffix}_overview.png", bbox_inches="tight")
+    print("wrote", work / f"mesh_his{suffix}_overview.png", flush=True)
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), fixed=len(sys.argv) > 2 and sys.argv[2] == "fixed")

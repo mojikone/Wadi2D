@@ -547,7 +547,7 @@
     },
     "CorridorSpec": {
       "additionalProperties": false,
-      "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\npositive to the left of the line's direction; the snapped rows take the ground of their lines.",
+      "description": "A strip of cells aligned with a line (W45): stations along the centre line, rows at the offsets across it,\npositive to the left of the line's direction; the snapped rows take the ground of their lines. With the floor's\nedges given instead, the corridor is ragged: cells of cell_m across at whole multiples of it either side of the\ncentre, as many at each station as fit out to the nearest edge on that side, one at least.",
       "properties": {
         "name": {
           "title": "Name",
@@ -573,11 +573,11 @@
           "type": "array"
         },
         "offsets": {
-          "description": "Row offsets across, m, ascending",
+          "default": [],
+          "description": "Row offsets across, m, ascending; empty for a ragged corridor",
           "items": {
             "type": "number"
           },
-          "minItems": 2,
           "title": "Offsets",
           "type": "array"
         },
@@ -588,12 +588,91 @@
           },
           "title": "Snap",
           "type": "array"
+        },
+        "edges_left": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The floor's left edge, as lines, m",
+          "title": "Edges Left"
+        },
+        "edges_right": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The floor's right edge, as lines, m",
+          "title": "Edges Right"
+        },
+        "cell_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Cell across of a ragged corridor, m",
+          "title": "Cell M"
+        },
+        "max_cells": {
+          "default": 12,
+          "description": "Cells on one side of a ragged corridor at most",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Max Cells",
+          "type": "integer"
         }
       },
       "required": [
         "name",
-        "centre",
-        "offsets"
+        "centre"
       ],
       "title": "CorridorSpec",
       "type": "object"
@@ -2737,13 +2816,19 @@
         },
         "centre": {
           "default": "pairs",
-          "description": "From the banks file, 'pairs' builds a corridor on the mid-line of each left and right bank pair; 'thalweg' builds it on the thalweg itself, its edge rows on the banks where they exist and at the median half-width where they do not, in cells of cell_min_m across, a thalweg with banks on both sides along under half its length keeping the squares (his direction of 2026-11-07: the centre lines drive the cells, the floor's edges say how far they repeat)",
+          "description": "From the banks file, 'pairs' builds a corridor on the mid-line of each left and right bank pair; 'thalweg' builds it on the thalweg itself between the banks, a thalweg with banks on both sides along under half its length keeping the squares (his direction of 2026-11-07: the centre lines drive the cells, the floor's edges say how far they repeat)",
           "enum": [
             "pairs",
             "thalweg"
           ],
           "title": "Centre",
           "type": "string"
+        },
+        "fixed_cells": {
+          "default": true,
+          "description": "On the thalweg: cells of cell_min_m across repeated at whole multiples of it out to the floor's edge on each side, as many as fit at each station, so every cell has that width and the corridor's edge steps with the floor (his word: not varying cell sizes); off, the rows span the median width and stretch with it, the edge rows snapped to the banks",
+          "title": "Fixed Cells",
+          "type": "boolean"
         },
         "cell_min_m": {
           "default": 20.0,
@@ -3471,6 +3556,7 @@
         "corridors": [],
         "banks": null,
         "centre": "pairs",
+        "fixed_cells": true,
         "cell_min_m": 20.0,
         "cell_max_m": 50.0,
         "width_fraction": 0.25,

@@ -56,7 +56,7 @@ def corridors_of(
         banks, by_area = read_layers(cfg.banks)
         if cfg.centre == "thalweg":
             built, cut, rules = corridor_specs_thalweg(
-                read_thalwegs(cfg.banks), banks, domain, cfg.cell_min_m, along, min_length=cfg.min_length_m
+                read_thalwegs(cfg.banks), banks, domain, cfg.cell_min_m, along, min_length=cfg.min_length_m, fixed=cfg.fixed_cells
             )
         else:
             pairs = pair_banks(banks, by_area, min_length=cfg.min_length_m)
@@ -69,7 +69,13 @@ def corridors_of(
     out = []
     for spec in specs:
         snap = {row.row: snap_geometry(row.coordinates) for row in spec.snap}
-        out.append(Corridor(spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap, snap_nearest=snap_nearest))
+        edges = None
+        if spec.edges_left is not None:
+            edges = {"left": snap_geometry(spec.edges_left), "right": snap_geometry(spec.edges_right)}
+        out.append(Corridor(
+            spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap,
+            snap_nearest=snap_nearest, edges=edges, cell=spec.cell_m or 0.0, max_cells=spec.max_cells,
+        ))  # fmt: skip
     return out, notes, rules
 
 

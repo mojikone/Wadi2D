@@ -156,6 +156,22 @@ def test_a_job_builds_its_corridor_from_the_suggest_banks_file(tilted_dem, tmp_p
     assert on_banks == 2  # both banks carry a row of faces
 
 
+def test_a_ragged_corridor_on_the_thalweg_runs_and_closes_its_books(tilted_dem, tmp_path) -> None:  # noqa: F811
+    """His rule: the thalweg drives the cells, fixed cells repeat to the banks; the banks here are 4 m either side on a
+    4 m plane, so two cells of 2 m on each side."""
+    banks = banks_file(tmp_path / "suggested_breaklines.gpkg", MID_Y + 4.0, MID_Y - 4.0, X0 + 30.0, X0 + 170.0)
+    strips = {"enabled": True, "banks": str(banks), "centre": "thalweg", "cell_min_m": 2.0, "min_length_m": 60.0}
+    out = tmp_path / "ragged"
+    run = run_job(plane_job(tilted_dem, strips), out)
+    assert run.exit_code == 0, run.message
+    assert abs(run.balance.relative) < 1e-6
+    events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+    (built,) = [e for e in events if e.get("ev") == "strips"]
+    (rule,) = built["rules"]
+    assert rule["across_m"] == 2.0 and rule["cells_across"] == 4 and built["cells"] > 0
+    assert built["cells"] % 4 == 0  # four cells of 2 m across at every station of the straight corridor
+
+
 def _strip_depths(out) -> list[tuple[float, float, float]]:
     """(x, y, max depth) of every strip cell from the run's strip mesh."""
     import sqlite3

@@ -3,6 +3,7 @@ save the project. Run inside QGIS (the Python console or the engine link)."""
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from qgis.core import (
@@ -19,8 +20,9 @@ from qgis.utils import iface
 
 WORK = Path(r"D:\Mojtaba\Renardet\Wadi2D\W45 aligned mesh engine\stream_corridors")
 DEM = Path(r"D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif")
-MESH = WORK / "mesh_his.gpkg"
-GROUP = "4. His rule: 30 m, corridors across the 5 % floor, 60 m mountains over 20 %"
+SUFFIX = os.environ.get("WADI2D_MESH_SUFFIX", "")
+MESH = WORK / f"mesh_his{SUFFIX}.gpkg"
+GROUP = ("5. His rule with fixed 30 m cells repeated to the 5 % edge, 60 m mountains" if SUFFIX else "4. His rule: 30 m, corridors across the 5 % floor, 60 m mountains over 20 %")
 
 
 def fill(colour: str, outline: str, width: str) -> QgsFillSymbol:
@@ -50,7 +52,7 @@ def main() -> None:
         root.removeChildNode(old)
     for n in range(root.children().__len__()):  # the other mesh groups off, so this one shows alone
         child = root.children()[n]
-        if hasattr(child, "setItemVisibilityChecked") and child.name()[:2] in ("1.", "2.", "3."):
+        if hasattr(child, "setItemVisibilityChecked") and child.name()[:2] in ("1.", "2.", "3.", "4.", "5.") and child.name() != GROUP:
             child.setItemVisibilityChecked(False)
     group = root.insertGroup(0, GROUP)
     add(project, group, QgsVectorLayer(f"{MESH}|layername=thalwegs", "Thalwegs, 1 km2 streams", "ogr"),
