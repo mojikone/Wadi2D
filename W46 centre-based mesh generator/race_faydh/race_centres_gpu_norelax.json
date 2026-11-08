@@ -1,0 +1,39 @@
+{
+ "none": {
+  "axis_peak_m3s": 1835.17,
+  "at_h": 12.208333333333334,
+  "steps": 88589,
+  "loop_s": 13.36,
+  "mass_error": -2.0325573323006008e-08
+ },
+ "rings": {
+  "axis_peak_m3s": 1879.92,
+  "at_h": 12.241666666666667,
+  "steps": 134632,
+  "loop_s": 35.7,
+  "mass_error": -2.0575231795276592e-08,
+  "strips": {
+   "corridors": 39,
+   "cells": 10716,
+   "triangles": 7719,
+   "replaced": 10215,
+   "cut": 0
+  }
+ },
+ "centres": {
+  "axis_peak_m3s": 2002.34,
+  "at_h": 12.208333333333334,
+  "steps": 93834,
+  "loop_s": 30.11,
+  "mass_error": -1.6652898115307072e-08,
+  "strips": {
+   "corridors": 40,
+   "cells": 6068,
+   "triangles": 16409,
+   "replaced": 23577,
+   "cut": 40
+  }
+ },
+ "centres_against_none": 1.0910923783627673,
+ "rings_against_none": 1.0243846619114305
+}

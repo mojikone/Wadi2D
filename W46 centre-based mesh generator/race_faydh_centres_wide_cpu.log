@@ -1,0 +1,7 @@
+faydh20_centres_wide: exit 0 in 2319 s
+none: axis peak 1834.8 m3/s at 12.21 h, 88547 steps, 496 s, mass error -1.8e-09
+rings: axis peak 1889.2 m3/s at 12.21 h, 143017 steps, 1425 s, mass error 3.2e-08; strip cells 10716, squares replaced 10215
+centres: axis peak 2003.7 m3/s at 12.24 h, 185827 steps, 2255 s, mass error -7.2e-02; strip cells 8868, squares replaced 26635
+centres against no lines: 1.0920 (+9.2 %); the rule is 3 %: FAIL
+rings against no lines: 1.0296
+__EXIT__ 0

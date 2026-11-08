@@ -1,0 +1,6 @@
+faydh20_centres_gpu: exit 0 in 106 s
+none: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+rings: axis peak 1879.9 m3/s at 12.24 h, 134632 steps, 36 s, mass error -2.1e-08; strip cells 10716, squares replaced 10215
+centres: axis peak 1987.0 m3/s at 12.21 h, 94152 steps, 40 s, mass error -1.3e-08; strip cells 6068, squares replaced 23577
+centres against no lines: 1.0828 (+8.3 %); the rule is 3 %: FAIL
+rings against no lines: 1.0244

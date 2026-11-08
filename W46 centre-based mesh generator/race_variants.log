@@ -1,0 +1,15 @@
+faydh20_centres_gpu_rings_thalweg: exit 0 in 95 s
+none: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+rings: axis peak 1879.9 m3/s at 12.24 h, 134632 steps, 36 s, mass error -2.1e-08; strip cells 10716, squares replaced 10215
+centres: axis peak 2124.6 m3/s at 12.24 h, 113627 steps, 55 s, mass error -1.7e-09; strip cells 5643, squares replaced 12359
+centres against no lines: 1.1577 (+15.8 %); the rule is 3 %: FAIL
+rings against no lines: 1.0244
+faydh20_centres_gpu_norelax: exit 0 in 88 s
+none: axis peak 1835.2 m3/s at 12.21 h, 88589 steps, 13 s, mass error -2.0e-08
+rings: axis peak 1879.9 m3/s at 12.24 h, 134632 steps, 36 s, mass error -2.1e-08; strip cells 10716, squares replaced 10215
+centres: axis peak 2002.3 m3/s at 12.21 h, 93834 steps, 30 s, mass error -1.7e-08; strip cells 6068, squares replaced 23577
+centres against no lines: 1.0911 (+9.1 %); the rule is 3 %: FAIL
+rings against no lines: 1.0244
+faydh10_none_gpu exit 0
+faydh5_none_gpu exit 0
+__EXIT__ 0
