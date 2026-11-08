@@ -1,0 +1,14 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\race_faydh\\cache\\grid_c51ccdb21ba89130ab3ab6e2.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 25.34, "t": 0.0}
+{"ev": "step", "t": 14821.1, "dt": 1.0998, "steps": 6012, "active_tiles": 222, "volume": 35888.2, "mass_error": -1.878e-09, "wall": 2.0}
+{"ev": "step", "t": 21499.674, "dt": 0.5961, "steps": 15169, "active_tiles": 222, "volume": 179570.2, "mass_error": -1.001e-09, "wall": 4.0}
+{"ev": "step", "t": 26550.0, "dt": 0.5428, "steps": 24121, "active_tiles": 222, "volume": 368006.1, "mass_error": -6.795e-10, "wall": 6.0}
+{"ev": "step", "t": 31530.515, "dt": 0.5133, "steps": 33659, "active_tiles": 222, "volume": 575500.6, "mass_error": -2.621e-09, "wall": 8.0}
+{"ev": "step", "t": 37426.739, "dt": 0.5774, "steps": 44225, "active_tiles": 222, "volume": 973487.6, "mass_error": -7.883e-09, "wall": 10.0}
+{"ev": "step", "t": 43050.342, "dt": 0.3415, "steps": 55345, "active_tiles": 222, "volume": 5409794.8, "mass_error": -6.056e-09, "wall": 12.0}
+{"ev": "step", "t": 47365.399, "dt": 0.3388, "steps": 68354, "active_tiles": 222, "volume": 2332998.1, "mass_error": -1.809e-08, "wall": 14.0}
+{"ev": "step", "t": 52500.57, "dt": 0.5739, "steps": 80348, "active_tiles": 222, "volume": 1270474.6, "mass_error": -2.111e-08, "wall": 16.0}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\race_faydh\\sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 89214, "loop_s": 17.95, "tables_s": 25.34, "wet_area_km2": 5.5296, "dt_min": 0.3248982393248032, "balance": {"rain_m3": 10739179.144878443, "inflow_m3": 0.0, "outflow_m3": 9759668.204274997, "storage_start_m3": 0.0, "storage_end_m3": 979511.1776685549, "error_m3": -0.2370651087258011, "relative_error": -2.2074788540878228e-08}, "tile_steps": null, "products": "none"}
+

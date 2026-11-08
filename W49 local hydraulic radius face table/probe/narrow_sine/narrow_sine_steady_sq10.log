@@ -1,0 +1,15 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe\\narrow_sine\\cache\\grid_526eba71d13b2d688e01afad.h5"}
+{"ev": "start", "backend": "gpu", "cells": 84000, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 8.88, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 1.5}
+{"ev": "step", "t": 3511.857, "dt": 0.197, "steps": 13342, "active_tiles": 105, "volume": 513883.0, "mass_error": -2.088e-10, "wall": 2.0}
+{"ev": "step", "t": 6425.767, "dt": 0.165, "steps": 30603, "active_tiles": 107, "volume": 710005.8, "mass_error": -1.076e-08, "wall": 4.0}
+{"ev": "step", "t": 9255.547, "dt": 0.1607, "steps": 47944, "active_tiles": 107, "volume": 710035.7, "mass_error": -9.134e-09, "wall": 6.0}
+{"ev": "output", "kind": "map", "t": 10801.631202797516}
+{"ev": "step", "t": 12069.744, "dt": 0.1626, "steps": 65200, "active_tiles": 107, "volume": 710018.5, "mass_error": -1.057e-08, "wall": 8.0}
+{"ev": "step", "t": 14446.738, "dt": 0.1642, "steps": 79774, "active_tiles": 107, "volume": 709995.6, "mass_error": -1.156e-08, "wall": 10.0}
+{"ev": "step", "t": 17048.83, "dt": 0.1673, "steps": 95727, "active_tiles": 107, "volume": 710012.2, "mass_error": -1.199e-08, "wall": 12.0}
+{"ev": "step", "t": 19944.575, "dt": 0.1668, "steps": 113482, "active_tiles": 107, "volume": 710201.6, "mass_error": -1.265e-08, "wall": 14.0}
+{"ev": "warn", "message": "water stood 3.6 m deep against the domain edge at (400005, 2700515): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe\\narrow_sine\\narrow_sine_steady_sq10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 123630, "loop_s": 15.16, "tables_s": 8.88, "wet_area_km2": 0.2349, "dt_min": 0.1393592617331211, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000904547, "outflow_m3": 5229414.060644232, "storage_start_m3": 0.0, "storage_end_m3": 710586.0185674017, "error_m3": -0.07830708636902273, "relative_error": -1.3183011171228632e-08}, "tile_steps": null, "products": "none"}
+

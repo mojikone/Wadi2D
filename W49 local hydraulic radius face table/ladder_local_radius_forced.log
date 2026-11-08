@@ -1,0 +1,29 @@
+................................F....................................... [ 32%]
+........................................................................ [ 64%]
+........................................................................ [ 96%]
+.......                                                                  [100%]
+================================== FAILURES ===================================
+___________ test_the_channel_depth_holds_the_rule_on_polygons[45.0] ___________
+
+theta = 45.0
+
+    @pytest.mark.parametrize("theta", [0.0, 45.0])
+    def test_the_channel_depth_holds_the_rule_on_polygons(theta: float) -> None:
+        ratio, steps = run_channel(theta, "poly")
+>       assert ratio == pytest.approx(1.0, abs=RULE), (ratio, steps)
+E       AssertionError: (1.0318450282542464, 2781)
+E       assert 1.0318450282542464 == 1.0 ± 0.03
+E         
+E         comparison failed
+E         Obtained: 1.0318450282542464
+E         Expected: 1.0 ± 0.03
+
+tests\solver\test_poly.py:138: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\cupy\_environment.py:286
+  D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/solver/test_poly.py::test_the_channel_depth_holds_the_rule_on_polygons[45.0]
