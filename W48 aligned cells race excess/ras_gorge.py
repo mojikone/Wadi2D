@@ -49,7 +49,9 @@ HALF_M = 60.0
 X_IN, X_OUT = 150.0, wp.LENGTH - 150.0
 """The gorge ends pulled in: on the sine the 60 m offsets at an end lean up to 47 m along x, and must stay on the DEM."""
 DURATION_H = 5
-MESHES = {"sq5": (5.0, False, "1SEC"), "sq20": (20.0, False, "4SEC"), "al20": (20.0, True, "4SEC"), "al10": (10.0, True, "2SEC")}
+MESHES = {"sq5": (5.0, False, "1SEC"), "sq20": (20.0, False, "4SEC"), "al20": (20.0, True, "4SEC"), "al10": (10.0, True, "2SEC"),
+          "sq2p5": (2.5, False, "1SEC")}
+"""sq2p5: does HEC-RAS converge toward the face sum as its faces shrink (W48, the wall-shear question)?"""
 NAME = "Gorge"
 
 
