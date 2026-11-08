@@ -1,0 +1,23 @@
+{
+ "dx": 30.0,
+ "stream_area_km2": 1.0,
+ "rows_across": 2,
+ "suggest_s": 0.0,
+ "thalwegs": 432,
+ "thalweg_km": 773.1,
+ "incised_thalwegs": 431,
+ "incised_km": 771.4,
+ "corridors": 391,
+ "corridor_km": 694.3,
+ "cut": 376,
+ "specs_s": 57.0,
+ "squares": 900861,
+ "grid_s": 0.5,
+ "corridor_cells": 45858,
+ "triangles": 91629,
+ "replaced": 100154,
+ "total_cells": 938194,
+ "extra_cells": 37333,
+ "extra_share": 0.0414,
+ "strip_s": 64.1
+}

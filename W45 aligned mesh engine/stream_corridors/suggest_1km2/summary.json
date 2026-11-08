@@ -1,0 +1,18 @@
+{
+ "path": "W45 aligned mesh engine\\stream_corridors\\suggest_1km2\\suggested_breaklines.gpkg",
+ "layer": "breaklines",
+ "thalweg_layer": "thalwegs",
+ "pixel_m": 5.0,
+ "banks": 3552,
+ "crests": 6722,
+ "crest_kinds": {
+  "other crest": 6383,
+  "dam": 339
+ },
+ "thalwegs": 432,
+ "banks_from": "ground",
+ "bank_rule": "ground 2 m over the bed of the wadi",
+ "bank_km": 1114.15,
+ "crest_km": 1035.0,
+ "thalweg_km": 773.12
+}

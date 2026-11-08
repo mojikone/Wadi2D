@@ -1,0 +1,5 @@
+streams at 1 km2: 432 thalwegs over 773 km (771.4 km incised over 0.5 m), suggest 0.0 s
+corridors: 391 along 694 km in 57.0 s, 376 pieces cut at folds, edges or neighbours
+plain squares at 30 m: 900,861 in 0.5 s
+strip mesh: 45,858 corridor cells, 91,629 gap triangles, 100,154 squares replaced, in 64.1 s
+TOTAL 938,194 cells against 900,861 squares: +37,333 (+4.14 %)
