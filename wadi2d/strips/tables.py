@@ -22,7 +22,7 @@ from numba import njit
 from wadi2d.config.schema import Tables
 from wadi2d.solver.poly.mesh import PolyMesh
 from wadi2d.strips.geometry import MeshGeometry
-from wadi2d.tables.core import _cell_table, _face_table
+from wadi2d.tables.core import _cell_table, _face_table, _local_radius_conveyance
 
 
 @dataclass
@@ -109,6 +109,22 @@ def _owners(ring_start, ring_node, x, y, x0, y0, p, nr, nc):
     return owner
 
 
+def face_line(pix: Pixels, ax: float, ay: float, bx: float, by: float, reach: float) -> tuple[np.ndarray, int, int, float]:
+    """The ground along a face's line at the face's own sample spacing, reaching ``reach`` metres past both ends
+    (W49, the local hydraulic radius's window); the face's own samples are ``[i0, i1)``, the same as ``face_profile``."""
+    length = float(np.hypot(bx - ax, by - ay))
+    m = max(int(np.ceil(length / pix.pixel - 1e-9)), 1)
+    spacing = length / m
+    extra = int(np.ceil(reach / max(spacing, 1e-9)))
+    t = (np.arange(-extra, m + extra) + 0.5) / m
+    xs, ys = ax + (bx - ax) * t, ay + (by - ay) * t
+    nx, ny = (by - ay) / max(length, 1e-12), -(bx - ax) / max(length, 1e-12)
+    off = 0.5 * pix.pixel
+    z1 = _sample(pix.z, pix.pixel, pix.x0, pix.y0, xs - off * nx, ys - off * ny)
+    z2 = _sample(pix.z, pix.pixel, pix.x0, pix.y0, xs + off * nx, ys + off * ny)
+    return np.maximum(z1, z2), extra, extra + m, spacing
+
+
 def face_profile(pix: Pixels, ax: float, ay: float, bx: float, by: float) -> tuple[np.ndarray, float]:
     """Ground along a segment at the pixel spacing: the higher of the pixels either side of it; and the spacing."""
     length = float(np.hypot(bx - ax, by - ay))
@@ -191,6 +207,9 @@ def build_poly_tables(
         zf[k], ef[k] = _face_table(
             prof, lift, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, cfg.face_depth_min, cfg.face_depth_max, ftab_one
         )
+        if cfg.face_conveyance == "local_radius" and np.isnan(lift):
+            line, i0, i1, step = face_line(pix, geo.x[a], geo.y[a], geo.x[b], geo.y[b], cfg.local_radius_beta * ef[k])
+            _local_radius_conveyance(line, i0, i1, zf[k], ef[k], step, 1.0 / n_face, np.ones(i1 - i0), 1.0, cfg.local_radius_beta, ftab_one)
         ftab[k] = ftab_one
     cw = np.zeros(m) if given_cw is None else np.asarray(given_cw, dtype=np.float64)[kept]
     mesh = PolyMesh(

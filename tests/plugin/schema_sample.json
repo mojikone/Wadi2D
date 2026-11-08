@@ -3105,6 +3105,24 @@
           "title": "Face Depth Min",
           "type": "number"
         },
+        "face_conveyance": {
+          "default": "strips",
+          "description": "How a face's conveyance is read from the pixels across it. 'strips': each pixel's own depth, plan width, no shear on the walls (the divided-channel sum to the pixel, as SFINCS, 3Di and TUFLOW's sub-grid default), which reads a narrow deep channel shallow, about 17 % at a width-to-depth ratio of 2.5 (W48). 'local_radius': each pixel's local hydraulic radius after Spada et al. (2015, HESSD 12, 2607, eqs. 14 to 17), the wetted area over the wetted perimeter, slopes included, in a window of local_radius_beta depths either side along the face's line, weighted linearly to zero at its ends and reaching past the face's own ends, so the walls carry their shear whatever the cell size (W49). The same on a wide flat bed",
+          "enum": [
+            "strips",
+            "local_radius"
+          ],
+          "title": "Face Conveyance",
+          "type": "string"
+        },
+        "local_radius_beta": {
+          "default": 9.0,
+          "description": "The window of the local hydraulic radius, in local depths either side: 9 is Spada et al.'s calibration on the HR Wallingford flood channel series; near 0 it is the strips sum with slopes, very large the whole section's hydraulic radius",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Local Radius Beta",
+          "type": "number"
+        },
         "crest_tolerance": {
           "default": 0.05,
           "description": "A face is a natural crest when its invert exceeds both mean beds by this, m",
@@ -3715,6 +3733,8 @@
         "rows": 16,
         "face_depth_max": 16.0,
         "face_depth_min": 8.0,
+        "face_conveyance": "strips",
+        "local_radius_beta": 9.0,
         "crest_tolerance": 0.05
       }
     },

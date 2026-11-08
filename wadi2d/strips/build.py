@@ -189,6 +189,8 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     grid = tables.grid
     geo = strip.geometry
     pad = 2.0 * grid.dx
+    if cfg.tables.face_conveyance == "local_radius":  # the window reaches past every face's ends (W49)
+        pad += cfg.tables.local_radius_beta * cfg.tables.face_depth_max
     x_lo, x_hi = float(geo.x.min()) - pad, float(geo.x.max()) + pad
     y_lo, y_hi = float(geo.y.min()) - pad, float(geo.y.max()) + pad
     k = round(grid.dx / bed.pixel)

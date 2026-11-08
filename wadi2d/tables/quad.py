@@ -74,6 +74,8 @@ def build_quad_tables(
 
     ``edit`` and ``lining`` are the hooks of ``build_tables``: they work on pixels, so they do not care for the cell size.
     """
+    if cfg.face_conveyance != "strips":
+        raise ValueError("the local hydraulic radius face conveyance (W49) is built for the uniform grid and the strips, not yet the quadtree")
     k0 = round(grid.dx / bed.pixel)
     if abs(k0 * bed.pixel - grid.dx) > 1e-6 * grid.dx:
         raise ValueError(f"cell size {grid.dx} is not a multiple of the pixel {bed.pixel}")

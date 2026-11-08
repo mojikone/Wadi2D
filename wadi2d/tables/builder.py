@@ -15,7 +15,7 @@ from wadi2d.config.constants import CRITICAL_WEIR_COEFF
 from wadi2d.config.schema import Tables
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.solver.layout import CLOSED, TILE
-from wadi2d.tables.core import centre_beds, tile_tables
+from wadi2d.tables.core import centre_beds, tile_local_radius, tile_tables
 
 
 class BedSource(Protocol):
@@ -142,14 +142,23 @@ def build_tables(
     w_ftabx = np.zeros((TILE, TILE, rows, 2))
     w_ftaby = np.zeros((TILE, TILE, rows, 2))
     npix = np.full((1, 1), np.nan)
+    local = cfg.face_conveyance == "local_radius"
+    margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
+    """W49: a face's line reaches this many pixels past its ends, for the local hydraulic radius's window."""
     zcx_g = np.zeros((ny, nx))
     zcy_g = np.zeros((ny, nx))
     for t in range(1, nt):
         tj, ti = grid.tiles[t]
         j0, i0 = int(tj) * TILE, int(ti) * TILE
-        z = bed.read(j0 * k - 1, i0 * k - 1, TILE * k + 1, TILE * k + 1)
-        if edit is not None:
-            edit(z, j0 * k - 1, i0 * k - 1)
+        if local:
+            zbig = bed.read(j0 * k - 1 - margin, i0 * k - 1 - margin, TILE * k + 1 + 2 * margin, TILE * k + 1 + 2 * margin)
+            if edit is not None:
+                edit(zbig, j0 * k - 1 - margin, i0 * k - 1 - margin)
+            z = np.ascontiguousarray(zbig[margin : margin + TILE * k + 1, margin : margin + TILE * k + 1])
+        else:
+            z = bed.read(j0 * k - 1, i0 * k - 1, TILE * k + 1, TILE * k + 1)
+            if edit is not None:
+                edit(z, j0 * k - 1, i0 * k - 1)
         if lining is not None:
             npix = np.full(z.shape, np.nan)
             lining(z, npix, j0 * k - 1, i0 * k - 1)
@@ -160,6 +169,11 @@ def build_tables(
             cfg.face_depth_min, cfg.face_depth_max,
             w_zmin, w_rel, w_hc, w_dtab, w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby,
         )  # fmt: skip
+        if local:
+            tile_local_radius(
+                zbig, margin, k, TILE, bed.pixel, nman[sl], npix, crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl],
+                w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby, cfg.local_radius_beta,
+            )  # fmt: skip
         zmin_g[sl], rel_g[sl], zfx_g[sl], zfy_g[sl] = w_zmin, w_rel, w_zfx, w_zfy
         cx_bed, cy_bed = centre_beds(z, k, TILE)
         zcx_g[sl], zcy_g[sl] = cx_bed - w_zmin, cy_bed - w_zmin

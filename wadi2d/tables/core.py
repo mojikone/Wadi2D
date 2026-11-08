@@ -80,6 +80,106 @@ def _face_table(
 
 
 @njit(cache=True)
+def _local_radius_conveyance(
+    ext: np.ndarray,
+    i0: int,
+    i1: int,
+    zf: float,
+    top: float,
+    pixel: float,
+    n_inv: float,
+    weight: np.ndarray,
+    length: float,
+    beta: float,
+    tab: np.ndarray,
+) -> None:
+    """Overwrite the conveyance column of a face table with Spada et al.'s local hydraulic radius (W49).
+
+    ``ext`` is the ground along the face's line at the pixel spacing, reaching past the face's own pixels
+    ``[i0, i1)`` on both sides; the table's levels are the ones ``_face_table`` used, ``zf + top (r / m)^2``. At each
+    level a pixel i of the face conveys (1/n) d_i R_i^(2/3) per unit width, R_i the wetted area over the wetted
+    perimeter (ground slope included) over the pixels within beta d_i of it on the same wet run, each weighted
+    1 - |s - s_i| / (beta d_i) (Spada et al. 2015, eqs. 14 to 17). Window sums by prefix sums: linear in the line's
+    length, whatever the window. On a flat bed R_i = d_i, the strips sum exactly."""
+    n = ext.size
+    rows = tab.shape[0]
+    last = rows - 1
+    d = np.zeros(n)
+    per = np.zeros(n)
+    run_lo = np.zeros(n, np.int64)
+    run_hi = np.zeros(n, np.int64)
+    s0 = np.zeros(n + 1)
+    s1 = np.zeros(n + 1)
+    p0 = np.zeros(n + 1)
+    p1 = np.zeros(n + 1)
+    pix2 = pixel * pixel
+    for r in range(rows):
+        level = zf + top * (r / last) ** 2
+        for t in range(n):
+            dep = level - ext[t]
+            d[t] = dep if dep > 0.0 else 0.0
+        # the wetted perimeter: the ground between pixel centres taken as straight, each segment counted only where it
+        # lies under the water, so a pixel just wet adds a sliver, not its whole slope (continuous in the level)
+        for t in range(n):
+            per[t] = 0.0
+        if d[0] > 0.0:
+            per[0] += 0.5 * pixel
+        if d[n - 1] > 0.0:
+            per[n - 1] += 0.5 * pixel
+        for t in range(n - 1):
+            wa, wb = d[t] > 0.0, d[t + 1] > 0.0
+            if not (wa or wb):
+                continue
+            rise = ext[t + 1] - ext[t]
+            seg = np.sqrt(pix2 + rise * rise)
+            if wa and wb:
+                per[t] += 0.5 * seg
+                per[t + 1] += 0.5 * seg
+            elif wa:
+                per[t] += min(d[t] / rise, 1.0) * seg if rise > 0.0 else 0.5 * pixel
+            elif -rise > 0.0:
+                per[t + 1] += min(d[t + 1] / -rise, 1.0) * seg
+            else:
+                per[t + 1] += 0.5 * pixel
+        start = -1
+        for t in range(n):
+            if d[t] > 0.0:
+                if start < 0:
+                    start = t
+                run_lo[t] = start
+            else:
+                start = -1
+        end = -1
+        for t in range(n - 1, -1, -1):
+            if d[t] > 0.0:
+                if end < 0:
+                    end = t
+                run_hi[t] = end
+            else:
+                end = -1
+        for t in range(n):
+            s0[t + 1] = s0[t] + d[t]
+            s1[t + 1] = s1[t] + t * d[t]
+            p0[t + 1] = p0[t] + per[t]
+            p1[t + 1] = p1[t] + t * per[t]
+        conv = 0.0
+        for i in range(i0, i1):
+            di = d[i]
+            if di <= 0.0:
+                continue
+            w = max(beta * di / pixel, 1e-9)
+            lo = max(run_lo[i], int(np.ceil(i - w)))
+            hi = min(run_hi[i], int(np.floor(i + w)))
+            a_sum = (1.0 - i / w) * (s0[i + 1] - s0[lo]) + (s1[i + 1] - s1[lo]) / w
+            a_sum += (1.0 + i / w) * (s0[hi + 1] - s0[i + 1]) - (s1[hi + 1] - s1[i + 1]) / w
+            p_sum = (1.0 - i / w) * (p0[i + 1] - p0[lo]) + (p1[i + 1] - p1[lo]) / w
+            p_sum += (1.0 + i / w) * (p0[hi + 1] - p0[i + 1]) - (p1[hi + 1] - p1[i + 1]) / w
+            radius = pixel * a_sum / p_sum if p_sum > 0.0 else di
+            conv += weight[i - i0] * di * np.cbrt(radius) ** 2
+        tab[r, 1] = (pixel * n_inv * conv * length) ** 0.6
+
+
+@njit(cache=True)
 def _lined(pixel_n: float, cell_n: float) -> float:
     """Conveyance of a pixel over what the cell's n gives it."""
     return 1.0 if np.isnan(pixel_n) else cell_n / pixel_n
@@ -157,3 +257,54 @@ def centre_beds(z: np.ndarray, k: int, tile: int) -> tuple[np.ndarray, np.ndarra
         zcx = 0.5 * (columns[:, :, k // 2 - 1] + columns[:, :, k // 2])
         zcy = 0.5 * (rows[:, k // 2 - 1, :] + rows[:, k // 2, :])
     return zcx, zcy
+
+
+@njit(cache=True, parallel=True)
+def tile_local_radius(
+    zbig: np.ndarray,
+    margin: int,
+    k: int,
+    tile: int,
+    pixel: float,
+    nman: np.ndarray,
+    npix: np.ndarray,
+    xcrest: np.ndarray,
+    xlen: np.ndarray,
+    ycrest: np.ndarray,
+    ylen: np.ndarray,
+    zfx: np.ndarray,
+    efx: np.ndarray,
+    ftabx: np.ndarray,
+    zfy: np.ndarray,
+    efy: np.ndarray,
+    ftaby: np.ndarray,
+    beta: float,
+) -> None:
+    """The local hydraulic radius on a tile's own faces, after ``tile_tables`` (W49). ``zbig`` is the tile's pixel block
+    of ``tile_tables`` with ``margin`` more pixels on every side, so a face's line reaches past its own ends; ``npix``
+    is the lining of the block without the margin. Crest faces keep their table: their cap reads the crest."""
+    lined = npix.shape[0] > 1
+    for j in prange(tile):
+        weight = np.ones(k)
+        for i in range(tile):
+            r0, c0 = 1 + j * k, 1 + i * k
+            if np.isnan(xcrest[j, i]):
+                e = min(margin, int(np.ceil(beta * efx[j, i] / pixel)))
+                ext = np.empty(k + 2 * e)
+                for t in range(k + 2 * e):
+                    rr = margin + r0 - e + t
+                    ext[t] = max(zbig[rr, margin + c0 - 1], zbig[rr, margin + c0])
+                for q in range(k):
+                    near, far = zbig[margin + r0 + q, margin + c0], zbig[margin + r0 + q, margin + c0 - 1]
+                    weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i]) if lined else 1.0
+                _local_radius_conveyance(ext, e, e + k, zfx[j, i], efx[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], beta, ftabx[j, i])
+            if np.isnan(ycrest[j, i]):
+                e = min(margin, int(np.ceil(beta * efy[j, i] / pixel)))
+                ext = np.empty(k + 2 * e)
+                for t in range(k + 2 * e):
+                    cc = margin + c0 - e + t
+                    ext[t] = max(zbig[margin + r0 - 1, cc], zbig[margin + r0, cc])
+                for q in range(k):
+                    near, far = zbig[margin + r0, margin + c0 + q], zbig[margin + r0 - 1, margin + c0 + q]
+                    weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i]) if lined else 1.0
+                _local_radius_conveyance(ext, e, e + k, zfy[j, i], efy[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], beta, ftaby[j, i])
