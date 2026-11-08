@@ -1,0 +1,12 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\race\\cache\\grid_825e7f1b5f2bff6a646f6942.h5"}
+{"ev": "start", "backend": "gpu", "cells": 188814, "tiles": 222, "dx": 20.0, "duration_s": 57600.0, "tables_s": 13.61, "t": 0.0}
+{"ev": "step", "t": 18390.646, "dt": 0.6463, "steps": 10202, "active_tiles": 222, "volume": 98150.8, "mass_error": -6.399e-10, "wall": 2.0}
+{"ev": "step", "t": 26461.108, "dt": 0.5563, "steps": 23824, "active_tiles": 222, "volume": 362572.7, "mass_error": -3.488e-09, "wall": 4.0}
+{"ev": "step", "t": 33897.694, "dt": 0.4994, "steps": 37750, "active_tiles": 222, "volume": 692012.6, "mass_error": -6.941e-09, "wall": 6.0}
+{"ev": "step", "t": 41393.653, "dt": 0.5681, "steps": 51456, "active_tiles": 222, "volume": 1943930.5, "mass_error": -6.646e-09, "wall": 8.0}
+{"ev": "step", "t": 46859.313, "dt": 0.3371, "steps": 66625, "active_tiles": 222, "volume": 2471158.9, "mass_error": -1.647e-08, "wall": 10.0}
+{"ev": "step", "t": 53748.069, "dt": 0.4837, "steps": 81345, "active_tiles": 222, "volume": 1133730.5, "mass_error": -2.039e-08, "wall": 12.0}
+{"ev": "warn", "message": "water stood 12.3 m deep against the domain edge at (424376, 2726850): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\race\\sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 57600.0, "duration_s": 57600.0, "steps": 88410, "loop_s": 13.27, "tables_s": 13.61, "wet_area_km2": 5.4088, "dt_min": 0.32977761464135136, "balance": {"rain_m3": 10739179.144878443, "inflow_m3": 0.0, "outflow_m3": 9789649.853060763, "storage_start_m3": 0.0, "storage_end_m3": 949529.5177839951, "error_m3": -0.22596631513442844, "relative_error": -2.1041302327300562e-08}, "tile_steps": null, "products": "none"}
+

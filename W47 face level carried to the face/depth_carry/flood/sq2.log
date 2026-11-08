@@ -1,0 +1,66 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\flood\\cache\\grid_8cf0a4493854621ef5c8a665.h5"}
+{"ev": "start", "backend": "gpu", "cells": 1961400, "tiles": 2197, "dx": 2.0, "duration_s": 21600.0, "tables_s": 14.7, "t": 0.0}
+{"ev": "step", "t": 1623.475, "dt": 0.0915, "steps": 15721, "active_tiles": 210, "volume": 32469.5, "mass_error": -1.464e-09, "wall": 2.0}
+{"ev": "step", "t": 2967.574, "dt": 0.0615, "steps": 33455, "active_tiles": 367, "volume": 218402.5, "mass_error": 2.268e-09, "wall": 4.0}
+{"ev": "step", "t": 3817.516, "dt": 0.0632, "steps": 47324, "active_tiles": 479, "volume": 434258.8, "mass_error": 1.709e-09, "wall": 6.0}
+{"ev": "step", "t": 4440.546, "dt": 0.0606, "steps": 57169, "active_tiles": 643, "volume": 539111.1, "mass_error": 4.862e-09, "wall": 8.0}
+{"ev": "step", "t": 4905.207, "dt": 0.0619, "steps": 64801, "active_tiles": 758, "volume": 587809.8, "mass_error": 9.02e-09, "wall": 10.0}
+{"ev": "step", "t": 5293.107, "dt": 0.064, "steps": 70969, "active_tiles": 863, "volume": 609182.7, "mass_error": 1.253e-08, "wall": 12.0}
+{"ev": "step", "t": 5642.231, "dt": 0.0656, "steps": 76360, "active_tiles": 947, "volume": 616844.6, "mass_error": 1.438e-08, "wall": 14.0}
+{"ev": "step", "t": 5963.527, "dt": 0.0673, "steps": 81201, "active_tiles": 1024, "volume": 623270.5, "mass_error": 1.701e-08, "wall": 16.0}
+{"ev": "step", "t": 6268.102, "dt": 0.0691, "steps": 85673, "active_tiles": 1088, "volume": 629362.0, "mass_error": 1.932e-08, "wall": 18.0}
+{"ev": "step", "t": 6541.352, "dt": 0.0712, "steps": 89825, "active_tiles": 1127, "volume": 631641.2, "mass_error": 2.181e-08, "wall": 20.0}
+{"ev": "step", "t": 6733.481, "dt": 0.0359, "steps": 94001, "active_tiles": 1127, "volume": 602177.4, "mass_error": 2.297e-08, "wall": 22.0}
+{"ev": "step", "t": 6899.144, "dt": 0.0391, "steps": 98217, "active_tiles": 1127, "volume": 565966.0, "mass_error": 2.407e-08, "wall": 24.0}
+{"ev": "step", "t": 7079.02, "dt": 0.0564, "steps": 102430, "active_tiles": 1127, "volume": 527966.9, "mass_error": 2.543e-08, "wall": 26.0}
+{"ev": "step", "t": 7289.175, "dt": 0.0574, "steps": 106633, "active_tiles": 1127, "volume": 489460.9, "mass_error": 2.647e-08, "wall": 28.0}
+{"ev": "step", "t": 7506.579, "dt": 0.046, "steps": 110793, "active_tiles": 1127, "volume": 452817.4, "mass_error": 2.76e-08, "wall": 30.0}
+{"ev": "step", "t": 7723.992, "dt": 0.049, "steps": 114969, "active_tiles": 1127, "volume": 419268.9, "mass_error": 2.86e-08, "wall": 32.0}
+{"ev": "step", "t": 7905.135, "dt": 0.0319, "steps": 119177, "active_tiles": 1127, "volume": 400521.3, "mass_error": 2.96e-08, "wall": 34.0}
+{"ev": "step", "t": 8106.458, "dt": 0.0536, "steps": 123377, "active_tiles": 1127, "volume": 373664.2, "mass_error": 3.055e-08, "wall": 36.0}
+{"ev": "step", "t": 8290.301, "dt": 0.0365, "steps": 127585, "active_tiles": 1127, "volume": 350276.1, "mass_error": 3.133e-08, "wall": 38.0}
+{"ev": "step", "t": 8476.188, "dt": 0.0293, "steps": 131785, "active_tiles": 1127, "volume": 331451.4, "mass_error": 3.184e-08, "wall": 40.0}
+{"ev": "step", "t": 8672.342, "dt": 0.0385, "steps": 135985, "active_tiles": 1127, "volume": 313954.1, "mass_error": 3.263e-08, "wall": 42.0}
+{"ev": "step", "t": 8875.147, "dt": 0.0327, "steps": 140185, "active_tiles": 1127, "volume": 297221.0, "mass_error": 3.31e-08, "wall": 44.0}
+{"ev": "step", "t": 9082.799, "dt": 0.064, "steps": 144361, "active_tiles": 1127, "volume": 282605.0, "mass_error": 3.347e-08, "wall": 46.0}
+{"ev": "step", "t": 9293.905, "dt": 0.0319, "steps": 148561, "active_tiles": 1127, "volume": 267768.0, "mass_error": 3.407e-08, "wall": 48.0}
+{"ev": "step", "t": 9466.342, "dt": 0.0348, "steps": 152777, "active_tiles": 1127, "volume": 259743.0, "mass_error": 3.458e-08, "wall": 50.0}
+{"ev": "step", "t": 9611.873, "dt": 0.0337, "steps": 157009, "active_tiles": 1127, "volume": 252896.7, "mass_error": 3.49e-08, "wall": 52.0}
+{"ev": "step", "t": 9762.074, "dt": 0.0385, "steps": 161249, "active_tiles": 1127, "volume": 246332.6, "mass_error": 3.522e-08, "wall": 54.0}
+{"ev": "step", "t": 9940.41, "dt": 0.0457, "steps": 165505, "active_tiles": 1127, "volume": 239473.4, "mass_error": 3.556e-08, "wall": 56.02}
+{"ev": "step", "t": 10143.156, "dt": 0.0431, "steps": 169697, "active_tiles": 1127, "volume": 232893.9, "mass_error": 3.598e-08, "wall": 58.02}
+{"ev": "step", "t": 10423.4, "dt": 0.0753, "steps": 173849, "active_tiles": 1127, "volume": 225929.8, "mass_error": 3.662e-08, "wall": 60.02}
+{"ev": "step", "t": 10725.298, "dt": 0.0893, "steps": 177993, "active_tiles": 1127, "volume": 219550.3, "mass_error": 3.728e-08, "wall": 62.02}
+{"ev": "step", "t": 11061.718, "dt": 0.0914, "steps": 182105, "active_tiles": 1127, "volume": 214956.5, "mass_error": 3.819e-08, "wall": 64.02}
+{"ev": "step", "t": 11413.664, "dt": 0.0755, "steps": 186209, "active_tiles": 1127, "volume": 211932.0, "mass_error": 3.897e-08, "wall": 66.02}
+{"ev": "step", "t": 11781.657, "dt": 0.0914, "steps": 190297, "active_tiles": 1127, "volume": 210231.3, "mass_error": 3.972e-08, "wall": 68.02}
+{"ev": "step", "t": 12153.655, "dt": 0.0914, "steps": 194377, "active_tiles": 1127, "volume": 209499.5, "mass_error": 4.056e-08, "wall": 70.02}
+{"ev": "step", "t": 12527.18, "dt": 0.0914, "steps": 198473, "active_tiles": 1127, "volume": 209290.6, "mass_error": 4.1e-08, "wall": 72.02}
+{"ev": "step", "t": 12900.091, "dt": 0.0914, "steps": 202563, "active_tiles": 1127, "volume": 209254.7, "mass_error": 4.13e-08, "wall": 74.02}
+{"ev": "step", "t": 13272.702, "dt": 0.0914, "steps": 206649, "active_tiles": 1127, "volume": 209247.8, "mass_error": 4.173e-08, "wall": 76.02}
+{"ev": "step", "t": 13646.226, "dt": 0.0914, "steps": 210745, "active_tiles": 1127, "volume": 209242.5, "mass_error": 4.225e-08, "wall": 78.02}
+{"ev": "step", "t": 14016.031, "dt": 0.0914, "steps": 214801, "active_tiles": 1127, "volume": 209237.5, "mass_error": 4.272e-08, "wall": 80.02}
+{"ev": "step", "t": 14389.373, "dt": 0.0914, "steps": 218895, "active_tiles": 1127, "volume": 209233.6, "mass_error": 4.305e-08, "wall": 82.02}
+{"ev": "step", "t": 14760.822, "dt": 0.0914, "steps": 222969, "active_tiles": 1127, "volume": 209229.2, "mass_error": 4.339e-08, "wall": 84.02}
+{"ev": "step", "t": 15131.422, "dt": 0.0914, "steps": 227033, "active_tiles": 1127, "volume": 209224.6, "mass_error": 4.382e-08, "wall": 86.02}
+{"ev": "step", "t": 15504.215, "dt": 0.0914, "steps": 231121, "active_tiles": 1127, "volume": 209220.9, "mass_error": 4.407e-08, "wall": 88.02}
+{"ev": "step", "t": 15876.214, "dt": 0.0914, "steps": 235201, "active_tiles": 1127, "volume": 209217.7, "mass_error": 4.422e-08, "wall": 90.02}
+{"ev": "step", "t": 16249.739, "dt": 0.0914, "steps": 239297, "active_tiles": 1127, "volume": 209214.4, "mass_error": 4.444e-08, "wall": 92.02}
+{"ev": "step", "t": 16623.198, "dt": 0.0914, "steps": 243393, "active_tiles": 1127, "volume": 209211.6, "mass_error": 4.458e-08, "wall": 94.02}
+{"ev": "step", "t": 16996.723, "dt": 0.0914, "steps": 247489, "active_tiles": 1127, "volume": 209209.8, "mass_error": 4.479e-08, "wall": 96.02}
+{"ev": "step", "t": 17370.091, "dt": 0.0914, "steps": 251584, "active_tiles": 1127, "volume": 209208.9, "mass_error": 4.493e-08, "wall": 98.02}
+{"ev": "step", "t": 17744.347, "dt": 0.0914, "steps": 255688, "active_tiles": 1127, "volume": 209208.4, "mass_error": 4.503e-08, "wall": 100.02}
+{"ev": "step", "t": 18117.962, "dt": 0.0914, "steps": 259785, "active_tiles": 1127, "volume": 209208.1, "mass_error": 4.53e-08, "wall": 102.02}
+{"ev": "step", "t": 18491.149, "dt": 0.0914, "steps": 263878, "active_tiles": 1127, "volume": 209208.1, "mass_error": 4.53e-08, "wall": 104.02}
+{"ev": "step", "t": 18866.41, "dt": 0.0914, "steps": 267993, "active_tiles": 1127, "volume": 209208.2, "mass_error": 4.529e-08, "wall": 106.02}
+{"ev": "step", "t": 19239.869, "dt": 0.0914, "steps": 272089, "active_tiles": 1127, "volume": 209208.3, "mass_error": 4.532e-08, "wall": 108.02}
+{"ev": "step", "t": 19614.856, "dt": 0.0914, "steps": 276201, "active_tiles": 1127, "volume": 209208.6, "mass_error": 4.534e-08, "wall": 110.02}
+{"ev": "step", "t": 19987.585, "dt": 0.0914, "steps": 280289, "active_tiles": 1127, "volume": 209209.3, "mass_error": 4.524e-08, "wall": 112.02}
+{"ev": "step", "t": 20364.045, "dt": 0.0914, "steps": 284417, "active_tiles": 1127, "volume": 209209.8, "mass_error": 4.538e-08, "wall": 114.02}
+{"ev": "step", "t": 20691.576, "dt": 0.0914, "steps": 288009, "active_tiles": 1127, "volume": 209210.1, "mass_error": 4.542e-08, "wall": 116.02}
+{"ev": "step", "t": 21017.645, "dt": 0.0914, "steps": 291585, "active_tiles": 1127, "volume": 209211.0, "mass_error": 4.55e-08, "wall": 118.02}
+{"ev": "step", "t": 21370.696, "dt": 0.0914, "steps": 295457, "active_tiles": 1127, "volume": 209211.6, "mass_error": 4.551e-08, "wall": 120.02}
+{"ev": "warn", "message": "water stood 8.2 m deep against the domain edge at (421336, 2729515): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\flood\\sq2\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 297972, "loop_s": 122.94, "tables_s": 14.7, "wet_area_km2": 0.5809, "dt_min": 0.025070990138422535, "balance": {"rain_m3": 0.0, "inflow_m3": 936000.0000507804, "outflow_m3": 726787.969746422, "storage_start_m3": 0.0, "storage_end_m3": 209211.98773333136, "error_m3": 0.04257102697738446, "relative_error": 4.548186642636205e-08}, "tile_steps": null, "products": "none"}
+

@@ -1,0 +1,11 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\steady\\cache\\grid_fa6bf52dd66d893e445096df.h5"}
+{"ev": "start", "backend": "gpu", "cells": 19607, "tiles": 42, "dx": 20.0, "duration_s": 21600.0, "tables_s": 4.25, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "step", "t": 6978.866, "dt": 0.4023, "steps": 17114, "active_tiles": 42, "volume": 1353147.0, "mass_error": -3.851e-09, "wall": 2.0}
+{"ev": "output", "kind": "map", "t": 10803.200392285873}
+{"ev": "step", "t": 13680.0, "dt": 0.3937, "steps": 34594, "active_tiles": 42, "volume": 1353949.2, "mass_error": -1.26e-08, "wall": 4.0}
+{"ev": "step", "t": 20445.414, "dt": 0.3948, "steps": 52240, "active_tiles": 42, "volume": 1353902.3, "mass_error": -1.478e-08, "wall": 6.0}
+{"ev": "warn", "message": "water stood 7.7 m deep against the domain edge at (421333, 2729528): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\steady\\sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 55251, "loop_s": 6.41, "tables_s": 4.25, "wet_area_km2": 0.9104, "dt_min": 0.32935290692159486, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.000956934, "outflow_m3": 4586100.065249067, "storage_start_m3": 0.0, "storage_end_m3": 1353900.0267466584, "error_m3": -0.0910387912299484, "relative_error": -1.532639582748856e-08}, "tile_steps": null, "products": "none"}
+

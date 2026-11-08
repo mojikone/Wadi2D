@@ -1,0 +1,15 @@
+{
+ "ritter_depth_rmse_cpu": 0.00851437345822876,
+ "ritter_f": 0.9436619718309859,
+ "macdonald_subcritical_rmse": 0.00996350841147125,
+ "macdonald_subcritical_q_ratio": 0.9999999406994605,
+ "macdonald_supercritical_rmse": 0.010462188568401955,
+ "macdonald_supercritical_q_ratio": 1.0000021676627957,
+ "macdonald_jump_rmse": 0.032396027919084726,
+ "macdonald_jump_q_ratio": 1.0003575573162156,
+ "dry_faces_45_error_pct": 1.328568261876839,
+ "w3_tiles_0": 1.0042201501506656,
+ "w3_polygons_0": 1.0042538487532768,
+ "w3_tiles_45": 1.0386907920598276,
+ "w3_polygons_45": 1.0251719138566275
+}

@@ -1,0 +1,6 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\straight\\cache\\grid_dcbb8d7661f06782519efba6.h5"}
+{"ev": "start", "backend": "gpu", "cells": 21000, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 2.58, "t": 0.0}
+{"ev": "step", "t": 13657.452, "dt": 0.621, "steps": 19899, "active_tiles": 28, "volume": 769209.3, "mass_error": -1.752e-08, "wall": 2.0}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\straight\\sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 32872, "loop_s": 3.26, "tables_s": 2.58, "wet_area_km2": 0.6632, "dt_min": 0.5016990557587996, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.9998149, "outflow_m3": 5170790.733910379, "storage_start_m3": 0.0, "storage_end_m3": 769209.381688075, "error_m3": -0.11578355438541621, "relative_error": -1.94921808735731e-08}, "tile_steps": null, "products": "none"}
+

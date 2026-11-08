@@ -1,0 +1,12 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\straight\\cache\\grid_4920305f5f6192f27ceaf32e.h5"}
+{"ev": "strips", "corridors": 1, "cells": 700, "triangles": 2136, "replaced": 2836, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 350, "cells": 700, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 18164, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 6.38, "t": 0.0}
+{"ev": "step", "t": 5165.119, "dt": 0.6398, "steps": 6014, "active_tiles": 28, "volume": 767080.0, "mass_error": 1.439e-08, "wall": 2.0}
+{"ev": "step", "t": 8901.733, "dt": 0.621, "steps": 12108, "active_tiles": 28, "volume": 769054.6, "mass_error": 9.488e-10, "wall": 4.0}
+{"ev": "step", "t": 12750.621, "dt": 0.6208, "steps": 18395, "active_tiles": 28, "volume": 769054.7, "mass_error": -7.373e-09, "wall": 6.0}
+{"ev": "step", "t": 16590.0, "dt": 0.621, "steps": 24666, "active_tiles": 28, "volume": 769054.7, "mass_error": -1.546e-08, "wall": 8.0}
+{"ev": "step", "t": 20424.838, "dt": 0.621, "steps": 30929, "active_tiles": 28, "volume": 769054.7, "mass_error": -1.505e-08, "wall": 10.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\straight\\ce20\\maps\\strip_mesh.gpkg"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W47 face level carried to the face\\depth_carry\\straight\\ce20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 32849, "loop_s": 11.09, "tables_s": 6.38, "wet_area_km2": 0.0936, "dt_min": 0.5431195853840202, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.9980113935, "outflow_m3": 5170945.393397141, "storage_start_m3": 0.0, "storage_end_m3": 769054.7000684871, "error_m3": -0.0954542348627001, "relative_error": -1.6069736514251933e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+
