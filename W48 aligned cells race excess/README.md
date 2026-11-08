@@ -102,6 +102,16 @@ literature's choice (the face sum, Volp et al.'s friction depth) and not HEC-RAS
 depth-averaged model should carry, and whether HEC-RAS's cell-size dependence is the price of carrying it, is a
 research question for before any change.
 
+**The HEC-RAS 2.5 m run (`ras_narrow/ras_sq2p5`, `ras_narrow_2p5.log`, 155,400 cells, 1 h 48 min), added the same
+night:** the straight gorge reads **4.724 m**, +0.029 m and +0.37 % water over HEC-RAS's own 5 m mesh. [Certain,
+measured] HEC-RAS settles near 4.7 m below 5 m cells; it does not fall toward the face sum (4.40 m). The emulation of
+its per-face rule predicted 4.46 to 4.69 m at 2 m faces, so by the test the wall-shear report set itself before the
+run, something beyond the per-face hydraulic radius holds HEC-RAS up (eddy viscosity in SWE-EM or a wall treatment
+the emulation omits, [Guessing] which), and the reading of its extra depth as a coarse-face artefact is withdrawn for
+the fine end. Its 20 m answer (5.28 m) still carries the coarse-face lumping, 0.55 m over its converged one. The
+literature's estimate of the physical depth, about 5.3 m, is unchanged by this run: HEC-RAS converged reads about
+11 % under it, Wadi2D's strips sum 17 %. W49 built the local hydraulic radius that the report recommended.
+
 ## Found on the way
 
 1. [Certain] **The centre mesh at 5 m is broken**: on the tight synthetic gorge it holds 59 % more water than the 2 m

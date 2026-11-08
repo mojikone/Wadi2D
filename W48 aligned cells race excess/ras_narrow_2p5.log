@@ -1,0 +1,12 @@
+sq2p5: Ras.exe exit 0 in 6494 s
+
+narrow: steady 300 m3/s, 1 to 8 km, against HEC-RAS 6.6 SWE-EM at 5 m: level 3 m either side of the axis, water held
+  RAS sq5        depth 4.698 m  level +0.000 m  water +0.00 %  (38856 cells, volume error 0.0001 %, 00:07:20)
+  RAS sq20       depth 5.276 m  level +0.577 m  water +13.20 %  (2430 cells, volume error 0.0001 %, 00:00:04)
+  RAS al20       depth 5.273 m  level +0.574 m  water +13.10 %  (1620 cells, volume error 0.0000 %, 00:00:02)
+  RAS sq2p5      depth 4.724 m  level +0.029 m  water +0.37 %  (155400 cells, volume error 0.0001 %, 01:47:41)
+  Wadi2D sq2     depth 4.407 m  level -0.292 m  water -6.40 %
+  Wadi2D sq5     depth 4.382 m  level -0.316 m  water -7.20 %
+  Wadi2D sq20    depth 4.383 m  level -0.314 m  water -7.19 %
+  Wadi2D ce20    depth 4.407 m  level -0.294 m  water -6.97 %
+  Wadi2D ce10    depth 4.408 m  level -0.294 m  water -6.97 %

@@ -81,3 +81,14 @@ The three research notes appear to disagree. The session's own reading says HEC-
 [Likely] The finding that changes the picture is that refinement moves HEC-RAS away from the physics in a narrow gorge. HEC's own guidance asks for five to seven cells across the channel, about 2 m in this 12 m gorge, and on the emulation that setting carries HEC-RAS to 4.5 to 4.7 m, close to Wadi2D's bed-only answer. Its coarsest mesh is its most physical one, only because a single face spanning the gorge happens to be single-section Manning. [Likely] A depth-averaged model with sub-grid faces has no native place for wall drag. Every sub-grid code either leaves it out, as Wadi2D, SFINCS, 3Di and TUFLOW's default do, or ties it to the face width, as HEC-RAS does, and neither family's published validation runs in channels narrow enough to tell.
 
 [Likely] For Wadi2D the friction question and the race have now come apart cleanly. The race is a mesher question about cells across tight bends. Wall shear is a solver question about absolute stage in incised reaches, and B/h sets its size, not the mesh. [Guessing] Its stakes sit where Batinah design work is most exposed: dam axes in gorges, where a stage read 10 to 20 % low feeds tailwater, pool and spillway levels. That argues for running the narrow-channel flume test alongside the face-depth and race tests, rather than after them.
+
+## Addendum, 2026-11-08: the HEC-RAS 2.5 m run
+
+[Certain, measured] HEC-RAS 6.6 on 2.5 m squares (155,400 cells) reads the straight gorge at 4.724 m, 0.029 m over its
+5 m mesh's 4.698 m. That is at or above the 4.7 m that this report set as its test, and above the emulation's 4.46 to
+4.69 m for 2 m faces. HEC-RAS therefore converges near 4.7 m, not toward Wadi2D's bed-only answer, and something
+beyond the per-face hydraulic radius holds it up; which term was not looked at. The reading of HEC-RAS's extra depth
+as a coarse-face artefact holds only for its coarse meshes (5.28 m at 20 m, 0.55 m over its converged answer). The
+physical estimate of about 5.3 m does not rest on HEC-RAS and is unchanged. The local-hydraulic-radius table this
+report recommended is built in `W49 local hydraulic radius face table`: it reads the gorge at 5.29 to 5.32 m on every
+mesh from 2 to 20 m.
