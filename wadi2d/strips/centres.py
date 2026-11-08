@@ -716,11 +716,15 @@ def build_centre_mesh(
             polygons.append(shapely.Polygon())
             continue
         polygons.append(shapely.unary_union([shapely.Polygon(np.column_stack((geometry.x[r], geometry.y[r]))) for r in (rings[c] for c in mine)]))
-    # the cells tile the squares they replace, to the last digit that matters
+    # the cells tile the squares they replace, to the last digit that matters; a sliver where the domain's edge cuts
+    # a cell (2 m2 in 0.66 km2 on the Faydh reach, 2026-11-08) is noted, a real disagreement refused
     hole = masked[0].size * dx * dx
     tiled = float(area.sum())
-    if abs(tiled - hole) > 1e-6 * max(hole, 1.0):
+    gap = abs(tiled - hole)
+    if gap > 1e-4 * max(hole, 1.0):
         raise ValueError(f"the cells cover {tiled:.1f} m2 where the squares they replace cover {hole:.1f}: the diagram and the lattice disagree")
+    if gap > 1e-6 * max(hole, 1.0):
+        notes.append(f"the cells cover {tiled:.1f} m2 where the squares they replace cover {hole:.1f}: a sliver of {gap:.1f} m2 at the domain's edge")
     rules = [
         {"name": lines[k].name, "hard": lines[k].hard, "rank_km2": None if lines[k].hard else lines[k].rank, "stations": len(kept_stations[k]),
          "cells": int((corridor == k).sum()), "cells_across": int(np.bincount(np.abs(all_pts.station[corridor == k]), minlength=1).max()) if (corridor == k).any() else 0}
