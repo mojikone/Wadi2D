@@ -1,0 +1,17 @@
+al20: 2049 seeds written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\ras\ras_al20
+al20: Ras.exe exit 0 in 7 s
+al10: 9626 seeds written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\ras\ras_al10
+al10: Ras.exe exit 0 in 53 s
+sq5: 43125 seeds written to D:\Mojtaba\Renardet\Wadi2D\W48 aligned cells race excess\ras\ras_sq5
+sq5: Ras.exe exit 0 in 818 s
+
+narrow_sine: steady 300 m3/s, 1 to 8 km, against HEC-RAS 6.6 SWE-EM at 5 m: level 3 m either side of the axis, water held
+  RAS sq5        depth 5.319 m  level +0.000 m  water +0.00 %  (43125 cells, volume error 0.0001 %, 00:13:25)
+  RAS sq20       depth 4.974 m  level -0.327 m  water -6.56 %  (2486 cells, volume error 0.0000 %, 00:00:13)
+  RAS al20       depth 5.287 m  level -0.021 m  water -0.49 %  (2049 cells, volume error 0.0000 %, 00:00:03)
+  RAS al10       depth 5.347 m  level +0.036 m  water +0.71 %  (9626 cells, volume error 0.0000 %, 00:00:47)
+  Wadi2D sq2     depth 4.806 m  level -0.487 m  water -10.80 %
+  Wadi2D sq5     depth 4.843 m  level -0.466 m  water -9.48 %
+  Wadi2D sq20    depth 7.082 m  level +1.732 m  water +38.06 %
+  Wadi2D ce20    depth 4.569 m  level -0.743 m  water -13.71 %
+  Wadi2D ce10    depth 4.532 m  level -0.776 m  water -14.98 %

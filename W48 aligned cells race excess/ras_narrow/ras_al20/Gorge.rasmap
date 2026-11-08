@@ -1,0 +1,18 @@
+<RASMapper>
+  <Version>2.0.0</Version>
+  <RASProjectionFilename Filename=".\Projection UTM40.prj" />
+  <Geometries Checked="True" Expanded="True">
+    <Layer Name="Gorge" Type="RASGeometry" Checked="True" Filename=".\Gorge.g01.hdf" />
+  </Geometries>
+  <Terrains Checked="True" Expanded="True">
+    <Layer Name="Terrain" Type="TerrainLayer" Checked="True" Filename="..\terrain\Terrain.hdf">
+      <ResampleMethod>near</ResampleMethod>
+      <Surface On="True" />
+    </Layer>
+  </Terrains>
+  <CurrentSettings>
+    <ProjectSettings>
+      <RiverStationUnits>Meters</RiverStationUnits>
+    </ProjectSettings>
+  </CurrentSettings>
+</RASMapper>

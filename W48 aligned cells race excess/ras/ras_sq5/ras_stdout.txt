@@ -1,0 +1,8 @@
+Current executing assembly Folder: C:\Program Files (x86)\HEC\HEC-RAS\6.6
+Server: C:\Program Files (x86)\HEC\HEC-RAS\6.6\PipeServer.exe
+Starting async client on '4a3d65d4-455e-4589-b585-8a64e6cbc562'
+Client connected.
+Current executing assembly Folder: C:\Program Files (x86)\HEC\HEC-RAS\6.6
+Server: C:\Program Files (x86)\HEC\HEC-RAS\6.6\PipeServer.exe
+Starting async client on '02f122ca-1b4a-4b07-9d05-609635a3a763'
+Client connected.

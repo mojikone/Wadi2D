@@ -1,0 +1,59 @@
+{
+ "RAS sq5": {
+  "water_m3": 429864.0493659973,
+  "depth_axis_m": 4.697549438476557,
+  "cells": 38856,
+  "volume_error_percent": 6.850002682767808e-05,
+  "compute_time": "00:07:20",
+  "level_vs_ras5_m": 0.0,
+  "water_vs_ras5": 0.0
+ },
+ "RAS sq20": {
+  "water_m3": 486608.5376625061,
+  "depth_axis_m": 5.275592803955071,
+  "cells": 2430,
+  "volume_error_percent": 7.907023973530158e-05,
+  "compute_time": "00:00:04",
+  "level_vs_ras5_m": 0.577423095703125,
+  "water_vs_ras5": 0.13200566174398798
+ },
+ "RAS al20": {
+  "water_m3": 486161.7151527405,
+  "depth_axis_m": 5.2734336853027415,
+  "cells": 1620,
+  "volume_error_percent": 4.1521358070895076e-05,
+  "compute_time": "00:00:02",
+  "level_vs_ras5_m": 0.5736618041992188,
+  "water_vs_ras5": 0.13096621099107053
+ },
+ "Wadi2D sq2": {
+  "water_m3": 402369.95109140873,
+  "depth_axis_m": 4.406801199913033,
+  "level_vs_ras5_m": -0.29180991649627686,
+  "water_vs_ras5": -0.06395998529102254
+ },
+ "Wadi2D sq5": {
+  "water_m3": 398906.49899053574,
+  "depth_axis_m": 4.382022881507879,
+  "level_vs_ras5_m": -0.315524697303772,
+  "water_vs_ras5": -0.07201707242352695
+ },
+ "Wadi2D sq20": {
+  "water_m3": 398950.6083469391,
+  "depth_axis_m": 4.383442068099974,
+  "level_vs_ras5_m": -0.31449270248413086,
+  "water_vs_ras5": -0.07191446008255908
+ },
+ "Wadi2D ce20": {
+  "water_m3": 399917.9346256256,
+  "depth_axis_m": 4.407421016693121,
+  "level_vs_ras5_m": -0.29377269744873047,
+  "water_vs_ras5": -0.0696641526188081
+ },
+ "Wadi2D ce10": {
+  "water_m3": 399903.5254840851,
+  "depth_axis_m": 4.407591390609753,
+  "level_vs_ras5_m": -0.29360532760620117,
+  "water_vs_ras5": -0.06969767284819639
+ }
+}

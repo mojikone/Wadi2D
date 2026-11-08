@@ -56,6 +56,52 @@ the polygon kernel makes the pair under-dissipate (the momentum advection on two
 faces that the water only partly wets, the friction's transverse velocity) is not yet isolated; each is a kernel-side
 test, and by his rule of today a kernel change waits for a research pass and his go.
 
+## Against HEC-RAS (`ras_gorge.py`, `ras/`, `ras_narrow/`; his question: is the aligned mesh perhaps right and the squares wrong?)
+
+The same two gorges in HEC-RAS 6.6, SWE-EM, n 0.05, written as text with seed points and run headless: 5 m squares,
+20 m squares, and 20 m and 10 m cells aligned on the thalweg the way a HEC-RAS breakline makes them (seeds mirrored at
+half a cell either side of the centreline every cell along it, the lattice beyond 1.5 cells); the gorge with 60 m
+either side, a flow hydrograph across the upstream end and normal depth downstream, 300 m3/s ramped over an hour,
+5 h. Volume errors under 0.0001 %. Depth on the axis, read 3 m either side of it, 1 to 8 km:
+
+| Mesh | HEC-RAS, straight | HEC-RAS, tight sine | Wadi2D, straight | Wadi2D, tight sine |
+|---|---|---|---|---|
+| Squares, 2 m | | | 4.407 | 4.806 |
+| Squares, 5 m | **4.698** | **5.319** | 4.382 | 4.843 |
+| Squares, 20 m | 5.276 | 4.974 | 4.383 | 7.082 |
+| Aligned, 20 m | 5.273 | 5.287 | 4.407 | 4.569 |
+| Aligned, 10 m | | 5.347 | 4.408 | 4.532 |
+
+Normal depth of the straight section: 4.398 m by the face sum Wadi2D uses, 5.392 m by Manning on the hydraulic radius
+with the walls in the wetted perimeter.
+
+[Certain, measured] Four things:
+
+1. **The two solvers' friction differs in a narrow deep channel, and HEC-RAS's depends on the cell size.** Wadi2D
+   reads a face's conveyance as a sum over the pixels across it, with no shear on the walls: the straight gorge reads
+   4.38 to 4.41 m at every size, the face-sum normal depth (4.398 m). HEC-RAS reads each face's hydraulic radius from
+   its own profile, walls in the wetted perimeter: one 20 m face spanning the gorge gives 5.28 m, close to Manning on
+   the whole section's hydraulic radius (5.39 m); at 5 m the section is cut into faces that mostly see the bed, 4.70 m.
+   That is 0.58 m, 12 % of the depth, between HEC-RAS's own 20 m and 5 m on a straight channel.
+2. **Bends add resistance in both, and neither 20 m mesh captures it.** From straight to the tight sine the fine meshes
+   rise 0.40 m (Wadi2D, 2 m) and 0.62 m (HEC-RAS, 5 m); the aligned 20 m meshes rise 0.16 m (Wadi2D) and 0.02 m
+   (HEC-RAS). Two cells across a narrow bending channel miss most of it in either solver: **the bend deficit is the
+   construction's, not a Wadi2D kernel fault.**
+3. **HEC-RAS's aligned 20 m mesh matches its 5 m mesh on the sine (-0.02 m) by two errors cancelling:** the coarse
+   face's wall friction (+0.58 m on the straight) against the missing bend resistance (-0.60 m). On the straight it
+   stands 0.57 m above its own 5 m answer.
+4. **His point holds for the squares:** at 20 m in a tight narrow bend the squares are the worse mesh in both solvers,
+   Wadi2D +2.28 m above its converged answer (the staircase chokes the channel), HEC-RAS -0.35 m below its own; the
+   aligned cells are within 0.24 m (Wadi2D) and 0.03 m (HEC-RAS). Neither 20 m mesh is the right answer, and the
+   aligned one is the nearer.
+
+[Likely] What this leaves: the aligned mesh at 20 m is the better 20 m mesh in narrow gorges, and its remaining error
+there is the bends' resistance that two cells across cannot carry, in any solver; a cure is more cells across the
+channel, a mesher matter. Separately, Wadi2D carries no wall shear in a narrow deep channel, which is the sub-grid
+literature's choice (the face sum, Volp et al.'s friction depth) and not HEC-RAS's; how much wall shear a
+depth-averaged model should carry, and whether HEC-RAS's cell-size dependence is the price of carrying it, is a
+research question for before any change.
+
 ## Found on the way
 
 1. [Certain] **The centre mesh at 5 m is broken**: on the tight synthetic gorge it holds 59 % more water than the 2 m
@@ -74,6 +120,6 @@ test, and by his rule of today a kernel change waits for a research pass and his
 
 ## Not done
 
-The kernel-side isolation (advection, partly wet cells, transverse friction) after a research pass; the 5 m mesher
+The kernel-side isolation is no longer the lead: HEC-RAS shows the same bend deficit with two cells across. Next, his call: more cells across a narrow channel in the mesher, and a research pass on wall shear in sub-grid conveyance; the 5 m mesher
 defect; whether more cells across a narrow channel (narrower rows than the along spacing) cures it, which is a mesher
 change; the HEC-RAS 6.6 face-level probe of W47.
