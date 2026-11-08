@@ -60,6 +60,13 @@ def lattice_mesh(tables: GridTables) -> tuple[PolyMesh, np.ndarray]:
         ftab=np.concatenate((fields["ftabx"], fields["ftaby"])).astype(np.float64),
         cw=np.concatenate((fields["cwx"], fields["cwy"])).astype(np.float64), dx=dx,
     )  # fmt: skip
+    # each side's centre-line bed over the face invert, from the tables, so the lattice as polygons reads the faces
+    # as the tiles do (W47)
+    zcx, zcy = grid.from_tiles(tables.zcx), grid.from_tiles(tables.zcy)
+    bed_l = np.concatenate((tables.zmin[xj, xi - 1] + zcx[xj, xi - 1], tables.zmin[yj - 1, yi] + zcy[yj - 1, yi]))
+    bed_r = np.concatenate((tables.zmin[xj, xi] + zcx[xj, xi], tables.zmin[yj, yi] + zcy[yj, yi]))
+    mesh.dzl = (bed_l - zf).astype(np.float64)
+    mesh.dzr = (bed_r - zf).astype(np.float64)
     # the tile tables already carry the natural crests: no new ones here
     return mesh.finish(np.inf, given_cw=mesh.cw.copy()), index
 

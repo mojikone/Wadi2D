@@ -86,6 +86,16 @@ class HostState:
         return from_state(self.grid, self.arrays[name])
 
 
+def static_cell_state(grid, a: np.ndarray) -> np.ndarray:
+    """A (ntiles, TILE, TILE) array that never changes during a run, in the state layout with its halos filled:
+    the face kernels read the upwind cell's value, which may be a halo entry (W47)."""
+    out = tiles_to_state(grid, np.asarray(a, np.float32))
+    dst, src = exchange_map(grid)
+    if dst.size:
+        out[dst] = out[src]
+    return out
+
+
 def tiles_to_state(grid, a: np.ndarray) -> np.ndarray:
     """(ntiles, TILE, TILE) into the own cells of a state array."""
     out = np.zeros(grid.ntiles * STRIDE2, np.float32)

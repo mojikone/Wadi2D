@@ -15,7 +15,7 @@ from wadi2d.config.schema import Tables
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import BedSource, CrestFaces, GridTables
-from wadi2d.tables.core import _face_table, _lined, tile_tables
+from wadi2d.tables.core import _face_table, _lined, centre_beds, tile_tables
 
 HALF = TILE // 2
 
@@ -86,6 +86,7 @@ def build_quad_tables(
     total = nt + extra
 
     zmin, rel, zfx, zfy = (np.zeros((nt, TILE, TILE)) for _ in range(4))
+    zcx, zcy = np.zeros((nt, TILE, TILE)), np.zeros((nt, TILE, TILE))
     hc = np.zeros((nt, TILE, TILE), np.float32)
     dtab = np.zeros((nt, TILE, TILE, rows), np.float32)
     efx, efy = np.ones((total, TILE, TILE), np.float32), np.ones((total, TILE, TILE), np.float32)
@@ -121,6 +122,8 @@ def build_quad_tables(
             zmin[t], rel[t], w_hc, w_dtab, zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby,
         )  # fmt: skip
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
+        cx_bed, cy_bed = centre_beds(z, k, TILE)  # at the tile's own cell size (W47)
+        zcx[t], zcy[t] = cx_bed - zmin[t], cy_bed - zmin[t]
         for side in (2, 3):
             row = east_south.get((t, side))
             if row is None:
@@ -150,9 +153,10 @@ def build_quad_tables(
     zbar = zmin + rel
     x = _face_arrays(grid, cfg, zmin, zbar, zfx, fx, 0, crest)
     y = _face_arrays(grid, cfg, zmin, zbar, zfy, fy, 1, crest)
+    zcx, zcy = (np.nan_to_num(np.maximum(a, 0.0), nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32) for a in (zcx, zcy))
     return GridTables(
         grid, grid.from_tiles(zmin), grid.from_tiles(zbar), hc, dtab,
-        *x[:4], efx, x[4], ftabx, *y[:4], efy, y[4], ftaby,
+        *x[:4], efx, x[4], ftabx, *y[:4], efy, y[4], ftaby, zcx, zcy,
     )  # fmt: skip
 
 

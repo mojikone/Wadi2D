@@ -8,7 +8,7 @@ import numpy as np
 
 from wadi2d.solver import layout
 from wadi2d.solver.backend import BoundaryCells, NumericsRecord
-from wadi2d.solver.state import exchange_map
+from wadi2d.solver.state import exchange_map, static_cell_state
 from wadi2d.tables.builder import GridTables
 
 KERNELS = Path(__file__).parent / "kernels"
@@ -39,10 +39,11 @@ def load_module(cp, source: str, num: NumericsRecord, dx: float, rows: int):
     """
     module = cp.RawModule(code=source, options=("-std=c++17", "--use_fast_math"))
     record = np.array(
-        [(num.g, dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, rows, int(num.second), int(num.sheet), int(num.mirror))],
+        [(num.g, dx, num.e_wet, num.h_cfl, num.u_max, num.lead, num.a_min, rows, int(num.second), int(num.sheet), int(num.mirror),
+          int(num.carry))],
         dtype=np.dtype(
             [("g", "f4"), ("dx", "f4"), ("e_wet", "f4"), ("h_cfl", "f4"), ("u_max", "f4"), ("lead", "f4"), ("a_min", "f4"),
-             ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4")]
+             ("rows", "i4"), ("second", "i4"), ("sheet", "i4"), ("mirror", "i4"), ("carry", "i4")]
         ),
     )  # fmt: skip
     module.get_global("P").copy_from_host(record.ctypes.data, record.nbytes)
@@ -83,6 +84,8 @@ class GpuBackend:
         )
         self.ftabx = cp.asarray(tables.ftabx.reshape(-1))
         self.ftaby = cp.asarray(tables.ftaby.reshape(-1))
+        self.zcx = cp.asarray(static_cell_state(self.grid, tables.zcx))
+        self.zcy = cp.asarray(static_cell_state(self.grid, tables.zcy))
         self.wave = cp.zeros(self.grid.ntiles, cp.float32)
         self.wet = cp.zeros(self.grid.ntiles, cp.int32)
 
@@ -142,7 +145,7 @@ class GpuBackend:
             return
         self._faces(
             grid, BLOCK,
-            (self.active, dtf, int(want_wave), self.om, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
+            (self.active, dtf, int(want_wave), self.om, self.zcx, self.zcy, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
              *self.static_x, self.ftabx, *self.static_y, self.ftaby,
              self.u1, self.v1, self.mx1, self.my1, self.qx1, self.qy1, self.wave),
         )  # fmt: skip

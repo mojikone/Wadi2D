@@ -14,6 +14,7 @@ struct Params {
     int second;
     int sheet;
     int mirror;
+    int carry;
 };
 
 __constant__ Params P;

@@ -15,7 +15,7 @@ from wadi2d.config.constants import CRITICAL_WEIR_COEFF
 from wadi2d.config.schema import Tables
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.solver.layout import CLOSED, TILE
-from wadi2d.tables.core import tile_tables
+from wadi2d.tables.core import centre_beds, tile_tables
 
 
 class BedSource(Protocol):
@@ -90,6 +90,11 @@ class GridTables:
     efy: np.ndarray
     cwy: np.ndarray
     ftaby: np.ndarray
+    zcx: np.ndarray
+    """The bed on each cell's centre line across x, above the cell's lowest pixel (W47): an x face reads its section
+    at the upwind cell's depth over this bed, carried to the face. Zero on a cell of one pixel."""
+    zcy: np.ndarray
+    """The same on the centre line across y, for y faces."""
 
     @property
     def rows(self) -> int:
@@ -137,6 +142,8 @@ def build_tables(
     w_ftabx = np.zeros((TILE, TILE, rows, 2))
     w_ftaby = np.zeros((TILE, TILE, rows, 2))
     npix = np.full((1, 1), np.nan)
+    zcx_g = np.zeros((ny, nx))
+    zcy_g = np.zeros((ny, nx))
     for t in range(1, nt):
         tj, ti = grid.tiles[t]
         j0, i0 = int(tj) * TILE, int(ti) * TILE
@@ -154,16 +161,20 @@ def build_tables(
             w_zmin, w_rel, w_hc, w_dtab, w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby,
         )  # fmt: skip
         zmin_g[sl], rel_g[sl], zfx_g[sl], zfy_g[sl] = w_zmin, w_rel, w_zfx, w_zfy
+        cx_bed, cy_bed = centre_beds(z, k, TILE)
+        zcx_g[sl], zcy_g[sl] = cx_bed - w_zmin, cy_bed - w_zmin
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
 
     zbar_g = zmin_g + rel_g
     active = grid.mask
+    zcx_g, zcy_g = (np.nan_to_num(np.maximum(a, 0.0), nan=0.0, posinf=0.0, neginf=0.0) for a in (zcx_g, zcy_g))
     fx = _faces(zfx_g, zmin_g, zbar_g, active, 1, crest.xc, cfg.crest_tolerance, crest.xwall)
     fy = _faces(zfy_g, zmin_g, zbar_g, active, 0, crest.yc, cfg.crest_tolerance, crest.ywall)
     return GridTables(
         grid, zmin_g, zbar_g, hc, dtab,
         *(grid.to_tiles(a) for a in fx[:4]), efx, grid.to_tiles(fx[4]), ftabx,
         *(grid.to_tiles(a) for a in fy[:4]), efy, grid.to_tiles(fy[4]), ftaby,
+        grid.to_tiles(zcx_g).astype(np.float32), grid.to_tiles(zcy_g).astype(np.float32),
     )  # fmt: skip
 
 

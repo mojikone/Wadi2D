@@ -49,8 +49,8 @@ def quad_faces_done(active, slot, fu, fv, nhalo, u1, v1, qx1, qy1):
 
 @njit
 def iface_faces(
-    rows_, dt, want_wave, om, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
-    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+    rows_, dt, want_wave, om, zcx, zcy, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
+    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
 ):  # fmt: skip
     dist = F(1.5) * dx
     for n in range(rows_.shape[0]):
@@ -61,13 +61,13 @@ def iface_faces(
             fid = base + q * step
             if side % 2 == 0:
                 w = face_step(
-                    k, fid, dt, want_wave, om, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
-                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, dist, far,
+                    k, fid, dt, want_wave, om, zcx, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry, dist, far,
                 )  # fmt: skip
             else:
                 w = face_step(
-                    k, fid, dt, want_wave, om, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
-                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, dist, far,
+                    k, fid, dt, want_wave, om, zcy, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry, dist, far,
                 )  # fmt: skip
             if want_wave:
                 wave[t] = max(wave[t], w)

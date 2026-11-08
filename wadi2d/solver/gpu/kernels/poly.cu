@@ -142,6 +142,7 @@ extern "C" __global__ void poly_faces(
     const float* __restrict__ sx, const float* __restrict__ sy, const float* __restrict__ fl,
     const float* __restrict__ fr, const float* __restrict__ gl, const float* __restrict__ gr,
     const float* __restrict__ ef, const float* __restrict__ cw, const float* __restrict__ ftab,
+    const float* __restrict__ dzl, const float* __restrict__ dzr,
     const float* __restrict__ area, const float* __restrict__ cx, const float* __restrict__ cy,
     const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ om,
     const float* __restrict__ u, const float* __restrict__ m, const float* __restrict__ q,
@@ -166,9 +167,19 @@ extern "C" __global__ void poly_faces(
         q1[f] = 0.0f;
         return;
     }
+    // the section at the upwind cell's depth carried to the face (W47); fades out where the level is below the
+    // cell's inflow edge; crests keep the level
+    float eface = eup;
+    if (P.carry && cw[f] == 0.0f) {
+        const float dz = from_left ? dzl[f] : dzr[f];
+        if (dz > 1e-6f) {
+            const float phi = fminf(fmaxf((eup - 2.0f * dz) / (2.0f * dz), 0.0f), 1.0f);
+            eface = eup - phi * dz;
+        }
+    }
     const float* tab = ftab + 2 * P.rows * f;
     float A, T, W;
-    face_lookup(eup, ef[f], tab, A, T, W);
+    face_lookup(eface, ef[f], tab, A, T, W);
     const float dnf = dn[f];
     const float v_l = h[a] * area[a];
     const float v_r = h[b] * area[b];

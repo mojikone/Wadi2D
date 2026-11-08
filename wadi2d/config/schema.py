@@ -367,6 +367,14 @@ class Numerics(_Part):
     mirror_dry_faces: bool = Field(
         True, description="A dry or closed neighbour face gives no velocity to momentum advection"
     )
+    face_depth_carry: bool = Field(
+        True,
+        description="A face reads its section at the upwind cell's depth, carried from the cell's centre to the face,"
+        " not at its level over the face invert, which on a slope over-reads the face by half the bed's drop within"
+        " the cell (W47; the rule of TUFLOW HPC at first order, LISFLOOD-FP and Delft3D's flooding scheme). It fades"
+        " out where the upwind cell is not wet over its own length, and crest faces keep the level. False reads the"
+        " level, as every run before W47 did",
+    )
     e_wet: float = Field(
         1e-4, ge=1e-6, le=0.1, description="Depth over the face invert below which a face is dry, m"
     )

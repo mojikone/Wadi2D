@@ -85,13 +85,13 @@ def face_lookup(e, top, tab, rows):
 
 @njit
 def face_step(
-    k, fid, dt, want_wave, om, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet,
-    h_cfl, u_max, lead, a_min, second, sheet, mirror, dist=None, far=2,
+    k, fid, dt, want_wave, om, zc, s, p, h, d, u, m, q, qp, vp, fl, fr, gl, gr, ef, cw, ftab, u1, m1, q1, rows, g, dx, e_wet,
+    h_cfl, u_max, lead, a_min, second, sheet, mirror, carry, dist=None, far=2,
 ):  # fmt: skip
     """One face: s is the array step along the normal, p across it. Returns the wave speed.
 
     ``dist`` is the distance between the two cell centres, ``dx`` unless given; ``far`` how far ahead second-order terms
-    read, 1 on a face held in a halo entry.
+    read, 1 on a face held in a halo entry. ``zc`` is each cell's centre-line bed across this face's direction, above its lowest pixel (W47).
     """
     span = dx if dist is None else dist
     e_l = d[k - s] - fl[fid]
@@ -106,8 +106,20 @@ def face_step(
         m1[k] = ZERO
         q1[k] = ZERO
         return ZERO
+    # the section is read at the upwind cell's depth carried to the face (W47): the depth over the bed on the cell's
+    # centre line, not the level over the face invert, which on a slope stands lower and over-read every face by
+    # about half the bed's drop within the cell. On a cell of one pixel the two are the same. The carry fades out
+    # where the level is below the cell's inflow edge (a wedge of thin flow, which the sheet read handles) and
+    # crest faces keep the level, which their cap reads as the upstream head
+    eface = eup
+    if carry and cw[fid] == ZERO:
+        dz = (zc[k - s] - fl[fid]) if from_left else (zc[k] - fr[fid])
+        if dz > F(1e-6):
+            phi = (eup - F(2.0) * dz) / (F(2.0) * dz)
+            phi = ZERO if phi < ZERO else (ONE if phi > ONE else phi)
+            eface = eup - phi * dz
     start = 2 * rows * fid
-    area, t, w = face_lookup(eup, ef[fid], ftab[start : start + 2 * rows], rows)
+    area, t, w = face_lookup(eface, ef[fid], ftab[start : start + 2 * rows], rows)
     h_l = h[k - s]
     h_r = h[k]
     hup = h_l if from_left else h_r
@@ -209,8 +221,8 @@ def face_step(
 
 @njit(parallel=True)
 def faces(
-    active, dt, want_wave, om, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
-    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+    active, dt, want_wave, om, zcx, zcy, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
+    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
 ):  # fmt: skip
     for a in prange(active.size):
         t = active[a]
@@ -220,12 +232,12 @@ def faces(
                 k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
                 fid = t * TILE2 + j * TILE + i
                 wx = face_step(
-                    k, fid, dt, want_wave, om, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
-                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+                    k, fid, dt, want_wave, om, zcx, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
                 )  # fmt: skip
                 wy = face_step(
-                    k, fid, dt, want_wave, om, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
-                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+                    k, fid, dt, want_wave, om, zcy, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
                 )  # fmt: skip
                 w = max(w, max(wx, wy))
         if want_wave:

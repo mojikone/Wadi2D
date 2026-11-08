@@ -53,8 +53,9 @@ class PolyState:
             m.ftab.astype(F).reshape(-1),
         )  # fmt: skip
         self.hc, self.dtab = m.hc.astype(F), m.dtab.astype(F).reshape(-1)
+        self.dzl, self.dzr = m.dzl.astype(F), m.dzr.astype(F)
         r = self.rec
-        self.nums = (m.rows, F(r.g), F(r.dx), F(r.e_wet), F(r.h_cfl), F(r.u_max), F(r.lead), F(r.a_min), r.sheet, True)
+        self.nums = (m.rows, F(r.g), F(r.dx), F(r.e_wet), F(r.h_cfl), F(r.u_max), F(r.lead), F(r.a_min), r.sheet, True, r.carry)
         self.wave = 0.0
 
     def zero_vectors(self) -> None:
@@ -66,16 +67,16 @@ class PolyState:
         ``ghost_rates`` runs once the velocities are complete, to add the ghosts' lattice advection."""
         nc, nf = self.ncells, self.mesh.nfaces
         L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab = self.static
-        rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew = self.nums
+        rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew, carry = self.nums
         kernel.perot_velocity(nf, nc, L, R, xf, yf, self.cx, self.cy, self.q, self.h, self.area, self.Ux, self.Uy)
         if ghost_rates is not None:
             ghost_rates()
         kernel.advection_rate(nf, L, R, self.q, self.Ux, self.Uy, self.Rx, self.Ry)
         kernel.level_gradients(nf, nc, L, R, ln, nfx, nfy, fl, fr, self.h, self.d, self.area, e_wet, self.Gx, self.Gy, self.Dl)
         wave = kernel.faces(
-            nf, F(dt), refresh, L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab, self.area, self.cx, self.cy,
+            nf, F(dt), refresh, L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab, self.dzl, self.dzr, self.area, self.cx, self.cy,
             self.h, self.d, self.om, self.u, self.m, self.q, self.Ux, self.Uy, self.Rx, self.Ry, self.Gx, self.Gy, self.Dl,
-            self.u1, self.m1, self.q1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew,
+            self.u1, self.m1, self.q1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew, carry,
         )  # fmt: skip
         if refresh:
             self.wave = float(wave)

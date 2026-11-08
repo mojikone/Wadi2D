@@ -29,7 +29,7 @@ __device__ __forceinline__ int edge_cell(const int c, const int side, const int 
 // Faces owned by the coarse tile: the fine tile's east or south side, stepped at the fine rate. One block per edge.
 extern "C" __global__ void strips(
     const int* __restrict__ edges, const float dt, const int want_wave, const float* __restrict__ om,
-    const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
+    const float* __restrict__ zcx, const float* __restrict__ zcy, const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ v, const float* __restrict__ mx, const float* __restrict__ my,
     const float* __restrict__ qx, const float* __restrict__ qy,
     const float* __restrict__ flx, const float* __restrict__ frx, const float* __restrict__ glx,
@@ -49,12 +49,12 @@ extern "C" __global__ void strips(
     if (side == 2) {
         const int k = t * STRIDE2 + (q + HALO) * STRIDE + HALO;
         const int id = t * TILE2 + q * TILE;
-        w = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        w = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, zcx, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                  u1, mx1, qx1);
     } else {
         const int k = t * STRIDE2 + HALO * STRIDE + q + HALO;
         const int id = t * TILE2 + q;
-        w = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        w = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, zcy, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                  v1, my1, qy1);
     }
     if (want_wave) {

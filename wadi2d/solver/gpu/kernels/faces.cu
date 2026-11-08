@@ -9,6 +9,7 @@
 template <int S, int Q_P, int FAR = 2>
 __device__ __forceinline__ float face_step(
     const int k, const int id, const float dt, const float L, const int want_wave, const float* __restrict__ om,
+    const float* __restrict__ zc,
     const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ m, const float* __restrict__ q, const float* __restrict__ qp,
     const float* __restrict__ vp, const float* __restrict__ fl, const float* __restrict__ fr,
@@ -28,8 +29,19 @@ __device__ __forceinline__ float face_step(
         q1[k] = 0.0f;
         return 0.0f;
     }
+    // the section at the upwind cell's depth carried to the face (W47): the depth over the bed on the cell's centre
+    // line, not the level over the face invert; fades out where the level is below the cell's inflow edge; crests
+    // keep the level
+    float eface = eup;
+    if (P.carry && cw[id] == 0.0f) {
+        const float dz = from_left ? zc[k - S] - fl[id] : zc[k] - fr[id];
+        if (dz > 1e-6f) {
+            const float phi = fminf(fmaxf((eup - 2.0f * dz) / (2.0f * dz), 0.0f), 1.0f);
+            eface = eup - phi * dz;
+        }
+    }
     float A, T, W;
-    face_lookup(eup, ef[id], ftab + 2 * P.rows * id, A, T, W);
+    face_lookup(eface, ef[id], ftab + 2 * P.rows * id, A, T, W);
     const float hL = h[k - S];
     const float hR = h[k];
     const float hup = from_left ? hL : hR;
@@ -135,7 +147,7 @@ __device__ __forceinline__ float face_step(
 
 extern "C" __global__ void faces(
     const int* __restrict__ active, const float dt, const int want_wave, const float* __restrict__ om,
-    const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
+    const float* __restrict__ zcx, const float* __restrict__ zcy, const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ v, const float* __restrict__ mx, const float* __restrict__ my,
     const float* __restrict__ qx, const float* __restrict__ qy,
     const float* __restrict__ flx, const float* __restrict__ frx, const float* __restrict__ glx,
@@ -153,9 +165,9 @@ extern "C" __global__ void faces(
         const int j = threadIdx.y * CELLS_PER_THREAD + r;
         const int k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO;
         const int id = t * TILE2 + j * TILE + i;
-        const float wx = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        const float wx = face_step<1, STRIDE>(k, id, dt, P.dx, want_wave, om, zcx, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                               u1, mx1, qx1);
-        const float wy = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        const float wy = face_step<STRIDE, 1>(k, id, dt, P.dx, want_wave, om, zcy, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                               v1, my1, qy1);
         w = fmaxf(w, fmaxf(wx, wy));
     }

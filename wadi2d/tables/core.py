@@ -142,3 +142,18 @@ def tile_tables(
             zfy[j, i], efy[j, i] = _face_table(
                 prof, ycrest[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], e_lo, e_hi, ftaby[j, i]
             )
+
+
+def centre_beds(z: np.ndarray, k: int, tile: int) -> tuple[np.ndarray, np.ndarray]:
+    """The bed on each cell's centre lines (W47): the lowest pixel of its middle pixel column (for x faces) and of its
+    middle pixel row (for y faces), the mean of the two middle ones when k is even. ``z`` is a tile's pixel block whose
+    first row and column belong to the neighbours, as ``tile_tables`` reads it. On a cell of one pixel it is the pixel."""
+    c = np.asarray(z, np.float64)[1 : 1 + tile * k, 1 : 1 + tile * k].reshape(tile, k, tile, k)
+    columns = c.min(axis=1)  # (j, i, pixel column)
+    rows = c.min(axis=3)  # (j, pixel row, i)
+    if k % 2:
+        zcx, zcy = columns[:, :, k // 2], rows[:, k // 2, :]
+    else:
+        zcx = 0.5 * (columns[:, :, k // 2 - 1] + columns[:, :, k // 2])
+        zcy = 0.5 * (rows[:, k // 2 - 1, :] + rows[:, k // 2, :])
+    return zcx, zcy

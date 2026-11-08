@@ -35,8 +35,8 @@ def edge_cell(c, side, q):
 
 @njit
 def strips(
-    edges, dt, want_wave, om, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
-    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+    edges, dt, want_wave, om, zcx, zcy, h, d, u, v, mx, my, qx, qy, flx, frx, glx, grx, efx, cwx, ftabx, fly, fry, gly, gry, efy,
+    cwy, ftaby, u1, v1, mx1, my1, qx1, qy1, wave, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
 ):  # fmt: skip
     for n in range(edges.shape[0]):
         fine, side, t = edges[n, 0], edges[n, 1], edges[n, 2]
@@ -45,15 +45,15 @@ def strips(
                 k = t * STRIDE2 + (q + HALO) * STRIDE + HALO
                 fid = t * TILE2 + q * TILE
                 w = face_step(
-                    k, fid, dt, want_wave, om, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
-                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+                    k, fid, dt, want_wave, om, zcx, 1, STRIDE, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+                    u1, mx1, qx1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
                 )  # fmt: skip
             else:
                 k = t * STRIDE2 + HALO * STRIDE + q + HALO
                 fid = t * TILE2 + q
                 w = face_step(
-                    k, fid, dt, want_wave, om, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
-                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror,
+                    k, fid, dt, want_wave, om, zcy, STRIDE, 1, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+                    v1, my1, qy1, rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, second, sheet, mirror, carry,
                 )  # fmt: skip
             if want_wave:
                 wave[t] = max(wave[t], w)
@@ -233,7 +233,7 @@ class CpuLevels:
 
         b = self.b
         kernels.faces(
-            tiles, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            tiles, np.float32(dt), want_wave, b.om, b.zcx, b.zcy, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
             *b.static_x, b.ftabx, *b.static_y, b.ftaby,
             b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
         )  # fmt: skip
@@ -241,7 +241,7 @@ class CpuLevels:
     def strips(self, edges, dt: float, want_wave: bool, size: int = 0) -> None:
         b = self.b
         strips(
-            edges, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            edges, np.float32(dt), want_wave, b.om, b.zcx, b.zcy, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
             *b.static_x, b.ftabx, *b.static_y, b.ftaby,
             b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
         )  # fmt: skip
@@ -251,7 +251,7 @@ class CpuLevels:
 
         b = self.b
         iface_faces(
-            rows, np.float32(dt), want_wave, b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            rows, np.float32(dt), want_wave, b.om, b.zcx, b.zcy, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
             *b.static_x, b.ftabx, *b.static_y, b.ftaby,
             b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave, *self.args(size),
         )  # fmt: skip

@@ -69,6 +69,7 @@ class PolyGpuState:
             for a in (m.length, m.nx, m.ny, m.xf, m.yf, m.dn, m.sx, m.sy, m.fl, m.fr, m.gl, m.gr, m.ef, m.cw)
         )
         self.ftab = cp.asarray(m.ftab.astype(F).reshape(-1))
+        self.dzl, self.dzr = cp.asarray(m.dzl.astype(F)), cp.asarray(m.dzr.astype(F))
         self.hc, self.dtab = cp.asarray(m.hc.astype(F)), cp.asarray(m.dtab.astype(F).reshape(-1))
         ptr, face, sign = cell_faces(m.left, m.right, nc)
         self.ptr, self.cf, self.cs = cp.asarray(ptr), cp.asarray(face), cp.asarray(sign)
@@ -117,7 +118,7 @@ class PolyGpuState:
             self.wave[:] = 0.0
         self.k["poly_faces"](
             grid_of(nf), (THREADS,),
-            (nf, F(dt), int(want_wave), self.L, self.R, *self.static, self.ftab, self.area, self.cx, self.cy,
+            (nf, F(dt), int(want_wave), self.L, self.R, *self.static, self.ftab, self.dzl, self.dzr, self.area, self.cx, self.cy,
              self.h, self.d, self.om, self.u, self.m, self.q, self.Ux, self.Uy, self.Rx, self.Ry, self.Gx, self.Gy,
              self.Dl, self.u1, self.m1, self.q1, self.wave),
         )  # fmt: skip

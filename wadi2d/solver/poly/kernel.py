@@ -95,9 +95,9 @@ def level_gradients(nf, nc, L, R, ln, nfx, nfy, fl, fr, h, d, area, e_wet, Gx, G
 
 @njit(cache=True)
 def faces(
-    nf, dt, want_wave, L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab, area, cx, cy,
+    nf, dt, want_wave, L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab, dzl, dzr, area, cx, cy,
     h, d, om, u, m, q, Ux, Uy, Rx, Ry, Gx, Gy, Dl, u1, m1, q1,
-    rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew,
+    rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew, carry,
 ):  # fmt: skip
     """[1] to [6] on every face; returns the largest wave frequency when asked, else 0."""
     freq = ZERO
@@ -115,8 +115,17 @@ def faces(
             m1[f] = ZERO
             q1[f] = ZERO
             continue
+        # the section at the upwind cell's depth carried to the face (W47); fades out where the level is below the
+        # cell's inflow edge; crests keep the level
+        eface = eup
+        if carry and cw[f] == ZERO:
+            dz = dzl[f] if from_left else dzr[f]
+            if dz > F(1e-6):
+                phi = (eup - TWO * dz) / (TWO * dz)
+                phi = ZERO if phi < ZERO else (ONE if phi > ONE else phi)
+                eface = eup - phi * dz
         start = 2 * rows * f
-        A, T, W = face_lookup(eup, ef[f], ftab[start : start + 2 * rows], rows)
+        A, T, W = face_lookup(eface, ef[f], ftab[start : start + 2 * rows], rows)
         dnf = dn[f]
         v_l = h[a] * area[a]
         v_r = h[b] * area[b]

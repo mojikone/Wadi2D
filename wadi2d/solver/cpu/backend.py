@@ -7,7 +7,7 @@ import numpy as np
 from wadi2d.solver import layout
 from wadi2d.solver.backend import BoundaryCells, NumericsRecord
 from wadi2d.solver.cpu import kernels
-from wadi2d.solver.state import exchange_map
+from wadi2d.solver.state import exchange_map, static_cell_state
 from wadi2d.tables.builder import GridTables
 
 
@@ -33,6 +33,8 @@ class CpuBackend:
         )
         self.ftabx = tables.ftabx.reshape(-1)
         self.ftaby = tables.ftaby.reshape(-1)
+        self.zcx = static_cell_state(self.grid, tables.zcx)
+        self.zcy = static_cell_state(self.grid, tables.zcy)
         self.wave = np.zeros(self.grid.ntiles, np.float32)
         self.wet = np.zeros(self.grid.ntiles, np.int32)
         dst, src = exchange_map(self.grid)
@@ -59,6 +61,7 @@ class CpuBackend:
             num.second,
             num.sheet,
             num.mirror,
+            num.carry,
         )
 
     def set_active(self, active: np.ndarray) -> None:
@@ -84,7 +87,7 @@ class CpuBackend:
             return
         dtf = np.float32(dt)
         kernels.faces(
-            self.active, dtf, want_wave, self.om, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
+            self.active, dtf, want_wave, self.om, self.zcx, self.zcy, self.h, self.d, self.u, self.v, self.mx, self.my, self.qx, self.qy,
             *self.static_x, self.ftabx, *self.static_y, self.ftaby,
             self.u1, self.v1, self.mx1, self.my1, self.qx1, self.qy1, self.wave, *self._args,
         )  # fmt: skip

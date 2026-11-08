@@ -52,7 +52,7 @@ extern "C" __global__ void quad_faces_done(const int* __restrict__ active, const
 // The fine faces of an interface. One block per row, launched with the module of the fine tile's cell size.
 extern "C" __global__ void iface_faces(
     const int* __restrict__ rows, const float dt, const int want_wave, const float* __restrict__ om,
-    const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
+    const float* __restrict__ zcx, const float* __restrict__ zcy, const float* __restrict__ h, const float* __restrict__ d, const float* __restrict__ u,
     const float* __restrict__ v, const float* __restrict__ mx, const float* __restrict__ my,
     const float* __restrict__ qx, const float* __restrict__ qy,
     const float* __restrict__ flx, const float* __restrict__ frx, const float* __restrict__ glx,
@@ -72,16 +72,16 @@ extern "C" __global__ void iface_faces(
     const float L = 1.5f * P.dx;
     float w;
     if (side == 0) {
-        w = face_step<1, STRIDE>(k, id, dt, L, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
+        w = face_step<1, STRIDE>(k, id, dt, L, want_wave, om, zcx, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx, ftabx,
                                  u1, mx1, qx1);
     } else if (side == 1) {
-        w = face_step<STRIDE, 1>(k, id, dt, L, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
+        w = face_step<STRIDE, 1>(k, id, dt, L, want_wave, om, zcy, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy, ftaby,
                                  v1, my1, qy1);
     } else if (side == 2) {
-        w = face_step<1, STRIDE, 1>(k, id, dt, L, want_wave, om, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx,
+        w = face_step<1, STRIDE, 1>(k, id, dt, L, want_wave, om, zcx, h, d, u, mx, qx, qy, v, flx, frx, glx, grx, efx, cwx,
                                     ftabx, u1, mx1, qx1);
     } else {
-        w = face_step<STRIDE, 1, 1>(k, id, dt, L, want_wave, om, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy,
+        w = face_step<STRIDE, 1, 1>(k, id, dt, L, want_wave, om, zcy, h, d, v, my, qy, qx, u, fly, fry, gly, gry, efy, cwy,
                                     ftaby, v1, my1, qy1);
     }
     if (want_wave) {

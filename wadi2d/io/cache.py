@@ -20,7 +20,8 @@ from wadi2d.config.schema import FORMAT_VERSION
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.tables.builder import GridTables
 
-CACHE_FORMAT = "1"
+CACHE_FORMAT = "2"
+"""2: the tables carry each cell's centre-line beds, zcx and zcy (W47)."""
 GZIP_LEVEL = 1
 PACKAGE = Path(__file__).resolve().parent.parent
 BUILDER_SOURCES = ("tables/*.py", "terrain/*.py", "grid/*.py", "solver/layout.py")

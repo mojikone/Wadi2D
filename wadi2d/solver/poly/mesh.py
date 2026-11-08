@@ -67,6 +67,11 @@ class PolyMesh:
     """Cells stepped here; the rest are ghosts, tile cells a hybrid mirrors each step. -1: every cell."""
     ghost_state: np.ndarray | None = None
     """The tile state index of each ghost, in order."""
+    dzl: np.ndarray | None = None
+    """Half the bed's drop from the left cell's centre to each face, the face's invert below the invert of the left
+    cell's opposite face, over two; given (the lattice) or derived by finish (W47). Ghost sides are zero."""
+    dzr: np.ndarray | None = None
+    """The same from the right cell."""
 
     @property
     def ncells(self) -> int:
@@ -102,6 +107,8 @@ class PolyMesh:
         natural = (self.gl > crest_tolerance) & (self.gr > crest_tolerance)
         given = np.zeros(self.nfaces) if given_cw is None else np.asarray(given_cw, dtype=np.float64)
         self.cw = np.where(given != 0.0, given, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
+        if self.dzl is None or self.dzr is None:
+            self.dzl, self.dzr = opposite_drops(L.astype(np.int64), R.astype(np.int64), self.nx, self.ny, self.zf, self.ncells, self.real)
         return self
 
     def skew_degrees(self) -> np.ndarray:
@@ -115,3 +122,59 @@ class PolyMesh:
             found[a].append(f)
             found[b].append(f)
         return [np.array(v, np.int64) for v in found]
+
+
+def opposite_drops(L, R, nx, ny, zf, ncells, nreal):
+    """Per face, half the bed's drop from each side's cell centre to the face (W47): for the cell on that side, the
+    face whose outward normal is the most nearly opposite to this face's, at least 120 degrees away, gives the inflow
+    edge; the drop is that face's invert less this face's, over two. Ghost cells and cells with no opposite face give
+    zero. On the lattice it is half the drop between a cell's west and east (north and south) face inverts."""
+    from numba import njit
+
+    @njit(cache=False)
+    def _drops(L, R, nx, ny, zf, ncells, nreal, dzl, dzr):
+        nf = L.size
+        count = np.zeros(ncells + 1, np.int64)
+        for f in range(nf):
+            count[L[f] + 1] += 1
+            count[R[f] + 1] += 1
+        for c in range(ncells):
+            count[c + 1] += count[c]
+        fill = count[:-1].copy()
+        face = np.empty(2 * nf, np.int64)
+        sign = np.empty(2 * nf, np.float64)
+        for f in range(nf):
+            a, b = L[f], R[f]
+            face[fill[a]] = f
+            sign[fill[a]] = 1.0
+            fill[a] += 1
+            face[fill[b]] = f
+            sign[fill[b]] = -1.0
+            fill[b] += 1
+        for f in range(nf):
+            for side in range(2):
+                c = L[f] if side == 0 else R[f]
+                if c >= nreal:
+                    continue
+                s_f = 1.0 if side == 0 else -1.0
+                ox, oy = s_f * nx[f], s_f * ny[f]
+                best, best_dot = -1, -0.5
+                for p in range(count[c], count[c + 1]):
+                    g = face[p]
+                    if g == f:
+                        continue
+                    dot = sign[p] * (nx[g] * ox + ny[g] * oy)
+                    if dot < best_dot:
+                        best, best_dot = g, dot
+                if best >= 0:
+                    value = 0.5 * (zf[best] - zf[f])
+                    if np.isfinite(value):
+                        if side == 0:
+                            dzl[f] = value
+                        else:
+                            dzr[f] = value
+
+    dzl = np.zeros(L.size)
+    dzr = np.zeros(L.size)
+    _drops(L, R, np.asarray(nx, np.float64), np.asarray(ny, np.float64), np.asarray(zf, np.float64), int(ncells), int(nreal), dzl, dzr)
+    return dzl, dzr

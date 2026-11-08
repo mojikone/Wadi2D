@@ -94,7 +94,7 @@ class GpuLevels:
         b = self.b
         self.kernels["faces"][size](
             (int(tiles.size), 1), self.block,
-            (tiles, self.cp.float32(dt), int(want_wave), b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            (tiles, self.cp.float32(dt), int(want_wave), b.om, b.zcx, b.zcy, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
              *b.static_x, b.ftabx, *b.static_y, b.ftaby,
              b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave),
         )  # fmt: skip
@@ -109,7 +109,7 @@ class GpuLevels:
         b = self.b
         self.kernels[name][size](
             (rows.shape[0],), EDGE_BLOCK,
-            (rows, self.cp.float32(dt), int(want_wave), b.om, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
+            (rows, self.cp.float32(dt), int(want_wave), b.om, b.zcx, b.zcy, b.h, b.d, b.u, b.v, b.mx, b.my, b.qx, b.qy,
              *b.static_x, b.ftabx, *b.static_y, b.ftaby,
              b.u1, b.v1, b.mx1, b.my1, b.qx1, b.qy1, b.wave),
         )  # fmt: skip

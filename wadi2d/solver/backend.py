@@ -25,6 +25,7 @@ class NumericsRecord:
     second: bool
     sheet: bool
     mirror: bool
+    carry: bool = True
 
     @classmethod
     def from_config(cls, num: Numerics, dx: float) -> NumericsRecord:
@@ -33,6 +34,7 @@ class NumericsRecord:
             G, dx, num.e_wet, num.h_cfl, num.u_max, lead, num.plan_min, num.limiter != "none",
             num.sheet_flow,
             num.mirror_dry_faces,
+            num.face_depth_carry,
         )  # fmt: skip
 
 
