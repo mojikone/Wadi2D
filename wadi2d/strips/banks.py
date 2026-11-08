@@ -334,7 +334,60 @@ def fold_free_specs(
     else:
         cut.extend(f"{s['name']}: still folds after {SPLIT_ROUNDS} rounds, dropped" for s in todo)
         todo = []
-    return done + todo, cut
+    pieces = done + todo
+    if len(pieces) > 1:
+        pieces, trimmed = separate_pieces(pieces, offsets, along, snap, snap_nearest, edges, cell, min_length, smooth)
+        cut.extend(trimmed)
+    return pieces, cut
+
+
+SEPARATE_ROUNDS = 12
+
+
+def separate_pieces(
+    pieces: list[dict],
+    offsets: np.ndarray,
+    along: float,
+    snap: dict,
+    snap_nearest: bool,
+    edges: dict[str, shapely.Geometry] | None,
+    cell: float,
+    min_length: float,
+    smooth: int,
+) -> tuple[list[dict], list[str]]:
+    """Pieces of one corridor cut at a fold are each resampled on their own, and the end cells of two neighbours can
+    lean into each other (a ragged corridor twelve cells wide did, on Block 2); where two pieces share ground, the
+    shorter gives up the station nearest the other until they are clear, and goes if that leaves it too short."""
+    words: list[str] = []
+    for _round in range(SEPARATE_ROUNDS):
+        polys = []
+        for s in pieces:
+            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap, snap_nearest=snap_nearest, edges=edges, cell=cell, max_cells=int(s.get("max_cells", 12)))
+            polys.append(corridor_polygon(*corridor_cells(c, smooth)))
+        clash = None
+        for i in range(len(pieces)):
+            for j in range(i + 1, len(pieces)):
+                if polys[i].intersects(polys[j]) and polys[i].intersection(polys[j]).area > 1e-6:
+                    clash = (i, j)
+                    break
+            if clash:
+                break
+        if clash is None:
+            return pieces, words
+        i, j = clash
+        victim = i if len(pieces[i]["centre"]) <= len(pieces[j]["centre"]) else j
+        other = polys[j if victim == i else i]
+        centre = pieces[victim]["centre"]
+        head = shapely.Point(centre[0]).distance(other) <= shapely.Point(centre[-1]).distance(other)
+        centre = centre[1:] if head else centre[:-1]
+        length = float(np.hypot(*np.diff(np.asarray(centre), axis=0).T).sum()) if len(centre) > 1 else 0.0
+        if len(centre) < 3 or length < min_length:
+            words.append(f"{pieces[victim]['name']}: leaned into its neighbour and had no length to give, dropped")
+            pieces = [s for k, s in enumerate(pieces) if k != victim]
+        else:
+            pieces[victim] = {**pieces[victim], "centre": centre}
+    words.append("pieces still share ground after trimming, the last trimmed piece dropped")
+    return pieces[:-1], words
 
 
 def corridor_specs(

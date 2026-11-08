@@ -182,10 +182,44 @@ RAGGED_HOLD = 3
 """A change of the cells per side holds only when it lasts this many stations, else the edge would notch at every bar."""
 
 
-def ragged_counts(centre: np.ndarray, edges: dict[str, shapely.Geometry], cell: float, max_cells: int) -> tuple[np.ndarray, np.ndarray]:
+BEND_REACH = 2
+"""Stations either side of a bend over which the inner side keeps to what the bend allows."""
+
+
+def bend_caps(centre: np.ndarray, along: float, cell: float) -> tuple[np.ndarray, np.ndarray]:
+    """How many cells the inner side of a bend can hold at each station, left and right: the cross lines of two
+    stations turning by an angle meet at ``along / (2 sin(angle / 2))`` from the centre on the inner side, and
+    cells beyond that fold. The cap holds over the stations around the bend; a straight reach has none; a bend
+    tighter than a cell leaves its inner side with none (a cap floored at one cell let two neighbouring cells
+    share 2.5 m2 on Block 2's t284, a 73 degree turn in one 30 m station, 2026-11-07)."""
+    n = centre.shape[0]
+    big = np.iinfo(np.int64).max // 4
+    left = np.full(n, big, np.int64)
+    right = np.full(n, big, np.int64)
+    if n < 3:
+        return left, right
+    t = np.diff(centre, axis=0)
+    angle = np.arctan2(t[:, 1], t[:, 0])
+    turn = np.angle(np.exp(1j * np.diff(angle)))  # at the inner stations 1 .. n - 2, left positive
+    radius = along / np.maximum(2.0 * np.sin(np.minimum(np.abs(turn), np.pi - 1e-6) / 2.0), 1e-9)
+    cap = np.maximum(0, np.floor((radius - 0.5 * cell) / cell)).astype(np.int64)
+    for k in range(turn.size):
+        if abs(turn[k]) < 1e-6:
+            continue
+        lo, hi = max(0, k + 1 - BEND_REACH), min(n, k + 2 + BEND_REACH)
+        if turn[k] > 0:
+            left[lo:hi] = np.minimum(left[lo:hi], cap[k])
+        else:
+            right[lo:hi] = np.minimum(right[lo:hi], cap[k])
+    return left, right
+
+
+def ragged_counts(
+    centre: np.ndarray, edges: dict[str, shapely.Geometry], cell: float, max_cells: int, along: float | None = None
+) -> tuple[np.ndarray, np.ndarray]:
     """Cells on the left and on the right at every station of a ragged corridor: the distance to the nearest edge
-    of that side over the cell, rounded, one at least, ``max_cells`` at most, smoothed by a running median and held
-    against short changes."""
+    of that side over the cell, rounded, one at least, ``max_cells`` at most, smoothed by a running median, held
+    against short changes, and on the inner side of a bend no more than the bend allows, which may be none."""
     points = shapely.points(centre)
     out = []
     for side in ("left", "right"):
@@ -209,6 +243,10 @@ def ragged_counts(centre: np.ndarray, edges: dict[str, shapely.Geometry], cell: 
             held[i : i + run] = current
             i += run
         out.append(held)
+    if along is not None and centre.shape[0] >= 3:
+        cap_left, cap_right = bend_caps(centre, along, cell)
+        out[0] = np.minimum(out[0], cap_left)
+        out[1] = np.minimum(out[1], cap_right)
     return out[0], out[1]
 
 
@@ -219,30 +257,111 @@ def corridor_cells(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray
         x, y = corridor_nodes(c, smooth)
         return x, y, np.ones((x.shape[0] - 1, x.shape[1] - 1), bool)
     centre, normal = _frame(c, smooth)
-    left, right = ragged_counts(centre, c.edges, c.cell, c.max_cells)
+    left, right = ragged_counts(centre, c.edges, c.cell, c.max_cells, c.along)
     off = c.cell * np.arange(-int(right.max()), int(left.max()) + 1, dtype=np.float64)
     x = centre[:, 0][:, None] + off[None, :] * normal[:, 0][:, None]
     y = centre[:, 1][:, None] + off[None, :] * normal[:, 1][:, None]
     lo = -c.cell * np.minimum(right[:-1], right[1:])  # a cell exists where both its stations reach it
     hi = c.cell * np.minimum(left[:-1], left[1:])
     valid = (off[None, :-1] >= lo[:, None] - 1e-9) & (off[None, 1:] <= hi[:, None] + 1e-9)
-    return x, y, valid
+    return x, y, prune_overlaps(x, y, valid, off)
+
+
+PRUNE_ROUNDS = 20
+
+
+def prune_overlaps(x: np.ndarray, y: np.ndarray, valid: np.ndarray, off: np.ndarray) -> np.ndarray:
+    """Cells of a ragged corridor that overlap a cell of another station, the legs of a bend reaching into each
+    other's floor, give way from the outside in: of each overlapping pair the cell farther from the centre goes,
+    with every cell beyond it at its station, so the rows stay whole from the centre out. Left and right of the
+    centre are told by the sign of the cell's mid offset."""
+    valid = valid.copy()
+    mid = 0.5 * (off[:-1] + off[1:])
+    for _round in range(PRUNE_ROUNDS):
+        cells_ij = np.argwhere(valid)
+        if cells_ij.shape[0] < 2:
+            break
+        rings = shapely.polygons(np.array([_quad(x, y, i, j) for i, j in cells_ij]))
+        sound = shapely.is_valid(rings)
+        a, b = shapely.STRtree(rings).query(rings, predicate="intersects")
+        drop: set[tuple[int, int]] = set()
+        for ka, kb in zip(a.tolist(), b.tolist(), strict=True):
+            if ka >= kb or not (sound[ka] and sound[kb]):
+                continue
+            (ia, ja), (ib, jb) = (int(v) for v in cells_ij[ka]), (int(v) for v in cells_ij[kb])
+            if abs(ia - ib) <= 1 and abs(ja - jb) <= 1:
+                continue
+            if rings[ka].intersection(rings[kb]).area <= 1e-6:
+                continue
+            far_a, far_b = abs(mid[ja]), abs(mid[jb])
+            drop.add((ia, ja) if (far_a, ia) >= (far_b, ib) else (ib, jb))
+        if not drop:
+            break
+        for i, j in drop:
+            if mid[j] > 0.0:
+                valid[i, j:] = False
+            else:
+                valid[i, : j + 1] = False
+    return valid
 
 
 def folds(x: np.ndarray, y: np.ndarray, valid: np.ndarray | None = None) -> list[tuple[int, int]]:
     """The (station, row) cells whose ring is not counter-clockwise or has no area, and the cells on a row whose
     line crosses itself two or more stations apart (a bend tighter than the row's offset: the cells overlap though
-    each keeps its area, and the corridor's ring is no longer simple). ``valid`` names the cells that exist."""
+    each keeps its area, and the corridor's ring is no longer simple); two cells sharing ground; and the cells of two
+    consecutive stations that share no face, the corridor pinched to a node between a left bend and a right bend
+    (five Block 2 corridors, 2026-11-07, their outline two polygons touching at a point). ``valid`` names the cells
+    that exist."""
     out = set()
     ns, nr = x.shape
     if valid is None:
         valid = np.ones((ns - 1, nr - 1), bool)
-    for i, j in np.argwhere(valid):
+    cells_ij = np.argwhere(valid)
+    if valid.shape[0] > 1:
+        both = valid[:-1].any(axis=1) & valid[1:].any(axis=1)  # a station with no cell is the pieces' own break
+        for i in np.nonzero(both & ~(valid[:-1] & valid[1:]).any(axis=1))[0]:
+            out.update((int(i), int(j)) for j in np.nonzero(valid[i])[0])
+            out.update((int(i) + 1, int(j)) for j in np.nonzero(valid[i + 1])[0])
+    for i, j in cells_ij:
         xq = np.array([x[i, j], x[i + 1, j], x[i + 1, j + 1], x[i, j + 1]])
         yq = np.array([y[i, j], y[i + 1, j], y[i + 1, j + 1], y[i, j + 1]])
         a = 0.5 * np.sum(xq * np.roll(yq, -1) - np.roll(xq, -1) * yq)
         if a <= 1e-6:
             out.add((int(i), int(j)))
+    if cells_ij.size:  # a bow-tie keeps a positive area and is still no cell
+        rings = shapely.polygons(np.array([_quad(x, y, i, j) for i, j in cells_ij]))
+        sound = shapely.is_valid(rings)
+        for i, j in cells_ij[~sound]:
+            out.add((int(i), int(j)))
+        # two cells sharing ground: the legs of a hairpin meeting, found on Block 2 five stations apart on different
+        # rows, which no row or cross-line test sees; and the inner cells of two neighbouring stations at a bend
+        # tighter than the cell (t284, 2.5 m2). Neighbours share an edge or a corner, never an area, so the test
+        # takes every pair.
+        a, b = shapely.STRtree(rings).query(rings, predicate="intersects")
+        for ka, kb in zip(a.tolist(), b.tolist(), strict=True):
+            if ka >= kb or not (sound[ka] and sound[kb]):
+                continue
+            if rings[ka].intersection(rings[kb]).area > 1e-6:
+                (ia, ja), (ib, jb) = cells_ij[ka], cells_ij[kb]
+                out.update(((int(ia), int(ja)), (int(ib), int(jb))))
+    if ns > 2:  # two cross lines meeting inside the corridor: the cells between them overlap, each with its own area
+        touched = np.zeros((ns, nr), bool)
+        for i, j in cells_ij:
+            touched[i, j] = touched[i + 1, j] = touched[i + 1, j + 1] = touched[i, j + 1] = True
+        ends = []
+        for i in range(ns):
+            rows = np.nonzero(touched[i])[0]
+            ends.append((x[i, rows[0]], y[i, rows[0]], x[i, rows[-1]], y[i, rows[-1]]) if rows.size else (np.nan,) * 4)
+        ends = np.array(ends)
+        have = np.isfinite(ends[:, 0])
+        which = np.nonzero(have)[0]
+        if which.size > 2:
+            cross = shapely.linestrings(np.stack((ends[which, :2], ends[which, 2:]), axis=1))
+            a, b = shapely.STRtree(cross).query(cross, predicate="intersects")
+            for ia, ib in zip(which[a].tolist(), which[b].tolist(), strict=True):
+                if ib > ia:
+                    for s in range(ia, ib):
+                        out.update((s, int(j)) for j in np.nonzero(valid[s])[0])
     if ns > 2:
         for j in range(nr):
             use = np.zeros(ns - 1, bool)
@@ -300,6 +419,8 @@ def fold_free_pieces(
     bad = np.zeros(max(n - 1, 0), bool)
     for i, _j in folds(x, y, valid):
         bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
+    if valid.size:
+        bad |= ~valid.any(axis=1)  # a station with no cell left breaks the corridor there
     if keep_out is not None and n > 1:
         for i in np.nonzero(shapely.intersects(station_strips(x, y, valid), keep_out))[0]:
             bad[max(0, i - margin) : min(n - 1, i + margin + 1)] = True
@@ -319,7 +440,7 @@ def fold_free_pieces(
 def corridor_polygon(x: np.ndarray, y: np.ndarray, valid: np.ndarray | None = None) -> shapely.Geometry:
     """The corridor's outline: the ring of a structured corridor, the union of the cells of a ragged one."""
     if valid is not None and not valid.all():
-        quads = [shapely.Polygon(_quad(x, y, i, j)) for i, j in np.argwhere(valid)]
+        quads = [shapely.make_valid(shapely.Polygon(_quad(x, y, i, j))) for i, j in np.argwhere(valid)]
         return shapely.make_valid(shapely.unary_union(quads)) if quads else shapely.Polygon()
     ring = np.concatenate(
         (
@@ -390,6 +511,17 @@ def build_strip_mesh(
                 pairs = {(int(index[i, j]), int(index[i + 1, j])) for i in range(ns - 1)}
                 breakline_edges[f"{c.name}:{j}"] = {(min(p), max(p)) for p in pairs}
         polygons.append(corridor_polygon(x, y, valid))
+    if len(polygons) > 1:  # two corridors sharing ground would leave the gap's triangles with no node to stand on
+        a, b = shapely.STRtree(polygons).query(polygons, predicate="intersects")
+        for ka, kb in zip(a.tolist(), b.tolist(), strict=True):
+            if ka < kb:
+                shared = polygons[ka].intersection(polygons[kb])
+                if shared.area > 1e-6:
+                    at = shared.representative_point()
+                    raise ValueError(
+                        f"corridors {corridors[ka].name} and {corridors[kb].name} overlap near ({at.x:.0f}, {at.y:.0f})"
+                        f" by {shared.area:.1f} m2: keep them clear of each other"
+                    )
     # the lattice cells to remove: those whose box meets a buffered corridor
     jj, ii = np.nonzero(grid.mask)
     cx, cy = grid.xy_of(jj, ii)

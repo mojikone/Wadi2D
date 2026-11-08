@@ -17,6 +17,7 @@ from wadi2d.strips.mesher import (
     Corridor,
     breakline_faces,
     build_strip_mesh,
+    corridor_cells,
     corridor_nodes,
     fold_free_pieces,
     folds,
@@ -230,6 +231,108 @@ def test_the_strip_sub_cycling_inside_the_squares_step_keeps_the_channel_and_sav
     assert abs(together - 1.0) < yn_rule and abs(nested - 1.0) < yn_rule, (together, nested)
     assert nested == pytest.approx(together, abs=0.005), (nested, together)
     assert steps_nested < 0.8 * steps_together, (steps_nested, steps_together)
+
+
+def test_a_ragged_corridor_keeps_its_inner_side_to_what_a_bend_allows() -> None:
+    """On a wide floor a ragged corridor would fold at any bend; its inner side drops cells to the bend's radius
+    instead and the corridor stays whole (Block 2's biggest wadi lost its confluence reach to this, 2026-11-07)."""
+    theta = np.linspace(0.0, np.pi / 2, 31)
+    arc = np.column_stack((300.0 + 100.0 * np.sin(theta), 100.0 - 100.0 * np.cos(theta)))  # a 90 degree bend, radius 100 m
+    centre = shapely.LineString(np.vstack(([[0.0, 0.0]], arc, [[400.0, 400.0]])))
+    far = shapely.LineString([(-50.0, 250.0), (150.0, 250.0), (150.0, 450.0)]).buffer(0.1).exterior  # the inner (left) edge, far away
+    outer = centre.parallel_offset(250.0, "right") if hasattr(centre, "parallel_offset") else centre.offset_curve(-250.0)
+    c = Corridor("bend", centre, np.zeros(0), 20.0, {}, edges={"left": far, "right": outer}, cell=30.0)
+    pieces, whole = fold_free_pieces(c, smooth=0)
+    assert whole, "the inner side thins at the bend instead of folding"
+    x, y, valid = corridor_cells(c, smooth=0)
+    from wadi2d.strips.mesher import _frame, ragged_counts
+
+    centre_pts, _n = _frame(c, 0)
+    left, right = ragged_counts(centre_pts, c.edges, 30.0, 12, 20.0)
+    assert left.min() <= 3 and left[0] >= 6  # the straight approach fills the wide floor; the bend cuts the inner side
+    assert folds(x, y, valid) == []
+
+
+def test_a_bend_tighter_than_a_cell_leaves_the_inner_side_empty_and_two_cells_sharing_ground_are_a_fold() -> None:
+    """Block 2's t284, 2026-11-07: a 73 degree turn in one 30 m station on a one-cell floor. The bend cap floored at
+    one cell let the inner cells of two neighbouring stations overlap by 2.5 m2, which no fold test saw (overlaps
+    were tested between non-neighbours only), and the corridor's outline gained a vertex off the nodes, refused by
+    the mesher. The inner side of a bend tighter than a cell holds no cell, the outer side carries the corridor on;
+    and two cells sharing ground are a fold, neighbours or not."""
+    from scipy.spatial import cKDTree
+
+    from wadi2d.strips.mesher import _frame, _quad, bend_caps, corridor_polygon
+
+    headings = np.radians([0.0, 0.0, 0.0, 10.0, 30.0, 110.0, 140.0, 150.0, 150.0, 150.0, 150.0, 150.0])  # 80 degrees in one station
+    steps = 30.0 * np.column_stack((np.cos(headings), np.sin(headings)))
+    centre = shapely.LineString(np.vstack(([[0.0, 0.0]], np.cumsum(steps, axis=0))))
+    floor = centre.buffer(30.0).exterior  # one cell either side, everywhere
+    c = Corridor("hairpin", centre, np.zeros(0), 30.0, {}, edges={"left": floor, "right": floor}, cell=30.0)
+    centre_pts, normal = _frame(c, 0)
+    cap_left, cap_right = bend_caps(centre_pts, 30.0, 30.0)
+    assert cap_left.min() == 0 and cap_right.min() >= 1, "the 80 degree turn's inner side, 23 m to the meeting cross lines, holds no 30 m cell"
+    # the fold test itself, on the rows the floored cap used to give: one cell each side at every station
+    off = np.array([-30.0, 0.0, 30.0])
+    x = centre_pts[:, 0][:, None] + off[None, :] * normal[:, 0][:, None]
+    y = centre_pts[:, 1][:, None] + off[None, :] * normal[:, 1][:, None]
+    quads = {(i, j): shapely.Polygon(_quad(x, y, i, j)) for i in range(x.shape[0] - 1) for j in range(2)}
+    sharing = [(a, b) for a in quads for b in quads if a < b and quads[a].intersection(quads[b]).area > 1e-6]
+    assert any(abs(a[0] - b[0]) == 1 and a[1] == b[1] == 1 for a, b in sharing), sharing  # inner neighbours among them
+    bad = set(folds(x, y))
+    assert all(a in bad and b in bad for a, b in sharing), (sharing, bad)
+    # the corridor as built: no two cells share ground, the outline's vertices are nodes, the outer side carries it on
+    x, y, valid = corridor_cells(c, smooth=0)
+    cells = [tuple(int(v) for v in ij) for ij in np.argwhere(valid)]
+    built = {ij: shapely.Polygon(_quad(x, y, *ij)) for ij in cells}
+    assert not [(a, b) for a in cells for b in cells if a < b and built[a].intersection(built[b]).area > 1e-6]
+    assert folds(x, y, valid) == []
+    nodes = np.column_stack((x.ravel(), y.ravel()))
+    d, _ = cKDTree(nodes).query(shapely.get_coordinates(corridor_polygon(x, y, valid)))
+    assert d.max() < 1e-6, d.max()
+    assert valid.any(axis=1).all() and fold_free_pieces(c, smooth=0)[1], "the outer side carries the corridor through the bend"
+    assert (~valid[:, -1]).sum() >= 3, "the inner row is empty through the bend"
+
+
+def test_a_corridor_pinched_to_a_node_between_two_bends_is_cut_there() -> None:
+    """A left bend then a right bend, each tighter than a cell, six stations apart on a one-cell floor: the cells of
+    one station lie right of the centre, the next station's left, and they share a node and no face. Five Block 2
+    corridors did this (2026-11-07): their outline was two polygons touching at a point, which the layer writer
+    dropped and the map refused. A pinch is a fold: the mesher refuses it by name and the fold-free pieces end
+    either side of it."""
+    from wadi2d.strips.mesher import corridor_polygon
+
+    headings = np.radians([0.0] * 5 + [80.0] * 6 + [0.0] * 5)  # +80 degrees at station 5, -80 at station 11
+    steps = 30.0 * np.column_stack((np.cos(headings), np.sin(headings)))
+    centre = shapely.LineString(np.vstack(([[0.0, 0.0]], np.cumsum(steps, axis=0))))
+    floor = centre.buffer(30.0).exterior
+    c = Corridor("ess", centre, np.zeros(0), 30.0, {}, edges={"left": floor, "right": floor}, cell=30.0)
+    x, y, valid = corridor_cells(c, smooth=0)
+    pinched = np.nonzero(~(valid[:-1] & valid[1:]).any(axis=1))[0]
+    assert pinched.size == 1, pinched  # the geometry pinches once, between the bends
+    assert corridor_polygon(x, y, valid).geom_type == "MultiPolygon"  # what the pinch does to the outline
+    bad = folds(x, y, valid)
+    assert {i for i, _j in bad} >= {int(pinched[0]), int(pinched[0]) + 1}, bad
+    pieces, whole = fold_free_pieces(c, smooth=0)
+    assert not whole and len(pieces) == 2, (whole, len(pieces))
+    for piece in pieces:
+        leg = Corridor("leg", shapely.LineString(piece), np.zeros(0), 30.0, {}, edges=c.edges, cell=30.0)
+        xl, yl, vl = corridor_cells(leg, smooth=0)
+        assert folds(xl, yl, vl) == [] and corridor_polygon(xl, yl, vl).geom_type == "Polygon"
+
+
+def test_cross_lines_meeting_inside_a_corridor_count_as_a_fold() -> None:
+    """At a sharp bend the cross lines of two stations can meet inside the corridor while every cell keeps a
+    positive area: the cells between them overlap, and the union of the cells gained vertices off the nodes (found
+    on Block 2, 2026-11-07). The fold test now sees it, and the fold-free pieces cut it out."""
+    bend = shapely.LineString([(0.0, 0.0), (300.0, 0.0), (330.0, 30.0), (360.0, 0.0), (660.0, 0.0)])
+    wide = Corridor("kink", bend, np.array([-90.0, -60.0, -30.0, 0.0, 30.0, 60.0, 90.0]), 30.0)
+    x, y = corridor_nodes(wide, smooth=0)
+    bad = folds(x, y)
+    assert bad, "the kink's cross lines meet within 90 m of the centre"
+    pieces, whole = fold_free_pieces(wide, smooth=0)
+    assert not whole and len(pieces) == 2
+    straight = Corridor("straight", shapely.LineString([(0.0, 0.0), (660.0, 0.0)]), wide.offsets, 30.0)
+    assert folds(*corridor_nodes(straight, smooth=0)) == []
 
 
 def test_the_rows_between_two_snapped_rows_share_their_width_and_the_centre_need_not_be_a_row() -> None:
