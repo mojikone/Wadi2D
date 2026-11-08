@@ -2841,8 +2841,8 @@
           "type": "integer"
         },
         "clearance_cells": {
-          "default": 1.0,
-          "description": "Centres: a lower line's station whose cell centres would land within this many cells of a higher line's ends it there",
+          "default": 2.0,
+          "description": "Centres: a lower line's station whose cell centres would land within this many cells of a higher line's ends it there; at two, a cell of the band always separates a tributary's cells from the main stem's rows, and the main keeps every cell aligned to it (his rule of 2026-11-08)",
           "maximum": 4.0,
           "minimum": 0.5,
           "title": "Clearance Cells",
@@ -3628,7 +3628,7 @@
         "generator": "rings",
         "min_area_fraction": 0.4,
         "max_faces": 8,
-        "clearance_cells": 1.0,
+        "clearance_cells": 2.0,
         "relax_rounds": 2,
         "hard_rows": 1,
         "corridors": [],

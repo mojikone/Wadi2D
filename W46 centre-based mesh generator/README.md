@@ -13,7 +13,8 @@ His words of 2026-11-08, after the W45 fixed-cell corridors and the zoom-window 
    more than four faces. The generator handles faces and sizes, never the user.
 3. At a junction the main stream keeps its clean rows and the tributary stops short. Rank by drainage area (his
    Strahler order ties exactly where the order rises; area never ties and agrees with Strahler elsewhere), hard lines
-   (crests, walls) first.
+   (crests, walls) first. The main stem wins every cell aligned to it: a branch and its mesh never disturb its rows
+   (his word on the circled junction, 2026-11-08).
 4. The rows stop at the bank; the minimum area governs merging only. Lines are guide (smoothed within a cell where a
    bend is too sharp for a 4-sided cell) or hard (reported).
 5. The bank: going outward from the centre line, the first of a scarp inside one step read on the sub-grid pixels
@@ -34,13 +35,16 @@ junction continuing downstream, so a stem carries its outlet's rank along its wh
 unbroken through every junction, and the tributaries alone end short of it (his circles of 2026-11-08, where the
 main's upstream segment ranked below its downstream one and the band filled the seam); the lattice centres
 within 3.5 cells of a line centre join the diagram (those within 0.75 of a line centre go); the mesh is the clipped
-Voronoi diagram of all of them, bounded by the lattice positions beyond. A cell under 0.4 of a square loses a centre,
-a mirrored pair never (the centre behind it goes, outward); the lattice centres within one cell of a line relax to
+Voronoi diagram of all of them, bounded by the lattice positions beyond. A cell under 0.4 of a square loses a centre:
+a cell of a higher line squeezed by a lower line's centre drops that centre (his rule: the main stem wins the cells
+aligned to it; at his circled junction the tributary's last pair had cost the main its second row), a mirrored pair
+never its own (the centre behind it goes, outward); the lattice centres within one cell of a line relax to
 their cell's centroid twice; a band cell over 8 faces loses its centre; a 3-sided cell on a line loses the centre
 behind or the lattice centre beyond it; faces shorter than 0.15 of a cell, the diagram's near-degenerate edges, are
 contracted to a node; cells reaching outside the domain are cut back to the squares the strip replaces; a lower line's
-station whose pair would land within one cell of a placed centre, outside the active cells or within 3.5 cells of a
-boundary line's square ends the line there. Because no lattice centre on the band's rim ever moves (the band is wider
+station whose pair would land within two cells of a placed centre (so a band cell always separates a tributary's
+cells from the main's rows), outside the active cells or within 3.5 cells of a boundary line's square ends the line
+there. Because no lattice centre on the band's rim ever moves (the band is wider
 than the relaxed zone by more than a cell's diagonal), every face between the strip and the squares is a lattice edge,
 which the hybrid step needs, and the cells cover exactly the squares they replace (checked to 1e-6 on every build).
 
@@ -63,18 +67,20 @@ with the flow forced into the band polygons (floor 20 m).**
 
 | | Count |
 |---|---|
-| Thalwegs, 1 km2 | 432 segments chained into 218 stems with cells |
-| Cells on the lines | 58,568 |
-| Cells around them | 129,607, of which exact squares 68,273 |
-| Faces per cell | 3: 294, 4: 115,174, 5: 53,860, 6: 17,125, 7: 1,605, 8: 116, 9: 1 |
+| Thalwegs, 1 km2 | 432 segments chained into 214 stems with cells |
+| Cells on the lines | 57,734 |
+| Cells around them | 130,222, of which exact squares 68,405 |
+| Faces per cell | 3: 290, 4: 115,095, 5: 53,734, 6: 17,093, 7: 1,627, 8: 116, 9: 1 |
 | Cells under 0.4 of a square | 1, smallest 340 m2 |
-| Faces on the lines | 23,558 |
-| Squares replaced | 196,854 |
-| Total cells against 900,861 squares | 892,182, -1.0 % |
-| Build | 100 s |
+| Faces on the lines | 23,249 |
+| Squares replaced | 196,560 |
+| Total cells against 900,861 squares | 892,257, -1.0 % |
+| Build | 101 s |
 
-The 294 three-sided cells are the end cells of stems, most over half a square; the one cell under the minimum and
-the one over the face limit are what three merge rounds left, a rounds setting away. The strip ends 3.5 cells before
+The 290 three-sided cells are the end cells of stems, most over half a square; the one cell under the minimum and
+the one over the face limit are what three merge rounds left, a rounds setting away. With the two-cell clearance a
+tributary ends two cells short of the main's outer row and a band cell sits between; the main's rows run whole
+through every junction. The strip ends 3.5 cells before
 the job's boundary lines, which took three lines' cells away at the domain's edge. Maps `block2/mesh_centres.png`
 (four windows), `block2/mesh_centres_overview.png`; the QGIS group 6 of `W45 .../compare_meshes.qgz` (`qgis_centres.py`).
 

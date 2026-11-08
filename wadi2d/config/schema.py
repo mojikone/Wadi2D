@@ -1040,8 +1040,10 @@ class Strips(_Part):
     )
     max_faces: int = Field(8, ge=4, le=16, description="Centres: faces per cell at most, HEC-RAS's 8; a cell over it loses its centre")
     clearance_cells: float = Field(
-        1.0, ge=0.5, le=4.0,
-        description="Centres: a lower line's station whose cell centres would land within this many cells of a higher line's ends it there",
+        2.0, ge=0.5, le=4.0,
+        description="Centres: a lower line's station whose cell centres would land within this many cells of a higher"
+        " line's ends it there; at two, a cell of the band always separates a tributary's cells from the main stem's"
+        " rows, and the main keeps every cell aligned to it (his rule of 2026-11-08)",
     )
     relax_rounds: int = Field(2, ge=0, le=10, description="Centres: rounds of moving the band's lattice centres to their cell's centroid")
     hard_rows: int = Field(1, ge=0, le=6, description="Centres: rows of cells beyond the pair on each side of a hard line (a crest, a wall)")

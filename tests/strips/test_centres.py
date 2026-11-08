@@ -188,11 +188,18 @@ def test_the_main_stream_keeps_its_rows_through_a_junction_and_the_tributary_sto
     assert trib_cells.any()
     # the tributary's cells stay clear of the main's rows: no tributary centroid within the main's three rows (95 m)
     assert np.all(np.abs(cy[trib_cells] - YL) > 3 * DX - 1e-6)
-    # and its chain ends short of the main's outer row by about a cell
+    # and its chain ends two cells short of the main's outer row, a band cell between (his rule: the main wins)
     top = cy[trib_cells & (mesh.row == 0)].max()
-    assert YL - 5 * DX <= top <= YL - 3 * DX, (top - YL) / DX
+    assert YL - 6.5 * DX <= top <= YL - 4 * DX, (top - YL) / DX
     assert any("trib" in n and "stations given up" in n for n in mesh.notes), mesh.notes
     assert main_cells.sum() >= 6 * (pts_m.shape[0] - 1)  # three rows each side along its whole length
+    # the main's cells at the junction are whole: square-sized in every row, 4-sided on the line and the row behind
+    # it, the outer row meeting the band with a fifth face as it does along the whole line; no notch where the
+    # tributary arrives
+    at_junction = main_cells & (np.abs(cx - (X0 + 900.0)) < 2 * DX)
+    assert at_junction.sum() >= 18, at_junction.sum()
+    assert np.all(sizes[at_junction & (mesh.row <= 1)] == 4), sizes[at_junction]
+    assert np.all((area[at_junction] > 0.8 * DX * DX) & (area[at_junction] < 1.2 * DX * DX)), area[at_junction]
     assert all(lattice_edge(mesh, g, f) for f in np.nonzero(geo.face_cell[:, 1] < 0)[0])
 
 

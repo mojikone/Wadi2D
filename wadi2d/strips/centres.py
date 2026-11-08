@@ -10,8 +10,10 @@ along a line are 4-sided, and the transition between them comes out as polygons 
 triangle. A cell under the minimum area merges by losing a centre (a mirrored pair never goes: the centre behind it
 does, outward), the lattice centres of the band relax towards their cell's centroid, and a cell over the face limit
 loses its centre too. Lines rank by drainage area, hard lines (dykes, roads, crests) first: the higher rank places its
-centres first, and a lower line's station whose pair would land within the clearance of a placed centre ends the
-line there, so a tributary stops short of the main stream and the main keeps its clean rows through the junction.
+centres first, and a lower line's station whose pair would land within the clearance (two cells) of a placed centre
+ends the line there, so a tributary stops short of the main stream with a cell of the band between them, the main
+keeps its clean rows through the junction, and a cell of the main squeezed by a lower line's centre drops that
+centre, never its own.
 A guide line turning more than a 4-sided cell allows in one station is smoothed there; a hard line is reported.
 
 The join to the squares: every lattice centre within the band is a strip cell (a square where nothing disturbs it),
@@ -68,7 +70,7 @@ class CentreSettings:
     dx: float
     min_area_fraction: float = 0.4
     max_faces: int = 8
-    clearance_cells: float = 1.0
+    clearance_cells: float = 2.0
     relax_rounds: int = 2
     merge_rounds: int = 3
     hard_rows: int = 1
@@ -582,14 +584,41 @@ def build_centre_mesh(
         return nodes, rings, shared, area, cen
 
     nodes, rings, shared, area, cen = diagram(all_pts)
-    # merge: a small cell loses a centre, a pair the centre behind it
+    rank = np.array([(np.inf if line.hard else line.rank) for line in lines], np.float64)
+
+    def neighbours_of(pairs) -> dict[int, list[int]]:
+        out: dict[int, list[int]] = {}
+        for a, b in pairs:
+            out.setdefault(a, []).append(b)
+            out.setdefault(b, []).append(a)
+        return out
+
+    def crowding_lower(c: int, around: dict[int, list[int]]) -> int | None:
+        """Among the centres sharing a face with cell ``c``, the one of the lowest-ranked line below ``c``'s own, or
+        None: the higher line keeps its cells, a lower line's centre that squeezes them goes (his rule: the main stem
+        wins the cells aligned to it; at a junction the tributary's last pair had cost the main its second row)."""
+        own = rank[all_pts.line[c]]
+        best, best_rank = None, np.inf
+        for other in around.get(c, ()):
+            if all_pts.line[other] < 0 or all_pts.line[other] == all_pts.line[c]:
+                continue
+            r = rank[all_pts.line[other]]
+            if r < own and r < best_rank:
+                best, best_rank = other, r
+        return best
+
+    # merge: a small cell loses a centre, a pair the centre behind it, a cell squeezed by a lower line that line's centre
     for _round in range(s.merge_rounds):
         small = np.nonzero(area < min_area)[0]
         if small.size == 0:
             break
         drop = np.zeros(all_pts.n, bool)
+        around = neighbours_of(shared.keys())
         for c in small:
-            if all_pts.row[c] == 0 and all_pts.line[c] >= 0:
+            lower = crowding_lower(int(c), around) if all_pts.line[c] >= 0 else None
+            if lower is not None:
+                drop[lower] = True
+            elif all_pts.row[c] == 0 and all_pts.line[c] >= 0:
                 behind = np.nonzero(
                     (all_pts.line == all_pts.line[c]) & (all_pts.station == all_pts.station[c]) & (all_pts.side == all_pts.side[c]) & (all_pts.row == 1)
                 )[0]

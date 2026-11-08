@@ -1,24 +1,24 @@
 dx: 30.0
 squares_uniform: 900861
 thalwegs: 432
-lines_with_cells: 218
-line_cells: 58568
-band_cells: 129607
-band_squares: 68273
-faces_histogram: {3: 294, 4: 115174, 5: 53860, 6: 17125, 7: 1605, 8: 116, 9: 1}
+lines_with_cells: 214
+line_cells: 57734
+band_cells: 130222
+band_squares: 68405
+faces_histogram: {3: 290, 4: 115095, 5: 53734, 6: 17093, 7: 1627, 8: 116, 9: 1}
 cells_over_8_faces: 1
 cells_under_0.4_square: 1
 area_m2_min: 340.2
 area_m2_median: 900.0
-line_faces: 23558
-squares_replaced: 196854
-squares_kept: 704007
-total_cells: 892182
+line_faces: 23249
+squares_replaced: 196560
+squares_kept: 704301
+total_cells: 892257
 against_uniform: 0.9904
-build_s: 100.0
+build_s: 100.7
 notes: 232
-cells_across_hist: {'2': 119, '3': 21, '4': 14, '5': 11, '6': 12, '7': 4, '8': 11, '9': 7, '10': 5, '11': 4, '12': 2, '13': 2, '14': 5, '16': 1}
-TOTAL 892,182 cells against 900,861 squares (-1.0 %)
+cells_across_hist: {'2': 118, '3': 20, '4': 12, '5': 12, '6': 11, '7': 5, '8': 11, '9': 6, '10': 5, '11': 4, '12': 2, '13': 2, '14': 5, '16': 1}
+TOTAL 892,257 cells against 900,861 squares (-1.0 %)
 wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres.gpkg
 wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres.png
 wrote D:\Mojtaba\Renardet\Wadi2D\W46 centre-based mesh generator\block2\mesh_centres_overview.png
