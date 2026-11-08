@@ -66,10 +66,14 @@ class Window:
         return (self.y0 - xy[..., 1]) / self.pixel - 0.5, (xy[..., 0] - self.x0) / self.pixel - 0.5
 
     def sample(self, field: np.ndarray, xy: np.ndarray, order: int = 1) -> np.ndarray:
-        """``field`` at points, bilinear by default; NaN off the raster."""
+        """``field`` at points of any shape (..., 2), bilinear by default; NaN off the raster and beside nodata.
+
+        The field is read in place: a copy of it per call (the first version made one) cost 80 % of a suggestion on
+        Bidah and hours on Block 2, where the bank search calls this thousands of times (found 2026-11-07).
+        """
         r, c = self.rc(xy)
-        filled = np.nan_to_num(field, nan=np.nan)
-        return ndimage.map_coordinates(filled, [r, c], order=order, mode="constant", cval=np.nan)
+        out = ndimage.map_coordinates(field, [r.ravel(), c.ravel()], order=order, mode="constant", cval=np.nan)
+        return out.reshape(r.shape)
 
 
 def pixel_factor(dx: float, wanted: float) -> int:

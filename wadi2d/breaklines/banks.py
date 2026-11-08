@@ -55,7 +55,7 @@ def sections(xy: np.ndarray, step: float) -> tuple[np.ndarray, np.ndarray]:
 def _bed(win: Window, centres: np.ndarray, normals: np.ndarray) -> np.ndarray:
     """Lowest ground within a pixel of each centre across the line: the smoothed thalweg sits a little off the pit."""
     offsets = np.array([-1.0, -0.5, 0.0, 0.5, 1.0]) * win.pixel
-    z = np.stack([win.sample(win.z, centres + normals * d) for d in offsets])
+    z = win.sample(win.z, centres[None, :, :] + normals[None, :, :] * offsets[:, None, None])
     return np.nanmin(z, axis=0)
 
 
@@ -71,7 +71,7 @@ def bank_points(
 ) -> np.ndarray:
     """One bank point per section, NaN where that side has no bank within ``reach`` of the thalweg."""
     distances = np.arange(win.pixel, reach + 1e-9, win.pixel)
-    z = np.stack([win.sample(win.z, centres + sign * normals * d) for d in distances])
+    z = win.sample(win.z, centres[None, :, :] + sign * normals[None, :, :] * distances[:, None, None])
     risen = (z - bed[None, :]) >= rise
     off = np.isnan(z)
     first = np.argmax(risen, axis=0)
@@ -96,7 +96,7 @@ def flood_points(
     """One bank point per section at the edge of the flooded course: the first stretch of ``dry_m`` across whose
     depth stays under ``depth_m``. NaN where the course is dry at the thalweg, or never dries within ``reach``."""
     distances = np.arange(win.pixel, reach + 1e-9, win.pixel)
-    d = np.stack([win.sample(depth, centres + sign * normals * dist) for dist in distances])
+    d = win.sample(depth, centres[None, :, :] + sign * normals[None, :, :] * distances[:, None, None])
     wet = np.nan_to_num(d, nan=0.0) > depth_m
     n_dry = max(1, int(np.ceil(dry_m / win.pixel)))
     if wet.shape[0] < n_dry:
