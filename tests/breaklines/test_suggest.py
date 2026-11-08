@@ -210,6 +210,23 @@ def test_banks_from_a_runs_depth_map_follow_the_flooded_course(tmp_path):
         suggest(cfg, tmp_path / "out2", DEFAULTS.model_copy(update={"bank_depth_map": str(tmp_path / "gone.tif")}))
 
 
+def test_the_slope_method_puts_the_bank_where_the_floor_ends_and_finds_none_on_a_plain(tmp_path):
+    """His rule of 2026-11-07: under 5 % is floodplain. The valley sides of this ground climb at 5 %, so a limit of
+    4 % puts the bank at the channel's lip, where the climb starts; on the flat plain no wall lies within reach."""
+    settings = DEFAULTS.model_copy(update={"bank_method": "slope", "bank_slope": 0.04})
+    (tmp_path / "valley").mkdir()
+    (tmp_path / "plain").mkdir()
+    summary = _suggest(tmp_path / "valley", _ground(), settings)
+    assert "edge of the floodplain" in summary["bank_rule"] and "4 %" in summary["bank_rule"]
+    banks = [(g, r) for g, r in _lines(summary["path"]) if r["kind"] == BANK]
+    assert sorted(r["side"] for _g, r in banks) == [LEFT, RIGHT]
+    for geometry, _row in banks:
+        off = np.abs(_coords(geometry)[:, 1] - AXIS_Y)
+        assert 25.0 <= off.min() and off.max() <= 45.0, (off.min(), off.max())
+    flat = _suggest(tmp_path / "plain", _ground(valley=False), settings)
+    assert flat["banks"] == 0, flat
+
+
 def test_one_bank_only_where_one_bank_exists(tmp_path):
     summary = _suggest(tmp_path, _ground(one_bank=True))
     banks = [r for _g, r in _lines(summary["path"]) if r["kind"] == BANK]

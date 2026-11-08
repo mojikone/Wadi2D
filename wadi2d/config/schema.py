@@ -1053,9 +1053,22 @@ class Breaklines(_Part):
         " the active channel, where his strokes and the 0.5 m depth margin of the 100-yr flood lie on Bidah; the 0.2 m"
         " margin lies about 8 m further out, near 4 to 5 m of rise (W45 bank check)",
     )
+    bank_method: Literal["rise", "slope"] = Field(
+        "rise",
+        description="How a bank is found on the ground: 'rise', where the ground first stands bank_rise_m over the bed;"
+        " 'slope', the edge of the floodplain, where the ground first climbs more than bank_slope over bank_run_m going"
+        " outward and stands bank_rise_m over the bed (his rule of 2026-11-07: under 5 % is floodplain). A depth map,"
+        " when given, places the banks instead of either",
+    )
+    bank_slope: float = Field(
+        0.05, gt=0.0, le=2.0, description="For the slope method: ground climbing more than this, m/m, over bank_run_m ends the floodplain"
+    )
+    bank_run_m: float = Field(
+        40.0, gt=0.0, le=500.0, description="For the slope method: the run the slope is read over, m; shorter reads every bar as a wall"
+    )
     bank_reach_m: float = Field(
         300.0, gt=0.0, le=5000.0,
-        description="How far from the thalweg a bank is looked for, m; past it that side has no bank",
+        description="How far from the thalweg a bank is looked for, m; past it that side has no bank, and the floor is plain",
     )
     bank_depth_map: str | None = Field(
         None,

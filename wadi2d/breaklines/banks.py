@@ -82,6 +82,39 @@ def bank_points(
     return centres + sign * normals * d[:, None]
 
 
+def slope_points(
+    win: Window,
+    centres: np.ndarray,
+    normals: np.ndarray,
+    bed: np.ndarray,
+    sign: float,
+    slope: float,
+    run: float,
+    rise: float,
+    reach: float,
+    offset: float,
+) -> np.ndarray:
+    """One bank point per section at the edge of the floodplain: the first distance out from the thalweg where the
+    ground climbs more than ``slope`` over the next ``run`` metres and already stands ``rise`` over the bed; NaN where
+    no such wall lies within ``reach``, which is a plain. His rule of 2026-11-07: under 5 % is floodplain. On the
+    Bidah windows this edge lies within 1 m of his strokes and 3 m inside the 0.5 m depth margin of the 100-yr flood."""
+    distances = np.arange(win.pixel, reach + run + 1e-9, win.pixel)
+    z = win.sample(win.z, centres[None, :, :] + sign * normals[None, :, :] * distances[:, None, None])
+    steps = max(1, int(round(run / win.pixel)))
+    n = distances.size - steps
+    if n <= 0:
+        return np.full(centres.shape, np.nan)
+    ahead = (z[steps:] - z[:n]) / (steps * win.pixel)
+    wall = (ahead > slope) & ((z[:n] - bed[None, :]) >= rise) & (distances[:n, None] <= reach + 1e-9)
+    off = np.isnan(z[:n])
+    first = np.argmax(wall, axis=0)
+    found = wall.any(axis=0)
+    seen_off = np.cumsum(off, axis=0)[first, np.arange(len(bed))] > 0
+    ok = found & ~seen_off
+    d = np.where(ok, np.maximum(distances[first], offset), np.nan)
+    return centres + sign * normals * d[:, None]
+
+
 def flood_points(
     win: Window,
     depth: np.ndarray,
@@ -152,7 +185,11 @@ def banks_of(
     tree = shapely.STRtree(others) if others else None
     out = []
     for side, sign in ((LEFT, 1.0), (RIGHT, -1.0)):
-        if depth is None:
+        if depth is None and settings.bank_method == "slope":
+            points = slope_points(
+                win, centres, normals, bed, sign, settings.bank_slope, settings.bank_run_m, settings.bank_rise_m, reach, offset
+            )
+        elif depth is None:
             points = bank_points(win, centres, normals, bed, sign, settings.bank_rise_m, reach, offset)
         else:
             points = flood_points(

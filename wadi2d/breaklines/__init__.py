@@ -120,6 +120,11 @@ def bank_rule(settings: Settings, from_depth: bool) -> str:
     """The rule that placed the banks, in words for the layer's reader."""
     if from_depth:
         return f"edge of the flooded course of {settings.bank_depth_map}, deeper than {settings.bank_depth_m:g} m"
+    if settings.bank_method == "slope":
+        return (
+            f"edge of the floodplain, where the ground climbs over {100 * settings.bank_slope:g} % for {settings.bank_run_m:g} m"
+            f" and stands {settings.bank_rise_m:g} m over the bed"
+        )
     return f"ground {settings.bank_rise_m:g} m over the bed of the wadi"
 
 
