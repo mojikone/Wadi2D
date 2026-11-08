@@ -612,6 +612,39 @@ stretches keep their squares.
 fanning round it, the gap triangles filling the inside; at a confluence the tributary's corridor ends short of the
 main one by the junction clearance, as before. Bends and confluences stay the next mesher piece.
 
+## His review of the zoom window (2026-11-07): the floor, the small cells, the triangles
+
+His four points on the window `zoom` of `compare_meshes.qgz` (437,550 to 439,905 east, 2,709,422 to 2,711,262
+north, the confluence fan at 438,350 / 2,710,000): the blue fans are not the bed, the green edges are missing in
+places and cells lie outside the bed; small cells at the bends cost run time and should be merged; the transition
+cells are triangles and should be polygons with a face limit as HEC-RAS has; HEC-RAS 2025 has a new mesh generator
+that transitions smoothly. Two sketches, geometry only, nothing in the engine:
+
+- **`zoom_floor_check.py`, `zoom_floor_check_west.png`: the 5 % floor against height above the thalweg (HAND).**
+  [Certain, measured] On the confluence fan the as-built corridors reach 300 m from the thalweg where HAND 2 m lies
+  60 to 150 m out and HAND 1 m 25 to 70 m: the ground beside the channel there slopes 2 to 4 % and stands 3 to 10 m
+  over the bed, so "under 5 % is floodplain" reads the fan as bed and his eye does not. A section-by-section proxy
+  of the slope rule (300 m reach, 40 m run, 2 m rise) fires at 0 to 10 m on half the sides, the lip of the incised
+  channel, and at 85 to 230 m on fans; HAND 2 m gives 15 to 135 m, median about 35 m, and exists on every section
+  by construction, where the Suggest's green edges stop wherever no 5 % climb lies within 300 m. [Likely] The bed
+  he draws is a height above the channel, not a slope: HAND, capped by the slope, is the rule to build.
+- **`zoom_voronoi_sketch.py`, `zoom_voronoi_sketch.png`: cells from centres, as HEC-RAS builds them.** Lattice
+  centres away from the streams, rows of centres every 30 m along each thalweg at 15, 45, 75 m either side while
+  inside the HAND 2 m floor and nearest to their own stream, lattice centres within 21 m of a corridor centre
+  dropped, and the mesh is the clipped Voronoi diagram of the centres. On the window: 584 corridor cells with the
+  thalweg on the face between the two inner rows, 3,362 exact squares, 625 transition polygons, faces 4: 3,400,
+  5: 383, 6: 597, 7: 179, 8: 12, none over 8 after two relaxation rounds on 341 lattice centres of the band, no
+  triangle, no cell under 0.4 of a square (the smallest 450 m2) after merging by dropping centres (91 small cells
+  before the stream-ownership rule, none after it). [Likely] The solver takes it as it is: the geometry contract
+  holds one ring of any length per cell and the GPU hybrid's cell-to-face table is a CSR; only the mesher is quads
+  and triangles. Not in the sketch: sub-grid tables and faces for Voronoi cells (stage 2 handles polygons, untested
+  on these), the orthogonality of face and centre line that the Voronoi construction gives and the current quads
+  on a bend lack, and a run.
+- **HEC-RAS 2025.** [Certain, from HEC's 2024 poster] Its mesh is built from a conceptual layer of arcs and regions
+  carrying cell size, type and quality attributes, as SMS does, for quality, repeatability and flexibility, with a
+  new explicit solver. [Guessing] How its transition cells are made is not in anything read tonight; the poster PDF
+  is over 10 MB and was not downloaded.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
