@@ -97,6 +97,117 @@ def read_layers(path) -> tuple[list[dict], dict[float, shapely.LineString]]:
     return banks, thalwegs
 
 
+def read_thalwegs(path) -> list[dict]:
+    """Every thalweg of the suggestion file as (line, area_km2, incised_m), in file order."""
+    import fiona
+
+    out = []
+    with fiona.open(path, layer="thalwegs") as src:
+        for f in src:
+            g = shapely.geometry.shape(f["geometry"])
+            if g.geom_type == "MultiLineString":
+                g = max(g.geoms, key=lambda part: part.length)
+            p = dict(f["properties"])
+            out.append({"line": shapely.LineString(np.asarray(g.coords)[:, :2]), "area_km2": float(p["area_km2"]), "incised_m": float(p.get("incised_m") or 0.0)})
+    return out
+
+
+def corridor_specs_thalweg(
+    thalwegs: list[dict],
+    banks: list[dict],
+    domain: shapely.Polygon,
+    cell: float = 30.0,
+    along: float = 30.0,
+    reach: float = 300.0,
+    min_share: float = 0.5,
+    min_length: float = MIN_LENGTH_M,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Corridors on the thalwegs themselves, their edge rows on the banks (his direction of 2026-11-07: the centre
+    lines drive the cells, the floor's edges say how far the cells repeat across).
+
+    Per thalweg, biggest first: the distance from each station to the nearest bank of its own on each side; the
+    thalweg is a defined wadi where both sides have one on at least ``min_share`` of its stations, else it keeps the
+    squares. The corridor's rows run from the median right half-width to the median left one in cells of about
+    ``cell`` m, the two edge rows snapped to the bank lines where they exist and kept at the median where they do
+    not. Each corridor is cut clear of the accepted ones, the domain edge and its own folds. Returns the specs, the
+    rejected or cut pieces with why, and per corridor the width, the cells across and their size."""
+    by_area: dict[float, dict[str, list]] = defaultdict(lambda: {"left": [], "right": []})
+    for b in banks:
+        by_area[b["area_km2"]][b["side"]].append(b["line"])
+    accepted: list[dict] = []
+    polygons: list[shapely.Polygon] = []
+    rejected: list[dict] = []
+    rules: list[dict] = []
+    edges: dict[float, tuple[shapely.Geometry, shapely.Geometry]] = {}
+    for k, t in enumerate(sorted(thalwegs, key=lambda t: -t["area_km2"])):
+        tag = f"thalweg {k} area {t['area_km2']:.2f} km2"
+        line = t["line"]
+        if line.length < min_length:
+            continue
+        sides = by_area.get(t["area_km2"])
+        if not sides or not sides["left"] or not sides["right"]:
+            rejected.append({"tag": tag, "why": "a bank on one side or none: not a defined wadi, the squares stay"})
+            continue
+        stations = np.arange(0.0, line.length + 1e-9, along)
+        points = shapely.points(np.array([np.asarray(line.interpolate(s).coords[0])[:2] for s in stations]))
+        half: dict[str, np.ndarray] = {}
+        for side in ("left", "right"):
+            union = shapely.union_all(sides[side])
+            d = shapely.distance(points, union)
+            half[side] = np.where(d <= reach, d, np.nan)
+        both = np.isfinite(half["left"]) & np.isfinite(half["right"])
+        share = float(both.mean()) if both.size else 0.0
+        if share < min_share:
+            rejected.append({"tag": tag, "why": f"banks on both sides along {100 * share:.0f} % of it, under {100 * min_share:.0f} %: not a defined wadi"})
+            continue
+        hl = float(np.nanmedian(half["left"]))
+        hr = float(np.nanmedian(half["right"]))
+        width = hl + hr
+        n = max(1, int(round(width / cell)))
+        offsets = [float(v) for v in np.linspace(-hr, hl, n + 1)]
+        extent = round(max(hl, hr), 1)
+        if extent not in edges:
+            edges[extent] = (
+                domain.buffer(-(extent + along)),
+                domain.envelope.buffer(4.0 * extent).difference(domain.buffer(-along)),
+            )
+        inside, outside = edges[extent]
+        free = line.intersection(inside)
+        if polygons:
+            free = free.difference(shapely.unary_union([p.buffer(CLEAR_M) for p in polygons]))
+        if free.is_empty:
+            rejected.append({"tag": tag, "why": "inside an accepted corridor's clearance or outside the domain"})
+            continue
+        parts = [g for g in (free.geoms if hasattr(free, "geoms") else [free]) if g.geom_type == "LineString" and g.length >= min_length]
+        if not parts:
+            rejected.append({"tag": tag, "why": f"free stretches all under {min_length:.0f} m"})
+            continue
+        snap_rows = [
+            {"row": n, "coordinates": [[[float(x), float(y)] for x, y in np.asarray(ln.coords)[:, :2]] for ln in sides["left"]], "lines": sides["left"]},
+            {"row": 0, "coordinates": [[[float(x), float(y)] for x, y in np.asarray(ln.coords)[:, :2]] for ln in sides["right"]], "lines": sides["right"]},
+        ]
+        for m, part in enumerate(parts):
+            spec = {
+                "name": f"t{k}_{t['area_km2']:.1f}km2" + (f"_{m}" if len(parts) > 1 else ""),
+                "centre": [[float(x), float(y)] for x, y in np.asarray(part.coords)[:, :2]],
+                "offsets": offsets,
+                "snap": [{"row": r["row"], "coordinates": r["coordinates"]} for r in snap_rows],
+            }
+            snap = {r["row"]: shapely.union_all(r["lines"]) for r in snap_rows}
+            keep_out = shapely.unary_union([outside, *[p.buffer(CLEAR_M) for p in polygons]])
+            pieces, cut = fold_free_specs(spec, along, keep_out=keep_out, min_length=min_length, snap=snap, snap_nearest=False)
+            rejected.extend({"tag": tag, "why": words} for words in cut)
+            for piece in pieces:
+                accepted.append(piece)
+                rules.append({
+                    "name": piece["name"], "area_km2": round(t["area_km2"], 2), "width_m": round(width, 1),
+                    "cells_across": n, "across_m": round(width / n, 1), "rows_outside": 0, "left_m": round(hl, 1), "right_m": round(hr, 1),
+                })  # fmt: skip
+                built = Corridor(piece["name"], shapely.LineString(piece["centre"]), np.asarray(offsets), along, snap, snap_nearest=False)
+                polygons.append(corridor_polygon(*corridor_nodes(built)))
+    return accepted, rejected, rules
+
+
 def chain_parts(parts: list[dict], order_line: shapely.LineString) -> list[shapely.LineString]:
     """Chain the bank parts of one side of one wadi in order along its thalweg; a gap over GAP_CHAIN_M starts a new
     chain."""
@@ -165,18 +276,25 @@ def pair_banks(
 
 
 def fold_free_specs(
-    spec: dict, along: float, smooth: int = 5, keep_out: shapely.Geometry | None = None, min_length: float = MIN_LENGTH_M
+    spec: dict,
+    along: float,
+    smooth: int = 5,
+    keep_out: shapely.Geometry | None = None,
+    min_length: float = MIN_LENGTH_M,
+    snap: dict[int, shapely.Geometry] | None = None,
+    snap_nearest: bool = True,
 ) -> tuple[list[dict], list[str]]:
     """The spec split into the pieces whose corridor does not fold and stays off ``keep_out`` (the mesher's own
     geometry), each at least MIN_LENGTH_M; and what was cut, in words. A corridor with nothing to cut comes back
-    as it is."""
+    as it is. ``snap`` gives the snapped rows' geometry when the spec's coordinates do not (several lines per row)."""
     offsets = np.asarray(spec["offsets"], np.float64)
-    snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
+    if snap is None:
+        snap = {row["row"]: shapely.LineString(row["coordinates"]) for row in spec["snap"]}
     todo, done, cut = [spec], [], []
     for _round in range(SPLIT_ROUNDS):
         again = []
         for s in todo:
-            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap)
+            c = Corridor(s["name"], shapely.LineString(s["centre"]), offsets, along, snap, snap_nearest=snap_nearest)
             pieces, whole = fold_free_pieces(c, smooth, keep_out=keep_out)
             if whole:
                 done.append(s)

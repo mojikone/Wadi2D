@@ -46,24 +46,39 @@ def corridors_of(
     specs: list = list(cfg.corridors)
     notes: list[str] = []
     rules: list[dict] = []
+    snap_nearest = cfg.centre != "thalweg"
     if not specs and cfg.banks:
         from wadi2d.config.schema import CorridorSpec
-        from wadi2d.strips.banks import CellRule, corridor_specs, pair_banks, read_layers
+        from wadi2d.strips.banks import CellRule, corridor_specs, corridor_specs_thalweg, pair_banks, read_layers, read_thalwegs
 
         if domain is None:
             raise ValueError("corridors from a banks file need the domain: give grid.domain or grid.extent")
-        pairs = pair_banks(*read_layers(cfg.banks), min_length=cfg.min_length_m)
-        rule = CellRule(cfg.cell_min_m, cfg.cell_max_m, cfg.width_fraction, cfg.rows_outside)
-        built, cut, rules = corridor_specs(pairs, domain, rule, along, cfg.min_length_m)
+        banks, by_area = read_layers(cfg.banks)
+        if cfg.centre == "thalweg":
+            built, cut, rules = corridor_specs_thalweg(
+                read_thalwegs(cfg.banks), banks, domain, cfg.cell_min_m, along, min_length=cfg.min_length_m
+            )
+        else:
+            pairs = pair_banks(banks, by_area, min_length=cfg.min_length_m)
+            rule = CellRule(cfg.cell_min_m, cfg.cell_max_m, cfg.width_fraction, cfg.rows_outside)
+            built, cut, rules = corridor_specs(pairs, domain, rule, along, cfg.min_length_m)
         specs = [CorridorSpec.model_validate(s) for s in built]
         notes = [c["why"] for c in cut]
         if not specs:
             raise ValueError(f"no corridor could be built from {cfg.banks}: {len(pairs)} bank pairs, all cut or dropped")
     out = []
     for spec in specs:
-        snap = {row.row: shapely.LineString(row.coordinates) for row in spec.snap}
-        out.append(Corridor(spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap))
+        snap = {row.row: snap_geometry(row.coordinates) for row in spec.snap}
+        out.append(Corridor(spec.name, shapely.LineString(spec.centre), np.asarray(spec.offsets, np.float64), along, snap, snap_nearest=snap_nearest))
     return out, notes, rules
+
+
+def snap_geometry(coordinates) -> shapely.Geometry:
+    """A snapped row's line, or the pieces of it when the spec gives a list of lines."""
+    first = coordinates[0]
+    if first and isinstance(first[0], (list, tuple)):
+        return shapely.union_all([shapely.LineString(np.asarray(part, np.float64)) for part in coordinates])
+    return shapely.LineString(np.asarray(coordinates, np.float64))
 
 
 def mask_for_strips(

@@ -974,10 +974,20 @@ class BasinSettings(_Part):
 
 
 class SnapRow(_Part):
-    """A corridor row that lies on a breakline: the row index into the offsets, and the line."""
+    """A corridor row that lies on a breakline: the row index into the offsets, and the line, or the pieces of it
+    (a bank found in parts) as a list of lines."""
 
     row: int = Field(ge=0)
-    coordinates: list[tuple[float, float]] = Field(min_length=2, description="The line the row lies on, m")
+    coordinates: list[tuple[float, float]] | list[list[tuple[float, float]]] = Field(
+        min_length=1, description="The line the row lies on, m, or several lines each of two points or more"
+    )
+
+    @model_validator(mode="after")
+    def _points(self) -> SnapRow:
+        parts = self.coordinates if self.coordinates and isinstance(self.coordinates[0][0], (list, tuple)) else [self.coordinates]
+        if any(len(part) < 2 for part in parts):
+            raise ValueError(f"snapped row {self.row}: every line needs two points or more")
+        return self
 
 
 class CorridorSpec(_Part):
@@ -1005,6 +1015,14 @@ class Strips(_Part):
     corridors: list[CorridorSpec] = Field([], description="Corridors given outright; empty, they come from the banks file")
     banks: str | None = Field(
         None, description="The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair"
+    )
+    centre: Literal["pairs", "thalweg"] = Field(
+        "pairs",
+        description="From the banks file, 'pairs' builds a corridor on the mid-line of each left and right bank pair;"
+        " 'thalweg' builds it on the thalweg itself, its edge rows on the banks where they exist and at the median"
+        " half-width where they do not, in cells of cell_min_m across, a thalweg with banks on both sides along under"
+        " half its length keeping the squares (his direction of 2026-11-07: the centre lines drive the cells, the"
+        " floor's edges say how far they repeat)",
     )
     cell_min_m: float = Field(
         20.0, gt=0.0, le=500.0,

@@ -46,6 +46,10 @@ class Corridor:
     along: float
     snap: dict[int, shapely.LineString] = field(default_factory=dict)
     """Row index (into ``offsets``) to the line that row lies on."""
+    snap_nearest: bool = True
+    """Where a snapped row's cross line misses its line, take the line's nearest point (the pair-built corridors,
+    whose banks run the corridor's whole length); off, the node keeps its nominal offset, which a corridor on a
+    thalweg wants where its floor edge has a gap."""
 
     @property
     def rows(self) -> int:
@@ -141,6 +145,8 @@ def corridor_nodes(c: Corridor, smooth: int = 5) -> tuple[np.ndarray, np.ndarray
             seg = shapely.LineString([p0 + 0.05 * u, p0 + reach * u])
             hit = seg.intersection(line)
             if hit.is_empty:
+                if not c.snap_nearest:
+                    continue
                 q = np.asarray(line.interpolate(line.project(shapely.Point(pb))).coords[0])
             else:
                 pts = shapely.get_coordinates(hit)

@@ -2433,7 +2433,7 @@
     },
     "SnapRow": {
       "additionalProperties": false,
-      "description": "A corridor row that lies on a breakline: the row index into the offsets, and the line.",
+      "description": "A corridor row that lies on a breakline: the row index into the offsets, and the line, or the pieces of it\n(a bank found in parts) as a list of lines.",
       "properties": {
         "row": {
           "minimum": 0,
@@ -2441,23 +2441,46 @@
           "type": "integer"
         },
         "coordinates": {
-          "description": "The line the row lies on, m",
-          "items": {
-            "maxItems": 2,
-            "minItems": 2,
-            "prefixItems": [
-              {
-                "type": "number"
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
               },
-              {
-                "type": "number"
-              }
-            ],
-            "type": "array"
-          },
-          "minItems": 2,
-          "title": "Coordinates",
-          "type": "array"
+              "type": "array"
+            },
+            {
+              "items": {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            }
+          ],
+          "description": "The line the row lies on, m, or several lines each of two points or more",
+          "minLength": 1,
+          "title": "Coordinates"
         }
       },
       "required": [
@@ -2711,6 +2734,16 @@
           "default": null,
           "description": "The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair",
           "title": "Banks"
+        },
+        "centre": {
+          "default": "pairs",
+          "description": "From the banks file, 'pairs' builds a corridor on the mid-line of each left and right bank pair; 'thalweg' builds it on the thalweg itself, its edge rows on the banks where they exist and at the median half-width where they do not, in cells of cell_min_m across, a thalweg with banks on both sides along under half its length keeping the squares (his direction of 2026-11-07: the centre lines drive the cells, the floor's edges say how far they repeat)",
+          "enum": [
+            "pairs",
+            "thalweg"
+          ],
+          "title": "Centre",
+          "type": "string"
         },
         "cell_min_m": {
           "default": 20.0,
@@ -3437,6 +3470,7 @@
         "enabled": false,
         "corridors": [],
         "banks": null,
+        "centre": "pairs",
         "cell_min_m": 20.0,
         "cell_max_m": 50.0,
         "width_fraction": 0.25,
