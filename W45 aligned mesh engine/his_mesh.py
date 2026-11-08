@@ -73,6 +73,9 @@ def quad_cells(quad: QuadGrid, level: int) -> list[np.ndarray]:
 
 def main(work: Path, fixed: bool = False) -> None:
     suffix = "_fixed" if fixed else ""
+    path = work / f"mesh_his{suffix}.gpkg"
+    if path.exists():  # before the five-minute build, not after it: a QGIS window holding the file cost one run
+        path.unlink()
     cfg = base_config()
     banks, _by_area = read_layers(work / "suggest_floor" / "suggested_breaklines.gpkg")
     thalwegs = read_thalwegs(work / "suggest_floor" / "suggested_breaklines.gpkg")
@@ -149,9 +152,6 @@ def main(work: Path, fixed: bool = False) -> None:
     (work / f"his_mesh{suffix}.json").write_text(json.dumps(report, indent=1), encoding="utf-8")
 
     # layers
-    path = work / f"mesh_his{suffix}.gpkg"
-    if path.exists():
-        path.unlink()
     rings = cell_rings(strip.geometry)
     area, cx, cy = strip.geometry.areas_centroids()
     poly = {"geometry": "Polygon", "properties": {"corridor": "int", "row": "int", "area_m2": "float"}}
@@ -159,8 +159,8 @@ def main(work: Path, fixed: bool = False) -> None:
     write_layer(path, "corridor_cells", crs, poly, (ring_record(rings[c], {"corridor": int(strip.corridor[c]), "row": int(strip.row[c]), "area_m2": float(area[c])}) for c in np.nonzero(is_corr)[0]))
     write_layer(path, "gap_triangles", crs, poly, (ring_record(rings[c], {"corridor": -1, "row": -1, "area_m2": float(area[c])}) for c in np.nonzero(~is_corr)[0]))
     write_layer(path, "corridors", crs, {"geometry": "Polygon", "properties": {"name": "str", "rows": "int", "width_m": "float"}}, (
-        {"geometry": shapely.geometry.mapping(p), "properties": {"name": s["name"], "rows": len(s["offsets"]) - 1, "width_m": float(s["offsets"][-1] - s["offsets"][0])}}
-        for p, s in zip(strip.polygons, specs, strict=True) if p.geom_type == "Polygon"
+        {"geometry": shapely.geometry.mapping(p), "properties": {"name": s["name"], "rows": (len(s["offsets"]) - 1) if s["offsets"] else -1, "width_m": float(s["offsets"][-1] - s["offsets"][0]) if s["offsets"] else float(p.area / max(shapely.LineString(s["centre"]).length, 1.0))}}
+        for p, s in zip(strip.polygons, specs, strict=True)
     ))
     write_layer(path, "floor_edges", crs, {"geometry": "LineString", "properties": {"side": "str", "area_km2": "float"}}, (
         {"geometry": shapely.geometry.mapping(b["line"]), "properties": {"side": b["side"], "area_km2": float(b["area_km2"])}} for b in banks
@@ -263,7 +263,7 @@ def main(work: Path, fixed: bool = False) -> None:
             tiles60.append(np.array([[xa, ya], [xa + s, ya], [xa + s, ya + s], [xa, ya + s]]))
     if tiles60:
         ax.add_collection(PolyCollection(tiles60, facecolors="#50505060", edgecolors="#303030", linewidths=0.3))
-    ax.add_collection(PolyCollection([np.asarray(p.exterior.coords) for p in strip.polygons], facecolors="#2a7fd4", edgecolors="#1b4f8a", linewidths=0.3))
+    ax.add_collection(PolyCollection([np.asarray(q.exterior.coords) for p in strip.polygons for q in (p.geoms if hasattr(p, "geoms") else [p])], facecolors="#2a7fd4", edgecolors="#1b4f8a", linewidths=0.3))
     for key, (x, y, _w) in picks.items():
         half = HALF if key != "mountain" else 2.0 * HALF
         ax.add_patch(plt.Rectangle((x - half, y - half), 2 * half, 2 * half, fill=False, edgecolor="#ffa500", lw=1.5))

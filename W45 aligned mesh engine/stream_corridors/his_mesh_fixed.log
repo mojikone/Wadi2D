@@ -1,0 +1,7 @@
+corridors: 366 along 582.4 km of 773.1 km, 50,512 cells, 84,277 triangles, 102,893 squares replaced; cells across {'2': 254, '3': 46, '4': 26, '5': 10, '6': 18, '7': 2, '8': 4, '9': 3, '10': 3}; rejected {'a bank on one side': 28, 'banks on both sides': 24, 'inside an accepted': 0, 'free stretches': 12}
+mountains: 598 of 810.8 km2 steeper than 20 %; 6 coarse tiles of 60 m cells (5,164 cells) and 933 fine; 30 m squares kept 777,363
+TOTAL 917,316 cells against 900,861 uniform squares (+1.8 %)
+wrote W45 aligned mesh engine\stream_corridors\mesh_his_fixed.gpkg
+wrote W45 aligned mesh engine\stream_corridors\mesh_his_fixed.png
+wrote W45 aligned mesh engine\stream_corridors\mesh_his_fixed_overview.png
+__EXIT__ 0

@@ -576,6 +576,42 @@ mesher (the thalweg corridors drop 28 % of the stream length at goosenecks, junc
 gate), the dock controls for `bank_method`, `bank_slope`, `bank_run_m` and `strips.centre`, the bed loss on strips,
 the Suggest time on the full boundary, and his full-domain run at 30 m, which waits on his choice of mesh.
 
+## His correction (2026-11-07): 30 m cells repeated from the centre line to the 5 % edge, never stretched
+
+His screenshot of group 4 showed what the thalweg corridor did on a wide floor: the rows share the floor's width, so
+a 4-row corridor across 100 m has 25 m cells and the same corridor across 160 m has 40 m ones. His words: take the
+guide from the centre line and repeat 30 m cells up to the edge of the 5 % extent, not varying cell sizes.
+
+**Built, the ragged corridor** (`strips.fixed_cells`, on by default; `his_mesh.py ... fixed`, `mesh_his_fixed.png`,
+`mesh_his_fixed_overview.png`, the QGIS group 5 in `compare_meshes.qgz`): every row is one cell wide; at each station
+the cells to the left and to the right are the distance to that side's floor edge over the cell, rounded, one at
+least and `max_cells` (12) at most, smoothed by a running median over five stations and held against a change
+shorter than three (the floor edge's own notching); a cell exists where both its stations reach it, so the edge
+is a staircase of whole cells and the outline is the union of the cells, not a ring. The mesher's safeguards, each
+found on Block 2 and each a test now, in the order they failed:
+
+| Failure on Block 2 | Cause | Rule now |
+|---|---|---|
+| GEOS refused the union of a corridor's cells | a twisted cell | every cell is made valid before the union; an invalid ring is a fold |
+| a gap triangle's vertex 2 m off any node, t253 | the legs of a hairpin overlapping five stations apart on different rows, each cell sound | two cells sharing ground are a fold, and two cross lines meeting inside the corridor |
+| the confluence reach of the 253 km2 wadi lost on its wide floor | the inner side of every bend folded at the floor's full count | the inner side of a bend holds no more cells than its radius allows, over two stations either side; cells that still overlap another station's give way from the outside in |
+| a gap triangle's vertex off the nodes, t345 | the two pieces of one cut corridor leaning into each other at their ends | sibling pieces are trimmed apart station by station, and the mesher refuses two corridors whose outlines overlap, by name |
+| a gap triangle's vertex 2 m off the nodes, t284 | a 73 degree turn in one 30 m station: the bend cap was floored at one cell, so two neighbouring inner cells shared 2.5 m2, and the overlap test skipped neighbours | the cap may be none, the outer side carries the corridor on; every pair of cells is tested |
+| five corridors missing from the layer, the overview map refused | a left bend then a right bend, each tighter than a cell: one station's cells right of the centre, the next's left, sharing a node and no face, the outline two polygons touching at a point | a pinch is a fold: the mesher refuses it by name, the pieces end either side of it |
+
+**Block 2 at 30 m, counted, no model run** (`his_mesh_fixed.json`): 366 corridors along 582.4 of 773.1 km of
+stream, 50,512 corridor cells of 30 m, 84,277 gap triangles, 102,893 squares replaced; 254 corridors two cells
+across, 46 three, 26 four, 40 five to ten, median width 62 m; the 60 m mountains 6 tiles as before (5,164 cells);
+777,363 squares kept; **917,316 cells against 900,861 uniform squares, +1.8 %** (the stretched rows gave 915,513,
++1.6 %, on 555 km; the fixed cells cover 27 km more of stream and cost 0.2 % more). The corridors took 266 s to
+build against 57 s for the stretched ones: the pruning and the fold tests run shapely on every cell pair, which is
+where the time goes [Certain, measured]. 28 thalwegs one-sided, 24 under the half-length gate and 12 short free
+stretches keep their squares.
+
+[Likely] What he will see at a tight bend: the inner side empty for two or three stations and the outer cells
+fanning round it, the gap triangles filling the inside; at a confluence the tributary's corridor ends short of the
+main one by the junction clearance, as before. Bends and confluences stay the next mesher piece.
+
 ## Iterations
 
 - `W44 mesh race`: the MeshKernel trial on Faydh 01 and the W3 solver assessment; its NOTES feed stage 4.
