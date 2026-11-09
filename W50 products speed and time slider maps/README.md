@@ -1,6 +1,6 @@
 # W50 products speed and time slider maps
 
-**Live (2026-11-09), on `feature/face-local-radius`, design only, nothing built.** His order of the night: the products
+**Live (2026-11-09). Design on `feature/face-local-radius`; his go the same night; the first speed-ups built on `feature/fast-products` (off it), not merged. Paused at 60 % of the weekly all-models usage, his rule.** His order of the night: the products
 after a run are the bottleneck, not the solver; make them as fast as they can be, and show the results as HEC-RAS does,
 on the time slider at small intervals (15 minutes), at pixel detail. His go is needed before building: it touches the
 engine's product step and the plugin.
@@ -70,3 +70,17 @@ asked for.
 
 **Order, if he agrees:** 3 first (it pays on every run, and it is engine work only), then 1 (the plugin layer and the
 render process), each with its own branch, tests and a check through the real dock.
+
+## Built so far (`feature/fast-products`, his go of 2026-11-09)
+
+| Stage | Before | After | How it was checked |
+|---|---|---|---|
+| One 0.7 GB raster band | 56.5 s | 7.6 s | compression on every core; the same content |
+| The depth drawing | 819.5 s | 162.6 s | blocks on the GPU, overviews on every core; differs only at the faded wet edge (0.002 % of drawn pixels over 1 cm, at most 0.10 m, none inside the wet area: the libraries break ties differently where a dry pixel is equally near two wet ones) |
+| The domain mask | 65.9 s | 29.1 s | read in bands on threads; identical (`check_reader.py`) |
+| The DEM read | masked float64 arrays and a hole fill on every strip | plain arrays; the fill skipped where nothing needs it | identical windows inside, across and outside the DEM; the shortcut never taken where a terrain object edits a strip with holes |
+
+Tests: terrain, products and tables pass (258), a GPU-against-CPU drawing test added. **Not done:** the full suite on
+this branch; the whole remake of Block 2 timed again and its four rasters compared to the digit with the run before;
+the smoothed polygons (about 405 s, untouched); the time-slider layer drawn on demand. [Guessing until measured] the
+remake from 27 minutes to about 10.
