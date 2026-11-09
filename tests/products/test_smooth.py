@@ -214,3 +214,24 @@ def test_geopackage_is_read_by_gdal_with_both_layers(tmp_path) -> None:
     assert set(layers) == {sm.CLASS_LAYER, sm.DOMAIN_LAYER}
     assert set(fields) >= {"class", "name", "area_km2"}
     assert "32640" in crs
+
+
+@pytest.mark.gpu
+def test_the_depth_drawing_on_the_gpu_is_the_cpu_s(tmp_path) -> None:
+    """W50: the drawing's blocks on the GPU through cupyx.scipy.ndimage draw what the CPU draws, within a millimetre.
+
+    The two libraries break ties differently where a dry pixel is equally near two wet ones, so the fill under the
+    fade differs there (178 of 160,000 pixels here, by up to 5 cm); after the fade the drawing differs by at most
+    0.5 mm, at 60 of 640,000 pixels. The drawing is a picture of the depth raster, not a number of record."""
+    cupy = pytest.importorskip("cupy")
+    rng = np.random.default_rng(3)
+    depth = np.clip(ndimage.gaussian_filter(rng.normal(0.0, 1.0, (400, 400)), 6) * 8.0, 0.0, None).astype(np.float32)
+    smooth = CFG.outputs.smooth
+    cpu = sm.draw_block(depth, smooth.depth_scale, smooth.depth_sigma_px, smooth.wet_edge_px)
+    gpu = sm.draw_block(depth, smooth.depth_scale, smooth.depth_sigma_px, smooth.wet_edge_px, cupy)
+    assert isinstance(gpu, np.ndarray) and gpu.dtype == np.float32
+    np.testing.assert_allclose(gpu, cpu, rtol=0.0, atol=1e-3)
+    a = sm.depth_drawing(CFG, depth, profile_of(depth), tmp_path / "cpu.tif", calm())
+    b = sm.depth_drawing(CFG, depth, profile_of(depth), tmp_path / "gpu.tif", calm(), cupy)
+    with rasterio.open(a) as sa, rasterio.open(b) as sb:
+        np.testing.assert_allclose(sb.read(1), sa.read(1), rtol=0.0, atol=1e-3)

@@ -28,7 +28,7 @@ from scipy import ndimage
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
 from wadi2d.io.geopackage import VectorLayer, write_geopackage
-from wadi2d.io.geotiff import raster_profile
+from wadi2d.io.geotiff import THREADS, raster_profile
 from wadi2d.products.hazard import DRY, class_names
 from wadi2d.products.setup_layers import setup_layers
 from wadi2d.products.smooth_geometry import chaikin_rings
@@ -290,29 +290,50 @@ def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
     return [classes, VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])]
 
 
-def _fill_dry(depth: np.ndarray, wet: np.ndarray) -> np.ndarray:
+def _fill_dry(depth, wet, nd=ndimage):
     """Depth carried out over the dry pixels, so the blur of a wet edge does not fade into zero."""
-    if wet.all() or not wet.any():
+    if bool(wet.all()) or not bool(wet.any()):
         return depth
-    nearest = ndimage.distance_transform_edt(~wet, return_distances=False, return_indices=True)
+    nearest = nd.distance_transform_edt(~wet, return_distances=False, return_indices=True)
     return depth[tuple(nearest)]
 
 
-def draw_block(depth: np.ndarray, scale: int, sigma: float, edge: float) -> np.ndarray:
-    """The depth drawing of a window: blurred, ``scale`` times finer, fading to nothing over the wet edge."""
-    wet = depth > 0.0
-    full = _fill_dry(depth, wet)
-    fine = np.repeat(np.repeat(full, scale, axis=0), scale, axis=1)
-    fine_wet = np.repeat(np.repeat(wet, scale, axis=0), scale, axis=1)
+def draw_block(depth: np.ndarray, scale: int, sigma: float, edge: float, xp=np) -> np.ndarray:
+    """The depth drawing of a window: blurred, ``scale`` times finer, fading to nothing over the wet edge.
+
+    ``xp`` is numpy or cupy: on the GPU the same steps run through ``cupyx.scipy.ndimage`` (W50), and the drawing comes
+    back to the host. It is a picture of the depth raster, not a number of record."""
+    nd = ndimage
+    if xp is not np:
+        import cupyx.scipy.ndimage as nd
+    d = xp.asarray(depth)
+    wet = d > 0.0
+    full = _fill_dry(d, wet, nd)
+    fine = xp.repeat(xp.repeat(full, scale, axis=0), scale, axis=1)
+    fine_wet = xp.repeat(xp.repeat(wet, scale, axis=0), scale, axis=1)
     if sigma > 0.0:
-        fine = ndimage.gaussian_filter(fine, sigma * scale, truncate=GAUSS_REACH)
-    fade = (soft(fine_wet, edge * scale) - EDGE_LOW) / (EDGE_HIGH - EDGE_LOW)
-    fade = np.clip(fade, 0.0, 1.0)
-    return (fine * fade * fade * (3.0 - 2.0 * fade)).astype(np.float32)
+        fine = nd.gaussian_filter(fine, sigma * scale, truncate=GAUSS_REACH)
+    fade = (nd.gaussian_filter(fine_wet.astype(xp.float32), edge * scale, truncate=GAUSS_REACH) - EDGE_LOW) / (EDGE_HIGH - EDGE_LOW)
+    fade = xp.clip(fade, 0.0, 1.0)
+    out = (fine * fade * fade * (3.0 - 2.0 * fade)).astype(xp.float32)
+    return out if xp is np else xp.asnumpy(out)
 
 
-def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, watch) -> Path:
-    """The depth drawing, block by block, into a raster ``depth_scale`` times finer than the pixel."""
+def _draw(wide: np.ndarray, smooth, xp) -> np.ndarray:
+    """One block on the GPU when there is one; a block the card cannot hold is drawn on the CPU."""
+    if xp is not np:
+        try:
+            return draw_block(wide, smooth.depth_scale, smooth.depth_sigma_px, smooth.wet_edge_px, xp)
+        except Exception as error:
+            if type(error).__name__ != "OutOfMemoryError":
+                raise
+            xp.get_default_memory_pool().free_all_blocks()
+    return draw_block(wide, smooth.depth_scale, smooth.depth_sigma_px, smooth.wet_edge_px)
+
+
+def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, watch, xp=np) -> Path:
+    """The depth drawing, block by block, into a raster ``depth_scale`` times finer than the pixel; on the GPU when
+    ``xp`` is cupy (W50)."""
     smooth = cfg.outputs.smooth
     scale = smooth.depth_scale
     t = profile["transform"]
@@ -337,11 +358,12 @@ def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, 
                 wide = window(depth, r0 - reach, r1 + reach, c0 - reach, c1 + reach, 0.0)
                 if not (wide > 0.0).any():
                     continue
-                drawn = draw_block(wide, scale, smooth.depth_sigma_px, smooth.wet_edge_px)
+                drawn = _draw(wide, smooth, xp)
                 cut = drawn[reach * scale : -reach * scale, reach * scale : -reach * scale]
                 box = Window(c0 * scale, r0 * scale, (c1 - c0) * scale, (r1 - r0) * scale)
                 out.write(cut, 1, window=box)
-            out.build_overviews(OVERVIEWS, Resampling.average)
+            with rasterio.Env(GDAL_NUM_THREADS=THREADS):
+                out.build_overviews(OVERVIEWS, Resampling.average)
     except BaseException:
         tmp.unlink(missing_ok=True)
         raise
@@ -349,14 +371,14 @@ def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, 
     return path
 
 
-def make_drawings(cfg, tables: GridTables, written: dict, depth: np.ndarray, folder: Path, crs, watch) -> dict:
+def make_drawings(cfg, tables: GridTables, written: dict, depth: np.ndarray, folder: Path, crs, watch, xp=np) -> dict:
     """Polygons, outline and the depth drawing; what was drawn against what the pixels say."""
     classes, profile = written["classes"], written["profile"]
     rows, accounts = class_polygons(cfg, classes, profile, watch)
     domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
     layers = class_layers(rows, domain, class_names(cfg.outputs.pixels)) + setup_layers(cfg, crs_text(crs))
     write_geopackage(folder / LAYERS_FILE, layers, crs_text(crs))
-    depth_drawing(cfg, depth, raster_profile(depth.shape, *_pixel_origin(profile), crs), folder / DRAWING_FILE, watch)
+    depth_drawing(cfg, depth, raster_profile(depth.shape, *_pixel_origin(profile), crs), folder / DRAWING_FILE, watch, xp)
     watch.tick("smooth", 1, 1)
     return accounts
 

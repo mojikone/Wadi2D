@@ -246,6 +246,7 @@ def make_products(
         else:
             depth = written["depth"]
         del found
-        stats["smooth"] = make_drawings(cfg, tables, written, depth, folder, crs, watch)
+        _free_device(xp)
+        stats["smooth"] = make_drawings(cfg, tables, written, depth, folder, crs, watch, xp)
     (folder / STATS_FILE).write_text(json.dumps(stats, indent=1), encoding="utf-8")
     return stats
