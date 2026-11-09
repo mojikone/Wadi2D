@@ -437,6 +437,13 @@ His rules for all of it: each item its own branch, tests, and a `W#` folder wher
 
 Waiting on him:
 
+**His list of 2026-11-09, kept for when he resumes (stopped for the week at 60 % usage, his word):**
+
+- **The smoothed polygons and the depth drawing as an option** (`outputs.smooth.enabled` exists in the job, not in the dock): a tick in the dock, unticked by default, and Make map drawing them when a sheet needs them. He never asked for them on every run; they cost about 20 of a Block 2 run's 27 product minutes (`W50`).
+- **Finish W50 on `feature/fast-products`:** the full suite on the branch, the whole Block 2 remake timed and its four rasters compared to the digit, then the time-slider layer drawn on demand at the pixel, RAS Mapper's way.
+- **The aligned mesh's race excess:** the centre mesh at 20 m reads +3.9 % over the converged Faydh peak (squares -3.3 %); the cause is two aligned cells across a narrow tightly bending gorge (W48), a mesher change (more rows across a narrow channel), not built; at 10 m both meshes are within 2.4 %. Why the pair reads high in a bend with the local radius is not looked at.
+- **Merges, his call:** `feature/face-depth-carry` (option A), `feature/face-local-radius` (local radius, the default there), `feature/fast-products`; nothing pushed.
+
 1. Evidence for Manning n on the hills (field or photographs). 0.05 to 0.1 moves the Bidah peak by 25 %, the solver by 4 % at most.
 2. The datum: confirm GGC sits 2.39 m above NSA for Block 2 W2, and on which datum the dam levels are to be used.
 3. Confirm my edits to the dam shapefiles (gaps joined, spillways centred on the thalweg, `validation/block2_full.md` section 5).
