@@ -1,0 +1,48 @@
+         5618653 function calls (4742153 primitive calls) in 1622.930 seconds
+
+   Ordered by: cumulative time
+   List reduced from 3264 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1  403.384  403.384  803.638  803.638 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\smooth.py:314(depth_drawing)
+  4603/89    1.525    0.000  453.315    5.093 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_function_base_impl.py:5196(<genexpr>)
+ 5369/169   32.442    0.006  422.267    2.499 {method 'copy' of 'numpy.ndarray' objects}
+      165   50.637    0.307  392.061    2.376 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\smooth.py:301(draw_block)
+        1   12.514   12.514  217.091  217.091 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\step.py:134(write_pixels)
+        4  173.783   43.446  180.680   45.170 D:\Mojtaba\Renardet\Wadi2D\wadi2d\io\geotiff.py:77(write_band)
+        1    0.031    0.031  116.470  116.470 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\step.py:79(pixel_maxima)
+        1    7.016    7.016  109.366  109.366 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\ground.py:56(read_cells)
+       57    7.873    0.138   99.578    1.747 D:\Mojtaba\Renardet\Wadi2D\wadi2d\terrain\dem.py:122(read)
+      190    4.969    0.026   87.114    0.458 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\ndimage\_morphology.py:2435(distance_transform_edt)
+      190   80.634    0.424   80.634    0.424 {built-in method scipy.ndimage._nd_image.euclidean_feature_transform}
+        1    0.000    0.000   73.306   73.306 D:\Mojtaba\Renardet\Wadi2D\wadi2d\run.py:301(prepare_grid)
+        1    0.001    0.001   69.763   69.763 D:\Mojtaba\Renardet\Wadi2D\wadi2d\run.py:195(domain_mask)
+        1   69.631   69.631   69.636   69.636 D:\Mojtaba\Renardet\Wadi2D\wadi2d\terrain\dem.py:140(active_mask)
+      165   11.510    0.070   66.223    0.401 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\smooth.py:293(_fill_dry)
+ 7515/723    5.222    0.001   61.114    0.085 {method 'any' of 'numpy.ndarray' objects}
+       57   43.075    0.756   57.799    1.014 D:\Mojtaba\Renardet\Wadi2D\wadi2d\terrain\dem.py:104(_window)
+ 1527/172    2.583    0.002   57.175    0.332 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\ma\core.py:1874(masked_where)
+  1493/63    0.881    0.001   52.922    0.840 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\ma\core.py:6862(is_masked)
+  1478/32    2.424    0.002   50.263    1.571 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_function_base_impl.py:5050(meshgrid)
+ 2350/164    1.083    0.000   45.024    0.275 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\step.py:52(check)
+      831    0.004    0.000   44.340    0.053 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\fromnumeric.py:48(_wrapfunc)
+ 3106/238    2.341    0.001   41.720    0.175 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\ma\core.py:1596(make_mask)
+ 6443/387    1.283    0.000   41.312    0.107 {method 'sum' of 'numpy.ndarray' objects}
+ 7203/762    0.310    0.000   41.039    0.054 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\_methods.py:47(_sum)
+ 3165/343    2.264    0.001   39.352    0.115 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\ma\core.py:619(filled)
+      660    0.003    0.000   38.609    0.058 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\fromnumeric.py:437(repeat)
+      660   38.603    0.058   38.603    0.058 {method 'repeat' of 'numpy.ndarray' objects}
+  1450/10    2.365    0.002   34.216    3.422 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\contourpy\__init__.py:73(_remove_z_mask)
+ 1495/155    1.523    0.001   32.918    0.212 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\ma\core.py:1748(mask_or)
+ 2382/199    1.375    0.001   31.071    0.156 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\runner.py:36(<lambda>)
+7190/1325    1.513    0.000   30.797    0.023 {built-in method builtins.any}
+ 4915/398    0.746    0.000   30.585    0.077 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\runner.py:36(<genexpr>)
+ 2457/200    1.257    0.001   29.753    0.149 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\pathlib.py:852(exists)
+  9345/63    1.916    0.000   21.589    0.343 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\shapely\geometry\polygon.py:61(__new__)
+ 9572/482   14.097    0.001   21.498    0.045 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\shapely\creation.py:234(linearrings)
+ 9157/757    1.491    0.000   21.135    0.028 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\_methods.py:55(_any)
+   843/14    1.017    0.001   20.705    1.479 D:\Mojtaba\Renardet\Wadi2D\wadi2d\products\smooth.py:96(soft)
+ 42316/26    2.938    0.000   20.095    0.773 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\shapely\geometry\polygon.py:227(__new__)
+  2129/34    2.132    0.001   19.172    0.564 C:\Users\mojtaba\AppData\Local\Programs\Python\Python312\Lib\site-packages\scipy\ndimage\_filters.py:687(gaussian_filter1d)
+
+

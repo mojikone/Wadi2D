@@ -1,0 +1,12 @@
+D:\Mojtaba\Renardet\Wadi2D\W50 products speed and time slider maps\profile_products.py:8: SyntaxWarning: invalid escape sequence '\S'
+  .venv\Scripts\python "W50 products speed and time slider maps\profile_products.py"
+D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+  warnings.warn(
+total 1624 s, exit 0
+  grid_cache_hit             73.0 to     73.0 s  (0.0 s)
+  ground                     74.0 to    182.5 s  (108.5 s)
+  maps                      183.7 to    187.5 s  (3.8 s)
+  rasters                   190.4 to    190.4 s  (0.0 s)
+  smooth                    414.0 to   1622.8 s  (1208.8 s)
+  pixels                   1623.5 to   1623.5 s  (0.0 s)
+  done                     1623.5 to   1623.5 s  (0.0 s)
