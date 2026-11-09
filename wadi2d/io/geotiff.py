@@ -13,6 +13,8 @@ from wadi2d.grid.tiles import TileGrid
 NODATA = -9999.0
 BLOCK = 256
 ZLEVEL = 4
+THREADS = "ALL_CPUS"
+"""GDAL compresses a GeoTIFF's blocks on every core: a 0.7 GB band of Block 2 in 7.6 s against 56.5 on one (W50)."""
 
 
 def grid_transform(grid: TileGrid, stride: int = 1) -> Affine:
@@ -46,6 +48,7 @@ def write_map(
         "compress": "deflate",
         "zlevel": ZLEVEL,
         "predictor": 2,
+        "num_threads": THREADS,
     }
     if min(ny, nx) >= BLOCK:
         profile.update(tiled=True, blockxsize=BLOCK, blockysize=BLOCK)
@@ -71,6 +74,7 @@ def raster_profile(shape: tuple[int, int], pixel: float, x0: float, y0: float, c
         "blockxsize": BLOCK,
         "blockysize": BLOCK,
         "BIGTIFF": "IF_SAFER",
+        "num_threads": THREADS,
     }
 
 
