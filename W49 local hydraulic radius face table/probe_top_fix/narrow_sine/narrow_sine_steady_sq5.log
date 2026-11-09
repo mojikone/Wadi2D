@@ -1,0 +1,20 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\cache\\grid_26b9de31b9bb9f5b1ce1158e.h5"}
+{"ev": "start", "backend": "gpu", "cells": 336000, "tiles": 371, "dx": 5.0, "duration_s": 21600.0, "tables_s": 12.8, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 0.75}
+{"ev": "step", "t": 3118.593, "dt": 0.1507, "steps": 18043, "active_tiles": 212, "volume": 405236.1, "mass_error": -9.114e-10, "wall": 2.0}
+{"ev": "step", "t": 5013.212, "dt": 0.0803, "steps": 38413, "active_tiles": 238, "volume": 670691.9, "mass_error": -6.694e-09, "wall": 4.0}
+{"ev": "step", "t": 6667.478, "dt": 0.0804, "steps": 58987, "active_tiles": 238, "volume": 676423.3, "mass_error": -1.039e-08, "wall": 6.0}
+{"ev": "step", "t": 8355.687, "dt": 0.0805, "steps": 79983, "active_tiles": 238, "volume": 676359.9, "mass_error": -1.334e-08, "wall": 8.0}
+{"ev": "step", "t": 10052.655, "dt": 0.0804, "steps": 101083, "active_tiles": 238, "volume": 676350.9, "mass_error": -1.573e-08, "wall": 10.0}
+{"ev": "output", "kind": "map", "t": 10800.803098017208}
+{"ev": "step", "t": 11403.297, "dt": 0.0803, "steps": 117878, "active_tiles": 238, "volume": 676351.6, "mass_error": -1.665e-08, "wall": 12.0}
+{"ev": "step", "t": 12943.914, "dt": 0.0806, "steps": 137035, "active_tiles": 238, "volume": 676349.5, "mass_error": -1.714e-08, "wall": 14.0}
+{"ev": "step", "t": 14595.203, "dt": 0.0804, "steps": 157569, "active_tiles": 238, "volume": 676345.1, "mass_error": -1.785e-08, "wall": 16.0}
+{"ev": "step", "t": 16250.911, "dt": 0.0803, "steps": 178156, "active_tiles": 238, "volume": 676337.6, "mass_error": -1.858e-08, "wall": 18.0}
+{"ev": "step", "t": 17913.458, "dt": 0.0806, "steps": 198833, "active_tiles": 238, "volume": 676347.1, "mass_error": -1.89e-08, "wall": 20.0}
+{"ev": "step", "t": 19584.853, "dt": 0.0806, "steps": 219615, "active_tiles": 238, "volume": 676358.5, "mass_error": -1.931e-08, "wall": 22.0}
+{"ev": "step", "t": 21286.57, "dt": 0.0803, "steps": 240777, "active_tiles": 238, "volume": 676341.8, "mass_error": -1.972e-08, "wall": 24.0}
+{"ev": "warn", "message": "water stood 3.4 m deep against the domain edge at (400002, 2700512): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\narrow_sine_steady_sq5\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 244675, "loop_s": 24.47, "tables_s": 12.8, "wet_area_km2": 0.1843, "dt_min": 0.0788373290390257, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.999998603, "outflow_m3": 5263656.653386264, "storage_start_m3": 0.0, "storage_end_m3": 676343.4639848821, "error_m3": -0.11737254320178181, "relative_error": -1.9759687407712022e-08}, "tile_steps": null, "products": "none"}
+

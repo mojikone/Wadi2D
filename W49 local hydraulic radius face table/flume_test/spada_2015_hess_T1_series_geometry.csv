@@ -1,0 +1,14 @@
+# Spada E., Tucciarelli T., Sinagra M., Sammartano V. & Corato G. (2015) Computation of vertically averaged velocities in irregular sections of straight channels. Hydrol. Earth Syst. Sci. 19:3857-3873, doi:10.5194/hess-19-3857-2015 (CC BY 3.0). Table 1, p. 3861.
+# Geometry of the FCF (F) and Knight & Demetriou 1983 (K) series, checked against the page image; S0, h, B, b4 (and sfp, smc for K) are merged cells in the source and are repeated here on every row. Notation per Spada Fig. 1 (p. 3861): h = main-channel bankfull depth, B = main-channel top width, b4 = main-channel bed width, b1 and b3 = left and right flood-plain widths, sfp and smc = flood-plain and main-channel side slopes. Perspex throughout, Manning n = 0.01 per Spada. F1, F2, F3, F6 were Spada's calibration set; F2, F8, F10 and K1-K4 the validation set.
+# Inconsistency in the source: the text (p. 3861) says K1 has B/b = 1 and is simply rectangular, but Table 1 prints flood plains of 0.229 m for K1 and '-' for K4. [Likely] the b1/b3 column is in reverse order: Spada's Table 2 K4 carries 29 l/s at H = 0.154 m, against 9.85 l/s at H = 0.153 m in the plain 152 mm channel (Knight et al. 1984 via Chlebek, exp 21), so K4 is compound.
+series,S0_permil,h_m,B_m,b4_m,b1_m,b3_m,s_fp,s_mc
+F1,1.027,0.15,1.8,1.5,4.1,4.1,0,1
+F2,1.027,0.15,1.8,1.5,2.25,2.25,1,1
+F3,1.027,0.15,1.8,1.5,0.75,0.75,1,1
+F6,1.027,0.15,1.8,1.5,2.25,0,1,1
+F8,1.027,0.15,1.8,1.5,2.25,2.25,1,0
+F10,1.027,0.15,1.8,1.5,2.25,2.25,1,2
+K1,0.966,0.08,0.15,0.152,0.229,0.229,0,0
+K2,0.966,0.08,0.15,0.152,0.152,0.152,0,0
+K3,0.966,0.08,0.15,0.152,0.076,0.076,0,0
+K4,0.966,0.08,0.15,0.152,-,-,0,0

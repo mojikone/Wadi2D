@@ -1,0 +1,34 @@
+D:\Mojtaba\Renardet\Wadi2D\W49 local hydraulic radius face table\gorge_local_radius.py:9: SyntaxWarning: invalid escape sequence '\S'
+  .venv\Scripts\python "W49 local hydraulic radius face table\gorge_local_radius.py" [narrow narrow_sine] [run report] [--out=probe_top_fix]
+narrow: DEM 16800 x 2000 pixels at 0.5 m written in 13 s
+narrow: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W49 local hydraulic radius face table\probe_top_fix\narrow
+narrow_steady_sq20: exit 0 in 12 s
+narrow_steady_ce20: exit 0 in 28 s
+narrow_steady_sq10: exit 0 in 25 s
+narrow_steady_ce10: exit 0 in 59 s
+narrow_steady_sq5: exit 0 in 39 s
+narrow_steady_sq2: exit 0 in 125 s
+
+narrow: steady 300 m3/s, 1 to 8 km; depth on the axis, and against the 2 m squares the level and the water held
+  sq2   depth 5.325 m  (reference)
+  sq20  depth 5.315 m  level -0.049 m  water -0.88 %
+  ce20  depth 5.326 m  level -0.049 m  water -0.68 %
+  sq10  depth 5.314 m  level -0.039 m  water -0.88 %
+  ce10  depth 5.326 m  level -0.039 m  water -0.68 %
+  sq5   depth 5.301 m  level -0.025 m  water -0.91 %
+narrow_sine: DEM 16800 x 2000 pixels at 0.5 m written in 65 s
+narrow_sine: thalweg of 701 points and domain written to D:\Mojtaba\Renardet\Wadi2D\W49 local hydraulic radius face table\probe_top_fix\narrow_sine
+narrow_sine_steady_sq20: exit 0 in 13 s
+narrow_sine_steady_ce20: exit 0 in 31 s
+narrow_sine_steady_sq10: exit 0 in 23 s
+narrow_sine_steady_ce10: exit 0 in 56 s
+narrow_sine_steady_sq5: exit 0 in 39 s
+narrow_sine_steady_sq2: exit 0 in 190 s
+
+narrow_sine: steady 300 m3/s, 1 to 8 km; depth on the axis, and against the 2 m squares the level and the water held
+  sq2   depth 5.379 m  (reference)
+  sq20  depth 7.584 m  level +2.222 m  water +54.68 %
+  ce20  depth 5.534 m  level +0.169 m  water +4.97 %
+  sq10  depth 5.587 m  level +0.215 m  water +6.04 %
+  ce10  depth 5.484 m  level +0.120 m  water +2.95 %
+  sq5   depth 5.391 m  level +0.001 m  water +0.88 %

@@ -1,0 +1,16 @@
+# Spada et al. (2015) HESS 19:3857, Table 2 (p. 3862): measured stage-discharge of FCF series F2 (compound, two flood plains) and Knight & Demetriou (1983) series K4 (compound), with the sensitivities Is (INCM) and Ls (LHRM) of Spada's methods. CC BY 3.0.
+# Parsed from the PDF text layer of the final paper. Q is given to 3 decimals in m3/s only, so K4 discharges (5-29 l/s) carry up to 10 % rounding. F2 was used by Spada for calibration of the beta coefficient (with F1, F3, F6).
+series,H_m,Q_meas_m3s,Is_INCM,Ls_LHRM
+F2,0.156,0.212,0.2209,0.2402
+F2,0.169,0.248,0.1817,0.2194
+F2,0.178,0.282,0.1651,0.2044
+F2,0.187,0.324,0.1506,0.1777
+F2,0.198,0.383,0.1441,0.1584
+F2,0.214,0.48,0.1305,0.1336
+F2,0.249,0.763,0.1267,0.132
+K4,0.085,0.005,0.3248,0.3282
+K4,0.096,0.008,0.2052,0.225
+K4,0.102,0.009,0.16,0.1709
+K4,0.114,0.014,0.1354,0.1372
+K4,0.127,0.018,0.1174,0.1208
+K4,0.154,0.029,0.0851,0.0866

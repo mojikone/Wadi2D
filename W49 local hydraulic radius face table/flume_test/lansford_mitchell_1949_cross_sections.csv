@@ -1,0 +1,10 @@
+# Lansford W.M. & Mitchell W.D. (1949) An investigation of the backwater profile for steady flow in prismatic channels. Univ. Illinois Eng. Exp. Sta. Bulletin 381. https://hdl.handle.net/2142/4227
+# Transcribed from Fig. 4 (bulletin p. 14, PDF p. 20) and text pp. 11-12. Manning n values are the authors' approximate figures.
+xs,shape,width_b_ft,bed_roughness,wall_roughness_low,wall_low_top_ft,wall_roughness_high,main_channel_width_ft,main_channel_depth_ft,floodplain_height_at_channel_ft,floodplain_height_at_wall_ft,note
+1,rectangular,5.0,a (n~0.019),a,1.5,c (n~0.011),,,,,no rating table; XS2 rating applies below 1.5 ft
+2,rectangular,5.0,a (n~0.019),a,full,a,,,,,homogeneous perimeter
+3,rectangular,5.0,a (n~0.019),a,1.5,b (n~0.026),,,,,Fig. 4 and text p. 12
+4,rectangular,5.0,b (n~0.026),b,full,b,,,,,homogeneous perimeter
+5,compound,5.0,a,a,full,a,1.0,1.0,1.0,1.2,plains 2.00 ft each side
+6,compound,5.0,a,a,1.5,c,1.0,1.0,1.0,1.2,plains 2.00 ft each side
+7,compound,5.0,a,c,1.2,c,1.0,1.0,1.0,1.2,walls c above the plains; rating = XS6 (p. 23)

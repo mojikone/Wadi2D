@@ -1,0 +1,10 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow\\cache\\grid_2243ac5daff5579d391083f9.h5"}
+{"ev": "start", "backend": "gpu", "cells": 21000, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 4.62, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "step", "t": 8694.159, "dt": 0.36, "steps": 18354, "active_tiles": 28, "volume": 586086.0, "mass_error": -1.619e-08, "wall": 2.0}
+{"ev": "output", "kind": "map", "t": 10803.229494782756}
+{"ev": "step", "t": 15278.864, "dt": 0.3472, "steps": 37566, "active_tiles": 28, "volume": 586097.3, "mass_error": -1.914e-08, "wall": 4.0}
+{"ev": "warn", "message": "water stood 3.9 m deep against the domain edge at (400010, 2700490): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow\\narrow_steady_sq20\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 56011, "loop_s": 5.92, "tables_s": 4.62, "wet_area_km2": 0.336, "dt_min": 0.319506837590633, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.995363411, "outflow_m3": 5353913.874966092, "storage_start_m3": 0.0, "storage_end_m3": 586086.2401730359, "error_m3": -0.11977571772877127, "relative_error": -2.0164262259640518e-08}, "tile_steps": null, "products": "none"}
+

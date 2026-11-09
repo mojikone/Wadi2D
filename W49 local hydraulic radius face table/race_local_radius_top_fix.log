@@ -1,0 +1,18 @@
+D:\Mojtaba\Renardet\Wadi2D\W49 local hydraulic radius face table\race_local_radius.py:8: SyntaxWarning: invalid escape sequence '\S'
+  .venv\Scripts\python "W49 local hydraulic radius face table\race_local_radius.py" [build|run|report|all] [names ...] [--out=race_faydh_top_fix]
+jobs written: sq20, rings20, ce20, sq10, ce10, sq5
+sq20: exit 0 in 41 s
+rings20: exit 0 in 124 s
+ce20: exit 0 in 144 s
+sq10: exit 0 in 115 s
+ce10: exit 0 in 240 s
+sq5: exit 0 in 589 s
+run       option A   local R   change  A vs sq5  R vs sq5  tables s
+sq20        1785.8    1737.3    -2.7 %    -4.3 %    -3.3 %      23.9
+rings20     1855.6    1807.5    -2.6 %    -0.6 %    +0.6 %      70.4
+ce20        1952.0    1865.5    -4.4 %    +4.6 %    +3.9 %     101.4
+sq10        1839.2    1779.1    -3.3 %    -1.5 %    -1.0 %      36.0
+ce10        1899.5    1839.2    -3.2 %    +1.8 %    +2.4 %     125.7
+sq5         1866.8    1796.2    -3.8 %    +0.0 %    +0.0 %      79.5
+centres against squares at 20 m, option_a: +9.3 % (the 3 % rule)
+centres against squares at 20 m, local_radius: +7.4 % (the 3 % rule)

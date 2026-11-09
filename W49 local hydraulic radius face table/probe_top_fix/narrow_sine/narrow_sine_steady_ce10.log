@@ -1,0 +1,29 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\cache\\grid_193d287e35be7403a612d08d.h5"}
+{"ev": "strips", "corridors": 1, "cells": 1592, "triangles": 4505, "replaced": 6402, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 796, "cells": 1592, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 77598, "tiles": 108, "dx": 10.0, "duration_s": 21600.0, "tables_s": 14.55, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 1.5}
+{"ev": "step", "t": 1938.292, "dt": 0.2451, "steps": 6235, "active_tiles": 106, "volume": 156549.6, "mass_error": -3.887e-09, "wall": 2.0}
+{"ev": "step", "t": 3407.786, "dt": 0.2302, "steps": 12720, "active_tiles": 106, "volume": 483884.3, "mass_error": -9.878e-10, "wall": 4.0}
+{"ev": "step", "t": 4580.081, "dt": 0.1606, "steps": 19316, "active_tiles": 107, "volume": 661414.5, "mass_error": 6.068e-09, "wall": 6.0}
+{"ev": "step", "t": 5667.033, "dt": 0.1636, "steps": 26006, "active_tiles": 107, "volume": 691494.9, "mass_error": 4.407e-08, "wall": 8.0}
+{"ev": "step", "t": 6490.176, "dt": 0.1661, "steps": 31048, "active_tiles": 107, "volume": 692532.6, "mass_error": 5.589e-08, "wall": 10.0}
+{"ev": "step", "t": 7523.251, "dt": 0.1636, "steps": 37383, "active_tiles": 107, "volume": 692566.5, "mass_error": 5.903e-08, "wall": 12.0}
+{"ev": "step", "t": 8594.371, "dt": 0.1671, "steps": 43952, "active_tiles": 107, "volume": 692525.6, "mass_error": 5.48e-08, "wall": 14.0}
+{"ev": "step", "t": 9670.42, "dt": 0.1626, "steps": 50548, "active_tiles": 107, "volume": 692551.2, "mass_error": 4.97e-08, "wall": 16.0}
+{"ev": "step", "t": 10741.962, "dt": 0.1626, "steps": 57120, "active_tiles": 107, "volume": 692554.5, "mass_error": 4.397e-08, "wall": 18.0}
+{"ev": "output", "kind": "map", "t": 10801.662183946177}
+{"ev": "step", "t": 11834.925, "dt": 0.1624, "steps": 63818, "active_tiles": 107, "volume": 692514.4, "mass_error": 3.783e-08, "wall": 20.0}
+{"ev": "step", "t": 12931.646, "dt": 0.1635, "steps": 70542, "active_tiles": 107, "volume": 692486.9, "mass_error": 3.385e-08, "wall": 22.0}
+{"ev": "step", "t": 13939.484, "dt": 0.1636, "steps": 76720, "active_tiles": 107, "volume": 692478.5, "mass_error": 3.028e-08, "wall": 24.0}
+{"ev": "step", "t": 14947.725, "dt": 0.1666, "steps": 82903, "active_tiles": 107, "volume": 692469.5, "mass_error": 2.656e-08, "wall": 26.0}
+{"ev": "step", "t": 15961.144, "dt": 0.164, "steps": 89116, "active_tiles": 107, "volume": 692480.8, "mass_error": 2.374e-08, "wall": 28.0}
+{"ev": "step", "t": 16970.194, "dt": 0.1645, "steps": 95303, "active_tiles": 107, "volume": 692450.4, "mass_error": 2.168e-08, "wall": 30.0}
+{"ev": "step", "t": 18021.431, "dt": 0.1622, "steps": 101747, "active_tiles": 107, "volume": 692509.4, "mass_error": 1.932e-08, "wall": 32.0}
+{"ev": "step", "t": 19108.769, "dt": 0.1637, "steps": 108414, "active_tiles": 107, "volume": 692470.4, "mass_error": 1.75e-08, "wall": 34.0}
+{"ev": "step", "t": 20204.687, "dt": 0.1667, "steps": 115135, "active_tiles": 107, "volume": 692440.5, "mass_error": 1.528e-08, "wall": 36.0}
+{"ev": "step", "t": 21032.32, "dt": 0.1631, "steps": 120209, "active_tiles": 107, "volume": 692462.9, "mass_error": 1.373e-08, "wall": 38.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\narrow_sine_steady_ce10\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 6.1 m deep against the domain edge at (400775, 2700395): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\narrow_sine_steady_ce10\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 123691, "loop_s": 40.16, "tables_s": 14.55, "wet_area_km2": 0.0379, "dt_min": 0.06623389830722595, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.999469845, "outflow_m3": 5247529.674514547, "storage_start_m3": 0.0, "storage_end_m3": 692470.248373343, "error_m3": 0.07658195460680872, "relative_error": 1.2892584951791884e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

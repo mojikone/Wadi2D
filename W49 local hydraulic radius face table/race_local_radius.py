@@ -5,7 +5,7 @@ of this branch) copied here with `tables.face_conveyance: local_radius` and thei
 they were. The report sets the dam axis's peaks at 16 h beside option A's, against the 5 m squares and, for the 3 %
 rule, the centres at 20 m against the squares at 20 m.
 
-    .venv\Scripts\python "W49 local hydraulic radius face table\race_local_radius.py" [build|run|report|all] [names ...]
+    .venv\Scripts\python "W49 local hydraulic radius face table\race_local_radius.py" [build|run|report|all] [names ...] [--out=race_faydh_top_fix]
 """
 
 from __future__ import annotations
@@ -20,7 +20,8 @@ sys.path.insert(0, str(ROOT / "W47 face level carried to the face"))
 import race_after_fix as raf  # noqa: E402
 
 OPTION_A = ROOT / "W47 face level carried to the face" / "depth_carry" / "race"
-WORK = HERE / "race_faydh"
+WORK = HERE / next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--out=")), "race_faydh")
+"""The run folder: `race_faydh` holds the first runs, made before the table-top fix; `race_faydh_top_fix` the runs after it."""
 NAMES = ("sq20", "rings20", "ce20", "sq10", "ce10", "sq5")
 
 
