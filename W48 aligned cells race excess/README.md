@@ -112,6 +112,21 @@ the fine end. Its 20 m answer (5.28 m) still carries the coarse-face lumping, 0.
 literature's estimate of the physical depth, about 5.3 m, is unchanged by this run: HEC-RAS converged reads about
 11 % under it, Wadi2D's strips sum 17 %. W49 built the local hydraulic radius that the report recommended.
 
+## The 3 % rule, his question of the night (`reports/Acceptance tolerances in 2D flood models.md`)
+
+[Certain, project record] **The rule was mine, not his, and he never approved it.** W3 set "within 3 % of Manning
+normal depth" on an analytic case; W36 kept the 3 % but measured against the same run with no lines; W45 used that
+form for the aligned mesh as "within 3 % of the 20 m squares", a coarse mesh as the reference. [Certain, read] No
+vendor (HEC-RAS, TUFLOW, ICM, MIKE 21, Flood Modeller, Iber, Deltares) and no guidance body or benchmark (EA, ARR,
+SEPA, CIWEM, FEMA, USACE) publishes a rule of that form. Vendors give numbers only for mass balance and stability
+(TUFLOW about 1 %); for convergence and new mesh options they show comparisons and set no pass mark (TUFLOW calls it
+subjective). Guidance numbers are on levels against flood marks (EA 0.15 m, FEMA 0.5 ft), mass balance (SEPA 1 %,
+ARR 1 to 2 %) and cells across a flow path (3 to 8). [Certain, arithmetic] Against the squares' extrapolated peak of
+1,896 m3/s (20, 10, 5 m, option A kernels), the 20 m squares read -5.8 % and the 20 m centres +2.9 %: the old yardstick
+was the worse mesh. [Likely] On option A the centres' 20 and 10 m runs would meet that answer only at an order of
+4.1; with W49's local radius they meet the squares' limit at about 1.3. The replacement criterion in the report is a
+recommendation for his decision.
+
 ## Found on the way
 
 1. [Certain] **The centre mesh at 5 m is broken**: on the tight synthetic gorge it holds 59 % more water than the 2 m
