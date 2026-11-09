@@ -22,7 +22,7 @@ from numba import njit
 from wadi2d.config.schema import Tables
 from wadi2d.solver.poly.mesh import PolyMesh
 from wadi2d.strips.geometry import MeshGeometry
-from wadi2d.tables.core import _cell_table, _face_table, _local_radius_conveyance
+from wadi2d.tables.core import _cell_table, _face_table, _local_radius_conveyance, window_top
 
 
 @dataclass
@@ -208,8 +208,13 @@ def build_poly_tables(
             prof, lift, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, cfg.face_depth_min, cfg.face_depth_max, ftab_one
         )
         if cfg.face_conveyance == "local_radius" and np.isnan(lift):
-            line, i0, i1, step = face_line(pix, geo.x[a], geo.y[a], geo.x[b], geo.y[b], cfg.local_radius_beta * ef[k])
-            _local_radius_conveyance(line, i0, i1, zf[k], ef[k], step, 1.0 / n_face, np.ones(i1 - i0), 1.0, cfg.local_radius_beta, ftab_one)
+            line, i0, i1, step = face_line(pix, geo.x[a], geo.y[a], geo.x[b], geo.y[b], cfg.local_radius_beta * cfg.face_depth_max)
+            top = window_top(line, zf[k], ef[k], cfg.face_depth_max)
+            if top > ef[k]:  # the table reaches the window's relief, as on the lattice (W49)
+                zf[k], ef[k] = _face_table(prof, lift, spacing, 1.0 / n_face, np.ones(prof.size), 1.0, top, cfg.face_depth_max, ftab_one)
+            e = min(i0, int(np.ceil(cfg.local_radius_beta * ef[k] / step)))
+            line = line[i0 - e : i1 + e]
+            _local_radius_conveyance(line, e, e + (i1 - i0), zf[k], ef[k], step, 1.0 / n_face, np.ones(i1 - i0), 1.0, cfg.local_radius_beta, ftab_one)
         ftab[k] = ftab_one
     cw = np.zeros(m) if given_cw is None else np.asarray(given_cw, dtype=np.float64)[kept]
     mesh = PolyMesh(

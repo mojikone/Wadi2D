@@ -279,32 +279,56 @@ def tile_local_radius(
     efy: np.ndarray,
     ftaby: np.ndarray,
     beta: float,
+    e_hi: float,
 ) -> None:
     """The local hydraulic radius on a tile's own faces, after ``tile_tables`` (W49). ``zbig`` is the tile's pixel block
     of ``tile_tables`` with ``margin`` more pixels on every side, so a face's line reaches past its own ends; ``npix``
-    is the lining of the block without the margin. Crest faces keep their table: their cap reads the crest."""
+    is the lining of the block without the margin. Crest faces keep their table: their cap reads the crest.
+
+    A face's table top is raised to the relief of its whole window, at most ``e_hi``, and its table rebuilt at the new
+    levels: above its top a table grows its conveyance with its area, which is the strips sum's law on a flat face but
+    not the local radius's, so a flat face in a deep narrow channel must not reach its top while the walls still count."""
     lined = npix.shape[0] > 1
     for j in prange(tile):
         weight = np.ones(k)
+        full = np.empty(k + 2 * margin)
         for i in range(tile):
             r0, c0 = 1 + j * k, 1 + i * k
             if np.isnan(xcrest[j, i]):
-                e = min(margin, int(np.ceil(beta * efx[j, i] / pixel)))
-                ext = np.empty(k + 2 * e)
-                for t in range(k + 2 * e):
-                    rr = margin + r0 - e + t
-                    ext[t] = max(zbig[rr, margin + c0 - 1], zbig[rr, margin + c0])
+                for t in range(k + 2 * margin):
+                    full[t] = max(zbig[r0 + t, margin + c0 - 1], zbig[r0 + t, margin + c0])
                 for q in range(k):
                     near, far = zbig[margin + r0 + q, margin + c0], zbig[margin + r0 + q, margin + c0 - 1]
                     weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i]) if lined else 1.0
-                _local_radius_conveyance(ext, e, e + k, zfx[j, i], efx[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], beta, ftabx[j, i])
+                _raise_top(full, margin, k, zfx, efx, ftabx, j, i, pixel, nman[j, i], weight, xlen[j, i], e_hi)
+                e = min(margin, int(np.ceil(beta * efx[j, i] / pixel)))
+                _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfx[j, i], efx[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], beta, ftabx[j, i])
             if np.isnan(ycrest[j, i]):
-                e = min(margin, int(np.ceil(beta * efy[j, i] / pixel)))
-                ext = np.empty(k + 2 * e)
-                for t in range(k + 2 * e):
-                    cc = margin + c0 - e + t
-                    ext[t] = max(zbig[margin + r0 - 1, cc], zbig[margin + r0, cc])
+                for t in range(k + 2 * margin):
+                    full[t] = max(zbig[margin + r0 - 1, c0 + t], zbig[margin + r0, c0 + t])
                 for q in range(k):
                     near, far = zbig[margin + r0, margin + c0 + q], zbig[margin + r0 - 1, margin + c0 + q]
                     weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i]) if lined else 1.0
-                _local_radius_conveyance(ext, e, e + k, zfy[j, i], efy[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], beta, ftaby[j, i])
+                _raise_top(full, margin, k, zfy, efy, ftaby, j, i, pixel, nman[j, i], weight, ylen[j, i], e_hi)
+                e = min(margin, int(np.ceil(beta * efy[j, i] / pixel)))
+                _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfy[j, i], efy[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], beta, ftaby[j, i])
+
+
+@njit(cache=True)
+def window_top(line: np.ndarray, zf: float, top: float, e_hi: float) -> float:
+    """A face's table top in local-radius mode (W49): its own top, or the relief of its window over its invert if
+    higher, at most ``e_hi``. NaN ground is not relief."""
+    hi = -np.inf
+    for t in range(line.size):
+        if line[t] > hi:
+            hi = line[t]
+    return max(top, min(hi - zf, e_hi))
+
+
+@njit(cache=True)
+def _raise_top(full, margin, k, zf, ef, ftab, j, i, pixel, n, weight, length, e_hi) -> None:
+    """Rebuild one lattice face's table at its window's top (W49); the conveyance column is overwritten after."""
+    top = window_top(full, zf[j, i], ef[j, i], e_hi)
+    if top > ef[j, i]:
+        prof = full[margin : margin + k].copy()
+        zf[j, i], ef[j, i] = _face_table(prof, np.nan, pixel, 1.0 / n, weight, length, top, e_hi, ftab[j, i])

@@ -172,7 +172,7 @@ def build_tables(
         if local:
             tile_local_radius(
                 zbig, margin, k, TILE, bed.pixel, nman[sl], npix, crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl],
-                w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby, cfg.local_radius_beta,
+                w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby, cfg.local_radius_beta, cfg.face_depth_max,
             )  # fmt: skip
         zmin_g[sl], rel_g[sl], zfx_g[sl], zfy_g[sl] = w_zmin, w_rel, w_zfx, w_zfy
         cx_bed, cy_bed = centre_beds(z, k, TILE)

@@ -119,3 +119,16 @@ def test_the_gorge_reads_deeper_than_the_strips_sum_and_alike_at_every_size() ->
     local = [depth(dx, "local_radius") for dx in (20.0, 5.0)]
     assert abs(strips[0] - strips[1]) < 0.02 and abs(local[0] - local[1]) < 0.03
     assert local[0] > 1.15 * strips[0], (strips, local)
+
+
+def test_a_flat_face_in_a_channel_deeper_than_its_table_still_sees_the_walls() -> None:
+    """A 12 m rectangular channel 11 m deep: the faces on its bed have no relief of their own, so their table top was
+    face_depth_min (8 m) and above it the conveyance grew with the area, the strips law, reading the walls away; the
+    top now reaches the window's relief (W49). The same at 20 m and 2.5 m cells, and well under the strips sum."""
+    y = (np.arange(NY_PIX) + 0.5) * PIXEL - 0.5 * NY_PIX * PIXEL
+    x = (np.arange(NX_PIX) + 0.5) * PIXEL
+    z = (100.0 - S * x[None, :] + np.where(np.abs(y) < 6.0, 0.0, 20.0)[:, None]).astype(np.float32).astype(np.float64)
+    coarse = column_conveyance(20.0, "local_radius", 11.0, z)
+    fine = column_conveyance(2.5, "local_radius", 11.0, z)
+    assert fine == pytest.approx(coarse, rel=0.005)
+    assert fine < 0.8 * column_conveyance(2.5, "strips", 11.0, z)
