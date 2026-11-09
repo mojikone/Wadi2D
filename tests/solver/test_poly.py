@@ -42,6 +42,27 @@ def normal_depth_wide(b: float, bank: float, q: float) -> float:
     return brentq(f, 0.01, 20)
 
 
+def normal_depth(b: float, bank: float, q: float, law: str | None = None) -> float:
+    """The normal depth by the face law the tables are built with (W49): the strips sum, or the local hydraulic radius
+    evaluated by the engine's own function on the true section, normal to the channel, at the tables' pixel."""
+    law = law or Tables().face_conveyance
+    if law == "strips":
+        return normal_depth_wide(b, bank, q)
+    from wadi2d.tables.core import _local_radius_conveyance
+
+    p = DX / K
+    t = (np.arange(int(4 * b / p)) + 0.5) * p - 2 * b
+    z = np.clip((np.abs(t) - b / 2) / bank, 0.0, WALL) if bank > 0 else np.where(np.abs(t) < b / 2, 0.0, WALL)
+    beta = Tables().local_radius_beta
+
+    def f(y):
+        tab = np.zeros((2, 2))
+        _local_radius_conveyance(z, 0, z.size, 0.0, y, p, 1.0 / N, np.ones(z.size), 1.0, beta, tab)
+        return float(tab[1, 1]) ** (5 / 3) * S**0.5 - q
+
+    return brentq(f, 0.01, WALL - 0.01)
+
+
 def channel(theta: float, mask: np.ndarray | None = None):
     """The grid, its tables, and the along and across coordinates of every cell centre; ``mask`` is the active
     SIDE x SIDE area, all of it by default."""
@@ -96,7 +117,7 @@ def test_still_water_on_the_lattice_as_polygons_stays_as_still_as_on_tiles(theta
 def run_channel(theta: float, which: str):
     """The depth at the axis after T_END, over the normal depth; and the model."""
     tg, tables, sc, tc = channel(theta)
-    yn = normal_depth_wide(B, BANK, Q)
+    yn = normal_depth(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
     hb = hbar_at_level(level, tables.zmin, hc, dtab)

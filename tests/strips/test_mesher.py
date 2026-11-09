@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 import shapely
 
-from tests.solver.test_poly import BANK, DX, SIDE, T_END, B, K, Q, S, channel, normal_depth_wide, run_channel
+from tests.solver.test_poly import BANK, DX, SIDE, T_END, B, K, Q, S, channel, normal_depth, run_channel
 from wadi2d.config.schema import Numerics, Tables
 from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.model import Model
@@ -134,7 +134,7 @@ def run_strip_channel(theta: float, substeps: int = 1) -> tuple[float, float, in
     ghosts = ghosts_for(strip.geometry, model, tables)
     mesh, _kept = build_poly_tables(strip.geometry, Pixels(z, tg.x0, tg.y0, DX / K), Tables(), DX, 0.03, ghosts=ghosts)
     hybrid = HybridCpu(model, mesh, substeps)
-    yn = normal_depth_wide(B, BANK, Q)
+    yn = normal_depth(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
     wet = (np.abs(tc) < B / 2 + BANK * yn + 2 * DX) & tg.mask

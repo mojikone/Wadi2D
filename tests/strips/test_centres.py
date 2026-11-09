@@ -279,7 +279,7 @@ def test_a_guide_line_is_smoothed_at_a_corner_and_a_hard_line_is_reported() -> N
 def run_centre_channel(theta: float, floor_m: float = 70.0, substeps: int = 1) -> tuple[float, float, int, int]:
     """W3's channel through cells from centres: depth at the axis over normal depth, the largest skew, the steps,
     and the strip's cell count. The same harness as the ring corridor's (tests.strips.test_mesher)."""
-    from tests.solver.test_poly import BANK, DX as CDX, SIDE, T_END, B, K, Q, S, channel, normal_depth_wide
+    from tests.solver.test_poly import BANK, DX as CDX, SIDE, T_END, B, K, Q, S, channel, normal_depth
     from tests.strips.test_mesher import HALF, _bed
     from wadi2d.config.schema import Numerics, Tables
     from wadi2d.solver.backend import BoundaryCells
@@ -306,7 +306,7 @@ def run_centre_channel(theta: float, floor_m: float = 70.0, substeps: int = 1) -
     ghosts = ghosts_for(strip.geometry, model, tables)
     mesh, _kept = build_poly_tables(strip.geometry, Pixels(z, tg.x0, tg.y0, CDX / K), Tables(), CDX, 0.03, ghosts=ghosts)
     hybrid = HybridCpu(model, mesh, substeps)
-    yn = normal_depth_wide(B, BANK, Q)
+    yn = normal_depth(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
     wet = (np.abs(tc) < B / 2 + BANK * yn + 2 * CDX) & tg.mask

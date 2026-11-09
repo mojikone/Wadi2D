@@ -6,7 +6,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from tests.solver.test_poly import BANK, DX, SIDE, T_END, B, K, Q, S, channel, normal_depth_wide
+from tests.solver.test_poly import BANK, DX, SIDE, T_END, B, K, Q, S, channel, normal_depth
 from wadi2d.config.schema import Numerics, Tables
 from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.model import Model
@@ -86,7 +86,7 @@ def composed_depth(tg, hybrid, cells) -> np.ndarray:
 
 def run_hybrid_channel(theta: float, backend: str = "cpu") -> tuple[float, int]:
     tg, tables, sc, tc, model, hybrid, cells = hybrid_case(theta, backend=backend)
-    yn = normal_depth_wide(B, BANK, Q)
+    yn = normal_depth(B, BANK, Q)
     hc, dtab = tg.from_tiles(tables.hc), tg.from_tiles(tables.dtab)
     level = 100.0 - sc * S + yn
     wet = (np.abs(tc) < B / 2 + BANK * yn + 2 * DX) & tg.mask
