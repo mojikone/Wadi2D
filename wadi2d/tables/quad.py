@@ -15,7 +15,7 @@ from wadi2d.config.schema import Tables
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import BedSource, CrestFaces, GridTables
-from wadi2d.tables.core import _face_table, _lined, centre_beds, tile_tables
+from wadi2d.tables.core import _face_table, _lined, _local_radius_conveyance, centre_beds, tile_local_radius, tile_tables, window_top
 
 HALF = TILE // 2
 
@@ -38,8 +38,11 @@ def _coarse_cells(row: np.ndarray) -> np.ndarray:
     return int(row[4]) + np.arange(TILE) // 2
 
 
-def _strip(z, npix, k, pixel, side, nman, crest, length, e_lo, e_hi, rows):
-    """Faces along a fine tile's east or south edge: invert and table top per face, and the tables."""
+def _strip(z, npix, k, pixel, side, nman, crest, length, e_lo, e_hi, rows, zbig=None, margin=0, beta=9.0):
+    """Faces along a fine tile's east or south edge: invert and table top per face, and the tables.
+
+    With ``zbig`` (the block of ``z`` with ``margin`` more pixels on every side) each face takes the local hydraulic
+    radius along its own line, read past its ends, as the tile's own faces do (W49); crest faces keep their table."""
     zf = np.zeros(TILE)
     ef = np.zeros(TILE)
     tab = np.zeros((TILE, rows, 2))
@@ -58,6 +61,22 @@ def _strip(z, npix, k, pixel, side, nman, crest, length, e_lo, e_hi, rows):
         zf[q], ef[q] = _face_table(
             prof, crest[q], pixel, 1.0 / nman[q], weight, length[q], e_lo, e_hi, tab[q]
         )
+        if zbig is not None and np.isnan(crest[q]):
+            full = np.array(
+                [
+                    max(zbig[start + t, margin + edge - 1], zbig[start + t, margin + edge])
+                    if side == 2
+                    else max(zbig[margin + edge - 1, start + t], zbig[margin + edge, start + t])
+                    for t in range(k + 2 * margin)
+                ]
+            )
+            top = window_top(full, zf[q], ef[q], e_hi)
+            if top > ef[q]:
+                zf[q], ef[q] = _face_table(prof.copy(), crest[q], pixel, 1.0 / nman[q], weight, length[q], top, e_hi, tab[q])
+            e = min(margin, int(np.ceil(beta * ef[q] / pixel)))
+            _local_radius_conveyance(
+                full[margin - e : margin + k + e], e, e + k, zf[q], ef[q], pixel, 1.0 / nman[q], weight, length[q], beta, tab[q]
+            )
     return zf, ef, tab
 
 
@@ -74,8 +93,6 @@ def build_quad_tables(
 
     ``edit`` and ``lining`` are the hooks of ``build_tables``: they work on pixels, so they do not care for the cell size.
     """
-    if cfg.face_conveyance != "strips":
-        raise ValueError("the local hydraulic radius face conveyance (W49) is built for the uniform grid and the strips, not yet the quadtree")
     k0 = round(grid.dx / bed.pixel)
     if abs(k0 * bed.pixel - grid.dx) > 1e-6 * grid.dx:
         raise ValueError(f"cell size {grid.dx} is not a multiple of the pixel {bed.pixel}")
@@ -101,15 +118,26 @@ def build_quad_tables(
     npix = np.full((1, 1), np.nan)
     fx, fy = np.zeros((total, TILE, TILE, 2)), np.zeros((total, TILE, TILE, 2))
     """Invert of the extra faces, per table tile; the second layer marks a used face."""
+    local = cfg.face_conveyance == "local_radius"
+    margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
+    """W49: every tile is read this many pixels wider on each side, for the local hydraulic radius's window."""
+    zbig = None
 
     for t in range(1, nt):
         size = 1 << int(grid.level[t])
         k = k0 * size
         j0, i0 = int(grid.tiles[t, 0]) * TILE, int(grid.tiles[t, 1]) * TILE
         row0, col0 = j0 * k0 - 1, i0 * k0 - 1
-        z = bed.read(row0, col0, TILE * k + 2, TILE * k + 2)
-        if edit is not None:
-            edit(z, row0, col0)
+        if local:
+            n_big = TILE * k + 2 + 2 * margin
+            zbig = bed.read(row0 - margin, col0 - margin, n_big, n_big)
+            if edit is not None:
+                edit(zbig, row0 - margin, col0 - margin)
+            z = np.ascontiguousarray(zbig[margin : margin + TILE * k + 2, margin : margin + TILE * k + 2])
+        else:
+            z = bed.read(row0, col0, TILE * k + 2, TILE * k + 2)
+            if edit is not None:
+                edit(z, row0, col0)
         if lining is not None:
             npix = np.full(z.shape, np.nan)
             lining(z, npix, row0, col0)
@@ -123,6 +151,11 @@ def build_quad_tables(
             z, k, TILE, bed.pixel, nman_t[t], npix, cxz, cxl, cyz, cyl, cfg.face_depth_min, cfg.face_depth_max,
             zmin[t], rel[t], w_hc, w_dtab, zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby,
         )  # fmt: skip
+        if local:
+            tile_local_radius(
+                zbig, margin, k, TILE, bed.pixel, nman_t[t], npix, cxz, cxl, cyz, cyl,
+                zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby, cfg.local_radius_beta, cfg.face_depth_max,
+            )  # fmt: skip
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
         cx_bed, cy_bed = centre_beds(z, k, TILE)  # at the tile's own cell size (W47)
         zcx[t], zcy[t] = cx_bed - zmin[t], cy_bed - zmin[t]
@@ -144,6 +177,9 @@ def build_quad_tables(
                 cfg.face_depth_min,
                 cfg.face_depth_max,
                 rows,
+                zbig if local else None,
+                margin,
+                cfg.local_radius_beta,
             )
             base = int(row[5])
             pt, rw = base // (TILE * TILE), (base % (TILE * TILE)) // TILE

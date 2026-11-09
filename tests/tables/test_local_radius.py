@@ -132,3 +132,41 @@ def test_a_flat_face_in_a_channel_deeper_than_its_table_still_sees_the_walls() -
     fine = column_conveyance(2.5, "local_radius", 11.0, z)
     assert fine == pytest.approx(coarse, rel=0.005)
     assert fine < 0.8 * column_conveyance(2.5, "strips", 11.0, z)
+
+
+def test_on_the_quadtree_the_fine_faces_and_the_interface_faces_are_the_uniform_grid_s() -> None:
+    """A mesh of 10 m tiles with two columns of 20 m tiles, on rough ground with a trench: every face of a 10 m tile,
+    the interface faces on its east side included, carries the same local-radius table as the uniform 10 m grid."""
+    from scipy.ndimage import gaussian_filter
+
+    from wadi2d.grid.quad import QuadGrid
+    from wadi2d.solver.layout import TILE
+    from wadi2d.tables.quad import build_quad_tables
+
+    dx, k = 10.0, 4
+    mask = np.zeros((64, 320), bool)
+    mask[2:-2, 2:-2] = True
+    level = np.zeros((2, 10), np.int32)
+    level[:, 4:6] = 1
+    q = QuadGrid.from_levels(mask, 0.0, 0.0, dx, level)
+    u = TileGrid(0.0, 0.0, dx, q.mask.copy())
+    z = gaussian_filter(np.random.default_rng(1).normal(0, 1.0, (64 * k + 8, 320 * k + 8)), 6) * 15 + 300.0
+    z[100:112, :] -= 6.0  # a trench 6 m deep and 15 m wide along x, walls the windows reach
+    bed = ArrayBed(z, dx / k, 4, 4)
+    cfg = Tables(face_conveyance="local_radius")
+    tq, tu = build_quad_tables(q, bed, cfg, 0.03), build_tables(u, bed, cfg, 0.03)
+    ref = Tables(face_conveyance="strips")
+    tq_s = build_quad_tables(q, bed, ref, 0.03)
+    fu = tu.grid.from_tiles(tu.ftabx)
+    row = q.interfaces[q.interfaces[:, 1] == 2][0]
+    t, base = int(row[0]), int(row[5])
+    j0, i0 = int(q.tiles[t, 0]) * TILE, int(q.tiles[t, 1]) * TILE
+    pt, rw = base // (TILE * TILE), (base % (TILE * TILE)) // TILE
+    moved = 0
+    for jq in range(TILE):
+        own_q, own_u = tq.ftabx[t, jq, 5], fu[j0 + jq, i0 + 5]
+        np.testing.assert_allclose(own_q, own_u, rtol=1e-5, atol=1e-6)
+        side_q, side_u = tq.ftabx[pt, rw, jq], fu[j0 + jq, i0 + TILE]
+        np.testing.assert_allclose(side_q, side_u, rtol=1e-5, atol=1e-6)
+        moved += not np.allclose(side_q, tq_s.ftabx[pt, rw, jq], rtol=1e-4)
+    assert moved > 0, "the interface faces should see the trench's walls"
