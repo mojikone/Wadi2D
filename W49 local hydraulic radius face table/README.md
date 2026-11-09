@@ -1,6 +1,6 @@
 # W49 local hydraulic radius face table
 
-**Live (2026-11-08), branch `feature/face-local-radius` off `feature/face-depth-carry`, not merged.** His go of the
+**Live (2026-11-08 and 09), branch `feature/face-local-radius` off `feature/face-depth-carry`, not merged. Since 2026-11-09 the local radius is the default face conveyance on this branch (commit `53ace3b`); `tables.face_conveyance: strips` gives the earlier tables.** His go of the
 same night on W48's recommendation (`W48 aligned cells race excess/reports/Wall shear in sub-grid friction.md`): a face
 conveyance after Spada et al.'s local hydraulic radius, in the table builder, behind a switch.
 
@@ -196,6 +196,50 @@ overstates in wide channels. [Likely] For the design question this settles the m
 flumes with one roughness all round, straight and prismatic; rock walls rougher than the bed are not tested (Al-Hamid's
 rough-wall data in `flume_test/` need a wall n of their own, a lining per pixel, not run).
 
+## Making it the default: the three steps (his go of 2026-11-09)
+
+1. **The quadtree.** Each tile is read with the window's margin; its own faces take the local radius as on the uniform
+   grid, and so do the fine faces along a fine tile's east and south edges that meet a coarser tile, along their own
+   line. A test: on rough ground with a trench and two columns of 20 m tiles, every face of a 10 m tile, the interface
+   faces included, carries the uniform 10 m grid's table (rel 1e-5), and the interface faces do see the trench's walls.
+   With the switch off the quadtree's tables are unchanged (its 55 tests pass).
+2. **The tests the flip breaks.** With the default flipped the full suite failed on two only: the frozen schema sample
+   (expected) and W3's channel on polygons at 45 degrees, whose reference was the strips sum's normal depth.
+   `normal_depth()` in `tests/solver/test_poly.py` now takes the law from `Tables`: the strips formula unchanged, or the
+   engine's own local-radius evaluation on the true section; the polygon, centres, hybrid and mesher channel tests use
+   it, and all pass with either default.
+3. **Bidah and Block 2 rerun on this branch, strips against local radius** (`validation_reruns/reruns.py`, each job
+   with the switch set and its own cache; option A kernels in both, so the recorded numbers of the old kernels are not
+   the left column).
+
+| Bidah, W1's rain-on-grid job at 10 m (recorded 622.0 against HEC-RAS 621.9 on the old kernels) | Strips | Local radius | Change |
+|---|---|---|---|
+| The Bidah section (`axis`) | 602.2 | 597.2 | -0.8 % |
+| S13's edge | 613.4 | 608.7 | -0.8 % |
+
+| Block 2, W1's mode (b) hybrid at 20 m, HMS's reach n 0.1, its design storm as one run | Strips | Local radius | Change |
+|---|---|---|---|
+| Bidah_03 | 300.0 | 299.9 | -0.0 % |
+| Faydh_01 | 872.3 | 868.0 | -0.5 % |
+| R2A | 1,310.2 | 1,283.1 | -2.1 % |
+| R5A | 793.9 | 774.9 | -2.4 % |
+| S11_ring | 492.3 | 492.3 | -0.0 % |
+| S14_ring | 447.6 | 447.6 | -0.0 % |
+| S1_ring | 554.7 | 559.5 | +0.9 % |
+| S2_ring | 441.4 | 441.4 | -0.0 % |
+| S5_ring | 656.8 | 645.7 | -1.7 % |
+| S6_ring | 327.0 | 327.1 | +0.0 % |
+| Z4C | 1,584.1 | 1,567.4 | -1.1 % |
+
+[Certain, measured] **No surprise anywhere: the wide fan at Bidah moves 0.8 %, the five dam lines 0 to 2.4 %**, the
+largest where lumped hydrographs enter narrow wadis (R2A, R5A); Bidah 03's dam line, fed by its lumped inflow, does not
+move. Faydh 01's rain-on-grid race moved 3 to 4 % (above), the narrowest gorge of the set.
+
+[Certain, measured] **Where Block 2's run time goes:** the table build 188 s with strips and 294 s with the local radius
+(once per terrain, cached), the GPU loop 244 and 276 s for 36 h of storm, and about 30 minutes for the depth, speed and
+hazard products at the 0.5 m pixel over the whole block, most of it the smoothed polygons. The solver is not the slow
+part of a Block 2 run; the products are. Not looked at further.
+
 ## The ladder and the suite
 
 - **Switch off (the default): the full suite passes, 1,947 of 1,947** (`pytest_full_switch_off.log`); the tables are
@@ -214,9 +258,12 @@ rough-wall data in `flume_test/` need a wall n of their own, a lining per pixel,
 
 ## Where it stands
 
-Built, fixed and tested on `feature/face-local-radius`, off by default, not merged. It passes the measured flume tests
-the strips sum fails (one n within 1.5 % across b/h 1.8 to 6.2 in a rough rectangle; the walls' share of shear within
-1.3 points on smooth ones), reads W48's gorge at 5.3 m on every mesh, and lowers Faydh 01's converged peak by 3.8 %.
-It does not close the race: the centre mesh at 20 m reads +3.9 % over the converged answer, the squares -3.3 %. Not
-done: rough walls on a smoother bed (Al-Hamid's data, a wall lining); the quadtree (refuses it); the dock; Bidah and
-Block 2 with it on; why the aligned pair reads high in a bend. His call: make it the default, and the merges.
+**The default on `feature/face-local-radius` since 2026-11-09, on his go after the three steps; the full suite passes
+with it, 1,949 of 1,949 (`pytest_full_default_on.log`). Not merged; nothing pushed.** It passes the measured flume
+tests the strips sum fails (one n within 1.5 % across b/h 1.8 to 6.2 in a rough rectangle; the walls' share of shear
+within 1.3 points on smooth ones), reads W48's gorge at 5.3 m on every mesh, lowers Faydh 01's converged peak by
+3.8 % and Block 2's dam lines by 0 to 2.4 %, and costs about 1.5 x the table build, once per terrain. It does not close
+the race: the centre mesh at 20 m reads +3.9 % over the converged answer, the squares -3.3 %. Not done: rough walls on
+a smoother bed (Al-Hamid's data, a wall lining); the dock control; why the aligned pair reads high in a bend; a GPU
+table build. Found on the way and his next order: the products after a run, not the solver, are the slow part of a
+Block 2 run (about 30 minutes against 4.6).

@@ -1,0 +1,69 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 11%]
+........................................................................ [ 14%]
+........................................................................ [ 18%]
+........................................................................ [ 22%]
+........................................................................ [ 25%]
+........................................................................ [ 29%]
+........................................................................ [ 33%]
+........................................................................ [ 36%]
+........................................................................ [ 40%]
+........................................................................ [ 44%]
+..............F......................................................... [ 48%]
+........................................................................ [ 51%]
+........................................................................ [ 55%]
+........................................................................ [ 59%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 70%]
+........................................................................ [ 73%]
+..................................F..................................... [ 77%]
+........................................................................ [ 81%]
+........................................................................ [ 84%]
+........................................................................ [ 88%]
+........................................................................ [ 92%]
+........................................................................ [ 96%]
+........................................................................ [ 99%]
+.....                                                                    [100%]
+================================== FAILURES ===================================
+_______________ test_the_frozen_sample_still_matches_the_engine _______________
+
+    def test_the_frozen_sample_still_matches_the_engine() -> None:
+>       assert json.loads(SAMPLE.read_text("utf-8")) == config.json_schema()
+E       assert {'$defs': {'A...}}, ...}, ...} == {'$defs': {'A...}}, ...}, ...}
+E         
+E         Omitting 4 identical items, use -vv to show
+E         Differing items:
+E         {'$defs': {'ArfStudy': {'additionalProperties': False, 'description': 'The depth-area study: one run per storm area, e...lope for kind 'normal'", 'maximum': 0.5, 'minimum': 1e-05, ...}, ...}, 'required': ['kind', 'coordinates'], ...}, ...}} != {'$defs': {'ArfStudy': {'additionalProperties': False, 'description': 'The depth-area study: one run per storm area, e...lope for kind 'normal'", 'maximum': 0.5, 'minimum': 1e-05, ...}, ...}, 'required': ['kind', 'coordinates'], ...}, ...}}
+E         {'properties': {'project': {'$ref...
+E         
+E         ...Full output truncated (2 lines hidden), use '-vv' to show
+
+tests\plugin\test_contract.py:158: AssertionError
+___________ test_the_channel_depth_holds_the_rule_on_polygons[45.0] ___________
+
+theta = 45.0
+
+    @pytest.mark.parametrize("theta", [0.0, 45.0])
+    def test_the_channel_depth_holds_the_rule_on_polygons(theta: float) -> None:
+        ratio, steps = run_channel(theta, "poly")
+>       assert ratio == pytest.approx(1.0, abs=RULE), (ratio, steps)
+E       AssertionError: (1.0318450282542464, 2781)
+E       assert 1.0318450282542464 == 1.0 ± 0.03
+E         
+E         comparison failed
+E         Obtained: 1.0318450282542464
+E         Expected: 1.0 ± 0.03
+
+tests\solver\test_poly.py:138: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\cupy\_environment.py:286
+  D:\Mojtaba\Renardet\Wadi2D\.venv\Lib\site-packages\cupy\_environment.py:286: UserWarning: CUDA path could not be detected. Set CUDA_PATH environment variable if CuPy fails to load.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/plugin/test_contract.py::test_the_frozen_sample_still_matches_the_engine
+FAILED tests/solver/test_poly.py::test_the_channel_depth_holds_the_rule_on_polygons[45.0]
+exit 1

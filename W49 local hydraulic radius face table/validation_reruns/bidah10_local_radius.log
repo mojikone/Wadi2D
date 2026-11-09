@@ -1,0 +1,805 @@
+{"ev": "output", "kind": "grid_cache_saved", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\validation_reruns\\cache\\grid_6292b7866deaea7da71cf5e7.h5"}
+{"ev": "start", "backend": "gpu", "cells": 220006, "tiles": 262, "dx": 10.0, "duration_s": 108000.0, "tables_s": 11.42, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 1.5}
+{"ev": "output", "kind": "map", "t": 301.5}
+{"ev": "output", "kind": "map", "t": 601.5}
+{"ev": "output", "kind": "map", "t": 901.5}
+{"ev": "output", "kind": "map", "t": 1201.5}
+{"ev": "output", "kind": "map", "t": 1501.5}
+{"ev": "output", "kind": "map", "t": 1801.5}
+{"ev": "output", "kind": "map", "t": 2101.5}
+{"ev": "output", "kind": "map", "t": 2401.5}
+{"ev": "output", "kind": "map", "t": 2701.5}
+{"ev": "output", "kind": "map", "t": 3001.5}
+{"ev": "output", "kind": "map", "t": 3301.5}
+{"ev": "output", "kind": "map", "t": 3601.5}
+{"ev": "output", "kind": "map", "t": 3901.5}
+{"ev": "output", "kind": "map", "t": 4201.5}
+{"ev": "output", "kind": "map", "t": 4501.5}
+{"ev": "output", "kind": "map", "t": 4801.5}
+{"ev": "output", "kind": "map", "t": 5101.5}
+{"ev": "output", "kind": "map", "t": 5401.5}
+{"ev": "output", "kind": "map", "t": 5701.5}
+{"ev": "output", "kind": "map", "t": 6001.5}
+{"ev": "output", "kind": "map", "t": 6301.5}
+{"ev": "output", "kind": "map", "t": 6601.5}
+{"ev": "output", "kind": "map", "t": 6901.5}
+{"ev": "output", "kind": "map", "t": 7201.5}
+{"ev": "output", "kind": "map", "t": 7501.5}
+{"ev": "output", "kind": "map", "t": 7801.5}
+{"ev": "output", "kind": "map", "t": 8101.5}
+{"ev": "output", "kind": "map", "t": 8401.5}
+{"ev": "output", "kind": "map", "t": 8701.5}
+{"ev": "output", "kind": "map", "t": 9001.5}
+{"ev": "output", "kind": "map", "t": 9301.5}
+{"ev": "output", "kind": "map", "t": 9601.5}
+{"ev": "output", "kind": "map", "t": 9901.5}
+{"ev": "output", "kind": "map", "t": 10201.5}
+{"ev": "output", "kind": "map", "t": 10501.5}
+{"ev": "step", "t": 10501.5, "dt": 1.5, "steps": 7001, "active_tiles": 18, "volume": 0.0, "mass_error": 0.0, "wall": 2.02}
+{"ev": "output", "kind": "map", "t": 10801.5}
+{"ev": "output", "kind": "map", "t": 11101.5}
+{"ev": "output", "kind": "map", "t": 11401.5}
+{"ev": "output", "kind": "map", "t": 11701.5}
+{"ev": "output", "kind": "map", "t": 12001.5}
+{"ev": "output", "kind": "map", "t": 12301.5}
+{"ev": "output", "kind": "map", "t": 12601.5}
+{"ev": "output", "kind": "map", "t": 12901.5}
+{"ev": "output", "kind": "map", "t": 13201.5}
+{"ev": "output", "kind": "map", "t": 13501.5}
+{"ev": "output", "kind": "map", "t": 13801.5}
+{"ev": "output", "kind": "map", "t": 14101.5}
+{"ev": "output", "kind": "map", "t": 14401.5}
+{"ev": "output", "kind": "map", "t": 14701.5}
+{"ev": "output", "kind": "map", "t": 15001.5}
+{"ev": "step", "t": 15001.5, "dt": 1.5, "steps": 10001, "active_tiles": 262, "volume": 3173.3, "mass_error": -5.691e-10, "wall": 4.08}
+{"ev": "output", "kind": "map", "t": 15301.5}
+{"ev": "output", "kind": "map", "t": 15601.5}
+{"ev": "output", "kind": "map", "t": 15902.755298577014}
+{"ev": "output", "kind": "map", "t": 16202.760100806485}
+{"ev": "output", "kind": "map", "t": 16503.717469375726}
+{"ev": "output", "kind": "map", "t": 16804.72759601887}
+{"ev": "output", "kind": "map", "t": 17104.946042547766}
+{"ev": "output", "kind": "map", "t": 17405.89324426222}
+{"ev": "output", "kind": "map", "t": 17706.669493447345}
+{"ev": "output", "kind": "map", "t": 18006.80125823855}
+{"ev": "output", "kind": "map", "t": 18307.73326404844}
+{"ev": "output", "kind": "map", "t": 18608.664545916974}
+{"ev": "step", "t": 18608.665, "dt": 0.9627, "steps": 13171, "active_tiles": 262, "volume": 14799.8, "mass_error": -1.537e-09, "wall": 6.19}
+{"ev": "output", "kind": "map", "t": 18909.58559432224}
+{"ev": "output", "kind": "map", "t": 19209.69724682072}
+{"ev": "output", "kind": "map", "t": 19510.00224106011}
+{"ev": "output", "kind": "map", "t": 19810.413188128063}
+{"ev": "output", "kind": "map", "t": 20111.319662152488}
+{"ev": "output", "kind": "map", "t": 20411.71728295423}
+{"ev": "output", "kind": "map", "t": 20712.17847087269}
+{"ev": "output", "kind": "map", "t": 21012.755468006584}
+{"ev": "output", "kind": "map", "t": 21312.81781845352}
+{"ev": "output", "kind": "map", "t": 21613.049465709024}
+{"ev": "step", "t": 21724.496, "dt": 0.4977, "steps": 17377, "active_tiles": 262, "volume": 32579.2, "mass_error": -4.502e-10, "wall": 8.19}
+{"ev": "output", "kind": "map", "t": 21913.175181073882}
+{"ev": "output", "kind": "map", "t": 22213.598614621504}
+{"ev": "output", "kind": "map", "t": 22514.287265958137}
+{"ev": "output", "kind": "map", "t": 22814.833376527273}
+{"ev": "output", "kind": "map", "t": 23114.98672465691}
+{"ev": "output", "kind": "map", "t": 23414.993313067534}
+{"ev": "output", "kind": "map", "t": 23715.83164375584}
+{"ev": "output", "kind": "map", "t": 24016.045727491}
+{"ev": "output", "kind": "map", "t": 24316.5154122874}
+{"ev": "output", "kind": "map", "t": 24616.57693515848}
+{"ev": "output", "kind": "map", "t": 24917.33132105691}
+{"ev": "step", "t": 24945.05, "dt": 0.8505, "steps": 21561, "active_tiles": 262, "volume": 60048.5, "mass_error": -4.065e-10, "wall": 10.19}
+{"ev": "output", "kind": "map", "t": 25217.573691942784}
+{"ev": "output", "kind": "map", "t": 25518.307595987328}
+{"ev": "output", "kind": "map", "t": 25819.118135745022}
+{"ev": "output", "kind": "map", "t": 26119.2796859965}
+{"ev": "output", "kind": "map", "t": 26420.1024616195}
+{"ev": "output", "kind": "map", "t": 26720.267471442752}
+{"ev": "output", "kind": "map", "t": 27020.79494600297}
+{"ev": "output", "kind": "map", "t": 27320.961602806947}
+{"ev": "output", "kind": "map", "t": 27621.770302387875}
+{"ev": "output", "kind": "map", "t": 27922.42745521118}
+{"ev": "output", "kind": "map", "t": 28222.606725274327}
+{"ev": "output", "kind": "map", "t": 28523.25711426842}
+{"ev": "step", "t": 28523.257, "dt": 0.8369, "steps": 25880, "active_tiles": 262, "volume": 103077.5, "mass_error": -1.277e-09, "wall": 12.28}
+{"ev": "output", "kind": "map", "t": 28823.450921242376}
+{"ev": "output", "kind": "map", "t": 29124.196568264175}
+{"ev": "output", "kind": "map", "t": 29424.24061579174}
+{"ev": "output", "kind": "map", "t": 29724.842736403065}
+{"ev": "output", "kind": "map", "t": 30025.403742016286}
+{"ev": "output", "kind": "map", "t": 30325.991175248593}
+{"ev": "output", "kind": "map", "t": 30626.524274577474}
+{"ev": "output", "kind": "map", "t": 30927.109133163613}
+{"ev": "output", "kind": "map", "t": 31227.640629440437}
+{"ev": "output", "kind": "map", "t": 31528.221755062415}
+{"ev": "output", "kind": "map", "t": 31828.582239195755}
+{"ev": "step", "t": 32094.631, "dt": 0.7681, "steps": 30353, "active_tiles": 262, "volume": 151640.7, "mass_error": -3.207e-09, "wall": 14.28}
+{"ev": "output", "kind": "map", "t": 32129.27314954408}
+{"ev": "output", "kind": "map", "t": 32429.965434514223}
+{"ev": "output", "kind": "map", "t": 32730.0}
+{"ev": "output", "kind": "map", "t": 33030.0}
+{"ev": "output", "kind": "map", "t": 33330.0}
+{"ev": "output", "kind": "map", "t": 33630.0}
+{"ev": "output", "kind": "map", "t": 33930.0}
+{"ev": "output", "kind": "map", "t": 34230.0}
+{"ev": "output", "kind": "map", "t": 34530.0}
+{"ev": "output", "kind": "map", "t": 34830.0}
+{"ev": "output", "kind": "map", "t": 35130.0}
+{"ev": "output", "kind": "map", "t": 35430.0}
+{"ev": "step", "t": 35430.0, "dt": 0.7919, "steps": 34635, "active_tiles": 262, "volume": 206189.4, "mass_error": -6.108e-09, "wall": 16.38}
+{"ev": "output", "kind": "map", "t": 35730.0}
+{"ev": "output", "kind": "map", "t": 36030.0}
+{"ev": "output", "kind": "map", "t": 36330.0}
+{"ev": "output", "kind": "map", "t": 36630.0}
+{"ev": "output", "kind": "map", "t": 36930.0}
+{"ev": "output", "kind": "map", "t": 37230.0}
+{"ev": "output", "kind": "map", "t": 37530.0}
+{"ev": "output", "kind": "map", "t": 37830.0}
+{"ev": "output", "kind": "map", "t": 38130.0}
+{"ev": "output", "kind": "map", "t": 38430.0}
+{"ev": "output", "kind": "map", "t": 38730.0}
+{"ev": "step", "t": 38730.0, "dt": 0.649, "steps": 39278, "active_tiles": 262, "volume": 306675.3, "mass_error": -6.149e-09, "wall": 18.42}
+{"ev": "output", "kind": "map", "t": 39030.0}
+{"ev": "output", "kind": "map", "t": 39330.0}
+{"ev": "output", "kind": "map", "t": 39630.0}
+{"ev": "output", "kind": "map", "t": 39930.0}
+{"ev": "output", "kind": "map", "t": 40230.0}
+{"ev": "output", "kind": "map", "t": 40530.0}
+{"ev": "output", "kind": "map", "t": 40830.0}
+{"ev": "output", "kind": "map", "t": 41130.0}
+{"ev": "output", "kind": "map", "t": 41430.0}
+{"ev": "output", "kind": "map", "t": 41730.0}
+{"ev": "step", "t": 41730.0, "dt": 0.5027, "steps": 44543, "active_tiles": 262, "volume": 663668.0, "mass_error": -6.401e-09, "wall": 20.52}
+{"ev": "output", "kind": "map", "t": 42030.0}
+{"ev": "output", "kind": "map", "t": 42330.0}
+{"ev": "output", "kind": "map", "t": 42630.0}
+{"ev": "output", "kind": "map", "t": 42930.0}
+{"ev": "output", "kind": "map", "t": 43230.0}
+{"ev": "output", "kind": "map", "t": 43530.0}
+{"ev": "output", "kind": "map", "t": 43830.0}
+{"ev": "output", "kind": "map", "t": 44130.0}
+{"ev": "step", "t": 44407.037, "dt": 0.3901, "steps": 50857, "active_tiles": 262, "volume": 1539005.0, "mass_error": -8.471e-09, "wall": 22.52}
+{"ev": "output", "kind": "map", "t": 44430.0}
+{"ev": "output", "kind": "map", "t": 44730.0}
+{"ev": "output", "kind": "map", "t": 45030.0}
+{"ev": "output", "kind": "map", "t": 45330.0}
+{"ev": "output", "kind": "map", "t": 45630.0}
+{"ev": "output", "kind": "map", "t": 45930.0}
+{"ev": "output", "kind": "map", "t": 46230.0}
+{"ev": "output", "kind": "map", "t": 46530.0}
+{"ev": "output", "kind": "map", "t": 46830.0}
+{"ev": "step", "t": 46997.046, "dt": 0.4495, "steps": 57321, "active_tiles": 262, "volume": 697909.6, "mass_error": -1.754e-08, "wall": 24.52}
+{"ev": "output", "kind": "map", "t": 47130.0}
+{"ev": "output", "kind": "map", "t": 47430.0}
+{"ev": "output", "kind": "map", "t": 47730.0}
+{"ev": "output", "kind": "map", "t": 48030.0}
+{"ev": "output", "kind": "map", "t": 48330.0}
+{"ev": "output", "kind": "map", "t": 48630.0}
+{"ev": "output", "kind": "map", "t": 48930.0}
+{"ev": "output", "kind": "map", "t": 49230.0}
+{"ev": "output", "kind": "map", "t": 49530.0}
+{"ev": "output", "kind": "map", "t": 49830.0}
+{"ev": "step", "t": 50069.717, "dt": 0.4505, "steps": 64301, "active_tiles": 262, "volume": 438452.2, "mass_error": -1.976e-08, "wall": 26.52}
+{"ev": "output", "kind": "map", "t": 50130.0}
+{"ev": "output", "kind": "map", "t": 50430.0}
+{"ev": "output", "kind": "map", "t": 50730.0}
+{"ev": "output", "kind": "map", "t": 51030.0}
+{"ev": "output", "kind": "map", "t": 51330.0}
+{"ev": "output", "kind": "map", "t": 51630.0}
+{"ev": "output", "kind": "map", "t": 51930.0}
+{"ev": "output", "kind": "map", "t": 52230.0}
+{"ev": "output", "kind": "map", "t": 52530.0}
+{"ev": "output", "kind": "map", "t": 52830.0}
+{"ev": "step", "t": 52892.511, "dt": 0.5023, "steps": 70273, "active_tiles": 262, "volume": 342954.6, "mass_error": -2.049e-08, "wall": 28.52}
+{"ev": "output", "kind": "map", "t": 53130.0}
+{"ev": "output", "kind": "map", "t": 53430.0}
+{"ev": "output", "kind": "map", "t": 53730.0}
+{"ev": "output", "kind": "map", "t": 54030.0}
+{"ev": "output", "kind": "map", "t": 54330.0}
+{"ev": "output", "kind": "map", "t": 54630.0}
+{"ev": "output", "kind": "map", "t": 54930.0}
+{"ev": "output", "kind": "map", "t": 55230.0}
+{"ev": "output", "kind": "map", "t": 55530.0}
+{"ev": "output", "kind": "map", "t": 55830.0}
+{"ev": "step", "t": 55950.547, "dt": 0.5508, "steps": 76143, "active_tiles": 262, "volume": 285120.8, "mass_error": -2.098e-08, "wall": 30.52}
+{"ev": "output", "kind": "map", "t": 56130.0}
+{"ev": "output", "kind": "map", "t": 56430.0}
+{"ev": "output", "kind": "map", "t": 56730.0}
+{"ev": "output", "kind": "map", "t": 57030.0}
+{"ev": "output", "kind": "map", "t": 57330.0}
+{"ev": "output", "kind": "map", "t": 57630.0}
+{"ev": "output", "kind": "map", "t": 57930.0}
+{"ev": "output", "kind": "map", "t": 58230.0}
+{"ev": "output", "kind": "map", "t": 58530.0}
+{"ev": "output", "kind": "map", "t": 58830.0}
+{"ev": "step", "t": 59010.523, "dt": 0.5347, "steps": 81861, "active_tiles": 262, "volume": 248454.2, "mass_error": -2.118e-08, "wall": 32.52}
+{"ev": "output", "kind": "map", "t": 59130.0}
+{"ev": "output", "kind": "map", "t": 59430.0}
+{"ev": "output", "kind": "map", "t": 59730.0}
+{"ev": "output", "kind": "map", "t": 60030.0}
+{"ev": "output", "kind": "map", "t": 60330.0}
+{"ev": "output", "kind": "map", "t": 60630.0}
+{"ev": "output", "kind": "map", "t": 60930.0}
+{"ev": "output", "kind": "map", "t": 61230.0}
+{"ev": "output", "kind": "map", "t": 61530.0}
+{"ev": "output", "kind": "map", "t": 61830.0}
+{"ev": "output", "kind": "map", "t": 62130.0}
+{"ev": "step", "t": 62130.0, "dt": 0.5262, "steps": 87765, "active_tiles": 262, "volume": 222154.7, "mass_error": -2.145e-08, "wall": 34.56}
+{"ev": "output", "kind": "map", "t": 62430.0}
+{"ev": "output", "kind": "map", "t": 62730.0}
+{"ev": "output", "kind": "map", "t": 63030.0}
+{"ev": "output", "kind": "map", "t": 63330.0}
+{"ev": "output", "kind": "map", "t": 63630.0}
+{"ev": "output", "kind": "map", "t": 63930.0}
+{"ev": "output", "kind": "map", "t": 64230.0}
+{"ev": "output", "kind": "map", "t": 64530.0}
+{"ev": "output", "kind": "map", "t": 64830.0}
+{"ev": "output", "kind": "map", "t": 65130.0}
+{"ev": "step", "t": 65250.507, "dt": 0.5038, "steps": 93769, "active_tiles": 262, "volume": 202762.5, "mass_error": -2.163e-08, "wall": 36.56}
+{"ev": "output", "kind": "map", "t": 65430.0}
+{"ev": "output", "kind": "map", "t": 65730.0}
+{"ev": "output", "kind": "map", "t": 66030.0}
+{"ev": "output", "kind": "map", "t": 66330.0}
+{"ev": "output", "kind": "map", "t": 66630.0}
+{"ev": "output", "kind": "map", "t": 66930.0}
+{"ev": "output", "kind": "map", "t": 67230.0}
+{"ev": "output", "kind": "map", "t": 67530.0}
+{"ev": "output", "kind": "map", "t": 67830.0}
+{"ev": "output", "kind": "map", "t": 68130.0}
+{"ev": "step", "t": 68310.512, "dt": 0.5027, "steps": 99737, "active_tiles": 262, "volume": 187664.9, "mass_error": -2.174e-08, "wall": 38.56}
+{"ev": "output", "kind": "map", "t": 68430.0}
+{"ev": "output", "kind": "map", "t": 68730.0}
+{"ev": "output", "kind": "map", "t": 69030.0}
+{"ev": "output", "kind": "map", "t": 69330.0}
+{"ev": "output", "kind": "map", "t": 69630.0}
+{"ev": "output", "kind": "map", "t": 69930.0}
+{"ev": "output", "kind": "map", "t": 70230.0}
+{"ev": "output", "kind": "map", "t": 70530.0}
+{"ev": "output", "kind": "map", "t": 70830.0}
+{"ev": "output", "kind": "map", "t": 71130.0}
+{"ev": "output", "kind": "map", "t": 71430.0}
+{"ev": "step", "t": 71430.0, "dt": 0.5255, "steps": 105908, "active_tiles": 262, "volume": 175645.3, "mass_error": -2.181e-08, "wall": 40.64}
+{"ev": "output", "kind": "map", "t": 71730.0}
+{"ev": "output", "kind": "map", "t": 72030.0}
+{"ev": "output", "kind": "map", "t": 72330.0}
+{"ev": "output", "kind": "map", "t": 72630.0}
+{"ev": "output", "kind": "map", "t": 72930.0}
+{"ev": "output", "kind": "map", "t": 73230.0}
+{"ev": "output", "kind": "map", "t": 73530.0}
+{"ev": "output", "kind": "map", "t": 73830.0}
+{"ev": "output", "kind": "map", "t": 74130.0}
+{"ev": "output", "kind": "map", "t": 74430.0}
+{"ev": "step", "t": 74430.0, "dt": 0.4963, "steps": 111909, "active_tiles": 262, "volume": 165744.9, "mass_error": -2.193e-08, "wall": 42.64}
+{"ev": "output", "kind": "map", "t": 74730.0}
+{"ev": "output", "kind": "map", "t": 75030.0}
+{"ev": "output", "kind": "map", "t": 75330.0}
+{"ev": "output", "kind": "map", "t": 75630.0}
+{"ev": "output", "kind": "map", "t": 75930.0}
+{"ev": "output", "kind": "map", "t": 76230.0}
+{"ev": "output", "kind": "map", "t": 76530.0}
+{"ev": "output", "kind": "map", "t": 76830.0}
+{"ev": "output", "kind": "map", "t": 77130.0}
+{"ev": "output", "kind": "map", "t": 77430.0}
+{"ev": "step", "t": 77430.49, "dt": 0.4978, "steps": 117980, "active_tiles": 262, "volume": 157645.0, "mass_error": -2.197e-08, "wall": 44.64}
+{"ev": "output", "kind": "map", "t": 77730.0}
+{"ev": "output", "kind": "map", "t": 78030.0}
+{"ev": "output", "kind": "map", "t": 78330.0}
+{"ev": "output", "kind": "map", "t": 78630.0}
+{"ev": "output", "kind": "map", "t": 78930.0}
+{"ev": "output", "kind": "map", "t": 79230.0}
+{"ev": "output", "kind": "map", "t": 79530.0}
+{"ev": "output", "kind": "map", "t": 79830.0}
+{"ev": "output", "kind": "map", "t": 80130.0}
+{"ev": "output", "kind": "map", "t": 80430.0}
+{"ev": "step", "t": 80430.0, "dt": 0.5107, "steps": 124084, "active_tiles": 262, "volume": 150387.8, "mass_error": -2.201e-08, "wall": 46.64}
+{"ev": "output", "kind": "map", "t": 80730.0}
+{"ev": "output", "kind": "map", "t": 81030.0}
+{"ev": "output", "kind": "map", "t": 81330.0}
+{"ev": "output", "kind": "map", "t": 81630.0}
+{"ev": "output", "kind": "map", "t": 81930.0}
+{"ev": "output", "kind": "map", "t": 82230.0}
+{"ev": "output", "kind": "map", "t": 82530.0}
+{"ev": "output", "kind": "map", "t": 82830.0}
+{"ev": "output", "kind": "map", "t": 83130.0}
+{"ev": "output", "kind": "map", "t": 83430.0}
+{"ev": "step", "t": 83430.0, "dt": 0.5083, "steps": 130243, "active_tiles": 262, "volume": 144029.6, "mass_error": -2.203e-08, "wall": 48.75}
+{"ev": "output", "kind": "map", "t": 83730.0}
+{"ev": "output", "kind": "map", "t": 84030.0}
+{"ev": "output", "kind": "map", "t": 84330.0}
+{"ev": "output", "kind": "map", "t": 84630.0}
+{"ev": "output", "kind": "map", "t": 84930.0}
+{"ev": "output", "kind": "map", "t": 85230.0}
+{"ev": "output", "kind": "map", "t": 85530.0}
+{"ev": "output", "kind": "map", "t": 85830.0}
+{"ev": "output", "kind": "map", "t": 86130.0}
+{"ev": "step", "t": 86227.869, "dt": 0.4761, "steps": 136025, "active_tiles": 262, "volume": 139043.7, "mass_error": -2.208e-08, "wall": 50.75}
+{"ev": "output", "kind": "map", "t": 86430.0}
+{"ev": "output", "kind": "map", "t": 86730.0}
+{"ev": "output", "kind": "map", "t": 87030.0}
+{"ev": "output", "kind": "map", "t": 87330.0}
+{"ev": "output", "kind": "map", "t": 87630.0}
+{"ev": "output", "kind": "map", "t": 87930.0}
+{"ev": "output", "kind": "map", "t": 88230.0}
+{"ev": "output", "kind": "map", "t": 88530.0}
+{"ev": "output", "kind": "map", "t": 88830.0}
+{"ev": "output", "kind": "map", "t": 89130.0}
+{"ev": "step", "t": 89426.793, "dt": 0.4865, "steps": 142638, "active_tiles": 262, "volume": 101831.0, "mass_error": -2.225e-08, "wall": 52.75}
+{"ev": "output", "kind": "map", "t": 89430.0}
+{"ev": "output", "kind": "map", "t": 89730.0}
+{"ev": "output", "kind": "map", "t": 90030.0}
+{"ev": "output", "kind": "map", "t": 90330.0}
+{"ev": "output", "kind": "map", "t": 90630.0}
+{"ev": "output", "kind": "map", "t": 90930.0}
+{"ev": "output", "kind": "map", "t": 91230.0}
+{"ev": "output", "kind": "map", "t": 91530.0}
+{"ev": "output", "kind": "map", "t": 91830.0}
+{"ev": "output", "kind": "map", "t": 92130.0}
+{"ev": "output", "kind": "map", "t": 92430.0}
+{"ev": "step", "t": 92430.0, "dt": 0.4889, "steps": 148845, "active_tiles": 262, "volume": 71041.2, "mass_error": -2.226e-08, "wall": 54.8}
+{"ev": "output", "kind": "map", "t": 92730.0}
+{"ev": "output", "kind": "map", "t": 93030.0}
+{"ev": "output", "kind": "map", "t": 93330.0}
+{"ev": "output", "kind": "map", "t": 93630.0}
+{"ev": "output", "kind": "map", "t": 93930.0}
+{"ev": "output", "kind": "map", "t": 94230.0}
+{"ev": "output", "kind": "map", "t": 94530.0}
+{"ev": "output", "kind": "map", "t": 94830.0}
+{"ev": "output", "kind": "map", "t": 95130.0}
+{"ev": "output", "kind": "map", "t": 95430.0}
+{"ev": "output", "kind": "map", "t": 95730.0}
+{"ev": "step", "t": 95730.0, "dt": 0.4882, "steps": 155665, "active_tiles": 262, "volume": 47561.7, "mass_error": -2.228e-08, "wall": 56.86}
+{"ev": "output", "kind": "map", "t": 96030.0}
+{"ev": "output", "kind": "map", "t": 96330.0}
+{"ev": "output", "kind": "map", "t": 96630.0}
+{"ev": "output", "kind": "map", "t": 96930.0}
+{"ev": "output", "kind": "map", "t": 97230.0}
+{"ev": "output", "kind": "map", "t": 97530.0}
+{"ev": "output", "kind": "map", "t": 97830.0}
+{"ev": "output", "kind": "map", "t": 98130.0}
+{"ev": "output", "kind": "map", "t": 98430.0}
+{"ev": "output", "kind": "map", "t": 98730.0}
+{"ev": "output", "kind": "map", "t": 99030.0}
+{"ev": "output", "kind": "map", "t": 99330.0}
+{"ev": "step", "t": 99330.0, "dt": 0.4876, "steps": 163105, "active_tiles": 262, "volume": 33067.6, "mass_error": -2.223e-08, "wall": 58.94}
+{"ev": "output", "kind": "map", "t": 99630.0}
+{"ev": "output", "kind": "map", "t": 99930.0}
+{"ev": "output", "kind": "map", "t": 100230.0}
+{"ev": "output", "kind": "map", "t": 100530.0}
+{"ev": "output", "kind": "map", "t": 100830.0}
+{"ev": "output", "kind": "map", "t": 101130.0}
+{"ev": "output", "kind": "map", "t": 101430.0}
+{"ev": "output", "kind": "map", "t": 101730.0}
+{"ev": "output", "kind": "map", "t": 102030.0}
+{"ev": "output", "kind": "map", "t": 102330.0}
+{"ev": "output", "kind": "map", "t": 102630.0}
+{"ev": "step", "t": 102674.638, "dt": 0.4876, "steps": 170017, "active_tiles": 262, "volume": 25659.9, "mass_error": -2.219e-08, "wall": 60.94}
+{"ev": "output", "kind": "map", "t": 102930.0}
+{"ev": "output", "kind": "map", "t": 103230.0}
+{"ev": "output", "kind": "map", "t": 103530.0}
+{"ev": "output", "kind": "map", "t": 103830.0}
+{"ev": "output", "kind": "map", "t": 104130.0}
+{"ev": "output", "kind": "map", "t": 104430.0}
+{"ev": "output", "kind": "map", "t": 104730.0}
+{"ev": "output", "kind": "map", "t": 105030.0}
+{"ev": "output", "kind": "map", "t": 105330.0}
+{"ev": "output", "kind": "map", "t": 105630.0}
+{"ev": "output", "kind": "map", "t": 105930.0}
+{"ev": "step", "t": 105930.0, "dt": 0.4879, "steps": 176745, "active_tiles": 262, "volume": 21313.3, "mass_error": -2.214e-08, "wall": 63.0}
+{"ev": "output", "kind": "map", "t": 106230.0}
+{"ev": "output", "kind": "map", "t": 106530.0}
+{"ev": "output", "kind": "map", "t": 106830.0}
+{"ev": "output", "kind": "map", "t": 107130.0}
+{"ev": "output", "kind": "map", "t": 107430.0}
+{"ev": "output", "kind": "map", "t": 107730.0}
+{"ev": "warn", "message": "water stood 4.6 m deep against the domain edge at (432061, 2725105): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\validation_reruns\\bidah10_local_radius\\maps"}
+{"ev": "products", "stage": "ground", "done": 0, "of": 17, "percent": 0.0}
+{"ev": "products", "stage": "ground", "done": 1, "of": 17, "percent": 0.3}
+{"ev": "products", "stage": "ground", "done": 2, "of": 17, "percent": 0.6}
+{"ev": "products", "stage": "ground", "done": 3, "of": 17, "percent": 0.9}
+{"ev": "products", "stage": "ground", "done": 4, "of": 17, "percent": 1.2}
+{"ev": "products", "stage": "ground", "done": 5, "of": 17, "percent": 1.5}
+{"ev": "products", "stage": "ground", "done": 6, "of": 17, "percent": 1.8}
+{"ev": "products", "stage": "ground", "done": 7, "of": 17, "percent": 2.1}
+{"ev": "products", "stage": "ground", "done": 8, "of": 17, "percent": 2.4}
+{"ev": "products", "stage": "ground", "done": 9, "of": 17, "percent": 2.6}
+{"ev": "products", "stage": "ground", "done": 10, "of": 17, "percent": 2.9}
+{"ev": "products", "stage": "ground", "done": 11, "of": 17, "percent": 3.2}
+{"ev": "products", "stage": "ground", "done": 12, "of": 17, "percent": 3.5}
+{"ev": "products", "stage": "ground", "done": 13, "of": 17, "percent": 3.8}
+{"ev": "products", "stage": "ground", "done": 14, "of": 17, "percent": 4.1}
+{"ev": "products", "stage": "ground", "done": 15, "of": 17, "percent": 4.4}
+{"ev": "products", "stage": "ground", "done": 16, "of": 17, "percent": 4.7}
+{"ev": "products", "stage": "maps", "done": 0, "of": 361, "percent": 5.0}
+{"ev": "products", "stage": "maps", "done": 1, "of": 361, "percent": 5.2}
+{"ev": "products", "stage": "maps", "done": 2, "of": 361, "percent": 5.4}
+{"ev": "products", "stage": "maps", "done": 3, "of": 361, "percent": 5.6}
+{"ev": "products", "stage": "maps", "done": 4, "of": 361, "percent": 5.8}
+{"ev": "products", "stage": "maps", "done": 5, "of": 361, "percent": 6.0}
+{"ev": "products", "stage": "maps", "done": 6, "of": 361, "percent": 6.2}
+{"ev": "products", "stage": "maps", "done": 7, "of": 361, "percent": 6.5}
+{"ev": "products", "stage": "maps", "done": 8, "of": 361, "percent": 6.7}
+{"ev": "products", "stage": "maps", "done": 9, "of": 361, "percent": 6.9}
+{"ev": "products", "stage": "maps", "done": 10, "of": 361, "percent": 7.1}
+{"ev": "products", "stage": "maps", "done": 11, "of": 361, "percent": 7.3}
+{"ev": "products", "stage": "maps", "done": 12, "of": 361, "percent": 7.5}
+{"ev": "products", "stage": "maps", "done": 13, "of": 361, "percent": 7.7}
+{"ev": "products", "stage": "maps", "done": 14, "of": 361, "percent": 7.9}
+{"ev": "products", "stage": "maps", "done": 15, "of": 361, "percent": 8.1}
+{"ev": "products", "stage": "maps", "done": 16, "of": 361, "percent": 8.3}
+{"ev": "products", "stage": "maps", "done": 17, "of": 361, "percent": 8.5}
+{"ev": "products", "stage": "maps", "done": 18, "of": 361, "percent": 8.7}
+{"ev": "products", "stage": "maps", "done": 19, "of": 361, "percent": 8.9}
+{"ev": "products", "stage": "maps", "done": 20, "of": 361, "percent": 9.2}
+{"ev": "products", "stage": "maps", "done": 21, "of": 361, "percent": 9.4}
+{"ev": "products", "stage": "maps", "done": 22, "of": 361, "percent": 9.6}
+{"ev": "products", "stage": "maps", "done": 23, "of": 361, "percent": 9.8}
+{"ev": "products", "stage": "maps", "done": 24, "of": 361, "percent": 10.0}
+{"ev": "products", "stage": "maps", "done": 25, "of": 361, "percent": 10.2}
+{"ev": "products", "stage": "maps", "done": 26, "of": 361, "percent": 10.4}
+{"ev": "products", "stage": "maps", "done": 27, "of": 361, "percent": 10.6}
+{"ev": "products", "stage": "maps", "done": 28, "of": 361, "percent": 10.8}
+{"ev": "products", "stage": "maps", "done": 29, "of": 361, "percent": 11.0}
+{"ev": "products", "stage": "maps", "done": 30, "of": 361, "percent": 11.2}
+{"ev": "products", "stage": "maps", "done": 31, "of": 361, "percent": 11.4}
+{"ev": "products", "stage": "maps", "done": 32, "of": 361, "percent": 11.6}
+{"ev": "products", "stage": "maps", "done": 33, "of": 361, "percent": 11.9}
+{"ev": "products", "stage": "maps", "done": 34, "of": 361, "percent": 12.1}
+{"ev": "products", "stage": "maps", "done": 35, "of": 361, "percent": 12.3}
+{"ev": "products", "stage": "maps", "done": 36, "of": 361, "percent": 12.5}
+{"ev": "products", "stage": "maps", "done": 37, "of": 361, "percent": 12.7}
+{"ev": "products", "stage": "maps", "done": 38, "of": 361, "percent": 12.9}
+{"ev": "products", "stage": "maps", "done": 39, "of": 361, "percent": 13.1}
+{"ev": "products", "stage": "maps", "done": 40, "of": 361, "percent": 13.3}
+{"ev": "products", "stage": "maps", "done": 41, "of": 361, "percent": 13.5}
+{"ev": "products", "stage": "maps", "done": 42, "of": 361, "percent": 13.7}
+{"ev": "products", "stage": "maps", "done": 43, "of": 361, "percent": 13.9}
+{"ev": "products", "stage": "maps", "done": 44, "of": 361, "percent": 14.1}
+{"ev": "products", "stage": "maps", "done": 45, "of": 361, "percent": 14.3}
+{"ev": "products", "stage": "maps", "done": 46, "of": 361, "percent": 14.6}
+{"ev": "products", "stage": "maps", "done": 47, "of": 361, "percent": 14.8}
+{"ev": "products", "stage": "maps", "done": 48, "of": 361, "percent": 15.0}
+{"ev": "products", "stage": "maps", "done": 49, "of": 361, "percent": 15.2}
+{"ev": "products", "stage": "maps", "done": 50, "of": 361, "percent": 15.4}
+{"ev": "products", "stage": "maps", "done": 51, "of": 361, "percent": 15.6}
+{"ev": "products", "stage": "maps", "done": 52, "of": 361, "percent": 15.8}
+{"ev": "products", "stage": "maps", "done": 53, "of": 361, "percent": 16.0}
+{"ev": "products", "stage": "maps", "done": 54, "of": 361, "percent": 16.2}
+{"ev": "products", "stage": "maps", "done": 55, "of": 361, "percent": 16.4}
+{"ev": "products", "stage": "maps", "done": 56, "of": 361, "percent": 16.6}
+{"ev": "products", "stage": "maps", "done": 57, "of": 361, "percent": 16.8}
+{"ev": "products", "stage": "maps", "done": 58, "of": 361, "percent": 17.0}
+{"ev": "products", "stage": "maps", "done": 59, "of": 361, "percent": 17.3}
+{"ev": "products", "stage": "maps", "done": 60, "of": 361, "percent": 17.5}
+{"ev": "products", "stage": "maps", "done": 61, "of": 361, "percent": 17.7}
+{"ev": "products", "stage": "maps", "done": 62, "of": 361, "percent": 17.9}
+{"ev": "products", "stage": "maps", "done": 63, "of": 361, "percent": 18.1}
+{"ev": "products", "stage": "maps", "done": 64, "of": 361, "percent": 18.3}
+{"ev": "products", "stage": "maps", "done": 65, "of": 361, "percent": 18.5}
+{"ev": "products", "stage": "maps", "done": 66, "of": 361, "percent": 18.7}
+{"ev": "products", "stage": "maps", "done": 67, "of": 361, "percent": 18.9}
+{"ev": "products", "stage": "maps", "done": 68, "of": 361, "percent": 19.1}
+{"ev": "products", "stage": "maps", "done": 69, "of": 361, "percent": 19.3}
+{"ev": "products", "stage": "maps", "done": 70, "of": 361, "percent": 19.5}
+{"ev": "products", "stage": "maps", "done": 71, "of": 361, "percent": 19.8}
+{"ev": "products", "stage": "maps", "done": 72, "of": 361, "percent": 20.0}
+{"ev": "products", "stage": "maps", "done": 73, "of": 361, "percent": 20.2}
+{"ev": "products", "stage": "maps", "done": 74, "of": 361, "percent": 20.4}
+{"ev": "products", "stage": "maps", "done": 75, "of": 361, "percent": 20.6}
+{"ev": "products", "stage": "maps", "done": 76, "of": 361, "percent": 20.8}
+{"ev": "products", "stage": "maps", "done": 77, "of": 361, "percent": 21.0}
+{"ev": "products", "stage": "maps", "done": 78, "of": 361, "percent": 21.2}
+{"ev": "products", "stage": "maps", "done": 79, "of": 361, "percent": 21.4}
+{"ev": "products", "stage": "maps", "done": 80, "of": 361, "percent": 21.6}
+{"ev": "products", "stage": "maps", "done": 81, "of": 361, "percent": 21.8}
+{"ev": "products", "stage": "maps", "done": 82, "of": 361, "percent": 22.0}
+{"ev": "products", "stage": "maps", "done": 83, "of": 361, "percent": 22.2}
+{"ev": "products", "stage": "maps", "done": 84, "of": 361, "percent": 22.5}
+{"ev": "products", "stage": "maps", "done": 85, "of": 361, "percent": 22.7}
+{"ev": "products", "stage": "maps", "done": 86, "of": 361, "percent": 22.9}
+{"ev": "products", "stage": "maps", "done": 87, "of": 361, "percent": 23.1}
+{"ev": "products", "stage": "maps", "done": 88, "of": 361, "percent": 23.3}
+{"ev": "products", "stage": "maps", "done": 89, "of": 361, "percent": 23.5}
+{"ev": "products", "stage": "maps", "done": 90, "of": 361, "percent": 23.7}
+{"ev": "products", "stage": "maps", "done": 91, "of": 361, "percent": 23.9}
+{"ev": "products", "stage": "maps", "done": 92, "of": 361, "percent": 24.1}
+{"ev": "products", "stage": "maps", "done": 93, "of": 361, "percent": 24.3}
+{"ev": "products", "stage": "maps", "done": 94, "of": 361, "percent": 24.5}
+{"ev": "products", "stage": "maps", "done": 95, "of": 361, "percent": 24.7}
+{"ev": "products", "stage": "maps", "done": 96, "of": 361, "percent": 24.9}
+{"ev": "products", "stage": "maps", "done": 97, "of": 361, "percent": 25.2}
+{"ev": "products", "stage": "maps", "done": 98, "of": 361, "percent": 25.4}
+{"ev": "products", "stage": "maps", "done": 99, "of": 361, "percent": 25.6}
+{"ev": "products", "stage": "maps", "done": 100, "of": 361, "percent": 25.8}
+{"ev": "products", "stage": "maps", "done": 101, "of": 361, "percent": 26.0}
+{"ev": "products", "stage": "maps", "done": 102, "of": 361, "percent": 26.2}
+{"ev": "products", "stage": "maps", "done": 103, "of": 361, "percent": 26.4}
+{"ev": "products", "stage": "maps", "done": 104, "of": 361, "percent": 26.6}
+{"ev": "products", "stage": "maps", "done": 105, "of": 361, "percent": 26.8}
+{"ev": "products", "stage": "maps", "done": 106, "of": 361, "percent": 27.0}
+{"ev": "products", "stage": "maps", "done": 107, "of": 361, "percent": 27.2}
+{"ev": "products", "stage": "maps", "done": 108, "of": 361, "percent": 27.4}
+{"ev": "products", "stage": "maps", "done": 109, "of": 361, "percent": 27.6}
+{"ev": "products", "stage": "maps", "done": 110, "of": 361, "percent": 27.9}
+{"ev": "products", "stage": "maps", "done": 111, "of": 361, "percent": 28.1}
+{"ev": "products", "stage": "maps", "done": 112, "of": 361, "percent": 28.3}
+{"ev": "products", "stage": "maps", "done": 113, "of": 361, "percent": 28.5}
+{"ev": "products", "stage": "maps", "done": 114, "of": 361, "percent": 28.7}
+{"ev": "products", "stage": "maps", "done": 115, "of": 361, "percent": 28.9}
+{"ev": "products", "stage": "maps", "done": 116, "of": 361, "percent": 29.1}
+{"ev": "products", "stage": "maps", "done": 117, "of": 361, "percent": 29.3}
+{"ev": "products", "stage": "maps", "done": 118, "of": 361, "percent": 29.5}
+{"ev": "products", "stage": "maps", "done": 119, "of": 361, "percent": 29.7}
+{"ev": "products", "stage": "maps", "done": 120, "of": 361, "percent": 29.9}
+{"ev": "products", "stage": "maps", "done": 121, "of": 361, "percent": 30.1}
+{"ev": "products", "stage": "maps", "done": 122, "of": 361, "percent": 30.3}
+{"ev": "products", "stage": "maps", "done": 123, "of": 361, "percent": 30.6}
+{"ev": "products", "stage": "maps", "done": 124, "of": 361, "percent": 30.8}
+{"ev": "products", "stage": "maps", "done": 125, "of": 361, "percent": 31.0}
+{"ev": "products", "stage": "maps", "done": 126, "of": 361, "percent": 31.2}
+{"ev": "products", "stage": "maps", "done": 127, "of": 361, "percent": 31.4}
+{"ev": "products", "stage": "maps", "done": 128, "of": 361, "percent": 31.6}
+{"ev": "products", "stage": "maps", "done": 129, "of": 361, "percent": 31.8}
+{"ev": "products", "stage": "maps", "done": 130, "of": 361, "percent": 32.0}
+{"ev": "products", "stage": "maps", "done": 131, "of": 361, "percent": 32.2}
+{"ev": "products", "stage": "maps", "done": 132, "of": 361, "percent": 32.4}
+{"ev": "products", "stage": "maps", "done": 133, "of": 361, "percent": 32.6}
+{"ev": "products", "stage": "maps", "done": 134, "of": 361, "percent": 32.8}
+{"ev": "products", "stage": "maps", "done": 135, "of": 361, "percent": 33.0}
+{"ev": "products", "stage": "maps", "done": 136, "of": 361, "percent": 33.3}
+{"ev": "products", "stage": "maps", "done": 137, "of": 361, "percent": 33.5}
+{"ev": "products", "stage": "maps", "done": 138, "of": 361, "percent": 33.7}
+{"ev": "products", "stage": "maps", "done": 139, "of": 361, "percent": 33.9}
+{"ev": "products", "stage": "maps", "done": 140, "of": 361, "percent": 34.1}
+{"ev": "products", "stage": "maps", "done": 141, "of": 361, "percent": 34.3}
+{"ev": "products", "stage": "maps", "done": 142, "of": 361, "percent": 34.5}
+{"ev": "products", "stage": "maps", "done": 143, "of": 361, "percent": 34.7}
+{"ev": "products", "stage": "maps", "done": 144, "of": 361, "percent": 34.9}
+{"ev": "products", "stage": "maps", "done": 145, "of": 361, "percent": 35.1}
+{"ev": "products", "stage": "maps", "done": 146, "of": 361, "percent": 35.3}
+{"ev": "products", "stage": "maps", "done": 147, "of": 361, "percent": 35.5}
+{"ev": "products", "stage": "maps", "done": 148, "of": 361, "percent": 35.7}
+{"ev": "products", "stage": "maps", "done": 149, "of": 361, "percent": 36.0}
+{"ev": "products", "stage": "maps", "done": 150, "of": 361, "percent": 36.2}
+{"ev": "products", "stage": "maps", "done": 151, "of": 361, "percent": 36.4}
+{"ev": "products", "stage": "maps", "done": 152, "of": 361, "percent": 36.6}
+{"ev": "products", "stage": "maps", "done": 153, "of": 361, "percent": 36.8}
+{"ev": "products", "stage": "maps", "done": 154, "of": 361, "percent": 37.0}
+{"ev": "products", "stage": "maps", "done": 155, "of": 361, "percent": 37.2}
+{"ev": "products", "stage": "maps", "done": 156, "of": 361, "percent": 37.4}
+{"ev": "products", "stage": "maps", "done": 157, "of": 361, "percent": 37.6}
+{"ev": "products", "stage": "maps", "done": 158, "of": 361, "percent": 37.8}
+{"ev": "products", "stage": "maps", "done": 159, "of": 361, "percent": 38.0}
+{"ev": "products", "stage": "maps", "done": 160, "of": 361, "percent": 38.2}
+{"ev": "products", "stage": "maps", "done": 161, "of": 361, "percent": 38.4}
+{"ev": "products", "stage": "maps", "done": 162, "of": 361, "percent": 38.7}
+{"ev": "products", "stage": "maps", "done": 163, "of": 361, "percent": 38.9}
+{"ev": "products", "stage": "maps", "done": 164, "of": 361, "percent": 39.1}
+{"ev": "products", "stage": "maps", "done": 165, "of": 361, "percent": 39.3}
+{"ev": "products", "stage": "maps", "done": 166, "of": 361, "percent": 39.5}
+{"ev": "products", "stage": "maps", "done": 167, "of": 361, "percent": 39.7}
+{"ev": "products", "stage": "maps", "done": 168, "of": 361, "percent": 39.9}
+{"ev": "products", "stage": "maps", "done": 169, "of": 361, "percent": 40.1}
+{"ev": "products", "stage": "maps", "done": 170, "of": 361, "percent": 40.3}
+{"ev": "products", "stage": "maps", "done": 171, "of": 361, "percent": 40.5}
+{"ev": "products", "stage": "maps", "done": 172, "of": 361, "percent": 40.7}
+{"ev": "products", "stage": "maps", "done": 173, "of": 361, "percent": 40.9}
+{"ev": "products", "stage": "maps", "done": 174, "of": 361, "percent": 41.1}
+{"ev": "products", "stage": "maps", "done": 175, "of": 361, "percent": 41.4}
+{"ev": "products", "stage": "maps", "done": 176, "of": 361, "percent": 41.6}
+{"ev": "products", "stage": "maps", "done": 177, "of": 361, "percent": 41.8}
+{"ev": "products", "stage": "maps", "done": 178, "of": 361, "percent": 42.0}
+{"ev": "products", "stage": "maps", "done": 179, "of": 361, "percent": 42.2}
+{"ev": "products", "stage": "maps", "done": 180, "of": 361, "percent": 42.4}
+{"ev": "products", "stage": "maps", "done": 181, "of": 361, "percent": 42.6}
+{"ev": "products", "stage": "maps", "done": 182, "of": 361, "percent": 42.8}
+{"ev": "products", "stage": "maps", "done": 183, "of": 361, "percent": 43.0}
+{"ev": "products", "stage": "maps", "done": 184, "of": 361, "percent": 43.2}
+{"ev": "products", "stage": "maps", "done": 185, "of": 361, "percent": 43.4}
+{"ev": "products", "stage": "maps", "done": 186, "of": 361, "percent": 43.6}
+{"ev": "products", "stage": "maps", "done": 187, "of": 361, "percent": 43.9}
+{"ev": "products", "stage": "maps", "done": 188, "of": 361, "percent": 44.1}
+{"ev": "products", "stage": "maps", "done": 189, "of": 361, "percent": 44.3}
+{"ev": "products", "stage": "maps", "done": 190, "of": 361, "percent": 44.5}
+{"ev": "products", "stage": "maps", "done": 191, "of": 361, "percent": 44.7}
+{"ev": "products", "stage": "maps", "done": 192, "of": 361, "percent": 44.9}
+{"ev": "products", "stage": "maps", "done": 193, "of": 361, "percent": 45.1}
+{"ev": "products", "stage": "maps", "done": 194, "of": 361, "percent": 45.3}
+{"ev": "products", "stage": "maps", "done": 195, "of": 361, "percent": 45.5}
+{"ev": "products", "stage": "maps", "done": 196, "of": 361, "percent": 45.7}
+{"ev": "products", "stage": "maps", "done": 197, "of": 361, "percent": 45.9}
+{"ev": "products", "stage": "maps", "done": 198, "of": 361, "percent": 46.1}
+{"ev": "products", "stage": "maps", "done": 199, "of": 361, "percent": 46.3}
+{"ev": "products", "stage": "maps", "done": 200, "of": 361, "percent": 46.6}
+{"ev": "products", "stage": "maps", "done": 201, "of": 361, "percent": 46.8}
+{"ev": "products", "stage": "maps", "done": 202, "of": 361, "percent": 47.0}
+{"ev": "products", "stage": "maps", "done": 203, "of": 361, "percent": 47.2}
+{"ev": "products", "stage": "maps", "done": 204, "of": 361, "percent": 47.4}
+{"ev": "products", "stage": "maps", "done": 205, "of": 361, "percent": 47.6}
+{"ev": "products", "stage": "maps", "done": 206, "of": 361, "percent": 47.8}
+{"ev": "products", "stage": "maps", "done": 207, "of": 361, "percent": 48.0}
+{"ev": "products", "stage": "maps", "done": 208, "of": 361, "percent": 48.2}
+{"ev": "products", "stage": "maps", "done": 209, "of": 361, "percent": 48.4}
+{"ev": "products", "stage": "maps", "done": 210, "of": 361, "percent": 48.6}
+{"ev": "products", "stage": "maps", "done": 211, "of": 361, "percent": 48.8}
+{"ev": "products", "stage": "maps", "done": 212, "of": 361, "percent": 49.0}
+{"ev": "products", "stage": "maps", "done": 213, "of": 361, "percent": 49.3}
+{"ev": "products", "stage": "maps", "done": 214, "of": 361, "percent": 49.5}
+{"ev": "products", "stage": "maps", "done": 215, "of": 361, "percent": 49.7}
+{"ev": "products", "stage": "maps", "done": 216, "of": 361, "percent": 49.9}
+{"ev": "products", "stage": "maps", "done": 217, "of": 361, "percent": 50.1}
+{"ev": "products", "stage": "maps", "done": 218, "of": 361, "percent": 50.3}
+{"ev": "products", "stage": "maps", "done": 219, "of": 361, "percent": 50.5}
+{"ev": "products", "stage": "maps", "done": 220, "of": 361, "percent": 50.7}
+{"ev": "products", "stage": "maps", "done": 221, "of": 361, "percent": 50.9}
+{"ev": "products", "stage": "maps", "done": 222, "of": 361, "percent": 51.1}
+{"ev": "products", "stage": "maps", "done": 223, "of": 361, "percent": 51.3}
+{"ev": "products", "stage": "maps", "done": 224, "of": 361, "percent": 51.5}
+{"ev": "products", "stage": "maps", "done": 225, "of": 361, "percent": 51.7}
+{"ev": "products", "stage": "maps", "done": 226, "of": 361, "percent": 52.0}
+{"ev": "products", "stage": "maps", "done": 227, "of": 361, "percent": 52.2}
+{"ev": "products", "stage": "maps", "done": 228, "of": 361, "percent": 52.4}
+{"ev": "products", "stage": "maps", "done": 229, "of": 361, "percent": 52.6}
+{"ev": "products", "stage": "maps", "done": 230, "of": 361, "percent": 52.8}
+{"ev": "products", "stage": "maps", "done": 231, "of": 361, "percent": 53.0}
+{"ev": "products", "stage": "maps", "done": 232, "of": 361, "percent": 53.2}
+{"ev": "products", "stage": "maps", "done": 233, "of": 361, "percent": 53.4}
+{"ev": "products", "stage": "maps", "done": 234, "of": 361, "percent": 53.6}
+{"ev": "products", "stage": "maps", "done": 235, "of": 361, "percent": 53.8}
+{"ev": "products", "stage": "maps", "done": 236, "of": 361, "percent": 54.0}
+{"ev": "products", "stage": "maps", "done": 237, "of": 361, "percent": 54.2}
+{"ev": "products", "stage": "maps", "done": 238, "of": 361, "percent": 54.4}
+{"ev": "products", "stage": "maps", "done": 239, "of": 361, "percent": 54.7}
+{"ev": "products", "stage": "maps", "done": 240, "of": 361, "percent": 54.9}
+{"ev": "products", "stage": "maps", "done": 241, "of": 361, "percent": 55.1}
+{"ev": "products", "stage": "maps", "done": 242, "of": 361, "percent": 55.3}
+{"ev": "products", "stage": "maps", "done": 243, "of": 361, "percent": 55.5}
+{"ev": "products", "stage": "maps", "done": 244, "of": 361, "percent": 55.7}
+{"ev": "products", "stage": "maps", "done": 245, "of": 361, "percent": 55.9}
+{"ev": "products", "stage": "maps", "done": 246, "of": 361, "percent": 56.1}
+{"ev": "products", "stage": "maps", "done": 247, "of": 361, "percent": 56.3}
+{"ev": "products", "stage": "maps", "done": 248, "of": 361, "percent": 56.5}
+{"ev": "products", "stage": "maps", "done": 249, "of": 361, "percent": 56.7}
+{"ev": "products", "stage": "maps", "done": 250, "of": 361, "percent": 56.9}
+{"ev": "products", "stage": "maps", "done": 251, "of": 361, "percent": 57.1}
+{"ev": "products", "stage": "maps", "done": 252, "of": 361, "percent": 57.4}
+{"ev": "products", "stage": "maps", "done": 253, "of": 361, "percent": 57.6}
+{"ev": "products", "stage": "maps", "done": 254, "of": 361, "percent": 57.8}
+{"ev": "products", "stage": "maps", "done": 255, "of": 361, "percent": 58.0}
+{"ev": "products", "stage": "maps", "done": 256, "of": 361, "percent": 58.2}
+{"ev": "products", "stage": "maps", "done": 257, "of": 361, "percent": 58.4}
+{"ev": "products", "stage": "maps", "done": 258, "of": 361, "percent": 58.6}
+{"ev": "products", "stage": "maps", "done": 259, "of": 361, "percent": 58.8}
+{"ev": "products", "stage": "maps", "done": 260, "of": 361, "percent": 59.0}
+{"ev": "products", "stage": "maps", "done": 261, "of": 361, "percent": 59.2}
+{"ev": "products", "stage": "maps", "done": 262, "of": 361, "percent": 59.4}
+{"ev": "products", "stage": "maps", "done": 263, "of": 361, "percent": 59.6}
+{"ev": "products", "stage": "maps", "done": 264, "of": 361, "percent": 59.8}
+{"ev": "products", "stage": "maps", "done": 265, "of": 361, "percent": 60.1}
+{"ev": "products", "stage": "maps", "done": 266, "of": 361, "percent": 60.3}
+{"ev": "products", "stage": "maps", "done": 267, "of": 361, "percent": 60.5}
+{"ev": "products", "stage": "maps", "done": 268, "of": 361, "percent": 60.7}
+{"ev": "products", "stage": "maps", "done": 269, "of": 361, "percent": 60.9}
+{"ev": "products", "stage": "maps", "done": 270, "of": 361, "percent": 61.1}
+{"ev": "products", "stage": "maps", "done": 271, "of": 361, "percent": 61.3}
+{"ev": "products", "stage": "maps", "done": 272, "of": 361, "percent": 61.5}
+{"ev": "products", "stage": "maps", "done": 273, "of": 361, "percent": 61.7}
+{"ev": "products", "stage": "maps", "done": 274, "of": 361, "percent": 61.9}
+{"ev": "products", "stage": "maps", "done": 275, "of": 361, "percent": 62.1}
+{"ev": "products", "stage": "maps", "done": 276, "of": 361, "percent": 62.3}
+{"ev": "products", "stage": "maps", "done": 277, "of": 361, "percent": 62.5}
+{"ev": "products", "stage": "maps", "done": 278, "of": 361, "percent": 62.8}
+{"ev": "products", "stage": "maps", "done": 279, "of": 361, "percent": 63.0}
+{"ev": "products", "stage": "maps", "done": 280, "of": 361, "percent": 63.2}
+{"ev": "products", "stage": "maps", "done": 281, "of": 361, "percent": 63.4}
+{"ev": "products", "stage": "maps", "done": 282, "of": 361, "percent": 63.6}
+{"ev": "products", "stage": "maps", "done": 283, "of": 361, "percent": 63.8}
+{"ev": "products", "stage": "maps", "done": 284, "of": 361, "percent": 64.0}
+{"ev": "products", "stage": "maps", "done": 285, "of": 361, "percent": 64.2}
+{"ev": "products", "stage": "maps", "done": 286, "of": 361, "percent": 64.4}
+{"ev": "products", "stage": "maps", "done": 287, "of": 361, "percent": 64.6}
+{"ev": "products", "stage": "maps", "done": 288, "of": 361, "percent": 64.8}
+{"ev": "products", "stage": "maps", "done": 289, "of": 361, "percent": 65.0}
+{"ev": "products", "stage": "maps", "done": 290, "of": 361, "percent": 65.2}
+{"ev": "products", "stage": "maps", "done": 291, "of": 361, "percent": 65.5}
+{"ev": "products", "stage": "maps", "done": 292, "of": 361, "percent": 65.7}
+{"ev": "products", "stage": "maps", "done": 293, "of": 361, "percent": 65.9}
+{"ev": "products", "stage": "maps", "done": 294, "of": 361, "percent": 66.1}
+{"ev": "products", "stage": "maps", "done": 295, "of": 361, "percent": 66.3}
+{"ev": "products", "stage": "maps", "done": 296, "of": 361, "percent": 66.5}
+{"ev": "products", "stage": "maps", "done": 297, "of": 361, "percent": 66.7}
+{"ev": "products", "stage": "maps", "done": 298, "of": 361, "percent": 66.9}
+{"ev": "products", "stage": "maps", "done": 299, "of": 361, "percent": 67.1}
+{"ev": "products", "stage": "maps", "done": 300, "of": 361, "percent": 67.3}
+{"ev": "products", "stage": "maps", "done": 301, "of": 361, "percent": 67.5}
+{"ev": "products", "stage": "maps", "done": 302, "of": 361, "percent": 67.7}
+{"ev": "products", "stage": "maps", "done": 303, "of": 361, "percent": 68.0}
+{"ev": "products", "stage": "maps", "done": 304, "of": 361, "percent": 68.2}
+{"ev": "products", "stage": "maps", "done": 305, "of": 361, "percent": 68.4}
+{"ev": "products", "stage": "maps", "done": 306, "of": 361, "percent": 68.6}
+{"ev": "products", "stage": "maps", "done": 307, "of": 361, "percent": 68.8}
+{"ev": "products", "stage": "maps", "done": 308, "of": 361, "percent": 69.0}
+{"ev": "products", "stage": "maps", "done": 309, "of": 361, "percent": 69.2}
+{"ev": "products", "stage": "maps", "done": 310, "of": 361, "percent": 69.4}
+{"ev": "products", "stage": "maps", "done": 311, "of": 361, "percent": 69.6}
+{"ev": "products", "stage": "maps", "done": 312, "of": 361, "percent": 69.8}
+{"ev": "products", "stage": "maps", "done": 313, "of": 361, "percent": 70.0}
+{"ev": "products", "stage": "maps", "done": 314, "of": 361, "percent": 70.2}
+{"ev": "products", "stage": "maps", "done": 315, "of": 361, "percent": 70.4}
+{"ev": "products", "stage": "maps", "done": 316, "of": 361, "percent": 70.7}
+{"ev": "products", "stage": "maps", "done": 317, "of": 361, "percent": 70.9}
+{"ev": "products", "stage": "maps", "done": 318, "of": 361, "percent": 71.1}
+{"ev": "products", "stage": "maps", "done": 319, "of": 361, "percent": 71.3}
+{"ev": "products", "stage": "maps", "done": 320, "of": 361, "percent": 71.5}
+{"ev": "products", "stage": "maps", "done": 321, "of": 361, "percent": 71.7}
+{"ev": "products", "stage": "maps", "done": 322, "of": 361, "percent": 71.9}
+{"ev": "products", "stage": "maps", "done": 323, "of": 361, "percent": 72.1}
+{"ev": "products", "stage": "maps", "done": 324, "of": 361, "percent": 72.3}
+{"ev": "products", "stage": "maps", "done": 325, "of": 361, "percent": 72.5}
+{"ev": "products", "stage": "maps", "done": 326, "of": 361, "percent": 72.7}
+{"ev": "products", "stage": "maps", "done": 327, "of": 361, "percent": 72.9}
+{"ev": "products", "stage": "maps", "done": 328, "of": 361, "percent": 73.1}
+{"ev": "products", "stage": "maps", "done": 329, "of": 361, "percent": 73.4}
+{"ev": "products", "stage": "maps", "done": 330, "of": 361, "percent": 73.6}
+{"ev": "products", "stage": "maps", "done": 331, "of": 361, "percent": 73.8}
+{"ev": "products", "stage": "maps", "done": 332, "of": 361, "percent": 74.0}
+{"ev": "products", "stage": "maps", "done": 333, "of": 361, "percent": 74.2}
+{"ev": "products", "stage": "maps", "done": 334, "of": 361, "percent": 74.4}
+{"ev": "products", "stage": "maps", "done": 335, "of": 361, "percent": 74.6}
+{"ev": "products", "stage": "maps", "done": 336, "of": 361, "percent": 74.8}
+{"ev": "products", "stage": "maps", "done": 337, "of": 361, "percent": 75.0}
+{"ev": "products", "stage": "maps", "done": 338, "of": 361, "percent": 75.2}
+{"ev": "products", "stage": "maps", "done": 339, "of": 361, "percent": 75.4}
+{"ev": "products", "stage": "maps", "done": 340, "of": 361, "percent": 75.6}
+{"ev": "products", "stage": "maps", "done": 341, "of": 361, "percent": 75.8}
+{"ev": "products", "stage": "maps", "done": 342, "of": 361, "percent": 76.1}
+{"ev": "products", "stage": "maps", "done": 343, "of": 361, "percent": 76.3}
+{"ev": "products", "stage": "maps", "done": 344, "of": 361, "percent": 76.5}
+{"ev": "products", "stage": "maps", "done": 345, "of": 361, "percent": 76.7}
+{"ev": "products", "stage": "maps", "done": 346, "of": 361, "percent": 76.9}
+{"ev": "products", "stage": "maps", "done": 347, "of": 361, "percent": 77.1}
+{"ev": "products", "stage": "maps", "done": 348, "of": 361, "percent": 77.3}
+{"ev": "products", "stage": "maps", "done": 349, "of": 361, "percent": 77.5}
+{"ev": "products", "stage": "maps", "done": 350, "of": 361, "percent": 77.7}
+{"ev": "products", "stage": "maps", "done": 351, "of": 361, "percent": 77.9}
+{"ev": "products", "stage": "maps", "done": 352, "of": 361, "percent": 78.1}
+{"ev": "products", "stage": "maps", "done": 353, "of": 361, "percent": 78.3}
+{"ev": "products", "stage": "maps", "done": 354, "of": 361, "percent": 78.5}
+{"ev": "products", "stage": "maps", "done": 355, "of": 361, "percent": 78.8}
+{"ev": "products", "stage": "maps", "done": 356, "of": 361, "percent": 79.0}
+{"ev": "products", "stage": "maps", "done": 357, "of": 361, "percent": 79.2}
+{"ev": "products", "stage": "maps", "done": 358, "of": 361, "percent": 79.4}
+{"ev": "products", "stage": "maps", "done": 359, "of": 361, "percent": 79.6}
+{"ev": "products", "stage": "maps", "done": 361, "of": 361, "percent": 80.0}
+{"ev": "products", "stage": "rasters", "done": 0, "of": 1, "percent": 80.0}
+{"ev": "products", "stage": "smooth", "done": 0, "of": 24, "percent": 85.0}
+{"ev": "products", "stage": "smooth", "done": 1, "of": 24, "percent": 85.6}
+{"ev": "products", "stage": "smooth", "done": 2, "of": 24, "percent": 86.2}
+{"ev": "products", "stage": "smooth", "done": 3, "of": 24, "percent": 86.9}
+{"ev": "products", "stage": "smooth", "done": 4, "of": 24, "percent": 87.5}
+{"ev": "products", "stage": "smooth", "done": 5, "of": 24, "percent": 88.1}
+{"ev": "products", "stage": "smooth", "done": 6, "of": 24, "percent": 88.8}
+{"ev": "products", "stage": "smooth", "done": 7, "of": 24, "percent": 89.4}
+{"ev": "products", "stage": "smooth", "done": 8, "of": 24, "percent": 90.0}
+{"ev": "products", "stage": "smooth", "done": 9, "of": 24, "percent": 90.6}
+{"ev": "products", "stage": "smooth", "done": 10, "of": 24, "percent": 91.2}
+{"ev": "products", "stage": "smooth", "done": 11, "of": 24, "percent": 91.9}
+{"ev": "products", "stage": "smooth", "done": 15, "of": 30, "percent": 92.5}
+{"ev": "products", "stage": "smooth", "done": 16, "of": 30, "percent": 93.0}
+{"ev": "products", "stage": "smooth", "done": 17, "of": 30, "percent": 93.5}
+{"ev": "products", "stage": "smooth", "done": 18, "of": 30, "percent": 94.0}
+{"ev": "products", "stage": "smooth", "done": 19, "of": 30, "percent": 94.5}
+{"ev": "products", "stage": "smooth", "done": 20, "of": 30, "percent": 95.0}
+{"ev": "products", "stage": "smooth", "done": 21, "of": 30, "percent": 95.5}
+{"ev": "products", "stage": "smooth", "done": 22, "of": 30, "percent": 96.0}
+{"ev": "products", "stage": "smooth", "done": 23, "of": 30, "percent": 96.5}
+{"ev": "products", "stage": "smooth", "done": 24, "of": 30, "percent": 97.0}
+{"ev": "products", "stage": "smooth", "done": 25, "of": 30, "percent": 97.5}
+{"ev": "products", "stage": "smooth", "done": 26, "of": 30, "percent": 98.0}
+{"ev": "products", "stage": "smooth", "done": 27, "of": 30, "percent": 98.5}
+{"ev": "products", "stage": "smooth", "done": 28, "of": 30, "percent": 99.0}
+{"ev": "products", "stage": "smooth", "done": 29, "of": 30, "percent": 99.5}
+{"ev": "products", "stage": "smooth", "done": 1, "of": 1, "percent": 100.0}
+{"ev": "output", "kind": "pixels", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\validation_reruns\\bidah10_local_radius\\pixels"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 108000.0, "duration_s": 108000.0, "steps": 181023, "loop_s": 64.53, "tables_s": 11.42, "wet_area_km2": 3.3422, "dt_min": 0.34317938720854957, "balance": {"rain_m3": 3576148.6642430574, "inflow_m3": 0.0, "outflow_m3": 3556769.856119182, "storage_start_m3": 0.0, "storage_end_m3": 19378.88726829754, "error_m3": -0.07914442213223083, "relative_error": -2.2131189042439562e-08}, "tile_steps": null, "products": "finished"}
+

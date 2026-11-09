@@ -1,0 +1,82 @@
+{
+ "Bidah_03": {
+  "strips": 300.003,
+  "local_radius": 299.949,
+  "change": -0.00017999820001790567
+ },
+ "Bidah_03_ring": {
+  "strips": 299.692,
+  "local_radius": 299.593,
+  "change": -0.00033033914819213805
+ },
+ "Faydh_01": {
+  "strips": 872.282,
+  "local_radius": 868.0,
+  "change": -0.0049089629271268365
+ },
+ "Faydh_01_ring": {
+  "strips": 871.962,
+  "local_radius": 867.658,
+  "change": -0.004935994917209641
+ },
+ "R2A": {
+  "strips": 1310.23,
+  "local_radius": 1283.12,
+  "change": -0.02069102371339393
+ },
+ "R2A_ring": {
+  "strips": 1310.01,
+  "local_radius": 1283.09,
+  "change": -0.020549461454492768
+ },
+ "R5A": {
+  "strips": 793.91,
+  "local_radius": 774.909,
+  "change": -0.02393344333740599
+ },
+ "R5A_ring": {
+  "strips": 793.91,
+  "local_radius": 774.925,
+  "change": -0.02391328991951236
+ },
+ "S11_ring": {
+  "strips": 492.301,
+  "local_radius": 492.289,
+  "change": -2.4375331352133323e-05
+ },
+ "S14_ring": {
+  "strips": 447.644,
+  "local_radius": 447.615,
+  "change": -6.478362270012639e-05
+ },
+ "S1_ring": {
+  "strips": 554.721,
+  "local_radius": 559.459,
+  "change": 0.008541230636662345
+ },
+ "S2_ring": {
+  "strips": 441.39,
+  "local_radius": 441.374,
+  "change": -3.624912209143627e-05
+ },
+ "S5_ring": {
+  "strips": 656.829,
+  "local_radius": 645.735,
+  "change": -0.016890240838939752
+ },
+ "S6_ring": {
+  "strips": 326.987,
+  "local_radius": 327.05,
+  "change": 0.00019266821005103907
+ },
+ "Z4C": {
+  "strips": 1584.1,
+  "local_radius": 1567.39,
+  "change": -0.01054857647875751
+ },
+ "Z4C_ring": {
+  "strips": 1584.36,
+  "local_radius": 1567.65,
+  "change": -0.010546845413920924
+ }
+}

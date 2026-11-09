@@ -1,0 +1,28 @@
+D:\Mojtaba\Renardet\Wadi2D\W49 local hydraulic radius face table\validation_reruns\reruns.py:11: SyntaxWarning: invalid escape sequence '\S'
+  .venv\Scripts\python "W49 local hydraulic radius face table\validation_reruns\reruns.py" [run|report|all] [names ...]
+bidah10_strips: exit 0 in 204 s
+bidah10_local_radius: exit 0 in 201 s
+
+bidah10: line peaks, m3/s, strips against local radius (tables 5.83 / 11.42 s, loop 68.33 / 64.53 s)
+  axis                          602.2      597.2   -0.8 %
+  s13_edge                      613.4      608.7   -0.8 %
+block2_b20_strips: exit 0 in 2460 s
+block2_b20_local_radius: exit 0 in 2363 s
+
+block2_b20: line peaks, m3/s, strips against local radius (tables 188.39 / 293.81 s, loop 243.73 / 275.58 s)
+  Bidah_03                      300.0      299.9   -0.0 %
+  Bidah_03_ring                 299.7      299.6   -0.0 %
+  Faydh_01                      872.3      868.0   -0.5 %
+  Faydh_01_ring                 872.0      867.7   -0.5 %
+  R2A                          1310.2     1283.1   -2.1 %
+  R2A_ring                     1310.0     1283.1   -2.1 %
+  R5A                           793.9      774.9   -2.4 %
+  R5A_ring                      793.9      774.9   -2.4 %
+  S11_ring                      492.3      492.3   -0.0 %
+  S14_ring                      447.6      447.6   -0.0 %
+  S1_ring                       554.7      559.5   +0.9 %
+  S2_ring                       441.4      441.4   -0.0 %
+  S5_ring                       656.8      645.7   -1.7 %
+  S6_ring                       327.0      327.1   +0.0 %
+  Z4C                          1584.1     1567.4   -1.1 %
+  Z4C_ring                     1584.4     1567.7   -1.1 %
