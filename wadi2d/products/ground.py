@@ -87,11 +87,17 @@ def read_cells(
                 continue
             row0, col0 = strip * TILE * k, int(cols[a:b].min()) * k
             ncols = (int(cols[a:b].max()) + 1) * k - col0
-            z = bed.read(row0, col0, TILE * k, ncols)
-            if edit is not None:
-                edit(z, row0, col0)
-            z = (z - datum).astype(np.float32)
             top = (rows[a:b] * k - row0)[:, None, None] + np.arange(k)[None, :, None]
             left = (cols[a:b] * k - col0)[:, None, None] + np.arange(k)[None, None, :]
-            ground[a:b] = z[top, left].reshape(b - a, -1)
+            # without the fill first: the cells kept are inside the DEM almost always, and the fill is a distance
+            # transform of the whole strip. A strip with holes is read again with it when terrain objects edit it
+            # (an edit may read the whole window, its lowest and highest ground) or when a kept pixel is a hole (W50)
+            z = bed.read(row0, col0, TILE * k, ncols, fill=False)
+            holes = np.isnan(z)
+            if holes.any() and (edit is not None or holes[top, left].any()):
+                z = bed.read(row0, col0, TILE * k, ncols)
+            if edit is not None:
+                edit(z, row0, col0)
+            picked = z[top, left]
+            ground[a:b] = (picked - datum).astype(np.float32).reshape(b - a, -1)
     return CellPixels(rows, cols, k, bed.pixel, datum, ground)
