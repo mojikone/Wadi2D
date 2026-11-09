@@ -349,14 +349,15 @@ class Tables(_Part):
         8.0, ge=0.5, le=50.0, description="Table top above the face invert, at least, m"
     )
     face_conveyance: Literal["strips", "local_radius"] = Field(
-        "strips",
+        "local_radius",
         description="How a face's conveyance is read from the pixels across it. 'strips': each pixel's own depth, plan"
         " width, no shear on the walls (the divided-channel sum to the pixel, as SFINCS, 3Di and TUFLOW's sub-grid"
         " default), which reads a narrow deep channel shallow, about 17 % at a width-to-depth ratio of 2.5 (W48)."
         " 'local_radius': each pixel's local hydraulic radius after Spada et al. (2015, HESSD 12, 2607, eqs. 14 to 17),"
         " the wetted area over the wetted perimeter, slopes included, in a window of local_radius_beta depths either"
         " side along the face's line, weighted linearly to zero at its ends and reaching past the face's own ends, so"
-        " the walls carry their shear whatever the cell size (W49). The same on a wide flat bed",
+        " the walls carry their shear whatever the cell size (W49). The same on a wide flat bed. The default since 2026-11-09;"
+        " 'strips' gives the tables of every run made before it",
     )
     local_radius_beta: float = Field(
         9.0, gt=0.0, le=50.0,
