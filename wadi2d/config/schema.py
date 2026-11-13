@@ -12,6 +12,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from wadi2d.config.gauges import GaugeRain, Observed
+
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
 """Terrain objects with a cross-section: they reshape the ground along an alignment."""
@@ -631,10 +633,24 @@ class Outputs(_Part):
     terrain_map: bool = Field(False, description="Write the modified terrain as a GeoTIFF with the run")
     points: list[DesignPoint] = []
     lines: list[DesignLine] = []
+    observed: list[Observed] = Field(
+        [],
+        description="Observed flow or level records, each compared after the run with a result line, a result point or a "
+        "lumped element: the two series on one time base and the statistics of their agreement (W54)",
+    )
+
+    @model_validator(mode="after")
+    def _observed_names(self) -> Outputs:
+        names = [item.name for item in self.observed]
+        if len(set(names)) != len(names):
+            raise ValueError("observed records must have different names: their files are kept by name")
+        return self
 
 
 OBSERVED_STORMS = ("hyetograph", "gridded")
 """Rain given as it falls: no area reduction applies."""
+GAUGE_STORM = "gauges"
+"""Rain from station records (W54): observed too, with its own check so the line above stays as it was."""
 
 
 class ArfTableConfig(_Part):
@@ -656,7 +672,7 @@ class ArfTableConfig(_Part):
 class Storm(_Part):
     """Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``."""
 
-    kind: Literal["none", "uniform", "hypothetical", "hyetograph", "gridded"] = "none"
+    kind: Literal["none", "uniform", "hypothetical", "hyetograph", "gridded", "gauges"] = "none"
     depth_mm: float = Field(0.0, ge=0.0, le=5000.0, description="Point depth, mm")
     depth_grid: str | None = Field(
         None, description="Raster of depths in mm, replacing depth_mm; each 2D cell takes its own value"
@@ -684,6 +700,11 @@ class Storm(_Part):
     rain_start: str | None = Field(
         None, description="Date and time the run starts at; None takes the start of the first period"
     )
+    gauges: GaugeRain | None = Field(
+        None,
+        description="Rain gauges and how their rain is spread, for kind 'gauges'; rain_stamp and rain_start apply to "
+        "their records as to a rain file",
+    )
 
     @model_validator(mode="after")
     def _pattern(self) -> Storm:
@@ -695,6 +716,11 @@ class Storm(_Part):
             self._check_hyetograph()
         if self.kind == "gridded" and self.rain_file is None:
             raise ValueError("a gridded storm needs rain_file")
+        if self.kind == GAUGE_STORM:
+            if self.gauges is None:
+                raise ValueError("a gauges storm needs storm.gauges")
+            if self.arf is not None or self.depth_grid is not None:
+                raise ValueError("a gauges storm takes no area reduction and no depth grid: it is the rain itself")
         return self
 
     def _check_hyetograph(self) -> None:

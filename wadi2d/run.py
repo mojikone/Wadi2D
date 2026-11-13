@@ -32,6 +32,7 @@ from wadi2d.engine.entries import place_entries, with_entries
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.gauge_job import gauge_identity, missing_station_files, report_gauges, resolve_station_paths
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
@@ -57,6 +58,7 @@ from wadi2d.products.cell_grid import write_cell_grid
 from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
+from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
 from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
@@ -122,6 +124,7 @@ NOT_WATER = (
     ("outputs", "smooth"),
     ("outputs", "frame_bytes_per_cell"),
     ("outputs", "face_discharge"),
+    ("outputs", "observed"),
     ("hydrology", "overlap_share"),
     ("arf", "bracket"),
     ("arf", "bracket_ratio"),
@@ -151,7 +154,8 @@ def resolve_paths(cfg: RunConfig, base: Path) -> RunConfig:
             updates.setdefault(part, {})[name] = str((base / value).resolve())
     if any(_table(o) for o in cfg.terrain.objects):
         updates.setdefault("terrain", {})["objects"] = [_absolute_table(o, base) for o in cfg.terrain.objects]
-    return cfg.model_copy(update={p: getattr(cfg, p).model_copy(update=u) for p, u in updates.items()})
+    cfg = cfg.model_copy(update={p: getattr(cfg, p).model_copy(update=u) for p, u in updates.items()})
+    return resolve_station_paths(cfg, base)
 
 
 def _table(obj: TerrainObject) -> str | None:
@@ -180,6 +184,8 @@ def check_inputs(cfg: RunConfig) -> None:
         table = _table(obj)
         if table is not None and not Path(table).exists():
             raise InputMissing(f"section table of {obj.name or obj.kind} not found: {table}")
+    for missing in missing_station_files(cfg):
+        raise InputMissing(missing)
 
 
 def _domain_polygon(path: str | None, crs: str) -> shapely.Geometry | None:
@@ -288,6 +294,8 @@ def job_hash(cfg: RunConfig) -> str:
         data.pop("dam_levels")
     if not cfg.strips.enabled:
         data.pop("strips")  # a job without strips keeps the hash it had before strips existed
+    if cfg.storm.gauges is None:
+        data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
     _drop_point_entries(data["hydrology"])
     limit = cfg.grid.content_hash_limit_mb
     files = {}
@@ -295,6 +303,7 @@ def job_hash(cfg: RunConfig) -> str:
         value = getattr(getattr(cfg, part), name)
         if value is not None and (part, name) not in OPTIONAL_INPUT:
             files[f"{part}.{name}"] = file_identity(value, limit)
+    files.update(gauge_identity(cfg, limit))
     return cache_key({"job": data, "files": files})
 
 
@@ -430,6 +439,8 @@ def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
     system = spatial.coordinate_system if spatial is not None else None
     if isinstance(storm, GriddedStorm):
         return storm.bind(load_polygons(h, crs), system or crs)
+    if isinstance(storm, GaugeStorm):
+        return storm.bind(load_polygons(h, crs), system or crs, crs)
     if cfg.storm.depth_grid is None:
         return storm
     from wadi2d.hydrology.from_hms import grid_storm
@@ -893,6 +904,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs, None if hybrid is None else hybrid.forcing_cells())
     if hybrid is not None:
         forcing.strip_depth = hybrid.strip_depth_real
+    if isinstance(storm, GaugeStorm):
+        report_gauges(storm, forcing, cfg, progress)
     if forcing.injections and not getattr(grid, "quad", False):
         entering = {
             inj.name: set(zip(forcing.jj[inj.cells].tolist(), forcing.ii[inj.cells].tolist(), strict=True))
