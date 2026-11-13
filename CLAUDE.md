@@ -439,6 +439,18 @@ Waiting on him:
 
 **His list of 2026-11-09, kept for when he resumes (stopped for the week at 60 % usage, his word):**
 
+**Where it stands, 2026-11-13: his "Start all" at 86 % of the weekly usage, then "Stop at 93 %"; five workers ran about 50 minutes and were stopped at 93 %, none finished, nothing tested. Each left a WIP commit on its own branch off `feature/fast-products` (`8128178`), in its own worktree under `.claude/worktrees/`, with run folders uncommitted beside it:**
+
+| Branch | Worktree | WIP commit | What it is |
+|---|---|---|---|
+| `feature/products-option` | `agent-aa5473262ee1c0ef9` | `ce278ce` | polygons and depth drawing as an option, off by default; more product speed-ups; a 2.7 GB Block 2 remake folder beside it |
+| `feature/slider-layer` | `agent-abd939271e512369f` | `31d85df` | `wadi2d/render/` (the on-demand pixel renderer and its server), tests begun; no plugin layer yet |
+| `feature/gorge-rows` | `agent-ace78589ad62a2652` | `4d42cd0` | `wadi2d/strips/gorge.py`, rows across a narrow channel; W52 runs beside it |
+| `feature/gridded-arf` | `agent-abeb573cf55b53188` | `8697c5a` | ARF on gridded storms begun; `W53` inventory and run scripts for his 24 files (`Hydrology/Grid/netCDF` and `/DSS`, RP5 to RP10000 and PMP, 10 min) |
+| `feature/gauges` | `agent-a3132c2f6f21cfeed` | `d45a300` | rain gauges as a storm kind (nine new modules), wiring into `forcing.py` and `run.py` not done; observed flow not begun |
+
+To resume: continue each from its WIP commit (the workers' briefs are in the session of 2026-11-13: set-up rules, task, tests, report), test, then merge one at a time into `feature/fast-products` behind the full suite. **His two new requests of 2026-11-13:** the model must run his new NetCDF and DSS storms and apply the ARF to them; and take rainfall gauges as a storm and observed flow gauges shown against the simulated hydrographs with HMS's statistics.
+
 - **The smoothed polygons and the depth drawing as an option** (`outputs.smooth.enabled` exists in the job, not in the dock): a tick in the dock, unticked by default, and Make map drawing them when a sheet needs them. He never asked for them on every run; they cost about 20 of a Block 2 run's 27 product minutes (`W50`).
 - **Finish W50 on `feature/fast-products`:** the full suite on the branch, the whole Block 2 remake timed and its four rasters compared to the digit, then the time-slider layer drawn on demand at the pixel, RAS Mapper's way.
 - **The aligned mesh's race excess:** the centre mesh at 20 m reads +3.9 % over the converged Faydh peak (squares -3.3 %); the cause is two aligned cells across a narrow tightly bending gorge (W48), a mesher change (more rows across a narrow channel), not built; at 10 m both meshes are within 2.4 %. Why the pair reads high in a bend with the local radius is not looked at.
