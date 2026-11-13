@@ -87,6 +87,9 @@ class StripMesh:
     """What the corridor builder cut or dropped, in words, when the corridors came from a banks file."""
     rules: list[dict] = field(default_factory=list)
     """Per corridor from a banks file: its name, the wadi width between the banks, the cells across and their size."""
+    gorge: np.ndarray | None = None
+    """Per cell, where gorge rows were cut (W52): k for the k-th narrow row out from the line, -1 for the cell beyond
+    the wall that took the rest of the pair's cell, 0 for every other cell. None: no gorge rows in this mesh."""
 
 
 def resample(line: shapely.LineString, step: float, smooth: int = 0) -> np.ndarray:

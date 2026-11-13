@@ -72,6 +72,12 @@ class PolyMesh:
     cell's opposite face, over two; given (the lattice) or derived by finish (W47). Ghost sides are zero."""
     dzr: np.ndarray | None = None
     """The same from the right cell."""
+    dn_floor: np.ndarray | None = None
+    """Per face the floor of ``dn``, m, where the mesher gives one (cells narrower than ``DN_MIN`` of the reference
+    size and orthogonal by construction: the gorge rows, W52). None: ``DN_MIN * dx`` on every face."""
+    cut_faces: bool = False
+    """The mesher cut straight edges into several faces (the gorge rows, W52): a cell's opposite edge is then read
+    as the lowest of its pieces. False: the first face found, as every mesh before W52."""
 
     @property
     def ncells(self) -> int:
@@ -97,7 +103,7 @@ class PolyMesh:
         self.zf = np.maximum(np.maximum(self.zf, self.zmin[L]), self.zmin[R])
         dcx, dcy = self.cx[R] - self.cx[L], self.cy[R] - self.cy[L]
         dn = dcx * self.nx + dcy * self.ny
-        self.dn = np.maximum(dn, DN_MIN * self.dx)
+        self.dn = np.maximum(dn, DN_MIN * self.dx if self.dn_floor is None else self.dn_floor)
         self.sx = dcx - self.dn * self.nx
         self.sy = dcy - self.dn * self.ny
         self.fl = self.zf - self.zmin[L]
@@ -108,7 +114,7 @@ class PolyMesh:
         given = np.zeros(self.nfaces) if given_cw is None else np.asarray(given_cw, dtype=np.float64)
         self.cw = np.where(given != 0.0, given, np.where(natural, CRITICAL_WEIR_COEFF, 0.0))
         if self.dzl is None or self.dzr is None:
-            self.dzl, self.dzr = opposite_drops(L.astype(np.int64), R.astype(np.int64), self.nx, self.ny, self.zf, self.ncells, self.real)
+            self.dzl, self.dzr = opposite_drops(L.astype(np.int64), R.astype(np.int64), self.nx, self.ny, self.zf, self.ncells, self.real, self.cut_faces)
         return self
 
     def skew_degrees(self) -> np.ndarray:
@@ -124,12 +130,15 @@ class PolyMesh:
         return [np.array(v, np.int64) for v in found]
 
 
-def opposite_drops(L, R, nx, ny, zf, ncells, nreal):
+def opposite_drops(L, R, nx, ny, zf, ncells, nreal, cut_faces=False):
     """Per face, half the bed's drop from each side's cell centre to the face (W47): for the cell on that side, the
     face whose outward normal is the most nearly opposite to this face's, at least 120 degrees away, gives the inflow
     edge; the drop is that face's invert less this face's, over two. Ghost cells and cells with no opposite face give
-    zero. On the lattice it is half the drop between a cell's west and east (north and south) face inverts."""
+    zero. On the lattice it is half the drop between a cell's west and east (north and south) face inverts. With
+    ``cut_faces`` the pieces of one straight edge, equally opposite, give the invert of the lowest piece (W52)."""
     from numba import njit
+
+    TIE = 1e-9 if cut_faces else -1.0  # noqa: N806  normals agreeing this closely lie on one straight edge; off: never a tie
 
     @njit(cache=False)
     def _drops(L, R, nx, ny, zf, ncells, nreal, dzl, dzr):
@@ -164,8 +173,12 @@ def opposite_drops(L, R, nx, ny, zf, ncells, nreal):
                     if g == f:
                         continue
                     dot = sign[p] * (nx[g] * ox + ny[g] * oy)
-                    if dot < best_dot:
+                    if dot < best_dot - max(TIE, 0.0):
                         best, best_dot = g, dot
+                    elif best >= 0 and dot < best_dot + TIE and zf[g] < zf[best]:
+                        # pieces of one straight edge (a face cut by the gorge rows, W52) are equally opposite:
+                        # the edge's invert is its lowest piece's
+                        best, best_dot = g, min(dot, best_dot)
                 if best >= 0:
                     value = 0.5 * (zf[best] - zf[f])
                     if np.isfinite(value):

@@ -148,13 +148,15 @@ def build_poly_tables(
     given_cw: np.ndarray | None = None,
     ghosts: Ghosts | None = None,
     crest: np.ndarray | None = None,
+    dn_floor: np.ndarray | None = None,
 ) -> tuple[PolyMesh, np.ndarray]:
     """The mesh's tables; and the index of each kept face in the geometry (boundary faces and walls are left out).
 
     ``manning`` is one value or one per cell; a face takes the mean of its two cells', an interface face the strip
     cell's. ``wall`` marks faces that are closed; ``given_cw`` the crest coefficients objects gave the geometry's
     faces and ``crest`` the elevation they lift each face to, NaN where none (stage 6); ``ghosts`` the tile cells
-    boundary faces open onto, kept as ghost cells after the real ones.
+    boundary faces open onto, kept as ghost cells after the real ones; ``dn_floor`` the least centre distance of
+    each of the geometry's faces, m, where the mesher knows better than the mesh's own floor (the gorge rows, W52).
     """
     area, cx, cy = geo.areas_centroids()
     if (area <= 0.0).any():
@@ -222,5 +224,6 @@ def build_poly_tables(
         left=left[kept].astype(np.int64), right=right[kept].astype(np.int64), length=length[kept],
         nx=nfx[kept], ny=nfy[kept], xf=xf[kept], yf=yf[kept], zf=zf, ef=ef, ftab=ftab, cw=cw, dx=float(dx),
         nreal=n if ghosts is not None else -1, ghost_state=None if ghosts is None else np.asarray(ghosts.state, np.int64),
+        dn_floor=None if dn_floor is None else np.asarray(dn_floor, np.float64)[kept], cut_faces=dn_floor is not None,
     )  # fmt: skip
     return mesh.finish(cfg.crest_tolerance, given_cw=cw.copy()), kept

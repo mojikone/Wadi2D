@@ -1072,6 +1072,26 @@ class Strips(_Part):
     )
     relax_rounds: int = Field(2, ge=0, le=10, description="Centres: rounds of moving the band's lattice centres to their cell's centroid")
     hard_rows: int = Field(1, ge=0, le=6, description="Centres: rows of cells beyond the pair on each side of a hard line (a crest, a wall)")
+    gorge_rows: int = Field(
+        0, ge=0, le=12,
+        description="Centres: cells across the bed of a channel narrower than the pair of cells on its line (W52)."
+        " Where the ground stands gorge_wall_m above the bed inside the pair's own cell on both sides of a stream,"
+        " the bed between those walls is cut into this many rows of 4-sided cells, half each side of the line, longer"
+        " along the flow than across, with one cell beyond each wall taking the rest of the pair's cell; refining the"
+        " grid otherwise leaves exactly two cells across such a channel at every cell size (W48). An even number:"
+        " the line stays a chain of faces. Published practice asks for 3 to 7 cells across a channel (HEC-RAS 5 to"
+        " 7, TUFLOW 3 to 4 with sub-grid sampling, ARR Project 15 at least 5, SEPA 3 to 4). Narrow cells shorten the"
+        " explicit step in proportion to their width. 0 leaves the pair as it is",
+    )
+    gorge_wall_m: float = Field(
+        3.0, gt=0.0, le=50.0,
+        description="Centres, gorge rows: the ground this high above the bed, read on the DEM's own pixels along each"
+        " station's line, is the wall; the rows span the bed between the two walls, m",
+    )
+    gorge_cell_min_m: float = Field(
+        2.0, gt=0.0, le=100.0,
+        description="Centres, gorge rows: no row narrower than this, m (a few DEM pixels); a narrower bed gets fewer rows",
+    )
     corridors: list[CorridorSpec] = Field([], description="Corridors given outright; empty, they come from the banks file")
     banks: str | None = Field(
         None, description="The Suggest breaklines GeoPackage (breaklines and thalwegs layers): a corridor per bank pair"
@@ -1124,6 +1144,8 @@ class Strips(_Part):
     def _cells(self) -> Strips:
         if self.cell_min_m > self.cell_max_m:
             raise ValueError("strips.cell_min_m must not exceed strips.cell_max_m")
+        if self.gorge_rows % 2:
+            raise ValueError("strips.gorge_rows must be even: half the rows stand each side of the line, which stays a chain of faces")
         return self
 
 
