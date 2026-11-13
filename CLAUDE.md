@@ -443,6 +443,7 @@ Waiting on him:
 - **Finish W50 on `feature/fast-products`:** the full suite on the branch, the whole Block 2 remake timed and its four rasters compared to the digit, then the time-slider layer drawn on demand at the pixel, RAS Mapper's way.
 - **The aligned mesh's race excess:** the centre mesh at 20 m reads +3.9 % over the converged Faydh peak (squares -3.3 %); the cause is two aligned cells across a narrow tightly bending gorge (W48), a mesher change (more rows across a narrow channel), not built; at 10 m both meshes are within 2.4 %. Why the pair reads high in a bend with the local radius is not looked at.
 - **Merges, his call:** `feature/face-depth-carry` (option A), `feature/face-local-radius` (local radius, the default there), `feature/fast-products`; nothing pushed.
+- **Hydrograph drawing speed, his remark of 2026-11-13 ("CSV is very slow"):** measured, the CSV is not it (34 series of a Block 2 run, 42,000 rows, read in 15 ms); each request of the Result lines panel starts a fresh engine process, 1.6 s for the listing and 1.6 s for a line drawn after the run (7 frames, machine busy). His word: keep it as is, check again when the new outputs are ready. The candidate cure is the slider's long-lived engine process answering line requests too.
 
 1. Evidence for Manning n on the hills (field or photographs). 0.05 to 0.1 moves the Bidah peak by 25 %, the solver by 4 % at most.
 2. The datum: confirm GGC sits 2.39 m above NSA for Block 2 W2, and on which datum the dam levels are to be used.
