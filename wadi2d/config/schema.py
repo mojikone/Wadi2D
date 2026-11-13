@@ -586,6 +586,34 @@ class Smooth(_Part):
     )
 
 
+class Slider(_Part):
+    """The saved maps drawn on demand at the terrain pixel (``wadi2d render``). Nothing is written, and nothing here
+    changes a number: these only say how much detail a drawing takes and how long it may wait for it."""
+
+    cell_pixels: float = Field(
+        4.0,
+        ge=1.0,
+        le=64.0,
+        description="A cell at least this many screen pixels wide is drawn at the terrain pixel; a smaller one draws "
+        "its own value, as the cell slider does",
+    )
+    ground_wait_s: float = Field(
+        0.4,
+        ge=0.0,
+        le=600.0,
+        description="Longest a drawing waits for ground it has not read yet, s; past it the cells are drawn and the "
+        "detail follows",
+    )
+    ground_cache_mb: float = Field(
+        2048.0, ge=16.0, le=262144.0, description="Ground of the views drawn so far that is kept in memory, MB"
+    )
+    ground_workers: int = Field(0, ge=0, le=256, description="Threads reading the DEM; 0 means half the logical cores")
+    frames_held: int = Field(3, ge=1, le=64, description="Saved maps kept in memory once read")
+    max_pixels: int = Field(
+        16_000_000, ge=10_000, le=400_000_000, description="Most pixels one drawing may hold; a larger one is refused"
+    )
+
+
 class Outputs(_Part):
     map_every_s: float = Field(
         900.0,
@@ -628,6 +656,7 @@ class Outputs(_Part):
     )
     pixels: Pixels = Pixels()
     smooth: Smooth = Smooth()
+    slider: Slider = Slider()
     terrain_map: bool = Field(False, description="Write the modified terrain as a GeoTIFF with the run")
     points: list[DesignPoint] = []
     lines: list[DesignLine] = []

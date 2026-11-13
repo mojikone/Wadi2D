@@ -177,6 +177,28 @@ def _frames(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _protocol_streams():
+    """Standard input and output as the two ends of a byte protocol, with everything else that prints sent to stderr.
+
+    A library that writes to standard output, from Python or from C, would otherwise land in the middle of a picture."""
+    sink_fd = os.dup(sys.stdout.fileno())
+    sys.stdout.flush()
+    os.dup2(sys.stderr.fileno(), sys.stdout.fileno())
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.setmode(sink_fd, os.O_BINARY)
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
+    return sys.stdin.buffer, os.fdopen(sink_fd, "wb")
+
+
+def _render(args: argparse.Namespace) -> int:
+    from wadi2d.render.server import serve
+
+    source, sink = _protocol_streams()
+    return serve(Path(args.run), args.backend, source, sink)
+
+
 def _rain(args: argparse.Namespace) -> int:
     from wadi2d.engine.rain_info import rain_info
 
@@ -296,6 +318,13 @@ def parser() -> argparse.ArgumentParser:
     frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
     frames.add_argument("run", metavar="RUN_DIR")
     frames.set_defaults(call=_frames)
+
+    render = sub.add_parser(
+        "render", help="draw a finished run's saved maps on demand at the pixel: requests on stdin, pictures on stdout"
+    )
+    render.add_argument("run", metavar="RUN_DIR")
+    render.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
+    render.set_defaults(call=_render)
 
     rain = sub.add_parser("rain", help="what a rain file holds, as JSON")
     rain.add_argument("source")

@@ -10,9 +10,11 @@ DRY = 0
 """A pixel below the depth floor; H1 to H6 are 1 to 6."""
 
 
-def classify(depth: np.ndarray, speed: np.ndarray, dv: np.ndarray, rule: Pixels) -> np.ndarray:
-    """The highest class any limit gives; wet and under every limit is H1, below the floor is dry."""
-    out = np.ones(depth.shape, np.uint8)
+def classify(depth: np.ndarray, speed: np.ndarray, dv: np.ndarray, rule: Pixels, xp=np) -> np.ndarray:
+    """The highest class any limit gives; wet and under every limit is H1, below the floor is dry.
+
+    ``xp`` is NumPy, or CuPy for arrays on the device (the time slider drawn on demand, W51)."""
+    out = xp.ones(depth.shape, xp.uint8)
     for index, (dv_limit, depth_limit, speed_limit) in enumerate(rule.hazard_limits, start=2):
         above = (dv > dv_limit) | (depth > depth_limit) | (speed > speed_limit)
         out[above] = index
