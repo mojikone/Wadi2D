@@ -143,6 +143,99 @@ def test_a_flow_line_on_a_mesh_and_beside_a_strip_enters_whole(tmp_path, kind):
     assert abs(run.balance.relative) < 1e-5
 
 
+def _last_map(run_dir, *names):
+    import h5py
+
+    with h5py.File(run_dir / "results.h5", "r") as f:
+        maps = f["maps"]
+        last = max(maps, key=lambda k: maps[k].attrs["t_s"])
+        return [maps[last][n][()] for n in names]
+
+
+@pytest.mark.parametrize("momentum", [False, True])
+def test_momentum_takes_the_bump_off_a_line_against_the_domain_edge(tmp_path, momentum):
+    """W70: 3 % plane, 48 m wide, 50 m3/s (Froude 1.2) entering across the west edge. At rest the line's cells stand
+    40 % over the depth downstream; with the momentum normal to the line, within 1 %."""
+    slope, q, cells = 0.03, 50.0, 12
+    dem = write_dem(tmp_path / "steep.tif", tilted_box(200, 2 * cells, 2.0, slope), 2.0)
+    west = [(X0 + 2.0, Y0 - 1.0), (X0 + 2.0, Y0 - 4.0 * cells + 1.0)]
+    outlet = {"kind": "free", "coordinates": [(X0 + 398.0, Y0 + 2.0), (X0 + 398.0, Y0 - 4.0 * cells - 2.0)]}
+    line = flow_line(west, times_s=[0.0, 1e5], flows=[q, q], slope=slope, momentum=momentum)
+    cfg = job(
+        dem, 100, cells, 4.0, terrain={"manning": MANNING}, boundaries=[line, outlet],
+        run={"duration_s": 600.0, "backend": "cpu", "source_every_s": 10.0},
+        outputs={"map_every_s": 300.0, "series_every_s": 60.0},
+    )  # fmt: skip
+    run = run_job(cfg, tmp_path / "run")
+    assert run.exit_code == 0, run.message
+    assert abs(run.balance.relative) < 1e-6
+    (h,) = _last_map(tmp_path / "run", "mean_depth")
+    profile = h[:cells, :100].mean(axis=0)
+    first = int(np.argmax(profile > 0.0))
+    bump = profile[first] / profile[62]
+    if momentum:
+        assert bump == pytest.approx(1.0, abs=0.01)
+    else:
+        assert bump > 1.3
+
+
+def test_a_supercritical_jet_keeps_its_direction(tmp_path):
+    """W70: 8 m3/s through a 16 m line on the west edge of a flat dry plain, Froude 4.9 at the line. The jet's edge
+    cannot spread faster than 2 c across a flow running at U (half-angle atan(2 / Fr)): at 20 m east the jet carries
+    nearly all of Q east inside 8 + 20 * 2 / Fr m of its axis. Entering at rest, the water spreads out of it."""
+    q, s, n = 8.0, 0.05, 0.01
+    dem = write_dem(tmp_path / "flat.tif", np.full((100, 100), 100.0), 2.0)
+    mid = Y0 - 100.0
+    line = [(X0 + 2.0, mid + 8.0), (X0 + 2.0, mid - 8.0)]
+    hn = (q / 16.0 * n / np.sqrt(s)) ** 0.6
+    froude = q / 16.0 / hn / np.sqrt(9.81 * hn)
+    envelope = 8.0 + 20.0 * 2.0 / froude
+    found = {}
+    for momentum in (False, True):
+        cfg = job(
+            dem, 50, 50, 4.0, terrain={"manning": n},
+            boundaries=[flow_line(line, times_s=[0.0, 1e5], flows=[q, q], slope=s, momentum=momentum)],
+            run={"duration_s": 40.0, "backend": "cpu", "source_every_s": 5.0},
+            outputs={"map_every_s": 20.0, "series_every_s": 20.0},
+        )  # fmt: skip
+        out = tmp_path / f"jet_{momentum}"
+        run = run_job(cfg, out)
+        assert run.exit_code == 0, run.message
+        assert abs(run.balance.relative) < 1e-6
+        (qx,) = _last_map(out, "qx")
+        east = qx[:50, 5]  # the west faces of the column 20 m east of the line
+        y = (np.arange(50) + 0.5) * 4.0 - 100.0
+        inside = np.abs(y) <= envelope
+        found[momentum] = (float(east[inside].sum()) / q, float(east.sum()) / q)
+    assert found[True][0] > 0.9
+    assert found[True][0] > found[False][0] + 0.05
+
+
+def test_momentum_asked_for_on_a_quadtree_is_refused(tmp_path):
+    pytest.importorskip("whitebox")
+    dem = write_dem(tmp_path / "p.tif", tilted_box(200, 48, 2.0, SLOPE), 2.0)
+    mesh = {
+        "enabled": True, "coarse_dx": 8.0, "min_dx": 4.0, "analysis_pixel": 2.0,
+        "stream_area_fine_km2": 100.0, "stream_area_mid_km2": 100.0,
+    }  # fmt: skip
+    line = {**flow_line(WEST, times_s=[0.0, 1e5], flows=[1.0, 1.0], momentum=True), "name": "Upper wadi"}
+    run = run_job(plane_job(dem, line, 60.0, mesh=mesh), tmp_path / "refused")
+    assert run.exit_code == 2
+    assert "Upper wadi: flow.momentum needs the uniform step" in run.message
+
+
+def test_a_job_without_flow_lines_sets_no_momentum_source(plane, tmp_path, monkeypatch):
+    """Old jobs step through exactly the code they always did: no face kick is ever set."""
+    from wadi2d.solver.model import Model
+
+    calls = []
+    monkeypatch.setattr(Model, "set_momentum", lambda self, kick: calls.append(kick))
+    cfg = plane_job(plane, {"kind": "stage", "coordinates": WEST, "stage": 99.0}, 120.0)
+    run = run_job(cfg, tmp_path / "old")
+    assert run.exit_code == 0, run.message
+    assert calls == []
+
+
 def test_a_flow_line_across_a_corridor_is_refused_by_name(tmp_path):
     dem = write_dem(tmp_path / "p.tif", tilted_box(200, 48, 2.0, SLOPE), 2.0)
     strips = {
