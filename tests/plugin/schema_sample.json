@@ -1189,6 +1189,92 @@
       "title": "DesignPoint",
       "type": "object"
     },
+    "EdgeCheck": {
+      "additionalProperties": false,
+      "description": "Domain outlines that cut valleys (W78): streams across a closed edge before a run, pools against one after it.",
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Look for streams across closed edges before a run and pools after it",
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "stream_km2": {
+          "default": 0.25,
+          "description": "A stream draining this much at a closed edge is named, km2",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Stream Km2",
+          "type": "number"
+        },
+        "pixel_m": {
+          "default": 10.0,
+          "description": "Pixel of the stream analysis, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 200.0,
+          "title": "Pixel M",
+          "type": "number"
+        },
+        "beyond_m": {
+          "default": 1000.0,
+          "description": "Ground read past the domain, so a stream's way beyond the edge is seen, m",
+          "maximum": 50000.0,
+          "minimum": 0.0,
+          "title": "Beyond M",
+          "type": "number"
+        },
+        "max_pixels": {
+          "default": 6000000,
+          "description": "Most pixels of the analysis; the pixel doubles until it fits",
+          "maximum": 200000000,
+          "minimum": 10000,
+          "title": "Max Pixels",
+          "type": "integer"
+        },
+        "line_reach_m": {
+          "default": 150.0,
+          "description": "A boundary line or inflow point this close to a crossing opens it, m",
+          "maximum": 5000.0,
+          "minimum": 0.0,
+          "title": "Line Reach M",
+          "type": "number"
+        },
+        "cluster_m": {
+          "default": 200.0,
+          "description": "Crossings of one kind closer than this are one place, m",
+          "maximum": 10000.0,
+          "minimum": 0.0,
+          "title": "Cluster M",
+          "type": "number"
+        },
+        "flat_m": {
+          "default": 0.3,
+          "description": "Level spread along the edge within which deep water is a pool, m",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Flat M",
+          "type": "number"
+        },
+        "pool_cells": {
+          "default": 5,
+          "description": "Cells of water at the pool's level, joined to it, that make it a pool; fewer is a bowl of edge cells whose ground falls outward past a divide",
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "Pool Cells",
+          "type": "integer"
+        },
+        "max_listed": {
+          "default": 10,
+          "description": "Places named one by one in the warnings, of each kind",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Max Listed",
+          "type": "integer"
+        }
+      },
+      "title": "EdgeCheck",
+      "type": "object"
+    },
     "FlowHydrograph": {
       "additionalProperties": false,
       "description": "The hydrograph a ``flow`` line brings in (HEC-RAS's Flow Hydrograph boundary): from a CSV or DSS record, or a\ntable. It enters as volume in the line's cells, shared by conveyance (W61), and by default carries its momentum\nnormal to the line onto each cell's downstream faces (W70).",
@@ -2483,6 +2569,21 @@
           "minimum": 0.0,
           "title": "Edge Depth",
           "type": "number"
+        },
+        "edge_check": {
+          "$ref": "#/$defs/EdgeCheck",
+          "default": {
+            "enabled": true,
+            "stream_km2": 0.25,
+            "pixel_m": 10.0,
+            "beyond_m": 1000.0,
+            "max_pixels": 6000000,
+            "line_reach_m": 150.0,
+            "cluster_m": 200.0,
+            "flat_m": 0.3,
+            "pool_cells": 5,
+            "max_listed": 10
+          }
         },
         "progress_every_s": {
           "default": 2.0,
@@ -4846,6 +4947,18 @@
         "speed_depth": 0.05,
         "wet_depth": 0.1,
         "edge_depth": 3.0,
+        "edge_check": {
+          "beyond_m": 1000.0,
+          "cluster_m": 200.0,
+          "enabled": true,
+          "flat_m": 0.3,
+          "line_reach_m": 150.0,
+          "max_listed": 10,
+          "max_pixels": 6000000,
+          "pixel_m": 10.0,
+          "pool_cells": 5,
+          "stream_km2": 0.25
+        },
         "progress_every_s": 2.0,
         "frame_bytes_per_cell": 10.0,
         "face_discharge": true,
