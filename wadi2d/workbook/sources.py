@@ -6,7 +6,8 @@ A run gives an element by the first series it wrote of that name: ``series/netwo
 inflow and outflow), ``design_<name>.csv`` (a design line, grid plus lumped water) or ``line_<name>.csv`` (a result
 line, the size of its discharge). A network element routes when its outflow differs from its inflow; pool level and
 storage are taken when the run wrote them (a column starting ``pool``, ``stage`` or ``elevation``, and one starting
-``storage``); a run that wrote neither leaves those columns out.
+``storage``: W59 writes ``pool_m`` and ``storage_m3``), and so is each structure's flow (W59's ``<kind>_<n>_m3s`` and
+``evaporation_m3s``, W74); a run that wrote none of them leaves those columns out.
 
 HMS gives an element at its own analysis point (the F part ends ``>name``): FLOW at a junction or any other element;
 at a reservoir FLOW-COMBINE is the inflow, FLOW the outflow, ELEVATION the pool and STORAGE the storage.
@@ -15,6 +16,7 @@ at a reservoir FLOW-COMBINE is the inflow, FLOW the outflow, ELEVATION the pool 
 from __future__ import annotations
 
 import csv
+import re
 from pathlib import Path
 
 import numpy as np
@@ -25,6 +27,9 @@ SECONDS_PER_HOUR = 3600.0
 ROUTE_TOLERANCE = 1e-6
 """Outflow within this share of the peak inflow everywhere is the inflow passed on: no routing."""
 STORAGE_TO_MM3 = {"m3": 1e-6, "1000m3": 1e-3, "thoum3": 1e-3, "mm3": 1.0, "mcm": 1.0}
+FLOW_SUFFIX = "_m3s"
+STRUCTURE_COLUMN = re.compile(r"^(?:[a-z][a-z_]*_\d+|evaporation)_m3s$")
+"""W59's column of one structure's flow, ``<kind>_<n>_m3s``, or ``evaporation_m3s``; never inflow, outflow, branched."""
 
 
 def parse_element(text: str) -> tuple[str, str]:
@@ -51,7 +56,13 @@ def _routes(inflow: np.ndarray, outflow: np.ndarray) -> bool:
     return peak > 0.0 and float(np.max(np.abs(outflow - inflow))) > ROUTE_TOLERANCE * peak
 
 
-def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
+def structure_columns(cols: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """W59's per-structure flows (``orifice_1_m3s``, ``rating_spillway_1_m3s``, ``gate_2_m3s`` ...) and the
+    evaporation, by the column's stem, in the run's order."""
+    return {k[: -len(FLOW_SUFFIX)]: v for k, v in cols.items() if STRUCTURE_COLUMN.match(k)}
+
+
+def from_network_columns(cols: dict[str, np.ndarray]) -> Hydrograph:
     t_h = cols["t_s"] / SECONDS_PER_HOUR
     inflow, outflow = cols.get("inflow_m3s"), cols.get("outflow_m3s")
     if inflow is None or not np.any(inflow):
@@ -59,18 +70,19 @@ def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
     pool = next((v for k, v in cols.items() if k.lower().startswith(("pool", "stage", "elevation"))), None)
     storage_key = next((k for k in cols if k.lower().startswith("storage")), None)
     storage = None if storage_key is None else cols[storage_key] * _storage_factor(storage_key)
-    if outflow is None or not (_routes(inflow, outflow) or pool is not None or storage is not None):
+    structures = structure_columns(cols)
+    if outflow is None or not (_routes(inflow, outflow) or pool is not None or storage is not None or structures):
         return Hydrograph(t_h, inflow)
-    return Hydrograph(t_h, inflow, outflow, pool, storage)
+    return Hydrograph(t_h, inflow, outflow, pool, storage, structures)
 
 
-def _run_series(run: Path, name: str) -> tuple[Hydrograph, str]:
+def run_series(run: Path, name: str) -> tuple[Hydrograph, str]:
     from wadi2d.io.results import safe_name
 
     folder, safe = run / "series", safe_name(name)
     network = folder / f"network_{safe}.csv"
     if network.is_file():
-        return _from_network(_read_csv(network)), "Wadi2D network element"
+        return from_network_columns(_read_csv(network)), "Wadi2D network element"
     design = folder / f"design_{safe}.csv"
     if design.is_file():
         cols = _read_csv(design)
@@ -90,15 +102,29 @@ def _step_s(t_h: np.ndarray) -> int:
 
 
 def from_runs(
-    runs: dict[str, Path], elements: list[tuple[str, str]], areas: dict[str, float] | None = None
+    runs: dict[str, Path],
+    elements: list[tuple[str, str]],
+    areas: dict[str, float] | None = None,
+    notes: list[str] | None = None,
 ) -> tuple[list[Dam], int]:
-    """(dams, step in s) from one finished run per return period. ``areas`` gives catchments in km2 by name."""
+    """(dams, step in s) from one finished run, or one depth-area study folder (W74), per return period. ``areas``
+    gives catchments in km2 by name; in a study they are also the area an element is read at. How each element of a
+    study was read is appended to ``notes``, once per distinct reading."""
+    from wadi2d.workbook.study import is_study, study_element
+
     areas = areas or {}
     dams, steps = [], set()
     for name, label in elements:
         dam = Dam(name, label, "", areas.get(name))
         for rp, run in runs.items():
-            hydrograph, kind = _run_series(Path(run), name)
+            if is_study(run):
+                hydrograph, kind, area, words = study_element(Path(run), name, areas.get(name))
+                if dam.catchment_km2 is None:
+                    dam.catchment_km2 = round(area, 2)
+                if notes is not None and words not in notes:
+                    notes.append(words)
+            else:
+                hydrograph, kind = run_series(Path(run), name)
             dam.series[rp], dam.element_kind = hydrograph, kind
             steps.add(_step_s(hydrograph.t_h))
         dams.append(dam)

@@ -150,6 +150,25 @@ def test_every_series_carries_the_rain_and_excess_above_it_and_the_listing_its_t
     assert facts[valley["outlet"]]["drainage_area_km2"] == pytest.approx(sum(valley["areas"].values()), rel=1e-3)
 
 
+def test_a_design_line_listed_carries_the_rain_of_the_junction_it_pours_into(valley: dict, lumped: tuple, monkeypatch) -> None:
+    """W74: the design line's rain bar, the area-weighted rain of the subbasins above it, from its junction's series.
+    The valley's line has no pour point of its own, so the outlet's is lent to it here."""
+    from wadi2d.products import result_lines
+
+    real = result_lines.element_facts
+
+    def lent(cfg):
+        by_name, _by_line = real(cfg)
+        return by_name, {"Near outlet": by_name[valley["outlet"]]}
+
+    monkeypatch.setattr(result_lines, "element_facts", lent)
+    _run, out = lumped
+    (line,) = result_lines.catalogue(out)["lines"]
+    assert line["element"]["element_name"] == valley["outlet"]
+    assert sum(line["rain"]["rain_mm"]) == pytest.approx(60.0, rel=1e-4)
+    assert sum(line["rain"]["excess_mm"]) == pytest.approx(EXCESS_MM, rel=1e-3)
+
+
 def test_one_arm_in_2d_gives_the_same_water_and_a_line_at_the_fork_that_closes(valley: dict, lumped: tuple, one_arm_2d: tuple) -> None:
     run, out = one_arm_2d
     assert run.exit_code == 0, run.message

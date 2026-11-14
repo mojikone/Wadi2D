@@ -1,6 +1,7 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The dam workbook dialog (W60 in the dock): one finished run per return period, the elements, the target period.
+"""The dam workbook dialog (W60 in the dock): one finished run, or one depth-area study's folder (W74), per return period,
+the elements with the name of each one's sheet, the target period.
 
 The engine writes the workbook (``wadi2d workbook``); this side only asks for what it needs and says where it went.
 """
@@ -20,8 +21,6 @@ from qgis.PyQt.QtWidgets import (
     QHeaderView,
     QLabel,
     QLineEdit,
-    QListWidget,
-    QListWidgetItem,
     QPushButton,
     QTableWidget,
     QTableWidgetItem,
@@ -42,6 +41,7 @@ from .workbook_rows import (
 )
 
 PERIOD_COLUMN, RUN_COLUMN = range(2)
+ELEMENT_COLUMN, SHEET_COLUMN = range(2)
 TITLE = "Wadi2D dam workbook"
 
 
@@ -54,13 +54,19 @@ class WorkbookDialog(QDialog):
         self.query: EngineQuery | None = None
         self.written: str | None = None
         self.runs = QTableWidget(0, 2)
-        self.runs.setHorizontalHeaderLabels(["Return period", "Finished run folder"])
+        self.runs.setHorizontalHeaderLabels(["Return period", "Finished run or depth-area study folder"])
         self.runs.horizontalHeader().setSectionResizeMode(RUN_COLUMN, QHeaderView.Stretch)
         self.runs.verticalHeader().hide()
         self.add_button = QPushButton("Add run...")
         self.remove_button = QPushButton("Remove run")
-        self.elements = QListWidget()
-        self.elements.setToolTip("Dams, reservoirs and design lines every run wrote a series of; ticked ones get a sheet")
+        self.elements = QTableWidget(0, 2)
+        self.elements.setHorizontalHeaderLabels(["Element", "Sheet name"])
+        self.elements.horizontalHeader().setSectionResizeMode(SHEET_COLUMN, QHeaderView.Stretch)
+        self.elements.verticalHeader().hide()
+        self.elements.setToolTip(
+            "Dams, reservoirs and design lines every run wrote a series of; ticked ones get a sheet, named as typed in "
+            "Sheet name (the element's own name until changed)"
+        )
         self.target = QLineEdit(DEFAULT_TARGET)
         self.target.setToolTip("The return period of the side-by-side sheet: 200yr, 100yr, PMP ...")
         self.project = QLineEdit()
@@ -85,7 +91,7 @@ class WorkbookDialog(QDialog):
         form.addRow("Project", self.project)
         form.addRow("Workbook", self.out)
         column = QVBoxLayout(self)
-        column.addWidget(QLabel("One finished run per return period, each with the same elements (a 2yr ... 10000yr or PMP)."))
+        column.addWidget(QLabel("One finished run, or one depth-area study's folder, per return period, each with the same elements (2yr ... 10000yr or PMP)."))
         column.addWidget(self.runs)
         column.addLayout(buttons)
         column.addLayout(form)
@@ -118,7 +124,7 @@ class WorkbookDialog(QDialog):
         self.refresh_elements()
 
     def pick_run(self) -> None:
-        folder = QFileDialog.getExistingDirectory(self, "A finished run folder", settings.last_folder())
+        folder = QFileDialog.getExistingDirectory(self, "A finished run or a depth-area study folder", settings.last_folder())
         if folder:
             self.add_run(folder)
 
@@ -135,24 +141,38 @@ class WorkbookDialog(QDialog):
         return out
 
     def refresh_elements(self) -> None:
-        ticked = set(self.chosen())
-        self.elements.clear()
-        for name in common_elements([run for _rp, run in self.rows()]):
-            item = QListWidgetItem(name)
-            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+        """The elements every run has; a ticked element keeps its tick and the sheet name typed for it."""
+        ticked, sheets = set(self.chosen()), self.sheets()
+        self.elements.setRowCount(0)
+        for number, name in enumerate(common_elements([run for _rp, run in self.rows()])):
+            self.elements.insertRow(number)
+            item = QTableWidgetItem(name)
+            item.setFlags((item.flags() | Qt.ItemIsUserCheckable) & ~Qt.ItemIsEditable)
             item.setCheckState(Qt.Checked if name in ticked else Qt.Unchecked)
-            self.elements.addItem(item)
+            self.elements.setItem(number, ELEMENT_COLUMN, item)
+            self.elements.setItem(number, SHEET_COLUMN, QTableWidgetItem(sheets.get(name, name)))
+        self.elements.resizeColumnToContents(ELEMENT_COLUMN)
+
+    def _element_rows(self):
+        for number in range(self.elements.rowCount()):
+            element, sheet = self.elements.item(number, ELEMENT_COLUMN), self.elements.item(number, SHEET_COLUMN)
+            if element is not None:
+                yield element, (sheet.text() if sheet is not None else element.text())
 
     def chosen(self) -> list[str]:
-        items = (self.elements.item(n) for n in range(self.elements.count()))
-        return [item.text() for item in items if item.checkState() == Qt.Checked]
+        return [element.text() for element, _sheet in self._element_rows() if element.checkState() == Qt.Checked]
+
+    def sheets(self) -> dict[str, str]:
+        """Each listed element's sheet name as typed."""
+        return {element.text(): sheet for element, sheet in self._element_rows()}
 
     def say(self, text: str) -> None:
         self.message.setText(text)
 
     def write(self) -> None:
         rows, elements, target, out = self.rows(), self.chosen(), self.target.text(), self.out.filePath()
-        found = workbook_problems(rows, elements, target, out)
+        sheets = self.sheets()
+        found = workbook_problems(rows, elements, target, out, sheets)
         if found:
             self.say(" ".join(found))
             return
@@ -161,7 +181,8 @@ class WorkbookDialog(QDialog):
         self.say("Writing the workbook...")
         self.query = EngineQuery(settings.engine_text(), self)
         self.query.done.connect(self._written)
-        self.query.start(workbook_args(rows, elements, target, out, self.project.text().strip()), WORKBOOK_TIMEOUT_S)
+        args = workbook_args(rows, elements, target, out, self.project.text().strip(), sheets)
+        self.query.start(args, WORKBOOK_TIMEOUT_S)
 
     def _written(self, code: int, out: str, err: str) -> None:
         self.query = None

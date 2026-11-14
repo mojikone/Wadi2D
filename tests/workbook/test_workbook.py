@@ -204,6 +204,46 @@ def test_runs_source(tmp_path):
         sources.from_runs(runs, [("Nowhere", "Nowhere")])
 
 
+def test_a_run_reservoir_fills_pool_storage_and_each_structure_from_w59_columns(tmp_path):
+    """W74: a reservoir's sheet fills from our own run's series, W59's column names, not only from HMS DSS."""
+    t = np.arange(N) * float(DT)
+    runs = {}
+    for j, rp in enumerate(RPS):
+        q = _wave(50.0 * (j + 1))
+        cols = {"t_s": t, "inflow_m3s": q, "outflow_m3s": 0.6 * q, "pool_m": 90 + q / 50, "storage_m3": 1e4 * q,
+                "evaporation_m3s": 0.01 * q, "orifice_1_m3s": 0.4 * q, "rating_spillway_1_m3s": 0.2 * q,
+                "rain_mm": 0 * q, "excess_mm": 0 * q}  # fmt: skip
+        _write(tmp_path / rp / "series" / "network_Res.csv", cols)
+        runs[rp] = tmp_path / rp
+    (dam,), _dt = sources.from_runs(runs, [("Res", "Res")])
+    assert dam.quantities() == (
+        "inflow", "outflow", "pool", "storage",
+        "structure:evaporation", "structure:orifice_1", "structure:rating_spillway_1",
+    )  # fmt: skip
+    np.testing.assert_allclose(dam.series["200yr"].structures["orifice_1"], 0.4 * _wave(100.0))
+    np.testing.assert_allclose(dam.series["200yr"].storage, 1e-2 * _wave(100.0))
+    wi = WorkbookInput([dam], RPS, "200yr", DT, "test", "Wadi2D")
+    wb = layout.build(wi)
+    ws = wb["Res"]
+    heads = [ws.cell(row=1, column=c).value for c in range(1, 9)]
+    assert heads == ["Time (hrs)", "Inflow_2yr", "Outflow_2yr", "Pool_2yr", "Storage_2yr", "Evaporation_2yr",
+                     "Orifice_1_2yr", "Rating_spillway_1_2yr"]  # fmt: skip
+    st = 1 + 3 * 7 + 2
+    stats = [ws.cell(row=1, column=st + j).value for j in range(6, 13)]
+    assert stats[:4] == ["Peak outflow (m³/s)", "Attenuation (-)", "Highest pool (m)", "Highest storage (Mm³)"]
+    assert stats[4:] == ["Peak evaporation (m³/s)", "Peak orifice 1 (m³/s)", "Peak rating spillway 1 (m³/s)"]
+    assert ws.cell(row=2, column=st + 11).value == "=MAX(G$2:G$11)", "the orifice's own column of the 2-yr"
+    assert ws.cell(row=3, column=7 + 7).value == round(float(0.4 * _wave(100.0)[1]), 3)
+    # the summaries keep their places: peak outflow, attenuation, highest pool
+    assert wb["Peak outflow"]["C4"].value == f"='Res'!${layout.L(st + 6)}$2"
+    assert wb["Highest pool level"]["D4"].value == f"='Res'!${layout.L(st + 8)}$3"
+    # the side-by-side sheet carries no structure: inflow, outflow, pool, storage
+    t200 = wb["200-year"]
+    assert [t200.cell(row=1, column=c).value for c in range(2, 7)][-1] is None
+    note = next(str(c.value) for row in ws.iter_rows() for c in row if str(c.value).startswith("Columns "))
+    assert "orifice 1" in note and "rating spillway 1" in note
+
+
 def test_command(tmp_path, capsys):
     runs = _runs(tmp_path)
     out = tmp_path / "book.xlsx"

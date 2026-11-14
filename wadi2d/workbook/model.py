@@ -16,7 +16,26 @@ import numpy as np
 PMP = "PMP"
 YEARS = re.compile(r"^(\d+)\s*-?\s*(?:yr|year|y)$", re.IGNORECASE)
 QUANTITIES = ("inflow", "outflow", "pool", "storage")
-"""The columns a dam can carry per return period, in sheet order."""
+"""The columns a dam can carry per return period, in sheet order; each structure's flow follows them (W74)."""
+STRUCTURE = "structure:"
+"""A quantity naming one structure's flow, e.g. ``structure:orifice_1`` from W59's ``orifice_1_m3s``."""
+
+
+def structure_quantity(name: str) -> str:
+    return f"{STRUCTURE}{name}"
+
+
+def structure_name(quantity: str) -> str | None:
+    """``structure:orifice_1`` -> ``orifice_1``; None for inflow, outflow, pool and storage."""
+    return quantity[len(STRUCTURE) :] if quantity.startswith(STRUCTURE) else None
+READ_ME = "Read me"
+PEAK_INFLOW, INFLOW_VOLUME, TIME_TO_PEAK = "Peak inflow", "Inflow volume", "Time to peak"
+PEAK_OUTFLOW, ATTENUATION, HIGHEST_POOL = "Peak outflow", "Attenuation", "Highest pool level"
+FIXED_SHEETS = (READ_ME, PEAK_INFLOW, INFLOW_VOLUME, TIME_TO_PEAK, PEAK_OUTFLOW, ATTENUATION, HIGHEST_POOL)
+"""The workbook's own sheets; a dam's sheet may not take one of these names, nor the target period's."""
+SHEET_MOST = 31
+SHEET_FORBIDDEN = frozenset("[]:*?/\\")
+"""Excel refuses a sheet name longer than 31 characters or holding one of these."""
 STEP_TOLERANCE_S = 0.5
 """Times rounded to 4 decimals of an hour (0.36 s) still read as one regular step."""
 
@@ -56,9 +75,12 @@ class Hydrograph:
     outflow: np.ndarray | None = None
     pool: np.ndarray | None = None
     storage: np.ndarray | None = None
+    structures: dict[str, np.ndarray] = field(default_factory=dict)
+    """Each outflow structure's flow, m3/s, by W59's column stem (``orifice_1``, ``evaporation``), in the run's order."""
 
     def column(self, quantity: str) -> np.ndarray | None:
-        return getattr(self, quantity)
+        name = structure_name(quantity)
+        return self.structures.get(name) if name is not None else getattr(self, quantity)
 
 
 @dataclass
@@ -72,9 +94,15 @@ class Dam:
     catchment_km2: float | None
     series: dict[str, Hydrograph] = field(default_factory=dict)
 
-    def quantities(self) -> tuple[str, ...]:
-        """The columns this dam carries in every return period: inflow, then what any period has of the rest."""
+    def quantities(self, structures: bool = True) -> tuple[str, ...]:
+        """The columns this dam carries in every return period: inflow, then what any period has of the rest, then
+        each structure's flow (left out with ``structures=False``)."""
         have = [q for q in QUANTITIES[1:] if any(h.column(q) is not None for h in self.series.values())]
+        if structures:
+            names: list[str] = []
+            for h in self.series.values():
+                names += [n for n in h.structures if n not in names]
+            have += [structure_quantity(n) for n in names]
         return ("inflow", *have)
 
     @property
@@ -106,8 +134,16 @@ class WorkbookInput:
         if self.target not in self.return_periods:
             raise ValueError(f"target return period {self.target!r} is not among {self.return_periods}")
         labels = [d.label for d in self.dams]
-        if len(set(labels)) != len(labels):
+        if len({label.casefold() for label in labels}) != len(labels):
             raise ValueError(f"two dams share a sheet name: {labels}")
+        taken = {name.casefold() for name in (*FIXED_SHEETS, target_sheet_name(self.target))}
+        for label in labels:
+            if not label.strip() or len(label) > SHEET_MOST or SHEET_FORBIDDEN & set(label):
+                raise ValueError(
+                    f"sheet name {label!r}: Excel takes 1 to {SHEET_MOST} characters and none of {''.join(sorted(SHEET_FORBIDDEN))}"
+                )
+            if label.casefold() in taken:
+                raise ValueError(f"sheet name {label!r} is one of the workbook's own sheets")
         for dam in self.dams:
             missing = [rp for rp in self.return_periods if rp not in dam.series]
             if missing:

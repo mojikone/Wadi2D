@@ -10,10 +10,21 @@ from wadi2d_qgis.element_view import (
     element_view,
     facts_text,
     matching,
+    overlay_curve,
     volume_m3,
     with_facts,
+    with_overlays,
 )
-from wadi2d_qgis.line_view import LUMPED, UPFRONT_POINT, Entry, point_view, readout
+from wadi2d_qgis.line_view import (
+    LUMPED,
+    TEMPORARY,
+    UPFRONT_LINE,
+    UPFRONT_POINT,
+    Entry,
+    point_view,
+    readout,
+    record_view,
+)
 
 TIMES = [0.0, 600.0, 1200.0, 1800.0, 2400.0]
 DAM = {
@@ -83,3 +94,60 @@ def test_a_design_point_gains_its_tc_under_the_heading() -> None:
 def test_matching_keeps_the_order_of_the_features_and_each_entry_once() -> None:
     items = [Entry(LUMPED, name) for name in ("S1", "J1", "R1")]
     assert matching(items, ["J1", "S1", "J1", "unknown"]) == [1, 0]
+
+
+def test_an_hms_reservoir_and_diversion_are_named_by_kind_and_the_tc_said_not_available() -> None:
+    """W74: on the HMS route the listing now carries each element's kind; HMS holds no path to a reservoir."""
+    facts = {"kind": "reservoir", "drainage_area_km2": 19.3, "tc_minutes": None,
+             "tc_note": "HMS holds no flow path to an element's outlet"}  # fmt: skip
+    view = element_view(Entry(LUMPED, "Bidah 03 Reservoir", None, {**DAM, "element": facts}), TIMES)
+    assert view.heading == "Reservoir: Bidah 03 Reservoir."
+    assert view.note.startswith("Drainage area 19.30 km2; tc not available: HMS holds no flow path")
+    sub = {"kind": "subbasin", "drainage_area_km2": 5.0, "tc_minutes": None, "lag_minutes": 42.0,
+           "tc_note": "the HMS basin's .sqlite holds no flow path for it"}  # fmt: skip
+    assert facts_text(sub).endswith("holds no flow path for it; lag 42 min")
+
+
+def test_a_diversion_draws_what_it_passes_on_and_what_it_diverts() -> None:
+    """W74: W72's passed_m3s and diverted_m3s on the chart."""
+    record = {"t_s": TIMES, "inflow_m3s": [0.0, 10.0, 30.0, 20.0, 0.0], "outflow_m3s": [0.0, 10.0, 20.0, 18.0, 0.0],
+              "passed_m3s": [0.0, 10.0, 20.0, 18.0, 0.0], "diverted_m3s": [0.0, 0.0, 10.0, 2.0, 0.0],
+              "element": {"kind": "diversion", "drainage_area_km2": 3.0, "tc_minutes": None}}  # fmt: skip
+    view = element_view(Entry(LUMPED, "D1", None, record), TIMES)
+    assert view.heading == "Diversion: D1."
+    labels = [c.label for c in view.charts[0].curves]
+    assert labels[:2] == ["Passed on (outflow), lumped network: number of record", "Diverted, lumped network: number of record"]
+    assert view.charts[0].curves[1].values == record["diverted_m3s"]
+    # diverted 0, 0, 10, 2, 0 every 600 s: 600 x (0 + 5 + 6 + 1) = 7,200 m3
+    assert "passed on, peak 20.0 m3/s" in view.note and "diverted, peak 10.0 m3/s at 20 min; volume 0.007 Mm3" in view.note
+
+
+def test_a_design_line_carries_the_rain_bar_of_the_subbasins_above_it() -> None:
+    record = {"t_s": TIMES, "discharge_m3s": [0.0, 1.0, 3.0, 2.0, 0.0],
+              "rain": {"t_s": TIMES, "rain_mm": DAM["rain_mm"], "excess_mm": DAM["excess_mm"]},
+              "element": DAM["element"]}  # fmt: skip
+    entry = Entry(UPFRONT_LINE, "Dam line", [[0, 0], [1, 0]], record)
+    view = with_facts(record_view(entry, TIMES), entry)
+    assert view.charts[0].bars is not None and view.charts[0].bars.rain_mm == DAM["rain_mm"]
+    assert with_facts(record_view(Entry(UPFRONT_LINE, "x", None, {"t_s": TIMES, "discharge_m3s": [0.0] * 5}), TIMES),
+                      Entry(UPFRONT_LINE, "x", None, {})).charts[0].bars is None  # fmt: skip
+
+
+def test_add_to_chart_draws_a_second_element_over_the_first_in_its_own_colour() -> None:
+    first = Entry(LUMPED, "Faydh 01", None, DAM)
+    second = Entry(LUMPED, "S1", None, {"t_s": TIMES, "outflow_m3s": [0.0, 5.0, 9.0, 4.0, 1.0]})
+    line = Entry(UPFRONT_LINE, "Axis", [[0, 0], [1, 0]], {"t_s": TIMES, "discharge_m3s": [0.0, -1.0, -3.0, -2.0, 0.0]})
+    added = [(e, overlay_curve(e)) for e in (second, line)]
+    view = with_overlays(element_view(first, TIMES), added)
+    curves = view.charts[0].curves
+    assert [c.label for c in curves[-2:]] == ["Lumped element: S1: outflow of record", "Upfront line: Axis: number of record"]
+    assert curves[-2].values == [0.0, 5.0, 9.0, 4.0, 1.0] and curves[-1].values == [0.0, 1.0, 3.0, 2.0, 0.0]
+    assert len({c.colour for c in curves}) == len(curves), "each curve its own colour"
+    assert view.heading == "Reservoir: Faydh 01. Added: S1, Axis."
+    assert "flow 9.00 m3/s" in readout(view, 2)
+    assert overlay_curve(Entry(UPFRONT_POINT, "P", None, {"t_s": TIMES})) is None
+    drawn = Entry(TEMPORARY, "Line 1", [[0, 0], [1, 0]])
+    assert overlay_curve(drawn) is None
+    read = {"t_s": TIMES, "flow_m3s": [0.0, -2.0, -4.0, -1.0, 0.0]}
+    assert overlay_curve(drawn, read).values == [0.0, 2.0, 4.0, 1.0, 0.0]
+    assert with_overlays(element_view(first, TIMES), []).heading == "Reservoir: Faydh 01."

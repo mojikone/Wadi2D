@@ -485,7 +485,12 @@ def parser() -> argparse.ArgumentParser:
     book.add_argument(
         "--element", action="append", required=True, help="NAME or NAME=SHEET, once per dam, in sheet order"
     )
-    book.add_argument("--run", action="append", help="RP=RUN_DIR, once per return period (200yr, PMP ...)")
+    book.add_argument(
+        "--run",
+        action="append",
+        help="RP=DIR, once per return period (200yr, PMP ...): a finished run, or a depth-area study's folder, whose "
+        "elements are then read at their own drainage areas as the study reads them",
+    )
     book.add_argument("--dss", action="append", help="RP=FILE.dss of HMS results, once per return period")
     book.add_argument("--basin", default=None, help="HMS .basin file: catchment areas and which elements are reservoirs")
     book.add_argument("--area", action="append", help="NAME=KM2, a catchment area by hand")
