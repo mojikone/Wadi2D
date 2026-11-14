@@ -1,0 +1,23 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af7bb88e5b3b8b23f\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.2 === 1 the row: added on the named dam, each field a widget
+    5.2 PASS no breach until one is added 
+    5.2 PASS one row, on the named dam [BreachRow(dam='Bidah dam', mode='overtopping', bottom_z=None, width_m=None, slope=1.0, formation_min=None, progression='linear', trigger='level', value=None, held_min=None, piping_z=None)]
+    5.2 PASS the dam's names are the table's 
+    5.2 PASS held and pipe off for a level-started overtopping 
+    5.2 PASS an empty row is stopped in words ['Breach of Bidah dam: type the final bottom, the bottom width, the formation time, the pool level.']
+    5.4 === 2 refused on the mesh, in the engine's words, before any run
+    5.4 PASS the mesh refuses the breach ['A dam breach runs on the uniform grid in this version: untick the mesh refinement or the breach.', 'A dam breach is not tested with local time stepping: switch it off or remove the breach.']
+    5.4 PASS ticking the mesh ticked local steps, which stays refused ['A dam breach is not tested with local time stepping: switch it off or remove the breach.']
+    5.4 PASS off the mesh and local steps, nothing stops it []
+    5.4 === 3 the breach runs
+    5.5 dock says: Starting...
+    8.0 dock says: dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3
+   36.5 PASS the run finished Finished. dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3.
+   36.5 PASS the job carries the row in the engine's units [{'dam': 'Bidah dam', 'mode': 'overtopping', 'bottom_z': 90.0, 'bottom_width_m': 40.0, 'left_slope': 1.0, 'right_slope': 1.0, 'formation_time_s': 600.0, 'progression': 'linear', 'trigger': 'time', 'trigger_time_s': 180.0}]
+   36.5 breach events: [{'ev': 'breach', 'dam': 'Bidah dam', 'event': 'start', 't': 180.0}, {'ev': 'breach', 'dam': 'Bidah dam', 'event': 'formed', 't': 780.0}]
+   36.5 PASS the breach started and formed ['', '']
+   36.5 PASS its series is written ['breach_Bidah dam.csv']
+   36.5 SUMMARY 14 passed, 0 failed 
+   36.5 DONE
