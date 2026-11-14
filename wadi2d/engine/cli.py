@@ -218,6 +218,24 @@ def _rain(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _rain_preview(args: argparse.Namespace) -> int:
+    """Each lumped subbasin's rain and the 2D area's, after the area reduction, written to ``--out`` (W65)."""
+    from wadi2d.engine.rain_preview import rain_preview
+    from wadi2d.run import EXIT_INVALID, JobError
+
+    try:
+        found = rain_preview(_load(args.job))
+        Path(args.out).write_text(json.dumps(found), encoding="utf-8")
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    except (ValueError, KeyError, OSError, NotImplementedError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    print(json.dumps({"ev": "done", "path": str(args.out)}))
+    return EXIT_OK
+
+
 def _compare(args: argparse.Namespace) -> int:
     """Observed records beside a finished run's series, with no rerun: the job's own list, or a new file of them."""
     from pydantic import TypeAdapter, ValidationError
@@ -415,6 +433,13 @@ def parser() -> argparse.ArgumentParser:
     rain.add_argument("--stamp", default="end")
     rain.add_argument("--start", default=None)
     rain.set_defaults(call=_rain)
+
+    preview = sub.add_parser(
+        "rain-preview", help="each lumped subbasin's rain and the 2D area's after the area reduction, as JSON"
+    )
+    preview.add_argument("job")
+    preview.add_argument("--out", required=True)
+    preview.set_defaults(call=_rain_preview)
 
     lines = sub.add_parser(
         "lines",
