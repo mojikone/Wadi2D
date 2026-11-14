@@ -167,6 +167,110 @@ def qgis_loader() -> None:
         del sys.modules[name]
 
 
+def pick(combo, key) -> None:
+    combo.setCurrentIndex(combo.findData(key))
+
+
+def storm_sources(dock) -> None:
+    """The Rain source of W65: one choice, only its fields, and for each kind the job the old section wrote."""
+    from wadi2d_qgis.storm_rows import storm_job
+
+    storm, crs = dock.storm, UTM
+    sources = [storm.kind.itemData(i) for i in range(storm.kind.count())]
+    check(sources == ["hypothetical", "gridded", "gauges", "single"], f"storm: four rain sources without HMS {sources}")
+    check(storm.kind.currentData() == "single" and storm.single.currentData() == "uniform", "storm: constant rain first")
+    check(storm.reduction.isHidden(), "storm: no area reduction on a single hyetograph")
+    storm.rain.setValue(30.0)
+    storm.hours.setValue(2.0)
+    check(storm.values(crs) == {"rain_mm_h": 30.0, "rain_hours": 2.0}, "storm: constant rain writes what Steady rain wrote")
+
+    pick(storm.single, "hyetograph")
+    storm.hyetograph.set_rows([(30.0, 10.0), (60.0, 25.0)])
+    old = {"kind": "hyetograph", "rows": [(30.0, 10.0), (60.0, 25.0)]}
+    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a table writes what Hyetograph table wrote")
+
+    pick(storm.kind, "hypothetical")
+    check(not storm.reduction.isHidden() and storm.arf_detail.isHidden(), "storm: the reduction block, None first")
+    storm.design_depth.setValue(100.0)
+    storm.design_hours.setValue(24.0)
+    pattern = [(0.0, 0.0), (50.0, 70.0), (100.0, 100.0)]
+    storm.pattern.set_rows(pattern)
+    old = {"kind": "hypothetical", "depth_mm": 100.0, "hours": 24.0, "pattern": pattern, "area_km2": 0.0, "arf": []}
+    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a design storm with no reduction as before")
+    pick(storm.arf_mode, "area")
+    check(not storm.arf_detail.isHidden(), "storm: one storm area shows the area and the table")
+    storm.storm_area.setValue(200.0)
+    storm.arf.set_rows([(10.0, 0.95), (1000.0, 0.7)])
+    old = {**old, "area_km2": 200.0, "arf": [(10.0, 0.95), (1000.0, 0.7)]}
+    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a reduced design storm as before")
+    pick(storm.arf_mode, "study")
+    check(not storm.study_label.isHidden() and "storm areas" in storm.study_label.text(), "storm: the study's areas")
+    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: the study reads the same table")
+    storm.arf.set_rows([])
+    check(any("reduction table" in p for p in problems({**dock._collect(), "output": str(WORK)})),
+          "storm: a reduction with no table is refused before the run")  # fmt: skip
+
+    pick(storm.kind, "gridded")
+    path = WORK / "rain.nc"
+    storm.rain_file.setFilePath(str(path))
+    pick(storm.arf_mode, "none")
+    check(not storm.grid_note.isHidden(), "storm: a gridded file says observed rain takes no reduction")
+    grid = storm.values(crs)["storm"]
+    old = {"kind": "gridded", "file": str(path), "variable": "", "choices": [], "units": grid["units"],
+           "interval_min": 0.0, "stamp": grid["stamp"], "start": "", "arf_on": False, "area_km2": 200.0, "arf": []}  # fmt: skip
+    check(storm_job(grid) == storm_job(old), "storm: an observed grid as before")
+    pick(storm.arf_mode, "area")
+    storm.arf.set_rows([(10.0, 0.9), (1000.0, 0.6)])
+    old = {**old, "arf_on": True, "arf": [(10.0, 0.9), (1000.0, 0.6)]}
+    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a grid of point depths as before")
+
+    pick(storm.kind, "gauges")
+    check(storm.values(crs) == {"storm": {"kind": "gauges"}}, "storm: the gauges write what they wrote")
+    pump(lambda: "rain gauge" in storm.gauges_label.text(), 5.0, "the gauges summary")
+    check("No rain gauge" in storm.gauges_label.text(), f"storm: {storm.gauges_label.text()}")
+    storm.gauges_button.click()
+    check(not dock.gauges.isCollapsed(), "storm: the gauges button opens the Gauges section")
+    dock.gauges.setCollapsed(True)
+
+    pick(storm.kind, "single")
+    pick(storm.single, "uniform")
+    pick(storm.arf_mode, "none")
+
+
+def real_preview(dock) -> None:
+    """Preview rain through the real engine: the 2D area's depth after the reduction, before any run (W65)."""
+    storm = dock.storm
+
+    def previewed() -> str:
+        storm.preview_button.click()
+        pump(lambda: storm.preview_button.isEnabled(), 120.0, "the rain preview")
+        return storm.preview_label.text()
+
+    said = previewed()
+    rows = storm.preview_table.rows
+    check(len(rows) == 1 and rows[0]["mode"] == "2d", f"real: the plane is all 2D area: {said}")
+    check(abs(rows[0]["depth_mm"] - 20.0) < 1e-6, f"real: 100 mm/h for 0.2 h is 20 mm, {rows[0]['depth_mm']}")
+    check(abs(rows[0]["peak_mm_h"] - 100.0) < 1e-3, "real: at 100 mm/h")
+    check(abs(rows[0]["area_km2"] - 4.0) < 1e-6, "real: over the 4 km2 of the plane")
+    check(not storm.preview_chart.isHidden() and storm.preview_chart.row is rows[0], "real: its hyetograph drawn")
+
+    pick(storm.kind, "hypothetical")
+    storm.design_depth.setValue(80.0)
+    storm.design_hours.setValue(0.25)
+    storm.pattern.set_rows([(0.0, 0.0), (100.0, 100.0)])
+    pick(storm.arf_mode, "area")
+    storm.storm_area.setValue(505.0)
+    storm.arf.set_rows([(10.0, 1.0), (1000.0, 0.5)])
+    said = previewed()
+    depth = storm.preview_table.rows[0]["depth_mm"]
+    check(abs(depth - 80.0 * 0.75) < 1e-4 and "0.7500 at 505" in said, f"real: the design storm reduced, {said} {depth}")
+    storm.arf.set_rows([])
+    previewed()
+    check("reduction table" in storm.preview_label.text(), f"real: refused in words, {storm.preview_label.text()}")
+    pick(storm.kind, "single")
+    pick(storm.arf_mode, "none")
+
+
 def smoke() -> None:
     engine = f'"{sys.argv[1]}" "{HERE / "fake_engine.py"}"'
     settings.set_engine_text(engine)
@@ -207,6 +311,7 @@ def smoke() -> None:
     leaked = json.loads(report.split("\n", 1)[1])["qgis_env"]
     check(not any(leaked.values()), "the venv Python ran with QGIS's environment cleaned away")
 
+    storm_sources(dock)
     dock.hydrology.rain.setValue(25.0)
     dock.hydrology.hours.setValue(0.5)
     dock.panel.say("")
@@ -561,7 +666,12 @@ def real_engine() -> None:
     from osgeo import gdal, osr
 
     os.chdir(WORK)  # QGIS's working folder is not the repo: the engine must resolve from anywhere
-    settings.set_engine_text(f'"{sys.argv[1]}" -m wadi2d.engine.cli')
+    launcher = WORK / "engine.py"  # this checkout's engine, not the one the venv installed (a worktree's own, W65)
+    launcher.write_text(
+        f"import sys\nsys.path.insert(0, r'{HERE.parents[1]}')\nfrom wadi2d.engine.cli import main\nraise SystemExit(main())\n",
+        encoding="utf-8",
+    )
+    settings.set_engine_text(f'"{sys.argv[1]}" "{launcher}"')
     iface = Iface()
     size, pixel, west, north = 400, 5.0, 400000.0, 2702000.0
     east, south = west + size * pixel, north - size * pixel
@@ -616,6 +726,7 @@ def real_engine() -> None:
     check(depth.renderer().type() == "singlebandpseudocolor", "real: depth styled")
     peak = depth.dataProvider().bandStatistics(1).maximumValue
     check(0.0 < peak < 5.0, f"real: a believable peak depth, {peak:.3f} m")
+    real_preview(dock)
 
     dock.panel.folder.setFilePath(str(WORK / "real" / "stopped"))
     dock.panel.duration.setValue(dock.panel.duration.maximum())

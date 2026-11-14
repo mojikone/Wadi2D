@@ -67,6 +67,7 @@ from .protocol import (
     parse_mesh,
     run_args,
 )
+from .rain_query import StormLinks
 from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
 from .sections.basin_rows import basin_problems
@@ -193,6 +194,7 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self._basin_query: EngineQuery | None = None
         self.storm.rain_file_changed.connect(self.read_rain_file)
+        self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.terrain.dx.valueChanged.connect(self._finest_changed)

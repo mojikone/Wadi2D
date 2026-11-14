@@ -6,6 +6,8 @@ import pytest
 from wadi2d_qgis.job_builder import build_job, merge_hms, merge_notes, notes, preview_job, problems
 from wadi2d_qgis.storm_rows import (
     pasted_rows,
+    preview_args,
+    preview_text,
     rain_args,
     rain_reply,
     rain_text,
@@ -202,3 +204,48 @@ def test_notes_follow_the_storm_section(tmp_path) -> None:
 
 def test_a_preview_carries_no_storm(tmp_path) -> None:
     assert "storm" not in preview_job(values(tmp_path, storm=TABLE), tmp_path / "p")
+
+
+# W65: the Rain source. The new section adds ``arf_mode`` to a design storm and a grid; the job must not change.
+
+
+@pytest.mark.parametrize("mode", ["area", "study"])
+def test_a_design_storm_by_its_reduction_mode_writes_the_old_job(mode) -> None:
+    assert storm_job({**DESIGN, "arf_mode": mode}) == storm_job(DESIGN)
+    none = {**DESIGN, "arf_mode": "none", "arf": []}
+    assert storm_job(none) == storm_job({**DESIGN, "arf": []})
+    assert "arf" not in storm_job(none)
+
+
+def test_a_grid_by_its_reduction_mode_writes_the_old_job(tmp_path) -> None:
+    table = [(10.0, 0.9), (1000.0, 0.6)]
+    old = grid(tmp_path, arf_on=True, area_km2=50.0, arf=table)
+    for mode in ("area", "study"):
+        assert storm_job({**old, "arf_mode": mode}) == storm_job(old)
+    observed = grid(tmp_path, arf_on=False, area_km2=50.0, arf=[], arf_mode="none")
+    assert storm_job(observed) == storm_job(grid(tmp_path))
+
+
+def test_a_reduction_chosen_without_its_table_is_refused_before_the_run() -> None:
+    found = storm_problems({**DESIGN, "arf": [], "arf_mode": "area"})
+    assert found == ["Fill the area reduction table, or choose no area reduction."]
+    assert storm_problems({**DESIGN, "arf": [], "arf_mode": "none"}) == []
+    assert storm_problems({**DESIGN, "arf": []}) == []  # the old section's dict: an empty table meant no reduction
+
+
+def test_the_preview_is_asked_of_the_engine_and_said_in_one_line() -> None:
+    assert preview_args("job.json", "out.json") == ["rain-preview", "job.json", "--out", "out.json"]
+    said = preview_text({"step_min": 5.0, "storm_area_km2": 505.0, "area_factor": 0.75, "areas": []})
+    assert said == "Depths after the area reduction, on the lumped step of 5 min. Area reduction 0.7500 at 505 km2."
+    assert preview_text({"step_min": 2.0, "storm_area_km2": None, "area_factor": 1.0, "areas": []}).endswith(
+        "No area reduction."
+    )
+
+
+def test_the_gauges_summary_names_the_rain_gauges_only() -> None:
+    from wadi2d_qgis.gauge_rows import GaugeRow, gauges_text
+
+    rows = [GaugeRow("West"), GaugeRow("East"), GaugeRow("Dam", kind="flow")]
+    assert gauges_text(rows, "thiessen") == "2 rain gauges: West, East. Spread by nearest gauge (thiessen)."
+    assert gauges_text([], "thiessen").startswith("No rain gauge")
+
