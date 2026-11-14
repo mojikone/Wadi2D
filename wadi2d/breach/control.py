@@ -30,6 +30,10 @@ from wadi2d.breach.faces import (
     write,
 )
 from wadi2d.breach.shape import Geometry, Opening, final_geometry, opening, progress, surface
+from wadi2d.breach.strip import StripFaces, build_strip_faces
+from wadi2d.breach.strip import face_tables as strip_face_tables
+from wadi2d.breach.strip import read_back as strip_read_back
+from wadi2d.breach.strip import write as strip_write
 from wadi2d.config.constants import G
 from wadi2d.config.schema import Breach, RunConfig
 
@@ -40,9 +44,7 @@ SERIES_HEADER = "t_s,formed,bottom_m,bottom_width_m,pipe_top_m,pool_level_m,tail
 def refusal(cfg: RunConfig) -> str | None:
     """Why this job cannot take a breach, or None."""
     if cfg.mesh.enabled:
-        return "a breach runs on the uniform grid in this version: untick the mesh refinement"
-    if cfg.strips.enabled:
-        return "a breach runs on the uniform grid in this version: untick the corridors"
+        return "a breach runs on the uniform grid and its corridors in this version: untick the mesh refinement"
     if cfg.numerics.local_time_stepping:
         return "a breach is not tested with local time stepping: switch it off"
     return None
@@ -51,35 +53,52 @@ def refusal(cfg: RunConfig) -> str | None:
 @dataclass
 class BreachRun:
     b: Breach
-    faces: BreachFaces
+    faces: BreachFaces | None
+    """The dam's faces on the squares, None where it has none there."""
     geo: Geometry
     model: object
     rows: int
     e_lo: float
     e_hi: float
     cells: tuple[int, int]
-    """State indices of the two cells beside the centre face: before it (west or north), its own."""
+    """The two cells beside the centre face, first the one the face's normal points away from: a state index on the
+    squares, a cell index on the strip (W69)."""
     floors: tuple[float, float]
-    area: float
+    areas: tuple[float, float]
     entries: tuple[int, int] | None
     """Positions of the two cells in the forcing's rate array, for a pipe."""
+    strip: StripFaces | None = None
+    """The dam's faces on the strip (W69), None where it has none there."""
+    on_strip: tuple[bool, bool] = (False, False)
     started: float | None = None
     collapsed: float | None = None
     formed: float | None = None
     above_since: float | None = None
     next_check: float = -math.inf
     cut: bool = False
-    pipe_rate: float = 0.0
-    """m/s out of the pool cell into the one below; the sign says which way."""
+    pipe_q: float = 0.0
+    """m3/s out of the pool cell into the one below."""
     pool_side: int = 0
     base: tuple[float, float] = (0.0, 0.0)
     rows_out: list = field(default_factory=list)
 
+    @property
+    def hybrid(self):
+        return getattr(self.model.backend, "hooks", None)
+
     # --- reading the water
-    def levels(self) -> tuple[float, float]:
+    def _read(self, name: str, which: int) -> float:
+        if self.on_strip[which]:
+            return float(self.hybrid.strip_host(name)[self.cells[which]])
         m = self.model
-        d = m.read_cells("d", m.device_index(np.array(self.cells, np.int64)))
-        return self.floors[0] + float(d[0]), self.floors[1] + float(d[1])
+        return float(m.read_cells(name, m.device_index(np.array([self.cells[which]], np.int64)))[0])
+
+    def levels(self) -> tuple[float, float]:
+        if not any(self.on_strip):
+            m = self.model
+            d = m.read_cells("d", m.device_index(np.array(self.cells, np.int64)))
+            return self.floors[0] + float(d[0]), self.floors[1] + float(d[1])
+        return self.floors[0] + self._read("d", 0), self.floors[1] + self._read("d", 1)
 
     def due(self) -> list[float]:
         """Run times this breach must be stepped onto exactly."""
@@ -112,18 +131,33 @@ class BreachRun:
 
     # --- growing
     def _cut_faces(self, cut: Opening) -> None:
+        changed_any = False
         f = self.faces
-        lowered = np.minimum(f.crested, surface(self.geo, cut, f.s))
-        prof = np.maximum(f.free, lowered)
-        prof = np.minimum(np.maximum(prof, np.maximum(f.zmin_l, f.zmin_r)[:, None]), f.crested)
-        changed = np.any(prof < f.crested - 1e-9, axis=1)
-        if not changed.any():
-            return
-        cw = np.where(changed, self.b.weir_coefficient, f.cw0)
-        ft = face_tables(f, np.where(changed[:, None], prof, f.crested), cw, self.rows, self.e_lo, self.e_hi)
-        write(self.model.backend, f, ft, self.rows, only=changed)
-        self.cut = True
-        self.model.stepper.refresh_due = True
+        if f is not None:
+            lowered = np.minimum(f.crested, surface(self.geo, cut, f.s))
+            prof = np.maximum(f.free, lowered)
+            prof = np.minimum(np.maximum(prof, np.maximum(f.zmin_l, f.zmin_r)[:, None]), f.crested)
+            changed = np.any(prof < f.crested - 1e-9, axis=1)
+            if changed.any():
+                cw = np.where(changed, self.b.weir_coefficient, f.cw0)
+                ft = face_tables(f, np.where(changed[:, None], prof, f.crested), cw, self.rows, self.e_lo, self.e_hi)
+                write(self.model.backend, f, ft, self.rows, only=changed)
+                changed_any = True
+        sf = self.strip
+        if sf is not None:
+            lowered = np.minimum(sf.crested, surface(self.geo, cut, sf.s))
+            floor = np.repeat(np.maximum(sf.zmin_l, sf.zmin_r), np.diff(sf.start))
+            prof = np.minimum(np.maximum(np.maximum(sf.free, lowered), floor), sf.crested)
+            changed = sf.any_below(prof)
+            if changed.any():
+                cw = np.where(changed, self.b.weir_coefficient, sf.cw0)
+                pick = np.repeat(changed, np.diff(sf.start))
+                ft, zf = strip_face_tables(sf, np.where(pick, prof, sf.crested), cw, self.rows, self.e_lo, self.e_hi)
+                strip_write(self.hybrid, sf, ft, zf, self.rows, changed)
+                changed_any = True
+        if changed_any:
+            self.cut = True
+            self.model.stepper.refresh_due = True
 
     def _pipe(self, cut: Opening, pool: float, tail: float, side: int) -> float:
         """Orifice flow through the pipe, m3/s, held to what the pool cell can give."""
@@ -134,10 +168,8 @@ class BreachRun:
         if area <= 0.0 or head <= 0.0:
             return 0.0
         q = self.b.piping_coefficient * area * math.sqrt(2.0 * G * head)
-        h = float(
-            self.model.read_cells("h", self.model.device_index(np.array([self.cells[side]], np.int64)))[0]
-        )
-        return min(q, 0.5 * h * self.area / self.b.update_s)
+        h = self._read("h", side)
+        return min(q, 0.5 * h * self.areas[side] / self.b.update_s)
 
     def update(self, t: float) -> None:
         b = self.b
@@ -177,27 +209,32 @@ class BreachRun:
 
     # --- the pipe's sources
     def _set_pipe(self, q: float, side: int) -> None:
-        rate = q / self.area
-        if rate == 0.0 and self.pipe_rate == 0.0:
+        if q == 0.0 and self.pipe_q == 0.0:
             return
-        self.pipe_rate, self.pool_side = rate, side
+        self.pipe_q, self.pool_side = q, side
         self.patch()
 
     def pair(self) -> tuple[float, float]:
-        """Source rates of the two cells the pipe adds, m/s."""
-        r = self.pipe_rate
-        return (-r, r) if self.pool_side == 0 else (r, -r)
+        """Source rates of the two cells the pipe adds, m/s: equal and opposite volumes over each cell's area."""
+        q = self.pipe_q
+        a, b = self.areas
+        return (-q / a, q / b) if self.pool_side == 0 else (q / a, -q / b)
 
     def patch(self) -> None:
-        backend = self.model.backend
         add = self.pair()
         values = np.array([self.base[0] + add[0], self.base[1] + add[1]], np.float32)
-        idx = np.array(self.cells, np.int64)
-        cp = getattr(backend, "cp", None)
-        if cp is None:
-            backend.src[idx] = values
-        else:
-            backend.src[cp.asarray(idx)] = cp.asarray(values)
+        if not any(self.on_strip):
+            backend = self.model.backend
+            idx = np.array(self.cells, np.int64)
+            cp = getattr(backend, "cp", None)
+            if cp is None:
+                backend.src[idx] = values
+            else:
+                backend.src[cp.asarray(idx)] = cp.asarray(values)
+            return
+        for which in (0, 1):
+            src = self.hybrid.state.src if self.on_strip[which] else self.model.backend.src
+            src[int(self.cells[which])] = values[which]
 
 
 @dataclass
@@ -208,7 +245,7 @@ class BreachSet:
 
     @property
     def piping(self) -> bool:
-        return any(r.pipe_rate != 0.0 for r in self.runs)
+        return any(r.pipe_q != 0.0 for r in self.runs)
 
     def window_end(self, t: float, t_next: float) -> float:
         for run in self.runs:
@@ -267,6 +304,21 @@ def _centre_face(faces: BreachFaces, centre: float) -> int:
     return int(np.argmin(np.abs(faces.s.mean(axis=1) - centre)))
 
 
+def _strip_cells(sf: StripFaces, mesh, m: int) -> tuple[list[int], list[bool], list[float], list[float]]:
+    """The two cells of strip face ``m``: a real strip cell by its index, a ghost as the tile cell it stands for."""
+    cells, on, floors, areas = [], [], [], []
+    for c in (int(sf.left[m]), int(sf.right[m])):
+        floors.append(float(mesh.zmin[c]))
+        areas.append(float(mesh.area[c]))
+        if c < mesh.real:
+            cells.append(c)
+            on.append(True)
+        else:
+            cells.append(int(mesh.ghost_state[c - mesh.real]))
+            on.append(False)
+    return cells, on, floors, areas
+
+
 def build_breaches(cfg: RunConfig, tables, model, forcing, crs: str, progress=None) -> BreachSet | None:
     """The job's breaches on this model, or None; refuses in words (ValueError) what it cannot do."""
     if not cfg.breaches:
@@ -294,48 +346,80 @@ def build_breaches(cfg: RunConfig, tables, model, forcing, crs: str, progress=No
                 raise ValueError(f"breach: no crest line or embankment named '{b.dam}'")
             width = obj.section.width if obj.kind == "embankment" and obj.section is not None else 0.0
             snap = 0.75 * grid.dx + 0.5 * width
-            faces = build_faces(tables, bed, edits, obj, manning, snap)
-            run = _make_run(cfg, tables, model, forcing, b, obj, faces, shapely, progress)
+            free_edit = edits.edit
+            if obj.kind == "embankment":  # the ground without this dam keeps every other edit (W69; W63 took the raw DEM)
+                others = [o for o in cfg.terrain.objects if o is not obj]
+                free_edit = apply_objects(grid, others, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
+            faces = build_faces(tables, bed, edits, obj, manning, snap, free_edit)
+            strip = build_strip_faces(cfg, tables, bed, edits, free_edit, obj, model)
+            if faces is None and strip is None:
+                raise ValueError(f"breach: no open crest face of '{obj.name}' on the grid")
+            run = _make_run(cfg, tables, model, forcing, b, obj, faces, strip, shapely, progress)
             runs.append(run)
     return BreachSet(runs, progress)
 
 
-def _make_run(
-    cfg, tables, model, forcing, b: Breach, obj, faces: BreachFaces, shapely, progress
-) -> BreachRun:
-    grid = tables.grid
-    rows, e_lo, e_hi = cfg.tables.rows, cfg.tables.face_depth_min, cfg.tables.face_depth_max
-    built = read_back(model.backend, faces, rows)
-    rebuilt = face_tables(faces, faces.crested, faces.cw0, rows, e_lo, e_hi)
+def _check(b: Breach, built, rebuilt, where: str) -> None:
     dz, dt = mismatch(built, rebuilt)
     if dz > INVERT_TOLERANCE_M or dt > 1e-3:
         raise ValueError(
-            f"breach of {b.dam}: its faces cannot be rebuilt as the tables built them (invert off by {dz:.3g} m, table "
-            f"by {dt:.2g}); a lined channel or a Manning raster under the dam is not handled"
+            f"breach of {b.dam}: its faces {where}cannot be rebuilt as the tables built them (invert off by {dz:.3g} m, "
+            f"table by {dt:.2g}); a lined channel or a Manning raster under the dam is not handled"
         )
+
+
+def _make_run(
+    cfg, tables, model, forcing, b: Breach, obj, faces: BreachFaces | None, strip: StripFaces | None, shapely, progress
+) -> BreachRun:
+    grid = tables.grid
+    rows, e_lo, e_hi = cfg.tables.rows, cfg.tables.face_depth_min, cfg.tables.face_depth_max
+    if faces is not None:
+        _check(b, read_back(model.backend, faces, rows), face_tables(faces, faces.crested, faces.cw0, rows, e_lo, e_hi), "")
+    hybrid = getattr(model.backend, "hooks", None)
+    if strip is not None:
+        rebuilt, _zf = strip_face_tables(strip, strip.crested, strip.cw0, rows, e_lo, e_hi)
+        _check(b, strip_read_back(hybrid, strip, rows), rebuilt, "on the corridors ")
     length = shapely.LineString(obj.coordinates).length
     if b.station_m is not None and b.station_m > length:
         raise ValueError(
             f"breach of {b.dam}: station {b.station_m:g} m lies past the line's end at {length:.0f} m"
         )
+    # every sample of both parts, the squares' first: stations, crested and free ground
+    s_all = np.concatenate([p for p in (None if faces is None else faces.s.ravel(), None if strip is None else strip.s) if p is not None])
+    crest_all = np.concatenate([p for p in (None if faces is None else faces.crested.ravel(), None if strip is None else strip.crested) if p is not None])
+    free_all = np.concatenate([p for p in (None if faces is None else faces.free.ravel(), None if strip is None else strip.free) if p is not None])
     centre = b.station_m
     if centre is None:
-        low = np.unravel_index(np.argmin(faces.free), faces.free.shape)
-        centre = float(faces.s[low])
-    near = np.unravel_index(np.argmin(np.abs(faces.s - centre)), faces.s.shape)
-    top = float(faces.crested[near])
+        centre = float(s_all[np.argmin(free_all)])
+    top = float(crest_all[np.argmin(np.abs(s_all - centre))])
     geo, note = final_geometry(b, centre, top)
     if progress is not None and note is not None:
         progress.emit("breach", dam=b.dam, event="estimated", note=note)
-    m = _centre_face(faces, centre)
-    (jl, il), (jr, ir) = faces.cells(m)
-    cells = (model.cell_state_index(jl, il), model.cell_state_index(jr, ir))
-    floors = (float(tables.zmin[jl, il]), float(tables.zmin[jr, ir]))
+    gap_sq = math.inf if faces is None else float(np.min(np.abs(faces.s.mean(axis=1) - centre)))
+    gap_st = math.inf
+    if strip is not None:
+        means = strip.per_face(strip.s, np.mean)
+        gap_st = float(np.min(np.abs(means - centre)))
+    on_strip = (False, False)
+    if gap_sq <= gap_st:
+        m = _centre_face(faces, centre)
+        (jl, il), (jr, ir) = faces.cells(m)
+        cells = (model.cell_state_index(jl, il), model.cell_state_index(jr, ir))
+        floors = (float(tables.zmin[jl, il]), float(tables.zmin[jr, ir]))
+        areas = (grid.dx * grid.dx, grid.dx * grid.dx)
+    else:
+        m = int(np.argmin(np.abs(means - centre)))
+        c, on, fl, ar = _strip_cells(strip, tables.strip.mesh, m)
+        cells, on_strip, floors, areas = tuple(c), tuple(on), tuple(fl), tuple(ar)
     entries = None
     if b.mode == "piping":
         lattice = np.asarray(forcing.state[: forcing.n_lattice])
-        where = [np.nonzero(lattice == c)[0] for c in cells]
+        where = []
+        for c, own in zip(cells, on_strip, strict=True):
+            where.append(np.array([forcing.n_lattice + c]) if own else np.nonzero(lattice == c)[0])
         if any(w.size != 1 for w in where):
             raise ValueError(f"breach of {b.dam}: the pipe's cells are not interior cells of the grid")
         entries = (int(where[0][0]), int(where[1][0]))
-    return BreachRun(b, faces, geo, model, rows, e_lo, e_hi, cells, floors, grid.dx * grid.dx, entries)
+    return BreachRun(
+        b, faces, geo, model, rows, e_lo, e_hi, cells, floors, areas, entries, strip=strip, on_strip=on_strip
+    )
