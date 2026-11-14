@@ -1,4 +1,4 @@
-﻿"""HMS's result series of every W59 case to one CSV per case, plus the basin files and the tables as JSON.
+"""HMS's result series of every W59 case to one CSV per case, plus the basin files and the tables as JSON.
 
 The CSVs are the oracle of ``tests/hydrology/test_hms_structures.py``: the test needs neither HMS nor DSS. Columns:
 inflow (FLOW-COMBINE), outflow (FLOW), storage_m3 (STORAGE x 1000), elevation_m, area_m2, tailwater_m, evaporation

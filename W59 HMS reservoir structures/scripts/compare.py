@@ -1,4 +1,4 @@
-﻿"""Every W59 case through Wadi2D's reader and reservoir, against HMS's own series: outflow, pool, storage, structures.
+"""Every W59 case through Wadi2D's reader and reservoir, against HMS's own series: outflow, pool, storage, structures.
 
 HMS's inflow of record (FLOW-COMBINE) is routed by the reservoir the reader builds from HMS's own basin file and the
 tables of the test project; the differences are written to ``results/compare.json`` and printed.

@@ -1,4 +1,4 @@
-﻿"""Candidate laws for the dam top, the rating spillway, the seepage and the evaporation against HMS's own series."""
+"""Candidate laws for the dam top, the rating spillway, the seepage and the evaporation against HMS's own series."""
 
 from pathlib import Path
 

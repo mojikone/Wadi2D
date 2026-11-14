@@ -111,7 +111,7 @@ def _evaporated(run) -> np.ndarray:
 
 
 def test_evaporation_volume_matches_hms(compared) -> None:
-    case, hms, run = compared
+    _case, hms, run = compared
     if "evaporation_m3" not in hms:
         pytest.skip("no evaporation in this case")
     assert _evaporated(run).sum() == pytest.approx(hms["evaporation_m3"].sum(), rel=EVAPORATION_TOLERANCE)

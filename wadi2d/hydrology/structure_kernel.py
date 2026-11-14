@@ -1,4 +1,4 @@
-﻿"""The compiled core of a reservoir with outflow structures: each structure a law Q(pool, tailwater), summed in one
+"""The compiled core of a reservoir with outflow structures: each structure a law Q(pool, tailwater), summed in one
 implicit trapezoid step with HMS's adaptive bisection.
 
 Interface: :func:`structure_flows`, :func:`route_structures`. Numba kernels on plain arrays; the structures arrive packed
@@ -83,7 +83,7 @@ def _structure(
     """The flow of one structure at a pool level, m3/s, and its dQ/dz."""
     kind = kinds[index]
     stage = tailwater[outlets[index]]
-    if kind == BROAD_CRESTED or kind == LEVEL_DAM_TOP:
+    if kind in (BROAD_CRESTED, LEVEL_DAM_TOP):
         head = level - parameters[index, 0]
         if head <= 0.0:
             return 0.0, 0.0

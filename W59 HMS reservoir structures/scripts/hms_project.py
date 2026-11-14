@@ -1,4 +1,4 @@
-﻿"""A small metric HEC-HMS 4.12 project written from scratch: one basin per reservoir case, Source -> Reservoir -> Sink.
+"""A small metric HEC-HMS 4.12 project written from scratch: one basin per reservoir case, Source -> Reservoir -> Sink.
 
 Nothing here touches his projects. The project goes to ``_work/<folder>``; HMS is run on it by ``run_hms.ps1`` with a
 Jython script. Every case shares one inflow hydrograph (a discharge gage in the project DSS) and one control window

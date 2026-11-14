@@ -1,4 +1,4 @@
-﻿"""The link from the grid to the live network: lines that tally, a step that reroutes, injections that hold.
+"""The link from the grid to the live network: lines that tally, a step that reroutes, injections that hold.
 
 At each lumped step the volume that crossed a line in that step, over the step, is the element's inflow for that
 period. The network reruns on the inflow so far, and the last ordinate of its outflow enters the grid over the next
