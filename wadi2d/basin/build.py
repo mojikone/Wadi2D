@@ -25,6 +25,7 @@ from wadi2d.basin.contract import (
     write_model,
 )
 from wadi2d.basin.delineate import Surface, flow_surface, read_surface
+from wadi2d.basin.diversion import check_targets
 from wadi2d.basin.elements import Built, Namer, build_elements
 from wadi2d.basin.kernels import NONE
 from wadi2d.basin.layers import write_layers
@@ -93,6 +94,7 @@ def assemble(
     namer = Namer(previous, surface.pixel, reserved)
     built = build_elements(cfg, surface, network, settings, namer, notes)
     _outfalls(built, network, [point.name for point in pour.values() if point.role == POINT_OUTFALL], notes)
+    check_targets(built.elements)
     model: Model = {
         "format": FORMAT,
         "format_version": FORMAT_VERSION,

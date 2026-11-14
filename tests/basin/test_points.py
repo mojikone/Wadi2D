@@ -196,14 +196,15 @@ def test_a_diversion_point_carries_its_block(valley: Valley) -> None:
         valley,
         [
             {"name": "Div", "kind": "diversion", "method": "Inflow-Diversion Table", "divert_to": "Site",
-             "limits": '{"max_m3s": 50}', "col": NX // 2, "row": 180},
+             "table": "[[0, 0], [500, 100]]", "limits": '{"max_m3s": 50}', "col": NX // 2, "row": 180},
             {"name": "Site", "kind": "design_point", "alias": "S-1", "col": NX // 2, "row": LOW},
         ],
     )  # fmt: skip
     div = elements(m)["Div"]
     assert div["kind"] == "junction"
-    assert div["diversion"] == {
-        "method": "Inflow-Diversion Table", "divert_to": "Site", "table": None, "limits": {"max_m3s": 50}, "point": "Div",
+    assert div["diversion"] == {  # read for the element at generation since W75
+        "method": "Inflow-Diversion Table", "divert_to": "Site", "table": "[[0, 0], [500, 100]]", "parameters": None,
+        "limits": {"max_flow_m3s": 50.0}, "point": "Div", "tables": {"table": {"x": [0.0, 500.0], "y": [0.0, 100.0]}},
     }  # fmt: skip
     assert elements(m)["Site"]["pour_point"]["aliases"] == ["S-1"]
 

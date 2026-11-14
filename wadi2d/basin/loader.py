@@ -2,7 +2,8 @@
 
 Interface: :func:`load_network`. An incomplete element raises and names what it lacks. With ``skip_incomplete`` the network holds
 only what can run: an incomplete subbasin leaves, an incomplete reach cuts the network (the element above it becomes an outlet of
-the lumped network, its water for the 2D grid), and a reservoir with no rating passes its inflow as a junction.
+the lumped network, its water for the 2D grid), and a reservoir with no rating passes its inflow as a junction. A junction
+carrying a diversion point's block runs as W72's diversion element (W75).
 """
 
 from __future__ import annotations
@@ -24,10 +25,12 @@ from wadi2d.basin.contract import (
     refresh,
     value_of,
 )
+from wadi2d.basin.diversion import diversion_routing, resolve_block
 from wadi2d.basin.source import SOURCE_HYDROGRAPH
 from wadi2d.config.schema import REACH_HMS
+from wadi2d.hydrology.diversion import CONSTANT_DIVERSION
 from wadi2d.hydrology.losses import LOSS_METHODS, SCS_CN
-from wadi2d.hydrology.model import Basin, Junction, Reach, Reservoir, Subbasin
+from wadi2d.hydrology.model import Basin, Diversion, Junction, Reach, Reservoir, Subbasin
 from wadi2d.hydrology.reservoir import RESERVOIR_OUTFLOW_STRUCTURES, Spillway
 from wadi2d.hydrology.routing import MUSKINGUM_CUNGE, ROUTING_METHODS
 from wadi2d.hydrology.transforms import SCS_UH, TRANSFORM_METHODS
@@ -79,6 +82,23 @@ def _source(element: Element, downstream: str | None) -> Reach:
     return Reach(name=element["name"], downstream=downstream, routing=routing)
 
 
+def _diversion(element: Element, downstream: str | None, names: set[str]) -> Diversion:
+    """A junction carrying a diversion point's block as W72's diversion element (W75, :mod:`wadi2d.basin.diversion`)."""
+    block = element["diversion"]
+    if not block.get("tables") and block.get("method") not in (None, CONSTANT_DIVERSION):
+        block = resolve_block(block)  # a block written by hand: its tables are read now, absolute paths or inline
+    target = block.get("divert_to")
+    if target is not None and target not in names:
+        raise ValueError(
+            f"diversion {element['name']}: divert_to {target!r} is not an element of the network that runs"
+        )
+    try:
+        routing = diversion_routing(block)
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(f"diversion {element['name']}: {error}") from error
+    return Diversion(name=element["name"], downstream=downstream, routing=routing, branch=target)
+
+
 def _as_model(source: str | Path | Model) -> Model:
     return read_model(source) if isinstance(source, str | Path) else refresh(check_model(source))
 
@@ -104,6 +124,7 @@ def load_network(
     if incomplete and not skip_incomplete:
         raise ValueError(f"incomplete elements: {incomplete}")
     kept, cut = _complete(model)
+    names = {e["name"] for e in kept} - cut
     built: list[Any] = []
     for element in kept:
         downstream = None if element["downstream"] in cut else element["downstream"]
@@ -115,6 +136,8 @@ def load_network(
             built.append(_reservoir(element, downstream))
         elif element["kind"] == SOURCE:
             built.append(_source(element, downstream))
+        elif element.get("diversion"):
+            built.append(_diversion(element, downstream, names))
         else:
             built.append(Junction(name=element["name"], downstream=downstream))
     return Basin(model["name"], built)
