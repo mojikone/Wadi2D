@@ -171,6 +171,8 @@ class Model:
         return float(self.field("h").sum(dtype=np.float64) * self.grid.dx**2)
 
     def cell_state_index(self, j: int, i: int) -> int:
+        if getattr(self.grid, "quad", False):  # the cell covering raster cell (j, i), coarse or fine (W71)
+            return int(self.grid.state_index(j, i))
         t, oj, oi = self.grid.locate(j, i)
         return int(local_index(t, oj + HALO, oi + HALO))
 

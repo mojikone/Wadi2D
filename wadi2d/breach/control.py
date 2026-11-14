@@ -36,6 +36,7 @@ from wadi2d.breach.strip import read_back as strip_read_back
 from wadi2d.breach.strip import write as strip_write
 from wadi2d.config.constants import G
 from wadi2d.config.schema import Breach, RunConfig
+from wadi2d.solver.layout import STRIDE2
 
 DAM_KINDS = ("crest_line", "embankment")
 SERIES_HEADER = "t_s,formed,bottom_m,bottom_width_m,pipe_top_m,pool_level_m,tail_level_m,pipe_q_m3s"
@@ -43,8 +44,6 @@ SERIES_HEADER = "t_s,formed,bottom_m,bottom_width_m,pipe_top_m,pool_level_m,tail
 
 def refusal(cfg: RunConfig) -> str | None:
     """Why this job cannot take a breach, or None."""
-    if cfg.mesh.enabled:
-        return "a breach runs on the uniform grid and its corridors in this version: untick the mesh refinement"
     if cfg.numerics.local_time_stepping:
         return "a breach is not tested with local time stepping: switch it off"
     return None
@@ -406,7 +405,10 @@ def _make_run(
         (jl, il), (jr, ir) = faces.cells(m)
         cells = (model.cell_state_index(jl, il), model.cell_state_index(jr, ir))
         floors = (float(tables.zmin[jl, il]), float(tables.zmin[jr, ir]))
-        areas = (grid.dx * grid.dx, grid.dx * grid.dx)
+        if getattr(grid, "quad", False):  # a coarse cell beside the dam (W71)
+            areas = tuple(float(grid.tile_dx[c // STRIDE2] ** 2) for c in cells)
+        else:
+            areas = (grid.dx * grid.dx, grid.dx * grid.dx)
     else:
         m = int(np.argmin(np.abs(means - centre)))
         c, on, fl, ar = _strip_cells(strip, tables.strip.mesh, m)
