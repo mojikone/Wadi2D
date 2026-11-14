@@ -1,0 +1,36 @@
+{
+  "at rest (W61)": {
+    "pile_m": 4.295,
+    "pile_at": [
+      439415.98973783385,
+      2728690.393463373
+    ],
+    "line_max_m": 2.195,
+    "line_at": [
+      439495.98973783385,
+      2728690.393463373
+    ],
+    "warning": [
+      "water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there"
+    ],
+    "inflow_m3": 35999.99958651423,
+    "relative_error": -2.8738361373585495e-09
+  },
+  "moving (W70)": {
+    "pile_m": 4.295,
+    "pile_at": [
+      439415.98973783385,
+      2728690.393463373
+    ],
+    "line_max_m": 2.195,
+    "line_at": [
+      439495.98973783385,
+      2728690.393463373
+    ],
+    "warning": [
+      "water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there"
+    ],
+    "inflow_m3": 35999.99958651423,
+    "relative_error": -3.853369623370928e-09
+  }
+}
