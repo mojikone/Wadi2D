@@ -302,7 +302,9 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
             _stopped(summary, progress, stop)
             return
         storm = cfg.storm.model_copy(update={"storm_area_km2": area})
-        one = cfg.model_copy(update={"storm": storm, "outputs": outputs})
+        # every run reads the study's own cache (the edge check's streams too, W78), so nothing is cached per run
+        grid = cfg.grid.model_copy(update={"cache_dir": str(cache)})
+        one = cfg.model_copy(update={"storm": storm, "outputs": outputs, "grid": grid})
         run_dir = folder / RUNS_DIR / run_name(area)
         folders.append(run_dir)
         # which run comes next and where it writes: a caller follows that run's own progress file
