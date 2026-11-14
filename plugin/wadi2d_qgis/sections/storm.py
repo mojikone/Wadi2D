@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from ..gauge_rows import GAP_WORDS, INVERSE_DISTANCE, METHOD_WORDS, RAIN, VALUE_WORDS
 from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
 from ..rain_chart import HyetographChart, PreviewTable
 from ..storm_rows import (
@@ -44,6 +45,7 @@ from ..storm_rows import (
     rain_text,
 )
 from .common import Section, bind, number_box
+from .gauge_table import GaugeTable
 
 RAIN_UNITS = "storm.rain_units"
 RAIN_STAMP = "storm.rain_stamp"
@@ -65,9 +67,11 @@ ARF_CHOICES = (
 )
 SINGLE_CHOICES = ((KIND_STEADY, "Constant rain"), (KIND_TABLE, "A table of periods"))
 GAUGES_NOTE = (
-    "The rain of the rain gauges listed in the Gauges section (7b), spread over the cells and the lumped subbasins by "
-    "the method chosen there. Gauged rain has no area reduction."
+    "Each gauge's record spread over the cells and the lumped subbasins by the method below, as received: gauged rain "
+    "has no area reduction. Flow and level gauges, to compare a run with, are in the Gauges section (7b)."
 )
+POSITION_TIP = "x, y in the DEM's coordinates; a gauge from the points layer stands at its point."
+RADIUS_DECIMALS = 0
 STUDY_NOTE = (
     "The depth-area study reads the table at each of its storm areas, run by run. The storm area above is that of a "
     "single Run."
@@ -145,8 +149,6 @@ class StormSection(Section):
     """The rain file or how it is read has changed: ask the engine what it holds."""
     preview_requested = pyqtSignal()
     """Preview rain: the dock writes the job and asks the engine."""
-    gauges_requested = pyqtSignal()
-    """The rain gauges' summary is wanted, or the Gauges section itself."""
     study_areas_requested = pyqtSignal()
     """The depth-area study's storm areas are wanted, read only."""
 
@@ -239,14 +241,51 @@ class StormSection(Section):
         return page
 
     def _gauges_page(self) -> QWidget:
+        """The rain gauges themselves (W77; W54 had them in the Gauges section) and how their rain is spread."""
         page, form = _page()
-        self.gauges_label = _words("")
-        self.gauges_button = QPushButton("Open the Gauges section")
+        self.gauge_table = GaugeTable((RAIN,), "Position, x, y", POSITION_TIP, points=True)
+        self.gauge_method = QComboBox()
+        for key, words in METHOD_WORDS.items():
+            self.gauge_method.addItem(words, key)
+        self.gauge_radius = number_box(RADIUS_DECIMALS)
+        self.gauge_radius.setRange(0.0, 1e7)
+        self.gauge_radius.setSpecialValueText("Every gauge")
+        self.gauge_gaps = QComboBox()
+        for key, words in GAP_WORDS.items():
+            self.gauge_gaps.addItem(words, key)
+        self.gauge_values = QComboBox()
+        for key, words in VALUE_WORDS.items():
+            self.gauge_values.addItem(words, key)
+        self.gauge_start = QLineEdit()
+        self.gauge_start.setPlaceholderText("Start of the first period of rain")
+        self.gauge_start.setToolTip("Date and time the run starts at, as 2021-10-04 00:00, for records written with dates")
         form.addRow(_words(GAUGES_NOTE))
-        form.addRow(self.gauges_label)
-        form.addRow(self.gauges_button)
-        self.gauges_button.clicked.connect(self.gauges_requested.emit)
+        form.addRow(self.gauge_table)
+        form.addRow("Rain spread by", self.gauge_method)
+        form.addRow("Search radius, m", self.gauge_radius)
+        form.addRow("A gauge with no value", self.gauge_gaps)
+        form.addRow("A rain CSV holds", self.gauge_values)
+        form.addRow("Run starts at", self.gauge_start)
+        self.gauge_method.currentIndexChanged.connect(self._method_changed)
+        self._method_changed()
         return page
+
+    def _method_changed(self, *_) -> None:
+        self.gauge_radius.setEnabled(self.gauge_method.currentData() == INVERSE_DISTANCE)
+
+    def gauge_values_of(self, crs) -> dict:
+        """The rain gauges and their reading rules, as W54's Gauges section gave them."""
+        rows = self.gauge_table.current_rows(crs)
+        for row in rows:
+            row.values = self.gauge_values.currentData()
+        radius = self.gauge_radius.value()
+        settings = {
+            "method": self.gauge_method.currentData(),
+            "radius_m": radius if radius > 0.0 else None,
+            "gaps": self.gauge_gaps.currentData(),
+            "start": self.gauge_start.text().strip(),
+        }
+        return {"rows": rows, "settings": settings}
 
     def _reduction_block(self) -> QWidget:
         """One area reduction for a design storm and a grid of point depths: none, at one area, or by the study."""
@@ -312,6 +351,12 @@ class StormSection(Section):
         self.stamp.setToolTip(schema.tip(RAIN_STAMP))
         self.period.setToolTip(schema.tip(RAIN_INTERVAL))
         self.period.setRange(0.0, 1e6)
+        for path, widget in (
+            ("storm.gauges.method", self.gauge_method), ("storm.gauges.search_radius_m", self.gauge_radius),
+            ("storm.gauges.gaps", self.gauge_gaps),
+        ):  # fmt: skip
+            if schema.has(path):
+                widget.setToolTip(schema.tip(path))
 
     def _fill_kinds(self, with_hms: bool) -> None:
         held = self.kind.currentData()
@@ -342,8 +387,6 @@ class StormSection(Section):
         self.preview_label.clear()
         self.preview_table.hide()
         self.preview_chart.hide()
-        if source == KIND_GAUGES:
-            self.gauges_requested.emit()
 
     def _reduction_shown(self) -> None:
         mode = self.arf_mode.currentData()
@@ -359,9 +402,6 @@ class StormSection(Section):
     def show_study_areas(self, text: str) -> None:
         """The study's storm areas, read only: they are set in section 9."""
         self.study_label.setText(f"{STUDY_NOTE} {text}".strip())
-
-    def show_gauges(self, text: str) -> None:
-        self.gauges_label.setText(text)
 
     # The rain file, through the engine
 
@@ -463,5 +503,5 @@ class StormSection(Section):
             }
             return {"storm": storm}
         if source == KIND_GAUGES:
-            return {"storm": {"kind": KIND_GAUGES}}
+            return {"storm": {"kind": KIND_GAUGES}, "rain_gauges": self.gauge_values_of(crs)}
         return {"storm": self.grid_values()}

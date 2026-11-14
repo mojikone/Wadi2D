@@ -13,6 +13,7 @@ from wadi2d_qgis.gauge_rows import (
     RAIN,
     GaugeRow,
     gauge_problems,
+    joined_gauges,
     merge_rows,
     observed_records,
     position_text,
@@ -125,3 +126,69 @@ def test_an_empty_gauges_table_leaves_the_job_as_it_was(tmp_path: Path) -> None:
     empty = build_job(values(tmp_path, gauges={"rows": [], "settings": {}}), tmp_path / "out")
     assert plain == empty and "observed" not in empty["outputs"]
     assert problems(values(tmp_path, gauges={"rows": [], "settings": {}})) == []
+    joined = joined_gauges(values(tmp_path, observed_gauges={"rows": [], "start": ""}))
+    assert build_job(joined, tmp_path / "out") == plain and problems(joined) == []
+
+
+START = "2021-10-04 00:00"
+OUTLET = [Feature("LineString", [[400000.0, 2699500.0], [400500.0, 2699500.0]], {"name": "Outlet"})]
+WELL = [Feature("Point", [400200.0, 2699500.0], {"name": "Well"})]
+
+
+def _rows(tmp_path: Path):
+    rain = [
+        GaugeRow("West", RAIN, file=record(tmp_path, "w.csv"), x=400100.0, y=2699500.0, from_layer=True),
+        GaugeRow("East", RAIN, file=record(tmp_path, "e.csv"), x=400400.0, y=2699500.0, values="cumulative"),
+    ]
+    observed = [
+        GaugeRow("Q", FLOW, file=record(tmp_path, "q.csv"), at="Outlet"),
+        GaugeRow("H", LEVEL, file=record(tmp_path, "h.csv"), at="Well", series="stage"),
+    ]
+    return rain, observed
+
+
+CASES = {
+    "rain gauges only, nearest gauge, a start": (
+        "gauges", True, False, {"method": "thiessen", "radius_m": None, "gaps": "error", "start": START}, START, ""
+    ),
+    "rain, flow and level, inverse distance in a radius": (
+        "gauges", True, True, {"method": "inverse_distance", "radius_m": 5000.0, "gaps": "zero", "start": START},
+        START, "",
+    ),
+    "rain and flow, no start": ("gauges", True, True, {"method": "thiessen", "gaps": "neighbours", "start": ""}, "", ""),
+    "flow and level under a design storm, a start": ("hypothetical", False, True, {}, START, START),
+}
+
+
+@pytest.mark.parametrize("case", list(CASES))
+def test_the_two_tables_write_the_job_the_one_table_wrote(tmp_path: Path, case: str) -> None:
+    """W77: rain gauges in the Storm section, flow and level gauges in 7b; for the same rows the job is W54's."""
+    kind, with_rain, with_observed, settings, old_start, typed_start = CASES[case]
+    rain, observed = _rows(tmp_path)
+    rain, observed = (rain if with_rain else []), (observed if with_observed else [])
+    storm = {"kind": "gauges"} if kind == "gauges" else {
+        "kind": "hypothetical", "depth_mm": 80.0, "hours": 2.0, "pattern": [(0.0, 0.0), (100.0, 100.0)],
+        "area_km2": 0.0, "arf": [],
+    }  # fmt: skip
+    old_settings = {**settings, "start": old_start}
+    old = values(tmp_path, storm=storm, design=OUTLET + WELL, gauges={"rows": rain + observed, "settings": old_settings})
+    new = values(tmp_path, storm=storm, design=OUTLET + WELL, observed_gauges={"rows": observed, "start": typed_start})
+    if kind == "gauges":
+        new["rain_gauges"] = {"rows": rain, "settings": settings}
+    new = joined_gauges(new)
+    assert problems(old) == problems(new) == []
+    first, second = build_job(old, tmp_path / "out"), build_job(new, tmp_path / "out")
+    assert first == second
+    config.RunConfig.model_validate(second)
+
+
+def test_the_records_own_start_wins_over_the_rain_gauges(tmp_path: Path) -> None:
+    rain, observed = _rows(tmp_path)
+    new = joined_gauges(values(
+        tmp_path, storm={"kind": "gauges"}, design=OUTLET + WELL,
+        rain_gauges={"rows": rain, "settings": {"method": "thiessen", "start": START}},
+        observed_gauges={"rows": observed, "start": "2021-10-03 23:00"},
+    ))  # fmt: skip
+    job = build_job(new, tmp_path / "out")
+    assert job["storm"]["rain_start"] == START
+    assert {r["start"] for r in job["outputs"]["observed"]} == {"2021-10-03 23:00"}

@@ -552,7 +552,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
-    start = (gauges.get("settings") or {}).get("start", "")
+    settings = gauges.get("settings") or {}
+    start = settings.get("observed_start", settings.get("start", ""))  # W77: the records' own start, else W54's one
     observed = observed_records(gauges.get("rows") or [], *_design_names(values), start)
     if observed:  # only when the table has flow or level gauges: an old job stays the job it was
         job["outputs"]["observed"] = observed

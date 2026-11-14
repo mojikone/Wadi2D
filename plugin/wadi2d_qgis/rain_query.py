@@ -3,9 +3,8 @@
 """The Storm section's questions to the rest of the dock and to the engine (W65).
 
 Preview rain writes the job a run would write, in a scratch folder, through the HMS import when there is one, and asks
-``wadi2d rain-preview`` what each lumped subbasin and the 2D area take; the plugin computes none of it. The section's
-summaries of the rain gauges and of the study's storm areas are read from those sections here, so the Storm section
-never knows another section.
+``wadi2d rain-preview`` what each lumped subbasin and the 2D area take; the plugin computes none of it. The study's
+storm areas are read from that section here, so the Storm section never knows another section.
 """
 
 from __future__ import annotations
@@ -19,7 +18,6 @@ from qgis.PyQt.QtCore import QObject
 
 from . import settings
 from .engine_process import EngineQuery
-from .gauge_rows import gauges_text
 from .job_builder import LayerError, problems
 from .protocol import engine_error_text, exit_message
 from .storm_rows import preview_args
@@ -37,19 +35,7 @@ class StormLinks(QObject):
         self._query: EngineQuery | None = None
         self._scratch: str | None = None
         self.storm.preview_requested.connect(self.preview)
-        self.storm.gauges_requested.connect(self.show_gauges)
-        self.storm.gauges_button.clicked.connect(self.open_gauges)
         self.storm.study_areas_requested.connect(self.show_study_areas)
-
-    def show_gauges(self) -> None:
-        gauges = self.dock.gauges
-        self.storm.show_gauges(gauges_text(gauges.rows, gauges.method.currentData()))
-
-    def open_gauges(self) -> None:
-        self.dock.gauges.setCollapsed(False)
-        scroll = self.dock.widget()
-        if hasattr(scroll, "ensureWidgetVisible"):
-            scroll.ensureWidgetVisible(self.dock.gauges)
 
     def show_study_areas(self) -> None:
         study = self.dock.study

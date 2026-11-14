@@ -242,10 +242,3 @@ def test_the_preview_is_asked_of_the_engine_and_said_in_one_line() -> None:
     )
 
 
-def test_the_gauges_summary_names_the_rain_gauges_only() -> None:
-    from wadi2d_qgis.gauge_rows import GaugeRow, gauges_text
-
-    rows = [GaugeRow("West"), GaugeRow("East"), GaugeRow("Dam", kind="flow")]
-    assert gauges_text(rows, "thiessen") == "2 rain gauges: West, East. Spread by nearest gauge (thiessen)."
-    assert gauges_text([], "thiessen").startswith("No rain gauge")
-

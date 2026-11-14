@@ -155,11 +155,17 @@ def read_position(text: str) -> tuple[float, float] | None:
         return None
 
 
-def gauges_text(rows, method: str) -> str:
-    """Which rain gauges the Gauges section lists, and how their rain is spread."""
-    names = [row.name for row in rows if row.kind == RAIN]
-    if not names:
-        return "No rain gauge is listed yet: add them in the Gauges section."
-    shown = ", ".join(names[:8]) + (f" and {len(names) - 8} more" if len(names) > 8 else "")
-    count = "1 rain gauge" if len(names) == 1 else f"{len(names)} rain gauges"
-    return f"{count}: {shown}. Spread by {METHOD_WORDS.get(method, method).lower()}."
+def joined_gauges(values: dict) -> dict:
+    """The dock's values with W54's one ``gauges`` table, from the Storm section's rain gauges (``rain_gauges``, given
+    only when the storm takes its rain from them) and the Gauges section's flow and level gauges (``observed_gauges``).
+
+    The two tables keep their own orders, and the job lists rain gauges and observed records apart, so the job is the
+    one W54's single table wrote for the same rows. W54 had one start for both; now the records' own start wins, and
+    left empty it is the rain gauges' start, which is what one field for both gave.
+    """
+    rain = values.pop("rain_gauges", None) or {}
+    observed = values.pop("observed_gauges", None) or {}
+    settings = dict(rain.get("settings") or {})
+    settings["observed_start"] = observed.get("start", "") or settings.get("start", "")
+    values["gauges"] = {"rows": list(rain.get("rows") or []) + list(observed.get("rows") or []), "settings": settings}
+    return values

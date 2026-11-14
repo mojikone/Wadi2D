@@ -227,17 +227,49 @@ def storm_sources(dock) -> None:
     old = {**old, "arf_on": True, "arf": [(10.0, 0.9), (1000.0, 0.6)]}
     check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a grid of point depths as before")
 
-    pick(storm.kind, "gauges")
-    check(storm.values(crs) == {"storm": {"kind": "gauges"}}, "storm: the gauges write what they wrote")
-    pump(lambda: "rain gauge" in storm.gauges_label.text(), 5.0, "the gauges summary")
-    check("No rain gauge" in storm.gauges_label.text(), f"storm: {storm.gauges_label.text()}")
-    storm.gauges_button.click()
-    check(not dock.gauges.isCollapsed(), "storm: the gauges button opens the Gauges section")
-    dock.gauges.setCollapsed(True)
+    storm_gauges(dock, crs)
 
     pick(storm.kind, "single")
     pick(storm.single, "uniform")
     pick(storm.arf_mode, "none")
+
+
+def storm_gauges(dock, crs) -> None:
+    """W77: the rain gauges in Storm's Rain gauges page, flow and level gauges in 7b; one table's job for the same rows."""
+    from wadi2d_qgis.gauge_rows import GaugeRow, joined_gauges
+
+    storm, table = dock.storm, dock.storm.gauge_table
+    pick(storm.kind, "gauges")
+    check(not table.isHidden() and table.kinds == ("rain",), "storm: the rain gauges' own table")
+    check(list(dock.gauges.gauges.add_buttons) == ["flow", "level"], "gauges: 7b keeps flow and level gauges only")
+    record = WORK / "gauge.csv"
+    record.write_text("minute,mm\n10,1\n", encoding="utf-8")
+    table.add_row("rain")
+    table.table.item(0, 0).setText("West")
+    table.table.item(0, table.at_column).setText("400100, 2699500")
+    table.set_row(0, file=str(record))
+    pick(storm.gauge_method, "inverse_distance")
+    check(storm.gauge_radius.isEnabled(), "storm: the radius for inverse distance")
+    storm.gauge_radius.setValue(5000.0)
+    storm.gauge_start.setText("2021-10-04 00:00")
+    dock.gauges.add_row("flow")
+    dock.gauges.table.item(0, 0).setText("Dam")
+    dock.gauges.table.item(0, dock.gauges.gauges.at_column).setText("Outlet")
+    dock.gauges.set_row(0, file=str(record))
+    joined = joined_gauges({**storm.values(crs), **dock.gauges.values(crs)})
+    old = [
+        GaugeRow("West", "rain", file=str(record), x=400100.0, y=2699500.0),
+        GaugeRow("Dam", "flow", file=str(record), at="Outlet"),
+    ]
+    settings = {"method": "inverse_distance", "radius_m": 5000.0, "gaps": "error", "start": "2021-10-04 00:00"}
+    check(joined["storm"] == {"kind": "gauges"} and joined["gauges"]["rows"] == old, "storm: the rows of W54's one table")
+    check({k: joined["gauges"]["settings"][k] for k in settings} == settings, "storm: its reading rules as before")
+    check(joined["gauges"]["settings"]["observed_start"] == "2021-10-04 00:00", "gauges: the records take the rain's start")
+    table.rows.clear()
+    table._show()
+    dock.gauges.rows.clear()
+    dock.gauges.gauges._show()
+    storm.gauge_start.clear()
 
 
 def real_preview(dock) -> None:
