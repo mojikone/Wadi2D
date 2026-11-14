@@ -103,8 +103,9 @@ def _factor(storm) -> float | None:
     return None if factor is None else round(float(factor), 6)
 
 
-def rain_preview(cfg: RunConfig) -> dict:
-    """Each lumped subbasin's rain and the 2D area's, after the area reduction, on the lumped engine's step."""
+def rain_preview(cfg: RunConfig, map_dir=None) -> dict:
+    """Each lumped subbasin's rain and the 2D area's, after the area reduction, on the lumped engine's step; with
+    ``map_dir``, the same as a map there too (``rain_map``, W77)."""
     from wadi2d.run import _lumped_basin, _lumped_rain, _resolved
 
     crs = _crs(cfg)
@@ -126,16 +127,23 @@ def rain_preview(cfg: RunConfig) -> dict:
                          **_series(rain.over(name), dt, steps)})  # fmt: skip
     masks = [s.name for s in h.subbasins if s.mode == "lumped"]
     polygons = load_polygons(h, crs) if masks else {}
-    area = _domain(resolved, crs)
+    domain = area = _domain(resolved, crs)
     if masks:
         area = shapely.difference(area, shapely.union_all([polygons[n] for n in masks if n in polygons]))
     if not area.is_empty:
         rows.append({"name": AREA_2D, "mode": "2d", "area_km2": round(area.area / M2_PER_KM2, AREA_DECIMALS),
                      **_series(_two_d_storm(resolved, area, crs), dt, steps)})  # fmt: skip
-    return {
+    found = {
         "kind": resolved.storm.kind,
         "step_min": dt,
         "storm_area_km2": resolved.storm.storm_area_km2,
         "area_factor": _factor(storm),
         "areas": rows,
     }
+    if map_dir is not None:
+        from wadi2d.engine.rain_map import write_rain_map
+
+        lumped = any(row["mode"] == "lumped" for row in rows)
+        shapes = {**(polygons or (load_polygons(h, crs) if lumped else {})), AREA_2D: area}
+        found["map"] = write_rain_map(map_dir, rows, shapes, storm, domain, crs)
+    return found
