@@ -29,10 +29,16 @@ from wadi2d.engine.design_lines import DESIGN_KIND, NETWORK, TOTAL
 from wadi2d.engine.design_lines import plans as design_plans
 from wadi2d.engine.design_lines import records as design_records
 from wadi2d.engine.entries import place_entries, with_entries
+from wadi2d.engine.gauge_job import (
+    gauge_identity,
+    missing_station_files,
+    report_gauges,
+    report_observed,
+    resolve_station_paths,
+)
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
-from wadi2d.engine.gauge_job import gauge_identity, missing_station_files, report_gauges, resolve_station_paths
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
@@ -905,7 +911,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     if hybrid is not None:
         forcing.strip_depth = hybrid.strip_depth_real
     if isinstance(storm, GaugeStorm):
-        report_gauges(storm, forcing, cfg, progress)
+        report_gauges(storm, forcing, cfg, progress, out)
     if forcing.injections and not getattr(grid, "quad", False):
         entering = {
             inj.name: set(zip(forcing.jj[inj.cells].tolist(), forcing.ii[inj.cells].tolist(), strict=True))
@@ -1015,6 +1021,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
     tags = {**arf_tags(cfg), **status_tags(summary, st.t, cfg)}
     _write_outputs(cfg, tables, monitor, results, out, crs, progress, tags)
     made = _design_records(design, monitor, results, out, progress)
+    report_observed(cfg, out, progress)
     summary.loop_s = time.monotonic() - t1
     summary.t_end, summary.steps, summary.balance = st.t, st.nsteps, monitor.balance
     summary.dt_min = monitor.dt_min

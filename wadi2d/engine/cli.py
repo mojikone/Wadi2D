@@ -188,6 +188,31 @@ def _rain(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _compare(args: argparse.Namespace) -> int:
+    """Observed records beside a finished run's series, with no rerun: the job's own list, or a new file of them."""
+    from pydantic import TypeAdapter, ValidationError
+
+    from wadi2d.config.gauges import Observed
+    from wadi2d.engine.observed import compare_run
+
+    try:
+        observed = None
+        if args.observed:
+            source = Path(args.observed)
+            data = json.loads(source.read_text(encoding="utf-8"))
+            items = data.get("observed", []) if isinstance(data, dict) else data
+            for item in items:
+                if not Path(item["file"]).is_absolute():
+                    item["file"] = str((source.parent / item["file"]).resolve())
+            observed = TypeAdapter(list[Observed]).validate_python(items)
+        report = compare_run(args.run, observed)
+    except (ValueError, ValidationError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_FRAMES, "message": str(error)}), file=sys.stderr)
+        return EXIT_FRAMES
+    print(json.dumps({"ev": "done", "records": len(report["records"]), "failed": report["failed"]}))
+    return EXIT_OK if report["records"] or not report["failed"] else EXIT_FRAMES
+
+
 def _lines(args: argparse.Namespace) -> int:
     from wadi2d.products.result_lines import catalogue, read_line
 
@@ -311,6 +336,13 @@ def parser() -> argparse.ArgumentParser:
     lines.add_argument("--line", default=None, help="JSON file with name and coordinates; without it, what the run holds")
     lines.add_argument("--out", required=True)
     lines.set_defaults(call=_lines)
+
+    compare = sub.add_parser("compare", help="observed records beside a finished run's series, and their statistics")
+    compare.add_argument("run", metavar="RUN_DIR")
+    compare.add_argument(
+        "--observed", default=None, help="JSON file with a list of observed records; without it, the job's own"
+    )
+    compare.set_defaults(call=_compare)
 
     terrain = sub.add_parser("terrain", help="what the terrain objects do to the ground, without a run")
     terrain.add_argument("job")

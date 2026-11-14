@@ -17,6 +17,8 @@ Only the blocks of a map the line passes through are read, so a line costs the s
 
 from __future__ import annotations
 
+import csv
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -359,4 +361,29 @@ def catalogue(run: Path) -> dict:
         "lines": lines,
         "points": points,
         "lumped": lumped,
+        "observed": observed_records(run),
     }
+
+
+def observed_records(run: Path) -> list[dict]:
+    """The observed records a run was compared with (W54): each record's statistics and both series on its time base."""
+    from wadi2d.engine.observed import OBSERVED_DIR, STATISTICS
+
+    folder = run / OBSERVED_DIR
+    path = folder / STATISTICS
+    if not path.is_file():
+        return []
+    found = []
+    for record in json.loads(path.read_text(encoding="utf-8"))["records"]:
+        pair = folder / record["file"]
+        if not pair.is_file():
+            continue
+        with pair.open(encoding="utf-8") as f:
+            rows = list(csv.reader(f))[1:]
+        series = {
+            "t_s": [float(r[0]) for r in rows],
+            "observed": [round(float(r[2]), DIGITS_FLOW) for r in rows],
+            "simulated": [round(float(r[3]), DIGITS_FLOW) for r in rows],
+        }
+        found.append({**record, **series})
+    return found
