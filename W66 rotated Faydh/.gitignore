@@ -1,0 +1,5 @@
+ground/
+runs/cache/
+runs/*/
+runs/*.log
+runs/*.wall

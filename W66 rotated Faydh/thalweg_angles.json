@@ -1,0 +1,22 @@
+{
+ "area>=0km2_rot0": {
+  "length_km": 59.885444472068585,
+  "mean_deg_off_lattice": 21.906466356464566,
+  "share_within_10deg": 0.22456437332863616
+ },
+ "area>=0km2_rot30": {
+  "length_km": 59.885444472068585,
+  "mean_deg_off_lattice": 23.332243182091055,
+  "share_within_10deg": 0.2134323447407965
+ },
+ "area>=30km2_rot0": {
+  "length_km": 20.8791003268283,
+  "mean_deg_off_lattice": 21.972960730123276,
+  "share_within_10deg": 0.20854329985472028
+ },
+ "area>=30km2_rot30": {
+  "length_km": 20.8791003268283,
+  "mean_deg_off_lattice": 23.025378662718126,
+  "share_within_10deg": 0.21822745588583004
+ }
+}
