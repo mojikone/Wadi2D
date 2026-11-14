@@ -52,6 +52,11 @@ LUMPED_NOTE = (
     "A line across the cells where its hydrograph enters the grid reads the pond's surge there, not this."
 )
 INFLOW_COLOUR = "#7a7a7a"
+OBSERVED_COLOUR = "#111111"
+OBSERVED, OBSERVED_SOURCE = "observed", "observed"
+OBSERVED_LABEL = "Observed: {name}"
+OBSERVED_KIND = {"line": UPFRONT_LINE, "point": UPFRONT_POINT, "element": LUMPED}
+"""Which entry an observed record is drawn on, by what the run compared it with."""
 NO_DEM = "The DEM is not where the run found it: the ground drawn is each cell's lowest point."
 MOST_TICKS = 6
 STEP_TOLERANCE = 1e-6
@@ -85,6 +90,8 @@ class Curve:
     values: list[float]
     markers: bool = False
     """A dot on every value: on saved frames it shows the interval the curve was read at."""
+    dashed: bool = False
+    """Drawn dashed: an observed record, which the model did not compute."""
 
 
 @dataclass
@@ -113,14 +120,63 @@ class View:
     charts: list[Chart]
     section: Section | None
     frames_s: list[float]
+    agreement: str = ""
+    """How the observed records drawn here agree with the model, in words; empty when there are none."""
 
 
 def entries(listing: dict) -> list[Entry]:
-    """The upfront lines, then the upfront points, of what ``wadi2d lines`` wrote."""
+    """The upfront lines, then the upfront points, of what ``wadi2d lines`` wrote; each carries the observed records the
+    run compared with it."""
     lines = [Entry(UPFRONT_LINE, item["name"], item["coordinates"], item) for item in listing.get("lines", [])]
     points = [Entry(UPFRONT_POINT, item["name"], None, item) for item in listing.get("points", [])]
     lumped = [Entry(LUMPED, item["name"], None, item) for item in listing.get("lumped", [])]
-    return lines + points + lumped
+    found = lines + points + lumped
+    for record in listing.get("observed", []):
+        kind = OBSERVED_KIND.get(record.get("compare"))
+        for entry in found:
+            if entry.kind == kind and entry.name == record.get("target"):
+                entry.record.setdefault(OBSERVED, []).append(record)
+    return found
+
+
+def _observed(entry: Entry, quantity: str) -> list[dict]:
+    return [r for r in entry.record.get(OBSERVED, []) if r.get("quantity") == quantity]
+
+
+def observed_curves(entry: Entry, quantity: str) -> list[Curve]:
+    """The observed records of one quantity on this entry, dashed and dotted, on the time base they were compared on."""
+    return [
+        Curve(OBSERVED_LABEL.format(name=r["name"]), OBSERVED_SOURCE, OBSERVED_COLOUR, _hours(r["t_s"]), r["observed"], True, True)
+        for r in _observed(entry, quantity)
+    ]
+
+
+def _number(value, digits: int = 2) -> str:
+    return "n/a" if value is None else f"{value:,.{digits}f}"
+
+
+def agreement_words(record: dict) -> str:
+    """One observed record against the model, in plain words; the formulas are in the run's statistics file."""
+    unit = record.get("unit", "")
+    peak = (
+        f"peak {record['observed_peak']:,.2f} {unit} at {clock(record['observed_peak_t_s'])}, model "
+        f"{record['simulated_peak']:,.2f} at {clock(record['simulated_peak_t_s'])}"
+    )
+    words = [f"Observed {record['name']}: {peak}"]
+    if record.get("observed_volume_m3") is not None:
+        words.append(
+            f"volume {record['observed_volume_m3'] / 1e6:,.3f} against {record['simulated_volume_m3'] / 1e6:,.3f} Mm3"
+        )
+    bias = record.get("pbias_percent")
+    side = "" if bias is None else (" (model high)" if bias > 0 else " (model low)")
+    words.append(f"Nash-Sutcliffe {_number(record.get('nse'))}")
+    words.append(f"RMSE over the observed spread {_number(record.get('rsr'))}")
+    words.append(f"bias {_number(bias, 1)} %{side}")
+    return "; ".join(words) + "."
+
+
+def _agreement(entry: Entry, quantities: tuple[str, ...]) -> str:
+    return " ".join(agreement_words(r) for q in quantities for r in _observed(entry, q))
 
 
 def frame_at(times_s: list[float], t_s: float) -> int:
@@ -199,10 +255,11 @@ def point_view(entry: Entry, frames_s: list[float]) -> View:
     depth = Curve(RECORD_LABEL, UPFRONT, RECORD_COLOUR, times, record.get("depth_m", []))
     level = Curve(RECORD_LABEL, UPFRONT, RECORD_COLOUR, times, record.get("level_m", []))
     charts = [
-        Chart("Depth at the point, m", "depth", "m", [depth]),
-        Chart("Water level at the point, m", "level", "m", [level], from_zero=False),
+        Chart("Depth at the point, m", "depth", "m", [depth, *observed_curves(entry, "depth")]),
+        Chart("Water level at the point, m", "level", "m", [level, *observed_curves(entry, "level")], from_zero=False),
     ]
-    return View(f"Upfront point: {entry.name}.", POINT_NOTE, charts, None, frames_s)
+    agreement = _agreement(entry, ("depth", "level"))
+    return View(f"Upfront point: {entry.name}.", POINT_NOTE, charts, None, frames_s, agreement)
 
 
 def lumped_view(entry: Entry, frames_s: list[float]) -> View:
@@ -212,14 +269,16 @@ def lumped_view(entry: Entry, frames_s: list[float]) -> View:
     curves = [Curve("Outflow, lumped network: number of record", UPFRONT, RECORD_COLOUR, times, record.get("outflow_m3s", []))]
     if record.get("inflow_m3s"):
         curves.append(Curve("Inflow, lumped network", UPFRONT, INFLOW_COLOUR, times, record["inflow_m3s"]))
-    return View(f"Lumped element: {entry.name}.", LUMPED_NOTE, [Chart(FLOW_TITLE, "flow", "m3/s", curves)], None, frames_s)
+    curves += observed_curves(entry, "flow")
+    chart = Chart(FLOW_TITLE, "flow", "m3/s", curves)
+    return View(f"Lumped element: {entry.name}.", LUMPED_NOTE, [chart], None, frames_s, _agreement(entry, ("flow",)))
 
 
 def record_view(entry: Entry, frames_s: list[float]) -> View:
     """An upfront line that cannot be read from frames: its record alone."""
-    curves = [c for c in (_record_curve(entry), _grid_curve(entry)) if c is not None]
+    curves = [c for c in (_record_curve(entry), _grid_curve(entry)) if c is not None] + observed_curves(entry, "flow")
     charts = [Chart(FLOW_TITLE, "flow", "m3/s", curves)]
-    return View(f"Upfront line: {entry.name}.", _line_note(entry), charts, None, frames_s)
+    return View(f"Upfront line: {entry.name}.", _line_note(entry), charts, None, frames_s, _agreement(entry, ("flow",)))
 
 
 def line_view(entry: Entry, read: dict) -> View:
@@ -232,7 +291,7 @@ def line_view(entry: Entry, read: dict) -> View:
     frames = Curve(label, FRAMES, FRAMES_COLOUR, times, flows, markers=True)
     deepest = Curve(f"Saved frames, {interval}", FRAMES, FRAMES_COLOUR, times, read["deepest_m"], markers=True)
     record = _record_curve(entry)
-    flow = [c for c in (record, _grid_curve(entry), frames) if c is not None]
+    flow = [c for c in (record, _grid_curve(entry), frames) if c is not None] + observed_curves(entry, "flow")
     charts = [Chart(FLOW_TITLE, "flow", "m3/s", flow), Chart("Deepest water on the line, m", "deepest", "m", [deepest])]
     title = "Water surface and terrain along the line, m"
     if read["ground_source"] != "dem":
@@ -245,7 +304,7 @@ def line_view(entry: Entry, read: dict) -> View:
     limit = (FACES_LIMIT if of_record else LIMIT).format(every=interval)
     if entry.record.get("design"):
         limit = f"{DESIGN_NOTE} {limit}"
-    return View(heading, limit, charts, section, read["t_s"])
+    return View(heading, limit, charts, section, read["t_s"], _agreement(entry, ("flow",)))
 
 
 def value_at(curve: Curve, hours: float) -> float | None:
