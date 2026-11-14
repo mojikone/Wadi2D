@@ -36,6 +36,8 @@ OPEN_BELOW = 0.5 * CLOSED
 def _spillway_level(routing) -> float:
     """Where water starts to leave: the lowest spillway crest, or the top of the outflow curve's zero rows."""
     if isinstance(routing, ReservoirOutflowStructures):
+        if not routing.spillways:
+            raise ValueError("dam_levels: a Spillway crest start needs a broad-crested spillway; give a Level (W59)")
         return min(s.crest_elevation_m for s in routing.spillways)
     still = routing.elevations_m[routing.outflow_m3s <= 0.0]
     return float(still.max()) if still.size else float(routing.elevations_m[0])

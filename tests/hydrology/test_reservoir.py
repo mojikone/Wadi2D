@@ -335,7 +335,8 @@ def test_adapter_builds_an_outflow_curve_reservoir(tmp_path: Path) -> None:
     [
         (("Adaptive Control: On", "Adaptive Control: Off"), "Adaptive Control"),
         (("Main Tailwater Condition: None", "Main Tailwater Condition: Fixed Stage"), "tailwater"),
-        (("Routing Curve: Elevation-Area", "Routing Curve: Elevation-Storage"), "storage method"),
+        (("Routing Curve: Elevation-Area", "Routing Curve: Storage-Discharge"), "storage method"),
+        (("Routing Curve: Elevation-Area", "Routing Curve: Elevation-Storage"), "not available"),  # read since W59
         (("Spillway: Broad-Crested Spillway", "Spillway: Ogee Spillway"), "not supported"),
         (("Evaporation Method: Zero Evaporation", "Evaporation Method: Monthly"), "not supported"),
         (("Elevation-Area Table: EA", "Elevation-Area Table: Missing"), "not available"),

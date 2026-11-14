@@ -17,6 +17,7 @@ import numpy as np
 from wadi2d.config.schema import Boundary, Handback, RunConfig
 from wadi2d.engine.maxima import Tally
 from wadi2d.engine.monitor import Balance, Monitor
+from wadi2d.engine.network_series import reservoir_columns
 from wadi2d.forcing import BoundarySet, Forcing, Injection, open_faces
 from wadi2d.hydrology.live_network import LiveNetwork
 from wadi2d.hydrology.model import Branching
@@ -214,6 +215,8 @@ class HandBackLink:
             columns = {"inflow_m3s": run.inflow[name], "outflow_m3s": run.outflow[name]}
             if isinstance(self.network.basin.elements[name], Branching):
                 columns["branched_m3s"] = run.branched[name]
+            columns |= reservoir_columns(self.network.basin.elements[name], run.inflow[name], run.outflow[name],
+                                         self.network.grid.dt_minutes)
             results.series(NETWORK_KIND, name, t, columns)
             write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
 

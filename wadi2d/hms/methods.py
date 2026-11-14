@@ -158,6 +158,7 @@ class ReservoirRoute(Method):
     primary_table: str | None = hms("Primary Table")
     adaptive_control: str | None = hms("Adaptive Control")
     main_tailwater_condition: str | None = hms("Main Tailwater Condition")
+    main_fixed_tailwater_stage: float | None = hms("Main Fixed Tailwater Stage")  # HMS 4.12 writes it back (W59)
     auxiliary_tailwater_condition: str | None = hms("Auxiliary Tailwater Condition")
     auxiliary_flow_to: str | None = hms("Auxiliary Flow To")
 

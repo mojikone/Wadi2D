@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field, replace
+from datetime import datetime
 from pathlib import Path, PureWindowsPath
 from typing import Any
 
@@ -60,6 +61,15 @@ from wadi2d.hydrology.reservoir import (
     Spillway,
 )
 from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS, MuskingumCunge
+from wadi2d.hydrology.structures import (
+    LEVEL_DAM_TOP,
+    ORIFICE,
+    RATING_SPILLWAY,
+    STRUCTURE_KINDS,
+    TABULAR_SEEPAGE,
+    MonthlyEvaporation,
+    Structure,
+)
 from wadi2d.hydrology.transforms import CLARK_UH, SCS_UH, TRANSFORM_METHODS
 from wadi2d.storm import ArfTable, HypotheticalStorm, PercentPattern, StormBySubbasin, SubbasinRain
 from wadi2d.storm.grid_depth import DepthGrid, centroid_of
@@ -90,10 +100,33 @@ DIVERTER_BLOCK = "Diverter"
 DIVERTER_TABLE_KEY = "Inflow Diversion Table Name"
 SPILLWAY_OUTLETS = {"Main": MAIN_OUTLET, "Auxiliary": AUXILIARY_OUTLET}
 NO_TAILWATER = "None"
+FIXED_STAGE = "Fixed Stage"
 ADAPTIVE_ON = "On"
 ELEVATION_UNITS = "M"
 AREA_UNITS = "M2"
 FLOW_UNITS = "M3/S"
+ELEVATION_STORAGE = "Elevation-Storage"
+STORAGE_UNITS = "THOU M3"  # HMS 4.12 refuses "1000 M3" on a paired table (W59)
+THOUSAND = 1000.0
+# Reservoir structure blocks and keys, each one written back by HEC-HMS 4.12 on re-saving W59's test basins.
+CONDUIT_BLOCK = "Conduit"
+DAM_TOP_BLOCK = "Dam Top"
+SEEPAGE_BLOCK = "Dam Seepage"
+MONTHLY_EVAPORATION = "Monthly Evaporation"
+EVAPORATION_RATE_KEY = "Evaporation Rate"
+SPILLWAY_OUTLET_KEY = "Spillway Outlet"
+CONDUIT_OUTLET_KEY = "Conduit Outlet"
+DAM_TOP_OUTLET_KEY = "Dam Top Outlet"
+SEEPAGE_OUTLET_KEY = "Dam Seepage Outlet"
+RATING_TABLE_KEY = "Spillway Rating Curve Name"
+SEEPAGE_OUT_KEY = "Pool-To-Tailwater Table Name"
+SEEPAGE_IN_KEY = "Tailwater-To-Pool Table Name"
+RATING_SPILLWAY_KEYS = frozenset({SPILLWAY_OUTLET_KEY, RATING_TABLE_KEY})
+ORIFICE_KEYS = frozenset(
+    {CONDUIT_OUTLET_KEY, "Number Barrels", "Centerline Elevation", "Orifice Area", "Orifice Coefficient"}
+)
+LEVEL_DAM_KEYS = frozenset({DAM_TOP_OUTLET_KEY, "Top Elevation", "Top Length", "Overflow Coefficient"})
+SEEPAGE_KEYS = frozenset({SEEPAGE_OUTLET_KEY, SEEPAGE_OUT_KEY, SEEPAGE_IN_KEY})
 NO_UNIFORM_DEPTH = "No"
 
 
@@ -229,38 +262,167 @@ def _spillway(element: str, block: RawBlock) -> Spillway:
     )
 
 
-def _outflow_structures(element: HmsReservoir, route: ReservoirRoute, tables: ProjectTables | None) -> Any:
-    if route.routing_curve != ELEVATION_AREA:
-        raise ValueError(f"{element.name}: storage method {route.routing_curve} is not supported")
-    if route.adaptive_control != ADAPTIVE_ON:
-        raise ValueError(f"{element.name}: only Adaptive Control On was measured against HMS")
-    tailwater = {route.main_tailwater_condition, route.auxiliary_tailwater_condition}
-    if tailwater - {NO_TAILWATER, None}:
-        raise ValueError(f"{element.name}: tailwater {tailwater} is not supported")
-    spillways: list[Spillway] = []
-    for block in element.blocks:
-        if block.kind == SPILLWAY_BLOCK:
-            spillways.append(_spillway(element.name, block))
-        elif block.kind != EVAPORATION_BLOCK or block.name != ZERO_EVAPORATION:
-            raise ValueError(f"{element.name}: outlet or option {block.kind} {block.name} is not supported")
-    area = _table(tables, route.elevation_area_table, element.name)
-    return ROUTING_METHODS.build(
-        RESERVOIR_OUTFLOW_STRUCTURES,
-        elevations_m=area.x,
-        areas_m2=area.y,
-        spillways=tuple(spillways),
-        initial_elevation_m=route.initial_elevation,
+def _fields(element: str, block: RawBlock, known: frozenset[str]) -> RawBlock:
+    """The block, once every key in it is one this reader maps; another key raises by name."""
+    unknown = sorted({f.key for f in block.fields} - known)
+    if unknown:
+        raise ValueError(f"{element}: {block.kind} {block.name!r} keys not read: {unknown}")
+    return block
+
+
+def _number(element: str, block: RawBlock, key: str) -> float:
+    value = block.get(key)
+    if value is None or value == "":
+        raise ValueError(f"{element}: {block.kind} {block.name!r} has no {key}")
+    return float(value)
+
+
+def _outlet(element: str, block: RawBlock, key: str) -> int:
+    value = block.get(key) or ""
+    if value not in SPILLWAY_OUTLETS:
+        raise ValueError(f"{element}: {block.kind} {block.name!r} {key} {value!r}")
+    return SPILLWAY_OUTLETS[value]
+
+
+def _rating_spillway(element: str, block: RawBlock, tables: ProjectTables | None) -> Structure:
+    _fields(element, block, RATING_SPILLWAY_KEYS)
+    table = _table(tables, block.get(RATING_TABLE_KEY), element)
+    return STRUCTURE_KINDS.build(
+        RATING_SPILLWAY, elevations_m=table.x, flows_m3s=table.y, outlet=_outlet(element, block, SPILLWAY_OUTLET_KEY)
     )
 
 
-ReservoirBuilder = Callable[[HmsReservoir, ReservoirRoute, "ProjectTables | None"], Any]
+def _orifice(element: str, block: RawBlock, _tables: ProjectTables | None) -> Structure:
+    _fields(element, block, ORIFICE_KEYS)
+    barrels = _number(element, block, "Number Barrels")
+    if barrels != int(barrels) or barrels < 1:
+        raise ValueError(f"{element}: orifice barrels {barrels}")
+    return STRUCTURE_KINDS.build(
+        ORIFICE,
+        centre_elevation_m=_number(element, block, "Centerline Elevation"),
+        area_m2=_number(element, block, "Orifice Area"),
+        coefficient=_number(element, block, "Orifice Coefficient"),
+        barrels=int(barrels),
+        outlet=_outlet(element, block, CONDUIT_OUTLET_KEY),
+    )
+
+
+def _level_dam_top(element: str, block: RawBlock, _tables: ProjectTables | None) -> Structure:
+    _fields(element, block, LEVEL_DAM_KEYS)
+    return STRUCTURE_KINDS.build(
+        LEVEL_DAM_TOP,
+        crest_elevation_m=_number(element, block, "Top Elevation"),
+        crest_length_m=_number(element, block, "Top Length"),
+        coefficient=_number(element, block, "Overflow Coefficient"),
+        outlet=_outlet(element, block, DAM_TOP_OUTLET_KEY),
+    )
+
+
+def _tabular_seepage(element: str, block: RawBlock, tables: ProjectTables | None) -> Structure:
+    """The pool-to-tailwater table; the tailwater-to-pool table is read for its name only, since it changed
+    nothing in any W59 run, a tailwater above the pool included."""
+    _fields(element, block, SEEPAGE_KEYS)
+    table = _table(tables, block.get(SEEPAGE_OUT_KEY), element)
+    return STRUCTURE_KINDS.build(
+        TABULAR_SEEPAGE, heads_m=table.x, flows_m3s=table.y, outlet=_outlet(element, block, SEEPAGE_OUTLET_KEY)
+    )
+
+
+# (block kind, block name) -> builder; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W59's test basins.
+StructureBuilder = Callable[[str, RawBlock, "ProjectTables | None"], Structure]
+STRUCTURE_BUILDERS: dict[tuple[str, str], StructureBuilder] = {
+    (SPILLWAY_BLOCK, RATING_SPILLWAY): _rating_spillway,
+    (CONDUIT_BLOCK, ORIFICE): _orifice,
+    (DAM_TOP_BLOCK, LEVEL_DAM_TOP): _level_dam_top,
+    (SEEPAGE_BLOCK, TABULAR_SEEPAGE): _tabular_seepage,
+}
+
+
+def _evaporation(element: str, block: RawBlock) -> MonthlyEvaporation | None:
+    if block.name == ZERO_EVAPORATION:
+        return None
+    if block.name != MONTHLY_EVAPORATION:
+        raise ValueError(f"{element}: evaporation {block.name!r} is not supported")
+    _fields(element, block, frozenset({EVAPORATION_RATE_KEY}))
+    return MonthlyEvaporation(tuple(float(value) for value in block.get_all(EVAPORATION_RATE_KEY)))
+
+
+def _tailwater(element: str, route: ReservoirRoute) -> float | None:
+    if route.auxiliary_tailwater_condition not in (NO_TAILWATER, None):
+        raise ValueError(f"{element}: auxiliary tailwater {route.auxiliary_tailwater_condition} is not supported")
+    if route.main_tailwater_condition in (NO_TAILWATER, None):
+        if route.main_fixed_tailwater_stage is not None:
+            raise ValueError(f"{element}: a fixed tailwater stage with no Fixed Stage condition")
+        return None
+    if route.main_tailwater_condition != FIXED_STAGE or route.main_fixed_tailwater_stage is None:
+        raise ValueError(f"{element}: main tailwater {route.main_tailwater_condition} is not supported")
+    return route.main_fixed_tailwater_stage
+
+
+def _outflow_structures(
+    element: HmsReservoir, route: ReservoirRoute, tables: ProjectTables | None, start: datetime | None = None
+) -> Any:
+    if route.routing_curve not in (ELEVATION_AREA, ELEVATION_STORAGE):
+        raise ValueError(f"{element.name}: storage method {route.routing_curve} is not supported")
+    if route.adaptive_control != ADAPTIVE_ON:
+        raise ValueError(f"{element.name}: only Adaptive Control On was measured against HMS")
+    tailwater = _tailwater(element.name, route)
+    spillways: list[Spillway] = []
+    structures: list[Structure] = []
+    evaporation: MonthlyEvaporation | None = None
+    for block in element.blocks:
+        if block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED:
+            spillways.append(_spillway(element.name, block))
+        elif (block.kind, block.name) in STRUCTURE_BUILDERS:
+            structures.append(STRUCTURE_BUILDERS[block.kind, block.name](element.name, block, tables))
+        elif block.kind == EVAPORATION_BLOCK:
+            evaporation = _evaporation(element.name, block)
+        else:
+            raise ValueError(f"{element.name}: outlet or option {block.kind} {block.name} is not supported")
+    if route.routing_curve == ELEVATION_STORAGE:
+        table = _table(tables, route.elevation_storage_table, element.name)
+        curves = {"areas_m2": None, "storages_m3": table.y}
+    else:
+        table = _table(tables, route.elevation_area_table, element.name)
+        curves = {"areas_m2": table.y}
+    extra: dict[str, Any] = {}
+    if structures:
+        extra["structures"] = tuple(structures)
+    if tailwater is not None:
+        extra["tailwater_m"] = tailwater
+    if evaporation is not None:
+        extra |= {"evaporation": evaporation, "start": start}
+    return ROUTING_METHODS.build(
+        RESERVOIR_OUTFLOW_STRUCTURES,
+        elevations_m=table.x,
+        spillways=tuple(spillways),
+        initial_elevation_m=route.initial_elevation,
+        **curves,
+        **extra,
+    )
+
+
+def _outflow_curve_builder(
+    element: HmsReservoir, route: ReservoirRoute, tables: ProjectTables | None, start: datetime | None = None
+) -> Any:
+    return _outflow_curve(element, route, tables)
+
+
+ReservoirBuilder = Callable[[HmsReservoir, ReservoirRoute, "ProjectTables | None", "datetime | None"], Any]
 RESERVOIR_ROUTES: dict[str, ReservoirBuilder] = {
-    OUTFLOW_CURVE_ROUTE: _outflow_curve,
+    OUTFLOW_CURVE_ROUTE: _outflow_curve_builder,
     STRUCTURES_ROUTE: _outflow_structures,
 }
 
 
-def _reservoir(element: HmsReservoir, tables: ProjectTables | None) -> Reservoir:
+def reservoir_from_hms(
+    element: HmsReservoir, tables: ProjectTables | None = None, start: datetime | None = None
+) -> Reservoir:
+    """The engine's reservoir of one HMS reservoir element; ``start`` dates the first step (monthly evaporation)."""
+    return _reservoir(element, tables, start)
+
+
+def _reservoir(element: HmsReservoir, tables: ProjectTables | None, start: datetime | None = None) -> Reservoir:
     route = element.route
     if not isinstance(route, ReservoirRoute) or route.method not in RESERVOIR_ROUTES:
         raise ValueError(f"reservoir {element.name}: HMS method {route} has no engine implementation")
@@ -272,7 +434,7 @@ def _reservoir(element: HmsReservoir, tables: ProjectTables | None) -> Reservoir
     return Reservoir(
         name=element.name,
         downstream=element.downstream or None,
-        routing=builder(element, route, tables),
+        routing=builder(element, route, tables, start),
         branch=route.auxiliary_flow_to or None,
     )
 
@@ -291,12 +453,16 @@ def _diversion(element: HmsDiversion, tables: ProjectTables | None) -> Diversion
 
 
 def basin_from_hms(
-    basin: HmsBasin, tables: ProjectTables | None = None, reach_routing: str = REACH_HMS
+    basin: HmsBasin,
+    tables: ProjectTables | None = None,
+    reach_routing: str = REACH_HMS,
+    start: datetime | None = None,
 ) -> Basin:
     """The engine's basin of an HMS basin model; metric only, as nothing here converts units.
 
     ``tables`` holds the paired data of reservoirs and diversions; a model with neither needs none.
     ``reach_routing`` is the job's ``hydrology.reach_routing``, the scheme of every Muskingum-Cunge reach.
+    ``start`` dates the first step; only a reservoir with monthly evaporation needs it, and refuses to route without.
     """
     if basin.unit_system != METRIC:
         raise ValueError(f"unit system {basin.unit_system!r}: only {METRIC} basin models are read")
@@ -309,7 +475,7 @@ def basin_from_hms(
         elif isinstance(element, HmsJunction | HmsSink):
             elements.append(Junction(name=element.name, downstream=element.downstream or None))
         elif isinstance(element, HmsReservoir):
-            elements.append(_reservoir(element, tables))
+            elements.append(_reservoir(element, tables, start))
         elif isinstance(element, HmsDiversion):
             elements.append(_diversion(element, tables))
         else:
@@ -363,7 +529,9 @@ def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> Proje
         ELEVATION_AREA: (ELEVATION_UNITS, AREA_UNITS),
         STAGE_FLOW: (ELEVATION_UNITS, FLOW_UNITS),
         INFLOW_DIVERSION_TABLE: (FLOW_UNITS, FLOW_UNITS),
+        ELEVATION_STORAGE: (ELEVATION_UNITS, STORAGE_UNITS),
     }
+    scale = {ELEVATION_STORAGE: THOUSAND}
     with open_dss(project_dss) as dss:
         for name, table in pdata.of_type(PERCENT_GRAPH).items():
             if table.pathname is not None:
@@ -377,7 +545,7 @@ def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> Proje
             for name, table in pdata.of_type(kind).items():
                 columns = _read_si(dss, table, units)
                 if columns is not None:
-                    paired[name] = columns
+                    paired[name] = PairedColumns(columns.x, columns.y * scale[kind]) if kind in scale else columns
     return ProjectTables(patterns, reductions, paired)
 
 

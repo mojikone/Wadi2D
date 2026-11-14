@@ -21,6 +21,7 @@ A pool above the top of its table raises: what HMS does there is not known, so n
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from functools import cached_property
 
 import numpy as np
@@ -28,6 +29,16 @@ import numpy as np
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.reservoir_kernel import route_spillways, route_storage_indication
 from wadi2d.hydrology.routing import ROUTING_METHODS
+from wadi2d.hydrology.structure_kernel import BROAD_CRESTED, route_structures
+from wadi2d.hydrology.structures import (
+    MonthlyEvaporation,
+    Packed,
+    RatingSpillway,
+    Structure,
+    TabularSeepage,
+    flows_at,
+    pack_all,
+)
 from wadi2d.storm.base import FloatArray
 
 RESERVOIR_OUTFLOW_CURVE = "Reservoir Outflow Curve"
@@ -123,30 +134,145 @@ class Spillway:
     coefficient: float
     outlet: int = MAIN_OUTLET
 
+    def pack(self) -> Packed:
+        """The kernel's form (:mod:`wadi2d.hydrology.structures`)."""
+        return Packed(BROAD_CRESTED, self.outlet, (self.crest_elevation_m, self.crest_length_m, self.coefficient))
+
+    def label(self) -> str:
+        return "spillway"
+
+
+@dataclass(frozen=True, eq=False)
+class StructureRun:
+    """A routed reservoir with structures, at the times of its inflow: outlets, evaporation, pool, each structure."""
+
+    main_m3s: FloatArray
+    auxiliary_m3s: FloatArray
+    evaporation_m3s: FloatArray
+    pool_m: FloatArray
+    storage_m3: FloatArray
+    structures_m3s: dict[str, FloatArray]
+
 
 @ROUTING_METHODS.register(RESERVOIR_OUTFLOW_STRUCTURES)
 @dataclass(frozen=True, eq=False)
 class ReservoirOutflowStructures:
-    """`Controlled Outflow` on an elevation-area curve, with no tailwater and no evaporation."""
+    """`Controlled Outflow` on an elevation-area (or elevation-storage) curve.
+
+    ``spillways`` are broad-crested; ``structures`` are the other kinds of :mod:`wadi2d.hydrology.structures`.
+    ``tailwater_m`` is a fixed main tailwater stage (HMS's Fixed Stage), None for none; the auxiliary outlet has
+    none. ``evaporation`` needs the areas and ``start``, the date of the first inflow value. ``storages_m3``, when
+    given, is the elevation-storage table and ``areas_m2`` may then be None. A reservoir with broad-crested
+    spillways alone and none of the rest routes on :func:`route_spillways`, unchanged since W55.
+    """
 
     elevations_m: FloatArray
-    areas_m2: FloatArray
+    areas_m2: FloatArray | None
     spillways: tuple[Spillway, ...]
     initial_elevation_m: float
     max_bisections: int = ADAPTIVE_BISECTIONS
+    structures: tuple[Structure, ...] = ()
+    tailwater_m: float | None = None
+    evaporation: MonthlyEvaporation | None = None
+    start: datetime | None = None
+    storages_m3: FloatArray | None = None
 
     def __post_init__(self) -> None:
-        _check_table(RESERVOIR_OUTFLOW_STRUCTURES, self.elevations_m, self.areas_m2, self.initial_elevation_m)
-        if not self.spillways:
-            raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: no outlet")
+        name = RESERVOIR_OUTFLOW_STRUCTURES
+        if (self.areas_m2 is None) == (self.storages_m3 is None):
+            raise ValueError(f"{name}: give an elevation-area or an elevation-storage table, one of the two")
+        column = self.areas_m2 if self.areas_m2 is not None else self.storages_m3
+        _check_table(name, self.elevations_m, column, self.initial_elevation_m)
+        if not self.spillways and not self.structures:
+            raise ValueError(f"{name}: no outlet")
+        if self.evaporation is not None and self.areas_m2 is None:
+            raise ValueError(f"{name}: monthly evaporation needs an elevation-area table, as in HMS")
+        top = float(self.elevations_m[-1])
+        for structure in self.structures:
+            if isinstance(structure, RatingSpillway) and structure.elevations_m[-1] < top:
+                raise ValueError(f"{name}: a rating table ends at {structure.elevations_m[-1]} m, below the pool "
+                                 f"table's top {top} m; what HMS does above it is not known")
+            if isinstance(structure, TabularSeepage):
+                low = self.elevations_m[0] if self.tailwater_m is None else self.tailwater_m
+                if structure.heads_m[-1] < top - low:
+                    raise ValueError(f"{name}: the seepage table ends at a head of {structure.heads_m[-1]} m, "
+                                     f"below the {top - low} m the pool can reach")
+        if self.tailwater_m is not None:
+            for structure in (*self.spillways, *self.structures):
+                crest = getattr(structure, "crest_elevation_m", None)
+                if structure.outlet == MAIN_OUTLET and crest is not None and self.tailwater_m >= crest:
+                    raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a weir crest at {crest} m; "
+                                     "HMS's drowned-weir rule was not identified (W59)")
 
     @cached_property
     def storage_m3(self) -> FloatArray:
         """The storage at each row of the table."""
+        if self.storages_m3 is not None:
+            return self.storages_m3
         return conic_storage(self.elevations_m, self.areas_m2)
+
+    @property
+    def _plain(self) -> bool:
+        """Broad-crested spillways alone, no tailwater, evaporation or storage table: the W55 path."""
+        return not self.structures and self.tailwater_m is None and self.evaporation is None and self.storages_m3 is None
+
+    def run(self, inflow_m3s: FloatArray, dt_minutes: float) -> StructureRun:
+        """Route the inflow: both outlets, the evaporation, the pool level and storage, and each structure's flow."""
+        structures: tuple[Structure, ...] = (*self.spillways, *self.structures)
+        arrays = pack_all(structures)
+        steps = max(len(inflow_m3s) - 1, 1)
+        if self.evaporation is None:
+            rates = np.zeros(steps)
+        elif self.start is None:
+            raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: monthly evaporation needs the run's start date")
+        else:
+            rates = self.evaporation.rates(self.start, steps, dt_minutes)
+        areas = self.areas_m2 if self.areas_m2 is not None else np.zeros_like(self.elevations_m)
+        tailwater = np.array([np.nan if self.tailwater_m is None else self.tailwater_m, np.nan])
+        main, auxiliary, lost, level, storage, overtopped = route_structures(
+            np.asarray(inflow_m3s, dtype=np.float64),
+            dt_minutes * SECONDS_PER_MINUTE,
+            self.elevations_m,
+            self.storage_m3,
+            areas,
+            rates,
+            arrays.kinds,
+            arrays.outlets,
+            arrays.parameters,
+            arrays.table_x,
+            arrays.table_y,
+            arrays.table_start,
+            arrays.table_end,
+            tailwater,
+            self.initial_elevation_m,
+            LEVEL_ITERATIONS,
+            LEVEL_TOLERANCE_M,
+            ADAPTIVE_LEVEL_CHANGE_M,
+            self.max_bisections,
+        )
+        if overtopped:
+            raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: the pool passed the top of its table")
+        flows = flows_at(structures, level, (tailwater[0], tailwater[1]), float(self.elevations_m[0]))
+        labels: dict[str, int] = {}
+        named: dict[str, FloatArray] = {}
+        for index, structure in enumerate(structures):
+            base = structure.label()
+            labels[base] = labels.get(base, 0) + 1
+            named[f"{base}_{labels[base]}_m3s"] = flows[:, index]
+        return StructureRun(main, auxiliary, lost, level, storage, named)
+
+    def pool(
+        self, inflow_m3s: FloatArray, outflow_m3s: FloatArray, dt_minutes: float
+    ) -> tuple[FloatArray, FloatArray]:
+        """Storage, m3, and pool level, m, at the times of the inflow; the outflow is not needed, the run is redone."""
+        result = self.run(inflow_m3s, dt_minutes)
+        return result.storage_m3, result.pool_m
 
     def branches(self, inflow_m3s: FloatArray, dt_minutes: float) -> tuple[FloatArray, FloatArray]:
         """The main and the auxiliary outflow at the times of the inflow, m3/s."""
+        if not self._plain:
+            result = self.run(inflow_m3s, dt_minutes)
+            return result.main_m3s, result.auxiliary_m3s
         main, auxiliary, overtopped = route_spillways(
             inflow_m3s,
             dt_minutes * SECONDS_PER_MINUTE,

@@ -164,19 +164,28 @@ def _partner(items: list[Line | Block], closer: Line) -> int | None:
     """Index of the opener of ``closer`` in ``items``.
 
     ``End Layer:`` closes ``Element Layer:`` and ``Evaporation Method:`` is closed by ``End Evaporation:``,
-    so the search runs from the exact key to the loose forms. The indent must agree: ``Layer:13`` inside a
+    so the search runs from the exact key to the loose forms. A prefix match takes the farthest one back before
+    an earlier sub-block: ``Monthly Evaporation`` writes twelve ``Evaporation Rate:`` lines after its
+    ``Evaporation Method:`` opener (W59). The indent must agree: ``Layer:13`` inside a
     ``Map Layer:`` body is not the opener of ``End Layer:``. A closer with a value
     (``End Variant: Variant-1``) takes an exact key and the same value.
     """
     target = (closer.key or "")[len(END_PREFIX) :]
     value = closer.value.strip()
     for matches in (_exact,) if value else (_exact, _suffix, _prefix):
+        found = None
         for index in range(len(items) - 1, -1, -1):
             item = items[index]
+            if isinstance(item, Block) and found is not None:
+                break
             if not isinstance(item, Line) or item.key is None or item.indent != closer.indent:
                 continue
             if matches(item.key, target) and (not value or item.value.strip() == value):
-                return index
+                if matches is not _prefix:
+                    return index
+                found = index
+        if found is not None:
+            return found
     return None
 
 
