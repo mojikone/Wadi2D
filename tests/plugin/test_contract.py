@@ -120,7 +120,31 @@ def test_the_storm_areas_the_dock_shows_are_the_engines(tmp_path: Path, changes:
     assert s.study_areas(form) == storm_areas(config.RunConfig.model_validate(job))
 
 
-def test_a_bracketing_study_with_a_composite_from_the_dock_is_a_valid_job(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("low", "high", "largest", "whole_below"),
+    [(10.0, 2000.0, 0.05, False), (10.0, 2000.0, 0.02, False), (0.5, 50.0, 0.01, False), (0.5, 50.0, 0.01, True),
+     (20.971, 211.085, 0.013, False), (74.3, 74.3, 0.05, False)],
+)  # fmt: skip
+def test_the_arf_step_areas_the_dock_shows_are_the_engines(tmp_path: Path, low, high, largest, whole_below) -> None:
+    """The dock places the ARF-step runs itself, to show them before the study; this keeps them the engine's."""
+    from wadi2d_qgis import study_rows as s
+
+    from wadi2d.arf import storm_areas
+
+    table = {
+        "areas_km2": [1.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 2000.0],
+        "factors": [0.999, 0.994, 0.987, 0.976, 0.965, 0.956, 0.948, 0.913, 0.864, 0.776, 0.694, 0.606],
+        "reduces_below_table": not whole_below,
+    }  # fmt: skip
+    form = {"spacing": s.ARF_STEP, "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "arf_step": largest,
+            "composite": False, "accumulation": None, "units": "cells"}  # fmt: skip
+    lines = [Feature("LineString", [[0.0, 0.0], [1.0, 1.0]], {"name": f"L{n}", s.AREA_KEY: a}) for n, a in enumerate((low, high))]
+    values = {**full_values(tmp_path), "design": lines}
+    job = build_job({**values, "study": s.study_job(form)}, tmp_path / "out")
+    job["storm"] = {"kind": "hypothetical", "depth_mm": 100.0, "duration_min": 1440.0, "time_percent": [0.0, 100.0],
+                    "depth_percent": [0.0, 100.0], "arf": table}  # fmt: skip
+    engine = storm_areas(config.RunConfig.model_validate(job))
+    assert s.arf_step_areas(form, values, table) == pytest.approx(engine, rel=1e-12)
     from wadi2d_qgis import study_rows as s
 
     form = {"spacing": "bracket", "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "composite": True,

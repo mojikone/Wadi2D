@@ -82,7 +82,11 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    ticked, and a design line with a drainage
    area. Storm areas are **Around the drainage areas** by default: log-spaced from the smallest to the largest area of the
    design lines and of the lumped elements a hand-back feeds, at most 6, neighbours at most 2 x apart; or log-spaced
-   between two areas; or listed. Each design line reads log Q against log A between the two runs either side of its own
+   between two areas; or listed; or **By the change of area reduction**: from the smallest to the largest drainage area,
+   as few runs as keep the reduction factor changing by at most the **Largest ARF change between runs** (0.05 by
+   default) from one run to the next, in equal steps of the factor as the runs read it; the dock lists the runs before
+   the study starts (with the HMS project's table, once the job is written). On Block 2's ARF FM from 10 to 2,000 km2,
+   0.05 gives 9 runs and 0.02 gives 21, where 6 log-spaced runs step the factor by 2.1 to 13.8 %. Each design line reads log Q against log A between the two runs either side of its own
    area. A lumped element with no 2D water above it is rerun lumped at its own area, as HMS's depth-area analysis does,
    in seconds and with no interpolation; one a hand-back feeds reads the 2D runs as a line does; one whose water runs on
    the grid and never comes back has no flow of its own, and the dock names it. **Start study** shows which run of how

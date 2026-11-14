@@ -12,6 +12,7 @@ from wadi2d_qgis.job_builder import Feature, build_job
 from wadi2d_qgis.protocol import STUDY_FILE, next_study_dir, study_args
 from wadi2d_qgis.study_rows import (
     ACCUMULATION_WORDS,
+    ARF_STEP,
     BRACKET,
     GRID_WORDS,
     LINE_WORDS,
@@ -20,6 +21,8 @@ from wadi2d_qgis.study_rows import (
     STORM_WORDS,
     TABLE_WORDS,
     areas_text,
+    arf_step_areas,
+    arf_step_text,
     design_lines,
     form_problems,
     on_grid_text,
@@ -38,8 +41,8 @@ LINE = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
 
 def form(**changes) -> dict:
     base = {
-        "spacing": BRACKET, "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "composite": False,
-        "accumulation": None, "units": "cells",
+        "spacing": BRACKET, "listed": "", "count": 6, "smallest": 10.0, "largest": 600.0, "arf_step": 0.05,
+        "composite": False, "accumulation": None, "units": "cells",
     }  # fmt: skip
     return {**base, **changes}
 
@@ -144,6 +147,34 @@ def test_an_hms_storm_or_a_design_storm_with_a_table_and_an_area_line_can_start(
     assert study_problems(values(tmp_path)) == []
     storm = {"kind": "hypothetical", "arf": [(10.0, 0.98), (100.0, 0.9)]}
     assert study_problems(values(tmp_path, hms=None, storm=storm)) == []
+
+
+ARF_FM = [
+    (1.0, 0.999), (5.0, 0.994), (10.0, 0.987), (20.0, 0.976), (30.0, 0.965), (40.0, 0.956), (50.0, 0.948),
+    (100.0, 0.913), (200.0, 0.864), (500.0, 0.776), (1000.0, 0.694), (2000.0, 0.606),
+]  # fmt: skip
+
+
+def test_the_arf_step_rule_writes_its_block_and_is_refused_out_of_range() -> None:
+    assert study_job(form(spacing=ARF_STEP, arf_step=0.05)) == {"by_arf_step": True, "arf_step_max": 0.05}
+    assert study_areas(form(spacing=ARF_STEP, arf_step=0.05)) is None, "the drainage areas are the dock's values"
+    assert "between 0 and 1" in form_problems(form(spacing=ARF_STEP, arf_step=0.0))[0]
+    assert "between 0 and 1" in form_problems(form(spacing=ARF_STEP, arf_step=1.0))[0]
+    assert form_problems(form(spacing=ARF_STEP, arf_step=0.02)) == []
+
+
+def test_the_dock_counts_the_arf_step_runs_before_the_study(tmp_path: Path) -> None:
+    storm = {"kind": "hypothetical", "arf": ARF_FM}
+    found = arf_step_areas(form(spacing=ARF_STEP, arf_step=0.05), values(tmp_path, storm=storm, design=design(10.0, 2000.0, 74.3)))
+    assert len(found) == 9 and found[0] == 10.0 and found[-1] == 2000.0
+    text = arf_step_text(found, 0.05)
+    assert text.startswith("9 runs, one per storm area: 10, 62.32,") and "at most 0.05 between neighbouring runs" in text
+    grid_off = {"kind": "gridded", "file": "x", "arf_on": False, "arf": ARF_FM}
+    assert arf_step_areas(form(spacing=ARF_STEP, arf_step=0.05), values(tmp_path, storm=grid_off)) is None
+    grid_on = {**grid_off, "arf_on": True}
+    assert len(arf_step_areas(form(spacing=ARF_STEP, arf_step=0.02), values(tmp_path, storm=grid_on, design=design(10.0, 2000.0)))) == 21
+    hms = arf_step_areas(form(spacing=ARF_STEP, arf_step=0.05), values(tmp_path))
+    assert hms is None and "when the study starts" in arf_step_text(hms, 0.05), "the HMS table is seen with the job"
 
 
 def test_gridded_rain_with_its_area_reduction_can_start_a_study(tmp_path: Path) -> None:

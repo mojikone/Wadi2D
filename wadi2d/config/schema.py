@@ -896,8 +896,23 @@ class ArfStudy(_Part):
         2.0, gt=1.0, le=100.0, description="Widest ratio of neighbouring bracketing storm areas, unless bracket_max caps them"
     )
     bracket_max: int = Field(6, ge=2, le=32, description="Most bracketing storm areas")
+    by_arf_step: bool = Field(
+        False,
+        description="Storm areas from the smallest to the largest drainage area of the design lines and of the lumped "
+        "elements that take 2D water, placed so the storm's area-reduction factor changes by at most arf_step_max "
+        "between neighbouring runs; areas_km2, the log-spaced and the bracketing settings are then not used",
+    )
+    arf_step_max: float = Field(
+        0.05, gt=0.0, lt=1.0, description="Largest change of the area-reduction factor between neighbouring storm-area runs"
+    )
     accumulation: str | None = Field(None, description="Flow accumulation raster for the composite map")
     accumulation_units: Literal["cells", "km2"] = "cells"
+
+    @model_validator(mode="after")
+    def _one_rule(self) -> ArfStudy:
+        if self.by_arf_step and self.bracket:
+            raise ValueError("arf: choose bracket or by_arf_step, not both")
+        return self
 
 
 class Run(_Part):

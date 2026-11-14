@@ -63,6 +63,20 @@
           "title": "Bracket Max",
           "type": "integer"
         },
+        "by_arf_step": {
+          "default": false,
+          "description": "Storm areas from the smallest to the largest drainage area of the design lines and of the lumped elements that take 2D water, placed so the storm's area-reduction factor changes by at most arf_step_max between neighbouring runs; areas_km2, the log-spaced and the bracketing settings are then not used",
+          "title": "By Arf Step",
+          "type": "boolean"
+        },
+        "arf_step_max": {
+          "default": 0.05,
+          "description": "Largest change of the area-reduction factor between neighbouring storm-area runs",
+          "exclusiveMaximum": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Arf Step Max",
+          "type": "number"
+        },
         "accumulation": {
           "anyOf": [
             {
@@ -3936,6 +3950,8 @@
         "bracket": false,
         "bracket_ratio": 2.0,
         "bracket_max": 6,
+        "by_arf_step": false,
+        "arf_step_max": 0.05,
         "accumulation": null,
         "accumulation_units": "cells"
       }
