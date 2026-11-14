@@ -7,8 +7,11 @@ line of JSON and each answer one line of JSON followed by ``bytes`` raw bytes:
 - ``{"op": "image", "t": seconds, "extent": [xmin, ymin, xmax, ymax], "width": w, "height": h, "field": "depth",
   "ramp": {...}, "wait_s": 0.4}``: a picture, 4 bytes a pixel, rows from the north (:mod:`wadi2d.render.colour`).
   ``t`` null is the last frame. ``wait_s`` null waits for the ground however long it takes; left out, it is the job's.
-- ``{"op": "values", ...}``: the same without a ramp: float32 values, NaN where dry.
+- ``{"op": "values", ...}``: the same without a ramp: float32 values, NaN where dry, or ``nodata`` where given.
 - ``{"op": "point", "t": seconds, "x": x, "y": y}``: depth, speed and class under a point, no bytes.
+- ``{"op": "lines"}``: what ``wadi2d lines`` lists; ``{"op": "line", "coordinates": [[x, y], ...], "name": ...}``:
+  one line read from the saved frames, as ``wadi2d lines --line`` gives it, as JSON bytes. The Result lines panel
+  starts a process per request today (1.6 s each); this one is already open.
 - ``{"op": "stats"}``: what was drawn so far. ``{"op": "quit"}``, or the end of the input, ends the process.
 
 An answer carries ``frame`` and ``t_s`` (the saved map shown: the last at or before ``t``), ``detail`` (``pixel`` or
@@ -93,7 +96,21 @@ class Server:
     def values(self, request: dict) -> tuple[dict, bytes]:
         drawn = self._draw(request)
         values = np.ascontiguousarray(to_host(drawn.values), np.float32)
+        nodata = request.get("nodata")
+        if nodata is not None:
+            values = np.where(np.isnan(values), np.float32(nodata), values).astype(np.float32)
         return self._head(drawn, values.shape[1], values.shape[0]), values.tobytes()
+
+    def lines(self, _request: dict) -> tuple[dict, bytes]:
+        from wadi2d.products.result_lines import catalogue
+
+        return {"ok": True}, json.dumps(catalogue(self.renderer.source.run)).encode("utf-8")
+
+    def line(self, request: dict) -> tuple[dict, bytes]:
+        from wadi2d.products.result_lines import read_line
+
+        found = read_line(self.renderer.source.run, request["coordinates"], request.get("name", ""))
+        return {"ok": True}, json.dumps(found).encode("utf-8")
 
     def point(self, request: dict) -> tuple[dict, bytes]:
         return {"ok": True, **self.renderer.point(request.get("t"), float(request["x"]), float(request["y"]))}, b""
@@ -115,7 +132,8 @@ class Server:
 
     def answer(self, request: dict) -> tuple[dict, bytes]:
         op = request.get("op")
-        call = {"image": self.image, "values": self.values, "point": self.point, "stats": self.stats}.get(op)
+        calls = {"image": self.image, "values": self.values, "point": self.point, "stats": self.stats}
+        call = {**calls, "lines": self.lines, "line": self.line}.get(op)
         if call is None:
             return {"ok": False, "message": f"no operation {op!r}"}, b""
         start = time.perf_counter()

@@ -246,3 +246,24 @@ def test_gpu_and_cpu_draw_the_same(finished, renderer) -> None:
             assert (a != b).mean() < 1e-4
     finally:
         on_gpu.close()
+
+
+@pytest.mark.parametrize("part", ["mesh", "strips"])
+def test_a_mesh_or_aligned_cells_draw_cell_values_and_say_so(finished, tmp_path, part) -> None:
+    """Pixels on a quadtree or beside aligned cells are not drawn on demand yet: such a run falls back to its cells."""
+    import json
+    import shutil
+
+    shutil.copy(finished.run / "results.h5", tmp_path / "results.h5")
+    config = json.loads((finished.run / "config.resolved.json").read_text(encoding="utf-8"))
+    config[part]["enabled"] = True
+    (tmp_path / "config.resolved.json").write_text(json.dumps(config), encoding="utf-8")
+    made = FrameRenderer(open_run(tmp_path), "cpu")
+    try:
+        assert made.source.detail == CELLS and made.store is None
+        assert ("mesh" if part == "mesh" else "aligned") in made.source.note
+        west, south, east, north = made.source.extent()
+        drawn = made.draw(None, native((west, south, east, north), PIXEL), "depth")
+        assert drawn.detail == CELLS and drawn.pixel_m == CELL and (np.nan_to_num(to_host(drawn.values)) > 0).any()
+    finally:
+        made.close()

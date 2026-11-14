@@ -7,6 +7,8 @@ it takes the highest of them, so a wadi one cell wide stays on the map at any sc
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 
 from wadi2d.config.schema import Pixels
@@ -30,7 +32,7 @@ def draw_cells(xp, source: RunSource, frame: int, view: View, field: str, rule: 
     if field not in FIELDS:
         raise ValueError(f"no field {field!r}: one of {', '.join(FIELDS)}")
     dx = source.dx
-    n = max(int(view.screen_m / dx), 1)
+    n = max(math.ceil(view.screen_m / dx - 1e-6), 1)  # a block no smaller than a screen pixel: no cell falls between two
     nothing = xp.full((view.height, view.width), xp.nan, xp.float32)
     rows, cols = view.cells(source.x0, source.y0, dx, source.shape)
     rows = (rows[0] // n * n, min(-(-rows[1] // n) * n, source.shape[0]))  # from a whole block: they stand still under a pan

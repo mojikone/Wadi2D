@@ -1707,6 +1707,17 @@
             "wet_edge_px": 1.0
           }
         },
+        "slider": {
+          "$ref": "#/$defs/Slider",
+          "default": {
+            "cell_pixels": 4.0,
+            "ground_wait_s": 0.4,
+            "ground_cache_mb": 2048.0,
+            "ground_workers": 0,
+            "frames_held": 3,
+            "max_pixels": 16000000
+          }
+        },
         "terrain_map": {
           "default": false,
           "description": "Write the modified terrain as a GeoTIFF with the run",
@@ -2450,6 +2461,62 @@
         "station"
       ],
       "title": "SectionRow",
+      "type": "object"
+    },
+    "Slider": {
+      "additionalProperties": false,
+      "description": "The saved maps drawn on demand at the terrain pixel (``wadi2d render``). Nothing is written, and nothing here\nchanges a number: these only say how much detail a drawing takes and how long it may wait for it.",
+      "properties": {
+        "cell_pixels": {
+          "default": 4.0,
+          "description": "A cell at least this many screen pixels wide is drawn at the terrain pixel; a smaller one draws its own value, as the cell slider does",
+          "maximum": 64.0,
+          "minimum": 1.0,
+          "title": "Cell Pixels",
+          "type": "number"
+        },
+        "ground_wait_s": {
+          "default": 0.4,
+          "description": "Longest a drawing waits for ground it has not read yet, s; past it the cells are drawn and the detail follows",
+          "maximum": 600.0,
+          "minimum": 0.0,
+          "title": "Ground Wait S",
+          "type": "number"
+        },
+        "ground_cache_mb": {
+          "default": 2048.0,
+          "description": "Ground of the views drawn so far that is kept in memory, MB",
+          "maximum": 262144.0,
+          "minimum": 16.0,
+          "title": "Ground Cache Mb",
+          "type": "number"
+        },
+        "ground_workers": {
+          "default": 0,
+          "description": "Threads reading the DEM; 0 means half the logical cores",
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Ground Workers",
+          "type": "integer"
+        },
+        "frames_held": {
+          "default": 3,
+          "description": "Saved maps kept in memory once read",
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Frames Held",
+          "type": "integer"
+        },
+        "max_pixels": {
+          "default": 16000000,
+          "description": "Most pixels one drawing may hold; a larger one is refused",
+          "maximum": 400000000,
+          "minimum": 10000,
+          "title": "Max Pixels",
+          "type": "integer"
+        }
+      },
+      "title": "Slider",
       "type": "object"
     },
     "Smooth": {
@@ -3904,6 +3971,14 @@
           "speckle_m2": 500.0,
           "wet_edge_px": 1.0,
           "workers": 0
+        },
+        "slider": {
+          "cell_pixels": 4.0,
+          "frames_held": 3,
+          "ground_cache_mb": 2048.0,
+          "ground_wait_s": 0.4,
+          "ground_workers": 0,
+          "max_pixels": 16000000
         },
         "terrain_map": false,
         "points": [],
