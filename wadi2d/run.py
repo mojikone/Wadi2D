@@ -23,6 +23,7 @@ from rasterio import features
 from rasterio.transform import Affine
 from scipy import ndimage
 
+from wadi2d.breach import build_breaches
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import ENTRY_POINT, REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
@@ -333,6 +334,8 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("reach_routing")
     if not cfg.dam_levels:
         data.pop("dam_levels")
+    if not cfg.breaches:
+        data.pop("breaches")  # a job without a breach keeps the hash it had before breaches existed (W63)
     if not cfg.strips.enabled:
         data.pop("strips")  # a job without strips keeps the hash it had before strips existed
     if cfg.storm.gauges is None:
@@ -878,6 +881,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     design = design_plans(cfg, generated)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
+    if continuing and cfg.breaches:
+        raise InvalidJob("a run with a breach cannot be resumed in this version: start it again")
     (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
     t0 = time.monotonic()
     storm, polygons, flows, network, lumped = _preflight(cfg, crs)
@@ -1009,8 +1014,21 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     for part in (link, bed):
         for note in part.notes() if part is not None else ():
             progress.emit("warn", message=note)
+    try:
+        breaches = build_breaches(cfg, tables, model, forcing, crs, progress)
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
+    on_step = monitor.on_step
+    if breaches is not None:
+
+        def on_step(stepper, _m=monitor.on_step, _b=breaches.on_step):
+            _m(stepper)
+            _b(stepper)
+
     if continuing:
         load_checkpoint(checkpoint, model, monitor)
+    if breaches is not None:
+        breaches.on_step(model.stepper)  # the triggers read the water the run starts with
     key = job_hash(cfg)
     progress.emit(
         "start", backend=summary.backend, cells=summary.cells, tiles=grid.ntiles - 1, dx=grid.dx,
@@ -1029,16 +1047,20 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             if link is not None:
                 link.exchange(t)
                 t_next = link.window_end(t, t_next)
+            if breaches is not None:
+                t_next = breaches.window_end(t, t_next)
             rate, rain, inflow = forcing.rate(t, t_next)
+            if breaches is not None:
+                rate = breaches.add_rates(rate)
             loss = bed.apply(rate, t, t_next) if bed is not None else 0.0
-            if rain + inflow + loss > 0.0 or not dry:
+            if rain + inflow + loss > 0.0 or not dry or (breaches is not None and breaches.piping):
                 model.set_source_cells(forcing.state, rate[: forcing.n_lattice])
                 if hybrid is not None:
                     hybrid.set_strip_source(rate[forcing.n_lattice :])
             dry = rain + inflow + loss <= 0.0
             back = link.reentry_volume() if link is not None else 0.0
             monitor.open_window(t, t_next, rain, inflow, back, loss)
-            model.advance(t_next, monitor.on_step)
+            model.advance(t_next, on_step)
             monitor.settle(t_next)
             t = t_next
             if monitor.checkpoint_due:
@@ -1047,8 +1069,12 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             if monitor.stop_due and t < end - 1e-9:
                 raise StopRequested  # at a window's end, so a resume carries on the unbroken run's windows
         summary.exit_code, summary.status = EXIT_DONE, "finished"
+        if breaches is not None:
+            breaches.write(out)
     except StopRequested:
         monitor.settle(model.stepper.t)
+        if breaches is not None:
+            breaches.write(out)
         save_checkpoint(checkpoint, model, monitor, key)
         summary.exit_code, summary.status = EXIT_STOPPED, "stopped"
     except NumericalFailure as error:
