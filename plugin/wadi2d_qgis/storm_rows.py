@@ -13,6 +13,8 @@ HOURS_TO_MINUTES = 60.0
 SEPARATOR = re.compile(r"[\t;,]|\s+")
 PERCENT = 100.0
 KIND_HMS, KIND_STEADY, KIND_DESIGN, KIND_TABLE, KIND_GRID = "hms", "uniform", "hypothetical", "hyetograph", "gridded"
+KIND_GAUGES = "gauges"
+"""Rain from the gauges of the Gauges section, which checks and writes it (``gauge_rows``)."""
 
 
 def pasted_rows(text: str, columns: int = 2) -> list[tuple[float, ...]]:
@@ -86,7 +88,7 @@ def storm_problems(storm: dict) -> list[str]:
     """What stops a run, in plain words."""
     checks = {
         KIND_STEADY: _steady_problems, KIND_TABLE: _table_problems, KIND_DESIGN: _design_problems,
-        KIND_GRID: _grid_problems,
+        KIND_GRID: _grid_problems, KIND_GAUGES: lambda _storm: [],
     }  # fmt: skip
     return checks[storm["kind"]](storm)
 

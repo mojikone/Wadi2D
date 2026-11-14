@@ -22,7 +22,16 @@ from qgis.PyQt.QtWidgets import (
 )
 
 from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
-from ..storm_rows import KIND_DESIGN, KIND_GRID, KIND_HMS, KIND_STEADY, KIND_TABLE, pasted_rows, rain_text
+from ..storm_rows import (
+    KIND_DESIGN,
+    KIND_GAUGES,
+    KIND_GRID,
+    KIND_HMS,
+    KIND_STEADY,
+    KIND_TABLE,
+    pasted_rows,
+    rain_text,
+)
 from .common import Section, bind, number_box
 
 RAIN_UNITS = "storm.rain_units"
@@ -34,6 +43,11 @@ KINDS = (
     (KIND_TABLE, "Hyetograph table"),
     (KIND_DESIGN, "Design storm with area reduction"),
     (KIND_GRID, "Gridded rain: NetCDF, DSS, GeoTIFF folder"),
+    (KIND_GAUGES, "Rain gauges, listed in the Gauges section"),
+)
+GAUGES_NOTE = (
+    "The rain of the rain gauges in the Gauges section, spread over the cells and the lumped subbasins by the method "
+    "chosen there. Gauged rain has no area reduction."
 )
 HMS_CHOICE = (KIND_HMS, "As in the HMS project")
 STAMP_WORDS = {"end": "closes its period", "start": "opens its period"}
@@ -104,6 +118,9 @@ class StormSection(Section):
         self._add_page(KIND_TABLE, self._table_page())
         self._add_page(KIND_DESIGN, self._design_page())
         self._add_page(KIND_GRID, self._grid_page())
+        gauges = QLabel(GAUGES_NOTE)
+        gauges.setWordWrap(True)
+        self._add_page(KIND_GAUGES, gauges)
         self._fill_kinds(False)
         self.kind.currentIndexChanged.connect(self._kind_changed)
         self._kind_changed()
@@ -274,4 +291,6 @@ class StormSection(Section):
                 "arf": self.arf.rows(),
             }
             return {"storm": storm}
+        if kind == KIND_GAUGES:
+            return {"storm": {"kind": kind}}
         return {"storm": self.grid_values()}

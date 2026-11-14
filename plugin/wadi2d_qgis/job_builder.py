@@ -16,11 +16,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .dam_rows import dam_problems, initial_problems, initial_water
+from .gauge_rows import gauge_problems, observed_records, rain_storm
 from .mesh_rows import reversed_note, rounded_note
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
-from .storm_rows import storm_job, storm_notes, storm_problems
+from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems
 from .study_rows import AREA_KEY, line_area
 
 DX = "grid.dx"
@@ -248,7 +249,27 @@ def problems(values: dict) -> list[str]:
     found.extend(_structure_problems(values.get("structures", {})))
     found.extend(dam_problems(values.get("dam_rows") or []))
     found.extend(initial_problems(values.get("initial_water") or []))
-    return found + _mesh_problems(values) + _strip_problems(values)
+    return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
+
+
+def _uses_gauges(values: dict) -> bool:
+    return (values.get("storm") or {}).get("kind") == KIND_GAUGES
+
+
+def _design_names(values: dict) -> tuple[set[str], set[str]]:
+    """(result lines, result points) by name, as ``_design_outputs`` names them."""
+    lines, points = set(), set()
+    for index, feature in enumerate(values.get("design") or []):
+        (points if feature.kind == "Point" else lines).add(feature.name(index))
+    return lines, points
+
+
+def _gauge_problems(values: dict) -> list[str]:
+    gauges = values.get("gauges") or {}
+    rows = gauges.get("rows") or []
+    if not rows and not _uses_gauges(values):
+        return []
+    return gauge_problems(rows, _uses_gauges(values), *_design_names(values))
 
 
 def _strip_problems(values: dict) -> list[str]:
@@ -464,7 +485,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
-    if values.get("storm"):
+    gauges = values.get("gauges") or {}
+    if _uses_gauges(values):
+        job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})
+    elif values.get("storm"):
         job["storm"] = storm_job(values["storm"])
     elif not values.get("hms"):
         hours = values["rain_hours"]
@@ -491,6 +515,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if values.get("design"):
         write_geojson(inputs / "design_points.geojson", values["design"], crs)
         job["outputs"] = _design_outputs(values["design"])
+    start = (gauges.get("settings") or {}).get("start", "")
+    observed = observed_records(gauges.get("rows") or [], *_design_names(values), start)
+    if observed:  # only when the table has flow or level gauges: an old job stays the job it was
+        job["outputs"]["observed"] = observed
     if values.get("basin"):
         basin = values["basin"]
         job["hydrology"]["basin_json"] = str(Path(basin["json"]).resolve())
