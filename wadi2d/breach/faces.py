@@ -63,6 +63,35 @@ def _static(tables: GridTables, axis: int) -> tuple:
     return tables.fly, tables.fry, tables.gly, tables.gry, tables.efy, tables.cwy, tables.ftaby
 
 
+def face_slot(grid, axis: int, j: int, i: int) -> tuple[int, bool]:
+    """Flat index of raster face (axis, j, i) in the face arrays, -1 where it has none; and whether it is the east or
+    south interface face of a finest tile against a coarser one (W71).
+
+    On the uniform grid and in a quadtree's own tile slots the face is the west or north face of cell (j, i). On a
+    quadtree the face between a finest tile's last column (row) and a coarser tile to its east (south) has no slot in
+    either tile: it lives in the extra table tiles, at the interface row's base plus its place along the side.
+    """
+    if not getattr(grid, "quad", False):
+        t, oj, oi = grid.locate(j, i)
+        return (-1 if t <= 0 else t * TILE2 + oj * TILE + oi), False
+    t = int(grid.tile_of[j // TILE, i // TILE])
+    if t > 0 and grid.level[t] == 0:
+        return t * TILE2 + (j - int(grid.tiles[t, 0]) * TILE) * TILE + (i - int(grid.tiles[t, 1]) * TILE), False
+    jl, il = (j, i - 1) if axis == WEST else (j - 1, i)
+    if t <= 0 or jl < 0 or il < 0:
+        return -1, False
+    low = int(grid.tile_of[jl // TILE, il // TILE])
+    if low <= 0 or grid.level[low] != 0:
+        return -1, False
+    side = 2 if axis == WEST else 3
+    rows = grid.interfaces
+    hit = np.nonzero((rows[:, 0] == low) & (rows[:, 1] == side))[0]
+    if hit.size == 0:
+        return -1, False
+    along = (jl - int(grid.tiles[low, 0]) * TILE) if axis == WEST else (il - int(grid.tiles[low, 1]) * TILE)
+    return int(rows[hit[0], 5]) + along, True
+
+
 def find_faces(tables: GridTables, crest, obj: TerrainObject, snap: float) -> list[tuple[int, int, int]]:
     """(axis, j, i) of the open crest faces within ``snap`` m of the dam's line."""
     grid = tables.grid
@@ -75,12 +104,12 @@ def find_faces(tables: GridTables, crest, obj: TerrainObject, snap: float) -> li
         x = grid.x0 + (ii + (0.0 if axis == WEST else 0.5)) * grid.dx
         y = grid.y0 - (jj + (0.5 if axis == WEST else 0.0)) * grid.dx
         near = shapely.distance(line, shapely.points(x, y)) <= snap
-        fl = _static(tables, axis)[0]
+        fl = _static(tables, axis)[0].reshape(-1)
         for j, i in zip(jj[near].tolist(), ii[near].tolist(), strict=True):
             if not grid.mask[j, i]:
                 continue
-            t, oj, oi = grid.locate(j, i)
-            if t <= 0 or fl[t, oj, oi] >= 0.5 * CLOSED:
+            fid, _east = face_slot(grid, axis, j, i)
+            if fid < 0 or fl[fid] >= 0.5 * CLOSED:
                 continue
             out.append((axis, j, i))
     return out
@@ -136,11 +165,11 @@ def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float, fr
         (jl, il) = (j, i - 1) if a == WEST else (j - 1, i)
         zl[m], zr[m] = tables.zmin[jl, il], tables.zmin[j, i]
         bl[m], br[m] = tables.zbar[jl, il], tables.zbar[j, i]
-        n_inv[m] = 1.0 / nman[j, i]
+        fid[m], east = face_slot(grid, a, j, i)
+        # an interface face east or south of a finest tile reads the fine cell's roughness (tables/quad.py, _strip)
+        n_inv[m] = 1.0 / (nman[jl, il] if east else nman[j, i])
         length[m] = (edits.crest.xlen if a == WEST else edits.crest.ylen)[j, i]
-        t, oj, oi = grid.locate(j, i)
-        fid[m] = t * TILE2 + oj * TILE + oi
-        cw0[m] = _static(tables, a)[5][t, oj, oi]
+        cw0[m] = _static(tables, a)[5].reshape(-1)[fid[m]]
     return BreachFaces(axis, jj, ii, fid, s, crested, free, zl, zr, bl, br, n_inv, length, cw0, bed.pixel)
 
 
