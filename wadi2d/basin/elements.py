@@ -30,7 +30,7 @@ from wadi2d.basin.contract import (
     parameter,
 )
 from wadi2d.basin.delineate import Surface
-from wadi2d.basin.kernels import NONE, longest_paths, path_to
+from wadi2d.basin.kernels import NONE, longest_paths, longest_upstream, path_to
 from wadi2d.basin.network import Network
 from wadi2d.basin.parameters import land_slope, read_on_surface, zonal_mean
 from wadi2d.basin.pour import KIND_DAM, PourPoint
@@ -126,6 +126,23 @@ def _slope_10_85(surface: Surface, start: int, end: int) -> float:
         return float("nan")
     high, low = np.interp(np.array(TEN_85_FROM_TOP) * length, along, surface.breached.ravel()[pixels])
     return float(high - low) / ((TEN_85_FROM_TOP[1] - TEN_85_FROM_TOP[0]) * length)
+
+
+class _Upstream:
+    """The longest D8 path from the whole drainage area above any pixel, and its 10-85 slope (W64)."""
+
+    def __init__(self, surface: Surface) -> None:
+        self.surface = surface
+        self.distance, self.head = longest_upstream(surface.down, surface.order, surface.nx, surface.pixel)
+
+    def at(self, pixel: int) -> dict[str, Any]:
+        """``tc_flow_length_m`` and ``tc_slope_10_85`` at a pixel; ``tc_minutes`` follows in ``refresh``."""
+        length = float(self.distance[pixel])
+        slope = _slope_10_85(self.surface, int(self.head[pixel]), pixel) if length > 0.0 else float("nan")
+        return {
+            "tc_flow_length_m": parameter(_number(length, LENGTH_DIGITS) if length > 0.0 else None, SOURCE_TERRAIN),
+            "tc_slope_10_85": parameter(_number(slope, SLOPE_DIGITS), SOURCE_TERRAIN),
+        }
 
 
 def _subbasin_parameters(
@@ -249,6 +266,7 @@ def build_elements(
     names = _node_names(surface, net, namer)
     below: dict[int, str | None] = {node: None for node in names}
     measured = _subbasin_parameters(cfg, surface, net, settings, notes)
+    upstream = _Upstream(surface)
     for link in net.subbasins.tolist():
         x, y = surface.xy(net.bottoms[link])
         name = namer.name(SUBBASIN, x, y)
@@ -270,6 +288,7 @@ def build_elements(
         x, y = surface.xy(net.bottoms[link])
         name = namer.name(REACH, x, y)
         parameters, is_open = _reach_parameters(cfg, surface, pixels, along, raster, ground, settings)
+        parameters |= upstream.at(end)  # the reach's outlet
         built.elements.append(_element(REACH, name, names[end], x, y, parameters))
         built.lines[name] = shapely.LineString(np.column_stack(surface.xy(pixels)))
         below[start] = name
@@ -285,7 +304,7 @@ def build_elements(
             ]  # a node entering the next one from the side has no link
         area = parameter(_number(surface.count[node] * surface.km2_per_pixel, AREA_DIGITS), SOURCE_TERRAIN)
         point = net.pour.get(node)
-        parameters = {"drainage_area_km2": area}
+        parameters = {"drainage_area_km2": area, **upstream.at(node)}
         kind = JUNCTION
         if point is not None and point.kind == KIND_DAM:
             kind = RESERVOIR
