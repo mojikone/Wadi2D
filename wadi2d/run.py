@@ -37,6 +37,7 @@ from wadi2d.engine.gauge_job import (
     resolve_station_paths,
 )
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
+from wadi2d.engine.inflow_lines import flow_lines, line_injections, open_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.rain_once import check_rain_once
@@ -336,8 +337,15 @@ def job_hash(cfg: RunConfig) -> str:
     if cfg.storm.gauges is None:
         data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
     _drop_point_entries(data["hydrology"])
+    for line in data["boundaries"]:  # a job without flow lines keeps the hash it had before them (W61)
+        for key in ("name", "flow"):
+            if line.get(key) is None:
+                line.pop(key, None)
     limit = cfg.grid.content_hash_limit_mb
     files = {}
+    for n, b in enumerate(cfg.boundaries):
+        if b.flow is not None and b.flow.file is not None:
+            files[f"boundaries.{n}.flow.file"] = file_identity(b.flow.file, limit)
     for part, name in PATH_FIELDS:
         value = getattr(getattr(cfg, part), name)
         if value is not None and (part, name) not in OPTIONAL_INPUT:
@@ -866,7 +874,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         for note in generated.notes:
             progress.emit("warn", message=note)
         progress.emit("basin", path=str(generated.path), **generated.report())
-    still = storm is None and not flows and not cfg.initial_levels and not cfg.dam_levels
+    still = storm is None and not flows and not cfg.initial_levels and not cfg.dam_levels and not flow_lines(cfg.boundaries)
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
     if cfg.storm.depth_grid is not None:
@@ -925,7 +933,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     except (RuntimeError, ImportError, OSError) as error:
         raise BackendUnavailable(str(error)) from error
     summary.backend = model.backend.name
-    lines = [*cfg.boundaries, *sink_lines(cfg.hydrology.handbacks)]
+    lines = [*open_lines(cfg.boundaries), *sink_lines(cfg.hydrology.handbacks)]
     bset = boundary_set(lines, tables, cfg.grid.line_samples)
     for note in boundary_notes(lines, bset, grid.dx, line_labels(cfg)):
         progress.emit("warn", message=note)
@@ -956,6 +964,14 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs, None if hybrid is None else hybrid.forcing_cells())
     if hybrid is not None:
         forcing.strip_depth = hybrid.strip_depth_real
+    if flow_lines(cfg.boundaries):
+        try:
+            injected, notes = line_injections(cfg, tables, forcing, crs)
+        except (ValueError, FileNotFoundError) as error:
+            raise InvalidJob(f"flow line: {error}") from error
+        forcing.injections += injected
+        for note in notes:
+            progress.emit("warn", message=note)
     if isinstance(storm, GaugeStorm):
         report_gauges(storm, forcing, cfg, progress, out)
     if forcing.injections and not getattr(grid, "quad", False):

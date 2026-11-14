@@ -11,16 +11,19 @@ from dataclasses import replace
 from functools import partial
 
 from qgis.core import QgsMapLayerProxyModel
+from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import QSignalBlocker, Qt
 from qgis.PyQt.QtWidgets import QComboBox, QHeaderView, QLabel, QTableWidget, QTableWidgetItem
 
 from ..boundary_rows import (
+    FILE_KINDS,
     VALUE_KINDS,
     Row,
     follow,
     job_properties,
     line_label,
     merge_rows,
+    set_file,
     set_kind,
     set_value,
 )
@@ -28,8 +31,14 @@ from ..job_builder import BOUNDARY_KIND, BOUNDARY_SLOPE, BOUNDARY_STAGE, layer_f
 from .common import Section, bind, layer_combo, number_box
 
 VALUE_FIELDS = {"stage": (BOUNDARY_STAGE, "Stage, m"), "normal": (BOUNDARY_SLOPE, "Energy slope")}
-COLUMNS = ["Line", "Kind", "Stage, m, or energy slope"]
-LINE_COLUMN, KIND_COLUMN, VALUE_COLUMN = range(3)
+COLUMNS = ["Line", "Kind", "Stage, m, or energy slope", "Hydrograph file"]
+LINE_COLUMN, KIND_COLUMN, VALUE_COLUMN, FILE_COLUMN = range(4)
+HYDROGRAPH_FILTER = "Flow records (*.csv *.txt *.dss);;All files (*)"
+FILE_TIP = (
+    "A flow line's hydrograph, HEC-RAS's Flow Hydrograph boundary: a CSV of time (minutes from the run's start) and "
+    "m3/s, or a DSS flow record such as an HMS run's. It enters the line's cells, shared by conveyance under the "
+    "normal-depth surface at the line's energy slope (0.005 unless the job sets flow.slope); nothing leaves there."
+)
 SHOWN_ROWS = 6
 
 
@@ -102,7 +111,7 @@ class BoundariesSection(Section):
         names = {name.lower(): name for name in layer.fields().names()}
         lines = []
         for number, feature in enumerate(layer.getFeatures(), start=1):
-            own = {key: feature[names[key]] for key in ("kind", "value") if key in names}
+            own = {key: feature[names[key]] for key in ("kind", "value", "file") if key in names}
             label = line_label(number, feature[names["name"]] if "name" in names else None)
             lines.append({"fid": feature.id(), "label": label, **own})
         return lines
@@ -126,6 +135,11 @@ class BoundariesSection(Section):
             value = number_box(5)
             value.valueChanged.connect(partial(self._row_value, row))
             self.table.setCellWidget(number, VALUE_COLUMN, value)
+            chooser = QgsFileWidget()
+            chooser.setFilter(HYDROGRAPH_FILTER)
+            chooser.setToolTip(FILE_TIP)
+            chooser.fileChanged.connect(partial(self._row_file, row))
+            self.table.setCellWidget(number, FILE_COLUMN, chooser)
         high = self.table.horizontalHeader().height() + self.table.verticalHeader().defaultSectionSize() * SHOWN_ROWS
         self.table.setMaximumHeight(high + 2 * self.table.frameWidth())
         self._show_rows()
@@ -134,10 +148,13 @@ class BoundariesSection(Section):
         for number, row in enumerate(self.rows):
             kind = self.table.cellWidget(number, KIND_COLUMN)
             value = self.table.cellWidget(number, VALUE_COLUMN)
-            if kind is None or value is None:
+            chooser = self.table.cellWidget(number, FILE_COLUMN)
+            if kind is None or value is None or chooser is None:
                 continue
-            with QSignalBlocker(kind), QSignalBlocker(value):
+            with QSignalBlocker(kind), QSignalBlocker(value), QSignalBlocker(chooser):
                 kind.setCurrentText(row.kind)
+                chooser.setEnabled(row.kind in FILE_KINDS)
+                chooser.setFilePath(row.file or "")
                 path = VALUE_FIELDS.get(row.kind, (None, ""))[0]
                 value.setEnabled(path is not None)
                 if path and self._schema:
@@ -151,6 +168,9 @@ class BoundariesSection(Section):
 
     def _row_value(self, row: Row, value: float) -> None:
         set_value(row, value)
+
+    def _row_file(self, row: Row, path: str) -> None:
+        set_file(row, path)
 
     def _flash(self, number: int, *_) -> None:
         layer = self.layer.currentLayer()

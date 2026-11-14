@@ -437,10 +437,47 @@ class Numerics(_Part):
     )
 
 
-class Boundary(_Part):
-    """An open boundary: cells along a line whose level is prescribed; every other edge is a wall."""
+FLOW_NORMAL_DEPTH, FLOW_CONVEYANCE = "normal_depth", "conveyance"
 
-    kind: Literal["stage", "normal", "free"]
+
+class FlowHydrograph(_Part):
+    """The hydrograph a ``flow`` line brings in (HEC-RAS's Flow Hydrograph boundary): from a CSV or DSS record, or a
+    table. It enters as volume in the line's cells, shared by conveyance, with no momentum of its own (W61)."""
+
+    file: str | None = Field(None, description="CSV table or DSS file holding the flow record, m3/s or cfs")
+    record: str | None = Field(None, description="DSS pathname or CSV column; None takes the only flow there is")
+    time_unit: Literal["s", "min", "h", "d"] = Field("min", description="Unit of a CSV's time column when it counts")
+    time_format: str | None = Field(None, description="strptime format of a CSV's dates; None guesses ISO forms")
+    start: str | None = Field(
+        None, description="Date and time of the run's minute zero, for a record with dates; else storm.rain_start"
+    )
+    times_s: list[float] | None = Field(None, description="Table times, s, in place of a file")
+    flows: list[float] | None = Field(None, description="Table discharges, m3/s, in place of a file")
+    distribution: Literal["normal_depth", "conveyance"] = Field(
+        FLOW_NORMAL_DEPTH,
+        description="'normal_depth', HEC-RAS's rule: each refresh the flow sets a normal-depth water surface across the "
+        "line from the energy slope and the cells' own sub-grid tables, and each cell takes its conveyance under it. "
+        "'conveyance': each cell takes its conveyance at its own water level, normal depth only while the line is dry",
+    )
+    slope: float = Field(
+        0.005, ge=1e-6, le=0.5, description="Energy slope across the line for the normal depth that shares the flow"
+    )
+
+    @model_validator(mode="after")
+    def _source(self) -> FlowHydrograph:
+        table = self.times_s is not None and self.flows is not None
+        if table == (self.file is not None):
+            raise ValueError("a flow line needs either file or times_s and flows")
+        if table and len(self.times_s) != len(self.flows):
+            raise ValueError("a flow line's table needs one flow per time")
+        return self
+
+
+class Boundary(_Part):
+    """An open boundary: cells along a line whose level is prescribed; every other edge is a wall. A ``flow`` line
+    prescribes no level: its cells stay in the model and take a hydrograph."""
+
+    kind: Literal["stage", "normal", "free", "flow"]
     coordinates: list[tuple[float, float]] = Field(description="Polyline along the boundary cells, m")
     stage: float = Field(0.0, description="Level for kind 'stage', m")
     slope: float = Field(0.005, ge=1e-5, le=0.5, description="Energy slope for kind 'normal'")
@@ -456,6 +493,14 @@ class Boundary(_Part):
         le=1.0,
         description="A line opening less of the domain than this share of its length draws a warning",
     )
+    name: str | None = Field(None, description="What warnings and series call a flow line; else 'Inflow line n'")
+    flow: FlowHydrograph | None = Field(None, description="The hydrograph of a 'flow' line")
+
+    @model_validator(mode="after")
+    def _flow(self) -> Boundary:
+        if (self.kind == "flow") != (self.flow is not None):
+            raise ValueError("a boundary of kind 'flow' needs a flow hydrograph, and only that kind takes one")
+        return self
 
 
 class InitialLevel(_Part):

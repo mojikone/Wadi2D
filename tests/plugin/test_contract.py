@@ -199,7 +199,7 @@ def test_schema_view_resolves_references_lists_and_nullable_fields(real: SchemaV
     assert low < high
     assert real.default(job_builder.MANNING) > 0.0
     assert real.tip(job_builder.DX)
-    assert set(real.enum(job_builder.BOUNDARY_KIND)) == {"stage", "normal", "free"}
+    assert set(real.enum(job_builder.BOUNDARY_KIND)) == {"stage", "normal", "free", "flow"}
     assert real.bounds(job_builder.CURVE_NUMBER)[1] == 100.0
     assert not real.has("grid.no_such_field")
 
@@ -237,6 +237,17 @@ def test_a_full_job_passes_the_engine_validation(tmp_path: Path) -> None:
     assert parsed.storm.kind == "uniform"
     assert parsed.storm.depth_mm == 150.0
     assert parsed.outputs.points[0].name == "Dam"
+
+
+def test_a_flow_line_reaches_the_engine_with_its_file_and_one_without_stops_the_run(tmp_path: Path) -> None:
+    line = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
+    flow = Feature("LineString", line, {"kind": "flow", "value": None, "file": "D:/inflow.csv"})
+    parsed = config.RunConfig.model_validate(build_job(full_values(tmp_path, boundaries=[flow]), tmp_path / "out"))
+    (b,) = parsed.boundaries
+    assert b.kind == "flow" and b.flow.file == "D:/inflow.csv" and b.flow.distribution == "normal_depth"
+    bare = Feature("LineString", line, {"kind": "flow", "value": None, "file": None})
+    assert any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[bare])))
+    assert not any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[flow])))
 
 
 def test_the_table_s_ladder_is_the_engines() -> None:

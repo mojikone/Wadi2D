@@ -13,6 +13,8 @@ from typing import Any
 
 VALUE_KINDS = ("stage", "normal")
 """The kinds that take a value; ``free`` has none."""
+FILE_KINDS = ("flow",)
+"""The kinds that take a hydrograph file: HEC-RAS's Flow Hydrograph line (W61)."""
 
 
 @dataclass
@@ -23,6 +25,8 @@ class Row:
     value: float | None
     kind_pinned: bool = False
     value_pinned: bool = False
+    file: str | None = None
+    """The hydrograph of a ``flow`` line: a CSV or DSS file, from the layer's ``file`` field or the table."""
 
 
 def default_value(kind: str, defaults: dict[str, float]) -> float | None:
@@ -51,7 +55,8 @@ def new_row(line: dict, kind: str, value: float | None, defaults: dict[str, floa
         start = own_value
     else:
         start = value if chosen == kind else default_value(chosen, defaults)
-    return Row(line["fid"], line["label"], chosen, start, bool(own_kind), own_value is not None)
+    own_file = str(line.get("file") or "").strip() or None
+    return Row(line["fid"], line["label"], chosen, start, bool(own_kind), own_value is not None, own_file)
 
 
 def merge_rows(lines: list[dict], old: list[Row], kind: str, value: float | None, defaults: dict[str, float]) -> list[Row]:
@@ -91,5 +96,12 @@ def set_value(row: Row, value: float) -> None:
     row.value_pinned = True
 
 
+def set_file(row: Row, path: str) -> None:
+    row.file = path.strip() or None
+
+
 def job_properties(row: Row) -> dict:
-    return {"kind": row.kind, "value": row.value if row.kind in VALUE_KINDS else None}
+    out = {"kind": row.kind, "value": row.value if row.kind in VALUE_KINDS else None}
+    if row.kind in FILE_KINDS:
+        out["file"] = row.file
+    return out

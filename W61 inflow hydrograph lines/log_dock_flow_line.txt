@@ -1,0 +1,22 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a6c3e5897703ce0dc\plugin\wadi2d_qgis\__init__.py
+    4.9 PASS engine found Engine ready.
+    5.0 === 1 the kind is offered with its file column
+    5.0 PASS flow is a kind ['stage', 'normal', 'free', 'flow']
+    5.0 PASS a file column 
+    5.0 PASS one row per line 2
+    5.0 PASS a free line has no file 
+    5.0 PASS a flow line takes a file 
+    5.0 PASS and no value 
+    5.0 === 2 a run on Bidah ground at 20 m
+    5.0 === 3 the file reaches the engine and its water enters whole
+    5.1 dock says: Starting...
+    8.2 dock says: water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there
+    8.7 PASS finished Finished. water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there.
+    8.7 PASS line 1 stays free {'kind': 'free', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]]}
+    8.7 PASS line 2 is a flow line with its file {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_flow_line\\runs\\inflow.csv'}}
+    8.7 PASS the engine took it {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'stage': 0.0, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6, 'name': None, 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-4
+    8.7 PASS the hydrograph entered whole (35999.99958651423, 36000.0)
+    8.7 PASS mass closes -4.237308315612778e-09
+    8.7 SUMMARY 14 passed, 0 failed 
+    8.7 DONE
