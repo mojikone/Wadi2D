@@ -7,7 +7,7 @@ A feature's ``kind`` field says what the point is (W58 section 4):
 | ``outfall`` | a node and an outlet: with any outfall in the layer, the model keeps only what drains to one, and every outfall is an outlet, so several outfalls make several networks in one generation |
 | ``design_point`` | a node with a computation point; ``alias`` names it again (W1's R5 for junction R5A) |
 | ``dam`` | names a crest line of the job in ``crest_line``: that dam's node takes the point's name as an alias. With no such crest line it stays a junction, said in the notes (W58 decision 4 is his) |
-| ``diversion`` | a junction carrying a ``diversion`` block for the diversion element (``method``, ``divert_to``, ``table``, ``limits``), routed as a junction until that element reads it |
+| ``diversion`` | a junction carrying a ``diversion`` block (``method``, ``divert_to``, ``table``, ``parameters``, ``limits``), read at generation and run as W72's diversion element (W75, :mod:`wadi2d.basin.diversion`) |
 | ``source`` | an external hydrograph (``file``, a CSV table or a DSS file, ``series`` picking a record, optional ``area_km2``) entering the network at the junction it snaps to |
 | ``junction`` | a forced junction: splits the reach and the subbasin it lands in |
 | ``remove_junction`` | drops the junction it snaps to: the reaches either side become one, a tributary there runs on to the next junction |
@@ -44,7 +44,7 @@ EDIT_KINDS = (POINT_REMOVE, POINT_JOIN)
 """Kinds that change the node they snap to, after the network is found."""
 POINT_KINDS = BREAK_KINDS + EDIT_KINDS
 KIND_FIELDS = ("kind", "Kind", "KIND")
-DIVERSION_FIELDS = ("method", "divert_to", "table", "limits")
+DIVERSION_FIELDS = ("method", "divert_to", "table", "parameters", "limits")
 CFS_TO_M3S = 0.028316846592
 CFS_UNITS = ("CFS", "FT3/S", "CU FT/S")
 
@@ -75,16 +75,19 @@ def _text(properties: dict[str, Any], key: str) -> str | None:
     return None if value is None or str(value).strip() == "" else str(value).strip()
 
 
-def diversion_block(properties: dict[str, Any], name: str) -> dict[str, Any]:
-    """What a diversion point says, for the diversion element; ``limits`` may be JSON text, as a GIS field holds it."""
+def diversion_block(properties: dict[str, Any], name: str, folder: Path | None = None) -> dict[str, Any]:
+    """What a diversion point says, read for the diversion element (W75, :mod:`wadi2d.basin.diversion`): the method's
+    name, its parameters and limits from JSON text, as a GIS field holds them, its tables read from beside the layer."""
+    from wadi2d.basin.diversion import resolve_block
+
     block: dict[str, Any] = {key: _text(properties, key) for key in DIVERSION_FIELDS}
     if block["limits"] is not None:
         try:
-            block["limits"] = json.loads(block["limits"])
+            json.loads(block["limits"])
         except json.JSONDecodeError as error:
             raise ValueError(f"diversion {name}: limits {block['limits']!r} is not JSON, e.g. {{\"max_m3s\": 50}}") from error
     block["point"] = name
-    return block
+    return resolve_block(block, folder)
 
 
 def read_source(properties: dict[str, Any], name: str, folder: Path, notes: list[str]) -> dict[str, Any]:
@@ -144,8 +147,8 @@ def keep_outfalls(elements: list[dict], outfalls: list[str], notes: list[str]) -
     return [e for e in elements if e["name"] in kept]
 
 
-def read_points(properties: dict[str, Any], name: str) -> tuple[str | None, dict[str, Any]]:
-    """A feature's kind and the fields its kind carries."""
+def read_points(properties: dict[str, Any], name: str, folder: Path | None = None) -> tuple[str | None, dict[str, Any]]:
+    """A feature's kind and the fields its kind carries; ``folder`` is the layer's, for a diversion's tables."""
     kind = point_kind(properties, name)
     extra: dict[str, Any] = {}
     if kind == POINT_DESIGN and _text(properties, "alias"):
@@ -153,5 +156,5 @@ def read_points(properties: dict[str, Any], name: str) -> tuple[str | None, dict
     if kind == POINT_DAM:
         extra["crest_line"] = _text(properties, "crest_line")
     if kind == POINT_DIVERSION:
-        extra["diversion"] = diversion_block(properties, name)
+        extra["diversion"] = diversion_block(properties, name, folder)
     return kind, extra

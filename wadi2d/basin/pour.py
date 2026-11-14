@@ -175,7 +175,7 @@ def _layer(
     folder = Path(path).parent
     for index, (properties, shape) in enumerate(read_features(path, surface.crs), 1):
         name = next((str(properties[key]) for key in NAME_FIELDS if properties.get(key)), f"P{index}")
-        role, extra = read_points(properties, name)
+        role, extra = read_points(properties, name, folder)
         for point in shapely.get_parts(shape):
             if role in EDIT_KINDS:
                 if edits is not None:

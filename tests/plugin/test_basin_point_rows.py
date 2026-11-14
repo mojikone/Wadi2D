@@ -7,10 +7,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from wadi2d_qgis.basin_point_rows import (
+    DIVERSION_METHODS,
     absolute_files,
     apply_delineate,
     default_ticks,
     delineate_field,
+    diversion_rows,
+    needs_words,
     next_name,
     point_fields,
 )
@@ -58,3 +61,24 @@ def test_a_delineate_field_reads_yes_no_or_nothing() -> None:
     assert delineate_field(None) is None and delineate_field("") is None
     assert delineate_field(1) is True and delineate_field("yes") is True
     assert delineate_field(0) is False and delineate_field("false") is False
+
+
+def test_the_diversion_points_become_rows_and_their_tables_are_made_absolute(tmp_path: Path) -> None:
+    """W75: the table lists the layer's diversion points; relative tables beside the layer reach the engine whole."""
+    features = [
+        {"fid": 1, "name": "Div 1", "kind": "diversion", "method": "Lateral Weir", "table": "rating.csv",
+         "parameters": None, "limits": "NULL"},
+        {"fid": 2, "name": "Out", "kind": "outfall"},
+    ]  # fmt: skip
+    (row,) = diversion_rows(features)
+    assert row == {"fid": 1, "name": "Div 1", "method": "Lateral Weir", "divert_to": "", "table": "rating.csv",
+                   "parameters": "", "limits": ""}  # fmt: skip
+    assert "crest_m" in needs_words("Lateral Weir") and DIVERSION_METHODS[0] in needs_words("weir")
+    point = Feature("Point", [0.0, 0.0], {"kind": "diversion", "table": "rating.csv",
+                                          "parameters": '{"crest_m": 1, "tailwater": "tw.csv"}'})  # fmt: skip
+    inline = Feature("Point", [0.0, 0.0], {"kind": "diversion", "table": "[[0, 0], [1, 1]]"})
+    made, kept = absolute_files([point, inline], tmp_path)
+    assert made.properties["table"] == str(tmp_path / "rating.csv")
+    assert '"tailwater": "' in made.properties["parameters"] and "tw.csv" in made.properties["parameters"]
+    assert str(tmp_path).replace("\\", "\\\\") in made.properties["parameters"]
+    assert kept.properties["table"] == "[[0, 0], [1, 1]]"

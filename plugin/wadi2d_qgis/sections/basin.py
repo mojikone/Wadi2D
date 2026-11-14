@@ -9,6 +9,7 @@ is the dry-bed transmission loss, off by default. The Hydrology section holds al
 
 from __future__ import annotations
 
+import contextlib
 from functools import partial
 from pathlib import Path
 
@@ -33,9 +34,14 @@ from ..basin_point_rows import (
     DELINEATE_DEFAULT,
     DELINEATE_KINDS,
     DELINEATE_WORDS,
+    DIVERSION_COLUMNS,
+    DIVERSION_EDITS,
+    DIVERSION_METHODS,
     KIND_WORDS,
     POINT_KINDS,
     absolute_files,
+    diversion_rows,
+    needs_words,
     point_fields,
 )
 from ..job_builder import layer_features
@@ -131,6 +137,19 @@ class BasinBox(QGroupBox):
         place_line.setContentsMargins(0, 0, 0, 0)
         place_line.addWidget(self.point_kind, 1)
         place_line.addWidget(self.place_button)
+        self.diversions = QTableWidget(0, len(DIVERSION_COLUMNS))
+        self.diversions.setHorizontalHeaderLabels(DIVERSION_COLUMNS)
+        self.diversions.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.diversions.verticalHeader().hide()
+        self.diversions.setToolTip(
+            "The diversion points of the Basin points layer (W75): HMS's five methods and two limits. An edit here is "
+            "written into the layer's fields; Generate basin reads them, checks them in the engine's words, and the "
+            "junction runs as a diversion. Tables: a CSV beside the layer or inline [[x, y], ...]; parameters and limits "
+            'are JSON, e.g. {"rate_m3s": 20} and {"max_m3s": 50}.'
+        )
+        self.diversions.hide()
+        self.diversion_rows: list[dict] = []
+        self._watched = None
         self.ticks = {kind: QCheckBox(DELINEATE_WORDS[kind]) for kind in DELINEATE_KINDS}
         tick_row = QWidget()
         tick_grid = QGridLayout(tick_row)
@@ -146,6 +165,7 @@ class BasinBox(QGroupBox):
         form.addRow("Stream threshold, km2", self.threshold)
         form.addRow("Basin points", points_row)
         form.addRow("Add a point", place_row)
+        form.addRow(self.diversions)
         form.addRow("Delineate on", tick_row)
         form.addRow("Lag method", self.lag)
         form.addRow(self.generate_button)
@@ -154,6 +174,82 @@ class BasinBox(QGroupBox):
         self.generate_button.clicked.connect(self.generate_requested)
         self.new_points_button.clicked.connect(self.new_points_requested)
         self.place_button.toggled.connect(self._place_toggled)
+        self.pour.layerChanged.connect(self._points_layer_changed)
+        self.diversions.cellChanged.connect(self._diversion_edited)
+
+    # The diversion points (W75): the layer holds them, the table edits its fields.
+
+    def _points_layer_changed(self, layer) -> None:
+        if self._watched is not None:
+            with contextlib.suppress(TypeError, RuntimeError):  # already gone with its layer
+                self._watched.dataChanged.disconnect(self.fill_diversions)
+        self._watched = layer
+        if layer is not None:
+            layer.dataChanged.connect(self.fill_diversions)
+        self.fill_diversions()
+
+    def fill_diversions(self, *_) -> None:
+        """The layer's diversion points as rows; nothing shown when it has none."""
+        layer = self.pour.currentLayer()
+        features = []
+        if layer is not None:
+            fields = point_fields(layer.fields().names())
+            for feature in layer.getFeatures():
+                features.append({"fid": feature.id(), **{key: feature[name] for key, name in fields.items()}})
+        self.diversion_rows = diversion_rows(features)
+        with QSignalBlocker(self.diversions):
+            self.diversions.setRowCount(len(self.diversion_rows))
+            for number, row in enumerate(self.diversion_rows):
+                name = QTableWidgetItem(row["name"])
+                name.setFlags(name.flags() & ~Qt.ItemIsEditable)
+                self.diversions.setItem(number, 0, name)
+                method = QComboBox()
+                method.addItem("")
+                method.addItems(DIVERSION_METHODS)
+                method.setEditable(True)  # a name the engine does not know is its to refuse, in words
+                method.setCurrentText(row["method"])
+                method.currentTextChanged.connect(partial(self._method_chosen, row["fid"]))
+                self.diversions.setCellWidget(number, 1, method)
+                for column, key in enumerate(DIVERSION_EDITS[1:], start=2):
+                    self.diversions.setItem(number, column, QTableWidgetItem(row[key]))
+                needs = QTableWidgetItem(needs_words(row["method"]))
+                needs.setFlags(needs.flags() & ~Qt.ItemIsEditable)
+                needs.setToolTip(needs.text())
+                self.diversions.setItem(number, len(DIVERSION_COLUMNS) - 1, needs)
+        _fit(self.diversions, 4)
+        self.diversions.setVisible(bool(self.diversion_rows))
+
+    def _method_chosen(self, fid: int, method: str) -> None:
+        self._write_field(fid, "method", method)
+        number = next(i for i, row in enumerate(self.diversion_rows) if row["fid"] == fid)
+        with QSignalBlocker(self.diversions):
+            self.diversions.item(number, len(DIVERSION_COLUMNS) - 1).setText(needs_words(method))
+
+    def _diversion_edited(self, number: int, column: int) -> None:
+        if not 2 <= column < len(DIVERSION_COLUMNS) - 1 or number >= len(self.diversion_rows):
+            return
+        key = DIVERSION_EDITS[column - 1]
+        self._write_field(self.diversion_rows[number]["fid"], key, self.diversions.item(number, column).text())
+
+    def _write_field(self, fid: int, key: str, text: str) -> None:
+        """One field of one point, in the layer; a layer without the field is said, not changed."""
+        layer = self.pour.currentLayer()
+        if layer is None:
+            return
+        name = point_fields(layer.fields().names()).get(key)
+        if name is None:
+            self.say(f'Layer "{layer.name()}" has no {key} field: add it, or make a new Basin points layer.')
+            return
+        index = layer.fields().indexOf(name)
+        value = text.strip() or None
+        for row in self.diversion_rows:
+            if row["fid"] == fid:
+                row[key] = text.strip()
+        if layer.isEditable():
+            layer.changeAttributeValue(fid, index, value)
+        else:
+            layer.dataProvider().changeAttributeValues({fid: {index: value}})
+            layer.triggerRepaint()
 
     def _place_toggled(self, on: bool) -> None:
         if on:
@@ -165,6 +261,7 @@ class BasinBox(QGroupBox):
         """The dock's word after a click: the button comes back up."""
         with QSignalBlocker(self.place_button):
             self.place_button.setChecked(False)
+        self.fill_diversions()
         self.say(text)
 
     def apply_schema(self, schema) -> None:

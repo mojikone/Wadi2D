@@ -15,6 +15,10 @@ VALUE_KINDS = ("stage", "normal")
 """The kinds that take a value; ``free`` has none."""
 FILE_KINDS = ("flow",)
 """The kinds that take a hydrograph file: HEC-RAS's Flow Hydrograph line (W61)."""
+DIRECTIONS = ("auto", "left", "right")
+"""Which side a flow line's water goes to, the engine's ``flow.direction`` (W70); ``auto`` is its default."""
+MOMENTUM_DEFAULT = True
+"""The engine's ``flow.momentum``: the water enters moving (W70)."""
 
 
 @dataclass
@@ -27,6 +31,10 @@ class Row:
     value_pinned: bool = False
     file: str | None = None
     """The hydrograph of a ``flow`` line: a CSV or DSS file, from the layer's ``file`` field or the table."""
+    momentum: bool = MOMENTUM_DEFAULT
+    """A ``flow`` line's water enters moving (W70): the layer's ``momentum`` field or the table."""
+    direction: str = "auto"
+    """The side a ``flow`` line's water goes to (W70): the layer's ``direction`` field or the table."""
 
 
 def default_value(kind: str, defaults: dict[str, float]) -> float | None:
@@ -56,7 +64,18 @@ def new_row(line: dict, kind: str, value: float | None, defaults: dict[str, floa
     else:
         start = value if chosen == kind else default_value(chosen, defaults)
     own_file = str(line.get("file") or "").strip() or None
-    return Row(line["fid"], line["label"], chosen, start, bool(own_kind), own_value is not None, own_file)
+    direction = str(line.get("direction") or "").strip().lower()
+    return Row(
+        line["fid"], line["label"], chosen, start, bool(own_kind), own_value is not None, own_file,
+        as_flag(line.get("momentum"), MOMENTUM_DEFAULT), direction if direction in DIRECTIONS else "auto",
+    )  # fmt: skip
+
+
+def as_flag(value: Any, default: bool) -> bool:
+    """A yes-or-no field: blank is the default."""
+    if value is None or str(value).strip() == "":
+        return default
+    return str(value).strip().lower() not in ("0", "false", "no", "off")
 
 
 def merge_rows(lines: list[dict], old: list[Row], kind: str, value: float | None, defaults: dict[str, float]) -> list[Row]:
@@ -100,8 +119,22 @@ def set_file(row: Row, path: str) -> None:
     row.file = path.strip() or None
 
 
+def set_momentum(row: Row, on: bool) -> None:
+    row.momentum = bool(on)
+
+
+def set_direction(row: Row, direction: str) -> None:
+    row.direction = direction if direction in DIRECTIONS else "auto"
+
+
 def job_properties(row: Row) -> dict:
+    """What the job builder takes; a flow line's momentum and direction only where they differ from the engine's
+    defaults, so a default left alone stays the engine's (the quadtree drops it with a warning, W70)."""
     out = {"kind": row.kind, "value": row.value if row.kind in VALUE_KINDS else None}
     if row.kind in FILE_KINDS:
         out["file"] = row.file
+        if row.momentum != MOMENTUM_DEFAULT:
+            out["momentum"] = row.momentum
+        if row.direction != "auto":
+            out["direction"] = row.direction
     return out

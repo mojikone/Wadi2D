@@ -159,6 +159,13 @@ def summary_text(model: dict, rows: list[SubbasinRow]) -> str:
     ]
     if others:
         text += f". Routed as a junction, no reach or no rating, for lack of: {', '.join(others)}"
+    diversions = [
+        f"{e['name']} ({e['diversion']['method']} to {e['diversion'].get('divert_to') or 'nowhere: it leaves'})"
+        for e in model.get("elements", [])
+        if e.get("diversion")
+    ]
+    if diversions:  # W75: the junction runs as a diversion element
+        text += f". Diversions: {', '.join(diversions)}"
     notes = model.get("notes", [])
     if notes:
         text += ". " + "; ".join(notes)

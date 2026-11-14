@@ -1,0 +1,68 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a80653315896e7321\plugin\wadi2d_qgis\__init__.py
+    5.3 PASS engine found Engine ready.
+    5.3 === 1 a diversion point through the box's table, a source on its junction
+    7.9 summary: 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 (spillways). crest li
+    7.9 PASS a plain basin 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S2 (curve_number), S3
+    7.9 PASS the new layer has the parameters field ['name', 'kind', 'alias', 'crest_line', 'method', 'divert_to', 'table', 'parameters', 'limits', 'file', 'series', 'area_km2']
+    7.9 PASS no diversion row before a diversion point 
+    8.0 PASS the table shows the diversion point [{'fid': 2, 'name': 'Diversion 1', 'method': '', 'divert_to': '', 'table': '', 'parameters': '', 'limits': ''}]
+    8.0 PASS the five methods are offered ['', 'Inflow-Diversion Table', 'Constant Flow', 'Specified Flow', 'Lateral Weir', 'Pump Station']
+    8.0 PASS the Needs column follows the method parameters {"rate_m3s": ...}; no table
+    8.0 PASS the edits are in the layer's fields ['Constant Flow', 'J1', '{"rate_m3s": 5.0}', '{"max_volume_m3": 9000.0}']
+   10.4 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 (s
+   10.4 PASS basin.json: the junction carries the read block {'method': 'Constant Flow', 'divert_to': 'J1', 'table': None, 'parameters': {'rate_m3s': 5.0}, 'limits': {'max_volume_m3': 9000.0}, 'point': 'Diversion 1', 'tables': None}
+   10.4 PASS the box names the diversion 
+   10.4 PASS a source with no area: the box says the area below is the ground's 
+   10.4 === 2 the source's area
+   12.7 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 
+   12.7 PASS the source's area is in the diversion junction's drainage area (21.8826, 24.8825)
+   12.7 PASS and in the outlet's (22.3554, 25.3553)
+   12.7 PASS the box says so 
+   12.7 === 3 a parameter the method does not take: refused in the engine's words
+   14.8 summary: The engine refused the job: a setting is invalid. diversion Diversion 1: Constant Flow takes no ['rate']; it takes ['rate_m3s']
+   14.8 PASS refused, the last model kept The engine refused the job: a setting is invalid. diversion Diversion 1: Constant Flow takes no ['rate']; it takes ['rate_m3s']
+   17.2 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 
+   17.2 PASS mended, generated again 
+   17.2 === 4 a run on the generated basin with the diversion
+   17.2 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+   18.7 dock says: reservoir Bidah 03 lacks spillways: it passes its inflow on as a junction
+   49.3 dock says: water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   49.5 PASS the run finished Finished. subbasin S1 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S9 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbas
+   49.5 PASS the diversion's series network_Diversion_1.csv
+   49.5 diversion: inflow peak 335.50, diverted peak 5.000 m3/s, diverted volume 9000.0 m3, inflow volume 454722.1 m3
+   49.5 PASS diverted reaches the rate and never passes it 5.0
+   49.5 PASS its volume capped at the limit 9000.0
+   49.5 PASS mass closes per ordinate, to the CSV's six digits 2.9999999999752447e-05
+   49.5 === 5 a flow line's two columns, and Bidah's pile re-measured
+   49.6 PASS the two columns 
+   49.6 PASS off on a free line 
+   49.6 PASS on for a flow line, ticked and auto by default 
+   49.6 PASS a direction chosen reaches the job's line {'kind': 'flow', 'value': None, 'file': None, 'direction': 'right'}
+   49.7 dock says: Starting...
+   80.2 dock says: water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there
+   80.5 PASS at rest (W61): finished Finished. water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there.
+   80.5 PASS at rest (W61): the job says it {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_wiring_gaps\\runs\\flow.csv', 'momentum': False}
+   80.5 PASS at rest (W61): direction left to the engine {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_wiring_gaps\\runs\\flow.csv', 'momentum': False}
+   80.5 at rest (W61): {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there'], 'inflow_m3': 35999.99958651423, 'relative_error': -2.8738361373585495e-09}
+   80.6 dock says: Starting...
+  105.1 dock says: water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there
+  105.4 PASS moving (W70): finished Finished. water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there.
+  105.4 PASS moving (W70): the job says it {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_wiring_gaps\\runs\\flow.csv'}
+  105.4 PASS moving (W70): direction left to the engine {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_wiring_gaps\\runs\\flow.csv'}
+  105.4 moving (W70): {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there'], 'inflow_m3': 35999.99958651423, 'relative_error': -3.853369623370928e-09}
+  105.4 PASS W61's pile stands at rest {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the dom
+  105.4 FAIL with momentum the pile is lower ({'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the do
+  105.4 === 6 an HMS basin's reservoirs, read only
+  105.4 PASS the copy holds an orifice 
+  105.5 dock says: Finished. water stood 4.3 m deep against the domain edge at (439416, 2728690): an edge is a wall, so check the domain polygon there.
+  106.5 reservoirs: {'Z4C Reservoir': ['Z4C Reservoir', 'Modified Puls', 'none', 'routes as HMS does'], 'R2A Reservoir': ['R2A Reservoir', 'Modified Puls', 'none', 'routes as HMS does'], 'Faydh 01 Reservoir': ['Faydh 01 Reservoir', 'Modified Puls', 'none', 'routes as HMS does'], 'Bidah 03 Reservoir': ['Bidah 03 Reservoir', 'Controlled Outflow', 'Conduit: Orifice (number barrels 2); Spillway: Rating Curve Spillway; Dam Top: Level Dam', 'routes as HMS does'], 'R5A Reservoir': ['R5A Reservoir', 'Modified Puls', 'none', 'routes as HMS does']}; 5 of 5 reservoirs route by their HMS structures.
+  106.5 PASS Bidah 03 Reservoir routes as HMS does ['Bidah 03 Reservoir', 'Controlled Outflow', 'Conduit: Orifice (number barrels 2); Spillway: Rating Curve Spillway; Dam Top: Level Dam', 'routes as HMS does']
+  106.5 PASS its structures as the file holds them ['Bidah 03 Reservoir', 'Controlled Outflow', 'Conduit: Orifice (number barrels 2); Spillway: Rating Curve Spillway; Dam Top: Level Dam', 'routes as HMS does']
+  106.5 PASS the cells are read only 
+  107.6 bad: ['routes as HMS does', 'routes as HMS does', 'routes as HMS does', 'refused: Bidah 03 Reservoir: outlet or option Conduit Gated Orifice is not supported', 'routes as HMS does']; 4 of 5 reservoirs route by their HMS structures; the run stops on the 1 refused, in the words shown.
+  107.6 PASS the copy the engine refuses: its words ['routes as HMS does', 'routes as HMS does', 'routes as HMS does', 'refused: Bidah 03 Reservoir: outlet or option Conduit Gated Orifice is not supported', 'routes as HMS does']
+  107.6 PASS the note counts it 4 of 5 reservoirs route by their HMS structures; the run stops on the 1 refused, in the words shown.
+  107.6 SUMMARY 39 passed, 1 failed 
+  107.6   FAILED with momentum the pile is lower: ({'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain e
+  107.6 DONE
