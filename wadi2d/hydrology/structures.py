@@ -13,7 +13,10 @@ table, and its tailwater-to-pool table changed nothing in any run, a tailwater a
 from the pool-to-tailwater table instead; monthly evaporation spreads each month's depth over 28 days in February of a
 leap year too, by the month a control step starts in. W62's: a gate passes weir flow over its width at the spillway's
 coefficient up to a head of one opening, its own law from 1.25 openings, linear between, with sqrt(2 g) as 4.42869; a
-pump's minimum run and rest times are minutes, and a pump switches on and off at the start of a step.
+pump's minimum run and rest times are minutes, and a pump switches on and off at the start of a step. W76's: a gate
+under a tailwater over its crest follows W67's submergence share up to a head over the tailwater of one opening and
+sqrt(3) times its law on that head from 1.25, its Orifice Coefficient unused; a Percent Time Series opening is the
+maximum times the gage's percent at each time, linear in the gage.
 """
 
 from __future__ import annotations
@@ -76,6 +79,7 @@ RADIAL_GATE = "Radial"
 HEAD_DISCHARGE_PUMP = "Head-Discharge Pump"
 CULVERT = "Culvert"
 SLUICE_HEAD_EXPONENT = 0.5
+PERCENT_OPEN_FULL = 100.0
 
 
 def _rising(name: str, x: FloatArray, y: FloatArray) -> None:
@@ -164,12 +168,15 @@ class TabularSeepage:
 @STRUCTURE_KINDS.register(RADIAL_GATE)
 @dataclass(frozen=True)
 class SpillwayGate:
-    """A group of identical gates on a broad-crested spillway (HMS's Spillway Gate with a Fixed Opening).
+    """A group of identical gates on a broad-crested spillway (HMS's Spillway Gate).
 
     Weir flow over the group's width at the spillway's coefficient while the head over the crest is at most the
     opening; from 1.25 openings the gate law, sluice C W B k sqrt(H) or radial C k W T^TE B^BE H^HE (W the group's
-    width, k = 4.42869); linear in head over opening between. The drowned forms are not identified and a tailwater
-    reaching the crest is refused (a plain spillway or dam top is drowned as HMS does it, W67).
+    width, k = 4.42869); linear in head over opening between. Under a tailwater over the crest (W76) the same in
+    r = (pool - tailwater) / B: the free flow times W67's submergence share up to 1, the gate law on the head over
+    the tailwater times sqrt(3) from 1.25. The opening is ``opening_m`` (HMS's Fixed Opening), or with a schedule
+    (HMS's Percent Time Series) ``maximum_opening_m`` times the percent, linear between the schedule's times, which
+    are minutes from the run's first ordinate.
     """
 
     kind: str
@@ -184,8 +191,20 @@ class SpillwayGate:
     opening_exponent: float = 1.0
     head_exponent: float = SLUICE_HEAD_EXPONENT
     outlet: int = MAIN_OUTLET
+    maximum_opening_m: float | None = None
+    schedule_minutes: tuple[float, ...] = ()
+    schedule_percent: tuple[float, ...] = ()
 
     def __post_init__(self) -> None:
+        if self.schedule_minutes or self.schedule_percent or self.maximum_opening_m is not None:
+            minutes = np.asarray(self.schedule_minutes, dtype=float)
+            if (
+                self.maximum_opening_m is None or self.maximum_opening_m <= 0.0 or len(minutes) < 2
+                or len(minutes) != len(self.schedule_percent) or np.any(np.diff(minutes) <= 0.0)
+                or min(self.schedule_percent) < 0.0 or max(self.schedule_percent) > PERCENT_OPEN_FULL
+            ):
+                raise ValueError("spillway gate: a percent schedule needs a maximum opening over 0, two times or "
+                                 "more rising, and percents from 0 to 100")
         if self.kind not in (SLUICE_GATE, RADIAL_GATE):
             raise ValueError(f"spillway gate {self.kind!r}: only {SLUICE_GATE} and {RADIAL_GATE}")
         if self.gates < 1 or self.width_m <= 0.0 or self.opening_m < 0.0:
@@ -199,15 +218,33 @@ class SpillwayGate:
     def total_width_m(self) -> float:
         return self.gates * self.width_m
 
+    @property
+    def scheduled(self) -> bool:
+        return bool(self.schedule_minutes)
+
+    def openings_at(self, minutes: FloatArray) -> FloatArray:
+        """The opening at each time, minutes from the run's first ordinate; NaN for a fixed opening (the packed one).
+        A time outside the schedule raises: what HMS does past its gage's record was not measured."""
+        minutes = np.asarray(minutes, dtype=float)
+        if not self.scheduled:
+            return np.full(minutes.shape, np.nan)
+        if minutes.size and (minutes.min() < self.schedule_minutes[0] or minutes.max() > self.schedule_minutes[-1]):
+            raise ValueError(f"spillway gate: the run's {minutes.min():g} to {minutes.max():g} min pass the percent "
+                             f"schedule's {self.schedule_minutes[0]:g} to {self.schedule_minutes[-1]:g} min")
+        percent = np.interp(minutes, self.schedule_minutes, self.schedule_percent)
+        return self.maximum_opening_m * percent / PERCENT_OPEN_FULL
+
     def pack(self) -> Packed:
         width = self.total_width_m
+        base = self.coefficient * kernel.GATE_SQRT_2G * width * self.trunnion_height_m**self.trunnion_exponent
         factor = (
             self.coefficient * kernel.GATE_SQRT_2G * width
             * self.trunnion_height_m**self.trunnion_exponent * self.opening_m**self.opening_exponent
         )
         return Packed(
             kernel.GATE, self.outlet,
-            (self.crest_elevation_m, self.weir_coefficient * width, factor, self.opening_m, self.head_exponent),
+            (self.crest_elevation_m, self.weir_coefficient * width, factor, self.opening_m, self.head_exponent, base,
+             self.opening_exponent),
         )
 
     def label(self) -> str:
@@ -384,14 +421,18 @@ def flows_at(
     tailwater: tuple[float, float],
     bottom: float,
     active: np.ndarray | None = None,
+    openings: np.ndarray | None = None,
 ) -> np.ndarray:
     """The flow of each structure at each pool level, m3/s (rows: levels); ``tailwater`` is (main, auxiliary),
-    NaN for none, ``bottom`` the first elevation of the storage table, and ``active`` each structure's state at each
-    level (a pump on, 1, or off, 0), every structure active when None."""
+    NaN for none, ``bottom`` the first elevation of the storage table, ``active`` each structure's state at each
+    level (a pump on, 1, or off, 0), every structure active when None, and ``openings`` each gate's opening at each
+    level, NaN (every gate at its fixed opening) when None."""
     arrays = pack_all(structures)
     levels = np.atleast_1d(np.asarray(levels, dtype=np.float64))
     if active is None:
         active = np.ones((len(levels), len(structures)))
+    if openings is None:
+        openings = np.full((len(levels), len(structures)), np.nan)
     return kernel.structure_flows(
         levels,
         arrays.kinds,
@@ -404,4 +445,5 @@ def flows_at(
         np.array(tailwater, dtype=np.float64),
         bottom,
         np.asarray(active, dtype=np.float64),
+        np.asarray(openings, dtype=np.float64),
     )

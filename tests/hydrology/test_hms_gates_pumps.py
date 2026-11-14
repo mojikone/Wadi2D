@@ -111,13 +111,10 @@ def _reservoir_with(tmp_path, case: str, old: str, new: str) -> ReservoirOutflow
 def test_gate_reader_refusals(tmp_path) -> None:
     with pytest.raises(ValueError, match="crest of 30"):
         _reservoir_with(tmp_path, "gate_sluice", "Spillway Crest Length: 20", "Spillway Crest Length: 30")
-    with pytest.raises(ValueError, match="only Fixed Opening"):
+    with pytest.raises(ValueError, match=r"Percent Pattern.* is not supported"):
         _reservoir_with(tmp_path, "gate_sluice", "Gate Control: Fixed Opening", "Gate Control: Percent Pattern")
     with pytest.raises(ValueError, match="keys not read"):
         _reservoir_with(tmp_path, "gate_radial", "Head Exponent: 0.62", "Head Exponent: 0.62\n     Gate Drift: 1")
-    with pytest.raises(ValueError, match="drowned-weir"):
-        _reservoir_with(tmp_path, "gate_sluice", "Main Tailwater Condition: None",
-                        "Main Tailwater Condition: Fixed Stage\n     Main Fixed Tailwater Stage: 108.5")
 
 
 def test_pump_head_law_on_hms_own_levels() -> None:

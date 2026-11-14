@@ -208,14 +208,6 @@ class ReservoirOutflowStructures:
             if isinstance(structure, Pump) and self.tailwater_m is not None and self.tailwater_m >= structure.intake_m:
                 raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a pump's intake at "
                                  f"{structure.intake_m} m; what HMS does then was not identified (W62)")
-        if self.tailwater_m is not None:
-            for structure in self.structures:
-                if isinstance(structure, SpillwayGate) and structure.outlet == MAIN_OUTLET and (
-                    self.tailwater_m >= structure.crest_elevation_m
-                ):
-                    raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a gated crest at "
-                                     f"{structure.crest_elevation_m} m; HMS's drowned-weir rule under a gate was not "
-                                     "identified (W62); a plain spillway or dam top is drowned as HMS does it (W67)")
 
     @cached_property
     def storage_m3(self) -> FloatArray:
@@ -245,6 +237,11 @@ class ReservoirOutflowStructures:
             rates = self.evaporation.rates(self.start, steps, dt_minutes)
         areas = self.areas_m2 if self.areas_m2 is not None else np.zeros_like(self.elevations_m)
         tailwater = np.array([np.nan if self.tailwater_m is None else self.tailwater_m, np.nan])
+        minutes = np.arange(len(inflow_m3s)) * dt_minutes
+        schedule = np.full((len(inflow_m3s), len(structures)), np.nan)
+        for index, structure in enumerate(structures):
+            if isinstance(structure, SpillwayGate) and structure.scheduled:
+                schedule[:, index] = structure.openings_at(minutes)
         main, auxiliary, lost, level, storage, active, overtopped = route_structures(
             np.asarray(inflow_m3s, dtype=np.float64),
             dt_minutes * SECONDS_PER_MINUTE,
@@ -260,6 +257,7 @@ class ReservoirOutflowStructures:
             arrays.table_start,
             arrays.table_end,
             tailwater,
+            schedule,
             self.initial_elevation_m,
             LEVEL_ITERATIONS,
             LEVEL_TOLERANCE_M,
@@ -268,7 +266,9 @@ class ReservoirOutflowStructures:
         )
         if overtopped:
             raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: the pool passed the top of its table")
-        flows = flows_at(structures, level, (tailwater[0], tailwater[1]), float(self.elevations_m[0]), active)
+        flows = flows_at(
+            structures, level, (tailwater[0], tailwater[1]), float(self.elevations_m[0]), active, schedule
+        )
         for index, structure in enumerate(structures):
             if isinstance(structure, Pump):
                 heads = structure.head_m(level[active[:, index] > 0.0])
