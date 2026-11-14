@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
+from wadi2d.basin.barriers import ground_edits
 from wadi2d.basin.contract import (
     FORMAT,
     FORMAT_VERSION,
@@ -80,8 +81,10 @@ def assemble(
     surface: Surface | None = None,
 ) -> Assembly:
     """Measure the model; ``surface`` reuses a delineation of the same ground."""
-    surface = surface or flow_surface(*read_surface(cfg, settings))
     notes: list[str] = []
+    if surface is None:
+        z, pixel, x0, y0, crs = read_surface(cfg, settings)
+        surface = flow_surface(z, pixel, x0, y0, crs, ground_edits(cfg, z, pixel, x0, y0, settings, notes))
     surface, pour = gather(cfg, surface, settings, pour_layer, notes)
     network = build_network(surface, pour, settings)
     namer = Namer(previous, surface.pixel, (point.name for point in pour.values()))

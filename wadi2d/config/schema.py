@@ -226,6 +226,19 @@ class TerrainObject(_Part):
         description="Last station: open stops the cut square, closed wraps the section round the end, taper fades it to the ground",
     )
     taper_length: float = Field(30.0, gt=0.0, le=2000.0, description="Length of a tapered end, m")
+    delineate: bool | None = Field(
+        None,
+        description="Edit the ground the basin generator delineates on, as HEC-HMS's wall and burn tools do (W73): a wall "
+        "or crest line raises its pixels, a burn line or channel cuts them, an embankment or dyke takes its built ground. "
+        "None: on for wall and burn_line, off for the rest. A spillway never delineates. The 2D run never reads it",
+    )
+
+    @property
+    def delineates(self) -> bool:
+        """Whether the basin generator applies this object (W73)."""
+        if self.kind == "spillway":
+            return False
+        return self.kind in ("wall", "burn_line") if self.delineate is None else self.delineate
 
     @model_validator(mode="after")
     def _heights(self) -> TerrainObject:
@@ -1197,6 +1210,13 @@ class BasinSettings(_Part):
     )
     dam_min_km2: float = Field(
         1.0, ge=0.0, description="A crest line draining less is a saddle dam: it makes no node, km2"
+    )
+    wall_raise_m: float = Field(
+        100.0,
+        gt=0.0,
+        le=10000.0,
+        description="A delineation wall with no level of its own raises the ground under it by this much, m (W73), after "
+        "HEC-HMS's sharp raise",
     )
     dam_join_m: float = Field(
         50.0, ge=0.0, le=2000.0, description="A spillway this close to a crest line belongs to that dam, m"
