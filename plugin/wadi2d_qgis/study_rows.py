@@ -41,12 +41,12 @@ COLUMNS = (
     "Read as",
 )
 STORM_WORDS = (
-    "A study needs a design storm with an area reduction table: in Storm, choose As in the HMS project, Design "
-    "storm with area reduction and fill its table, or Gridded rain with Reduce by area ticked."
+    "A study needs a design storm with an area reduction table: in Storm, choose the Rain source As in the HMS "
+    "project, or Design storm or Gridded file with an Area reduction and its table."
 )
 TABLE_WORDS = "Fill the area reduction table of the design storm in Storm: without it every run is the same run."
 GRID_WORDS = (
-    "Tick Reduce by area for the gridded rain in Storm: without an area reduction table every run is the same run."
+    "Choose an Area reduction for the gridded file in Storm: without an area reduction table every run is the same run."
 )
 STUDY_KINDS = (KIND_DESIGN, KIND_GRID)
 LINE_WORDS = (

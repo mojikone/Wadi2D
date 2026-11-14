@@ -15,6 +15,12 @@ PERCENT = 100.0
 KIND_HMS, KIND_STEADY, KIND_DESIGN, KIND_TABLE, KIND_GRID = "hms", "uniform", "hypothetical", "hyetograph", "gridded"
 KIND_GAUGES = "gauges"
 """Rain from the gauges of the Gauges section, which checks and writes it (``gauge_rows``)."""
+SOURCE_SINGLE = "single"
+"""The Rain source of one hyetograph for the whole model: constant rain (kind ``uniform``) or a table of periods
+(kind ``hyetograph``), W65. The other sources are the storm kinds themselves."""
+ARF_NONE, ARF_AREA, ARF_STUDY = "none", "area", "study"
+"""The area reduction of a design storm or a grid of point depths: none, read at one storm area, or read at each storm
+area of the depth-area study, which replaces the one area run by run (W65)."""
 
 
 def pasted_rows(text: str, columns: int = 2) -> list[tuple[float, ...]]:
@@ -60,6 +66,8 @@ def _design_problems(storm: dict) -> list[str]:
     elif any(b < a for a, b in itertools.pairwise(depths)):
         found.append("The design pattern's depth cannot fall.")
     arf = storm["arf"]
+    if storm.get("arf_mode") in (ARF_AREA, ARF_STUDY) and not arf:  # a dict of the old section has no mode
+        found.append("Fill the area reduction table, or choose no area reduction.")
     if arf and storm["area_km2"] <= 0.0:
         found.append("An area reduction table needs the storm area.")
     if arf and not _rising([r[0] for r in arf]):
@@ -188,6 +196,24 @@ def rain_reply(out: str) -> dict:
         if line.startswith("{"):
             return json.loads(line)
     raise ValueError("The engine gave no answer about this rain file.")
+
+
+def preview_args(job: Path | str, out: Path | str) -> list[str]:
+    """The arguments of ``wadi2d rain-preview``."""
+    return ["rain-preview", str(job), "--out", str(out)]
+
+
+def preview_text(preview: dict) -> str:
+    """One line over the preview table: the step and the area reduction it read."""
+    factor = preview.get("area_factor")
+    area = preview.get("storm_area_km2")
+    if factor is not None and factor != 1.0 and area:
+        reduction = f"Area reduction {factor:.4f} at {area:g} km2."
+    elif factor is not None and factor != 1.0:
+        reduction = f"Area reduction {factor:.4f}."
+    else:
+        reduction = "No area reduction."
+    return f"Depths after the area reduction, on the lumped step of {preview['step_min']:g} min. {reduction}"
 
 
 def rain_text(info: dict) -> str:

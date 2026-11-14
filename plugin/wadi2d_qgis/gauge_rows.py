@@ -153,3 +153,13 @@ def read_position(text: str) -> tuple[float, float] | None:
         return float(cells[0]), float(cells[1])
     except ValueError:
         return None
+
+
+def gauges_text(rows, method: str) -> str:
+    """Which rain gauges the Gauges section lists, and how their rain is spread."""
+    names = [row.name for row in rows if row.kind == RAIN]
+    if not names:
+        return "No rain gauge is listed yet: add them in the Gauges section."
+    shown = ", ".join(names[:8]) + (f" and {len(names) - 8} more" if len(names) > 8 else "")
+    count = "1 rain gauge" if len(names) == 1 else f"{len(names)} rain gauges"
+    return f"{count}: {shown}. Spread by {METHOD_WORDS.get(method, method).lower()}."
