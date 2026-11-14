@@ -141,7 +141,10 @@ def right_click(x: float, y: float) -> QMenu:
 # on the junction: the junction first, then the subbasin it sits in; the far feature of the same name is not under it
 menu = right_click(X, Y)
 texts = [action.text() for action in menu.actions()]
-assert texts == ["Hydrograph: Lumped element: Faydh 01", "Hydrograph: Lumped element: S1"], texts
+# Faydh 01's chart is already shown (the first entry), so the subbasin can also be added over it (W74)
+assert texts == [
+    "Hydrograph: Lumped element: Faydh 01", "Hydrograph: Lumped element: S1", "Add to chart: Lumped element: S1",
+], texts  # fmt: skip
 menu.actions()[0].trigger()
 assert panel.choice.currentText() == "Lumped element: Faydh 01", panel.choice.currentText()
 view = panel.plot.view
@@ -149,12 +152,38 @@ assert view.heading == "Reservoir: Faydh 01.", view.heading
 assert view.charts[0].bars is not None and view.charts[0].right, view.charts[0]
 assert "tc 95 min" in view.note and "centroid of excess to peak" in view.note, view.note
 
+# W74: Add to chart from the right-click: S1's outflow over the reservoir's chart, in its own colour
+curves_before = len(view.charts[0].curves)
+menu = right_click(X, Y)
+menu.actions()[2].trigger()
+view = panel.plot.view
+assert view.heading == "Reservoir: Faydh 01. Added: S1.", view.heading
+assert len(view.charts[0].curves) == curves_before + 1, view.charts[0].curves
+assert view.charts[0].curves[-1].values == hydrograph(120.0)
+assert panel.clear_button.isEnabled()
+menu = right_click(X, Y)
+assert [a.text() for a in menu.actions()] == [
+    "Hydrograph: Lumped element: Faydh 01", "Hydrograph: Lumped element: S1",
+], "an element already added is not offered again"  # fmt: skip
+panel._fill_add_menu()
+assert [a.text() for a in panel.add_menu.actions()] == [], "the button's menu offers nothing more"
+OUT.mkdir(parents=True, exist_ok=True)
+panel.plot.resize(1000, 460)
+panel._set_frame(6)
+assert panel.plot.grab().save(str(OUT / "chart_overlay.png")), OUT
+panel.clear_added()
+assert panel.plot.view.heading == "Reservoir: Faydh 01." and not panel.clear_button.isEnabled()
+panel._fill_add_menu()
+assert [a.text() for a in panel.add_menu.actions()] == ["Lumped element: S1"]
+panel.add_menu.actions()[0].trigger()
+assert panel.plot.view.heading.endswith("Added: S1."), panel.plot.view.heading
+
 # inside the subbasin, away from the junction: the subbasin alone
 menu = right_click(X + 300.0, Y - 300.0)
 texts = [action.text() for action in menu.actions()]
 assert texts == ["Hydrograph: Lumped element: S1"], texts
 menu.actions()[0].trigger()
-assert panel.plot.view.heading == "Subbasin: S1.", panel.plot.view.heading
+assert panel.plot.view.heading == "Subbasin: S1.", "a new chart drops what was added to the last"
 
 # off every element: nothing added to QGIS's own menu
 assert [a.text() for a in right_click(X + 900.0, Y + 900.0).actions()] == []
