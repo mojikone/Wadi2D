@@ -1,0 +1,95 @@
+{
+ "project": {
+  "name": "lihban_gauges_phi",
+  "description": "W11's Shaheen phi run, rain as a gauge record (W54)"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W11 validation round two\\t3_envelope\\domain_lihban.geojson",
+  "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\shaheen\\cache"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\Wadi2D\\W2 full extent run\\terrain\\NSA5_COP30_blend.tif",
+  "pixel_stride": 1,
+  "manning": 0.05
+ },
+ "storm": {
+  "kind": "gauges",
+  "rain_start": "2021-10-03 23:15:00",
+  "gauges": {
+   "gauges": [
+    {
+     "name": "DB839224AD",
+     "x": 488963.0,
+     "y": 2632307.0,
+     "file": "gauge_excess_phi.csv",
+     "interval_min": 5.0
+    }
+   ],
+   "method": "thiessen"
+  }
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     490553.0,
+     2632367.0
+    ],
+    [
+     490553.0,
+     2634097.0
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.008,
+   "coordinates": [
+    [
+     489023.0,
+     2634097.0
+    ],
+    [
+     490553.0,
+     2634097.0
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 1800.0,
+  "series_every_s": 120.0,
+  "live_every_s": 0.0,
+  "lines": [
+   {
+    "name": "gauge",
+    "coordinates": [
+     [
+      489663.0,
+      2631607.0
+     ],
+     [
+      488263.0,
+      2633007.0
+     ]
+    ]
+   }
+  ],
+  "observed": [
+   {
+    "name": "Bani Umar 5 min",
+    "file": "observed_flow_5min.csv",
+    "target": "gauge"
+   }
+  ]
+ },
+ "run": {
+  "duration_s": 66900.0,
+  "backend": "gpu",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0
+ }
+}

@@ -1,0 +1,12 @@
+shaheen/runs/*/results.h5
+shaheen/runs/*/maps/
+shaheen/runs/*/pixels/
+shaheen/runs/*/cache/
+shaheen/runs/*/*.nc
+shaheen/cache/
+dock_check/*/profiles/
+dock_check/*/runs/*/results.h5
+dock_check/*/runs/*/maps/
+dock_check/*/runs/cache/
+*.log
+shaheen/runs/*/cell_grid.gpkg

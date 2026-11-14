@@ -1,0 +1,306 @@
+{
+ "thiessen": {
+  "worst_percent": {
+   "30m": 0.1276,
+   "10m": 0.0944
+  },
+  "subbasins": {
+   "S1": {
+    "area_km2": 59.078,
+    "lumped_mm": 80.0,
+    "cells_30m_mm": 80.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 80.0,
+    "diff_10m_percent": 0.0
+   },
+   "S10": {
+    "area_km2": 3.846,
+    "lumped_mm": 40.0,
+    "cells_30m_mm": 40.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 40.0,
+    "diff_10m_percent": 0.0
+   },
+   "S11": {
+    "area_km2": 41.465,
+    "lumped_mm": 159.2273,
+    "cells_30m_mm": 159.2394,
+    "diff_30m_percent": 0.0076,
+    "cells_10m_mm": 159.2384,
+    "diff_10m_percent": 0.007
+   },
+   "S12": {
+    "area_km2": 32.839,
+    "lumped_mm": 160.0,
+    "cells_30m_mm": 160.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 160.0,
+    "diff_10m_percent": 0.0
+   },
+   "S13": {
+    "area_km2": 20.971,
+    "lumped_mm": 160.0,
+    "cells_30m_mm": 160.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 160.0,
+    "diff_10m_percent": 0.0
+   },
+   "S14": {
+    "area_km2": 42.298,
+    "lumped_mm": 105.9402,
+    "cells_30m_mm": 105.9373,
+    "diff_30m_percent": -0.0028,
+    "cells_10m_mm": 105.9324,
+    "diff_10m_percent": -0.0074
+   },
+   "S15": {
+    "area_km2": 38.894,
+    "lumped_mm": 157.4019,
+    "cells_30m_mm": 157.4131,
+    "diff_30m_percent": 0.0071,
+    "cells_10m_mm": 157.42,
+    "diff_10m_percent": 0.0115
+   },
+   "S16": {
+    "area_km2": 22.355,
+    "lumped_mm": 98.8707,
+    "cells_30m_mm": 98.8219,
+    "diff_30m_percent": -0.0493,
+    "cells_10m_mm": 98.8621,
+    "diff_10m_percent": -0.0087
+   },
+   "S17": {
+    "area_km2": 11.888,
+    "lumped_mm": 158.6988,
+    "cells_30m_mm": 158.7461,
+    "diff_30m_percent": 0.0298,
+    "cells_10m_mm": 158.7382,
+    "diff_10m_percent": 0.0248
+   },
+   "S18": {
+    "area_km2": 1.67,
+    "lumped_mm": 155.6297,
+    "cells_30m_mm": 155.7779,
+    "diff_30m_percent": 0.0952,
+    "cells_10m_mm": 155.7767,
+    "diff_10m_percent": 0.0944
+   },
+   "S2": {
+    "area_km2": 44.392,
+    "lumped_mm": 80.0,
+    "cells_30m_mm": 80.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 80.0,
+    "diff_10m_percent": 0.0
+   },
+   "S3": {
+    "area_km2": 87.597,
+    "lumped_mm": 58.7812,
+    "cells_30m_mm": 58.7868,
+    "diff_30m_percent": 0.0095,
+    "cells_10m_mm": 58.7821,
+    "diff_10m_percent": 0.0014
+   },
+   "S4": {
+    "area_km2": 20.018,
+    "lumped_mm": 40.0,
+    "cells_30m_mm": 40.0,
+    "diff_30m_percent": 0.0,
+    "cells_10m_mm": 40.0,
+    "diff_10m_percent": 0.0
+   },
+   "S5": {
+    "area_km2": 73.869,
+    "lumped_mm": 79.3472,
+    "cells_30m_mm": 79.3569,
+    "diff_30m_percent": 0.0122,
+    "cells_10m_mm": 79.3534,
+    "diff_10m_percent": 0.0078
+   },
+   "S6": {
+    "area_km2": 24.633,
+    "lumped_mm": 100.3268,
+    "cells_30m_mm": 100.3123,
+    "diff_30m_percent": -0.0145,
+    "cells_10m_mm": 100.32,
+    "diff_10m_percent": -0.0068
+   },
+   "S7": {
+    "area_km2": 37.656,
+    "lumped_mm": 41.4706,
+    "cells_30m_mm": 41.4532,
+    "diff_30m_percent": -0.042,
+    "cells_10m_mm": 41.4538,
+    "diff_10m_percent": -0.0407
+   },
+   "S8": {
+    "area_km2": 5.082,
+    "lumped_mm": 45.053,
+    "cells_30m_mm": 44.9955,
+    "diff_30m_percent": -0.1276,
+    "cells_10m_mm": 45.0245,
+    "diff_10m_percent": -0.0633
+   },
+   "S9": {
+    "area_km2": 30.781,
+    "lumped_mm": 45.1009,
+    "cells_30m_mm": 45.0832,
+    "diff_30m_percent": -0.0394,
+    "cells_10m_mm": 45.081,
+    "diff_10m_percent": -0.0443
+   }
+  }
+ },
+ "inverse_distance": {
+  "worst_percent": {
+   "30m": 0.0379,
+   "10m": 0.0519
+  },
+  "subbasins": {
+   "S1": {
+    "area_km2": 59.078,
+    "lumped_mm": 77.9367,
+    "cells_30m_mm": 77.9383,
+    "diff_30m_percent": 0.002,
+    "cells_10m_mm": 77.9386,
+    "diff_10m_percent": 0.0024
+   },
+   "S10": {
+    "area_km2": 3.846,
+    "lumped_mm": 46.8138,
+    "cells_30m_mm": 46.8049,
+    "diff_30m_percent": -0.019,
+    "cells_10m_mm": 46.7895,
+    "diff_10m_percent": -0.0519
+   },
+   "S11": {
+    "area_km2": 41.465,
+    "lumped_mm": 140.1558,
+    "cells_30m_mm": 140.1859,
+    "diff_30m_percent": 0.0214,
+    "cells_10m_mm": 140.1952,
+    "diff_10m_percent": 0.0281
+   },
+   "S12": {
+    "area_km2": 32.839,
+    "lumped_mm": 150.0943,
+    "cells_30m_mm": 150.0833,
+    "diff_30m_percent": -0.0074,
+    "cells_10m_mm": 150.0911,
+    "diff_10m_percent": -0.0022
+   },
+   "S13": {
+    "area_km2": 20.971,
+    "lumped_mm": 145.6971,
+    "cells_30m_mm": 145.7011,
+    "diff_30m_percent": 0.0028,
+    "cells_10m_mm": 145.7144,
+    "diff_10m_percent": 0.0119
+   },
+   "S14": {
+    "area_km2": 42.298,
+    "lumped_mm": 106.2488,
+    "cells_30m_mm": 106.2326,
+    "diff_30m_percent": -0.0153,
+    "cells_10m_mm": 106.2336,
+    "diff_10m_percent": -0.0143
+   },
+   "S15": {
+    "area_km2": 38.894,
+    "lumped_mm": 132.3734,
+    "cells_30m_mm": 132.3874,
+    "diff_30m_percent": 0.0106,
+    "cells_10m_mm": 132.3922,
+    "diff_10m_percent": 0.0142
+   },
+   "S16": {
+    "area_km2": 22.355,
+    "lumped_mm": 97.0835,
+    "cells_30m_mm": 97.086,
+    "diff_30m_percent": 0.0026,
+    "cells_10m_mm": 97.0858,
+    "diff_10m_percent": 0.0023
+   },
+   "S17": {
+    "area_km2": 11.888,
+    "lumped_mm": 129.321,
+    "cells_30m_mm": 129.3499,
+    "diff_30m_percent": 0.0224,
+    "cells_10m_mm": 129.3465,
+    "diff_10m_percent": 0.0198
+   },
+   "S18": {
+    "area_km2": 1.67,
+    "lumped_mm": 109.8968,
+    "cells_30m_mm": 109.8552,
+    "diff_30m_percent": -0.0379,
+    "cells_10m_mm": 109.8977,
+    "diff_10m_percent": 0.0008
+   },
+   "S2": {
+    "area_km2": 44.392,
+    "lumped_mm": 76.1418,
+    "cells_30m_mm": 76.1634,
+    "diff_30m_percent": 0.0283,
+    "cells_10m_mm": 76.1649,
+    "diff_10m_percent": 0.0304
+   },
+   "S3": {
+    "area_km2": 87.597,
+    "lumped_mm": 58.4765,
+    "cells_30m_mm": 58.4717,
+    "diff_30m_percent": -0.0083,
+    "cells_10m_mm": 58.4728,
+    "diff_10m_percent": -0.0063
+   },
+   "S4": {
+    "area_km2": 20.018,
+    "lumped_mm": 41.4693,
+    "cells_30m_mm": 41.4674,
+    "diff_30m_percent": -0.0045,
+    "cells_10m_mm": 41.468,
+    "diff_10m_percent": -0.0031
+   },
+   "S5": {
+    "area_km2": 73.869,
+    "lumped_mm": 81.8497,
+    "cells_30m_mm": 81.8533,
+    "diff_30m_percent": 0.0043,
+    "cells_10m_mm": 81.8538,
+    "diff_10m_percent": 0.005
+   },
+   "S6": {
+    "area_km2": 24.633,
+    "lumped_mm": 97.084,
+    "cells_30m_mm": 97.0773,
+    "diff_30m_percent": -0.0069,
+    "cells_10m_mm": 97.0835,
+    "diff_10m_percent": -0.0006
+   },
+   "S7": {
+    "area_km2": 37.656,
+    "lumped_mm": 61.6491,
+    "cells_30m_mm": 61.6327,
+    "diff_30m_percent": -0.0266,
+    "cells_10m_mm": 61.6187,
+    "diff_10m_percent": -0.0493
+   },
+   "S8": {
+    "area_km2": 5.082,
+    "lumped_mm": 73.7286,
+    "cells_30m_mm": 73.7247,
+    "diff_30m_percent": -0.0054,
+    "cells_10m_mm": 73.735,
+    "diff_10m_percent": 0.0086
+   },
+   "S9": {
+    "area_km2": 30.781,
+    "lumped_mm": 56.5514,
+    "cells_30m_mm": 56.5479,
+    "diff_30m_percent": -0.0061,
+    "cells_10m_mm": 56.533,
+    "diff_10m_percent": -0.0325
+   }
+  }
+ }
+}

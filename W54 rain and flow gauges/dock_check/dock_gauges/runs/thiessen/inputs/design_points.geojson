@@ -1,0 +1,1 @@
+{"type": "FeatureCollection", "crs": {"type": "name", "properties": {"name": "EPSG:32640"}}, "features": [{"type": "Feature", "properties": {"name": "Bidah 03"}, "geometry": {"type": "LineString", "coordinates": [[438100.0, 2727420.0], [438259.32, 2727264.77], [438807.68, 2726752.81], [438870.0, 2726640.0]]}}]}

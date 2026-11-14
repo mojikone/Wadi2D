@@ -1,0 +1,92 @@
+{
+ "same_series_times": false,
+ "series_samples": [
+  559,
+  559
+ ],
+ "largest_difference_m3s": 2.0270000000000437,
+ "peaks": {
+  "gauges": 2378.98,
+  "hypothetical": 2378.98
+ },
+ "rain_m3": {
+  "gauges_phi": 30309007.201077454,
+  "w11_hypothetical_phi": 30309003.283560444
+ },
+ "w11_hypothetical_phi": {
+  "exit": 0,
+  "answer": {
+   "ev": "done",
+   "records": 2,
+   "failed": []
+  },
+  "records": [
+   {
+    "name": "Bani Umar 5 min",
+    "points": 223,
+    "observed_peak": 2540.0,
+    "observed_peak_t_s": 17100.0,
+    "simulated_peak": 2378.98,
+    "simulated_peak_t_s": 14190.0,
+    "peak_ratio": 0.9366062992125984,
+    "nse": 0.7816427451058973,
+    "rsr": 0.4672871225425571,
+    "pbias_percent": -0.6866022583430766,
+    "observed_volume_m3": 29602350.0,
+    "simulated_volume_m3": 29399171.06091359
+   },
+   {
+    "name": "HMS gage DB839224AD - Shahin",
+    "points": 179,
+    "observed_peak": 2540.0,
+    "observed_peak_t_s": 19980.0,
+    "simulated_peak": 2378.98,
+    "simulated_peak_t_s": 14190.0,
+    "peak_ratio": 0.9366062992125984,
+    "nse": 0.6365552232160997,
+    "rsr": 0.6028638128001218,
+    "pbias_percent": -17.11946269874182,
+    "observed_volume_m3": 35470422.00173378,
+    "simulated_volume_m3": 29398138.10469058
+   }
+  ]
+ },
+ "gauges_phi": {
+  "exit": 0,
+  "answer": {
+   "ev": "done",
+   "records": 2,
+   "failed": []
+  },
+  "records": [
+   {
+    "name": "Bani Umar 5 min",
+    "points": 223,
+    "observed_peak": 2540.0,
+    "observed_peak_t_s": 17100.0,
+    "simulated_peak": 2378.98,
+    "simulated_peak_t_s": 14190.0,
+    "peak_ratio": 0.9366062992125984,
+    "nse": 0.7816598116164662,
+    "rsr": 0.46726886091792347,
+    "pbias_percent": -0.6841958799768774,
+    "observed_volume_m3": 29602350.0,
+    "simulated_volume_m3": 29399189.53217091
+   },
+   {
+    "name": "HMS gage DB839224AD - Shahin",
+    "points": 179,
+    "observed_peak": 2540.0,
+    "observed_peak_t_s": 19980.0,
+    "simulated_peak": 2378.98,
+    "simulated_peak_t_s": 14190.0,
+    "peak_ratio": 0.9366062992125984,
+    "nse": 0.6365527933023285,
+    "rsr": 0.6028658281057829,
+    "pbias_percent": -17.12024337641276,
+    "observed_volume_m3": 35470422.00173378,
+    "simulated_volume_m3": 29398156.575542662
+   }
+  ]
+ }
+}

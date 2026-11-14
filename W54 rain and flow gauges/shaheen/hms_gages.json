@@ -1,0 +1,90 @@
+{
+ "DB839224AD - Shahin": {
+  "kind": "Flow",
+  "units": "M3/S",
+  "type": "INST-VAL",
+  "pathname": "//DB839224AD - Shahin/FLOW//6MIN/GAGE/",
+  "lat": null,
+  "first": "2021-10-04T00:00:00",
+  "last": "2021-10-05T00:00:00",
+  "values": 241,
+  "missing": 0,
+  "total_or_peak": 2540.0,
+  "interval_min": 6.0,
+  "kind_read": "INST-VAL"
+ },
+ "DB839224AD - 2019": {
+  "kind": "Flow",
+  "units": "M3/S",
+  "type": "INST-VAL",
+  "pathname": "//DB839224AD - 2019/FLOW//6MIN/GAGE/",
+  "lat": null
+ },
+ "DM938388AD - Shahin": {
+  "kind": "Flow",
+  "units": "M3/S",
+  "type": "INST-VAL",
+  "pathname": "//DM938388AD - Shahin/FLOW//5MIN/GAGE/",
+  "lat": null,
+  "first": "2000-01-01T00:00:00",
+  "last": "2021-10-05T16:00:00",
+  "values": 2289217,
+  "missing": 2288255,
+  "total_or_peak": 3100.0,
+  "interval_min": 5.0,
+  "kind_read": "INST-VAL"
+ },
+ "Basin Average- 2019": {
+  "kind": "Precipitation",
+  "units": "MM",
+  "type": "PER-CUM",
+  "pathname": "//Basin Average- 2019/PRECIP-INC//1MIN/GAGE/",
+  "lat": null
+ },
+ "DM827927AF - Shahin": {
+  "kind": "Precipitation",
+  "units": "MM",
+  "type": "PER-CUM",
+  "pathname": "//DM827927AF - Shahin/PRECIP-INC//1MIN/GAGE/",
+  "lat": null,
+  "first": "2021-10-04T00:01:00",
+  "last": "2021-10-04T16:26:00",
+  "values": 986,
+  "missing": 0,
+  "total_or_peak": 412.8000055551529,
+  "interval_min": 1.0,
+  "kind_read": "PER-CUM"
+ },
+ "DM827927AF - Shahin - Copy": {
+  "kind": "Precipitation",
+  "units": "MM",
+  "type": "PER-CUM",
+  "pathname": "//DM827927AF - Shahin - Copy/PRECIP-INC//1MIN/GAGE/",
+  "lat": null,
+  "first": "2021-10-04T00:01:00",
+  "last": "2021-10-04T16:10:00",
+  "values": 970,
+  "missing": 0,
+  "total_or_peak": 396.8000053167343,
+  "interval_min": 1.0,
+  "kind_read": "PER-CUM"
+ },
+ "DM827927AF - Shahin - Copy -": {
+  "kind": "Precipitation",
+  "units": "MM",
+  "type": "PER-CUM",
+  "pathname": "//DM827927AF - Shahin - Copy -/PRECIP-INC//1MIN/GAGE/",
+  "lat": null,
+  "first": "2021-10-04T00:01:00",
+  "last": "2021-10-04T16:10:00",
+  "values": 970,
+  "missing": 0,
+  "total_or_peak": 314.8000037074089,
+  "interval_min": 1.0,
+  "kind_read": "PER-CUM"
+ },
+ "W11 shaheen_5min.csv": {
+  "rain_mm": 458.79999999999995,
+  "peak_m3s": 2540.0
+ }
+}

@@ -1,0 +1,21 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\runs\\wadi2d_cache\\grid_590e61b912a26f20b74ce0c6.h5"}
+{"ev": "gauges", "method": "inverse_distance", "gauges": {"West": 40.0, "East": 10.0}, "positions": {"West": [433000.0, 2725500.0], "East": [438500.0, 2725500.0]}, "start": "2021-10-04T00:00:00", "rain_ends_min": 60.0, "cell_shares": {"West": 0.4688, "East": 0.5312}, "subbasin_shares": {}}
+{"ev": "start", "backend": "gpu", "cells": 31971, "tiles": 49, "dx": 30.0, "duration_s": 10800.0, "tables_s": 0.25, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 4.5}
+{"ev": "output", "kind": "map", "t": 905.6062845282452}
+{"ev": "output", "kind": "map", "t": 1805.7110794996645}
+{"ev": "output", "kind": "map", "t": 2706.9403283783918}
+{"ev": "output", "kind": "map", "t": 3606.9521797193042}
+{"ev": "output", "kind": "map", "t": 4507.84888624663}
+{"ev": "output", "kind": "map", "t": 5408.466058834707}
+{"ev": "output", "kind": "map", "t": 6308.6144180596475}
+{"ev": "output", "kind": "map", "t": 7208.872187495525}
+{"ev": "step", "t": 7936.017, "dt": 1.5324, "steps": 5377, "active_tiles": 49, "volume": 297199.2, "mass_error": 1.535e-08, "wall": 2.0}
+{"ev": "output", "kind": "map", "t": 8109.507800264291}
+{"ev": "output", "kind": "map", "t": 9011.095397365072}
+{"ev": "output", "kind": "map", "t": 9912.55303213904}
+{"ev": "warn", "message": "water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\runs\\inverse_distance\\maps"}
+{"ev": "observed", "name": "Dam gauge", "target": "Bidah 03", "nse": -3.7919304139818646, "pbias_percent": 142.88322235585605, "peak_ratio": 2.3747833333333332}
+{"ev": "output", "kind": "observed", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\runs\\inverse_distance\\observed\\statistics.json"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 10800.0, "duration_s": 10800.0, "steps": 7262, "loop_s": 2.69, "tables_s": 0.25, "wet_area_km2": 2.3517, "dt_min": 1.2187004432365531, "balance": {"rain_m3": 688138.1565110396, "inflow_m3": 0.0, "outflow_m3": 534546.1201009245, "storage_start_m3": 0.0, "storage_end_m3": 153592.0202996982, "error_m3": 0.01611041688011028, "relative_error": 2.341160234711069e-08}, "tile_steps": null, "products": "none"}

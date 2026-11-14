@@ -1,0 +1,84 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\shaheen\\cache\\grid_5be8f3935c861908a5a22ea2.h5"}
+{"ev": "start", "backend": "gpu", "cells": 503067, "tiles": 561, "dx": 20.0, "duration_s": 66900.0, "tables_s": 1.27, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "output", "kind": "map", "t": 1803.0088714596877}
+{"ev": "step", "t": 2899.909, "dt": 0.6665, "steps": 4577, "active_tiles": 561, "volume": 661037.8, "mass_error": 3.617e-09, "wall": 2.0}
+{"ev": "output", "kind": "map", "t": 3603.1063709019463}
+{"ev": "output", "kind": "map", "t": 5403.164395870367}
+{"ev": "step", "t": 5403.164, "dt": 0.5265, "steps": 8668, "active_tiles": 561, "volume": 1637458.9, "mass_error": -7.566e-10, "wall": 4.06}
+{"ev": "output", "kind": "map", "t": 7203.376256933852}
+{"ev": "step", "t": 7203.376, "dt": 0.3751, "steps": 13510, "active_tiles": 561, "volume": 4903838.8, "mass_error": -7.158e-10, "wall": 6.08}
+{"ev": "output", "kind": "map", "t": 9003.378473518364}
+{"ev": "step", "t": 9003.378, "dt": 0.3754, "steps": 18349, "active_tiles": 561, "volume": 9215825.2, "mass_error": -1.25e-09, "wall": 8.14}
+{"ev": "output", "kind": "map", "t": 10803.727106241193}
+{"ev": "step", "t": 10803.727, "dt": 0.3727, "steps": 23071, "active_tiles": 561, "volume": 14386241.4, "mass_error": -1.292e-09, "wall": 10.19}
+{"ev": "output", "kind": "map", "t": 12603.733225570786}
+{"ev": "step", "t": 12603.733, "dt": 0.3734, "steps": 27931, "active_tiles": 561, "volume": 15456531.3, "mass_error": -4.117e-09, "wall": 12.58}
+{"ev": "step", "t": 14122.97, "dt": 0.3694, "steps": 32033, "active_tiles": 561, "volume": 14363712.5, "mass_error": -7.773e-09, "wall": 14.58}
+{"ev": "output", "kind": "map", "t": 14403.983009139258}
+{"ev": "step", "t": 15423.434, "dt": 0.3434, "steps": 35684, "active_tiles": 561, "volume": 12009395.6, "mass_error": -1.192e-08, "wall": 16.58}
+{"ev": "output", "kind": "map", "t": 16204.376859261956}
+{"ev": "step", "t": 17114.108, "dt": 0.4865, "steps": 39641, "active_tiles": 561, "volume": 8457674.9, "mass_error": -9.935e-09, "wall": 18.58}
+{"ev": "output", "kind": "map", "t": 18004.430322188848}
+{"ev": "step", "t": 18570.432, "dt": 0.4314, "steps": 42924, "active_tiles": 561, "volume": 7176268.2, "mass_error": -1.2e-08, "wall": 20.58}
+{"ev": "output", "kind": "map", "t": 19804.61795652874}
+{"ev": "step", "t": 19860.361, "dt": 0.3606, "steps": 46627, "active_tiles": 561, "volume": 6182541.2, "mass_error": -1.315e-08, "wall": 22.58}
+{"ev": "step", "t": 21532.291, "dt": 0.3716, "steps": 51161, "active_tiles": 561, "volume": 7058774.9, "mass_error": -1.341e-08, "wall": 24.58}
+{"ev": "output", "kind": "map", "t": 21604.835606936977}
+{"ev": "step", "t": 22722.171, "dt": 0.3804, "steps": 54361, "active_tiles": 561, "volume": 9369352.4, "mass_error": -1.266e-08, "wall": 26.58}
+{"ev": "output", "kind": "map", "t": 23404.857494412186}
+{"ev": "step", "t": 24079.947, "dt": 0.3614, "steps": 58017, "active_tiles": 561, "volume": 10091721.9, "mass_error": -1.274e-08, "wall": 28.58}
+{"ev": "output", "kind": "map", "t": 25204.901595802945}
+{"ev": "step", "t": 25793.243, "dt": 0.424, "steps": 62172, "active_tiles": 561, "volume": 8507049.0, "mass_error": -8.055e-09, "wall": 30.58}
+{"ev": "output", "kind": "map", "t": 27005.31746616162}
+{"ev": "step", "t": 27448.365, "dt": 0.4432, "steps": 65921, "active_tiles": 561, "volume": 6527827.0, "mass_error": 5.338e-09, "wall": 32.58}
+{"ev": "output", "kind": "map", "t": 28805.318689714055}
+{"ev": "step", "t": 28805.319, "dt": 0.4432, "steps": 68997, "active_tiles": 561, "volume": 5011081.3, "mass_error": 1.364e-08, "wall": 34.58}
+{"ev": "output", "kind": "map", "t": 30605.318696375252}
+{"ev": "step", "t": 30605.319, "dt": 0.4432, "steps": 73077, "active_tiles": 561, "volume": 3426930.6, "mass_error": 2e-08, "wall": 37.0}
+{"ev": "output", "kind": "map", "t": 32405.761920587487}
+{"ev": "step", "t": 32405.762, "dt": 0.4432, "steps": 77158, "active_tiles": 561, "volume": 2425865.4, "mass_error": 2.335e-08, "wall": 39.41}
+{"ev": "step", "t": 34170.443, "dt": 0.4432, "steps": 81158, "active_tiles": 561, "volume": 1827495.2, "mass_error": 2.539e-08, "wall": 41.41}
+{"ev": "output", "kind": "map", "t": 34205.761920712386}
+{"ev": "step", "t": 35602.161, "dt": 0.4432, "steps": 84403, "active_tiles": 561, "volume": 1511001.3, "mass_error": 2.654e-08, "wall": 43.41}
+{"ev": "output", "kind": "map", "t": 36005.761923168735}
+{"ev": "step", "t": 37133.048, "dt": 0.4432, "steps": 87873, "active_tiles": 561, "volume": 1272563.9, "mass_error": 2.764e-08, "wall": 45.41}
+{"ev": "output", "kind": "map", "t": 37805.76192533365}
+{"ev": "step", "t": 38586.648, "dt": 0.4432, "steps": 91168, "active_tiles": 561, "volume": 1108098.4, "mass_error": 2.871e-08, "wall": 47.41}
+{"ev": "output", "kind": "map", "t": 39606.20514346745}
+{"ev": "step", "t": 39690.443, "dt": 0.4432, "steps": 93670, "active_tiles": 561, "volume": 1009973.0, "mass_error": 2.926e-08, "wall": 49.41}
+{"ev": "step", "t": 41209.502, "dt": 0.4432, "steps": 97113, "active_tiles": 561, "volume": 901218.2, "mass_error": 3.002e-08, "wall": 51.41}
+{"ev": "output", "kind": "map", "t": 41406.20515062829}
+{"ev": "step", "t": 42300.0, "dt": 0.4432, "steps": 99585, "active_tiles": 561, "volume": 837796.3, "mass_error": 3.042e-08, "wall": 53.41}
+{"ev": "output", "kind": "map", "t": 43206.6483732585}
+{"ev": "step", "t": 43404.821, "dt": 0.4432, "steps": 102089, "active_tiles": 561, "volume": 783383.2, "mass_error": 3.08e-08, "wall": 55.41}
+{"ev": "output", "kind": "map", "t": 45006.64837650587}
+{"ev": "step", "t": 45006.648, "dt": 0.4432, "steps": 105720, "active_tiles": 561, "volume": 718112.1, "mass_error": 3.13e-08, "wall": 57.8}
+{"ev": "step", "t": 46628.865, "dt": 0.4432, "steps": 109397, "active_tiles": 561, "volume": 664520.8, "mass_error": 3.176e-08, "wall": 59.8}
+{"ev": "output", "kind": "map", "t": 46806.64839199325}
+{"ev": "step", "t": 47813.048, "dt": 0.4432, "steps": 112081, "active_tiles": 561, "volume": 631463.2, "mass_error": 3.204e-08, "wall": 61.8}
+{"ev": "output", "kind": "map", "t": 48607.091607046255}
+{"ev": "step", "t": 49110.443, "dt": 0.4432, "steps": 115022, "active_tiles": 561, "volume": 600119.0, "mass_error": 3.226e-08, "wall": 63.8}
+{"ev": "output", "kind": "map", "t": 50407.53482992616}
+{"ev": "step", "t": 50407.535, "dt": 0.4432, "steps": 117962, "active_tiles": 561, "volume": 573026.1, "mass_error": 3.256e-08, "wall": 66.02}
+{"ev": "step", "t": 52200.0, "dt": 0.4432, "steps": 122025, "active_tiles": 561, "volume": 541125.8, "mass_error": 3.289e-08, "wall": 68.02}
+{"ev": "output", "kind": "map", "t": 52207.9780508078}
+{"ev": "step", "t": 53340.0, "dt": 0.4432, "steps": 124609, "active_tiles": 561, "volume": 523657.7, "mass_error": 3.306e-08, "wall": 70.02}
+{"ev": "output", "kind": "map", "t": 54007.978055054366}
+{"ev": "step", "t": 54420.443, "dt": 0.4432, "steps": 127058, "active_tiles": 561, "volume": 508785.9, "mass_error": 3.322e-08, "wall": 72.02}
+{"ev": "output", "kind": "map", "t": 55807.97806288136}
+{"ev": "step", "t": 55807.978, "dt": 0.4432, "steps": 130203, "active_tiles": 561, "volume": 491757.4, "mass_error": 3.34e-08, "wall": 74.02}
+{"ev": "output", "kind": "map", "t": 57607.97806479655}
+{"ev": "step", "t": 57607.978, "dt": 0.4432, "steps": 134283, "active_tiles": 561, "volume": 472675.0, "mass_error": 3.361e-08, "wall": 76.45}
+{"ev": "output", "kind": "map", "t": 59408.42128330493}
+{"ev": "step", "t": 59408.421, "dt": 0.4432, "steps": 138364, "active_tiles": 561, "volume": 456353.7, "mass_error": 3.379e-08, "wall": 78.95}
+{"ev": "step", "t": 60991.773, "dt": 0.4432, "steps": 141953, "active_tiles": 561, "volume": 443764.1, "mass_error": 3.394e-08, "wall": 80.95}
+{"ev": "output", "kind": "map", "t": 61208.42128455396}
+{"ev": "step", "t": 62625.956, "dt": 0.4432, "steps": 145657, "active_tiles": 561, "volume": 432202.8, "mass_error": 3.407e-08, "wall": 82.95}
+{"ev": "output", "kind": "map", "t": 63008.4212971271}
+{"ev": "output", "kind": "map", "t": 64808.421297793284}
+{"ev": "step", "t": 64808.421, "dt": 0.4432, "steps": 150604, "active_tiles": 561, "volume": 418769.7, "mass_error": 3.423e-08, "wall": 85.09}
+{"ev": "output", "kind": "map", "t": 66608.86451821681}
+{"ev": "warn", "message": "water stood 6.0 m deep against the domain edge at (482920, 2619520): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "runs\\w11_hypothetical_phi\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 66900.0, "duration_s": 66900.0, "steps": 155345, "loop_s": 87.27, "tables_s": 1.27, "wet_area_km2": 13.6252, "dt_min": 0.34053515479703894, "balance": {"rain_m3": 30309003.283560444, "inflow_m3": 0.0, "outflow_m3": 29901332.3201938, "storage_start_m3": 0.0, "storage_end_m3": 407669.92225842684, "error_m3": 1.041108215751592, "relative_error": 3.434980048704827e-08}, "tile_steps": null, "products": "none"}
