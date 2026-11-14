@@ -17,7 +17,7 @@ import shapely
 
 from wadi2d.config.schema import RunConfig, Strips
 from wadi2d.grid.tiles import TileGrid
-from wadi2d.solver.poly.mesh import PolyMesh
+from wadi2d.solver.poly.mesh import DN_MIN, PolyMesh
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.hybrid import ghosts_for
 from wadi2d.strips.mesher import Corridor, StripMesh, build_strip_mesh
@@ -134,7 +134,13 @@ def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
                 continue  # a line off the domain is the run's own refusal, not the mesher's
             keep_out[bj, bi] = True
         keep_out = ndimage.binary_dilation(keep_out, structure=np.ones((3, 3), bool)) & grid.mask
-    return build_centre_mesh(grid, lines, floors, settings, keep_out=keep_out)
+    mesh = build_centre_mesh(grid, lines, floors, settings, keep_out=keep_out)
+    if s.gorge_rows >= 2:  # rows across a channel narrower than the pair, cut on the finished mesh (W52)
+        from wadi2d.strips.gorge import DemSampler, GorgeRule, split_gorge_rows
+
+        with DemSampler(cfg.terrain.dem) as ground:
+            mesh = split_gorge_rows(mesh, ground, GorgeRule(s.gorge_rows, s.gorge_wall_m, s.gorge_cell_min_m, ground.pixel))
+    return mesh
 
 
 def snap_geometry(coordinates) -> shapely.Geometry:
@@ -208,8 +214,16 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
     crest, cw, wall = faces_from_objects(geo, ghosts, lines)
     n = strip_manning(geo, grid, manning, cfg.terrain.manning)
+    dn_floor = None
+    if strip.gorge is not None and (strip.gorge != 0).any():
+        # a face between two cells of the gorge rows keeps its own centre distance: the rows are narrower than the
+        # floor the lattice's size gives a skewed face, and orthogonal by construction (W52)
+        left, right = geo.face_cell[:, 0], geo.face_cell[:, 1]
+        rows_both = (strip.gorge[left] != 0) & (right >= 0) & (strip.gorge[np.maximum(right, 0)] != 0)
+        dn_floor = np.where(rows_both, DN_MIN * cfg.strips.gorge_cell_min_m, DN_MIN * grid.dx)
     mesh, kept = build_poly_tables(
-        geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest
+        geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest,
+        dn_floor=dn_floor,
     )
     return StripTables(strip, mesh, kept)
 

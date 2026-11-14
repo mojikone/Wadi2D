@@ -3309,6 +3309,30 @@
           "title": "Hard Rows",
           "type": "integer"
         },
+        "gorge_rows": {
+          "default": 0,
+          "description": "Centres: cells across the bed of a channel narrower than the pair of cells on its line (W52). Where the ground stands gorge_wall_m above the bed inside the pair's own cell on both sides of a stream, the bed between those walls is cut into this many rows of 4-sided cells, half each side of the line, longer along the flow than across, with one cell beyond each wall taking the rest of the pair's cell; refining the grid otherwise leaves exactly two cells across such a channel at every cell size (W48). An even number: the line stays a chain of faces. Published practice asks for 3 to 7 cells across a channel (HEC-RAS 5 to 7, TUFLOW 3 to 4 with sub-grid sampling, ARR Project 15 at least 5, SEPA 3 to 4). Narrow cells shorten the explicit step in proportion to their width. 0 leaves the pair as it is",
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Gorge Rows",
+          "type": "integer"
+        },
+        "gorge_wall_m": {
+          "default": 3.0,
+          "description": "Centres, gorge rows: the ground this high above the bed, read on the DEM's own pixels along each station's line, is the wall; the rows span the bed between the two walls, m",
+          "exclusiveMinimum": 0.0,
+          "maximum": 50.0,
+          "title": "Gorge Wall M",
+          "type": "number"
+        },
+        "gorge_cell_min_m": {
+          "default": 2.0,
+          "description": "Centres, gorge rows: no row narrower than this, m (a few DEM pixels); a narrower bed gets fewer rows",
+          "exclusiveMinimum": 0.0,
+          "maximum": 100.0,
+          "title": "Gorge Cell Min M",
+          "type": "number"
+        },
         "corridors": {
           "default": [],
           "description": "Corridors given outright; empty, they come from the banks file",
@@ -4094,6 +4118,9 @@
         "clearance_cells": 2.0,
         "relax_rounds": 2,
         "hard_rows": 1,
+        "gorge_rows": 0,
+        "gorge_wall_m": 3.0,
+        "gorge_cell_min_m": 2.0,
         "corridors": [],
         "banks": null,
         "centre": "pairs",

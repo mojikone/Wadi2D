@@ -1,0 +1,37 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\cache\\narrow\\grid_fbb33d8699731f2a1a3f33bb.h5"}
+{"ev": "strips", "corridors": 1, "cells": 700, "triangles": 2136, "replaced": 2836, "cut": [], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 350, "cells": 700, "cells_across": 2}]}
+{"ev": "start", "backend": "gpu", "cells": 18164, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 6.47, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "step", "t": 2712.117, "dt": 0.7563, "steps": 2723, "active_tiles": 28, "volume": 306491.4, "mass_error": 1.745e-08, "wall": 2.0}
+{"ev": "step", "t": 4043.536, "dt": 0.4005, "steps": 5049, "active_tiles": 28, "volume": 535380.2, "mass_error": 7.371e-09, "wall": 4.0}
+{"ev": "step", "t": 4871.0, "dt": 0.3758, "steps": 7209, "active_tiles": 28, "volume": 580531.9, "mass_error": 1.06e-09, "wall": 6.0}
+{"ev": "step", "t": 5560.108, "dt": 0.361, "steps": 9208, "active_tiles": 28, "volume": 585616.8, "mass_error": -3.958e-09, "wall": 8.0}
+{"ev": "step", "t": 6103.421, "dt": 0.3449, "steps": 10793, "active_tiles": 28, "volume": 585779.8, "mass_error": -6.445e-09, "wall": 10.0}
+{"ev": "step", "t": 6681.885, "dt": 0.3294, "steps": 12481, "active_tiles": 28, "volume": 585787.7, "mass_error": -8.458e-09, "wall": 12.0}
+{"ev": "step", "t": 7265.674, "dt": 0.3247, "steps": 14185, "active_tiles": 28, "volume": 585789.3, "mass_error": -1.09e-08, "wall": 14.0}
+{"ev": "step", "t": 8019.365, "dt": 0.3474, "steps": 16385, "active_tiles": 28, "volume": 585783.1, "mass_error": -1.265e-08, "wall": 16.0}
+{"ev": "step", "t": 8773.245, "dt": 0.36, "steps": 18585, "active_tiles": 28, "volume": 585778.6, "mass_error": -1.361e-08, "wall": 18.0}
+{"ev": "step", "t": 9332.598, "dt": 0.3604, "steps": 20217, "active_tiles": 28, "volume": 585779.4, "mass_error": -1.477e-08, "wall": 20.0}
+{"ev": "step", "t": 10030.59, "dt": 0.3295, "steps": 22254, "active_tiles": 28, "volume": 585782.3, "mass_error": -1.55e-08, "wall": 22.0}
+{"ev": "step", "t": 10711.983, "dt": 0.3255, "steps": 24241, "active_tiles": 28, "volume": 585787.2, "mass_error": -1.572e-08, "wall": 24.0}
+{"ev": "output", "kind": "map", "t": 10803.322531230237}
+{"ev": "step", "t": 11386.522, "dt": 0.3247, "steps": 26209, "active_tiles": 28, "volume": 585788.5, "mass_error": -1.557e-08, "wall": 26.0}
+{"ev": "step", "t": 12055.21, "dt": 0.3598, "steps": 28161, "active_tiles": 28, "volume": 585779.3, "mass_error": -1.573e-08, "wall": 28.0}
+{"ev": "step", "t": 12695.2, "dt": 0.3295, "steps": 30028, "active_tiles": 28, "volume": 585783.8, "mass_error": -1.582e-08, "wall": 30.0}
+{"ev": "step", "t": 13333.385, "dt": 0.3446, "steps": 31889, "active_tiles": 28, "volume": 585785.5, "mass_error": -1.62e-08, "wall": 32.0}
+{"ev": "step", "t": 13962.33, "dt": 0.3247, "steps": 33724, "active_tiles": 28, "volume": 585784.4, "mass_error": -1.642e-08, "wall": 34.0}
+{"ev": "step", "t": 14656.909, "dt": 0.3602, "steps": 35751, "active_tiles": 28, "volume": 585782.4, "mass_error": -1.673e-08, "wall": 36.0}
+{"ev": "step", "t": 15411.536, "dt": 0.3601, "steps": 37953, "active_tiles": 28, "volume": 585778.2, "mass_error": -1.661e-08, "wall": 38.0}
+{"ev": "step", "t": 16184.435, "dt": 0.3588, "steps": 40209, "active_tiles": 28, "volume": 585778.2, "mass_error": -1.712e-08, "wall": 40.0}
+{"ev": "step", "t": 16933.25, "dt": 0.3599, "steps": 42393, "active_tiles": 28, "volume": 585778.9, "mass_error": -1.738e-08, "wall": 42.0}
+{"ev": "step", "t": 17712.111, "dt": 0.3294, "steps": 44665, "active_tiles": 28, "volume": 585788.1, "mass_error": -1.772e-08, "wall": 44.0}
+{"ev": "step", "t": 18496.174, "dt": 0.3602, "steps": 46953, "active_tiles": 28, "volume": 585779.2, "mass_error": -1.817e-08, "wall": 46.0}
+{"ev": "step", "t": 19272.93, "dt": 0.3464, "steps": 49220, "active_tiles": 28, "volume": 585788.7, "mass_error": -1.855e-08, "wall": 48.0}
+{"ev": "step", "t": 20055.891, "dt": 0.3295, "steps": 51505, "active_tiles": 28, "volume": 585789.3, "mass_error": -1.858e-08, "wall": 50.0}
+{"ev": "step", "t": 20820.344, "dt": 0.3243, "steps": 53735, "active_tiles": 28, "volume": 585789.9, "mass_error": -1.898e-08, "wall": 52.0}
+{"ev": "step", "t": 21591.325, "dt": 0.3442, "steps": 55985, "active_tiles": 28, "volume": 585785.9, "mass_error": -1.91e-08, "wall": 54.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\runs\\narrow\\narrow_ce20_rows0_meanface\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 5.4 m deep against the domain edge at (407870, 2700510): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\runs\\narrow\\narrow_ce20_rows0_meanface\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 56011, "loop_s": 54.83, "tables_s": 6.47, "wet_area_km2": 0.0512, "dt_min": 0.3199052364045807, "balance": {"rain_m3": 0.0, "inflow_m3": 5940000.00091223, "outflow_m3": 5354212.442581602, "storage_start_m3": 0.0, "storage_end_m3": 585787.6718428151, "error_m3": -0.11351218703202903, "relative_error": -1.9109795793703112e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+

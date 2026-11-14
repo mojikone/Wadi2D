@@ -405,15 +405,16 @@ def _areas_centroids(nodes: np.ndarray, rings: list[np.ndarray]) -> tuple[np.nda
     for k, r in enumerate(rings):
         if r.size < 3:
             continue
-        x, y = nodes[r, 0], nodes[r, 1]
+        ox, oy = nodes[r[0], 0], nodes[r[0], 1]  # from the ring's first node: on map coordinates the products cancel (W52)
+        x, y = nodes[r, 0] - ox, nodes[r, 1] - oy
         x1, y1 = np.roll(x, -1), np.roll(y, -1)
         cross = x * y1 - x1 * y
         a = 0.5 * cross.sum()
         area[k] = a
         if abs(a) > 1e-12:
-            cen[k] = (((x + x1) * cross).sum() / (6.0 * a), ((y + y1) * cross).sum() / (6.0 * a))
+            cen[k] = (ox + ((x + x1) * cross).sum() / (6.0 * a), oy + ((y + y1) * cross).sum() / (6.0 * a))
         else:
-            cen[k] = (x.mean(), y.mean())
+            cen[k] = (ox + x.mean(), oy + y.mean())
     return area, cen
 
 

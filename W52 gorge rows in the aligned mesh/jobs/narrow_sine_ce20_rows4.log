@@ -1,0 +1,44 @@
+{"ev": "output", "kind": "grid_cache_hit", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\cache\\narrow_sine\\grid_8eb0d0d039d284c4c02d7921.h5"}
+{"ev": "strips", "corridors": 1, "cells": 2380, "triangles": 2258, "replaced": 3226, "cut": ["gorge rows: 1 reaches, 1584 cells in rows between the walls and 792 beyond them, 1584 cells more than the pair gave"], "rules": [{"name": "t0_74.0km2", "hard": false, "rank_km2": 74.0, "stations": 398, "cells": 796, "cells_across": 2, "gorge_vertices": 397, "gorge_row_m": 3.32}]}
+{"ev": "start", "backend": "gpu", "cells": 17774, "tiles": 28, "dx": 20.0, "duration_s": 21600.0, "tables_s": 9.0, "t": 0.0}
+{"ev": "output", "kind": "map", "t": 3.0}
+{"ev": "step", "t": 1401.144, "dt": 0.2634, "steps": 3286, "active_tiles": 28, "volume": 81808.0, "mass_error": 1.393e-09, "wall": 2.0}
+{"ev": "step", "t": 2303.628, "dt": 0.1932, "steps": 7281, "active_tiles": 28, "volume": 221118.8, "mass_error": 2.354e-10, "wall": 4.0}
+{"ev": "step", "t": 2915.694, "dt": 0.1582, "steps": 10465, "active_tiles": 28, "volume": 354225.4, "mass_error": 8.45e-10, "wall": 6.0}
+{"ev": "step", "t": 3459.917, "dt": 0.1772, "steps": 13456, "active_tiles": 28, "volume": 498801.0, "mass_error": 1.529e-09, "wall": 8.0}
+{"ev": "step", "t": 3972.844, "dt": 0.1818, "steps": 16413, "active_tiles": 28, "volume": 604551.2, "mass_error": 4.319e-10, "wall": 10.0}
+{"ev": "step", "t": 4292.354, "dt": 0.1808, "steps": 18300, "active_tiles": 28, "volume": 641934.4, "mass_error": -1.33e-09, "wall": 12.0}
+{"ev": "step", "t": 4523.55, "dt": 0.1604, "steps": 19668, "active_tiles": 28, "volume": 665485.8, "mass_error": -2.523e-09, "wall": 14.0}
+{"ev": "step", "t": 4942.594, "dt": 0.1813, "steps": 22145, "active_tiles": 28, "volume": 696265.1, "mass_error": -3.751e-09, "wall": 16.0}
+{"ev": "step", "t": 5344.983, "dt": 0.158, "steps": 24529, "active_tiles": 28, "volume": 722241.5, "mass_error": -4.535e-09, "wall": 18.0}
+{"ev": "step", "t": 5784.887, "dt": 0.1811, "steps": 27138, "active_tiles": 28, "volume": 726793.3, "mass_error": -5.899e-09, "wall": 20.0}
+{"ev": "step", "t": 6296.44, "dt": 0.1746, "steps": 30170, "active_tiles": 28, "volume": 727291.4, "mass_error": -7.867e-09, "wall": 22.0}
+{"ev": "step", "t": 6953.011, "dt": 0.1607, "steps": 34055, "active_tiles": 28, "volume": 727342.2, "mass_error": -9.451e-09, "wall": 24.0}
+{"ev": "step", "t": 7586.787, "dt": 0.1732, "steps": 37810, "active_tiles": 28, "volume": 727496.2, "mass_error": -1.064e-08, "wall": 26.0}
+{"ev": "step", "t": 8212.725, "dt": 0.1812, "steps": 41518, "active_tiles": 28, "volume": 727308.5, "mass_error": -1.19e-08, "wall": 28.0}
+{"ev": "step", "t": 8888.897, "dt": 0.1461, "steps": 45523, "active_tiles": 28, "volume": 727289.7, "mass_error": -1.259e-08, "wall": 30.0}
+{"ev": "step", "t": 9582.894, "dt": 0.1436, "steps": 49637, "active_tiles": 28, "volume": 727234.1, "mass_error": -1.337e-08, "wall": 32.0}
+{"ev": "step", "t": 10294.664, "dt": 0.1774, "steps": 53854, "active_tiles": 28, "volume": 727252.7, "mass_error": -1.438e-08, "wall": 34.0}
+{"ev": "output", "kind": "map", "t": 10803.092910352405}
+{"ev": "step", "t": 10957.663, "dt": 0.1757, "steps": 57782, "active_tiles": 28, "volume": 727387.7, "mass_error": -1.531e-08, "wall": 36.0}
+{"ev": "step", "t": 11458.961, "dt": 0.18, "steps": 60758, "active_tiles": 28, "volume": 727486.2, "mass_error": -1.56e-08, "wall": 38.0}
+{"ev": "step", "t": 12130.517, "dt": 0.1811, "steps": 64733, "active_tiles": 28, "volume": 727153.7, "mass_error": -1.607e-08, "wall": 40.0}
+{"ev": "step", "t": 12821.135, "dt": 0.1781, "steps": 68826, "active_tiles": 28, "volume": 727363.5, "mass_error": -1.644e-08, "wall": 42.0}
+{"ev": "step", "t": 13487.403, "dt": 0.175, "steps": 72776, "active_tiles": 28, "volume": 727248.2, "mass_error": -1.637e-08, "wall": 44.0}
+{"ev": "step", "t": 14176.485, "dt": 0.1543, "steps": 76867, "active_tiles": 28, "volume": 727334.6, "mass_error": -1.652e-08, "wall": 46.0}
+{"ev": "step", "t": 14806.29, "dt": 0.1601, "steps": 80599, "active_tiles": 28, "volume": 727492.8, "mass_error": -1.673e-08, "wall": 48.0}
+{"ev": "step", "t": 15456.866, "dt": 0.1708, "steps": 84449, "active_tiles": 28, "volume": 727368.6, "mass_error": -1.681e-08, "wall": 50.0}
+{"ev": "step", "t": 16129.704, "dt": 0.1797, "steps": 88436, "active_tiles": 28, "volume": 727256.7, "mass_error": -1.678e-08, "wall": 52.0}
+{"ev": "step", "t": 16696.909, "dt": 0.174, "steps": 91788, "active_tiles": 28, "volume": 727378.4, "mass_error": -1.719e-08, "wall": 54.0}
+{"ev": "step", "t": 17271.871, "dt": 0.1811, "steps": 95198, "active_tiles": 28, "volume": 727387.1, "mass_error": -1.744e-08, "wall": 56.0}
+{"ev": "step", "t": 17953.298, "dt": 0.1619, "steps": 99233, "active_tiles": 28, "volume": 727406.8, "mass_error": -1.773e-08, "wall": 58.0}
+{"ev": "step", "t": 18390.0, "dt": 0.1812, "steps": 101821, "active_tiles": 28, "volume": 727216.2, "mass_error": -1.782e-08, "wall": 60.0}
+{"ev": "step", "t": 19027.293, "dt": 0.1654, "steps": 105596, "active_tiles": 28, "volume": 727384.4, "mass_error": -1.816e-08, "wall": 62.0}
+{"ev": "step", "t": 19711.545, "dt": 0.1538, "steps": 109657, "active_tiles": 28, "volume": 727405.3, "mass_error": -1.855e-08, "wall": 64.0}
+{"ev": "step", "t": 20384.383, "dt": 0.1564, "steps": 113638, "active_tiles": 28, "volume": 727335.1, "mass_error": -1.862e-08, "wall": 66.0}
+{"ev": "step", "t": 21109.409, "dt": 0.1728, "steps": 117949, "active_tiles": 28, "volume": 727345.5, "mass_error": -1.869e-08, "wall": 68.0}
+{"ev": "output", "kind": "strip_mesh", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\runs\\narrow_sine\\narrow_sine_ce20_rows4\\maps\\strip_mesh.gpkg"}
+{"ev": "warn", "message": "water stood 7.6 m deep against the domain edge at (407870, 2700470): an edge is a wall, so check the domain polygon there"}
+{"ev": "output", "kind": "maps", "path": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\runs\\narrow_sine\\narrow_sine_ce20_rows4\\maps"}
+{"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 21600.0, "duration_s": 21600.0, "steps": 120865, "loop_s": 70.66, "tables_s": 9.0, "wet_area_km2": 0.0672, "dt_min": 0.09407305457137585, "balance": {"rain_m3": 0.0, "inflow_m3": 5939999.997308012, "outflow_m3": 5212658.466523471, "storage_start_m3": 0.0, "storage_end_m3": 727341.6432532165, "error_m3": -0.11246867571026087, "relative_error": -1.8934120498523787e-08, "strip_outflow_m3": 0.0}, "tile_steps": null, "products": "none"}
+
