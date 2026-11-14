@@ -1,4 +1,11 @@
-"""The lumped engine against the HEC-HMS results of Block 2. Reads the project; writes only the report."""
+"""The lumped engine against the HEC-HMS results of Block 2. Reads the project; writes only the report.
+
+Since 2026-11-11 the project holds three basin models, each with its own 13 depth-area analyses (`DA <storm> B<n>`,
+the FM storms of `FM_<storm>.met` through the ARF FM table at every point's own drainage area): Basin 1, the 18
+subbasins and eight reaches of the dam catchments (40 points); Basin 2, Basin 1 plus the Block 2 channel network
+below the dams (91 points); Basin 3, Basin 2 plus the five dam reservoirs, empty at the start, routed by Modified Puls on
+their elevation-area-outflow tables (97 points, the five reservoirs among them). All 39 are rerun here.
+"""
 
 from __future__ import annotations
 
@@ -45,6 +52,21 @@ ANALYSIS = "DA 100yr B1"
 MET = "FM 100yr"
 DAMS = ["Faydh 01", "Bidah 03", "R5A", "R2A", "Z4C"]
 DAM_PEAKS_100YR = {"Faydh 01": 993.0, "Bidah 03": 362.0, "R5A": 887.0, "R2A": 1356.0, "Z4C": 1666.0}
+# The reservoirs' outflow of record in DAA_DA_*_B3.results; Bidah 03 and Faydh 01 do not spill at 100 yr.
+RESERVOIR_PEAKS = {
+    ("DA 100yr B3", "Bidah 03 Reservoir"): 0.0,
+    ("DA 100yr B3", "Faydh 01 Reservoir"): 0.0,
+    ("DA 100yr B3", "R2A Reservoir"): 433.8,
+    ("DA 100yr B3", "R5A Reservoir"): 428.9,
+    ("DA 100yr B3", "Z4C Reservoir"): 1583.2,
+    ("DA PMP B3", "Bidah 03 Reservoir"): 1477.2,
+    ("DA PMP B3", "Faydh 01 Reservoir"): 4830.4,
+    ("DA PMP B3", "R2A Reservoir"): 9091.1,
+    ("DA PMP B3", "R5A Reservoir"): 6558.8,
+    ("DA PMP B3", "Z4C Reservoir"): 9490.6,
+}
+POINTS_PER_BASIN = {"1": 40, "2": 91, "3": 97}
+STORMS_PER_BASIN = 13
 REACHES = [f"R{number}" for number in range(1, 9)]
 STEP_MINUTES = 5.0
 PEAK_TOLERANCE = 0.01
@@ -55,9 +77,16 @@ REPORT = Path(__file__).parents[2] / "W1 research and design note" / "validation
 PREAMBLE = """# HEC-HMS replication, Block 2
 
 Written by `tests/hydrology/test_block2_replication.py`; do not edit by hand. The Wadi2D lumped engine reruns all
-13 depth-area analyses of `HEC_HMS_Block_02` (HMS 4.12), 40 analysis points each, from the HMS files alone, and each
-peak is compared with `results\\DAA_*.results`. Error = (Wadi2D / HMS - 1) x 100. PMP is included: its depth is the
-PMP grid read through rasterio and averaged over the cells centred in the polygons above each point.
+39 depth-area analyses of `HEC_HMS_Block_02` (HMS 4.12) from the HMS files alone: `B1` runs Basin 1 (the dam
+catchments, 40 analysis points), `B2` Basin 2 (with the Block 2 channel network, 91 points), `B3` Basin 3 (Basin 2
+with the five dam reservoirs, empty at the start, 97 points). Each peak is compared with `results\\DAA_*.results`.
+Error = (Wadi2D / HMS - 1) x 100; an empty cell is a point the analysis does not have. PMP is included: its depth
+is the PMP grid read through rasterio and averaged over the cells centred in the polygons above each point, or,
+where those polygons hold no cell centre (three Basin 3 points), the cell nearest their centroid.
+
+The few hundredths of a per cent on `RIJ-J17`, `RIJ-J20` and `RIJ-J21` are two short reaches, `RIJ-R11` and
+`RIJ-R17`, on which HMS logged two cells and twice the sub-steps where its rule on the other 69 reaches of Basin 3
+gives one; routed on HMS's logged grid they match to 1e-5 (W55). What makes HMS double them is not identified.
 
 ## What it took: HMS behaviour that its documents do not state
 
@@ -198,13 +227,21 @@ def test_the_series_of_every_reach_stays_close_to_hms(block2: Block2, analysis_d
         assert np.abs(routing.route(inflow, STEP_MINUTES) - hms_outflow).max() < 0.02, name
 
 
-def test_grid_depth_equals_every_depth_hms_logged(block2: Block2) -> None:
-    """The PMP depth is read off the log of the analysis; 40 points."""
+@pytest.mark.parametrize("model", list(POINTS_PER_BASIN))
+def test_grid_depth_equals_every_depth_hms_logged(block2: Block2, model: str) -> None:
+    """The PMP depth is read off the log of each basin model's PMP analysis: 40, 91 and 97 points.
+
+    Basin 2 and 3 have ten subbasins too small to hold a cell centre; three points of Basin 3 have nothing else above
+    them (BID-J17, BID-J19, BID-J45) and read the cell nearest the centroid of their polygons.
+    """
     folder = block2.folder
     raster = find_grid_file(folder / "HEC_HMS_Block_02.grid", "PMP", (folder, folder.parent))
     depths = DepthGrid.load(raster)
-    shapes = {polygon.name: polygon.shape() for polygon in subbasin_polygons(folder / "Basin_1.sqlite")}
-    log = (folder / "DA_PMP_B1_daa.log").read_text(encoding="utf-8", errors="replace")
+    basin = basin_from_hms(load_basin(folder / f"Basin_{model}.basin"), load_project_tables(
+        load_pdata(folder / "HEC_HMS_Block_02.pdata"), folder / "HEC_HMS_Block_02.dss"
+    ))
+    shapes = {polygon.name: polygon.shape() for polygon in subbasin_polygons(folder / f"Basin_{model}.sqlite")}
+    log = (folder / f"DA_PMP_B{model}_daa.log").read_text(encoding="utf-8", errors="replace")
     logged: dict[str, float] = {}
     point = ""
     for line in log.splitlines():
@@ -214,9 +251,9 @@ def test_grid_depth_equals_every_depth_hms_logged(block2: Block2) -> None:
             point = started.group(1)
         elif depth and point not in logged:
             logged[point] = float(depth.group(1).replace(",", ""))
-    assert len(logged) == len(block2.basin.elements)
+    assert len(logged) == POINTS_PER_BASIN[model]
     for name, value in logged.items():
-        upstream = block2.basin.upstream_of(name)
+        upstream = basin.upstream_of(name)
         mean = depths.mean_over(shape for key, shape in shapes.items() if key in upstream)
         assert mean == pytest.approx(value, abs=0.001), name
 
@@ -229,9 +266,10 @@ def replication(block2: Block2) -> Replication:
 def test_whole_basin_replicates_and_the_report_is_written(replication: Replication) -> None:
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(render(replication, DAMS, ANALYSIS, PREAMBLE), encoding="utf-8", newline="\n")
-    assert len(replication.analyses) == 13
-    assert len(replication.comparisons) == 13 * 40
+    assert len(replication.analyses) == STORMS_PER_BASIN * len(POINTS_PER_BASIN)
+    assert len(replication.comparisons) == STORMS_PER_BASIN * sum(POINTS_PER_BASIN.values())
     assert not replication.left_out
+    assert not replication.points_without_results
     assert abs(replication.worst().error_percent) < WHOLE_BASIN_PEAK_PERCENT
     assert abs(replication.worst(DAMS).error_percent) < DAM_PEAK_PERCENT
 
@@ -243,3 +281,12 @@ def test_every_peak_falls_within_one_step(replication: Replication) -> None:
 @pytest.mark.parametrize(("dam", "peak"), DAM_PEAKS_100YR.items())
 def test_dam_sites_at_100yr(replication: Replication, dam: str, peak: float) -> None:
     assert replication.of(ANALYSIS, [dam])[0].peak == pytest.approx(peak, abs=0.5)
+
+
+@pytest.mark.parametrize(("key", "peak"), RESERVOIR_PEAKS.items(), ids=lambda key: str(key))
+def test_reservoir_outflow_of_basin_3(replication: Replication, key: tuple[str, str], peak: float) -> None:
+    analysis, reservoir = key
+    row = replication.of(analysis, [reservoir])[0]
+    assert row.hms_peak == pytest.approx(peak, abs=0.05)
+    assert row.peak == pytest.approx(row.hms_peak, abs=0.01)
+    assert row.time_steps == 0

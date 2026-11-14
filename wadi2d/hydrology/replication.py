@@ -253,10 +253,11 @@ def render(replication: Replication, dams: list[str], reference_analysis: str, p
             f"| {row.point} | {row.hms_peak:.2f} | {row.peak:.2f} | {row.error_percent:+.4f} | {row.time_steps} |"
         )
     lines += ["", "## Peak error at every analysis point, %", ""]
-    short = [analysis.split()[1] for analysis in analyses]
+    short = [" ".join(analysis.split()[1:]) for analysis in analyses]
     lines += ["| Point | " + " | ".join(short) + " |", "|---|" + "---|" * len(short)]
     for point in replication.points:
-        cells = [f"{replication.of(a, [point])[0].error_percent:+.3f}" for a in analyses]
+        found = {c.analysis: c for c in replication.of(points=[point])}
+        cells = [f"{found[a].error_percent:+.3f}" if a in found else "" for a in analyses]
         lines.append(f"| {point} | " + " | ".join(cells) + " |")
     if replication.left_out:
         lines += ["", "## Left out", ""]
