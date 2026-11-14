@@ -1,7 +1,7 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
 """5. Structures: line layers for crests, walls, spillways, burn lines, embankments and channels, each with its fields;
-where each dam's pool and any other pond stand when the run starts."""
+where each dam's pool and any other pond stand when the run starts; breaches of named dam lines."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from qgis.PyQt.QtWidgets import QCheckBox, QFormLayout, QLabel, QPushButton, QWi
 from ..job_builder import SPILLWAY_C, layer_features
 from ..profile_table import EDGE_KINDS, ProfileStore, apply_levels, keyed
 from ..shaped import SHAPED_KINDS
+from .breach_table import BreachTable
 from .common import Section, field_combo, layer_combo
 from .shaped_rows import ROWS, ProfileRow, ShapedRows, lines_of
 from .start_water import StartWater
@@ -69,6 +70,10 @@ class StructuresSection(Section):
             row.button.clicked.connect(lambda _checked=False, name=kind: self.edit_requested.emit(name))
         self.start_water = StartWater(self.layers)
         self.form.addRow(self.start_water)
+        self.breaches = BreachTable(lambda: [row.name for row in self.start_water.rows])
+        for picker in self.start_water.pickers.values():
+            picker.layerChanged.connect(self.breaches.fill)
+        self.form.addRow(self.breaches)
         self.terrain_map = QCheckBox("Write the modified terrain with the run")
         self.preview_button = QPushButton("Preview terrain")
         self.profile_button = QPushButton("Sections and long profile...")
@@ -87,6 +92,7 @@ class StructuresSection(Section):
         for rows in self.shaped.values():
             rows.apply_schema(schema)
         self.start_water.apply_schema(schema)
+        self.breaches.apply_schema(schema)
 
     def values(self, crs) -> dict:
         structures = {}
@@ -100,7 +106,12 @@ class StructuresSection(Section):
             structures[kind] = [
                 apply_levels(feature, self.profiles.table(layer, kind, key)) for key, _fid, feature in self._parts(kind, crs)
             ]
-        return {"structures": structures, "terrain_map": self.terrain_map.isChecked(), **self.start_water.values(crs)}
+        return {
+            "structures": structures,
+            "terrain_map": self.terrain_map.isChecked(),
+            **self.start_water.values(crs),
+            **self.breaches.values(),
+        }
 
     def _parts(self, kind: str, crs) -> list:
         layer = self.layers[kind].currentLayer()

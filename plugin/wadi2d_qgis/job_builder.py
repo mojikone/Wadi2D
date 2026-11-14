@@ -15,6 +15,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
 from .gauge_rows import gauge_problems, observed_records, rain_storm
 from .mesh_rows import reversed_note, rounded_note
@@ -258,6 +259,8 @@ def problems(values: dict) -> list[str]:
         found.append("Every hand-back line needs an element to enter: choose one in the table.")
     found.extend(_structure_problems(values.get("structures", {})))
     found.extend(dam_problems(values.get("dam_rows") or []))
+    dams = [row.name for row in values.get("dam_rows") or []]
+    found.extend(breach_problems(values.get("breach_rows") or [], dams, values))
     found.extend(initial_problems(values.get("initial_water") or []))
     found.extend(boundary_problems(values))
     return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
@@ -534,6 +537,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             )
     if values.get("dam_levels"):
         job["dam_levels"] = values["dam_levels"]
+    if values.get("breach_rows"):
+        job["breaches"] = breach_jobs(values["breach_rows"])
     if values.get("initial_water"):
         write_geojson(inputs / "initial_water.geojson", values["initial_water"], crs)
         job["initial_levels"] = initial_water(values["initial_water"])
