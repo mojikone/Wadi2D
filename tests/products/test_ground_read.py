@@ -1,0 +1,69 @@
+"""W50: the kept cells' ground read tile by tile on threads is the ground the whole-strip read gave, pixel for pixel,
+holes and their fill included."""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from tests.engine.conftest import job, write_dem
+from wadi2d.products import ground as ground_mod
+from wadi2d.products.ground import read_cells
+from wadi2d.run import prepare_grid
+from wadi2d.solver.layout import TILE
+
+K, NX, NY = 4, 80, 70
+
+
+@pytest.fixture(scope="module")
+def holed(tmp_path_factory):
+    """Ground with holes: scattered, in patches, at a strip's edge; every cell's centre pixel holds data."""
+    tmp = tmp_path_factory.mktemp("holed")
+    rng = np.random.default_rng(7)
+    z = 100.0 + rng.random((NY * K, NX * K)) * 3.0
+    z[rng.random(z.shape) < 0.04] = np.nan
+    z[20:60, 30:90] = np.nan  # a patch: its holes fill from the centre pixels kept below
+    # along the line between two strips: neither may fill from the other
+    z[TILE * K - 3 : TILE * K + 3, :] = np.nan
+    z[:, -6:] = np.nan  # the east edge of the strips
+    centre = (slice(K // 2, None, K), slice(K // 2, None, K))
+    z[centre] = 100.0 + rng.random(z[centre].shape)
+    dem = write_dem(tmp / "dem.tif", z, 0.5)
+    cfg = job(dem, NX, NY, 2.0)
+    tables, _crs = prepare_grid(cfg, tmp / "cache")
+    keep = (rng.random(tables.grid.mask.shape) > 0.6) & tables.grid.mask
+    keep[5:15, 7:23] = tables.grid.mask[5:15, 7:23]
+    return cfg, tables, keep
+
+
+def _whole(cfg, tables, keep, monkeypatch):
+    with monkeypatch.context() as m:
+        m.setattr(ground_mod._ThreadBeds, "pick", lambda *_a: False)
+        return read_cells(cfg, tables, keep)
+
+
+@pytest.mark.parametrize("margin", [ground_mod.FILL_MARGIN, 1])
+def test_tiles_on_threads_read_what_the_whole_strips_read(holed, monkeypatch, margin) -> None:
+    """With the margin as shipped the first read always suffices; with one pixel it grows, doubling, to the strip."""
+    cfg, tables, keep = holed
+    whole = _whole(cfg, tables, keep, monkeypatch)
+    monkeypatch.setattr(ground_mod, "FILL_MARGIN", margin)
+    seen = []
+    real = ground_mod._filled_near
+    monkeypatch.setattr(ground_mod, "_filled_near", lambda *a: seen.append(1) or real(*a))
+    fast = read_cells(cfg, tables, keep)
+    assert seen  # holes were filled tile by tile
+    assert not np.isnan(fast.ground).any()
+    np.testing.assert_array_equal(fast.rows, whole.rows)
+    np.testing.assert_array_equal(fast.cols, whole.cols)
+    np.testing.assert_array_equal(fast.ground, whole.ground)
+    assert fast.datum == whole.datum
+
+
+def test_one_thread_reads_what_many_read(holed, monkeypatch) -> None:
+    cfg, tables, keep = holed
+    many = read_cells(cfg, tables, keep)
+    monkeypatch.setattr(ground_mod, "READ_WORKERS", 1)
+    real = ground_mod._ThreadBeds.__init__
+    monkeypatch.setattr(ground_mod._ThreadBeds, "__init__", lambda self, *a: real(self, *a, workers=1))
+    np.testing.assert_array_equal(read_cells(cfg, tables, keep).ground, many.ground)
