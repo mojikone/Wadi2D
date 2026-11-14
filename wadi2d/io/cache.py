@@ -48,6 +48,35 @@ def cache_path(folder: str | Path, key: str) -> Path:
     return Path(folder) / f"grid_{key}.h5"
 
 
+def mask_path(folder: str | Path, key: str) -> Path:
+    return Path(folder) / f"mask_{key}.npz"
+
+
+def save_mask(path: str | Path, mask: np.ndarray, key: str) -> Path:
+    """The active cells of a domain, kept beside the tables: reading them from a 27 GB DEM is half a minute on every
+    start, and a run whose tables are cached needs nothing else from the DEM before it steps (W50)."""
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".tmp.npz")
+    np.savez_compressed(tmp, key=np.array(key), mask=mask)
+    tmp.replace(out)
+    return out
+
+
+def load_mask(path: str | Path, key: str) -> np.ndarray | None:
+    """The mask, or None when the file is missing, unreadable or of another domain."""
+    source = Path(path)
+    if not source.is_file():
+        return None
+    try:
+        with np.load(source) as held:
+            if str(held["key"]) != key:
+                return None
+            return held["mask"].astype(bool)
+    except (OSError, KeyError, ValueError):
+        return None
+
+
 def save_tables(path: str | Path, tables: GridTables, key: str) -> Path:
     """Write through a temporary name, so an interrupted build leaves no file that looks finished."""
     out = Path(path)

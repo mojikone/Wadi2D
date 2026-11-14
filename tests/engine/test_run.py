@@ -13,6 +13,7 @@ import pytest
 import rasterio
 
 from tests.engine.conftest import X0, Y0, job, tilted_box, write_dem
+from wadi2d import run as wadi2d_run
 from wadi2d.config.schema import RunConfig
 from wadi2d.run import load_job, prepare_grid, run_job
 
@@ -301,6 +302,10 @@ def test_grid_cache_hit_and_stale_rebuild(tilted_dem, tmp_path):
         np.testing.assert_array_equal(a, b)
     assert sorted(cache.glob("grid_*.h5")) == files
 
+    # the active cells are kept beside the tables, so the second start did not read them from the DEM again (W50)
+    assert len(list(cache.glob("mask_*.npz"))) == 1
+    np.testing.assert_array_equal(first.grid.mask, second.grid.mask)
+
     # another crest gives another key
     other = cfg.model_copy(update={"tables": cfg.tables.model_copy(update={"rows": 12})})
     assert prepare_grid(other, cache)[0].rows == 12
@@ -311,10 +316,37 @@ def test_grid_cache_hit_and_stale_rebuild(tilted_dem, tmp_path):
     third, _ = prepare_grid(cfg, cache)
     assert third.zmin.max() > first.zmin.max() + 40.0
 
+    assert len(list(cache.glob("mask_*.npz"))) == 2  # and so are its active cells
+
     # a damaged file under the right name is a miss, never a wrong grid
     victim = next(iter(sorted(cache.glob("grid_*.h5"), key=lambda p: p.stat().st_mtime, reverse=True)))
     victim.write_bytes(b"not hdf5")
     assert prepare_grid(cfg, cache)[0].zmin.max() == pytest.approx(third.zmin.max())
+
+
+def test_the_active_cells_are_read_from_the_dem_once(tilted_dem, tmp_path, monkeypatch):
+    """W50: on Block 2 the mask is half a minute of every start. Kept beside the tables, by the DEM, the window, the
+    cell and the domain polygon; a polygon redrawn is another mask."""
+    path = tmp_path / "domain.geojson"
+
+    def domain(east: float) -> None:
+        ring = [[X0, Y0], [X0 + east, Y0], [X0 + 110.0, Y0 - 96.0], [X0, Y0 - 96.0], [X0, Y0]]
+        path.write_text(json.dumps({"type": "Polygon", "coordinates": [ring]}), "utf-8")
+
+    domain(170.0)
+    cfg = job(tilted_dem, 50, 24, 4.0, grid={"dx": 4.0, "extent": None, "domain": str(path)})
+    cache = tmp_path / "cache"
+    first, _ = prepare_grid(cfg, cache)
+    read = []
+    real = wadi2d_run.domain_mask
+    monkeypatch.setattr(wadi2d_run, "domain_mask", lambda *a: read.append(1) or real(*a))
+    second, _ = prepare_grid(cfg, cache)
+    assert not read
+    np.testing.assert_array_equal(first.grid.mask, second.grid.mask)
+    domain(190.0)
+    third, _ = prepare_grid(cfg, cache)
+    assert read == [1]
+    assert third.grid.mask.sum() > first.grid.mask.sum()
 
 
 def test_relative_paths_resolve_against_the_job_file(tilted_dem, tmp_path):

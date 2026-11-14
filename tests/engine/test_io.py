@@ -14,7 +14,7 @@ import shapely
 from tests.engine.conftest import CRS, X0, Y0
 from wadi2d.config.schema import Tables
 from wadi2d.grid import TileGrid
-from wadi2d.io.cache import cache_key, cache_path, load_tables, save_tables
+from wadi2d.io.cache import cache_key, cache_path, load_mask, load_tables, mask_path, save_mask, save_tables
 from wadi2d.io.geopackage import LINES, VectorLayer, write_geopackage
 from wadi2d.io.geotiff import NODATA, LiveRaster, write_map
 from wadi2d.io.progress import Progress
@@ -120,3 +120,16 @@ def test_a_geopackage_layer_can_carry_z(tmp_path):
     tall_blob = db.execute("SELECT geom FROM tall").fetchone()[0]
     assert not shapely.from_wkb(flat_blob[40:]).has_z
     assert list(shapely.from_wkb(tall_blob[40:]).geoms[0].coords) == [(0.0, 0.0, 10.0), (5.0, 5.0, 12.0)]
+
+
+def test_a_mask_is_kept_by_its_key(tmp_path):
+    mask = np.random.default_rng(1).random((40, 70)) > 0.3
+    key = cache_key({"domain": 1})
+    path = save_mask(mask_path(tmp_path, key), mask, key)
+    back = load_mask(path, key)
+    assert back.dtype == bool
+    np.testing.assert_array_equal(back, mask)
+    assert load_mask(path, cache_key({"domain": 2})) is None
+    assert load_mask(tmp_path / "missing.npz", key) is None
+    path.write_bytes(b"not a mask")
+    assert load_mask(path, key) is None

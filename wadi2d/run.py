@@ -47,7 +47,16 @@ from wadi2d.grid.quad import lattice_view
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.model import Reservoir
-from wadi2d.io.cache import builder_identity, cache_key, cache_path, load_tables, save_tables
+from wadi2d.io.cache import (
+    builder_identity,
+    cache_key,
+    cache_path,
+    load_mask,
+    load_tables,
+    mask_path,
+    save_mask,
+    save_tables,
+)
 from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoint
 from wadi2d.io.geotiff import write_map
 from wadi2d.io.identity import file_identity
@@ -202,6 +211,26 @@ def domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> np.ndarra
     return mask
 
 
+def kept_domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow, cache_dir: Path) -> np.ndarray:
+    """``domain_mask`` from the grid cache when the DEM, the window, the cell and the domain are the ones it was read
+    for; made and kept there otherwise. On Block 2 the mask is half a minute of every start (W50)."""
+    key = cache_key(
+        {
+            "mask": builder_identity(),
+            "dem": bed.identity(cfg.grid.content_hash_limit_mb),
+            "window": [window.x0, window.y0, window.ny, window.nx],
+            "dx": cfg.grid.dx,
+            "domain": None if cfg.grid.domain is None else file_identity(cfg.grid.domain, cfg.grid.content_hash_limit_mb),
+        }
+    )
+    path = mask_path(cache_dir, key)
+    mask = load_mask(path, key)
+    if mask is None or mask.shape != (window.ny, window.nx):
+        mask = domain_mask(cfg, bed, window)
+        save_mask(path, mask, key)
+    return mask
+
+
 def grid_window(cfg: RunConfig, bed: RasterBed) -> GridWindow:
     polygon = _domain_polygon(cfg.grid.domain, _wkt(bed))
     extent = cfg.grid.extent if polygon is None else polygon.bounds
@@ -309,7 +338,7 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             if cfg.strips.enabled:
                 raise InvalidJob("corridors run on the uniform grid in this version: untick the mesh refinement or the corridors")
             return _mesh_tables(cfg, bed, window, crs), crs
-        mask = domain_mask(cfg, bed, window)
+        mask = kept_domain_mask(cfg, bed, window, cache_dir)
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
         strip = None
