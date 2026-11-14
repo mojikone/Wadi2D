@@ -16,7 +16,18 @@ import numpy as np
 PMP = "PMP"
 YEARS = re.compile(r"^(\d+)\s*-?\s*(?:yr|year|y)$", re.IGNORECASE)
 QUANTITIES = ("inflow", "outflow", "pool", "storage")
-"""The columns a dam can carry per return period, in sheet order."""
+"""The columns a dam can carry per return period, in sheet order; each structure's flow follows them (W74)."""
+STRUCTURE = "structure:"
+"""A quantity naming one structure's flow, e.g. ``structure:orifice_1`` from W59's ``orifice_1_m3s``."""
+
+
+def structure_quantity(name: str) -> str:
+    return f"{STRUCTURE}{name}"
+
+
+def structure_name(quantity: str) -> str | None:
+    """``structure:orifice_1`` -> ``orifice_1``; None for inflow, outflow, pool and storage."""
+    return quantity[len(STRUCTURE) :] if quantity.startswith(STRUCTURE) else None
 STEP_TOLERANCE_S = 0.5
 """Times rounded to 4 decimals of an hour (0.36 s) still read as one regular step."""
 
@@ -56,9 +67,12 @@ class Hydrograph:
     outflow: np.ndarray | None = None
     pool: np.ndarray | None = None
     storage: np.ndarray | None = None
+    structures: dict[str, np.ndarray] = field(default_factory=dict)
+    """Each outflow structure's flow, m3/s, by W59's column stem (``orifice_1``, ``evaporation``), in the run's order."""
 
     def column(self, quantity: str) -> np.ndarray | None:
-        return getattr(self, quantity)
+        name = structure_name(quantity)
+        return self.structures.get(name) if name is not None else getattr(self, quantity)
 
 
 @dataclass
@@ -72,9 +86,15 @@ class Dam:
     catchment_km2: float | None
     series: dict[str, Hydrograph] = field(default_factory=dict)
 
-    def quantities(self) -> tuple[str, ...]:
-        """The columns this dam carries in every return period: inflow, then what any period has of the rest."""
+    def quantities(self, structures: bool = True) -> tuple[str, ...]:
+        """The columns this dam carries in every return period: inflow, then what any period has of the rest, then
+        each structure's flow (left out with ``structures=False``)."""
         have = [q for q in QUANTITIES[1:] if any(h.column(q) is not None for h in self.series.values())]
+        if structures:
+            names: list[str] = []
+            for h in self.series.values():
+                names += [n for n in h.structures if n not in names]
+            have += [structure_quantity(n) for n in names]
         return ("inflow", *have)
 
     @property

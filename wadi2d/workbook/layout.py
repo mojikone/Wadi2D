@@ -29,7 +29,7 @@ from openpyxl.utils import get_column_letter as L
 from openpyxl.utils.units import cm_to_EMU, pixels_to_EMU
 
 from wadi2d.workbook import style
-from wadi2d.workbook.model import PMP, Dam, WorkbookInput, rp_label, target_sheet_name
+from wadi2d.workbook.model import PMP, Dam, WorkbookInput, rp_label, structure_name, target_sheet_name
 
 FIRST = 2
 """First data row; row 1 holds the headings."""
@@ -58,6 +58,29 @@ ROUTED_STATS = {
     "pool": [("Highest pool (m)", "0.00", 12)],
     "storage": [("Highest storage (Mm³)", "0.000", 13)],
 }
+
+
+def _words(quantity: str) -> str:
+    """``structure:rating_spillway_1`` -> ``rating spillway 1``; the other quantities as they are."""
+    name = structure_name(quantity)
+    return quantity if name is None else name.replace("_", " ")
+
+
+def _heading(quantity: str, rp: str) -> str:
+    """W1's ``Inflow_200yr``; a structure's ``Orifice_1_200yr`` (W74)."""
+    name = structure_name(quantity)
+    return f"{(quantity if name is None else name).capitalize()}_{rp}"
+
+
+def _rounding(quantity: str) -> tuple[int, str]:
+    return ROUND.get(quantity, ROUND["outflow"])
+
+
+def _stats_of(quantity: str) -> list[tuple[str, str, int]]:
+    """The statistics columns a quantity adds after W1's; a structure its peak flow."""
+    if quantity in ROUTED_STATS:
+        return ROUTED_STATS[quantity]
+    return [(f"Peak {_words(quantity)} (m³/s)", "#,##0.0", 14)]
 
 
 def dam_columns(dam: Dam, rps: list[str]) -> dict[tuple[str, str], int]:
@@ -139,7 +162,10 @@ def _rp_colour(k: int, rp: str) -> str:
 
 
 def _write_series(ws, col: int, values, quantity: str) -> None:
-    digits, fmt = ROUND[quantity]
+    """The column's data cells; none when this period's source did not write the quantity."""
+    if values is None:
+        return
+    digits, fmt = _rounding(quantity)
     for i, v in enumerate(values):
         c = ws.cell(row=FIRST + i, column=col, value=round(float(v), digits))
         c.number_format = fmt
@@ -174,13 +200,13 @@ def _dam_sheet(wb: Workbook, wi: WorkbookInput, dam: Dam, tile_charts: bool) -> 
     longest = max(dam.series.values(), key=lambda h: len(h.t_h))
     _write_time(ws, longest.t_h)
     for (rp, quantity), ci in cols.items():
-        style.header(ws.cell(row=1, column=ci, value=f"{quantity.capitalize()}_{rp}"))
+        style.header(ws.cell(row=1, column=ci, value=_heading(quantity, rp)))
         _write_series(ws, ci, dam.series[rp].column(quantity), quantity)
         ws.column_dimensions[L(ci)].width = 12
     ws.column_dimensions["A"].width = 10
     ws.row_dimensions[1].height = 30
     st = 1 + len(rps) * len(qs) + 2
-    extras = [item for quantity in qs[1:] for item in ROUTED_STATS[quantity]]
+    extras = [item for quantity in qs[1:] for item in _stats_of(quantity)]
     heads = STATS + [h for h, _, _ in extras]
     for j, (head, width) in enumerate(zip(heads, STATS_WIDTH + [w for _, _, w in extras], strict=True)):
         style.header(ws.cell(row=1, column=st + j, value=head))
@@ -208,7 +234,7 @@ def _dam_sheet(wb: Workbook, wi: WorkbookInput, dam: Dam, tile_charts: bool) -> 
                 vals += [f"=MAX({rng['outflow']})", f'=IF({a(1)}{r}>0,1-{a(j)}{r}/{a(1)}{r},"")']
             else:
                 vals.append(f"=MAX({rng[quantity]})")
-            fmts += [f for _, f, _ in ROUTED_STATS[quantity]]
+            fmts += [f for _, f, _ in _stats_of(quantity)]
         for jj, (v, fm) in enumerate(zip(vals, fmts, strict=True)):
             c = ws.cell(row=r, column=st + jj, value=v)
             c.number_format = fm
@@ -226,6 +252,9 @@ def _dam_sheet(wb: Workbook, wi: WorkbookInput, dam: Dam, tile_charts: bool) -> 
     c.font, c.number_format = style.BLUE_IN, "0.00"
     span = f"A:{L(1 + len(rps) * len(qs))}"
     more = [x for x, k in (("pool level", "pool"), ("storage", "storage")) if k in qs]
+    built = [_words(quantity) for quantity in qs if structure_name(quantity) is not None]
+    if built:
+        more.append(f"the flow through each structure ({', '.join(built)})")
     if dam.routed:
         tail = " Each return period carries the inflow and the outflow routed through the reservoir"
         tail += (
@@ -288,7 +317,7 @@ def _target_sheet(wb: Workbook, wi: WorkbookInput) -> None:
     _write_time(ws, longest.t_h)
     col, ci = {}, 2
     for dam in dams:
-        for quantity in dam.quantities():
+        for quantity in dam.quantities(structures=False):  # each structure's flow stays on the dam's own sheet
             col[(dam.name, quantity)] = ci
             style.header(ws.cell(row=1, column=ci, value=f"{dam.label} {quantity} {rpl} ({UNITS[quantity]})"))
             ws.column_dimensions[L(ci)].width = 16

@@ -6,7 +6,8 @@ A run gives an element by the first series it wrote of that name: ``series/netwo
 inflow and outflow), ``design_<name>.csv`` (a design line, grid plus lumped water) or ``line_<name>.csv`` (a result
 line, the size of its discharge). A network element routes when its outflow differs from its inflow; pool level and
 storage are taken when the run wrote them (a column starting ``pool``, ``stage`` or ``elevation``, and one starting
-``storage``); a run that wrote neither leaves those columns out.
+``storage``: W59 writes ``pool_m`` and ``storage_m3``), and so is each structure's flow (W59's ``<kind>_<n>_m3s`` and
+``evaporation_m3s``, W74); a run that wrote none of them leaves those columns out.
 
 HMS gives an element at its own analysis point (the F part ends ``>name``): FLOW at a junction or any other element;
 at a reservoir FLOW-COMBINE is the inflow, FLOW the outflow, ELEVATION the pool and STORAGE the storage.
@@ -15,6 +16,7 @@ at a reservoir FLOW-COMBINE is the inflow, FLOW the outflow, ELEVATION the pool 
 from __future__ import annotations
 
 import csv
+import re
 from pathlib import Path
 
 import numpy as np
@@ -25,6 +27,9 @@ SECONDS_PER_HOUR = 3600.0
 ROUTE_TOLERANCE = 1e-6
 """Outflow within this share of the peak inflow everywhere is the inflow passed on: no routing."""
 STORAGE_TO_MM3 = {"m3": 1e-6, "1000m3": 1e-3, "thoum3": 1e-3, "mm3": 1.0, "mcm": 1.0}
+FLOW_SUFFIX = "_m3s"
+STRUCTURE_COLUMN = re.compile(r"^(?:[a-z][a-z_]*_\d+|evaporation)_m3s$")
+"""W59's column of one structure's flow, ``<kind>_<n>_m3s``, or ``evaporation_m3s``; never inflow, outflow, branched."""
 
 
 def parse_element(text: str) -> tuple[str, str]:
@@ -51,6 +56,12 @@ def _routes(inflow: np.ndarray, outflow: np.ndarray) -> bool:
     return peak > 0.0 and float(np.max(np.abs(outflow - inflow))) > ROUTE_TOLERANCE * peak
 
 
+def structure_columns(cols: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
+    """W59's per-structure flows (``orifice_1_m3s``, ``rating_spillway_1_m3s``, ``gate_2_m3s`` ...) and the
+    evaporation, by the column's stem, in the run's order."""
+    return {k[: -len(FLOW_SUFFIX)]: v for k, v in cols.items() if STRUCTURE_COLUMN.match(k)}
+
+
 def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
     t_h = cols["t_s"] / SECONDS_PER_HOUR
     inflow, outflow = cols.get("inflow_m3s"), cols.get("outflow_m3s")
@@ -59,9 +70,10 @@ def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
     pool = next((v for k, v in cols.items() if k.lower().startswith(("pool", "stage", "elevation"))), None)
     storage_key = next((k for k in cols if k.lower().startswith("storage")), None)
     storage = None if storage_key is None else cols[storage_key] * _storage_factor(storage_key)
-    if outflow is None or not (_routes(inflow, outflow) or pool is not None or storage is not None):
+    structures = structure_columns(cols)
+    if outflow is None or not (_routes(inflow, outflow) or pool is not None or storage is not None or structures):
         return Hydrograph(t_h, inflow)
-    return Hydrograph(t_h, inflow, outflow, pool, storage)
+    return Hydrograph(t_h, inflow, outflow, pool, storage, structures)
 
 
 def _run_series(run: Path, name: str) -> tuple[Hydrograph, str]:
