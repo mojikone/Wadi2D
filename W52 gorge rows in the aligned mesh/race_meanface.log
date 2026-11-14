@@ -1,0 +1,6 @@
+D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ace78589ad62a2652\W52 gorge rows in the aligned mesh\race_rows.py:8: SyntaxWarning: invalid escape sequence '\S'
+  .venv\Scripts\python "W52 gorge rows in the aligned mesh\race_rows.py" run|report [ce20 ce10] [rows=0,4] [meanface]
+ce20_rows0_meanface: exit 0 in 171 s
+ce20_rows2_meanface: exit 0 in 259 s
+ce20_rows0_meanface   1892.4 m3/s  +5.4 %  steps   98785  loop   77.5 s  tables  90.3 s  dt_min 0.084 s  strip cells 6060
+ce20_rows2_meanface   1879.5 m3/s  +4.6 %  steps  159668  loop  164.8 s  tables  91.4 s  dt_min 0.055 s  strip cells 8624

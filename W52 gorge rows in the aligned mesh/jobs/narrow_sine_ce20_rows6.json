@@ -1,0 +1,120 @@
+{
+ "project": {
+  "name": "w52_narrow_sine_ce20_rows6",
+  "description": "W46 unsteady wave probe: a flood down a sinuous synthetic valley"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\domain.geojson",
+  "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-ace78589ad62a2652\\W52 gorge rows in the aligned mesh\\cache\\narrow_sine"
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\dem.tif",
+  "pixel_stride": 1,
+  "manning": 0.05
+ },
+ "storm": {
+  "kind": "none"
+ },
+ "hydrology": {
+  "inflows": [
+   {
+    "name": "head",
+    "x": 400300.0,
+    "y": 2700650.0,
+    "times_s": [
+     0.0,
+     3600.0,
+     21600.0
+    ],
+    "flows": [
+     0.0,
+     300.0,
+     300.0
+    ]
+   }
+  ],
+  "inject_radius": 60.0
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.01,
+   "coordinates": [
+    [
+     408395.0,
+     2700000.0
+    ],
+    [
+     408395.0,
+     2701000.0
+    ]
+   ]
+  }
+ ],
+ "outputs": {
+  "map_every_s": 10800.0,
+  "series_every_s": 30.0,
+  "live_every_s": 0.0,
+  "lines": [
+   {
+    "name": "s1",
+    "coordinates": [
+     [
+      401500.0,
+      2700000.0
+     ],
+     [
+      401500.0,
+      2701000.0
+     ]
+    ]
+   },
+   {
+    "name": "s2",
+    "coordinates": [
+     [
+      404500.0,
+      2700000.0
+     ],
+     [
+      404500.0,
+      2701000.0
+     ]
+    ]
+   },
+   {
+    "name": "s3",
+    "coordinates": [
+     [
+      407500.0,
+      2700000.0
+     ],
+     [
+      407500.0,
+      2701000.0
+     ]
+    ]
+   }
+  ],
+  "pixels": {
+   "enabled": false
+  }
+ },
+ "run": {
+  "duration_s": 21600.0,
+  "backend": "gpu",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0
+ },
+ "strips": {
+  "enabled": true,
+  "generator": "centres",
+  "banks": "D:\\Mojtaba\\Renardet\\Wadi2D\\W49 local hydraulic radius face table\\probe_top_fix\\narrow_sine\\thalweg.gpkg",
+  "along": 20.0,
+  "gorge_rows": 6
+ },
+ "tables": {
+  "face_conveyance": "local_radius"
+ }
+}
