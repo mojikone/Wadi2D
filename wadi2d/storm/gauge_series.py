@@ -55,13 +55,15 @@ class GaugePeriods:
 def _factor(name: str, units: str) -> float:
     key = "".join(units.lower().split())
     if key not in MM_PER:
-        raise ValueError(f"rain gauge {name}: the units {units!r} are not a depth this can read (mm, cm, m, in)")
+        raise ValueError(
+            f"rain gauge {name}: the units {units!r} are not a depth this can read (mm, cm, m, in)"
+        )
     return MM_PER[key]
 
 
 def _incremental(name: str, t: FloatArray, v: FloatArray, interval: float | None, stamp: str):
     if interval is None:
-        if t.size < 2:  # noqa: PLR2004
+        if t.size < 2:
             raise ValueError(f"rain gauge {name}: one value and no interval; give interval_min")
         steps = np.diff(t)
         if stamp == STAMP_END:
@@ -90,7 +92,7 @@ def _incremental(name: str, t: FloatArray, v: FloatArray, interval: float | None
 
 def _cumulative(name: str, t: FloatArray, v: FloatArray, interval: float | None):
     known = np.isfinite(v)
-    if np.count_nonzero(known) < 2:  # noqa: PLR2004
+    if np.count_nonzero(known) < 2:
         raise ValueError(f"rain gauge {name}: a cumulative record needs two values at least")
     at = np.nonzero(known)[0]
     depths = np.diff(v[at])
@@ -150,7 +152,9 @@ def since_start(periods: GaugePeriods) -> GaugePeriods:
 
 def shifted(periods: GaugePeriods, minutes: float) -> GaugePeriods:
     """The same periods with the clock moved ``minutes`` back, so that ``minutes`` becomes zero."""
-    return GaugePeriods(periods.name, periods.starts - minutes, periods.ends - minutes, periods.depths, periods.bridged)
+    return GaugePeriods(
+        periods.name, periods.starts - minutes, periods.ends - minutes, periods.depths, periods.bridged
+    )
 
 
 def on_edges(periods: GaugePeriods, edges: FloatArray) -> FloatArray:
@@ -159,6 +163,8 @@ def on_edges(periods: GaugePeriods, edges: FloatArray) -> FloatArray:
     out = np.full(edges.size - 1, np.nan)
     first = np.searchsorted(edges, periods.starts)
     last = np.searchsorted(edges, periods.ends)
-    for a, b, start, end, depth in zip(first, last, periods.starts, periods.ends, periods.depths, strict=True):
+    for a, b, start, end, depth in zip(
+        first, last, periods.starts, periods.ends, periods.depths, strict=True
+    ):
         out[a:b] = depth * np.diff(edges[a : b + 1]) / (end - start)
     return out

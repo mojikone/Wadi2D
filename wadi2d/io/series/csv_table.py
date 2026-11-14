@@ -42,12 +42,16 @@ MONTHS = {name: number for number, names in enumerate(MONTH_NAMES, start=1) for 
 END_OF_DAY = 24
 
 
-def _moment(year: int, month: int, day: int, hour: str | None, minute: str | None, second: str | None) -> datetime:
+def _moment(
+    year: int, month: int, day: int, hour: str | None, minute: str | None, second: str | None
+) -> datetime:
     """A date with a time of day; 24:00 closes its own day, as HEC writes midnight."""
     hours = int(hour or 0)
     if hours > END_OF_DAY or (hours == END_OF_DAY and (int(minute or 0) or int(second or 0))):
         raise ValueError("no such time of day")
-    return datetime(year, month, day) + timedelta(hours=hours, minutes=int(minute or 0), seconds=int(second or 0))
+    return datetime(year, month, day) + timedelta(
+        hours=hours, minutes=int(minute or 0), seconds=int(second or 0)
+    )
 
 
 def parse_date(text: str, time_format: str | None = None) -> datetime | None:
@@ -55,7 +59,7 @@ def parse_date(text: str, time_format: str | None = None) -> datetime | None:
     cell = text.strip().strip('"')
     try:
         if time_format is not None:
-            return datetime.strptime(cell, time_format)  # noqa: DTZ007  a station clock has no zone
+            return datetime.strptime(cell, time_format)
         found = ISO.match(cell)
         if found:
             year, month, day, *rest = found.groups()
@@ -123,7 +127,11 @@ def _value_column(heading: list[str] | None, record: str | None, first_value: in
 
 @SERIES_READERS.register(CSV)
 def read_csv(
-    path: Path, record: str | None = None, time_unit: str = "min", time_format: str | None = None, want: str = ""
+    path: Path,
+    record: str | None = None,
+    time_unit: str = "min",
+    time_format: str | None = None,
+    want: str = "",
 ) -> StationRecord:
     """The record of one value column of a text table; see the module's note for the layout."""
     rows = _rows(path)
@@ -132,7 +140,12 @@ def read_csv(
         raise ValueError(f"{path.name}: a heading and no rows")
     first = rows[0]
     dated = time_format is not None or not _is_number(first[0])
-    split = dated and len(first) > 2 and CLOCK.match(first[1].strip('"')) is not None and parse_date(first[0]) is not None
+    split = (
+        dated
+        and len(first) > 2
+        and CLOCK.match(first[1].strip('"')) is not None
+        and parse_date(first[0]) is not None
+    )
     column = _value_column(heading, record, 2 if split else 1, path)
     times: list = []
     values = []
@@ -149,7 +162,9 @@ def read_csv(
         elif _is_number(cell):
             times.append(float(cell))
         else:
-            raise ValueError(f"{path.name}: row {number}: {cell!r} is not a time; the rows above count from the run's start")
+            raise ValueError(
+                f"{path.name}: row {number}: {cell!r} is not a time; the rows above count from the run's start"
+            )
         values.append(_value(row[column]))
     data = np.asarray(values, dtype=np.float64)
     source = path.name if record is None else f"{path.name} [{record}]"

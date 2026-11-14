@@ -66,7 +66,9 @@ class StationRecord:
         if self.minutes is not None:
             return self.minutes
         if origin is None:
-            raise ValueError(f"{self.source}: the record has dates, so the date and time the run starts at is needed")
+            raise ValueError(
+                f"{self.source}: the record has dates, so the date and time the run starts at is needed"
+            )
         return (self.dates - origin) / np.timedelta64(1, "s") / SECONDS_PER_MINUTE
 
 
@@ -96,7 +98,12 @@ def read_record(
     if not source.is_file():
         raise FileNotFoundError(f"station record not found: {source}")
     return SERIES_READERS.build(
-        series_format(source), path=source, record=record, time_unit=time_unit, time_format=time_format, want=want
+        series_format(source),
+        path=source,
+        record=record,
+        time_unit=time_unit,
+        time_format=time_format,
+        want=want,
     )
 
 

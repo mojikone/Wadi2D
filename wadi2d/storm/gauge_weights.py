@@ -45,7 +45,9 @@ def nearest(x: np.ndarray, y: np.ndarray, gauges: np.ndarray) -> np.ndarray:
     return out
 
 
-def _chunk_weights(x, y, gauges, power: float, radius: float | None, quadrants: bool) -> tuple[np.ndarray, int]:
+def _chunk_weights(
+    x, y, gauges, power: float, radius: float | None, quadrants: bool
+) -> tuple[np.ndarray, int]:
     distance, east, north = _distances(x, y, gauges)
     counts = np.ones_like(distance, dtype=bool) if radius is None else distance <= radius
     lost = ~counts.any(axis=1)
@@ -93,7 +95,12 @@ def _nearer_side(mine: np.ndarray, other: np.ndarray, reach: float) -> Any:
     way = (other - mine) / np.hypot(*(other - mine))
     across = np.array([-way[1], way[0]])
     middle = 0.5 * (mine + other)
-    corners = [middle + reach * across, middle - reach * across, middle - reach * across - reach * way, middle + reach * across - reach * way]
+    corners = [
+        middle + reach * across,
+        middle - reach * across,
+        middle - reach * across - reach * way,
+        middle + reach * across - reach * way,
+    ]
     return shapely.Polygon(corners)
 
 

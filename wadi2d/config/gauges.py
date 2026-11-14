@@ -30,8 +30,12 @@ class Gauge(_Part):
     """A rain gauge: where it stands and the record it wrote."""
 
     name: str
-    x: float | None = Field(None, description="Easting in the DEM's coordinate system, m; None takes the HMS gage's")
-    y: float | None = Field(None, description="Northing in the DEM's coordinate system, m; None takes the HMS gage's")
+    x: float | None = Field(
+        None, description="Easting in the DEM's coordinate system, m; None takes the HMS gage's"
+    )
+    y: float | None = Field(
+        None, description="Northing in the DEM's coordinate system, m; None takes the HMS gage's"
+    )
     file: str | None = Field(None, description="CSV table or DSS file of the record")
     record: str | None = Field(
         None,
@@ -39,15 +43,20 @@ class Gauge(_Part):
         "pathname of the record or its B/C or B/C/F parts, None being the only precipitation series",
     )
     hms_gage: str | None = Field(
-        None, description="A precipitation gage of the HMS project, by name: its DSS file and pathname replace file and record"
+        None,
+        description="A precipitation gage of the HMS project, by name: its DSS file and pathname replace file and record",
     )
     values: Literal["incremental", "cumulative"] = Field(
         "incremental",
         description="What a CSV holds: the depth fallen in each period, or the depth since the start of the record. A DSS "
         "record says so itself (PER-CUM or INST-CUM)",
     )
-    units: Literal["mm", "cm", "m", "in"] = Field("mm", description="Depth units of a CSV; a DSS record brings its own")
-    time_unit: TimeUnit = Field("min", description="Unit of a CSV's times when they are numbers counted from the run's start")
+    units: Literal["mm", "cm", "m", "in"] = Field(
+        "mm", description="Depth units of a CSV; a DSS record brings its own"
+    )
+    time_unit: TimeUnit = Field(
+        "min", description="Unit of a CSV's times when they are numbers counted from the run's start"
+    )
     time_format: str | None = Field(None, description=TIME_FORMAT_NOTE)
     interval_min: float | None = Field(
         None,
@@ -69,7 +78,8 @@ class GaugeRain(_Part):
     """Rain from gauges, spread over the cells and the lumped subbasins by one spatial method (W54)."""
 
     gauges: list[Gauge] = Field(
-        [], description="The gauges; empty takes every precipitation gage of the HMS project that has a position"
+        [],
+        description="The gauges; empty takes every precipitation gage of the HMS project that has a position",
     )
     method: Literal["thiessen", "inverse_distance"] = Field(
         THIESSEN,
@@ -103,7 +113,9 @@ class GaugeRain(_Part):
         "always bridged by its neighbours' difference, spread evenly, once gaps is not 'error'",
     )
     samples: int = Field(
-        2000, ge=100, le=200000,
+        2000,
+        ge=100,
+        le=200000,
         description="Points over a subbasin's polygon on which inverse distance is averaged for a lumped subbasin; "
         "Thiessen shares are exact areas and need none",
     )
@@ -118,7 +130,9 @@ class GaugeRain(_Part):
             if unknown:
                 raise ValueError(f"gauge weights of subbasin {subbasin} name unknown gauges: {unknown}")
             if not weights or min(weights.values()) < 0.0 or sum(weights.values()) <= 0.0:
-                raise ValueError(f"gauge weights of subbasin {subbasin} must not be negative and must sum above zero")
+                raise ValueError(
+                    f"gauge weights of subbasin {subbasin} must not be negative and must sum above zero"
+                )
         return self
 
 
@@ -138,11 +152,14 @@ class Observed(_Part):
         "m above the cell's lowest point, against a result point",
     )
     compare: Literal["line", "point", "element"] = Field(
-        COMPARE_LINE, description="What it is compared with: a result line, a result point, or a lumped element's series"
+        COMPARE_LINE,
+        description="What it is compared with: a result line, a result point, or a lumped element's series",
     )
     target: str = Field(description="Name of that line, point or element")
     series: Literal["outflow", "inflow"] = Field("outflow", description="Which series of a lumped element")
-    time_unit: TimeUnit = Field("min", description="Unit of a CSV's times when they are numbers counted from the run's start")
+    time_unit: TimeUnit = Field(
+        "min", description="Unit of a CSV's times when they are numbers counted from the run's start"
+    )
     time_format: str | None = Field(None, description=TIME_FORMAT_NOTE)
     start: str | None = Field(
         None,

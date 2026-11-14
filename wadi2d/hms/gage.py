@@ -64,10 +64,17 @@ def _degrees(block: Block, word: str) -> float | None:
 def _record(block: Block) -> tuple[str | None, str | None]:
     """(DSS file, pathname) of a gage: the default variant's, else the first variant's, else the block's own."""
     variants = block.blocks(VARIANT_KIND)
-    chosen = next((v for v in variants if (v.get("Default Variant") or "").casefold() == YES), variants[0] if variants else None)
+    chosen = next(
+        (v for v in variants if (v.get("Default Variant") or "").casefold() == YES),
+        variants[0] if variants else None,
+    )
     if chosen is not None:
-        return chosen.get("DSS File Name") or chosen.get("DSS File"), chosen.get("DSS Pathname") or chosen.get("Pathname")
-    return block.get("DSS File Name") or block.get("DSS File"), block.get("DSS Pathname") or block.get("Pathname")
+        return chosen.get("DSS File Name") or chosen.get("DSS File"), chosen.get(
+            "DSS Pathname"
+        ) or chosen.get("Pathname")
+    return block.get("DSS File Name") or block.get("DSS File"), block.get("DSS Pathname") or block.get(
+        "Pathname"
+    )
 
 
 def load(path: str | Path) -> list[HmsGage]:

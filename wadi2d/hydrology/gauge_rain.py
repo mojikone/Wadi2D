@@ -24,7 +24,9 @@ KEPT = 2
 class GaugeCellRain:
     """``pair_of`` gives each cell its row of :meth:`excess_mm`; ``x`` and ``y`` are in the gauges' system."""
 
-    def __init__(self, storm: GaugeStorm, x: np.ndarray, y: np.ndarray, cn: np.ndarray, rained: np.ndarray) -> None:
+    def __init__(
+        self, storm: GaugeStorm, x: np.ndarray, y: np.ndarray, cn: np.ndarray, rained: np.ndarray
+    ) -> None:
         self.storm = storm
         self.beyond = 0
         """Rained cells with no gauge within the search radius, which took their nearest gauge."""
@@ -69,7 +71,9 @@ class GaugeCellRain:
     def notes(self) -> list[str]:
         if not self.beyond:
             return []
-        return [f"{self.beyond} rained cells have no gauge within {self.storm.search_radius_m:g} m and took their nearest gauge"]
+        return [
+            f"{self.beyond} rained cells have no gauge within {self.storm.search_radius_m:g} m and took their nearest gauge"
+        ]
 
     def cell_shares(self, rained: np.ndarray, areas: np.ndarray | float) -> dict[str, float]:
         """The share of the rained area each gauge carries, for the run's record: under Thiessen, its polygon's share."""
@@ -81,4 +85,8 @@ class GaugeCellRain:
             carried = np.bincount(self.gauge_of, weights=area, minlength=len(self.storm.names))
         else:
             carried = np.asarray(self.weights, np.float64).T @ area
-        return {name: round(float(c / whole), 4) for name, c in zip(self.storm.names, carried, strict=True) if c > 0.0}
+        return {
+            name: round(float(c / whole), 4)
+            for name, c in zip(self.storm.names, carried, strict=True)
+            if c > 0.0
+        }

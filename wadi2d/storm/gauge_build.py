@@ -46,8 +46,12 @@ def _dem_xy(cfg: RunConfig, longitude: float, latitude: float) -> tuple[float, f
 
     with rasterio.open(cfg.terrain.dem) as dem:
         if dem.crs is None:
-            raise ValueError("the DEM names no coordinate system, so an HMS gage's latitude and longitude cannot be placed on it")
-        x, y = pyproj.Transformer.from_crs(WGS84, dem.crs.to_wkt(), always_xy=True).transform(longitude, latitude)
+            raise ValueError(
+                "the DEM names no coordinate system, so an HMS gage's latitude and longitude cannot be placed on it"
+            )
+        x, y = pyproj.Transformer.from_crs(WGS84, dem.crs.to_wkt(), always_xy=True).transform(
+            longitude, latitude
+        )
     return float(x), float(y)
 
 
@@ -59,7 +63,9 @@ def _from_hms(cfg: RunConfig, gauge: Gauge, found: hms_gage.HmsGage) -> Station:
     elif found.latitude is not None and found.longitude is not None:
         x, y = _dem_xy(cfg, found.longitude, found.latitude)
     else:
-        raise ValueError(f"HMS gage {found.name} has no position in the project: give rain gauge {gauge.name} its x and y")
+        raise ValueError(
+            f"HMS gage {found.name} has no position in the project: give rain gauge {gauge.name} its x and y"
+        )
     return Station(gauge.name, x, y, found.dss_file, found.pathname, gauge)
 
 
@@ -73,7 +79,11 @@ def stations(cfg: RunConfig) -> list[Station]:
     if not listed:
         placed = [g for g in hms if g.latitude is not None and g.longitude is not None]
         if not placed:
-            where = f"the HMS project's {path.name} holds no precipitation gage with a position" if path else "no HMS project is named"
+            where = (
+                f"the HMS project's {path.name} holds no precipitation gage with a position"
+                if path
+                else "no HMS project is named"
+            )
             raise ValueError(f"storm.gauges lists no rain gauge, and {where}: list the gauges in the job")
         listed = [Gauge(name=g.name, hms_gage=g.name) for g in placed]
     by_name = {g.name.casefold(): g for g in hms}
@@ -86,7 +96,9 @@ def stations(cfg: RunConfig) -> list[Station]:
         if found is None:
             have = sorted(g.name for g in hms) or "none"
             where = path.name if path else "no HMS project is named, so no .gage file"
-            raise ValueError(f"rain gauge {gauge.name}: no precipitation gage {gauge.hms_gage!r} in {where}; it holds: {have}")
+            raise ValueError(
+                f"rain gauge {gauge.name}: no precipitation gage {gauge.hms_gage!r} in {where}; it holds: {have}"
+            )
         out.append(_from_hms(cfg, gauge, found))
     return out
 
@@ -113,11 +125,17 @@ def _clock(records: list[StationRecord], names: list[str], start: str | None) ->
     """The provisional date of minute zero: the job's start, else the earliest stamp; None for records with no dates."""
     dated = [r.dated for r in records]
     if any(dated) and not all(dated):
-        mixed = ", ".join(f"{n} ({'dates' if d else 'counts from the start'})" for n, d in zip(names, dated, strict=True))
-        raise ValueError(f"rain gauges must share one clock, all with dates or all counting from the run's start: {mixed}")
+        mixed = ", ".join(
+            f"{n} ({'dates' if d else 'counts from the start'})" for n, d in zip(names, dated, strict=True)
+        )
+        raise ValueError(
+            f"rain gauges must share one clock, all with dates or all counting from the run's start: {mixed}"
+        )
     if not any(dated):
         if start is not None:
-            raise ValueError("storm.rain_start means nothing here: the gauge records count from the start of the run")
+            raise ValueError(
+                "storm.rain_start means nothing here: the gauge records count from the start of the run"
+            )
         return None
     return np.datetime64(start, "s") if start is not None else min(r.dates[0] for r in records)
 
@@ -138,7 +156,9 @@ def _first_gap(periods: GaugePeriods, depths: np.ndarray, edges: np.ndarray) -> 
     return min(spans) if spans else None
 
 
-def _filled_notes(names: list[str], before: np.ndarray, after: np.ndarray, edges: np.ndarray, rule: str) -> list[str]:
+def _filled_notes(
+    names: list[str], before: np.ndarray, after: np.ndarray, edges: np.ndarray, rule: str
+) -> list[str]:
     notes = []
     lengths = np.diff(edges)
     for g, name in enumerate(names):
@@ -147,7 +167,9 @@ def _filled_notes(names: list[str], before: np.ndarray, after: np.ndarray, edges
             continue
         minutes = float(lengths[missing].sum())
         if rule == GAPS_NEIGHBOURS:
-            notes.append(f"gauge {name} had no value for {minutes:g} min and was given {after[missing, g].sum():.1f} mm from the other gauges")
+            notes.append(
+                f"gauge {name} had no value for {minutes:g} min and was given {after[missing, g].sum():.1f} mm from the other gauges"
+            )
         else:
             notes.append(f"gauge {name} had no value for {minutes:g} min, counted as no rain")
     return notes
@@ -159,11 +181,14 @@ def build_gauge_storm(cfg: RunConfig) -> GaugeStorm:
     placed = stations(cfg)
     names = [s.name for s in placed]
     records = [
-        read_record(s.file, s.record, s.gauge.time_unit, s.gauge.time_format, want=PRECIPITATION) for s in placed
+        read_record(s.file, s.record, s.gauge.time_unit, s.gauge.time_format, want=PRECIPITATION)
+        for s in placed
     ]
     origin = _clock(records, names, cfg.storm.rain_start)
     periods = [
-        periods_of(s.name, r, origin, s.gauge.values, s.gauge.units, s.gauge.interval_min, cfg.storm.rain_stamp)
+        periods_of(
+            s.name, r, origin, s.gauge.values, s.gauge.units, s.gauge.interval_min, cfg.storm.rain_stamp
+        )
         for s, r in zip(placed, records, strict=True)
     ]
     if origin is not None and cfg.storm.rain_start is None:
@@ -193,7 +218,9 @@ def build_gauge_storm(cfg: RunConfig) -> GaugeStorm:
 
     whole = fill_gaps(depths, xy, spec.gaps, weigh)
     if float(whole.sum()) <= 0.0:
-        raise ValueError("the rain gauges hold no rain in the run's time: check storm.rain_start and the records")
+        raise ValueError(
+            "the rain gauges hold no rain in the run's time: check storm.rain_start and the records"
+        )
     return GaugeStorm(
         names=tuple(names), xy=xy, edges=edges, cumulative=np.vstack((np.zeros(len(names)), np.cumsum(whole, axis=0))),
         method=spec.method, power=spec.power, search_radius_m=spec.search_radius_m, quadrants=spec.quadrants,

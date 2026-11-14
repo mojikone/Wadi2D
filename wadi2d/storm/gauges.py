@@ -37,7 +37,13 @@ def _moved_polygon(polygon: Any, source: str, target: str) -> Any:
 
 
 def place_weights(
-    x: np.ndarray, y: np.ndarray, gauges: np.ndarray, method: str, power: float, radius: float | None, quadrants: bool
+    x: np.ndarray,
+    y: np.ndarray,
+    gauges: np.ndarray,
+    method: str,
+    power: float,
+    radius: float | None,
+    quadrants: bool,
 ) -> tuple[np.ndarray, int]:
     """(weights, places beyond the radius): gauge weights of each place under either method."""
     if method == THIESSEN:
@@ -155,7 +161,9 @@ class GaugeStorm(CumulativeStorm):
             shares = shares / shares.sum()
         else:
             if subbasin not in self.polygons:
-                raise KeyError(f"no polygon for subbasin {subbasin}: gauge rain needs one, or gauge weights in the job")
+                raise KeyError(
+                    f"no polygon for subbasin {subbasin}: gauge rain needs one, or gauge weights in the job"
+                )
             polygon = _moved_polygon(self.polygons[subbasin], self.polygon_crs, self.crs)
             if self.method == THIESSEN:
                 shares = thiessen_shares(polygon, self.xy)
@@ -176,7 +184,9 @@ class GaugeStorm(CumulativeStorm):
     def subbasin_shares(self) -> dict[str, dict[str, float]]:
         """The gauge weights of every subbasin asked for so far, for the run's record."""
         return {
-            name: {g: round(float(w), SHARE_DIGITS) for g, w in zip(self.names, shares, strict=True) if w > 0.0}
+            name: {
+                g: round(float(w), SHARE_DIGITS) for g, w in zip(self.names, shares, strict=True) if w > 0.0
+            }
             for name, shares in sorted(self._shares.items())
         }
 
@@ -184,7 +194,9 @@ class GaugeStorm(CumulativeStorm):
         """What a run should say about this rain; read it after the lumped network has run."""
         found = list(self.filled)
         if self.edges[-1] > duration_min:
-            found.append(f"the gauges' rain runs to {self.edges[-1]:g} min and the run stops at {duration_min:g} min")
+            found.append(
+                f"the gauges' rain runs to {self.edges[-1]:g} min and the run stops at {duration_min:g} min"
+            )
         if self._beyond:
             found.append(
                 "no gauge within the search radius of part of these subbasins, which took their nearest gauge there: "

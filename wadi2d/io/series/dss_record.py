@@ -15,7 +15,15 @@ from pathlib import Path
 import numpy as np
 
 from wadi2d.hms.dss import DssFile, DssPathname, open_dss
-from wadi2d.io.series import DSS, FLOW, LEVEL, PRECIPITATION, SECONDS_PER_MINUTE, SERIES_READERS, StationRecord
+from wadi2d.io.series import (
+    DSS,
+    FLOW,
+    LEVEL,
+    PRECIPITATION,
+    SECONDS_PER_MINUTE,
+    SERIES_READERS,
+    StationRecord,
+)
 
 C_PARTS = {PRECIPITATION: ("PRECIP",), FLOW: ("FLOW",), LEVEL: ("STAGE", "ELEV")}
 MISSING_BELOW = -900.0
@@ -35,7 +43,7 @@ def split_pathname(record: str) -> tuple[str, str, str | None, str | None]:
     parts = text.split("/")
     if len(parts) not in (2, 3) or not all(parts[:2]):
         raise ValueError(f"{record!r}: name a DSS record by its pathname, or by its parts B/C or B/C/F")
-    return parts[0], parts[1], (parts[2] or None) if len(parts) == 3 else None, None  # noqa: PLR2004
+    return parts[0], parts[1], (parts[2] or None) if len(parts) == 3 else None, None
 
 
 def _interval(e_part: str) -> str:
@@ -49,7 +57,9 @@ def _only(dss: DssFile, want: str, path: Path) -> DssPathname:
     if len(found) != 1:
         names = sorted(str(p) for p in found) or sorted(str(p) for p in dss.catalog())
         some = "several" if found else "no"
-        raise ValueError(f"{path.name} holds {some} {want} series, so the record must be named; it holds: {names}")
+        raise ValueError(
+            f"{path.name} holds {some} {want} series, so the record must be named; it holds: {names}"
+        )
     return found[0]
 
 
