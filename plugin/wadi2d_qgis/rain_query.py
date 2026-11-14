@@ -3,9 +3,8 @@
 """The Storm section's questions to the rest of the dock and to the engine (W65).
 
 Preview rain writes the job a run would write, in a scratch folder, through the HMS import when there is one, and asks
-``wadi2d rain-preview`` what each lumped subbasin and the 2D area take; the plugin computes none of it. The section's
-summaries of the rain gauges and of the study's storm areas are read from those sections here, so the Storm section
-never knows another section.
+``wadi2d rain-preview`` what each lumped subbasin and the 2D area take; the plugin computes none of it. The study's
+storm areas are read from that section here, so the Storm section never knows another section.
 """
 
 from __future__ import annotations
@@ -19,12 +18,14 @@ from qgis.PyQt.QtCore import QObject
 
 from . import settings
 from .engine_process import EngineQuery
-from .gauge_rows import gauges_text
 from .job_builder import LayerError, problems
+from .layer_groups import model_name
 from .protocol import engine_error_text, exit_message
+from .rain_layers import load_rain_map
 from .storm_rows import preview_args
 
 PREVIEW_FILE = "rain_preview.json"
+MAP_PREFIX = "wadi2d_storm_map_"
 
 
 class StormLinks(QObject):
@@ -36,20 +37,10 @@ class StormLinks(QObject):
         self.storm = dock.storm
         self._query: EngineQuery | None = None
         self._scratch: str | None = None
+        self._map_dir: str | None = None
+        self._map_shown: str | None = None
         self.storm.preview_requested.connect(self.preview)
-        self.storm.gauges_requested.connect(self.show_gauges)
-        self.storm.gauges_button.clicked.connect(self.open_gauges)
         self.storm.study_areas_requested.connect(self.show_study_areas)
-
-    def show_gauges(self) -> None:
-        gauges = self.dock.gauges
-        self.storm.show_gauges(gauges_text(gauges.rows, gauges.method.currentData()))
-
-    def open_gauges(self) -> None:
-        self.dock.gauges.setCollapsed(False)
-        scroll = self.dock.widget()
-        if hasattr(scroll, "ensureWidgetVisible"):
-            scroll.ensureWidgetVisible(self.dock.gauges)
 
     def show_study_areas(self) -> None:
         study = self.dock.study
@@ -82,7 +73,18 @@ class StormLinks(QObject):
     def _ask(self, job: Path) -> None:
         self._query = EngineQuery(settings.engine_text(), self)
         self._query.done.connect(self._answered)
-        self._query.start(preview_args(job, Path(self._scratch) / PREVIEW_FILE))
+        self._map_dir = tempfile.mkdtemp(prefix=MAP_PREFIX)  # kept while its layers are on the map
+        self._query.start(preview_args(job, Path(self._scratch) / PREVIEW_FILE, self._map_dir))
+
+    def _draw_map(self) -> None:
+        """The storm map into Inputs > Hydrology, in place of the last; the last one's files go with it."""
+        shown, self._map_shown = self._map_shown, self._map_dir
+        try:
+            load_rain_map(self._map_dir, model_name(self.dock.panel.folder.filePath() or None))
+        except (OSError, ValueError, KeyError) as problem:
+            self.storm.say_preview(f"{self.storm.preview_label.text()} The storm map could not be drawn: {problem}")
+        if shown and shown != self._map_dir:
+            shutil.rmtree(shown, ignore_errors=True)
 
     def _answered(self, code: int, _out: str, err: str) -> None:
         self.storm.set_previewing(False)
@@ -92,8 +94,11 @@ class StormLinks(QObject):
             preview = json.loads((Path(self._scratch) / PREVIEW_FILE).read_text(encoding="utf-8"))
         except (OSError, ValueError, TypeError) as problem:
             self.storm.say_preview(f"The rain could not be previewed. {problem}")
+            if self._map_dir != self._map_shown:
+                shutil.rmtree(self._map_dir, ignore_errors=True)
         else:
             self.storm.show_preview(preview)
+            self._draw_map()
         finally:
             self._drop()
 

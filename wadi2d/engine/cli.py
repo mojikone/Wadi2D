@@ -224,7 +224,7 @@ def _rain_preview(args: argparse.Namespace) -> int:
     from wadi2d.run import EXIT_INVALID, JobError
 
     try:
-        found = rain_preview(_load(args.job))
+        found = rain_preview(_load(args.job), args.map)
         Path(args.out).write_text(json.dumps(found), encoding="utf-8")
     except JobError as error:
         print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
@@ -453,6 +453,7 @@ def parser() -> argparse.ArgumentParser:
     )
     preview.add_argument("job")
     preview.add_argument("--out", required=True)
+    preview.add_argument("--map", default=None, help="also write the storm as a map in this folder (W77)")
     preview.set_defaults(call=_rain_preview)
 
     lines = sub.add_parser(

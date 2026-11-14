@@ -4,14 +4,20 @@ from __future__ import annotations
 
 import json
 
+import numpy as np
 import pytest
+import rasterio
+import shapely
 
 from tests.engine.conftest import job
+from tests.engine.test_gauge_run import box as gauge_box
+from tests.engine.test_gauge_run import gauges
 from tests.engine.test_handback import CHAIN, DX, MIDDLE, NX, NY, SINK, SUB, X0, plane, write_basin
 from tests.engine.test_network_series import _polygons
 from tests.engine.test_rain_run import AREA, AT_505, QUICK, SIDE, TABLE, box, gridded, stack
 from tests.engine.test_rain_run import DX as BOX_DX
 from wadi2d.engine.cli import main
+from wadi2d.engine.rain_map import MAP_FILE, TOTAL_FILE
 from wadi2d.engine.rain_preview import AREA_2D, rain_preview
 from wadi2d.forcing import build_storm
 from wadi2d.run import _lumped_basin, _lumped_rain, run_job
@@ -56,6 +62,53 @@ def test_a_lumped_subbasin_takes_what_the_network_takes_and_the_2d_area_the_rest
     assert side["depth_mm"] == pytest.approx(50.0 * factor, rel=1e-5) == pytest.approx(two_d["depth_mm"], rel=1e-5)
     assert side["peak_mm_h"] == pytest.approx(max(side["mm"]) * 12.0, abs=1e-3)
     assert two_d["area_km2"] == pytest.approx(NX * DX * NY * DX / 1e6 - 40.0 * 40.0 / 1e6, rel=1e-6)
+
+
+def _total(folder):
+    with rasterio.open(folder / TOTAL_FILE) as source:
+        return source.read(1), source.res
+
+
+def test_the_map_of_a_reduced_grid_is_its_pixels_times_the_factor(tmp_path) -> None:
+    """W77: the 2D area's polygon with its depth, and the total depth raster the cells read."""
+    storm = gridded(stack(tmp_path, 40.0, 10.0), storm_area_km2=505.0, arf=TABLE)
+    cfg = job(box(tmp_path), SIDE, SIDE, BOX_DX, storm=storm, run=QUICK)
+    found = rain_preview(cfg, tmp_path / "map")
+    written = json.loads((tmp_path / "map" / MAP_FILE).read_text(encoding="utf-8"))
+    assert written == found["map"] and written["total"] == TOTAL_FILE and written["missing"] == []
+    (area,) = written["areas"]
+    assert area["name"] == AREA_2D and area["depth_mm"] == found["areas"][0]["depth_mm"]
+    assert shapely.from_wkt(area["wkt"]).area == pytest.approx(AREA)
+    depth, _res = _total(tmp_path / "map")
+    assert sorted(np.unique(depth[np.isfinite(depth)])) == pytest.approx([10.0 * AT_505, 40.0 * AT_505], rel=1e-6)
+    assert float(np.nanmean(depth)) == pytest.approx(area["depth_mm"], rel=1e-6)  # two equal halves
+
+
+def test_the_map_of_gauge_rain_steps_at_the_bisector_and_keeps_the_gauges_totals(tmp_path) -> None:
+    cfg = job(gauge_box(tmp_path), SIDE, SIDE, BOX_DX, storm=gauges(tmp_path, 20.0, 5.0), run=QUICK)
+    found = rain_preview(cfg, tmp_path / "map")
+    depth, _res = _total(tmp_path / "map")
+    assert set(np.unique(depth[np.isfinite(depth)])) == {60.0, 15.0}
+    half = depth.shape[1] // 2
+    assert np.all(depth[:, :half] == 60.0) and np.all(depth[:, half:] == 15.0)
+    assert found["map"]["areas"][0]["depth_mm"] == pytest.approx(37.5, rel=1e-6)
+
+
+def test_the_map_draws_each_lumped_subbasin_and_the_2d_area_round_it(tmp_path) -> None:
+    basin = write_basin(tmp_path, SUB.format(down="J"), CHAIN, SINK)
+    cfg = job(
+        plane(tmp_path), NX, NY, DX, storm={"kind": "uniform", "depth_mm": 20.0, "duration_min": 30.0},
+        hydrology={
+            "hms_basin": str(basin), "time_step_min": 5.0, "inject_radius": 6.0, "polygons": str(_polygons(tmp_path)),
+            "subbasins": [{"name": "Side", "mode": "lumped", "outlet": (X0 + 300.0, MIDDLE)}],
+        },
+        run={"duration_s": 3600.0, "backend": "cpu"},
+    )  # fmt: skip
+    written = rain_preview(cfg, tmp_path / "map")["map"]
+    shapes = {row["name"]: shapely.from_wkt(row["wkt"]) for row in written["areas"]}
+    assert set(shapes) == {"Side", AREA_2D} and written["total"] is None  # uniform rain: no raster
+    assert shapes["Side"].area + shapes[AREA_2D].area == pytest.approx(NX * DX * NY * DX, rel=1e-9)
+    assert not (tmp_path / "map" / TOTAL_FILE).exists()
 
 
 def test_the_command_writes_the_preview_and_refuses_a_job_without_rain(tmp_path, capsys) -> None:

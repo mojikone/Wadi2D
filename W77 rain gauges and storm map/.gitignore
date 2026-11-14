@@ -1,0 +1,12 @@
+dock_check/*/profiles/
+dock_check/*/runs/
+dock_check/*/data/*.nc
+dock_check/*/data/*.dss
+dock_check/*/data/*.tif
+dock_check/*/rain_*.nc
+dock_check/*/rain.dss
+dock_check/*/rain_tifs/
+dock_check/*/rain_block2/
+dock_check/*/start.bat
+dock_check/*/engine.py
+*.log

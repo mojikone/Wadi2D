@@ -28,6 +28,7 @@ from .basin_layers import load_basin_layers
 from .basin_points import BasinPointsLinks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
+from .gauge_rows import joined_gauges
 from .job_builder import (
     LayerError,
     SchemaView,
@@ -305,7 +306,7 @@ class Wadi2DDock(QgsDockWidget):
         values: dict = {}
         for section in self.sections:
             values.update(section.values(crs))
-        return values
+        return joined_gauges(values)  # the Storm section's rain gauges and 7b's flow and level gauges, one table (W77)
 
     def _checked_values(self, say=None) -> dict | None:
         say = say or self.panel.say

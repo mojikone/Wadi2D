@@ -198,9 +198,9 @@ def rain_reply(out: str) -> dict:
     raise ValueError("The engine gave no answer about this rain file.")
 
 
-def preview_args(job: Path | str, out: Path | str) -> list[str]:
-    """The arguments of ``wadi2d rain-preview``."""
-    return ["rain-preview", str(job), "--out", str(out)]
+def preview_args(job: Path | str, out: Path | str, map_dir: Path | str | None = None) -> list[str]:
+    """The arguments of ``wadi2d rain-preview``; ``map_dir`` asks for the storm map too (W77)."""
+    return ["rain-preview", str(job), "--out", str(out), *(["--map", str(map_dir)] if map_dir else [])]
 
 
 def preview_text(preview: dict) -> str:
