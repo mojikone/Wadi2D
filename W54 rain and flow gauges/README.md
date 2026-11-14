@@ -151,6 +151,11 @@ checkout's environment; another worker's dock check stalled the same way the sam
 - Tests: `tests/storm/test_gauges.py` (29), `tests/engine/test_observed.py` (8), `tests/engine/test_gauge_run.py` (6),
   `tests/hms/test_gage.py` (3), `tests/plugin/test_gauge_rows.py` (7), three in `tests/plugin/test_line_view.py`.
 
+**Suites:** `tests/storm tests/hydrology tests/engine tests/plugin tests/dock tests/products` 1,377 of 1,377, with
+`test_block2_replication.py::test_whole_basin_replicates_and_the_report_is_written` deselected: it fails the same way
+on the commit before the WIP (a depth-grid analysis finds no cell in its polygons), not this work's. Plugin, dock and
+products again after the last plugin change, 661 of 661.
+
 ## Not done
 
 - The dock's values for a rain CSV (`incremental` or `cumulative`) are one choice for every gauge; the job holds one per
