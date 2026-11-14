@@ -302,3 +302,35 @@ def test_the_estimate_says_the_disk_of_the_maps() -> None:
     assert saved_maps(faces, 1_000_000) == (5, 0.08)  # the faces, on by default, add 0.6 of a map
     off = RunConfig.model_validate({"outputs": {"map_every_s": 0.0}})
     assert saved_maps(off, 1_000_000) == (0, 0.0)
+
+
+@pytest.mark.parametrize("size", [8, 13, 64])
+def test_windows_paint_what_the_whole_band_paints(size: int) -> None:
+    """W50: the rasters are written window by window over the wet ground; together the windows hold exactly what
+    the old whole-band spread held, cells cut by a window edge, strip pixels over the cells, empty windows skipped."""
+    from wadi2d.products.ground import CellPixels
+    from wadi2d.strips.pixels import StripPixelResult
+
+    rng = np.random.default_rng(5)
+    k = 5
+    rows = np.array([0, 0, 1, 3, 9, 9, 10, 2], np.int32)
+    cols = np.array([0, 1, 1, 7, 2, 3, 12, 11], np.int32)
+    cells = CellPixels(rows, cols, k, 0.5, 0.0, np.zeros((rows.size, k * k), np.float32))
+    values = rng.random((rows.size, k * k)).astype(np.float32)
+    sr = np.array([4, 5, 12, 60, 61], np.int64)
+    sc = np.array([4, 4, 33, 70, 2], np.int64)
+    strip = StripPixelResult(sr, sc, *(np.zeros(sr.size),) * 4)
+    dots = rng.random(sr.size).astype(np.float32)
+    box = step.pixel_box(cells, strip)
+    whole = step.spread(cells, values, -1.0, np.float32, box, strip, dots)
+    painted = np.full(whole.shape, -1.0, np.float32)
+    seen = 0
+    for part in step.window_parts(cells, box, strip, size):
+        assert part.row % size == 0 and part.col % size == 0
+        tile = part.paint(values[part.cells], dots[part.strip], -1.0, np.float32)
+        assert tile.shape == part.shape
+        painted[part.row : part.row + tile.shape[0], part.col : part.col + tile.shape[1]] = tile
+        seen += 1
+    np.testing.assert_array_equal(painted, whole)
+    every = -(-box[2] // size) * -(-box[3] // size)
+    assert seen < every or size >= box[2]  # the empty windows are not made

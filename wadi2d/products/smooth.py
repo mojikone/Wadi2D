@@ -27,7 +27,7 @@ from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
-from wadi2d.io.geopackage import VectorLayer, write_geopackage
+from wadi2d.io.geopackage import VectorLayer, add_layer, write_geopackage
 from wadi2d.io.geotiff import THREADS, raster_profile
 from wadi2d.products.hazard import DRY, class_names
 from wadi2d.products.setup_layers import setup_layers
@@ -279,15 +279,30 @@ def domain_outline(tables: GridTables, sigma_cells: float) -> shapely.Geometry:
     return chaikin_rings(multi(parts), DOMAIN_CHAIKIN)
 
 
-def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
-    """The class polygons and the outline, as GeoPackage layers."""
-    classes = VectorLayer(
+def hazard_layer(rows: list, names: list[str]) -> VectorLayer:
+    """The class polygons as a GeoPackage layer."""
+    return VectorLayer(
         CLASS_LAYER,
         {"class": int, "name": str, "area_km2": float, "block": int},
         [(k, names[k - 1], shapely.area(g) / M2_PER_KM2, b) for k, b, g in rows],
         [g for _k, _b, g in rows],
     )
-    return [classes, VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])]
+
+
+def domain_layer(domain) -> VectorLayer:
+    return VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])
+
+
+def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
+    """The class polygons and the outline, as GeoPackage layers."""
+    return [hazard_layer(rows, names), domain_layer(domain)]
+
+
+def run_layers(cfg: RunConfig, tables: GridTables, crs) -> list[VectorLayer]:
+    """The outline of the domain and what the engine was given: in the GeoPackage of every run, drawn or not, because
+    the map sheets and the layers a run loads read them (W50)."""
+    domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
+    return [domain_layer(domain), *setup_layers(cfg, crs_text(crs))]
 
 
 def _fill_dry(depth, wet, nd=ndimage):
@@ -371,13 +386,18 @@ def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, 
     return path
 
 
-def make_drawings(cfg, tables: GridTables, written: dict, depth: np.ndarray, folder: Path, crs, watch, xp=np) -> dict:
-    """Polygons, outline and the depth drawing; what was drawn against what the pixels say."""
-    classes, profile = written["classes"], written["profile"]
+def make_drawings(
+    cfg, classes: np.ndarray, depth: np.ndarray, profile: dict, folder: Path, crs, watch, xp=np, layers: list | None = None
+) -> dict:
+    """The class polygons and the depth drawing of a class raster and its depth; what was drawn against what the
+    pixels say. ``layers`` are the run's other layers, written with the polygons into a new GeoPackage; without
+    them the polygons go into the one the run already has (W50)."""
     rows, accounts = class_polygons(cfg, classes, profile, watch)
-    domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
-    layers = class_layers(rows, domain, class_names(cfg.outputs.pixels)) + setup_layers(cfg, crs_text(crs))
-    write_geopackage(folder / LAYERS_FILE, layers, crs_text(crs))
+    hazard = hazard_layer(rows, class_names(cfg.outputs.pixels))
+    if layers is None:
+        add_layer(folder / LAYERS_FILE, hazard, crs_text(crs))
+    else:
+        write_geopackage(folder / LAYERS_FILE, [hazard, *layers], crs_text(crs))
     depth_drawing(cfg, depth, raster_profile(depth.shape, *_pixel_origin(profile), crs), folder / DRAWING_FILE, watch, xp)
     watch.tick("smooth", 1, 1)
     return accounts

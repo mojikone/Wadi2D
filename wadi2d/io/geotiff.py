@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import rasterio
 from rasterio.transform import Affine
+from rasterio.windows import Window
 
 from wadi2d.grid.tiles import TileGrid
 
@@ -60,8 +61,10 @@ def write_map(
 
 
 def raster_profile(shape: tuple[int, int], pixel: float, x0: float, y0: float, crs) -> dict:
-    """A compressed raster north-up from (x0, y0), for :func:`write_band`."""
+    """A compressed raster north-up from (x0, y0), for :func:`write_band` and :class:`BandWriter`. Sparse: a block
+    that holds nothing but nodata takes no room in the file and reads back as nodata (W50)."""
     return {
+        "sparse_ok": True,
         "driver": "GTiff",
         "height": shape[0],
         "width": shape[1],
@@ -89,6 +92,37 @@ def write_band(path: str | Path, band: np.ndarray, profile: dict, nodata: float,
             dst.update_tags(**tags)
     tmp.replace(out)
     return out
+
+
+class BandWriter:
+    """One band written window by window, each window on the block lattice; what no window covers is nodata.
+
+    A flood on a 0.5 m raster wets a twentieth of its bounding box: written whole, Block 2's band is 17 GB in memory
+    and its empty blocks are most of the file (W50). Through a temporary name, as :func:`write_band`; leaving the
+    ``with`` on an error removes it.
+    """
+
+    def __init__(self, path: str | Path, profile: dict, dtype, nodata: float, tags=None) -> None:
+        self.path = Path(path)
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.tmp = self.path.with_name(f"{self.path.stem}.tmp{self.path.suffix}")
+        self.tags = tags
+        self.dst = rasterio.open(self.tmp, "w", dtype=np.dtype(dtype).name, nodata=nodata, **profile)
+
+    def write(self, tile: np.ndarray, row: int, col: int) -> None:
+        self.dst.write(tile, 1, window=Window(col, row, tile.shape[1], tile.shape[0]))
+
+    def __enter__(self) -> BandWriter:
+        return self
+
+    def __exit__(self, kind, *_exc: object) -> None:
+        if kind is None and self.tags:
+            self.dst.update_tags(**self.tags)
+        self.dst.close()
+        if kind is None:
+            self.tmp.replace(self.path)
+        else:
+            self.tmp.unlink(missing_ok=True)
 
 
 class LiveRaster:
