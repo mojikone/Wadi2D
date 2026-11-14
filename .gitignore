@@ -94,3 +94,4 @@ Wadi2D_results.qgz
 **/W33 backend parity/runs/
 # downloaded papers and reports: third-party copyright, kept local (W49 flume test); the transcribed tables are in git
 **/W49 local hydraulic radius face table/flume_test/raw/
+**/W71 breach on quadtree and real ground/runs/

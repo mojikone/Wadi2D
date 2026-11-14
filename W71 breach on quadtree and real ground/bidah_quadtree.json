@@ -1,0 +1,23 @@
+{
+ "mesh": "quadtree",
+ "exit": 0,
+ "message": "",
+ "wall_s": 9.1,
+ "backend": "gpu",
+ "storage0_m3": 5631664.0,
+ "storage_end_m3": 23905.0,
+ "outflow_m3": 5607759.0,
+ "balance_rel": -2.142176863204617e-08,
+ "start_s": 600.0,
+ "formed_s": 2994.881844,
+ "bottom_width_m": 37.223843,
+ "pool_start_m": 100.002,
+ "pool_at_formed_m": 96.41,
+ "pool_point_end_m": 88.41,
+ "pool_point_1h_after_m": 93.557,
+ "peak_axis_m3s": 2581.6,
+ "t_peak_axis_s": 3002.631,
+ "peak_below_m3s": 2518.4,
+ "t_peak_below_s": 3035.748,
+ "froehlich_1995_m3s": 1710.0
+}
