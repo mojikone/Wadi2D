@@ -22,6 +22,8 @@ from qgis.gui import QgsMapTool, QgsRubberBand
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 
+from .layer_groups import LINES, add_layer, run_results, subgroup
+
 LAYER_TITLE = "Temporary result lines"
 NAME_FIELD = "name"
 COLOUR = "#c8560a"
@@ -91,16 +93,16 @@ def _style(layer: QgsVectorLayer) -> None:
     layer.setLabelsEnabled(True)
 
 
-def scratch_layer(crs, group_name: str) -> QgsVectorLayer:
-    """An empty scratch layer on top of the run's group; it is gone with the project unless saved."""
+def scratch_layer(crs, run) -> QgsVectorLayer:
+    """An empty scratch layer in the run's Lines group (``run`` its folder; None puts it on top of the tree); it is
+    gone with the project unless saved."""
     layer = QgsVectorLayer(f"LineString?field={NAME_FIELD}:string", LAYER_TITLE, "memory")
     layer.setCrs(crs)
     _style(layer)
-    project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    top = root.findGroup(group_name) or root
-    project.addMapLayer(layer, False)
-    top.insertLayer(0, layer)
+    if run:
+        add_layer(subgroup(run_results(run), LINES, 0), layer, index=0)
+    else:
+        QgsProject.instance().addMapLayer(layer)
     return layer
 
 

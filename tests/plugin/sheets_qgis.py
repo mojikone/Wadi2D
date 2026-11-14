@@ -23,6 +23,7 @@ from qgis.core import QgsApplication, QgsLayoutItemLegend, QgsLayoutItemMap, Qgs
 app = QgsApplication([], False)
 app.initQgis()
 
+from wadi2d_qgis.layer_groups import results_title  # noqa: E402
 from wadi2d_qgis.live_layer import load_maps  # noqa: E402
 from wadi2d_qgis.map_sheets import build_book, export_pdf, nice_segment, sheets_file  # noqa: E402
 from wadi2d_qgis.protocol import has_drawings  # noqa: E402
@@ -50,7 +51,7 @@ if MODE == "plain":
     assert len(found.record) == 4 and found.record_depth is not None
     load_maps(RUN, "run", tucked=True)
     load_products(RUN, "run")
-    top = project.layerTreeRoot().findGroup("run")
+    top = project.layerTreeRoot().findGroup(results_title("run"))
     names = [child.name() for child in top.children()]
     assert names == [GROUP_SETUP, GROUP_RECORD, GROUP_CELLS], names
     shown = [n.name() for n in top.findLayers() if n.isVisible()]
@@ -81,7 +82,7 @@ assert found.depth.resampleFilter().zoomedInResampler() is not None
 
 load_maps(RUN, "run", tucked=True)
 load_products(RUN, "run")
-top = project.layerTreeRoot().findGroup("run")
+top = project.layerTreeRoot().findGroup(results_title("run"))
 names = [child.name() for child in top.children()]
 assert names == [GROUP_SETUP, GROUP_MAPS, GROUP_RECORD, GROUP_CELLS], names
 shown = [n.name() for n in top.findLayers() if n.isVisible()]

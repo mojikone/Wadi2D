@@ -283,7 +283,7 @@ class ResultLinesPanel(QgsDockWidget):
         project = QgsProject.instance()
         layer = project.mapLayer(self.layer_id) if self.layer_id else None
         if layer is None:
-            layer = scratch_layer(self.crs, self.run.name if self.run else "")
+            layer = scratch_layer(self.crs, self.run)
             self.layer_id = layer.id()
             self.layer.setExceptedLayerList([layer])
         return layer

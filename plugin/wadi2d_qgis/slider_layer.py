@@ -367,7 +367,7 @@ def load_slider(run: Path | str, canvas, main_window) -> QgsRasterLayer | None:
     layer = open_layer(run)
     if layer is None:
         return None
-    _add(layer, Path(run).name)
+    _add(layer, run)
     follow_canvas(canvas)
     show_controller(canvas, main_window, [float(t) for t in layer.dataProvider().info["frames_s"]])
     return layer

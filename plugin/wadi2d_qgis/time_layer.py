@@ -20,8 +20,8 @@ from qgis.core import (
 from qgis.PyQt.QtWidgets import QDockWidget
 
 from . import style
+from .layer_groups import MAPS, TIME, add_layer, run_results, subgroup
 from .protocol import FRAMES_FILE, RUN_FILE
-from .result_layers import GROUP_MAPS
 
 LAYER_TITLE = "Flood over time, cells"
 
@@ -48,13 +48,11 @@ def open_frames(run: Path) -> QgsMeshLayer | None:
     return layer
 
 
-def _add(layer: QgsMeshLayer, group_name: str) -> None:
-    project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
-    project.addMapLayer(layer, False)
-    top.insertLayer(0, layer)
-    maps = top.findGroup(GROUP_MAPS)
+def _add(layer, run: Path | str) -> None:
+    """Into the run's Time slider group, on top of its results."""
+    top = run_results(run)
+    add_layer(subgroup(top, TIME, 0), layer, index=0)
+    maps = top.findGroup(MAPS)
     if maps is not None:  # the run's maximum, under a flood that is still rising, would read as the flood
         maps.setItemVisibilityChecked(False)
 
@@ -88,6 +86,6 @@ def load_frames(run: Path | str, canvas, main_window) -> QgsMeshLayer | None:
     layer = open_frames(folder)
     if layer is None:
         return None
-    _add(layer, folder.name)
+    _add(layer, folder)
     show_controller(canvas, main_window, layer)
     return layer

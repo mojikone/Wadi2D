@@ -40,6 +40,7 @@ from .job_builder import (
     write_geojson,
     write_job,
 )
+from .layer_groups import model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
 from .preview import TerrainPreview, zoom_to
@@ -193,6 +194,7 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self._basin_query: EngineQuery | None = None
+        self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
         self.panel.estimate_button.clicked.connect(self.estimate)
@@ -416,7 +418,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         summary = json.loads(Path(event["summary"]).read_text(encoding="utf-8"))
         sizes = [float(size.split()[0]) for size in summary["tiles_by_size"]]
-        self._mesh_layer = show_mesh(event["raster"], sizes, self._mesh_layer)
+        self._mesh_layer = show_mesh(event["raster"], sizes, model_name(self.panel.folder.filePath()))
         if self._mesh_folder:
             shutil.rmtree(self._mesh_folder, ignore_errors=True)
         self._mesh_folder = self._mesh_folder_next
@@ -509,6 +511,7 @@ class Wadi2DDock(QgsDockWidget):
             box.say(" ".join(found))
             return
         out = Path(values["output"]) / BASIN_DIR
+        self._basin_model = model_name(values["output"])
         pour = None
         try:
             job = write_job(basin_job(values, out), out)
@@ -535,7 +538,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         try:
             box.take(event)
-            layers = load_basin_layers(event["geometry"])
+            layers = load_basin_layers(event["geometry"], self._basin_model)
         finally:
             box.set_busy(False)
         if layers:

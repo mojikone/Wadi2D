@@ -1,6 +1,8 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The product layers of a run folder: opened, styled, and put in the layer tree under groups."""
+"""The product layers of a run folder: opened, styled, and put in the run's results group (``layer_groups``).
+
+A ``group_name`` below is the run's label in its model, the run folder's name when empty."""
 
 from __future__ import annotations
 
@@ -9,12 +11,12 @@ from pathlib import Path
 
 from qgis.core import (
     QgsMapLayerLegendUtils,
-    QgsProject,
     QgsRasterLayer,
     QgsVectorLayer,
 )
 
 from . import style
+from .layer_groups import CELLS, MAPS, RECORD, SETUP, add_layer, find_run_results, run_results, subgroup
 from .map_notes import class_labels, read_facts
 from .protocol import (
     BOUNDARY_LAYER,
@@ -42,10 +44,10 @@ from .protocol import (
     has_record,
 )
 
-GROUP_MAPS = "Flood maps"
-GROUP_SETUP = "Model setup"
-GROUP_RECORD = "Pixel rasters, the numbers of record"
-GROUP_CELLS = "Cell maps"
+GROUP_MAPS = MAPS  # the names live in layer_groups; these stay for the callers that know them by these names
+GROUP_SETUP = SETUP
+GROUP_RECORD = RECORD
+GROUP_CELLS = CELLS
 
 
 @dataclass
@@ -150,11 +152,8 @@ def hide_band_name(tree_layer) -> None:
 
 
 def _add(group, layers: list, shown: tuple = ()) -> None:
-    project = QgsProject.instance()
     for layer in layers:
-        project.addMapLayer(layer, False)
-        node = group.addLayer(layer)
-        node.setItemVisibilityChecked(layer in shown)
+        node = add_layer(group, layer, shown=layer in shown)
         node.setExpanded(False)
         if isinstance(layer, QgsRasterLayer):
             hide_band_name(node)
@@ -175,14 +174,12 @@ def open_cell_grid(run: Path | str):
     return layer
 
 
-def load_cell_grid(run: Path | str, group_name: str):
-    """Under Model setup, with or without pixel maps: a run that made none has the grid all the same."""
+def load_cell_grid(run: Path | str, group_name: str = ""):
+    """Under the run's Model setup, with or without pixel maps: a run that made none has the grid all the same."""
     layer = open_cell_grid(run)
     if layer is None:
         return None
-    root = QgsProject.instance().layerTreeRoot()
-    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
-    setup = top.findGroup(GROUP_SETUP) or top.insertGroup(0, GROUP_SETUP)
+    setup = subgroup(run_results(run, group_name), GROUP_SETUP, 0)
     _add(setup, [layer], (layer,))
     return layer
 
@@ -206,42 +203,39 @@ def open_strip_mesh(run: Path | str) -> list:
     return out
 
 
-def load_strip_mesh(run: Path | str, group_name: str) -> list:
+def load_strip_mesh(run: Path | str, group_name: str = "") -> list:
     """Under Model setup beside the cell grid: the corridors a run stepped, their cells and faces."""
     layers = open_strip_mesh(run)
     if not layers:
         return []
-    root = QgsProject.instance().layerTreeRoot()
-    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
-    setup = top.findGroup(GROUP_SETUP) or top.insertGroup(0, GROUP_SETUP)
+    setup = subgroup(run_results(run, group_name), GROUP_SETUP, 0)
     _add(setup, layers, tuple(layers))
     return layers
 
 
-def load_products(run: Path | str, group_name: str) -> RunLayers | None:
+def load_products(run: Path | str, group_name: str = "") -> RunLayers | None:
     """The product layers on top of the run's group, grouped; the depth drawing is the one switched on.
 
     A run that made no drawing has no Flood maps group: its depth raster of record is switched on in its place."""
     if not has_products(run):
         return None
-    root = QgsProject.instance().layerTreeRoot()
-    top = root.findGroup(group_name) or root.insertGroup(0, group_name)
+    top = run_results(run, group_name)
     found = open_layers(run)
     drawn = [layer for layer in (found.hazard, found.depth) if layer is not None]
-    record = top.insertGroup(0, GROUP_RECORD)
+    record = subgroup(top, GROUP_RECORD, 0)
     if drawn:
-        _add(top.insertGroup(0, GROUP_MAPS), drawn, (found.depth,))
-    setup = top.insertGroup(0, GROUP_SETUP)
+        _add(subgroup(top, GROUP_MAPS, 0), drawn, (found.depth,))
+    setup = subgroup(top, GROUP_SETUP, 0)
     _add(setup, found.setup(), (found.domain, found.boundaries, found.inflows, found.lines))
     _add(record, found.record, () if found.depth is not None else (found.record_depth,))
     record.setExpanded(found.depth is None)
     return found
 
 
-def load_drawings(run: Path | str, group_name: str) -> list:
+def load_drawings(run: Path | str, group_name: str = "") -> list:
     """The polygons and the depth picture made after the run, into the run's group if the project still has it and
     they are not there yet; the depth picture takes over from the depth raster of record."""
-    top = QgsProject.instance().layerTreeRoot().findGroup(group_name)
+    top = find_run_results(run, group_name)
     if top is None or top.findGroup(GROUP_MAPS) is not None or not has_drawings(run):
         return []
     folder = Path(run)
@@ -256,7 +250,7 @@ def load_drawings(run: Path | str, group_name: str) -> list:
         return []
     record = top.findGroup(GROUP_RECORD)
     at = top.children().index(record) if record is not None else 0
-    _add(top.insertGroup(at, GROUP_MAPS), drawn, (depth,))
+    _add(subgroup(top, GROUP_MAPS, at), drawn, (depth,))
     if record is not None and depth is not None:
         for node in record.findLayers():
             node.setItemVisibilityChecked(False)
