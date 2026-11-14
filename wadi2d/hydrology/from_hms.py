@@ -149,6 +149,18 @@ GATE_BLOCK = "Spillway Gate"
 GATE_CONTROL_BLOCK = "Gate Control"
 FIXED_OPENING = "Fixed Opening"
 GATE_OPENING_KEY = "Gate Opening"
+# W76's, written back by HEC-HMS 4.12 on re-saving its test basins; the names are hms.jar's (hydraulics enum I).
+PERCENT_TIME_SERIES = "Percent Time Series"
+MAXIMUM_OPENING_KEY = "Maximum Gate Opening"
+PERCENT_GAGE_KEY = "Percent Gage Name"
+PERCENT_TIME_SERIES_KEYS = frozenset({MAXIMUM_OPENING_KEY, PERCENT_GAGE_KEY})
+UNIDENTIFIED_GATE_CONTROLS = {
+    "Percent Annual Pattern": "HMS reads its pattern record in a way W76 did not identify (on a pattern of 25 to "
+    "100 % it opened the gate to 75.07 % throughout), so it is not routed",
+    "Adjustable Gate Control": "it is driven by HMS's rule-based reservoir operations, which are not built",
+}
+PERCENT_GAGE_TYPE = "Percent"
+PERCENT_UNITS = "%"
 SLUICE_KEYS = frozenset({"Number Gates", "Gate Width", "Gate Coefficient", "Orifice Coefficient"})
 RADIAL_KEYS = SLUICE_KEYS | {"Trunnion Height", "Trunnion Exponent", "Opening Exponent", "Head Exponent"}
 GATE_KEYS = {SLUICE_GATE: SLUICE_KEYS, RADIAL_GATE: RADIAL_KEYS}
@@ -383,18 +395,48 @@ def _tabular_seepage(element: str, block: RawBlock, tables: ProjectTables | None
     )
 
 
-def _gate(element: str, block: RawBlock, crest: float, weir: float, outlet: int) -> SpillwayGate:
-    """One Spillway Gate block: a group of identical sluice or radial gates with a Fixed Opening."""
+def _gate_opening(
+    element: str, control: RawBlock, tables: ProjectTables | None, start: datetime | None
+) -> dict[str, Any]:
+    """A gate's opening: HMS's Fixed Opening, or a Percent Time Series as a schedule in minutes from the run's start
+    (W76: HMS's opening at each time is the maximum times the gage's percent, linear in the gage, to round-off).
+    Percent Annual Pattern and Adjustable Gate Control raise by name."""
+    if control.name == FIXED_OPENING:
+        _fields(element, control, frozenset({GATE_OPENING_KEY}))
+        return {"opening_m": _number(element, control, GATE_OPENING_KEY)}
+    if control.name == PERCENT_TIME_SERIES:
+        _fields(element, control, PERCENT_TIME_SERIES_KEYS)
+        gage = control.get(PERCENT_GAGE_KEY) or ""
+        if tables is None or gage not in tables.percents:
+            raise ValueError(f"{element}: percent gage {gage!r} is not available (a Percent gage in % INST-VAL in "
+                             "the project .gage)")
+        if start is None:
+            raise ValueError(f"{element}: a Percent Time Series gate needs the run's start date (storm.rain_start)")
+        record = tables.percents[gage]
+        minutes = (np.asarray(record.times) - np.datetime64(start, "s")) / np.timedelta64(1, "m")
+        maximum = _number(element, control, MAXIMUM_OPENING_KEY)
+        return {
+            "opening_m": maximum, "maximum_opening_m": maximum,
+            "schedule_minutes": tuple(float(m) for m in minutes),
+            "schedule_percent": tuple(float(p) for p in record.flows),
+        }
+    if control.name in UNIDENTIFIED_GATE_CONTROLS:
+        raise ValueError(f"{element}: gate control {control.name!r}: {UNIDENTIFIED_GATE_CONTROLS[control.name]}")
+    raise ValueError(f"{element}: gate control {control.name!r} is not supported")
+
+
+def _gate(
+    element: str, block: RawBlock, crest: float, weir: float, outlet: int,
+    tables: ProjectTables | None = None, start: datetime | None = None,
+) -> SpillwayGate:
+    """One Spillway Gate block: a group of identical sluice or radial gates, its opening by :func:`_gate_opening`."""
     if block.kind != GATE_BLOCK or block.name not in GATE_KEYS:
         raise ValueError(f"{element}: spillway sub-block {block.kind} {block.name!r} is not supported")
     _fields(element, block, GATE_KEYS[block.name])
     controls = block.blocks
     if len(controls) != 1 or controls[0].kind != GATE_CONTROL_BLOCK:
         raise ValueError(f"{element}: a {block.name} gate needs one Gate Control")
-    control = controls[0]
-    if control.name != FIXED_OPENING:
-        raise ValueError(f"{element}: gate control {control.name!r} is not supported, only {FIXED_OPENING}")
-    _fields(element, control, frozenset({GATE_OPENING_KEY}))
+    opening = _gate_opening(element, controls[0], tables, start)
     gates = _number(element, block, "Number Gates")
     if gates != int(gates) or gates < 1:
         raise ValueError(f"{element}: {gates} gates")
@@ -413,13 +455,15 @@ def _gate(element: str, block: RawBlock, crest: float, weir: float, outlet: int)
         gates=int(gates),
         width_m=_number(element, block, "Gate Width"),
         coefficient=_number(element, block, "Gate Coefficient"),
-        opening_m=_number(element, control, GATE_OPENING_KEY),
         outlet=outlet,
+        **opening,
         **radial,
     )
 
 
-def _gated_spillway(element: str, block: RawBlock) -> list[Structure]:
+def _gated_spillway(
+    element: str, block: RawBlock, tables: ProjectTables | None = None, start: datetime | None = None
+) -> list[Structure]:
     """A broad-crested spillway carrying gates: one structure per gate group; the crest passes nothing else.
 
     HMS requires the gates' widths to add up to the crest length (its error 42204), and so does this reader."""
@@ -427,7 +471,7 @@ def _gated_spillway(element: str, block: RawBlock) -> list[Structure]:
     crest = _number(element, block, "Spillway Crest Elevation")
     weir = _number(element, block, "Spillway Coefficient")
     outlet = _outlet(element, block, SPILLWAY_OUTLET_KEY)
-    gates = [_gate(element, sub, crest, weir, outlet) for sub in block.blocks]
+    gates = [_gate(element, sub, crest, weir, outlet, tables, start) for sub in block.blocks]
     length = _number(element, block, "Spillway Crest Length")
     widths = sum(gate.total_width_m for gate in gates)
     if abs(widths - length) > GATE_WIDTH_TOLERANCE_M:
@@ -539,7 +583,7 @@ def _outflow_structures(
     evaporation: MonthlyEvaporation | None = None
     for block in element.blocks:
         if block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED and block.blocks:
-            structures.extend(_gated_spillway(element.name, block))
+            structures.extend(_gated_spillway(element.name, block, tables, start))
         elif block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED:
             spillways.append(_spillway(element.name, block))
         elif (block.kind, block.name) in STRUCTURE_BUILDERS:
@@ -802,23 +846,28 @@ class FlowRecord:
 @dataclass(frozen=True)
 class ProjectTables:
     """The paired tables of a project, by table name: storms in the first two, the network in ``paired``; the flow
-    gages a Specified Flow diversion reads, by gage name, in ``flows``."""
+    gages a Specified Flow diversion reads, by gage name, in ``flows``; the percent gages a Percent Time Series gate
+    reads in ``percents`` (the record's values are percents)."""
 
     patterns: dict[str, PercentPattern]
     area_reductions: dict[str, ArfTable]
     paired: dict[str, PairedColumns] = field(default_factory=dict)
     flows: dict[str, FlowRecord] = field(default_factory=dict)
+    percents: dict[str, FlowRecord] = field(default_factory=dict)
 
 
-def load_flow_gages(gage_file: str | Path | None) -> dict[str, FlowRecord]:
-    """The Flow gages of a ``.gage`` file in M3/S, instantaneous, whose record is found; any other is left out."""
+def load_flow_gages(
+    gage_file: str | Path | None, kind: str = FLOW_GAGE_TYPE, units: str = FLOW_UNITS
+) -> dict[str, FlowRecord]:
+    """The Flow gages of a ``.gage`` file in M3/S, instantaneous, whose record is found; any other is left out.
+    ``kind`` and ``units`` read another type of gage the same way (W76's Percent gages in %)."""
     from wadi2d.hms import gage as hms_gage
 
     found: dict[str, FlowRecord] = {}
     if gage_file is None:
         return found
     for item in hms_gage.load(gage_file):
-        usable = item.kind == FLOW_GAGE_TYPE and item.units == FLOW_UNITS and item.data_type == "INST-VAL"
+        usable = item.kind == kind and item.units == units and item.data_type == "INST-VAL"
         if not usable or item.dss_file is None or item.pathname is None or not item.dss_file.is_file():
             continue
         parts = item.pathname.split("/")
@@ -872,7 +921,10 @@ def load_project_tables(
                 columns = _read_si(dss, table, units)
                 if columns is not None:
                     paired[name] = PairedColumns(columns.x, columns.y * scale[kind]) if kind in scale else columns
-    return ProjectTables(patterns, reductions, paired, load_flow_gages(gage_file))
+    return ProjectTables(
+        patterns, reductions, paired, load_flow_gages(gage_file),
+        load_flow_gages(gage_file, PERCENT_GAGE_TYPE, PERCENT_UNITS),
+    )
 
 
 def storm_from_hms(

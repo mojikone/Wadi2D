@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from tests.engine.conftest import X0, Y0, job, write_dem
 from wadi2d.breach.control import build_breaches
 from wadi2d.breach.faces import read_back
-from wadi2d.breach.shape import Geometry, estimate, opened_area, opening, progress
+from wadi2d.breach.shape import Geometry, estimate, final_geometry, opened_area, opening, progress
 from wadi2d.config.schema import Breach, BreachEstimator
 from wadi2d.run import job_hash, prepare_grid, run_job
 from wadi2d.solver.model import Model
@@ -90,6 +90,59 @@ def test_froehlich_2008_by_hand() -> None:
         BreachEstimator(method="macdonald_langridge_monopolis", pool_volume_m3=2e6), "overtopping", 10.0
     )
     assert mac.slope == 0.5 and mac.time == pytest.approx(0.0179 * (0.0261 * 2e7**0.769) ** 0.364 * 3600.0)
+
+
+# West, Morris and Hassan (2018), A guide to breach prediction, HR Wallingford HRPP770, Tables 2 and 3: Xu and Zhang
+# (2009) on three failures, B_ave and t_f between low and high erodibility, to the table's two decimals (W76).
+GUIDE_CASES = [
+    # name, V_w m3, h_w, h_b, h_d m, mode, (B_ave low, B_ave high) m, (t_f low, t_f high) h
+    ("Testalinden", 0.02e6, 2.1, 2.1, 2.1, "overtopping", (6.49, 12.50), (1.37, 0.25)),
+    ("Big Bay Lake", 17.5e6, 13.6, 14.0, 14.0, "piping", (33.65, 64.78), (7.73, 1.43)),
+    ("Delhi", 12.2e6, 11.2, 11.0, 11.0, "overtopping", (47.92, 92.25), (7.24, 1.34)),
+]
+TABLE_HALF_DIGIT = 0.0051
+
+
+@pytest.mark.parametrize(("name", "vw", "hw", "hb", "hd", "mode", "widths", "hours"), GUIDE_CASES)
+def test_xu_zhang_2009_reproduces_the_guides_worked_examples(name, vw, hw, hb, hd, mode, widths, hours) -> None:
+    for erodibility, width, time in zip(("low", "high"), widths, hours, strict=True):
+        est = BreachEstimator(
+            method="xu_zhang_2009", pool_volume_m3=vw, water_depth_m=hw, dam_height_m=hd, erodibility_class=erodibility
+        )
+        e = estimate(est, mode, hb, 0.0)  # a vertical side: the bottom width is B_ave
+        assert e.width == pytest.approx(width, abs=TABLE_HALF_DIGIT), name
+        assert e.time / 3600.0 == pytest.approx(time, abs=TABLE_HALF_DIGIT), name
+
+
+def test_froehlich_2016_and_xu_zhang_by_hand_and_their_refusal() -> None:
+    # Froehlich (2016a): B_ave = 0.23 x 1.5 x V^(1/3), slope 1, t_f = 60 (V / (g h^2))^0.5 s; piping 1.0 and 0.6
+    e = estimate(BreachEstimator(method="froehlich_2016", pool_volume_m3=2e6), "overtopping", 10.0)
+    bave = 0.23 * 1.5 * 2e6 ** (1.0 / 3.0)
+    assert e.slope == 1.0 and e.width == pytest.approx(bave - 10.0)
+    assert e.time == pytest.approx(60.0 * math.sqrt(2e6 / (9.80665 * 100.0)), rel=1e-3)
+    p = estimate(BreachEstimator(method="froehlich_2016", pool_volume_m3=2e6), "piping", 10.0)
+    assert p.slope == 0.6 and p.width == pytest.approx(0.23 * 2e6 ** (1.0 / 3.0) - 6.0)
+    # Xu and Zhang, medium erodibility, piping: B_ave / h_b = 5.543 (V^(1/3) / h_w)^0.739 e^(-1.747 - 1.073)
+    x = estimate(BreachEstimator(method="xu_zhang_2009", pool_volume_m3=2e6), "piping", 10.0, 0.5)
+    shape = 2e6 ** (1.0 / 3.0) / 10.0
+    assert x.width == pytest.approx(10.0 * 5.543 * shape**0.739 * math.exp(-2.820) - 5.0)
+    assert x.time == pytest.approx(0.066 * (10.0 / 15.0) ** 0.654 * shape**1.246 * 3600.0)
+    with pytest.raises(ValueError, match="no side slope"):
+        estimate(BreachEstimator(method="xu_zhang_2009", pool_volume_m3=2e6), "piping", 10.0)
+    xz = BreachEstimator(method="xu_zhang_2009", pool_volume_m3=2e6, erodibility_class="high")
+    with pytest.raises(ValueError, match="no side slope"):
+        final_geometry(Breach(dam="Dam", bottom_z=93.0, trigger="time", trigger_time_s=0.0, estimator=xz), 50.0, 103.0)
+    geo, note = final_geometry(Breach(**breach(bottom_z=93.0, bottom_width_m=None, formation_time_s=None,
+                                                left_slope=0.5, right_slope=1.5, estimator=xz)), 50.0, 103.0)
+    high = estimate(xz, "overtopping", 10.0, 1.0)
+    assert (geo.width, geo.left, geo.right, geo.time) == (high.width, 0.5, 1.5, high.time) and "Xu and Zhang" in note
+
+
+def test_a_w63_estimator_keeps_its_hash(dem) -> None:
+    est = {"method": "froehlich_2008", "pool_volume_m3": 1e6}
+    old = dam_job(dem, [breach(estimator=est)])
+    assert job_hash(old) == job_hash(dam_job(dem, [breach(estimator=est | {"erodibility_class": "medium"})]))
+    assert job_hash(old) != job_hash(dam_job(dem, [breach(estimator=est | {"erodibility_class": "high"})]))
 
 
 def test_progressions_and_the_pipe_grow_to_the_same_trapezoid() -> None:

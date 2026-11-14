@@ -17,7 +17,10 @@ Every law was measured against HEC-HMS 4.12 headless on a metric test project (W
 - evaporation, a rate times the pool area, lost from the books and not sent to an outlet;
 - a gate on a broad-crested spillway (W62): weir flow C L H^1.5 over the gates' width while the head over the crest
   is at most the opening, the gate law from 1.25 openings (sluice C W B k sqrt(H), radial C k W T^TE B^BE H^HE),
-  linear in H/B between, with HMS's own constant k = 4.42869 for sqrt(2 g);
+  linear in H/B between, with HMS's own constant k = 4.42869 for sqrt(2 g); drowned by a tailwater over the crest
+  (W76): r = (pool - tailwater) / B, up to 1 the free flow reduced by the weirs' submergence share, from 1.25 the
+  gate law on the head over the tailwater times sqrt(3), linear in r between; an opening that varies in time is
+  passed in per step (HMS's Percent Time Series: the opening at each time, linear in the gage);
 - a pump (W62): the head-discharge table read at the discharge elevation less the pool plus the equipment loss, times
   the units, while the pump is on. On and off are a state carried from step to step: decided at the start of every
   step part from the pool there and the time in the state, and held over the part.
@@ -52,6 +55,13 @@ the last digit, where sqrt(2 x 9.80665) is 4.4286906."""
 GATE_WEIR_BELOW = 1.0
 GATE_LAW_ABOVE = 1.25
 """Head over the crest in openings: weir flow up to the first, the gate law from the second, linear between (W62)."""
+GATE_BASE = 5
+GATE_OPENING_EXPONENT = 6
+"""A gate's parameters past W62's five: the gate factor without its opening term, and the opening exponent, so an
+opening given per step sets the factor as base x B^BE (W76)."""
+GATE_DROWNED_FACTOR = math.sqrt(3.0)
+"""HMS's drowned gate law over its free law on the head over the tailwater (W76): every drowned step of ten runs,
+sluice and radial, four gate coefficients, reads sqrt(3) to the last digit; the Orifice Coefficient changes nothing."""
 PUMP_ON = 0
 PUMP_OFF = 1
 PUMP_INTAKE = 2
@@ -102,10 +112,10 @@ def _row_slope(value: float, nodes: np.ndarray, values: np.ndarray, extend_low: 
 
 
 @njit(cache=True)
-def _gate(level: float, row: np.ndarray) -> tuple[float, float]:
-    """A gate group: ``row`` is crest, weir C x width, gate factor F (flow F H^HE), opening, HE."""
+def _gate_free(level: float, row: np.ndarray, factor: float, opening: float) -> tuple[float, float]:
+    """A gate group with no tailwater over its crest: ``row`` is crest, weir C x width, gate factor F (flow
+    F H^HE), opening, HE; ``factor`` and ``opening`` the ones in force (the row's own for a fixed opening)."""
     head = level - row[0]
-    opening = row[3]
     if head <= 0.0 or opening <= 0.0:
         return 0.0, 0.0
     weir = row[1] * head**WEIR_POWER
@@ -113,8 +123,8 @@ def _gate(level: float, row: np.ndarray) -> tuple[float, float]:
     ratio = head / opening
     if ratio <= GATE_WEIR_BELOW:
         return weir, weir_slope
-    gate = row[2] * head ** row[4]
-    gate_slope = row[4] * row[2] * head ** (row[4] - 1.0)
+    gate = factor * head ** row[4]
+    gate_slope = row[4] * factor * head ** (row[4] - 1.0)
     if ratio >= GATE_LAW_ABOVE:
         return gate, gate_slope
     span = GATE_LAW_ABOVE - GATE_WEIR_BELOW
@@ -137,6 +147,36 @@ def _drowned(flow: float, slope: float, head: float, submergence: float) -> tupl
 
 
 @njit(cache=True)
+def _gate(level: float, row: np.ndarray, stage: float, opening: float) -> tuple[float, float]:
+    """A gate group: the free law of :func:`_gate_free`, drowned when the tailwater ``stage`` stands over the crest
+    (W76); ``opening`` NaN for the row's own fixed opening, else the opening in force (factor base x B^BE)."""
+    factor = row[2]
+    if math.isnan(opening):
+        opening = row[3]
+    else:
+        factor = row[GATE_BASE] * opening ** row[GATE_OPENING_EXPONENT]
+    free, free_slope = _gate_free(level, row, factor, opening)
+    if math.isnan(stage) or stage <= row[0]:
+        return free, free_slope
+    head = level - row[0]
+    if head <= 0.0 or opening <= 0.0:
+        return 0.0, 0.0
+    low, low_slope = _drowned(free, free_slope, head, (stage - row[0]) / head)
+    drop = level - stage
+    ratio = drop / opening
+    if ratio <= GATE_WEIR_BELOW:
+        return low, low_slope
+    high = GATE_DROWNED_FACTOR * factor * drop ** row[4]
+    high_slope = GATE_DROWNED_FACTOR * row[4] * factor * drop ** (row[4] - 1.0)
+    if ratio >= GATE_LAW_ABOVE:
+        return high, high_slope
+    span = GATE_LAW_ABOVE - GATE_WEIR_BELOW
+    share = (ratio - GATE_WEIR_BELOW) / span
+    flow = low + share * (high - low)
+    return flow, low_slope + share * (high_slope - low_slope) + (high - low) / (span * opening)
+
+
+@njit(cache=True)
 def _structure(
     index: int,
     level: float,
@@ -150,12 +190,13 @@ def _structure(
     tailwater: np.ndarray,
     bottom: float,
     active: np.ndarray,
+    openings: np.ndarray,
 ) -> tuple[float, float]:
     """The flow of one structure at a pool level, m3/s, and its dQ/dz; ``active`` is 0 for a pump that is off."""
     kind = kinds[index]
     stage = tailwater[outlets[index]]
     if kind == GATE:
-        return _gate(level, parameters[index])
+        return _gate(level, parameters[index], stage, openings[index])
     if kind in (BROAD_CRESTED, LEVEL_DAM_TOP):
         head = level - parameters[index, 0]
         if head <= 0.0:
@@ -207,6 +248,7 @@ def _flows(
     table_end: np.ndarray,
     tailwater: np.ndarray,
     active: np.ndarray,
+    openings: np.ndarray,
 ) -> tuple[float, float, float, float]:
     """Main and auxiliary outflow, evaporation (lost), and dQ/dz of all three together."""
     main = 0.0
@@ -215,7 +257,7 @@ def _flows(
     for index in range(len(kinds)):
         flow, gradient = _structure(
             index, level, kinds, outlets, parameters, table_x, table_y, table_start, table_end, tailwater,
-            elevations[0], active,
+            elevations[0], active, openings,
         )
         if outlets[index] == MAIN_OUTLET:
             main += flow
@@ -242,15 +284,17 @@ def structure_flows(
     tailwater: np.ndarray,
     bottom: float,
     active: np.ndarray,
+    openings: np.ndarray,
 ) -> np.ndarray:
     """The flow of every structure at every pool level, m3/s: one row per level, one column per structure;
-    ``active`` holds each structure's state at each level (a pump's on or off), the same shape."""
+    ``active`` holds each structure's state at each level (a pump's on or off), the same shape, and ``openings``
+    each gate's opening there, NaN for a fixed one."""
     out = np.empty((len(levels), len(kinds)))
     for row in range(len(levels)):
         for index in range(len(kinds)):
             out[row, index] = _structure(
                 index, levels[row], kinds, outlets, parameters, table_x, table_y, table_start, table_end, tailwater,
-                bottom, active[row],
+                bottom, active[row], openings[row],
             )[0]
     return out
 
@@ -275,6 +319,7 @@ def _solve_row(
     table_end: np.ndarray,
     tailwater: np.ndarray,
     active: np.ndarray,
+    openings: np.ndarray,
     iterations: int,
     tolerance: float,
 ) -> float:
@@ -284,7 +329,7 @@ def _solve_row(
     for _ in range(iterations):
         main, auxiliary, lost, gradient = _flows(
             level, rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start, table_end,
-            tailwater, active,
+            tailwater, active, openings,
         )
         residual = base_storage + storage_slope * (level - bottom) + half_dt * (main + auxiliary + lost) - target
         if residual > 0.0:
@@ -320,6 +365,7 @@ def _pool_after(
     table_end: np.ndarray,
     tailwater: np.ndarray,
     active: np.ndarray,
+    openings: np.ndarray,
     iterations: int,
     tolerance: float,
 ) -> tuple[float, float, bool]:
@@ -328,13 +374,13 @@ def _pool_after(
     high = len(elevations) - 1
     top_main, top_auxiliary, top_lost, _ = _flows(
         elevations[high], rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-        table_end, tailwater, active,
+        table_end, tailwater, active, openings,
     )
     if known > storage[high] + half_step * (top_main + top_auxiliary + top_lost):
         return level, known, True
     bottom_main, bottom_auxiliary, bottom_lost, _ = _flows(
         elevations[0], rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-        table_end, tailwater, active,
+        table_end, tailwater, active, openings,
     )
     if known <= storage[0] + half_step * (bottom_main + bottom_auxiliary + bottom_lost):
         return elevations[0], storage[0], False
@@ -342,7 +388,7 @@ def _pool_after(
         middle = (low + high) // 2
         main, auxiliary, lost, _ = _flows(
             elevations[middle], rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-            table_end, tailwater, active,
+            table_end, tailwater, active, openings,
         )
         if storage[middle] + half_step * (main + auxiliary + lost) <= known:
             low = middle
@@ -351,7 +397,7 @@ def _pool_after(
     slope = (storage[low + 1] - storage[low]) / (elevations[low + 1] - elevations[low])
     solved = _solve_row(
         known, elevations[low], elevations[low + 1], storage[low], slope, half_step, rate, elevations, areas, kinds,
-        outlets, parameters, table_x, table_y, table_start, table_end, tailwater, active, iterations, tolerance,
+        outlets, parameters, table_x, table_y, table_start, table_end, tailwater, active, openings, iterations, tolerance,
     )
     return solved, storage[low] + slope * (solved - elevations[low]), False
 
@@ -399,6 +445,7 @@ def route_structures(
     table_start: np.ndarray,
     table_end: np.ndarray,
     tailwater: np.ndarray,
+    schedule: np.ndarray,
     initial_elevation: float,
     iterations: int,
     tolerance: float,
@@ -411,7 +458,8 @@ def route_structures(
     and auxiliary outflow, the evaporation, m3/s, at the times of the inflow, the pool level and storage there, the
     state of each structure over the step that ends there (a pump's 1 on, 0 off; 1 for every other structure), and
     whether the pool passed the top of the table. A pump starts off, rested; a change of state at the start of a part
-    sets the flows that part's trapezoid starts from.
+    sets the flows that part's trapezoid starts from. ``schedule`` holds each structure's gate opening at each time
+    of the inflow, NaN for a fixed one; a part's end takes it linearly between its step's two times (W76).
     """
     count = len(inflow)
     main_out = np.zeros(count)
@@ -426,6 +474,8 @@ def route_structures(
             active[index] = 0.0
     level = initial_elevation
     clock = 0.0
+    openings = schedule[0].copy()
+    ahead = schedule[0].copy()
     _switch_pumps(level, clock, kinds, parameters, active, since)
     active_out = np.ones((count, len(kinds)))
     active_out[0] = active
@@ -433,7 +483,7 @@ def route_structures(
     rate = rates[0] if len(rates) > 0 else 0.0
     main, auxiliary, lost, _ = _flows(
         level, rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start, table_end,
-        tailwater, active,
+        tailwater, active, openings,
     )
     main_out[0], auxiliary_out[0], lost_out[0] = main, auxiliary, lost
     level_out[0], storage_out[0] = level, held
@@ -444,7 +494,7 @@ def route_structures(
             rate = rates[step]
             main, auxiliary, lost, _ = _flows(
                 level, rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-                table_end, tailwater, active,
+                table_end, tailwater, active, openings,
             )
         pending[0] = 0
         waiting = 1
@@ -455,12 +505,15 @@ def route_structures(
             if _switch_pumps(level, clock, kinds, parameters, active, since):
                 main, auxiliary, lost, _ = _flows(
                     level, rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-                    table_end, tailwater, active,
+                    table_end, tailwater, active, openings,
                 )
             known = held + part * (mean_inflow - HALF * (main + auxiliary + lost))
+            reach = min(max((clock + part) / dt - step, 0.0), 1.0)
+            for index in range(len(kinds)):
+                ahead[index] = schedule[step, index] + reach * (schedule[step + 1, index] - schedule[step, index])
             solved, stored, above = _pool_after(
                 level, known, HALF * part, rate, elevations, storage, areas, kinds, outlets, parameters, table_x,
-                table_y, table_start, table_end, tailwater, active, iterations, tolerance,
+                table_y, table_start, table_end, tailwater, active, ahead, iterations, tolerance,
             )
             if (above or abs(solved - level) > level_change_limit) and depth < max_bisections:
                 pending[waiting] = depth + 1
@@ -472,9 +525,10 @@ def route_structures(
             level = solved
             held = stored
             clock += part
+            openings[:] = ahead
             main, auxiliary, lost, _ = _flows(
                 level, rate, elevations, areas, kinds, outlets, parameters, table_x, table_y, table_start,
-                table_end, tailwater, active,
+                table_end, tailwater, active, openings,
             )
         main_out[step + 1], auxiliary_out[step + 1], lost_out[step + 1] = main, auxiliary, lost
         level_out[step + 1], storage_out[step + 1] = level, held

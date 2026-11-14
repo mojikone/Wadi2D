@@ -1,0 +1,98 @@
+{
+ "gate_percent_sluice": {
+  "hms_peak_m3s": 154.9960326688027,
+  "max_outflow_difference_of_peak": 0.00022274348369042234,
+  "peak_difference_of_peak": -5.6844409278285884e-05,
+  "max_pool_difference_m": 0.00044225757444849023,
+  "law_at_hms_levels_of_peak": 3.6674112157613533e-16,
+  "step_minutes": 5.0
+ },
+ "gate_percent_radial": {
+  "hms_peak_m3s": 173.54657880740993,
+  "max_outflow_difference_of_peak": 0.0004427951744730336,
+  "peak_difference_of_peak": -4.672445650287132e-05,
+  "max_pool_difference_m": 0.00030638355242729176,
+  "law_at_hms_levels_of_peak": 1.637699205925832e-16,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_low": {
+  "hms_peak_m3s": 195.21912491191995,
+  "max_outflow_difference_of_peak": 0.005411151795129157,
+  "peak_difference_of_peak": 0.0005511478739828864,
+  "max_pool_difference_m": 0.008845413879143393,
+  "law_at_hms_levels_of_peak": 2.9117751084303315e-16,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_lip": {
+  "hms_peak_m3s": 146.20476680840042,
+  "max_outflow_difference_of_peak": 0.06281763895838645,
+  "peak_difference_of_peak": 0.005946434675434043,
+  "max_pool_difference_m": 0.023190147880427503,
+  "law_at_hms_levels_of_peak": 1.9439659903599665e-16,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_high": {
+  "hms_peak_m3s": 146.16485102771304,
+  "max_outflow_difference_of_peak": 0.11927475862093216,
+  "peak_difference_of_peak": 0.0022874738026833746,
+  "max_pool_difference_m": 0.034354216956657524,
+  "law_at_hms_levels_of_peak": 4.861242157496404e-17,
+  "step_minutes": 5.0
+ },
+ "gate_radial_tw_low": {
+  "hms_peak_m3s": 221.60233578223043,
+  "max_outflow_difference_of_peak": 0.007116148824004468,
+  "peak_difference_of_peak": 0.001419579218750439,
+  "max_pool_difference_m": 0.008845413879143393,
+  "law_at_hms_levels_of_peak": 4.0079831133772074e-18,
+  "step_minutes": 5.0
+ },
+ "gate_radial_tw_lip": {
+  "hms_peak_m3s": 181.24969581534515,
+  "max_outflow_difference_of_peak": 0.06200128810755743,
+  "peak_difference_of_peak": 0.0019886146027863045,
+  "max_pool_difference_m": 0.023190373328361602,
+  "law_at_hms_levels_of_peak": 3.9202423626905943e-17,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_a": {
+  "hms_peak_m3s": 123.55496624729199,
+  "max_outflow_difference_of_peak": 0.007084560191323259,
+  "peak_difference_of_peak": 0.000679471683569753,
+  "max_pool_difference_m": 0.008845425890754655,
+  "law_at_hms_levels_of_peak": 7.188528690319575e-18,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_b": {
+  "hms_peak_m3s": 108.13394925407157,
+  "max_outflow_difference_of_peak": 0.007098692173725382,
+  "peak_difference_of_peak": 0.0006530853478918154,
+  "max_pool_difference_m": 0.008845420765297263,
+  "law_at_hms_levels_of_peak": 1.642737411935748e-17,
+  "step_minutes": 5.0
+ },
+ "gate_sluice_tw_c": {
+  "hms_peak_m3s": 118.97416665480938,
+  "max_outflow_difference_of_peak": 0.09333151407259897,
+  "peak_difference_of_peak": 0.0017053540823696223,
+  "max_pool_difference_m": 0.016668001413748357,
+  "law_at_hms_levels_of_peak": 2.388897542175396e-16,
+  "step_minutes": 5.0
+ },
+ "gate_radial_tw_a": {
+  "hms_peak_m3s": 171.95636470380418,
+  "max_outflow_difference_of_peak": 0.009776244062733043,
+  "peak_difference_of_peak": 0.0008729666422994454,
+  "max_pool_difference_m": 0.008845681615781587,
+  "law_at_hms_levels_of_peak": 1.652844282871446e-16,
+  "step_minutes": 5.0
+ },
+ "gate_radial_tw_b": {
+  "hms_peak_m3s": 157.22733262152926,
+  "max_outflow_difference_of_peak": 0.00844013989978758,
+  "peak_difference_of_peak": 0.0008452537090452463,
+  "max_pool_difference_m": 0.00884553748903727,
+  "law_at_hms_levels_of_peak": 5.64900774497084e-18,
+  "step_minutes": 5.0
+ }
+}
