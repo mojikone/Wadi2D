@@ -2045,7 +2045,7 @@
         "smooth": {
           "$ref": "#/$defs/Smooth",
           "default": {
-            "enabled": true,
+            "enabled": false,
             "sigma_px": 1.0,
             "speckle_m2": 500.0,
             "simplify_px": 0.1,
@@ -2883,8 +2883,8 @@
       "description": "The smooth drawing of the pixel maps. The pixel rasters stay the numbers of record.",
       "properties": {
         "enabled": {
-          "default": true,
-          "description": "Make smooth class polygons and the depth drawing",
+          "default": false,
+          "description": "Make smooth class polygons and the depth drawing with the run; off, they are made when a map sheet needs them (wadi2d drawings). They take several times as long as the rasters of record",
           "title": "Enabled",
           "type": "boolean"
         },
@@ -4338,7 +4338,7 @@
           "depth_scale": 2,
           "depth_sigma_px": 0.7,
           "domain_sigma_cells": 0.8,
-          "enabled": true,
+          "enabled": false,
           "sigma_px": 1.0,
           "simplify_px": 0.1,
           "speckle_m2": 500.0,

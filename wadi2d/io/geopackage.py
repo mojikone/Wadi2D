@@ -19,6 +19,8 @@ APPLICATION_ID = 0x47504B47
 USER_VERSION = 10300
 """GeoPackage 1.3."""
 LOCAL_SRS = 99999
+BUSY_S = 60.0
+"""How long a write into a GeoPackage waits for a reader that holds it."""
 HEADER_FLAGS = 0b0000_0011
 """Little-endian, with an envelope of minx, maxx, miny, maxy."""
 SQL_TYPES = {int: "INTEGER", float: "DOUBLE", str: "TEXT"}
@@ -119,4 +121,37 @@ def write_geopackage(path: Path, layers: list[VectorLayer], crs_wkt: str) -> Pat
     finally:
         db.close()
     tmp.replace(path)
+    return path
+
+
+def layer_names(path: Path) -> list[str]:
+    """The layers of a GeoPackage; none when the file is missing or is not one."""
+    if not path.is_file():
+        return []
+    db = sqlite3.connect(path)
+    try:
+        return [row[0] for row in db.execute("SELECT table_name FROM gpkg_contents")]
+    except sqlite3.DatabaseError:
+        return []
+    finally:
+        db.close()
+
+
+def add_layer(path: Path, layer: VectorLayer, crs_wkt: str) -> Path:
+    """A layer written into a GeoPackage that exists, in place of one of its name.
+
+    In place and in one transaction, not through a temporary name: QGIS may hold the file open for its other layers,
+    and Windows then refuses to put another file in its place. A stop or a failure rolls the transaction back.
+    """
+    db = sqlite3.connect(path, timeout=BUSY_S)
+    try:
+        srs = _srs_row(crs_wkt)
+        with db:
+            db.execute("INSERT OR IGNORE INTO gpkg_spatial_ref_sys VALUES (?, ?, ?, ?, ?, ?)", srs)
+            db.execute(f'DROP TABLE IF EXISTS "{layer.name}"')
+            db.execute("DELETE FROM gpkg_contents WHERE table_name = ?", (layer.name,))
+            db.execute("DELETE FROM gpkg_geometry_columns WHERE table_name = ?", (layer.name,))
+            _write_layer(db, layer, srs[1])
+    finally:
+        db.close()
     return path

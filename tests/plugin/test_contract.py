@@ -38,6 +38,7 @@ PATHS = (
     job_builder.LOCAL_STEPS,
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
+    job_builder.SMOOTH_ON,
     job_builder.BACKEND,
     job_builder.BREAK_RISE,
     job_builder.BREAK_REACH,
@@ -89,6 +90,17 @@ def test_a_cpu_choice_from_the_dock_is_a_valid_job_and_the_default_is_left_out(t
     left = build_job(full_values(tmp_path, backend=None), tmp_path / "out")
     assert "backend" not in left["run"]
     assert config.RunConfig.model_validate(left).run.backend == "auto"
+
+
+def test_the_smooth_tick_is_a_valid_job_and_the_default_is_left_out(tmp_path: Path) -> None:
+    """W50: the polygons and the depth picture are off unless ticked; the job says so only when ticked."""
+    assert config.RunConfig().outputs.smooth.enabled is False
+    left = build_job(full_values(tmp_path, smooth=None), tmp_path / "out")
+    assert "smooth" not in left["outputs"]
+    ticked = build_job(full_values(tmp_path, smooth=True), tmp_path / "out")
+    assert config.RunConfig.model_validate(ticked).outputs.smooth.enabled is True
+    off = build_job(full_values(tmp_path, pixels=False, smooth=True), tmp_path / "out")
+    assert config.RunConfig.model_validate(off).outputs.pixels.enabled is False
 
 
 def test_every_study_path_the_dock_binds_exists_and_every_unit_has_words(real: SchemaView) -> None:

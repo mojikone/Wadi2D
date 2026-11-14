@@ -41,9 +41,17 @@ def test_a_finished_run_gives_styled_layers_and_a_pdf(tmp_path: Path) -> None:
     )
     summary = run_job(cfg, tmp_path / "run")
     assert summary.exit_code == 0
+    _sheets(tmp_path / "run", "plain")  # W50: no smooth polygons and depth picture unless asked for
+    from wadi2d.engine.cli import main as cli
+
+    assert cli(["drawings", str(tmp_path / "run"), "--backend", "cpu"]) == 0  # what Make map has the engine do
+    _sheets(tmp_path / "run", "drawn")
+
+
+def _sheets(run: Path, mode: str) -> None:
     env = {key: value for key, value in os.environ.items() if not key.upper().startswith("PYTHON")}
     done = subprocess.run(
-        [str(LAUNCHER), str(SHEETS), str(tmp_path / "run")],
+        [str(LAUNCHER), str(SHEETS), str(run), mode],
         env=env,
         capture_output=True,
         text=True,
@@ -51,4 +59,4 @@ def test_a_finished_run_gives_styled_layers_and_a_pdf(tmp_path: Path) -> None:
         check=False,
     )
     report = done.stdout + done.stderr
-    assert "SHEETS PASSED" in done.stdout, report
+    assert "SHEETS PASSED" in done.stdout, f"{mode}: {report}"

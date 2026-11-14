@@ -7,6 +7,8 @@ from __future__ import annotations
 import json
 import os
 import re
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 
 JOB_FILE = "job.json"
@@ -58,6 +60,9 @@ COMPOSITE_DIR = "composite"  # in a study's folder, when it was asked for a comp
 RUN_FILE = "plugin_run.json"  # written by the plugin: lets a later QGIS session find and stop the process
 STDOUT_FILE = "engine.out"
 STDERR_FILE = "engine.err"
+PRODUCTS_LOG = "products.jsonl"  # the progress file of "wadi2d products" and "wadi2d drawings" on a finished run
+DRAWINGS_STDOUT = "drawings.out"  # their own names: the run's engine.out and engine.err stay as the run left them
+DRAWINGS_STDERR = "drawings.err"
 
 POLL_MS = 500
 STOP_GRACE_S = 30
@@ -171,6 +176,30 @@ def render_args(run: Path | str, backend: str | None = None) -> list[str]:
 def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:
     """The arguments of ``wadi2d mesh``."""
     return ["mesh", str(job), "--out", str(out_dir)]
+
+
+def drawings_args(run: Path | str) -> list[str]:
+    """The arguments of ``wadi2d drawings``: the smooth polygons and the depth picture of a finished run."""
+    return ["drawings", str(run)]
+
+
+def has_record(run: Path | str) -> bool:
+    """A finished run with its pixel rasters, the numbers of record: enough for its layers and its map sheets."""
+    folder = Path(run) / PIXEL_DIR
+    return (folder / PIXEL_DEPTH).is_file() and (folder / PIXEL_HAZARD).is_file()
+
+
+def has_drawings(run: Path | str) -> bool:
+    """Whether a run holds its smooth class polygons and its depth picture, which are made only when asked for."""
+    folder = Path(run) / PIXEL_DIR
+    if not (folder / DEPTH_DRAWING).is_file() or not (folder / LAYERS_FILE).is_file():
+        return False
+    try:
+        with closing(sqlite3.connect(folder / LAYERS_FILE)) as db:
+            found = db.execute("SELECT 1 FROM gpkg_contents WHERE table_name = ?", (HAZARD_LAYER,)).fetchone()
+    except sqlite3.Error:
+        return False
+    return found is not None
 
 
 def lines_args(run: Path | str, out_file: Path | str, line_file: Path | str | None = None) -> list[str]:

@@ -27,7 +27,7 @@ from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
-from wadi2d.io.geopackage import VectorLayer, write_geopackage
+from wadi2d.io.geopackage import VectorLayer, add_layer, write_geopackage
 from wadi2d.io.geotiff import THREADS, raster_profile
 from wadi2d.products.hazard import DRY, class_names
 from wadi2d.products.setup_layers import setup_layers
@@ -74,6 +74,21 @@ def window(a: np.ndarray, r0: int, r1: int, c0: int, c1: int, fill) -> np.ndarra
     return out
 
 
+def support(mask: np.ndarray, pad: int) -> tuple[slice, slice] | None:
+    """The box of ``mask``'s true pixels widened by ``pad`` each way and clipped to the array; None when it has none.
+
+    A block's class masks fill a small part of it, and labelling, blurring and contouring cost what the array costs:
+    done on this box they are the same masks, fields and rings, for a fraction of the work (W50)."""
+    rows = np.flatnonzero(mask.any(axis=1))
+    if rows.size == 0:
+        return None
+    cols = np.flatnonzero(mask.any(axis=0))
+    return (
+        slice(max(int(rows[0]) - pad, 0), min(int(rows[-1]) + 1 + pad, mask.shape[0])),
+        slice(max(int(cols[0]) - pad, 0), min(int(cols[-1]) + 1 + pad, mask.shape[1])),
+    )
+
+
 def _small_parts(mask: np.ndarray, smallest: int) -> np.ndarray:
     """Patches under ``smallest`` pixels that do not reach the window's edge, which may go on beyond it."""
     labels, _count = ndimage.label(mask)
@@ -86,15 +101,46 @@ def _small_parts(mask: np.ndarray, smallest: int) -> np.ndarray:
 
 
 def despeck(mask: np.ndarray, smallest: int) -> np.ndarray:
-    """Without patches and holes under ``smallest`` pixels."""
+    """Without patches and holes under ``smallest`` pixels.
+
+    On the mask's box with a ring of one pixel round it: a patch or a hole that meets the ring there meets the
+    window's edge in the whole array, through the empty ground beyond the box, and labelling joins 4-neighbours
+    only, so the same parts are kept and filled (W50)."""
     if smallest <= 1 or not mask.any():
         return mask
-    kept = mask & ~_small_parts(mask, smallest)
-    return kept | _small_parts(~kept, smallest)
+    box = support(mask, 1)
+    part = mask[box]
+    kept = part & ~_small_parts(part, smallest)
+    out = np.zeros_like(mask)
+    out[box] = kept | _small_parts(~kept, smallest)
+    return out
 
 
 def soft(mask: np.ndarray, sigma: float) -> np.ndarray:
     return ndimage.gaussian_filter(mask.astype(np.float32), sigma, truncate=GAUSS_REACH)
+
+
+def soft_near(mask: np.ndarray, sigma: float) -> np.ndarray:
+    """``soft`` blurred only on the mask's box widened by the kernel's reach, and zero beyond it, as ``soft`` gives.
+
+    Past the reach every tap reads an empty pixel, so the blur is exactly zero there; the box's own edges reflect
+    empty pixels as the whole array's do, so every pixel inside is summed from the same values in the same order
+    (W50)."""
+    reach = int(GAUSS_REACH * float(sigma) + 0.5) + 1
+    box = support(mask, reach)
+    out = np.zeros(mask.shape, np.float32)
+    if box is not None:
+        out[box] = soft(mask[box], sigma)
+    return out
+
+
+def contour_near(field: np.ndarray, level: float = ISO) -> tuple[list[shapely.Polygon], int, int]:
+    """``contour_polygons`` of the box where ``field`` is above zero, a pixel round it, and that box's first row and
+    column: its rings are the whole field's moved by them, up to the last bit of a coordinate (W50)."""
+    box = support(field > 0.0, 1)
+    if box is None:
+        return [], 0, 0
+    return contour_polygons(field[box], level), box[0].start, box[1].start
 
 
 def contour_polygons(field: np.ndarray, level: float = ISO) -> list[shapely.Polygon]:
@@ -140,7 +186,7 @@ def _block_cumulative(classes, levels, r0, r1, c0, c1, reach, smallest, sigma, w
     for k in range(1, levels + 1):
         watch.check()
         if masks[k] is not None:
-            field = soft(masks[k], sigma)[cut]
+            field = soft_near(masks[k], sigma)[cut]
             fields[k] = (field, area_iso(field, block_area(raw >= k)))
     return raw > DRY, fields
 
@@ -179,7 +225,10 @@ def area_iso(field: np.ndarray, pixels: float) -> float:
     """The contour of a soft mask that holds the area of the raw class: thin, broken patches shrink at one half."""
     if pixels <= 0:
         return ISO
-    made = _generator(field)
+    box = support(field > 0.0, 1)  # the area inside a contour does not move with the box (W50)
+    if box is None:
+        return ISO_LOW
+    made = _generator(field[box])
     low, high = ISO_LOW, ISO_HIGH
     if _held_area(made, low) <= pixels:
         return low
@@ -209,8 +258,8 @@ def _block_bands(classes, box: tuple, index: int, levels: int, reach: int, small
         watch.check()
         if fields[k] is None:
             continue
-        parts = contour_polygons(*fields[k])
-        area = multi([as_map(p, x0, y0, pixel, c0, r0) for p in parts])
+        parts, dr, dc = contour_near(*fields[k])
+        area = multi([as_map(p, x0, y0, pixel, c0 + dc, r0 + dr) for p in parts])
         if smooth.simplify_px > 0.0:
             area = shapely.simplify(area, smooth.simplify_px * pixel)
         band = shapely.difference(area, above)
@@ -279,15 +328,30 @@ def domain_outline(tables: GridTables, sigma_cells: float) -> shapely.Geometry:
     return chaikin_rings(multi(parts), DOMAIN_CHAIKIN)
 
 
-def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
-    """The class polygons and the outline, as GeoPackage layers."""
-    classes = VectorLayer(
+def hazard_layer(rows: list, names: list[str]) -> VectorLayer:
+    """The class polygons as a GeoPackage layer."""
+    return VectorLayer(
         CLASS_LAYER,
         {"class": int, "name": str, "area_km2": float, "block": int},
         [(k, names[k - 1], shapely.area(g) / M2_PER_KM2, b) for k, b, g in rows],
         [g for _k, _b, g in rows],
     )
-    return [classes, VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])]
+
+
+def domain_layer(domain) -> VectorLayer:
+    return VectorLayer(DOMAIN_LAYER, {"label": str}, [("2D model domain",)], [domain])
+
+
+def class_layers(rows: list, domain, names: list[str]) -> list[VectorLayer]:
+    """The class polygons and the outline, as GeoPackage layers."""
+    return [hazard_layer(rows, names), domain_layer(domain)]
+
+
+def run_layers(cfg: RunConfig, tables: GridTables, crs) -> list[VectorLayer]:
+    """The outline of the domain and what the engine was given: in the GeoPackage of every run, drawn or not, because
+    the map sheets and the layers a run loads read them (W50)."""
+    domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
+    return [domain_layer(domain), *setup_layers(cfg, crs_text(crs))]
 
 
 def _fill_dry(depth, wet, nd=ndimage):
@@ -371,13 +435,18 @@ def depth_drawing(cfg: RunConfig, depth: np.ndarray, profile: dict, path: Path, 
     return path
 
 
-def make_drawings(cfg, tables: GridTables, written: dict, depth: np.ndarray, folder: Path, crs, watch, xp=np) -> dict:
-    """Polygons, outline and the depth drawing; what was drawn against what the pixels say."""
-    classes, profile = written["classes"], written["profile"]
+def make_drawings(
+    cfg, classes: np.ndarray, depth: np.ndarray, profile: dict, folder: Path, crs, watch, xp=np, layers: list | None = None
+) -> dict:
+    """The class polygons and the depth drawing of a class raster and its depth; what was drawn against what the
+    pixels say. ``layers`` are the run's other layers, written with the polygons into a new GeoPackage; without
+    them the polygons go into the one the run already has (W50)."""
     rows, accounts = class_polygons(cfg, classes, profile, watch)
-    domain = domain_outline(tables, cfg.outputs.smooth.domain_sigma_cells)
-    layers = class_layers(rows, domain, class_names(cfg.outputs.pixels)) + setup_layers(cfg, crs_text(crs))
-    write_geopackage(folder / LAYERS_FILE, layers, crs_text(crs))
+    hazard = hazard_layer(rows, class_names(cfg.outputs.pixels))
+    if layers is None:
+        add_layer(folder / LAYERS_FILE, hazard, crs_text(crs))
+    else:
+        write_geopackage(folder / LAYERS_FILE, [hazard, *layers], crs_text(crs))
     depth_drawing(cfg, depth, raster_profile(depth.shape, *_pixel_origin(profile), crs), folder / DRAWING_FILE, watch, xp)
     watch.tick("smooth", 1, 1)
     return accounts

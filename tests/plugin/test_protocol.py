@@ -18,9 +18,12 @@ from wadi2d_qgis.protocol import (
     cell_grid_title,
     clean_env,
     default_engine,
+    drawings_args,
     engine_error_text,
     estimate_text,
     exit_message,
+    has_drawings,
+    has_record,
     mesh_text,
     next_run_dir,
     parse_engine,
@@ -75,6 +78,38 @@ def test_run_arguments() -> None:
     assert run_args("j.json", "out") == ["run", "j.json", "--out", "out"]
     assert run_args("j.json", "out", dry_run=True)[-1] == "--dry-run"
     assert run_args("j.json", "out", resume=True)[-1] == "--resume"
+    assert drawings_args("run") == ["drawings", "run"]
+
+
+def test_a_run_has_its_record_without_its_drawings_and_its_drawings_only_with_the_class_layer(tmp_path: Path) -> None:
+    """W50: the polygons and the depth picture are made only when asked; the rasters of record always."""
+    import sqlite3
+
+    from wadi2d_qgis.protocol import (
+        DEPTH_DRAWING,
+        HAZARD_LAYER,
+        LAYERS_FILE,
+        PIXEL_DEPTH,
+        PIXEL_DIR,
+        PIXEL_HAZARD,
+    )
+
+    folder = tmp_path / PIXEL_DIR
+    folder.mkdir()
+    assert not has_record(tmp_path) and not has_drawings(tmp_path)
+    (folder / PIXEL_DEPTH).write_bytes(b"x")
+    (folder / PIXEL_HAZARD).write_bytes(b"x")
+    assert has_record(tmp_path) and not has_drawings(tmp_path)
+    (folder / DEPTH_DRAWING).write_bytes(b"x")
+    with sqlite3.connect(folder / LAYERS_FILE) as db:
+        db.execute("CREATE TABLE gpkg_contents (table_name TEXT)")
+        db.execute("INSERT INTO gpkg_contents VALUES ('domain')")
+    assert not has_drawings(tmp_path)  # the setup layers alone are not the drawing
+    with sqlite3.connect(folder / LAYERS_FILE) as db:
+        db.execute("INSERT INTO gpkg_contents VALUES (?)", (HAZARD_LAYER,))
+    assert has_drawings(tmp_path)
+    (folder / LAYERS_FILE).write_bytes(b"not a geopackage")
+    assert not has_drawings(tmp_path)
 
 
 def test_clean_env_removes_what_qgis_added_and_keeps_the_rest() -> None:

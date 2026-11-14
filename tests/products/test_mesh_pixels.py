@@ -266,6 +266,30 @@ def test_a_mesh_run_writes_every_file_of_the_step(sheet):
         assert src.read(1).max() >= 1
 
 
+def test_a_mesh_run_draws_after_the_run_what_it_draws_with_it(sheet, tmp_path):
+    """W50: the polygons and the depth picture are off by default; ``wadi2d drawings`` makes them later from the
+    rasters of record, as a run with them ticked does, on a mesh too."""
+    import shutil
+    import sqlite3
+
+    cfg, tmp = sheet
+    later = tmp_path / "later"
+    shutil.copytree(tmp / "mesh", later)
+    assert not (later / PIXEL_DIR / "depth_drawing.tif").exists()
+    assert main(["drawings", str(later), "--backend", "cpu"]) == 0
+    smooth = cfg.outputs.smooth.model_copy(update={"enabled": True})
+    asked = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"smooth": smooth})})
+    tables, crs = prepare_grid(asked, tmp_path / "c")
+    _remade(asked, tables, crs, tmp / "mesh", tmp_path / "with", "cpu")
+    rows = []
+    for run in (later, tmp_path / "with"):
+        with sqlite3.connect(run / PIXEL_DIR / "map_layers.gpkg") as db:
+            rows.append(db.execute('SELECT "class", block, geom FROM hazard_classes ORDER BY block, "class"').fetchall())
+    assert rows[0] and rows[0] == rows[1]
+    with rasterio.open(later / PIXEL_DIR / "depth_drawing.tif") as a, rasterio.open(tmp_path / "with" / PIXEL_DIR / "depth_drawing.tif") as b:
+        assert np.array_equal(a.read(1), b.read(1))
+
+
 def _remade(cfg, tables, crs, run, folder, backend):
     folder.mkdir()
     (folder / "results.h5").write_bytes((run / "results.h5").read_bytes())

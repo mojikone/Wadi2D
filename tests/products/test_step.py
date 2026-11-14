@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 import subprocess
 import sys
 import threading
+from contextlib import closing
 from pathlib import Path
 
 import h5py
@@ -58,6 +60,21 @@ def finished(tmp_path_factory):
     return cfg, tmp / "run", summary
 
 
+@pytest.fixture(scope="module")
+def drawn(tmp_path_factory):
+    """The same run with the smooth polygons and the depth drawing asked for."""
+    tmp = tmp_path_factory.mktemp("drawn")
+    cfg = wadi_job(tmp, smooth={"enabled": True})
+    summary = run_job(cfg, tmp / "run")
+    assert summary.exit_code == 0, summary.message
+    return cfg, tmp / "run", summary
+
+
+def _layers(run: Path) -> set[str]:
+    with closing(sqlite3.connect(run / PIXEL_DIR / "map_layers.gpkg")) as db:
+        return {row[0] for row in db.execute("SELECT table_name FROM gpkg_contents")}
+
+
 def test_a_run_makes_its_pixel_maps_by_default(finished) -> None:
     _cfg, run, summary = finished
     assert summary.products == runner.PRODUCTS_DONE
@@ -65,8 +82,76 @@ def test_a_run_makes_its_pixel_maps_by_default(finished) -> None:
     for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.DV_FILE, step.STATS_FILE):
         assert (folder / name).exists()
     assert (folder / "map_layers.gpkg").exists()
-    assert (folder / "depth_drawing.tif").exists()
     assert (run / "maps" / "hazard.tif").exists()  # the cell hazard stays
+
+
+def test_the_polygons_and_the_depth_drawing_are_not_made_unless_asked(finished, drawn) -> None:
+    """W50: they are several times the rasters' time, so a run makes them only when its job says so."""
+    assert RunConfig().outputs.smooth.enabled is False
+    plain, asked = finished[1] / PIXEL_DIR, drawn[1] / PIXEL_DIR
+    assert not (plain / "depth_drawing.tif").exists()
+    assert "hazard_classes" not in _layers(finished[1])
+    assert "smooth" not in json.loads((plain / step.STATS_FILE).read_text("utf-8"))
+    assert (asked / "depth_drawing.tif").exists()
+    assert "hazard_classes" in _layers(drawn[1])
+    assert "smooth" in json.loads((asked / step.STATS_FILE).read_text("utf-8"))
+    for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.DV_FILE):  # the record does not depend on it
+        with rasterio.open(plain / name) as a, rasterio.open(asked / name) as b:
+            assert np.array_equal(a.read(1), b.read(1))
+
+
+def test_the_layers_of_a_run_are_written_without_the_drawing(finished, drawn) -> None:
+    """Make map and the layers a run loads read the outline and the setup: every run keeps them."""
+    assert {"domain", "boundaries"} <= _layers(finished[1])
+    assert _layers(drawn[1]) - _layers(finished[1]) == {"hazard_classes"}
+    for name in ("domain", "boundaries"):
+        with closing(sqlite3.connect(finished[1] / PIXEL_DIR / "map_layers.gpkg")) as a:
+            plain = a.execute(f"SELECT geom FROM {name}").fetchall()
+        with closing(sqlite3.connect(drawn[1] / PIXEL_DIR / "map_layers.gpkg")) as b:
+            assert plain == b.execute(f"SELECT geom FROM {name}").fetchall()
+
+
+def test_drawings_asked_for_after_the_run_are_the_run_s_own(finished, drawn, tmp_path) -> None:
+    """``wadi2d drawings`` on a run without them gives what a run with the tick gives: same polygons, same picture."""
+    later = tmp_path / "run"
+    shutil.copytree(finished[1], later)
+    assert cli(["drawings", str(later), "--backend", "cpu"]) == 0
+    assert _layers(later) == _layers(drawn[1])
+    with closing(sqlite3.connect(later / PIXEL_DIR / "map_layers.gpkg")) as a:
+        mine = a.execute('SELECT "class", block, geom FROM hazard_classes ORDER BY block, "class"').fetchall()
+    with closing(sqlite3.connect(drawn[1] / PIXEL_DIR / "map_layers.gpkg")) as b:
+        theirs = b.execute('SELECT "class", block, geom FROM hazard_classes ORDER BY block, "class"').fetchall()
+    assert mine and mine == theirs
+    with rasterio.open(later / PIXEL_DIR / "depth_drawing.tif") as a, rasterio.open(drawn[1] / PIXEL_DIR / "depth_drawing.tif") as b:
+        assert a.transform == b.transform and np.array_equal(a.read(1), b.read(1))
+        assert a.overviews(1) == b.overviews(1)
+    mine, theirs = (json.loads((run / PIXEL_DIR / step.STATS_FILE).read_text("utf-8")) for run in (later, drawn[1]))
+    assert mine == theirs
+    events = [json.loads(s) for s in (later / runner.PRODUCTS_LOG).read_text("utf-8").splitlines()]
+    shown = [e["percent"] for e in events if e["ev"] == "products"]
+    assert shown == sorted(shown) and shown[0] == 0.0 and shown[-1] == pytest.approx(100.0)
+    assert events[-1]["ev"] == "done" and events[-1]["code"] == 0
+
+
+def test_drawings_refuse_a_run_with_no_rasters_and_stop_on_the_stop_file(finished, tmp_path) -> None:
+    assert cli(["drawings", str(tmp_path)]) == runner.EXIT_INVALID
+    later = tmp_path / "run"
+    shutil.copytree(finished[1], later)
+    (later / "stop").touch()
+    assert cli(["drawings", str(later), "--backend", "cpu"]) == runner.EXIT_STOPPED
+    assert not (later / "stop").exists()
+    assert not (later / PIXEL_DIR / "depth_drawing.tif").exists()
+    assert "hazard_classes" not in _layers(later)
+    assert not list((later / PIXEL_DIR).glob("*.tmp.*"))
+
+
+def test_drawings_make_the_layers_too_on_a_run_that_has_none(finished, drawn, tmp_path) -> None:
+    """A run made before every run kept its layers: the outline and the setup come with the polygons."""
+    later = tmp_path / "run"
+    shutil.copytree(finished[1], later)
+    (later / PIXEL_DIR / "map_layers.gpkg").unlink()
+    assert cli(["drawings", str(later), "--backend", "cpu"]) == 0
+    assert _layers(later) == _layers(drawn[1])
 
 
 def test_the_done_event_comes_last_and_says_what_became_of_them(finished) -> None:
@@ -272,18 +357,8 @@ def test_a_pixel_that_does_not_fit_the_dem_fails_the_step_not_the_run(tmp_path) 
     assert summary.products == runner.PRODUCTS_FAILED
 
 
-def test_rasters_of_record_without_the_drawing(tmp_path) -> None:
-    summary = run_job(wadi_job(tmp_path, smooth={"enabled": False}), tmp_path / "run")
-    assert summary.products == runner.PRODUCTS_DONE
-    assert (tmp_path / "run" / PIXEL_DIR / step.HAZARD_FILE).exists()
-    assert not (tmp_path / "run" / PIXEL_DIR / "map_layers.gpkg").exists()
-
-
-def test_the_setup_of_the_run_goes_into_the_geopackage(finished) -> None:
-    _cfg, run, _summary = finished
-    with sqlite3.connect(run / PIXEL_DIR / "map_layers.gpkg") as db:
-        names = {row[0] for row in db.execute("SELECT table_name FROM gpkg_contents")}
-    assert {"hazard_classes", "domain", "boundaries"} <= names
+def test_the_setup_of_the_run_goes_into_the_geopackage(drawn) -> None:
+    assert {"hazard_classes", "domain", "boundaries"} <= _layers(drawn[1])
 
 
 def test_products_settings_do_not_refuse_a_checkpoint(tmp_path) -> None:
@@ -302,3 +377,35 @@ def test_the_estimate_says_the_disk_of_the_maps() -> None:
     assert saved_maps(faces, 1_000_000) == (5, 0.08)  # the faces, on by default, add 0.6 of a map
     off = RunConfig.model_validate({"outputs": {"map_every_s": 0.0}})
     assert saved_maps(off, 1_000_000) == (0, 0.0)
+
+
+@pytest.mark.parametrize("size", [8, 13, 64])
+def test_windows_paint_what_the_whole_band_paints(size: int) -> None:
+    """W50: the rasters are written window by window over the wet ground; together the windows hold exactly what
+    the old whole-band spread held, cells cut by a window edge, strip pixels over the cells, empty windows skipped."""
+    from wadi2d.products.ground import CellPixels
+    from wadi2d.strips.pixels import StripPixelResult
+
+    rng = np.random.default_rng(5)
+    k = 5
+    rows = np.array([0, 0, 1, 3, 9, 9, 10, 2], np.int32)
+    cols = np.array([0, 1, 1, 7, 2, 3, 12, 11], np.int32)
+    cells = CellPixels(rows, cols, k, 0.5, 0.0, np.zeros((rows.size, k * k), np.float32))
+    values = rng.random((rows.size, k * k)).astype(np.float32)
+    sr = np.array([4, 5, 12, 60, 61], np.int64)
+    sc = np.array([4, 4, 33, 70, 2], np.int64)
+    strip = StripPixelResult(sr, sc, *(np.zeros(sr.size),) * 4)
+    dots = rng.random(sr.size).astype(np.float32)
+    box = step.pixel_box(cells, strip)
+    whole = step.spread(cells, values, -1.0, np.float32, box, strip, dots)
+    painted = np.full(whole.shape, -1.0, np.float32)
+    seen = 0
+    for part in step.window_parts(cells, box, strip, size):
+        assert part.row % size == 0 and part.col % size == 0
+        tile = part.paint(values[part.cells], dots[part.strip], -1.0, np.float32)
+        assert tile.shape == part.shape
+        painted[part.row : part.row + tile.shape[0], part.col : part.col + tile.shape[1]] = tile
+        seen += 1
+    np.testing.assert_array_equal(painted, whole)
+    every = -(-box[2] // size) * -(-box[3] // size)
+    assert seen < every or size >= box[2]  # the empty windows are not made

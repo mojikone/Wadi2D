@@ -36,7 +36,7 @@ from qgis.core import (
 from qgis.PyQt.QtGui import QColor, QFont
 
 from .map_notes import RunFacts, depth_notes, hazard_notes, read_facts, setup_notes
-from .protocol import PIXEL_DIR
+from .protocol import PIXEL_DIR, has_drawings
 from .result_layers import RunLayers, open_layers
 
 PAGES = 3
@@ -214,6 +214,11 @@ def build_book(
 ) -> SheetBook:
     """The layout of a run folder, ready to export. ``leave_out`` hides design lines with that word in their name."""
     project = project or QgsProject.instance()
+    if not has_drawings(run):
+        raise ValueError(
+            "This run has no smooth polygons and depth picture yet. Make map in the dock has them made; from a "
+            "command line, wadi2d drawings on the run folder."
+        )
     facts = read_facts(run, leave_out)
     found: RunLayers = open_layers(run, leave_out)
     if found.domain is None:

@@ -21,9 +21,12 @@ from qgis.PyQt.QtCore import QObject, QProcess, QProcessEnvironment, QTimer, pyq
 
 from .progress import ProgressTail, RunState
 from .protocol import (
+    DRAWINGS_STDERR,
+    DRAWINGS_STDOUT,
     EXIT_FINISHED,
     EXIT_STOPPED,
     POLL_MS,
+    PRODUCTS_LOG,
     PROGRESS_FILE,
     QUERY_TIMEOUT_S,
     STDERR_FILE,
@@ -31,6 +34,7 @@ from .protocol import (
     STOP_FILE,
     STOP_GRACE_S,
     clean_env,
+    drawings_args,
     engine_error_text,
     parse_engine,
     pid_alive,
@@ -132,9 +136,12 @@ class EngineRun(QObject):
         self._kill_timer.setSingleShot(True)
         self._kill_timer.timeout.connect(self._kill)
 
+    progress_file = PROGRESS_FILE
+    output_files = (STDOUT_FILE, STDERR_FILE)
+
     def _watch(self, out_dir: Path | str) -> None:
         self.out_dir = Path(out_dir)
-        self._tail = ProgressTail(self.out_dir / PROGRESS_FILE)
+        self._tail = ProgressTail(self.out_dir / self.progress_file)
         self._poll_timer.start(POLL_MS)
 
     def start(
@@ -148,8 +155,8 @@ class EngineRun(QObject):
         self.state = self._fresh_state(out, t_end)
         process = _ReleasableProcess(self)
         process.setProcessEnvironment(engine_environment())
-        process.setStandardOutputFile(str(out / STDOUT_FILE))
-        process.setStandardErrorFile(str(out / STDERR_FILE))
+        process.setStandardOutputFile(str(out / self.output_files[0]))
+        process.setStandardErrorFile(str(out / self.output_files[1]))
         process.started.connect(self._started)
         process.finished.connect(self._exited)
         process.errorOccurred.connect(self._failed)
@@ -236,7 +243,7 @@ class EngineRun(QObject):
 
     def _stderr_text(self) -> str | None:
         try:
-            text = (self.out_dir / STDERR_FILE).read_text(encoding="utf-8", errors="replace")
+            text = (self.out_dir / self.output_files[1]).read_text(encoding="utf-8", errors="replace")
         except OSError:
             return None
         return engine_error_text(text) or None
@@ -251,6 +258,37 @@ class EngineRun(QObject):
             self._process.errorOccurred.disconnect(self._failed)
             self._process.forget()
             self._process = None
+
+
+class DrawingRun(EngineRun):
+    """``wadi2d drawings`` on a finished run: its smooth polygons and depth picture, made when a map sheet needs them.
+
+    It reports in the run's ``products.jsonl``, stops on the run's stop file, and writes its output beside the run's
+    own, which stays as the run left it; nor does it take the run's place in ``plugin_run.json``.
+    """
+
+    progress_file = PRODUCTS_LOG
+    output_files = (DRAWINGS_STDOUT, DRAWINGS_STDERR)
+
+    def start_drawing(self, run_dir: Path | str) -> None:
+        (Path(run_dir) / self.progress_file).unlink(missing_ok=True)  # an older one would replay as this one's events
+        self.start("", run_dir, "", None)
+
+    def _fresh_state(self, _out: Path, t_end: float | None):
+        return RunState(t_end=t_end, product_stage="smooth")  # the drawing's words from the start, not a run's clock
+
+    def _drain(self) -> None:
+        for event in self._tail.poll():
+            self.state.apply(event)
+            self.received.emit(event)
+        self.state.product_stage = "smooth"  # to its end too: its "done" would leave a run's clock at 0 h 00 min
+        self.updated.emit(self.state)
+
+    def _arguments(self, job: Path | str, out: Path, resume: bool) -> list[str]:
+        return drawings_args(out)
+
+    def _started(self) -> None:
+        self.pid = int(self._process.processId())
 
 
 class StudyRun(EngineRun):

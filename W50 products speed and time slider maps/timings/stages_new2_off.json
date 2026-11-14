@@ -1,0 +1,41 @@
+{
+ "tag": "new2_off",
+ "smooth": "off",
+ "src": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa5473262ee1c0ef9",
+ "command": "products",
+ "code": 0,
+ "total_s": 72.0,
+ "before_first_event_s": 5.7,
+ "stages": [
+  {
+   "stage": "grid_cache_hit",
+   "from_s": 5.7,
+   "seconds": 0.4
+  },
+  {
+   "stage": "ground",
+   "from_s": 6.1,
+   "seconds": 10.6
+  },
+  {
+   "stage": "maps",
+   "from_s": 16.7,
+   "seconds": 14.3
+  },
+  {
+   "stage": "rasters",
+   "from_s": 31.0,
+   "seconds": 40.9
+  },
+  {
+   "stage": "pixels",
+   "from_s": 71.9,
+   "seconds": 0.0
+  },
+  {
+   "stage": "done",
+   "from_s": 71.9,
+   "seconds": 0.1
+  }
+ ]
+}

@@ -38,6 +38,8 @@ from .protocol import (
     SUBBASIN_LAYER,
     cell_grid_scale,
     cell_grid_title,
+    has_drawings,
+    has_record,
 )
 
 GROUP_MAPS = "Flood maps"
@@ -59,6 +61,8 @@ class RunLayers:
     lines: object = None
     reaches: object = None
     record: list = field(default_factory=list)
+    record_depth: object = None
+    """The depth raster of record: what a run with no depth drawing shows."""
 
     def setup(self) -> list:
         """Top first."""
@@ -71,7 +75,9 @@ class RunLayers:
 
 
 def has_products(run: Path | str) -> bool:
-    return (Path(run) / PIXEL_DIR / DEPTH_DRAWING).is_file() and (Path(run) / PIXEL_DIR / LAYERS_FILE).is_file()
+    """A run with its pixel rasters: its layers load and its sheets can be made. The smooth polygons and the depth
+    picture are not asked of it: a run makes them only when ticked, and Make map has them made when they are missing."""
+    return has_record(run)
 
 
 def _vector(run: Path, layer_name: str, title: str):
@@ -130,6 +136,8 @@ def open_layers(run: Path | str, leave_out: str = "") -> RunLayers:
             if styler is not None:
                 styler(layer)
             found.record.append(layer)
+            if name == PIXEL_DEPTH:
+                found.record_depth = layer
     return found
 
 
@@ -211,17 +219,46 @@ def load_strip_mesh(run: Path | str, group_name: str) -> list:
 
 
 def load_products(run: Path | str, group_name: str) -> RunLayers | None:
-    """The product layers on top of the run's group, grouped; the depth drawing is the one switched on."""
+    """The product layers on top of the run's group, grouped; the depth drawing is the one switched on.
+
+    A run that made no drawing has no Flood maps group: its depth raster of record is switched on in its place."""
     if not has_products(run):
         return None
     root = QgsProject.instance().layerTreeRoot()
     top = root.findGroup(group_name) or root.insertGroup(0, group_name)
     found = open_layers(run)
+    drawn = [layer for layer in (found.hazard, found.depth) if layer is not None]
     record = top.insertGroup(0, GROUP_RECORD)
-    maps = top.insertGroup(0, GROUP_MAPS)
+    if drawn:
+        _add(top.insertGroup(0, GROUP_MAPS), drawn, (found.depth,))
     setup = top.insertGroup(0, GROUP_SETUP)
     _add(setup, found.setup(), (found.domain, found.boundaries, found.inflows, found.lines))
-    _add(maps, [layer for layer in (found.hazard, found.depth) if layer is not None], (found.depth,))
-    _add(record, found.record)
-    record.setExpanded(False)
+    _add(record, found.record, () if found.depth is not None else (found.record_depth,))
+    record.setExpanded(found.depth is None)
     return found
+
+
+def load_drawings(run: Path | str, group_name: str) -> list:
+    """The polygons and the depth picture made after the run, into the run's group if the project still has it and
+    they are not there yet; the depth picture takes over from the depth raster of record."""
+    top = QgsProject.instance().layerTreeRoot().findGroup(group_name)
+    if top is None or top.findGroup(GROUP_MAPS) is not None or not has_drawings(run):
+        return []
+    folder = Path(run)
+    depth = _raster(folder, DEPTH_DRAWING, "Maximum depth, m")
+    hazard = _vector(folder, HAZARD_LAYER, "AIDR hazard class")
+    if depth is not None:
+        style.style_depth_drawing(depth)
+    if hazard is not None:
+        style.style_hazard_classes(hazard, class_labels(read_facts(folder).limits))
+    drawn = [layer for layer in (hazard, depth) if layer is not None]
+    if not drawn:
+        return []
+    record = top.findGroup(GROUP_RECORD)
+    at = top.children().index(record) if record is not None else 0
+    _add(top.insertGroup(at, GROUP_MAPS), drawn, (depth,))
+    if record is not None and depth is not None:
+        for node in record.findLayers():
+            node.setItemVisibilityChecked(False)
+        record.setExpanded(False)
+    return drawn

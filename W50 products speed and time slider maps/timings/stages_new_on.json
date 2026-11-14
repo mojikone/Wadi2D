@@ -1,0 +1,51 @@
+{
+ "tag": "new_on",
+ "smooth": "on",
+ "src": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa5473262ee1c0ef9",
+ "command": "products",
+ "code": 0,
+ "total_s": 1094.3,
+ "before_first_event_s": 4.6,
+ "stages": [
+  {
+   "stage": "grid_cache_hit",
+   "from_s": 4.6,
+   "seconds": 0.3
+  },
+  {
+   "stage": "ground",
+   "from_s": 5.0,
+   "seconds": 10.3
+  },
+  {
+   "stage": "maps",
+   "from_s": 15.3,
+   "seconds": 10.0
+  },
+  {
+   "stage": "rasters",
+   "from_s": 25.3,
+   "seconds": 51.1
+  },
+  {
+   "stage": "polygons",
+   "from_s": 76.4,
+   "seconds": 676.2
+  },
+  {
+   "stage": "drawing",
+   "from_s": 752.6,
+   "seconds": 341.6
+  },
+  {
+   "stage": "pixels",
+   "from_s": 1094.2,
+   "seconds": 0.0
+  },
+  {
+   "stage": "done",
+   "from_s": 1094.2,
+   "seconds": 0.1
+  }
+ ]
+}

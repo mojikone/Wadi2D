@@ -1,0 +1,41 @@
+{
+ "tag": "base_off",
+ "smooth": "off",
+ "src": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\base_8128178",
+ "command": "products",
+ "code": 0,
+ "total_s": 502.2,
+ "before_first_event_s": 54.6,
+ "stages": [
+  {
+   "stage": "grid_cache_hit",
+   "from_s": 54.6,
+   "seconds": 0.5
+  },
+  {
+   "stage": "ground",
+   "from_s": 55.1,
+   "seconds": 251.6
+  },
+  {
+   "stage": "maps",
+   "from_s": 306.7,
+   "seconds": 13.1
+  },
+  {
+   "stage": "rasters",
+   "from_s": 319.8,
+   "seconds": 182.4
+  },
+  {
+   "stage": "pixels",
+   "from_s": 502.2,
+   "seconds": 0.0
+  },
+  {
+   "stage": "done",
+   "from_s": 502.2,
+   "seconds": 0.0
+  }
+ ]
+}

@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """On QGIS's own Python: a real run folder through the layers and the map sheets.
 
-Started by ``test_sheets_qgis.py``. Argument: the run folder. Prints ``SHEETS PASSED`` as its last line.
+Started by ``test_sheets_qgis.py``. Arguments: the run folder, then ``plain`` for a run that made no smooth polygons
+and depth picture (W50: they are off by default) or ``drawn`` once they are made. Prints ``SHEETS PASSED`` as its last
+line.
 """
 
 from __future__ import annotations
@@ -14,6 +16,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parents[1] / "plugin"))
 RUN = Path(sys.argv[1])
+MODE = sys.argv[2] if len(sys.argv) > 2 else "drawn"
 
 from qgis.core import QgsApplication, QgsLayoutItemLegend, QgsLayoutItemMap, QgsProject  # noqa: E402
 
@@ -22,12 +25,14 @@ app.initQgis()
 
 from wadi2d_qgis.live_layer import load_maps  # noqa: E402
 from wadi2d_qgis.map_sheets import build_book, export_pdf, nice_segment, sheets_file  # noqa: E402
+from wadi2d_qgis.protocol import has_drawings  # noqa: E402
 from wadi2d_qgis.result_layers import (  # noqa: E402  # noqa: E402
     GROUP_CELLS,
     GROUP_MAPS,
     GROUP_RECORD,
     GROUP_SETUP,
     has_products,
+    load_drawings,
     load_products,
     open_layers,
 )
@@ -35,6 +40,32 @@ from wadi2d_qgis.result_layers import (  # noqa: E402  # noqa: E402
 project = QgsProject.instance()
 assert has_products(RUN)
 found = open_layers(RUN)
+if MODE == "plain":
+    # the setup layers and the rasters of record load, the record depth is the one shown, and the sheets ask for
+    # the drawing first, which Make map has the engine make
+    assert not has_drawings(RUN)
+    assert found.depth is None and found.hazard is None
+    assert found.domain is not None and found.domain.isValid()
+    assert found.boundaries is not None
+    assert len(found.record) == 4 and found.record_depth is not None
+    load_maps(RUN, "run", tucked=True)
+    load_products(RUN, "run")
+    top = project.layerTreeRoot().findGroup("run")
+    names = [child.name() for child in top.children()]
+    assert names == [GROUP_SETUP, GROUP_RECORD, GROUP_CELLS], names
+    shown = [n.name() for n in top.findLayers() if n.isVisible()]
+    assert found.record_depth.name() in shown and "max_depth" not in shown, shown
+    assert load_drawings(RUN, "run") == []  # nothing to add yet
+    try:
+        build_book(RUN, title="Test", background="hillshade")
+    except ValueError as problem:
+        assert "wadi2d drawings" in str(problem), problem
+    else:
+        raise AssertionError("the sheets were built with no drawing")
+    print("SHEETS PASSED", flush=True)
+    sys.stdout.flush()
+    os._exit(0)
+assert has_drawings(RUN)
 assert found.depth is not None and found.depth.isValid()
 assert found.hazard is not None and found.hazard.featureCount() >= 1
 assert found.domain is not None and found.domain.isValid()

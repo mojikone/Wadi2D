@@ -88,6 +88,12 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+SMOOTH_ON = "outputs.smooth.enabled"
+SMOOTH_TIP = (
+    "Smooth polygons of the hazard classes and a depth picture with a soft wet edge, for map sheets. They take "
+    "several times as long as the pixel maps themselves, which are the numbers of record either way. Left unticked, "
+    "Make map has them made when a sheet needs them."
+)
 BACKEND = "run.backend"
 BACKEND_WORDS = {
     "auto": "Automatic: the GPU if there is one",
@@ -536,6 +542,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["map_every_s"] = values["map_every_s"]
     if values.get("pixels") is False:
         job["outputs"]["pixels"] = {"enabled": False}
+    elif values.get("smooth") is not None:  # only a choice away from the engine's default
+        job["outputs"]["smooth"] = {"enabled": bool(values["smooth"])}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
     if values.get("local_steps"):

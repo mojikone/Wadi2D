@@ -14,9 +14,9 @@ import shapely
 from tests.engine.conftest import CRS, X0, Y0
 from wadi2d.config.schema import Tables
 from wadi2d.grid import TileGrid
-from wadi2d.io.cache import cache_key, cache_path, load_tables, save_tables
-from wadi2d.io.geopackage import LINES, VectorLayer, write_geopackage
-from wadi2d.io.geotiff import NODATA, LiveRaster, write_map
+from wadi2d.io.cache import cache_key, cache_path, load_mask, load_tables, mask_path, save_mask, save_tables
+from wadi2d.io.geopackage import LINES, VectorLayer, add_layer, layer_names, write_geopackage
+from wadi2d.io.geotiff import BLOCK, NODATA, BandWriter, LiveRaster, raster_profile, write_band, write_map
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
 from wadi2d.tables import ArrayBed, build_tables
@@ -120,3 +120,62 @@ def test_a_geopackage_layer_can_carry_z(tmp_path):
     tall_blob = db.execute("SELECT geom FROM tall").fetchone()[0]
     assert not shapely.from_wkb(flat_blob[40:]).has_z
     assert list(shapely.from_wkb(tall_blob[40:]).geoms[0].coords) == [(0.0, 0.0, 10.0), (5.0, 5.0, 12.0)]
+
+
+def test_a_mask_is_kept_by_its_key(tmp_path):
+    mask = np.random.default_rng(1).random((40, 70)) > 0.3
+    key = cache_key({"domain": 1})
+    path = save_mask(mask_path(tmp_path, key), mask, key)
+    back = load_mask(path, key)
+    assert back.dtype == bool
+    np.testing.assert_array_equal(back, mask)
+    assert load_mask(path, cache_key({"domain": 2})) is None
+    assert load_mask(tmp_path / "missing.npz", key) is None
+    path.write_bytes(b"not a mask")
+    assert load_mask(path, key) is None
+
+
+def test_a_band_written_by_windows_reads_as_the_whole_band_and_is_smaller(tmp_path):
+    """W50: only the windows that hold something are written; the rest reads back as nodata and takes no room."""
+    rng = np.random.default_rng(2)
+    band = np.full((5 * BLOCK + 40, 6 * BLOCK + 9), NODATA, np.float32)
+    band[BLOCK : 2 * BLOCK, 3 * BLOCK : 5 * BLOCK] = rng.random((BLOCK, 2 * BLOCK))
+    band[4 * BLOCK :, 5 * BLOCK :] = rng.random((BLOCK + 40, BLOCK + 9))
+    profile = raster_profile(band.shape, 0.5, X0, Y0, CRS)
+    whole = write_band(tmp_path / "whole.tif", band, {**profile, "sparse_ok": False}, NODATA, {"a": "1"})
+    with BandWriter(tmp_path / "parts.tif", profile, np.float32, NODATA, {"a": "1"}) as out:
+        out.write(band[BLOCK : 2 * BLOCK, 3 * BLOCK : 5 * BLOCK], BLOCK, 3 * BLOCK)
+        out.write(band[4 * BLOCK :, 5 * BLOCK :], 4 * BLOCK, 5 * BLOCK)
+    assert not list(tmp_path.glob("*.tmp.*"))
+    with rasterio.open(whole) as a, rasterio.open(tmp_path / "parts.tif") as b:
+        np.testing.assert_array_equal(a.read(1), b.read(1))
+        assert a.profile["transform"] == b.profile["transform"] and a.crs == b.crs and a.nodata == b.nodata
+        assert a.tags() == b.tags()
+    assert (tmp_path / "parts.tif").stat().st_size < whole.stat().st_size
+
+
+def test_a_band_writer_leaves_nothing_behind_on_an_error(tmp_path):
+    profile = raster_profile((2 * BLOCK, 2 * BLOCK), 0.5, X0, Y0, CRS)
+    with pytest.raises(RuntimeError), BandWriter(tmp_path / "a.tif", profile, np.uint8, 0) as out:
+        out.write(np.ones((BLOCK, BLOCK), np.uint8), 0, 0)
+        raise RuntimeError("stopped")
+    assert not list(tmp_path.iterdir())
+
+
+def test_a_layer_is_added_to_a_geopackage_that_is_open_elsewhere(tmp_path):
+    """W50: the class polygons made after the run go into the file QGIS holds open for the run's other layers."""
+    wkt = rasterio.crs.CRS.from_epsg(32640).to_wkt()
+    line = shapely.LineString([(X0, Y0), (X0 + 5.0, Y0 - 5.0)])
+    path = write_geopackage(tmp_path / "m.gpkg", [VectorLayer("lines", {"n": int}, [(1,)], [line], LINES)], wkt)
+    reader = sqlite3.connect(path)
+    assert reader.execute("SELECT count(*) FROM lines").fetchone()[0] == 1
+    box = shapely.box(X0, Y0 - 10.0, X0 + 10.0, Y0)
+    add_layer(path, VectorLayer("areas", {"name": str}, [("a",)], [box]), wkt)
+    add_layer(path, VectorLayer("areas", {"name": str}, [("b",), ("c",)], [box, box]), wkt)  # in place of itself
+    assert sorted(layer_names(path)) == ["areas", "lines"]
+    assert [row[0] for row in reader.execute("SELECT name FROM areas")] == ["b", "c"]
+    assert reader.execute("SELECT count(*) FROM gpkg_geometry_columns").fetchone()[0] == 2
+    assert reader.execute("SELECT srs_id FROM gpkg_contents WHERE table_name = 'areas'").fetchone()[0] == 32640
+    assert reader.execute("SELECT count(*) FROM gpkg_spatial_ref_sys").fetchone()[0] == 3
+    reader.close()
+    assert layer_names(tmp_path / "missing.gpkg") == []

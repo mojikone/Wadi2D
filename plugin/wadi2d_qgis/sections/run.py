@@ -26,6 +26,8 @@ from ..job_builder import (
     MAP_EVERY,
     PIXELS_ON,
     SECONDS_PER_HOUR,
+    SMOOTH_ON,
+    SMOOTH_TIP,
 )
 from .common import Section, bind, number_box
 
@@ -51,8 +53,13 @@ class RunSection(Section):
         self.maps = QComboBox()
         self.maps_note = self._text_label()
         self.maps_note.setText(MAPS_NOTE)
-        self.pixels = QCheckBox("Make pixel depth, hazard and their drawing after the run")
+        self.pixels = QCheckBox("Make pixel depth and hazard maps after the run")
         self.pixels.setChecked(True)
+        self.smooth = QCheckBox("Smooth map polygons and depth picture (slower)")
+        self.smooth.setChecked(False)
+        self.smooth.setToolTip(SMOOTH_TIP)
+        self._smooth_default = False
+        self.pixels.toggled.connect(self._pixels_toggled)
         self.backend = QComboBox()
         self.backend.setToolTip(BACKEND_TIP)
         self._backend_default: str | None = None
@@ -74,7 +81,10 @@ class RunSection(Section):
         self.map_title.setPlaceholderText("The name of the run")
         self.map_button = QPushButton("Make map")
         self.map_button.setEnabled(False)
-        self.map_button.setToolTip("Three A3 sheets from the last finished run: setup, depth, hazard, as a PDF")
+        self.map_button.setToolTip(
+            "Three A3 sheets from the last finished run: setup, depth, hazard, as a PDF. A run that made no smooth "
+            "polygons and depth picture has them made first, from its pixel rasters"
+        )
         self.frames_button = QPushButton("Time slider")
         self.frames_button.setEnabled(False)
         self.frames_button.setToolTip("The saved frames of the last finished run as one layer that moves with the Temporal Controller")
@@ -98,6 +108,7 @@ class RunSection(Section):
         self.form.addRow("Save maps", self.maps)
         self.form.addRow(self.maps_note)
         self.form.addRow(self.pixels)
+        self.form.addRow(self.smooth)
         self.form.addRow("Engine", self.backend)
         self.form.addRow(buttons)
         self.form.addRow(self.estimate_label)
@@ -128,6 +139,8 @@ class RunSection(Section):
         self.maps.setToolTip(schema.tip(MAP_EVERY))
         self.pixels.setChecked(bool(schema.default(PIXELS_ON, True)))
         self.pixels.setToolTip(schema.tip(PIXELS_ON))
+        self._smooth_default = bool(schema.default(SMOOTH_ON, False))
+        self.smooth.setChecked(self._smooth_default)
         self._backend_default = schema.default(BACKEND)
         held = self.backend.currentData()
         self.backend.clear()
@@ -141,12 +154,22 @@ class RunSection(Section):
         key = self.backend.currentData()
         return key if key is not None and key != self._backend_default else None
 
+    def _pixels_toggled(self, on: bool) -> None:
+        """The polygons and the picture are drawn from the pixel maps: none without them."""
+        self.smooth.setEnabled(on and self.pixels.isEnabled())
+
+    def chosen_smooth(self) -> bool | None:
+        """Whether the run draws its polygons and depth picture, or None for the engine's own default."""
+        wanted = self.smooth.isChecked() and self.pixels.isChecked()
+        return wanted if wanted != self._smooth_default else None
+
     def values(self, crs) -> dict:
         return {
             "output": self.folder.filePath(),
             "duration_h": self.duration.value(),
             "map_every_s": self.maps.currentData(),
             "pixels": self.pixels.isChecked(),
+            "smooth": self.chosen_smooth(),
             "backend": self.chosen_backend(),
         }
 
@@ -161,6 +184,7 @@ class RunSection(Section):
             self.lines_button.setEnabled(False)
         self.maps.setEnabled(not running)
         self.pixels.setEnabled(not running)
+        self.smooth.setEnabled(not running and self.pixels.isChecked())
         self.backend.setEnabled(not running)
         if running:
             self.map_button.setEnabled(False)
