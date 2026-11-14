@@ -338,10 +338,15 @@ def _series(f: h5py.File, kind: str, name: str) -> dict:
 
 def element_facts(cfg: RunConfig) -> tuple[dict[str, dict], dict[str, dict]]:
     """What the chart's header says of each element of a generated basin (W64): kind, drainage area, Kirpich tc and,
-    for a subbasin, its lag; by element name, and by design line for the junctions a design line pours into. Empty on a
-    job without ``basin.json``: an HMS basin has its lags and no terrain path."""
+    for a subbasin, its lag; by element name, and by design line for the junctions a design line pours into. On an HMS
+    basin (W74) the kind and drainage area of every element, and a subbasin's tc where the basin's .sqlite holds its
+    flow path (:mod:`wadi2d.products.hms_facts`); no design line pours into an HMS element. Empty with neither."""
     path = cfg.hydrology.basin_json
     if path is None:
+        if cfg.hydrology.hms_basin:
+            from wadi2d.products.hms_facts import hms_element_facts
+
+            return hms_element_facts(cfg.hydrology.hms_basin, cfg.hydrology.hms_sqlite), {}
         return {}, {}
     from wadi2d.basin.contract import SUBBASIN, read_model, value_of
 
@@ -353,6 +358,7 @@ def element_facts(cfg: RunConfig) -> tuple[dict[str, dict], dict[str, dict]]:
     for element in model["elements"]:
         subbasin = element["kind"] == SUBBASIN
         facts = {
+            "element_name": element["name"],
             "kind": element["kind"],
             "drainage_area_km2": value_of(element, "area_km2" if subbasin else "drainage_area_km2"),
             "tc_minutes": value_of(element, "tc_minutes"),
@@ -363,6 +369,17 @@ def element_facts(cfg: RunConfig) -> tuple[dict[str, dict], dict[str, dict]]:
         if line:
             by_line[line] = facts
     return by_name, by_line
+
+
+RAIN_KEYS = ("rain_mm", "excess_mm")
+
+
+def line_rain(line: dict, junction: dict | None) -> None:
+    """A design line's rain bar (W74): the area-weighted rain and excess of the subbasins above the junction it pours
+    into, as that junction's own series carries them (W64's ``rain_mm`` and ``excess_mm``); nothing when it has none."""
+    if junction is None or not all(key in junction for key in RAIN_KEYS) or "t_s" not in junction:
+        return
+    line["rain"] = {"t_s": junction["t_s"], **{key: junction[key] for key in RAIN_KEYS}}
 
 
 def catalogue(run: Path) -> dict:
@@ -390,9 +407,11 @@ def catalogue(run: Path) -> dict:
     for item in lumped + points:
         if item["name"] in by_name:
             item["element"] = by_name[item["name"]]
+    lumped_by_name = {item["name"]: item for item in lumped}
     for line in lines:
         if line["name"] in by_line:
             line["element"] = by_line[line["name"]]
+            line_rain(line, lumped_by_name.get(line["element"].get("element_name", "")))
     return {
         "crs": crs,
         "frames_s": times.tolist(),
