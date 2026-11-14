@@ -196,7 +196,7 @@ def smoke() -> None:
     )
     check(dock.panel.duration.value() == 1.0, "simulated time from schema")
     kinds = [dock.boundaries.kind.itemText(i) for i in range(dock.boundaries.kind.count())]
-    check(kinds == ["stage", "normal", "free"], "boundary kinds from schema")
+    check(kinds == ["stage", "normal", "free", "flow"], "boundary kinds from schema")
     check(dock.terrain.dem_layer().id() == dem.id(), "DEM combo lists the project raster")
 
     dialog = settings.EngineDialog(dock)
