@@ -11,7 +11,7 @@ from pathlib import Path
 
 from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.gui import QgsDockWidget
-from qgis.PyQt.QtCore import Qt, QUrl
+from qgis.PyQt.QtCore import Qt, QTimer, QUrl
 from qgis.PyQt.QtGui import QDesktopServices
 from qgis.PyQt.QtWidgets import (
     QApplication,
@@ -99,6 +99,28 @@ FRAMES_NOTE = (
 )
 
 
+SLIDER_POLL_MS = 250
+
+
+def slider_note(ready: dict) -> str:
+    """What the dock says once the layer is in, from what the drawing process said it can do."""
+    every = ready["frames_s"][1] - ready["frames_s"][0] if len(ready["frames_s"]) > 1 else 0.0
+    if ready["detail"] == "pixel":
+        how = (
+            f"Drawn at the terrain pixel ({ready['pixel_m']:g} m) where a {ready['dx']:g} m cell is at least "
+            f"{ready['cell_pixels']:g} screen pixels wide; further out each cell is drawn by its own value."
+        )
+    else:
+        how = "Drawn one value a cell."
+    note = f" {ready['note']}" if ready.get("note") else ""
+    return (
+        f"Use the Temporal Controller to step through the flood: {len(ready['frames_s'])} saved maps, about every "
+        f"{every / 60.0:g} min; each step shows the last saved map at or before its time. {how}{note} "
+        "Identify reads depth, speed and class at the terrain pixel. The pixel rasters stay the numbers of record. "
+        "The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run."
+    )
+
+
 class Wadi2DDock(QgsDockWidget):
     def __init__(self, iface, parent=None) -> None:
         super().__init__("Wadi2D", parent)
@@ -168,6 +190,10 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.open_button.clicked.connect(self.open_results)
         self.panel.map_button.clicked.connect(self.make_map)
         self.panel.frames_button.clicked.connect(self.time_slider)
+        self.panel.pixel_frames_button.clicked.connect(self.pixel_slider)
+        self._slider_client = None
+        self._slider_timer = QTimer(self)
+        self._slider_timer.timeout.connect(self._slider_poll)
         self.panel.lines_button.clicked.connect(self.result_lines)
         self.study.start_button.clicked.connect(self.start_study)
         self.study.stop_button.clicked.connect(self.stop_study)
@@ -435,6 +461,7 @@ class Wadi2DDock(QgsDockWidget):
         if folder and has_results(folder):
             self.results_dir = Path(folder)
             self.panel.frames_button.setEnabled(True)
+            self.panel.pixel_frames_button.setEnabled(True)
             self.panel.lines_button.setEnabled(True)
 
     def _updated(self, state) -> None:
@@ -660,6 +687,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
         self.panel.frames_button.setEnabled(has_results(run.out_dir))
+        self.panel.pixel_frames_button.setEnabled(has_results(run.out_dir))
         self.panel.lines_button.setEnabled(has_results(run.out_dir))
         if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
             self.line_panel.open_run(run.out_dir)
@@ -732,6 +760,45 @@ class Wadi2DDock(QgsDockWidget):
         else:
             self.panel.say(FRAMES_NOTE, "good")
 
+    # The time slider at the pixel (W51): an engine process the plugin keeps open draws what is on screen. It is started
+    # here and the layer added once it is ready, so QGIS never waits for it.
+
+    def pixel_slider(self) -> None:
+        from . import render_client
+
+        if self.results_dir is None:
+            return
+        self.panel.pixel_frames_button.setEnabled(False)
+        self.panel.say("Starting the drawing process for this run...")
+        self._slider_client = render_client.client_for(
+            self.results_dir, settings.engine_text(), self.panel.chosen_backend()
+        )
+        self._slider_timer.start(SLIDER_POLL_MS)
+        self._slider_poll()
+
+    def _slider_poll(self) -> None:
+        from . import slider_layer
+
+        client = self._slider_client
+        if client is None:
+            self._slider_timer.stop()
+            return
+        if not client.settled:
+            if client.waiting:
+                self.panel.say(client.waiting)
+            return
+        self._slider_timer.stop()
+        self._slider_client = None
+        self.panel.pixel_frames_button.setEnabled(self.results_dir is not None)
+        if client.ready is None:
+            self.panel.say(f"The time slider at the pixel could not start: {client.error}", "bad")
+            return
+        layer = slider_layer.load_slider(client.run, self.iface.mapCanvas(), self.iface.mainWindow())
+        if layer is None:
+            self.panel.say("QGIS could not open the time slider at the pixel.", "bad")
+            return
+        self.panel.say(slider_note(client.ready), "good")
+
     def result_lines(self) -> None:
         if self.results_dir is None:
             return
@@ -765,3 +832,8 @@ class Wadi2DDock(QgsDockWidget):
         if self.line_panel is not None:
             self.line_panel.release()
             self.line_panel = None
+        from . import render_client
+
+        self._slider_timer.stop()
+        self._slider_client = None
+        render_client.close_all()

@@ -1,0 +1,72 @@
+{
+ "open_s": 2.37,
+ "whole": {
+  "first_s": 0.058,
+  "again_s": 0.058,
+  "detail": "cells",
+  "pixel_m": 20.0,
+  "pending": 0,
+  "ms": 12.04
+ },
+ "pan": {
+  "first_s": 0.054,
+  "again_s": 0.054,
+  "detail": "cells",
+  "pixel_m": 20.0,
+  "pending": 0,
+  "ms": 9.66
+ },
+ "zoom_3km": {
+  "first_s": 0.353,
+  "again_s": 0.137,
+  "detail": "pixel",
+  "pixel_m": 5.0,
+  "pending": 0,
+  "ms": 113.78
+ },
+ "zoom_500m": {
+  "first_s": 0.154,
+  "again_s": 0.138,
+  "detail": "pixel",
+  "pixel_m": 5.0,
+  "pending": 0,
+  "ms": 107.19
+ },
+ "slider": [
+  {
+   "frame": 0,
+   "s": 0.135,
+   "ms_engine": 116.14,
+   "wet": 0.0
+  },
+  {
+   "frame": 6,
+   "s": 0.135,
+   "ms_engine": 109.54,
+   "wet": 0.0672
+  },
+  {
+   "frame": 12,
+   "s": 0.128,
+   "ms_engine": 94.88,
+   "wet": 0.1205
+  },
+  {
+   "frame": 18,
+   "s": 0.139,
+   "ms_engine": 113.57,
+   "wet": 0.109
+  },
+  {
+   "frame": 23,
+   "s": 0.136,
+   "ms_engine": 108.8,
+   "wet": 0.0862
+  }
+ ],
+ "animation": {
+  "frames": 24,
+  "mean_s": 0.147,
+  "max_s": 0.172
+ }
+}

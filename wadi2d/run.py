@@ -120,6 +120,7 @@ NOT_WATER = (
     ("grid", "cache_dir"),
     ("outputs", "pixels"),
     ("outputs", "smooth"),
+    ("outputs", "slider"),
     ("outputs", "frame_bytes_per_cell"),
     ("outputs", "face_discharge"),
     ("hydrology", "overlap_share"),
