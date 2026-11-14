@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -9,6 +10,7 @@ from wadi2d_qgis.workbook_rows import (
     common_elements,
     period_key,
     run_elements,
+    sheet_problems,
     workbook_args,
     workbook_problems,
     workbook_reply,
@@ -68,6 +70,37 @@ def test_what_is_missing_is_said_before_the_engine_starts(tmp_path: Path) -> Non
     assert workbook_problems([("200", str(a))], ["Dam_A"], "200", "o.xlsx") == []
 
 
+def test_a_renamed_sheet_goes_as_name_equals_sheet_and_excel_s_rules_are_said_first(tmp_path: Path) -> None:
+    """W74: the dialog renames sheets."""
+    a = _run(tmp_path, "rp200", 300.0)
+    rows = [("200", str(a))]
+    args = workbook_args(rows, ["Dam_A", "Axis"], "200", "o.xlsx", sheets={"Dam_A": "Bidah dam", "Axis": "Axis"})
+    assert args[3:7] == ["--element", "Dam_A=Bidah dam", "--element", "Axis"]
+    assert sheet_problems({"Dam_A": "Bidah dam"}, "200yr") == []
+    assert sheet_problems(
+        {"A": "", "B": "x" * 32, "C": "a/b", "D": "Read me", "E": "200-year", "F": "same", "G": "Same"}, "200"
+    ) == [
+        "Give A a sheet name.",
+        "The sheet name " + "x" * 32 + " is longer than Excel's 31 characters.",
+        "The sheet name a/b holds a character Excel refuses: /.",
+        "The sheet name Read me is one of the workbook's own sheets.",
+        "The sheet name 200-year is one of the workbook's own sheets.",
+        "F and G share the sheet name Same.",
+    ]  # fmt: skip
+    assert workbook_problems(rows, ["Dam_A"], "200", "o.xlsx", {"Dam_A": "Peak inflow"}) == [
+        "The sheet name Peak inflow is one of the workbook's own sheets."
+    ]
+
+
+def test_a_study_folder_is_a_source_and_offers_the_rows_of_its_table(tmp_path: Path) -> None:
+    study = tmp_path / "study"
+    study.mkdir()
+    table = [{"design_point": "Dam line", "read_as": "x"}, {"design_point": "S13", "read_as": "y"}]
+    (study / "study.json").write_text(json.dumps({"areas_km2": [10.0], "table": table}), encoding="utf-8")
+    assert run_elements(study) == ["Dam line", "S13"]
+    assert workbook_problems([("200", str(study))], ["S13"], "200", "o.xlsx") == []
+
+
 def test_the_engine_writes_the_workbook_the_dialog_asks_for(tmp_path: Path, capsys) -> None:
     a, b = _run(tmp_path, "rp200", 300.0), _run(tmp_path, "rp50", 150.0)
     out = tmp_path / "book.xlsx"
@@ -78,3 +111,7 @@ def test_the_engine_writes_the_workbook_the_dialog_asks_for(tmp_path: Path, caps
 
     names = load_workbook(out).sheetnames
     assert "200-year" in names and any("Dam_A" in n for n in names) and any("Axis" in n for n in names), names
+    renamed = workbook_args([("200", str(a)), ("50", str(b))], ["Dam_A"], "200", str(out), sheets={"Dam_A": "Bidah"})
+    assert main(renamed) == 0
+    assert "Bidah" in load_workbook(out).sheetnames
+    assert main(workbook_args([("200", str(a))], ["Dam_A"], "200", str(out), sheets={"Dam_A": "Read me"})) == 2

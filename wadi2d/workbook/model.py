@@ -28,6 +28,14 @@ def structure_quantity(name: str) -> str:
 def structure_name(quantity: str) -> str | None:
     """``structure:orifice_1`` -> ``orifice_1``; None for inflow, outflow, pool and storage."""
     return quantity[len(STRUCTURE) :] if quantity.startswith(STRUCTURE) else None
+READ_ME = "Read me"
+PEAK_INFLOW, INFLOW_VOLUME, TIME_TO_PEAK = "Peak inflow", "Inflow volume", "Time to peak"
+PEAK_OUTFLOW, ATTENUATION, HIGHEST_POOL = "Peak outflow", "Attenuation", "Highest pool level"
+FIXED_SHEETS = (READ_ME, PEAK_INFLOW, INFLOW_VOLUME, TIME_TO_PEAK, PEAK_OUTFLOW, ATTENUATION, HIGHEST_POOL)
+"""The workbook's own sheets; a dam's sheet may not take one of these names, nor the target period's."""
+SHEET_MOST = 31
+SHEET_FORBIDDEN = frozenset("[]:*?/\\")
+"""Excel refuses a sheet name longer than 31 characters or holding one of these."""
 STEP_TOLERANCE_S = 0.5
 """Times rounded to 4 decimals of an hour (0.36 s) still read as one regular step."""
 
@@ -126,8 +134,16 @@ class WorkbookInput:
         if self.target not in self.return_periods:
             raise ValueError(f"target return period {self.target!r} is not among {self.return_periods}")
         labels = [d.label for d in self.dams]
-        if len(set(labels)) != len(labels):
+        if len({label.casefold() for label in labels}) != len(labels):
             raise ValueError(f"two dams share a sheet name: {labels}")
+        taken = {name.casefold() for name in (*FIXED_SHEETS, target_sheet_name(self.target))}
+        for label in labels:
+            if not label.strip() or len(label) > SHEET_MOST or SHEET_FORBIDDEN & set(label):
+                raise ValueError(
+                    f"sheet name {label!r}: Excel takes 1 to {SHEET_MOST} characters and none of {''.join(sorted(SHEET_FORBIDDEN))}"
+                )
+            if label.casefold() in taken:
+                raise ValueError(f"sheet name {label!r} is one of the workbook's own sheets")
         for dam in self.dams:
             missing = [rp for rp in self.return_periods if rp not in dam.series]
             if missing:

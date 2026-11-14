@@ -29,7 +29,21 @@ from openpyxl.utils import get_column_letter as L
 from openpyxl.utils.units import cm_to_EMU, pixels_to_EMU
 
 from wadi2d.workbook import style
-from wadi2d.workbook.model import PMP, Dam, WorkbookInput, rp_label, structure_name, target_sheet_name
+from wadi2d.workbook.model import (
+    ATTENUATION,
+    HIGHEST_POOL,
+    INFLOW_VOLUME,
+    PEAK_INFLOW,
+    PEAK_OUTFLOW,
+    PMP,
+    READ_ME,
+    TIME_TO_PEAK,
+    Dam,
+    WorkbookInput,
+    rp_label,
+    structure_name,
+    target_sheet_name,
+)
 
 FIRST = 2
 """First data row; row 1 holds the headings."""
@@ -459,40 +473,40 @@ def build(wi: WorkbookInput, tile_charts: bool = True) -> Workbook:
     wi.check()
     wb = Workbook()
     readme = wb.active
-    readme.title = "Read me"
+    readme.title = READ_ME
     _target_sheet(wb, wi)
     routed = [d for d in wi.dams if d.routed]
     specs = [
         (
-            "Peak inflow",
+            PEAK_INFLOW,
             1,
             "#,##0",
             "Peak inflow at the dam site (m³/s)" + (f" - {wi.method}" if wi.method else ""),
             wi.dams,
         ),
         (
-            "Inflow volume",
+            INFLOW_VOLUME,
             3,
             "0.000",
             f"Inflow volume (Mm³) - sum of the {wi.dt_s / 60:g}-minute ordinates x {wi.dt_s} s / 1e6",
             wi.dams,
         ),
-        ("Time to peak", 2, "0.00", "Time from the start of the storm to the peak inflow (h)", wi.dams),
+        (TIME_TO_PEAK, 2, "0.00", "Time from the start of the storm to the peak inflow (h)", wi.dams),
     ]
     if routed:
         specs += [
             (
-                "Peak outflow",
+                PEAK_OUTFLOW,
                 6,
                 "#,##0",
                 "Peak outflow at the dam (m³/s) - routed through the reservoir",
                 routed,
             ),
-            ("Attenuation", 7, "0.0%", "Attenuation of the peak, 1 - peak outflow / peak inflow", routed),
+            (ATTENUATION, 7, "0.0%", "Attenuation of the peak, 1 - peak outflow / peak inflow", routed),
         ]
         pooled = [d for d in routed if "pool" in d.quantities()]
         if pooled:
-            specs.append(("Highest pool level", 8, "0.00", "Highest pool level in the reservoir (m)", pooled))
+            specs.append((HIGHEST_POOL, 8, "0.00", "Highest pool level in the reservoir (m)", pooled))
     sheets_before = len(wb.worksheets)
     st = {dam.name: _dam_sheet(wb, wi, dam, tile_charts) for dam in wi.dams}
     for k, (name, stat, fmt, title, dams) in enumerate(specs):
