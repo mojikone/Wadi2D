@@ -16,11 +16,29 @@ import h5py
 
 from wadi2d.engine.monitor import Balance
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
-from wadi2d.hydrology.model import Basin
+from wadi2d.hydrology.model import Basin, Element
 from wadi2d.hydrology.network import Run
+from wadi2d.hydrology.reservoir import ReservoirOutflowCurve, ReservoirOutflowStructures
 from wadi2d.io.results import Results, safe_name, write_series_csv
+from wadi2d.storm.base import FloatArray
 
 NETWORK_KIND = "network"
+
+
+def reservoir_columns(element: Element, inflow: FloatArray, outflow: FloatArray, dt_minutes: float) -> dict:
+    """A reservoir's pool level, m, and storage, m3, beside its flows, and with outflow structures each structure's
+    flow and the evaporation; nothing for any other element. Added in W59; the flow columns are unchanged."""
+    routing = getattr(element, "routing", None)
+    if isinstance(routing, ReservoirOutflowStructures):
+        run = routing.run(inflow, dt_minutes)
+        columns = {"pool_m": run.pool_m, "storage_m3": run.storage_m3}
+        if routing.evaporation is not None:
+            columns["evaporation_m3s"] = run.evaporation_m3s
+        return columns | run.structures_m3s
+    if isinstance(routing, ReservoirOutflowCurve):
+        storage, level = routing.pool(inflow, outflow, dt_minutes)
+        return {"pool_m": level, "storage_m3": storage}
+    return {}
 
 
 class NetworkSeries:
@@ -51,6 +69,7 @@ class NetworkSeries:
             columns = {"inflow_m3s": run.inflow[name], "outflow_m3s": run.outflow[name]}
             if name in run.branched:
                 columns["branched_m3s"] = run.branched[name]
+            columns |= reservoir_columns(self.basin.elements[name], run.inflow[name], run.outflow[name], run.grid.dt_minutes)
             results.series(NETWORK_KIND, name, t, columns)
             write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
 

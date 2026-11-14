@@ -198,6 +198,21 @@ def test_evaporation_rates_by_month_with_hms_february() -> None:
     assert rates == pytest.approx([january, january, february, february], rel=HAND_TOLERANCE)
 
 
+def test_network_series_carry_pool_storage_and_each_structure() -> None:
+    """The columns a run writes beside a reservoir's flows (``series/network_<name>.csv``)."""
+    from wadi2d.engine.network_series import reservoir_columns
+    from wadi2d.hydrology import Reservoir
+
+    hms = load_case("all")
+    element = Reservoir(name="Reservoir", downstream=None, routing=reservoir_of("all"))
+    columns = reservoir_columns(element, hms["inflow"], hms["outflow"], STEP_MINUTES)
+    assert set(columns) == {"pool_m", "storage_m3", "evaporation_m3s", "orifice_1_m3s", "rating_spillway_1_m3s",
+                            "dam_top_1_m3s", "seepage_1_m3s"}
+    assert np.abs(columns["pool_m"] - hms["elevation_m"]).max() <= LEVEL_TOLERANCE_M
+    total = columns["orifice_1_m3s"] + columns["rating_spillway_1_m3s"] + columns["dam_top_1_m3s"]
+    assert total + columns["seepage_1_m3s"] == pytest.approx(element.routing.run(hms["inflow"], STEP_MINUTES).main_m3s)
+
+
 def test_refusals() -> None:
     z = np.linspace(100.0, 110.0, 11)
     a = np.full(11, 1.0e5)
