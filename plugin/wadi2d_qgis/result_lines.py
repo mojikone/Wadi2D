@@ -29,10 +29,19 @@ from qgis.core import (
 )
 from qgis.gui import QgsDockWidget
 from qgis.PyQt.QtCore import QDate, QDateTime, Qt, QTime
-from qgis.PyQt.QtWidgets import QComboBox, QHBoxLayout, QLabel, QPushButton, QSlider, QVBoxLayout, QWidget
+from qgis.PyQt.QtWidgets import (
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QMenu,
+    QPushButton,
+    QSlider,
+    QVBoxLayout,
+    QWidget,
+)
 
 from . import settings
-from .element_view import element_view, matching, with_facts
+from .element_view import element_view, matching, overlay_curve, with_facts, with_overlays
 from .engine_process import EngineQuery
 from .job_builder import LayerError, layer_features
 from .line_plot import LinePlot
@@ -72,6 +81,9 @@ MILLISECONDS = 1000.0
 PICK_PIXELS = 6.0
 """A right-click takes the features within this many screen pixels (W64)."""
 HYDROGRAPH = "Hydrograph: {label}"
+ADD_TO_CHART = "Add to chart: {label}"
+"""W74: a second element's (or line's) flow over the chart shown, from the button or the map's right-click."""
+NOT_ADDED = "{label} has no flow to add: a point has none, and a temporary line must be shown once first."
 GEOMETRY_ORDER = {QgsWkbTypes.PointGeometry: 0, QgsWkbTypes.LineGeometry: 1, QgsWkbTypes.PolygonGeometry: 2}
 """A junction on a subbasin is offered first: the polygon holds every click inside it."""
 
@@ -97,6 +109,9 @@ class ResultLinesPanel(QgsDockWidget):
         self.pushing = False
         self.note = ""
         """What stays under the plot between answers: what a study's lines are."""
+        self.added: list[Entry] = []
+        """Entries whose flow is drawn over the chart shown (W74); choosing another entry clears them."""
+        self.shown: Entry | None = None
         self.folder = tempfile.mkdtemp(prefix="wadi2d_lines_")
         self.tool = DrawLine(self.canvas)
         self.old_tool = None
@@ -118,6 +133,13 @@ class ResultLinesPanel(QgsDockWidget):
         self.feature = QComboBox()
         self.use_button = QPushButton("Use this line")
         self.use_button.setEnabled(False)
+        self.add_menu = QMenu(self)
+        self.add_menu.aboutToShow.connect(self._fill_add_menu)
+        self.add_button = QPushButton("Add to chart")
+        self.add_button.setToolTip("Draw another element's or line's flow over this chart")
+        self.add_button.setMenu(self.add_menu)
+        self.clear_button = QPushButton("Clear added")
+        self.clear_button.setEnabled(False)
         self.plot = LinePlot()
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setEnabled(False)
@@ -131,6 +153,8 @@ class ResultLinesPanel(QgsDockWidget):
         top.addWidget(self.layer, 1)
         top.addWidget(self.feature, 1)
         top.addWidget(self.use_button)
+        top.addWidget(self.add_button)
+        top.addWidget(self.clear_button)
         bottom = QHBoxLayout()
         bottom.addWidget(self.slider, 1)
         bottom.addWidget(self.time_label)
@@ -146,6 +170,7 @@ class ResultLinesPanel(QgsDockWidget):
         self.remove_button.clicked.connect(self._remove)
         self.layer.layerChanged.connect(self._layer_chosen)
         self.use_button.clicked.connect(self._use_feature)
+        self.clear_button.clicked.connect(self.clear_added)
         self.slider.valueChanged.connect(self._slid)
 
     def say(self, text: str) -> None:
@@ -226,23 +251,60 @@ class ResultLinesPanel(QgsDockWidget):
     def _chosen(self, _index: int) -> None:
         entry = self._current()
         self.remove_button.setEnabled(entry is not None and entry.kind == TEMPORARY)
+        if entry is not self.shown:  # a new chart: what was added to the last one goes with it
+            self.shown = entry
+            self.added = []
+            self.clear_button.setEnabled(False)
         if entry is None:
             self.plot.show_view(None)
             return
         self._show(entry)
 
+    def _display(self, view) -> None:
+        """Show a view with every added entry's flow over it (W74)."""
+        added = [(entry, curve) for entry in self.added if (curve := overlay_curve(entry, self.read.get(id(entry))))]
+        self.plot.show_view(with_overlays(view, added), self.frame)
+
+    def add_to_chart(self, index: int) -> None:
+        """Draw one more entry's flow over the chart shown."""
+        if not 0 <= index < len(self.items):
+            return
+        entry = self.items[index]
+        if self.shown is None or entry is self.shown or entry in self.added:
+            return
+        if overlay_curve(entry, self.read.get(id(entry))) is None:
+            self.say(NOT_ADDED.format(label=entry.label))
+            return
+        self.added.append(entry)
+        self.clear_button.setEnabled(True)
+        self._show(self.shown)
+
+    def clear_added(self) -> None:
+        self.added = []
+        self.clear_button.setEnabled(False)
+        if self.shown is not None:
+            self._show(self.shown)
+
+    def _fill_add_menu(self) -> None:
+        self.add_menu.clear()
+        for index, entry in enumerate(self.items):
+            if entry is self.shown or entry in self.added:
+                continue
+            action = self.add_menu.addAction(entry.label)
+            action.triggered.connect(lambda _checked=False, chosen=index: self.add_to_chart(chosen))
+
     def _show(self, entry: Entry) -> None:
         if entry.kind == UPFRONT_POINT:
-            self.plot.show_view(with_facts(point_view(entry, self.frames_s), entry), self.frame)
+            self._display(with_facts(point_view(entry, self.frames_s), entry))
             self.say(self.note)
             return
         if entry.kind == LUMPED:
-            self.plot.show_view(element_view(entry, self.frames_s), self.frame)
+            self._display(element_view(entry, self.frames_s))
             self.say(self.note)
             return
         known = self.read.get(id(entry))
         if known is not None:
-            self.plot.show_view(with_facts(line_view(entry, known), entry), self.frame)
+            self._display(with_facts(line_view(entry, known), entry))
             self.say(self.note)
             return
         if self.query is not None:
@@ -259,7 +321,7 @@ class ResultLinesPanel(QgsDockWidget):
         self.read[id(entry)] = json.loads(Path(answer).read_text(encoding="utf-8"))
         self.say(self.note)
         if entry is self._current():
-            self.plot.show_view(with_facts(line_view(entry, self.read[id(entry)]), entry), self.frame)
+            self._display(with_facts(line_view(entry, self.read[id(entry)]), entry))
 
     def _add(self, entry: Entry) -> None:
         self.items.append(entry)
@@ -342,9 +404,15 @@ class ResultLinesPanel(QgsDockWidget):
         """A "Hydrograph" entry for every element, design point or line of this run under the click."""
         if not self.items:
             return
-        for index in matching(self.items, self.names_under(event.mapPoint())):
+        found = matching(self.items, self.names_under(event.mapPoint()))
+        for index in found:
             action = menu.addAction(HYDROGRAPH.format(label=self.items[index].label))
             action.triggered.connect(lambda _checked=False, chosen=index: self.show_entry(chosen))
+        for index in found:  # over the chart already shown (W74)
+            entry = self.items[index]
+            if self.shown is not None and entry is not self.shown and entry not in self.added:
+                action = menu.addAction(ADD_TO_CHART.format(label=entry.label))
+                action.triggered.connect(lambda _checked=False, chosen=index: self.add_to_chart(chosen))
 
     def names_under(self, point) -> list[str]:
         """The ``name`` of every feature of a shown vector layer within a few pixels of a map point, points first."""
