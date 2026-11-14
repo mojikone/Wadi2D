@@ -84,3 +84,7 @@ powershell -File "W16 release package\run_edges.ps1" <unzipped release> <throwaw
 ```
 
 Both install under `%LOCALAPPDATA%\W2D test`, which can be deleted afterwards.
+
+## 0.2.0
+
+Built from `b511cb3` (`python tools/build_release.py`, `Wadi2D-0.2.0-windows.zip`, 0.9 MB) after the full suite passed, 2,263 of 2,263 (9 skipped). Installed and driven through three throwaway QGIS 3.44.8 profiles: GPU 16 of 17, Install from ZIP 8 of 8, CPU 10 of 10, the junction check passes. **The one failure is the record, not the package:** the five Block 2 hybrid dam peaks differed from the 0.1.x record by up to 385.8 m3/s, and the same job run on the repository's own engine gives all 16 line peaks equal to the installed engine's to the digit. The record predates W41 (lumped hydrographs enter at the wadi outlet, so dam lines now count them), W34 (reservoirs start empty) and W49 (local hydraulic radius); `dock_release.py` now holds the 0.2.0 values: Bidah 03 622.4, Faydh 01 1,122.8, R2A 1,812.2, R5A 1,262.6, Z4C 2,103.3 m3/s at 40 m. Release notes: `release_notes_0.2.0.md`. Not tested on another PC.
