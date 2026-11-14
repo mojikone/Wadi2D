@@ -1,0 +1,109 @@
+Basin: W59 culvert_chart_9_1 saved
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 15:59:28
+     Version: 4.12
+     Filepath Separator: \
+     Unit System: Metric
+     Missing Flow To Zero: No
+     Enable Flow Ratio: No
+     Compute Local Flow At Junctions: No
+     Unregulated Output Required: No
+
+     Enable Sediment Routing: No
+End:
+
+Source: Inflow
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 1000.0
+     Downstream: Reservoir
+
+     Flow Method: GAGE_FLOW
+     Flow Gage: W59 Inflow
+     End Flow Method:
+End:
+
+Reservoir: Reservoir
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 500.0
+     Downstream: Outlet
+
+     Route: Controlled Outflow
+     Routing Curve: Elevation-Area
+     Initial Elevation: 103
+     Elevation-Area Table: W59 EA
+     Adaptive Control: On
+     Main Tailwater Condition: None
+     Auxiliary Tailwater Condition: None
+
+     Conduit: Culvert
+     Conduit Outlet: Main
+     Culvert Shape: Box
+     Chart Number: 9
+     Scale Number: 1
+     Solution Control: Inlet Control
+     Rise: 3
+     Span: 3
+     Number Barrels: 2
+     Culvert Length: 40
+     Entrance Loss Coefficient: 0.5
+     Exit Loss Coefficient: 1
+     Top Manning's n: 0.013
+     Inlet Invert Elevation: 100.5
+     Outlet Invert Elevation: 100
+     End Conduit:
+
+     Spillway: Rating Curve Spillway
+     Spillway Outlet: Main
+     Spillway Rating Curve Name: W59 Rating
+     End Spillway:
+
+     Evaporation Method: Zero Evaporation
+     End Evaporation:
+End:
+
+Sink: Outlet
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 0.0
+End:
+
+Basin Layer Properties:
+     Element Layer:
+          Name: Icons
+          Layer shown: Yes
+     End Layer:
+End:
+
+Basin Spatial Properties:
+End:
+
+Basin Schematic Properties:
+     Last View N: 2000.0
+     Last View S: -500.0
+     Last View W: -1000.0
+     Last View E: 1000.0
+     Maximum View N: 2000.0
+     Maximum View S: -500.0
+     Maximum View W: -1000.0
+     Maximum View E: 1000.0
+     Extent Method: Elements
+     Buffer: 0
+     Draw Icons: Yes
+     Draw Icon Labels: Name
+     Draw Map Objects: No
+     Draw Gridlines: No
+     Draw Flow Direction: No
+     Draw HillShade Layer: Yes
+     Draw Elevation Layer: Yes
+     Elevation Layer Color Palette: Gray Scale
+     Ignore Elevation Color Ramp Scale: No
+     Use Interpolated Color Ramp for Elevation Layer: Yes
+     Color Ramp Opacity Level for Elevation Layer: 33.0
+     Fix Element Locations: No
+     Fix Hydrologic Order: No
+End:

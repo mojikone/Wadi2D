@@ -1,7 +1,8 @@
 """Reservoir outflow structures of HEC-HMS 4.12, behind one interface: each packs itself for the compiled kernel.
 
 Interface: :class:`Structure` (the protocol), :class:`RatingSpillway`, :class:`Orifice`, :class:`LevelDamTop`,
-:class:`TabularSeepage`, :class:`SpillwayGate`, :class:`Pump`, :class:`MonthlyEvaporation`, :class:`Packed`,
+:class:`TabularSeepage`, :class:`SpillwayGate`, :class:`Pump`, :class:`Culvert`, :class:`MonthlyEvaporation`,
+:class:`Packed`,
 :func:`pack_all`, :data:`STRUCTURE_KINDS`.
 The broad-crested :class:`~wadi2d.hydrology.reservoir.Spillway` packs the same way. The laws live in
 :mod:`wadi2d.hydrology.structure_kernel`, once; a new structure is a class here and a kind there.
@@ -18,12 +19,15 @@ pump's minimum run and rest times are minutes, and a pump switches on and off at
 from __future__ import annotations
 
 import calendar
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import cached_property
 from typing import Protocol
 
 import numpy as np
 
+from wadi2d.hydrology import culvert as culverts
 from wadi2d.hydrology import structure_kernel as kernel
 from wadi2d.storm.base import FloatArray
 from wadi2d.storm.registry import Registry
@@ -70,6 +74,7 @@ TABULAR_SEEPAGE = "Tabular Dam Seepage"
 SLUICE_GATE = "Sluice"
 RADIAL_GATE = "Radial"
 HEAD_DISCHARGE_PUMP = "Head-Discharge Pump"
+CULVERT = "Culvert"
 SLUICE_HEAD_EXPONENT = 0.5
 
 
@@ -119,8 +124,8 @@ class Orifice:
 @STRUCTURE_KINDS.register(LEVEL_DAM_TOP)
 @dataclass(frozen=True)
 class LevelDamTop:
-    """A level dam top, Q = C L H^1.5 over the crest. HMS's drowned rule is a curve not identified (W59), so a
-    reservoir refuses a tailwater that reaches the crest."""
+    """A level dam top, Q = C L H^1.5 over the crest, drowned by a tailwater over it through HMS's tabulated
+    reduction on the submergence, the same as a broad-crested spillway's (W67, ``structure_kernel.SUBMERGENCE``)."""
 
     crest_elevation_m: float
     crest_length_m: float
@@ -164,7 +169,7 @@ class SpillwayGate:
     Weir flow over the group's width at the spillway's coefficient while the head over the crest is at most the
     opening; from 1.25 openings the gate law, sluice C W B k sqrt(H) or radial C k W T^TE B^BE H^HE (W the group's
     width, k = 4.42869); linear in head over opening between. The drowned forms are not identified and a tailwater
-    reaching the crest is refused, as for every weir.
+    reaching the crest is refused (a plain spillway or dam top is drowned as HMS does it, W67).
     """
 
     kind: str
@@ -256,6 +261,69 @@ class Pump:
 
     def label(self) -> str:
         return "pump"
+
+
+@STRUCTURE_KINDS.register(CULVERT)
+@dataclass(frozen=True)
+class Culvert:
+    """HMS's culvert outlet, box or circular barrels (:mod:`wadi2d.hydrology.culvert`), routed as a rating of pool
+    against flow at the reservoir's fixed tailwater (``tailwater_m``, None for none) up to the top of its pool table
+    (``top_m``); the reservoir checks both are its own. ``span_m`` is the diameter again for a circular barrel."""
+
+    shape: str
+    chart: int
+    scale: int
+    control: str
+    rise_m: float
+    span_m: float
+    barrels: int
+    length_m: float
+    entrance: float
+    exit: float
+    n: float
+    inlet_m: float
+    outlet_m: float
+    outlet: int = MAIN_OUTLET
+    tailwater_m: float | None = None
+    top_m: float = math.nan
+
+    def __post_init__(self) -> None:
+        name = f"culvert ({self.shape}, chart {self.chart} scale {self.scale})"
+        if self.shape not in (culverts.BOX, culverts.CIRCULAR):
+            raise ValueError(f"{name}: only {culverts.BOX} and {culverts.CIRCULAR} barrels are measured against HMS")
+        chart = culverts.INLET_CHARTS.get((self.chart, self.scale))
+        if chart is None or chart.shape != self.shape:
+            raise ValueError(f"{name}: no such inlet chart for this shape in the measured table")
+        if self.control not in culverts.CONTROLS:
+            raise ValueError(f"{name}: solution control {self.control!r}")
+        if self.barrels < 1 or min(self.rise_m, self.span_m, self.length_m, self.n) <= 0.0:
+            raise ValueError(f"{name}: {self.barrels} barrels of {self.rise_m} x {self.span_m} m, {self.length_m} m")
+        if self.inlet_m <= self.outlet_m:
+            raise ValueError(f"{name}: a barrel with no fall ({self.inlet_m} to {self.outlet_m} m) was not measured")
+
+    @property
+    def barrel(self) -> culverts.Barrel:
+        feet = culverts.FEET_PER_METRE
+        return culverts.Barrel(
+            self.shape, self.rise_m * feet, self.span_m * feet, self.length_m * feet, self.inlet_m * feet,
+            self.outlet_m * feet, self.n, self.entrance, self.exit,
+        )
+
+    @cached_property
+    def _rating(self) -> tuple[FloatArray, FloatArray]:
+        if math.isnan(self.top_m):
+            raise ValueError("a culvert routes once its reservoir has given it the top of the pool table")
+        return culverts.rating(
+            self.barrel, culverts.INLET_CHARTS[self.chart, self.scale], self.control, self.barrels, self.tailwater_m,
+            self.top_m,
+        )
+
+    def pack(self) -> Packed:
+        levels, flows = self._rating
+        return Packed(kernel.RATING_CURVE, self.outlet, (NO_PARAMETER,) * 3, levels, flows)
+
+    def label(self) -> str:
+        return "culvert"
 
 
 @dataclass(frozen=True)

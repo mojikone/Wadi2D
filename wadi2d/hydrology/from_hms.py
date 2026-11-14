@@ -62,6 +62,7 @@ from wadi2d.hydrology.reservoir import (
 )
 from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS, MuskingumCunge
 from wadi2d.hydrology.structures import (
+    CULVERT,
     HEAD_DISCHARGE_PUMP,
     LEVEL_DAM_TOP,
     ORIFICE,
@@ -70,6 +71,7 @@ from wadi2d.hydrology.structures import (
     SLUICE_GATE,
     STRUCTURE_KINDS,
     TABULAR_SEEPAGE,
+    Culvert,
     MonthlyEvaporation,
     SpillwayGate,
     Structure,
@@ -149,6 +151,13 @@ PUMP_KEYS = frozenset({
     PUMP_OUTLET_KEY, "Number Of Pumps", "Intake Elevation", "Discharge Elevation", "Switch-On Elevation",
     "Switch-Off Elevation", "Minimum Run Time", "Minimum Rest Time", PUMP_TABLE_KEY, "Equipment Head Loss",
 })
+# W67's, each written back by HEC-HMS 4.12 on re-saving its test basins (the box ones are also HMS's river_bend's).
+CULVERT_COMMON_KEYS = frozenset({
+    CONDUIT_OUTLET_KEY, "Culvert Shape", "Chart Number", "Scale Number", "Solution Control", "Number Barrels",
+    "Culvert Length", "Entrance Loss Coefficient", "Exit Loss Coefficient", "Top Manning's n",
+    "Inlet Invert Elevation", "Outlet Invert Elevation",
+})
+CULVERT_SIZE_KEYS = {"Box": ("Rise", "Span"), "Circular": ("Diameter",)}
 GATE_WIDTH_TOLERANCE_M = 1.0e-6
 NO_UNIFORM_DEPTH = "No"
 
@@ -433,8 +442,37 @@ def _pump(element: str, block: RawBlock, tables: ProjectTables | None) -> Struct
     )
 
 
-# (block kind, block name) -> builder; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W59's and W62's
-# test basins.
+def _culvert(element: str, block: RawBlock, _tables: ProjectTables | None) -> Structure:
+    """A box or circular culvert; the reservoir hands it its tailwater and pool-table top (``_outflow_structures``)."""
+    shape = block.get("Culvert Shape") or ""
+    if shape not in CULVERT_SIZE_KEYS:
+        raise ValueError(f"{element}: culvert shape {shape!r} is not supported, only {sorted(CULVERT_SIZE_KEYS)}")
+    _fields(element, block, CULVERT_COMMON_KEYS | set(CULVERT_SIZE_KEYS[shape]))
+    sizes = [_number(element, block, key) for key in CULVERT_SIZE_KEYS[shape]]
+    barrels = _number(element, block, "Number Barrels")
+    if barrels != int(barrels) or barrels < 1:
+        raise ValueError(f"{element}: culvert barrels {barrels}")
+    return STRUCTURE_KINDS.build(
+        CULVERT,
+        shape=shape,
+        chart=int(_number(element, block, "Chart Number")),
+        scale=int(_number(element, block, "Scale Number")),
+        control=block.get("Solution Control") or "",
+        rise_m=sizes[0],
+        span_m=sizes[-1],
+        barrels=int(barrels),
+        length_m=_number(element, block, "Culvert Length"),
+        entrance=_number(element, block, "Entrance Loss Coefficient"),
+        exit=_number(element, block, "Exit Loss Coefficient"),
+        n=_number(element, block, "Top Manning's n"),
+        inlet_m=_number(element, block, "Inlet Invert Elevation"),
+        outlet_m=_number(element, block, "Outlet Invert Elevation"),
+        outlet=_outlet(element, block, CONDUIT_OUTLET_KEY),
+    )
+
+
+# (block kind, block name) -> builder; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W59's, W62's and
+# W67's test basins.
 StructureBuilder = Callable[[str, RawBlock, "ProjectTables | None"], Structure]
 STRUCTURE_BUILDERS: dict[tuple[str, str], StructureBuilder] = {
     (SPILLWAY_BLOCK, RATING_SPILLWAY): _rating_spillway,
@@ -442,6 +480,7 @@ STRUCTURE_BUILDERS: dict[tuple[str, str], StructureBuilder] = {
     (DAM_TOP_BLOCK, LEVEL_DAM_TOP): _level_dam_top,
     (SEEPAGE_BLOCK, TABULAR_SEEPAGE): _tabular_seepage,
     (PUMP_BLOCK, HEAD_DISCHARGE_PUMP): _pump,
+    (CONDUIT_BLOCK, CULVERT): _culvert,
 }
 
 
@@ -494,6 +533,12 @@ def _outflow_structures(
     else:
         table = _table(tables, route.elevation_area_table, element.name)
         curves = {"areas_m2": table.y}
+    top = float(table.x[-1])
+    structures = [
+        replace(structure, tailwater_m=tailwater if structure.outlet == MAIN_OUTLET else None, top_m=top)
+        if isinstance(structure, Culvert) else structure
+        for structure in structures
+    ]
     extra: dict[str, Any] = {}
     if structures:
         extra["structures"] = tuple(structures)
