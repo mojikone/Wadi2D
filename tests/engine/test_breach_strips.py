@@ -111,8 +111,10 @@ def test_a_breach_on_the_corridor_closes_the_books_and_peaks_as_on_the_squares(d
     square = run_job(pool_job(dem, b), tmp_path / "square")
     aligned = run_job(pool_job(dem, b, strips=corridor(3)), tmp_path / "aligned")
     mixed = run_job(pool_job(dem, b, strips=corridor(1)), tmp_path / "mixed")
+    # the centre generator with the dam as its one hard line: 4-sided cells either side of the crest (W46)
+    centres = run_job(pool_job(dem, b, strips={"enabled": True, "generator": "centres"}), tmp_path / "centres")
     peaks = {}
-    for name, s in (("square", square), ("aligned", aligned), ("mixed", mixed)):
+    for name, s in (("square", square), ("aligned", aligned), ("mixed", mixed), ("centres", centres)):
         assert s.exit_code == 0, s.message
         assert abs(s.balance.relative) < 1e-6, (name, s.balance)
         rows = series(tmp_path / name, "breach_Dam.csv")
@@ -123,6 +125,19 @@ def test_a_breach_on_the_corridor_closes_the_books_and_peaks_as_on_the_squares(d
     print("W69 peaks", peaks, "storage0", square.balance.storage0, aligned.balance.storage0)
     assert peaks["aligned"] == pytest.approx(peaks["square"], rel=0.05)
     assert peaks["mixed"] == pytest.approx(peaks["square"], rel=0.05)
+    assert peaks["centres"] == pytest.approx(peaks["square"], rel=0.05)
+
+
+@pytest.mark.gpu
+def test_the_breach_on_the_corridor_on_the_gpu_reads_the_cpu_peak(dem, tmp_path) -> None:  # noqa: F811
+    b = [breach(station_m=MID, bottom_width_m=32.0)]
+    cpu = run_job(pool_job(dem, b, strips=corridor(3)), tmp_path / "cpu")
+    cfg = pool_job(dem, b, strips=corridor(3))
+    gpu = run_job(cfg.model_copy(update={"run": cfg.run.model_copy(update={"backend": "gpu"})}), tmp_path / "gpu")
+    assert gpu.exit_code == 0 and gpu.backend == "gpu", gpu.message
+    assert abs(gpu.balance.relative) < 1e-6
+    peak = {k: float(np.abs(series(tmp_path / k, "line_Below.csv")[:, 1]).max()) for k in ("cpu", "gpu")}
+    assert peak["gpu"] == pytest.approx(peak["cpu"], rel=1e-3)
 
 
 def test_a_breach_never_triggered_on_the_corridor_changes_nothing(dem, tmp_path) -> None:  # noqa: F811
