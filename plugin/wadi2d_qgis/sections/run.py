@@ -97,6 +97,11 @@ class RunSection(Section):
         self.lines_button = QPushButton("Result lines")
         self.lines_button.setEnabled(False)
         self.lines_button.setToolTip("Hydrograph, depth and water surface on a line: upfront ones, or one drawn now over the saved frames")
+        self.workbook_button = QPushButton("Dam workbook...")
+        self.workbook_button.setToolTip(
+            "The dam-site Excel workbook from finished runs, one per return period: inflow, and outflow where a "
+            "reservoir routes, at the dams and design lines you tick"
+        )
 
         buttons = QWidget()
         row = QHBoxLayout(buttons)
@@ -122,6 +127,7 @@ class RunSection(Section):
         self.form.addRow(self.frames_button)
         self.form.addRow(self.pixel_frames_button)
         self.form.addRow(self.lines_button)
+        self.form.addRow(self.workbook_button)
 
     @staticmethod
     def _text_label() -> QLabel:

@@ -211,6 +211,8 @@ class Wadi2DDock(QgsDockWidget):
         self._slider_timer = QTimer(self)
         self._slider_timer.timeout.connect(self._slider_poll)
         self.panel.lines_button.clicked.connect(self.result_lines)
+        self.panel.workbook_button.clicked.connect(self.dam_workbook)
+        self.workbook_dialog = None
         self.study.start_button.clicked.connect(self.start_study)
         self.study.stop_button.clicked.connect(self.stop_study)
         self.study.open_button.clicked.connect(self.open_study)
@@ -903,6 +905,15 @@ class Wadi2DDock(QgsDockWidget):
         if self.line_panel is None:
             self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
         self.line_panel.open_run(self.results_dir)
+
+    def dam_workbook(self) -> None:
+        """The dam workbook dialog (W60), the last finished run as its first return period."""
+        from .workbook_dialog import WorkbookDialog
+
+        if self.workbook_dialog is None or not self.workbook_dialog.isVisible():
+            self.workbook_dialog = WorkbookDialog(self.results_dir, self)
+        self.workbook_dialog.show()
+        self.workbook_dialog.raise_()
 
     def _drop_book(self) -> None:
         """The last sheets and the layers that only they use; layouts of the same name go too."""
