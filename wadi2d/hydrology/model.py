@@ -1,6 +1,6 @@
 """The lumped network: elements, connectivity, the time grid.
 
-Interface: :class:`Basin`, :class:`Subbasin`, :class:`Reach`, :class:`Junction`, :class:`Reservoir`,
+Interface: :class:`Basin`, :class:`Subbasin`, :class:`Reach`, :class:`Source`, :class:`Junction`, :class:`Reservoir`,
 :class:`Diversion`, :class:`TimeGrid`. Elements are plain data holding method objects from the registries; nothing
 here computes a flow. SI units with km2 and minutes, as the HMS files carry them.
 
@@ -71,6 +71,14 @@ class Reach(Element):
     """A channel reach."""
 
     routing: RoutingMethod
+
+
+@dataclass(frozen=True)
+class Source(Reach):
+    """An external hydrograph (W73), routed as a reach with no inflow. ``area_km2``, HMS's representative area of a
+    source, counts in the drainage area below it (W75); None when the source carries none."""
+
+    area_km2: float | None = None
 
 
 @dataclass(frozen=True)
@@ -168,6 +176,10 @@ class Basin:
         return self._walk(self.upstream, name)
 
     def drainage_area(self, name: str) -> float:
-        """The area of the subbasins above an element through `Downstream` links only, km2."""
+        """The area of the subbasins above an element through `Downstream` links only, km2, and of the sources there
+        that carry one (W75)."""
         chosen = self._walk(self.main_upstream, name)
-        return sum(subbasin.area_km2 for key, subbasin in self.subbasins.items() if key in chosen)
+        sources = sum(
+            e.area_km2 for key, e in self.elements.items() if key in chosen and isinstance(e, Source) and e.area_km2
+        )
+        return sum(subbasin.area_km2 for key, subbasin in self.subbasins.items() if key in chosen) + sources

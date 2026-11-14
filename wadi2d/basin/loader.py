@@ -30,7 +30,7 @@ from wadi2d.basin.source import SOURCE_HYDROGRAPH
 from wadi2d.config.schema import REACH_HMS
 from wadi2d.hydrology.diversion import CONSTANT_DIVERSION
 from wadi2d.hydrology.losses import LOSS_METHODS, SCS_CN
-from wadi2d.hydrology.model import Basin, Diversion, Junction, Reach, Reservoir, Subbasin
+from wadi2d.hydrology.model import Basin, Diversion, Junction, Reach, Reservoir, Source, Subbasin
 from wadi2d.hydrology.reservoir import RESERVOIR_OUTFLOW_STRUCTURES, Spillway
 from wadi2d.hydrology.routing import MUSKINGUM_CUNGE, ROUTING_METHODS
 from wadi2d.hydrology.transforms import SCS_UH, TRANSFORM_METHODS
@@ -71,15 +71,17 @@ def _reservoir(element: Element, downstream: str | None) -> Reservoir:
     return Reservoir(name=element["name"], downstream=downstream, routing=routing)
 
 
-def _source(element: Element, downstream: str | None) -> Reach:
-    """A source as a reach that gives its hydrograph (W73, :mod:`wadi2d.basin.source`)."""
+def _source(element: Element, downstream: str | None) -> Source:
+    """A source as a reach that gives its hydrograph (W73, :mod:`wadi2d.basin.source`); its area, if any, counts in
+    the drainage area below (W75)."""
     hydrograph = value_of(element, "hydrograph")
     routing = ROUTING_METHODS.build(
         SOURCE_HYDROGRAPH,
         minutes=np.asarray(hydrograph["minutes"], dtype=np.float64),
         flow_m3s=np.asarray(hydrograph["flow_m3s"], dtype=np.float64),
     )
-    return Reach(name=element["name"], downstream=downstream, routing=routing)
+    area = element["parameters"].get("area_km2", {}).get("value")
+    return Source(name=element["name"], downstream=downstream, routing=routing, area_km2=area)
 
 
 def _diversion(element: Element, downstream: str | None, names: set[str]) -> Diversion:

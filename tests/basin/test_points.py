@@ -186,6 +186,25 @@ def test_a_source_enters_the_network_at_its_junction(valley: Valley) -> None:
     assert np.allclose(run.inflow[junction["name"]], expected)
 
 
+def test_a_source_area_counts_in_the_drainage_area_below(valley: Valley) -> None:
+    """W75: as HMS counts a source's representative area; none, and the ground's area stands, said in the notes."""
+    (valley.folder / "inflow.csv").write_text("minutes,flow\n0,0\n60,50\n180,0\n", encoding="utf-8")
+    at = {"col": arm_col(ARM_ROW, -1), "row": ARM_ROW}
+    low = {"name": "Low", "kind": "junction", "col": NX // 2, "row": LOW}
+    bare = model(valley, [{"name": "Wadi X", "kind": "source", "file": "inflow.csv", **at}, dict(low)])
+    given = model(valley, [{"name": "Wadi X", "kind": "source", "file": "inflow.csv", "area_km2": 12.5, **at}, dict(low)])
+    assert any("no area_km2" in note for note in bare["notes"])
+    assert any("12.5 km2 is in the drainage area" in note for note in given["notes"])
+    entry = elements(given, "source")["Wadi X"]["downstream"]
+    for name in (entry, "Low"):
+        before, after = (value_of(elements(m)[name], "drainage_area_km2") for m in (bare, given))
+        assert after == pytest.approx(before + 12.5, abs=1e-4)
+    assert value_of(elements(given)["JE"] if "JE" in elements(given) else elements(given)["Low"], "drainage_area_km2")
+    engine_bare, engine_given = (load_network(m, skip_incomplete=True) for m in (bare, given))
+    assert engine_given.drainage_area(entry) == pytest.approx(engine_bare.drainage_area(entry) + 12.5)
+    assert engine_given.drainage_area("Wadi X") == pytest.approx(12.5)
+
+
 def test_a_source_without_a_file_refuses(valley: Valley) -> None:
     with pytest.raises(ValueError, match="needs a file"):
         model(valley, [{"name": "S", "kind": "source", "col": NX // 2, "row": LOW}])

@@ -18,15 +18,17 @@ from wadi2d.basin.contract import (
     JUNCTION,
     REACH,
     RESERVOIR,
+    SOURCE,
     SUBBASIN,
     Model,
     check_model,
     refresh,
+    value_of,
     write_model,
 )
 from wadi2d.basin.delineate import Surface, flow_surface, read_surface
 from wadi2d.basin.diversion import check_targets
-from wadi2d.basin.elements import Built, Namer, build_elements
+from wadi2d.basin.elements import AREA_DIGITS, Built, Namer, build_elements
 from wadi2d.basin.kernels import NONE
 from wadi2d.basin.layers import write_layers
 from wadi2d.basin.network import Network, build_network
@@ -95,6 +97,7 @@ def assemble(
     built = build_elements(cfg, surface, network, settings, namer, notes)
     _outfalls(built, network, [point.name for point in pour.values() if point.role == POINT_OUTFALL], notes)
     check_targets(built.elements)
+    source_areas(built.elements, notes)
     model: Model = {
         "format": FORMAT,
         "format_version": FORMAT_VERSION,
@@ -122,6 +125,27 @@ def _outfalls(built: Built, network: Network, outfalls: list[str], notes: list[s
     built.links = {name: link for name, link in built.links.items() if name in names}
     built.lines = {name: line for name, line in built.lines.items() if name in names}
     network.label = np.where(np.isin(network.label, links), network.label, NONE)
+
+
+def source_areas(elements: list[dict], notes: list[str]) -> None:
+    """A source's ``area_km2`` added to the drainage area of every node below it, in place, as HMS counts a source's
+    representative area; a source without one leaves the ground's area as it is, said in the notes (W75)."""
+    by_name = {e["name"]: e for e in elements}
+    for element in elements:
+        if element["kind"] != SOURCE:
+            continue
+        area = value_of(element, "area_km2")
+        if area is None:
+            notes.append(f"source {element['name']}: no area_km2, so the drainage area below it is the ground's alone")
+            continue
+        name = element["downstream"]
+        while name is not None:
+            below = by_name[name]
+            entry = below["parameters"].get("drainage_area_km2")
+            if entry is not None and entry["value"] is not None:
+                entry["value"] = round(entry["value"] + float(area), AREA_DIGITS)
+            name = below["downstream"]
+        notes.append(f"source {element['name']}: its {area:g} km2 is in the drainage area of every node below it")
 
 
 def _counts(model: Model) -> dict[str, int]:
