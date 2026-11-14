@@ -30,12 +30,15 @@ SOURCE_DERIVED = "derived"
 SOURCE_USER = "user"
 SOURCE_MISSING = "missing"
 SUBBASIN, REACH, JUNCTION, RESERVOIR = "subbasin", "reach", "junction", "reservoir"
-KINDS = (SUBBASIN, REACH, JUNCTION, RESERVOIR)
+SOURCE = "source"
+"""An external hydrograph entering at its ``downstream`` junction (W73); ``hydrograph`` holds ``minutes`` and ``flow_m3s``."""
+KINDS = (SUBBASIN, REACH, JUNCTION, RESERVOIR, SOURCE)
 REQUIRED = {
     SUBBASIN: ("area_km2", "curve_number", "lag_minutes"),
     REACH: ("length_m", "slope", "manning_n", "bottom_width_m", "side_slope", "index_celerity"),
     JUNCTION: (),
     RESERVOIR: ("elevation_m", "area_m2", "spillways", "initial_elevation_m"),
+    SOURCE: ("hydrograph",),
 }
 """What an element needs to run lumped; the owner's rule reads ``missing``, built from this."""
 

@@ -12,7 +12,7 @@ import numpy as np
 import shapely
 from rasterio import features
 
-from wadi2d.basin.contract import JUNCTION, REACH, RESERVOIR, SUBBASIN, Element, value_of
+from wadi2d.basin.contract import JUNCTION, REACH, RESERVOIR, SOURCE, SUBBASIN, Element, value_of
 from wadi2d.basin.delineate import Surface
 from wadi2d.basin.elements import Built
 from wadi2d.basin.kernels import NONE
@@ -77,7 +77,7 @@ def write_layers(path: Path, surface: Surface, label: np.ndarray, built: Built) 
     polygons = _polygons(surface, label)
     subbasins = [e for e in built.elements if e["kind"] == SUBBASIN]
     reaches = [e for e in built.elements if e["kind"] == REACH]
-    nodes = [e for e in built.elements if e["kind"] in (JUNCTION, RESERVOIR)]
+    nodes = [e for e in built.elements if e["kind"] in (JUNCTION, RESERVOIR, SOURCE)]
     layers = [
         _layer(
             "subbasins",
