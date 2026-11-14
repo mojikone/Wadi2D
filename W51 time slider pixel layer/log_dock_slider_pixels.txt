@@ -1,0 +1,67 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-abd939271e512369f\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.0 === 1 a Bidah run at 20 m with maps every five minutes
+    5.0 PASS no pixel slider button before a run 
+    5.0 dock says: Starting...
+   14.2 dock says: water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   21.4 PASS finished Finished. water stood 7.6 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   21.4 PASS pixel slider button after a run 
+   21.4 === 2 one click: the layer
+   21.4 dock says: Starting the drawing process for this run...
+   23.8 PASS says how to use it Use the Temporal Controller to step through the flood: 24 saved maps, about every 5.01667 min; each step shows the last saved map at or before its time. Drawn at the terrain pixel (5 m) where a 20 m cell is at least 4 screen pixels wide; further out each cell 
+   23.8 dock: Use the Temporal Controller to step through the flood: 24 saved maps, about every 5.01667 min; each step shows the last saved map at or before its time. Drawn at the terrain pixel (5 m) where a 20 m cell is at least 4 screen pixels wide; further out each cell is drawn by its own value. Identify reads depth, speed and class at the terrain pixel. The pixel rasters stay the numbers of record. The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run.
+   23.8 PASS a valid layer 
+   23.8 PASS our provider wadi2d_slider
+   23.8 PASS three bands, depth first 
+   23.8 PASS drawn at the pixel ('pixel', 5.0)
+   23.8 PASS the layer is temporal 
+   23.8 PASS in the DEM's CRS EPSG:32640
+   23.8 PASS styled as the depth of record singlebandpseudocolor
+   23.8 PASS in the run's group 
+   23.8 PASS every saved map 24
+   23.8 PASS controller reaches the last map (24, 24)
+   23.8 backend gpu, 24 frames, 20.0 m cells, 5.0 m pixels, opened in 2.37 s
+   23.8 === 3 the numbers QGIS receives are the engine's renderer, run apart
+   23.8 views centred on the deepest water of the middle map, at 440094, 2727468
+   29.3 PASS a request with no time draws the canvas's map (3615.0, 12)
+   29.3 PASS the layer's depth is the engine's, to 1e-4 m (0.0, 'pixel', 5.0)
+   29.3 PASS wet somewhere in that window 13893
+   29.3 === 4 a full drawing, a pan, a zoom, five slider positions, as the canvas draws them
+   29.6 whole: first 0.058 s, again 0.058 s, {'frame': 12, 'detail': 'cells', 'pixel_m': 20.0, 'pending': 0, 'ms': 12.04, 'width': 1695, 'height': 1080}
+   29.8 PASS whole: drawn {'frame': 12, 'detail': 'cells', 'pixel_m': 20.0, 'pending': 0, 'ms': 12.04, 'width': 1695, 'height': 1080}
+   30.1 pan: first 0.054 s, again 0.054 s, {'frame': 12, 'detail': 'cells', 'pixel_m': 20.0, 'pending': 0, 'ms': 9.66, 'width': 1668, 'height': 1028}
+   30.2 PASS pan: drawn {'frame': 12, 'detail': 'cells', 'pixel_m': 20.0, 'pending': 0, 'ms': 9.66, 'width': 1668, 'height': 1028}
+   30.9 zoom_3km: first 0.353 s, again 0.137 s, {'frame': 12, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 113.78, 'width': 1096, 'height': 1080}
+   31.1 PASS zoom_3km: drawn {'frame': 12, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 113.78, 'width': 1096, 'height': 1080}
+   31.6 zoom_500m: first 0.154 s, again 0.138 s, {'frame': 12, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 107.19, 'width': 1776, 'height': 1080}
+   31.8 PASS zoom_500m: drawn {'frame': 12, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 107.19, 'width': 1776, 'height': 1080}
+   31.8 PASS the 500 m window is at the terrain pixel {'first_s': 0.154, 'again_s': 0.138, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 107.19}
+   31.8 === 5 five slider positions on the 3 km view, and stepping as an animation
+   32.1 PASS slider at 63 s shows map 0, the last at or before it {'frame': 0, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 116.14, 'width': 1096, 'height': 1080}
+   32.5 PASS slider at 1868 s shows map 6, the last at or before it {'frame': 6, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 109.54, 'width': 1096, 'height': 1080}
+   32.8 PASS slider at 3673 s shows map 12, the last at or before it {'frame': 12, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 94.88, 'width': 1096, 'height': 1080}
+   33.1 PASS slider at 5476 s shows map 18, the last at or before it {'frame': 18, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 113.57, 'width': 1096, 'height': 1080}
+   33.5 PASS slider at 6978 s shows map 23, the last at or before it {'frame': 23, 'detail': 'pixel', 'pixel_m': 5.0, 'pending': 0, 'ms': 108.8, 'width': 1096, 'height': 1080}
+   33.5 PASS the flood moves between positions [0.0, 0.0672, 0.1205, 0.109, 0.0862]
+   37.0 animation over 24 controller frames: mean 0.147 s, max 0.172 s
+   37.0 PASS every controller frame draws in under a second {'frames': 24, 'mean_s': 0.147, 'max_s': 0.172}
+   37.0 === 6 the canvas itself on the controller
+   37.0 PASS canvas time follows the controller at frame 2 
+   37.0 PASS canvas time follows the controller at frame 9 
+   37.0 PASS canvas time follows the controller at frame 16 
+   37.0 === 7 Identify: QGIS's own tool, at the terrain pixel
+   37.2 canvas 670 x 206, extent 437330.7,2726624.1 : 442856.4,2728311.6
+   37.5 what the tool asked: [{'op': 'point', 't': 3613.0, 'x': 440118.3934584456, 'y': 2727476.1002589986, 'identify': True}]
+   37.5 PASS the tool asked the provider once, at the slider's map ([{'op': 'point', 't': 3613.0, 'x': 440118.3934584456, 'y': 2727476.1002589986, 'identify': True}], 3615.0)
+   37.8 identify at 440116.1, 2727475.3: {'Depth, m': '3.4601', 'Hazard class, 1 to 6 are H1 to H6': '5', 'Speed, m/s': '0.0618'}; engine {'ok': True, 'depth': 3.4601, 'speed': 0.0618, 'hazard': 5.0, 'frame': 12, 't_s': 3613.0, 'detail': 'pixel', 'pixel_m': 5.0, 'ms': 279.35, 'bytes': 0}
+   45.3 provider identify {1: 3.622, 2: 0.0626, 3: 5.0}; one-pixel block 3.621999979019165; by frame {0: None, 1: 0.1098, 2: 0.6105, 3: 0.9806, 4: 1.2257, 5: 1.4397, 6: 1.7564, 7: 2.1233, 8: 2.4803, 9: 2.8135, 10: 3.1068, 11: 3.3748, 12: 3.622, 13: 3.8258, 14: 3.9905, 15: 4.1184, 16: 4.2138, 17: 4.2824, 18: 4.3319, 19: 4.3688, 20: 4.3966, 21: 4.4174, 22: 4.434, 23: 4.4473}; tool layer Flood over time, pixels
+   45.3 PASS Identify gives depth, speed and class ['Depth, m', 'Hazard class, 1 to 6 are H1 to H6', 'Speed, m/s']
+   45.3 PASS Identify reads the slider's map at the pixel (3.4601, 3.4601, 12)
+   45.3 PASS one band each 
+   45.3 === 8 the highest of the maps never passes the record
+   48.1 PASS no saved map stands above the record anywhere sampled 0.0
+   48.1 === 9 timings
+   48.1 TIMES {"open_s": 2.37, "whole": {"first_s": 0.058, "again_s": 0.058, "detail": "cells", "pixel_m": 20.0, "pending": 0, "ms": 12.04}, "pan": {"first_s": 0.054, "again_s": 0.054, "detail": "cells", "pixel_m": 20.0, "pending": 0, "ms": 9.66}, "zoom_3km": {"first_s": 0.353, "again_s": 0.137, "detail": "pixel", "pixel_m": 5.0, "pending": 0, "ms": 113.78}, "zoom_500m": {"first_s": 0.154, "again_s": 0.138, "detail": "pixel", "pixel_m": 5.0, "pending": 0, "ms": 107.19}, "slider": [{"frame": 0, "s": 0.135, "ms_engine": 116.14, "wet": 0.0}, {"frame": 6, "s": 0.135, "ms_engine": 109.54, "wet": 0.0672}, {"frame": 12, "s": 0.128, "ms_engine": 94.88, "wet": 0.1205}, {"frame": 18, "s": 0.139, "ms_engine": 113.57, "wet": 0.109}, {"frame": 23, "s": 0.136, "ms_engine": 108.8, "wet": 0.0862}], "animation": {"frames": 24, "mean_s": 0.147, "max_s": 0.172}}
+   48.1 SUMMARY 39 passed, 0 failed 
+   48.1 DONE

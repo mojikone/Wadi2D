@@ -1,0 +1,48 @@
+[
+ {
+  "backend": "gpu",
+  "open_s": 321.6,
+  "detail": "pixel",
+  "views": {
+   "whole block": {
+    "cold_s": 0.432,
+    "detail": "cells",
+    "pixel_m": 40.0,
+    "wet_pixels": 219572,
+    "again_s": 0.009,
+    "next_map_s": 0.175,
+    "back_s": 0.01,
+    "pan_cold_s": 0.009,
+    "pan_again_s": 0.008,
+    "hazard_s": 0.033,
+    "again_rerun_s": 0.011
+   },
+   "a wadi, 3 km": {
+    "cold_s": 0.981,
+    "detail": "pixel",
+    "pixel_m": 1.0,
+    "wet_pixels": 36506,
+    "again_s": 0.107,
+    "next_map_s": 0.216,
+    "back_s": 0.113,
+    "pan_cold_s": 0.222,
+    "pan_again_s": 0.103,
+    "hazard_s": 0.109
+   },
+   "500 m window": {
+    "cold_s": 0.186,
+    "detail": "pixel",
+    "pixel_m": 0.5,
+    "wet_pixels": 429493,
+    "again_s": 0.084,
+    "next_map_s": 0.087,
+    "back_s": 0.082,
+    "pan_cold_s": 0.082,
+    "pan_again_s": 0.09,
+    "hazard_s": 0.146
+   }
+  },
+  "ground_mb": 43.8,
+  "ground_tiles": 22
+ }
+]
