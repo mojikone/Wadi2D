@@ -5,7 +5,7 @@ one job per module, one configuration schema as the single source of truth (``wa
 versioned data contracts (``wadi2d.io``), registries for every method family.
 """
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 from wadi2d.gis_env import own_gis_data
 
