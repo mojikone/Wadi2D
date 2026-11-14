@@ -1,35 +1,37 @@
     0.0 script loaded
     5.0 PASS no engine setting in this profile 
-    5.2 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel020\\run\\gpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
+    5.2 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel020\\run3\\gpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
     5.3 PASS QGIS loads it 
-    5.3 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run\gpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
-    5.3 PASS metadata reads 0.2.0
+    5.3 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run3\gpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
+    5.3 PASS metadata reads 0.3.0
     5.5 dock says:  | 
-    6.0 PASS engine found with nothing set by hand Engine ready.
-    6.0 === hybrid against the record
-    6.0 PASS hms read by the installed engine 18
-    6.2 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses. | 
-    7.2 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
-  130.8 dock says: water stood 23.3 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there | 
-  140.2 PASS hybrid finished Finished. water stood 23.3 m deep against the domain edge at (430731, 2727380): an edge is a wall, so check the domain polygon there.
-  140.2 PASS on the GPU gpu
-  140.2 peaks {'Bidah_03': 622.4, 'Bidah_03_ring': 636.0, 'Faydh_01': 1122.8, 'Faydh_01_ring': 1122.3, 'R2A': 1812.2, 'R2A_ring': 1812.1, 'R5A': 1262.6, 'R5A_ring': 1264.5, 'S11_ring': 615.8, 'S14_ring': 558.6, 'S1_ring': 713.1, 'S2_ring': 570.6, 'S5_ring': 1275.4, 'S6_ring': 408.1, 'Z4C': 2103.3, 'Z4C_ring': 2100.7}
-  140.2 FAIL the five peaks match the record worst 385.80 m3/s
-  140.2 PASS no CuPy noise in engine.err 
-  140.4 === rain, pixel maps, Make map
-  140.5 dock says: Starting... | 
-  145.0 dock says: water stood 10.1 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there | 
-  146.5 PASS rain finished Finished. water stood 10.1 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
-  146.5 PASS pixel depth written ['map_layers.gpkg', 'pixels.json', 'pixel_depth.tif', 'pixel_dv.tif', 'pixel_hazard.tif', 'pixel_speed.tif']
-  146.5 PASS flood maps loaded ['2D model domain, closed walls except open boundaries', '2D model domain, closed walls except open boundaries', 'Cell grid, 20 m, drawn from 1:20,000 in', 'Cell grid, 40 m, drawn from 1:40,000 in', 'Depth, m', 'Depth, m', 'Depth x speed, m2/s', 'Depth x speed
-  146.6 dock says: This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run. | 
-  158.4 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run\gpu\runs\rain\pixels\rain_maps.pdf
-  158.4 === mesh, on WhiteboxTools from the installer
-  158.5 dock says: Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run\gpu\runs\rain\pixels\rain_maps.pdf | Reading the ground and the streams...
-  160.0 PASS mesh preview 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
-  160.0 dock says: Starting... | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
-  167.1 dock says: water stood 5.9 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
-  169.0 PASS mesh run finished Finished. water stood 5.9 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there.
-  169.0 SUMMARY 16 passed, 1 failed 
-  169.0   FAILED the five peaks match the record: worst 385.80 m3/s
-  169.0 DONE
+    6.1 PASS engine found with nothing set by hand Engine ready.
+    6.1 === hybrid against the record
+    6.1 PASS hms read by the installed engine 18
+    6.3 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses. | 
+    7.3 dock says: The HMS control file sets 48 h of simulated time, not the 30 h in the form. | 
+   10.4 dock says: 1 more streams enters through closed edges: see edge_checks.gpkg | 
+  140.2 dock says: 456 more places with deep water against the domain edge: see edge_checks.gpkg | 
+  150.9 PASS hybrid finished Finished. a stream draining 8.81 km2 leaves the domain at (430700, 2730310) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley. a stream draining 8.27 km2 leaves the domain at (430700
+  150.9 PASS on the GPU gpu
+  151.0 peaks {'Bidah_03': 622.4, 'Bidah_03_ring': 636.0, 'Faydh_01': 1122.8, 'Faydh_01_ring': 1122.3, 'R2A': 1812.2, 'R2A_ring': 1812.1, 'R5A': 1262.6, 'R5A_ring': 1264.5, 'S11_ring': 615.8, 'S14_ring': 558.6, 'S1_ring': 713.1, 'S2_ring': 570.6, 'S5_ring': 1275.4, 'S6_ring': 408.1, 'Z4C': 2103.3, 'Z4C_ring': 2100.7}
+  151.0 PASS the five peaks match the record worst 0.00 m3/s
+  151.0 PASS no CuPy noise in engine.err 
+  151.2 === rain, pixel maps, Make map
+  151.2 dock says: Starting... | 
+  152.7 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line | 
+  156.8 dock says: 108 more places with deep water against the domain edge: see edge_checks.gpkg | 
+  158.1 PASS rain finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+  158.1 PASS pixel depth written ['map_layers.gpkg', 'pixels.json', 'pixel_depth.tif', 'pixel_dv.tif', 'pixel_hazard.tif', 'pixel_speed.tif']
+  158.1 PASS flood maps loaded ['2D model domain, closed walls except open boundaries', '2D model domain, closed walls except open boundaries', 'Cell grid, 20 m, drawn from 1:20,000 in', 'Cell grid, 40 m, drawn from 1:40,000 in', 'Deep water against a closed domain edge', 'Deep water agains
+  158.1 dock says: This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run. | 
+  162.7 PASS pdf written Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run3\gpu\runs\rain\pixels\rain_maps.pdf
+  162.7 === mesh, on WhiteboxTools from the installer
+  162.8 dock says: Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run3\gpu\runs\rain\pixels\rain_maps.pdf | Reading the ground and the streams...
+  164.3 PASS mesh preview 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  164.4 dock says: Starting... | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  165.4 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of
+  170.9 dock says: water stood 5.9 m deep against the domain edge at (432581, 2727305): an edge is a wall, so check the domain polygon there | 103,792 cells, 2.771 x fewer than the uniform grid. Tiles: 56 of 10 m, 61 of 20 m, 7 of 40 m.
+  172.6 PASS mesh run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+  172.6 SUMMARY 17 passed, 0 failed 
+  172.6 DONE
