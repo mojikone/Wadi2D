@@ -784,6 +784,39 @@ class Slider(_Part):
     )
 
 
+class EdgeCheck(_Part):
+    """Domain outlines that cut valleys (W78): streams across a closed edge before a run, pools against one after it."""
+
+    enabled: bool = Field(True, description="Look for streams across closed edges before a run and pools after it")
+    stream_km2: float = Field(
+        0.25, ge=0.0, le=10000.0, description="A stream draining this much at a closed edge is named, km2"
+    )
+    pixel_m: float = Field(10.0, gt=0.0, le=200.0, description="Pixel of the stream analysis, m")
+    beyond_m: float = Field(
+        1000.0, ge=0.0, le=50000.0, description="Ground read past the domain, so a stream's way beyond the edge is seen, m"
+    )
+    max_pixels: int = Field(
+        6_000_000, ge=10_000, le=200_000_000, description="Most pixels of the analysis; the pixel doubles until it fits"
+    )
+    line_reach_m: float = Field(
+        150.0, ge=0.0, le=5000.0, description="A boundary line or inflow point this close to a crossing opens it, m"
+    )
+    cluster_m: float = Field(
+        200.0, ge=0.0, le=10000.0, description="Crossings of one kind closer than this are one place, m"
+    )
+    flat_m: float = Field(
+        0.3, ge=0.0, le=10.0, description="Level spread along the edge within which deep water is a pool, m"
+    )
+    pool_cells: int = Field(
+        5,
+        ge=1,
+        le=100000,
+        description="Cells of water at the pool's level, joined to it, that make it a pool; fewer is a bowl of edge cells "
+        "whose ground falls outward past a divide",
+    )
+    max_listed: int = Field(10, ge=1, le=1000, description="Places named one by one in the warnings, of each kind")
+
+
 class Outputs(_Part):
     map_every_s: float = Field(
         900.0,
@@ -810,6 +843,7 @@ class Outputs(_Part):
     edge_depth: float = Field(
         3.0, ge=0.0, le=100.0, description="Depth against a closed domain edge that draws a warning, m"
     )
+    edge_check: EdgeCheck = EdgeCheck()
     progress_every_s: float = Field(
         2.0, ge=0.05, le=600.0, description="Wall seconds between progress events and stop checks"
     )
