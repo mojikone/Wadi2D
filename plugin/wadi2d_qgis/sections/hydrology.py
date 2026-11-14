@@ -9,8 +9,19 @@ from pathlib import Path
 
 from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import pyqtSignal
-from qgis.PyQt.QtWidgets import QComboBox, QFormLayout, QHeaderView, QTableWidget, QTableWidgetItem, QWidget
+from qgis.PyQt.QtGui import QColor
+from qgis.PyQt.QtWidgets import (
+    QComboBox,
+    QFormLayout,
+    QHeaderView,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QWidget,
+)
 
+from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
+from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
     CURVE_NUMBER,
     HMS_KEYS,
@@ -23,12 +34,15 @@ from .basin_rows import REACH_ROUTING, ROUTING_WORDS, SubbasinRow, hms_elements,
 from .common import Section, ValueOrRaster, bind
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
+REFUSED_COLOUR = "#b00000"
 
 
 class HydrologySection(Section):
     heading = "3. Hydrology"
     hms_changed = pyqtSignal(bool)
     """Whether an HMS project is in use."""
+    structures_requested = pyqtSignal(str)
+    """An HMS basin file was chosen: the dock asks the engine what its reservoirs route by (W75)."""
 
     def build(self) -> None:
         self.folder = QgsFileWidget()
@@ -42,6 +56,21 @@ class HydrologySection(Section):
         self.files = {key: QComboBox() for key in HMS_KEYS}
         for key in HMS_KEYS:
             hms.addRow(HMS_LABELS[key], self.files[key])
+        self.reservoirs = QTableWidget(0, len(STRUCTURE_COLUMNS))
+        self.reservoirs.setHorizontalHeaderLabels(STRUCTURE_COLUMNS)
+        self.reservoirs.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.reservoirs.verticalHeader().hide()
+        self.reservoirs.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.reservoirs.setToolTip(
+            "Read only: each reservoir of the HMS basin, its outlets and options as the file holds them (culverts, "
+            "orifices, gates, pumps, spillways, dam tops, seepage, evaporation) and the engine's word, the run's own. "
+            "Edit them in HEC-HMS."
+        )
+        self.reservoirs_note = QLabel("")
+        self.reservoirs_note.setWordWrap(True)
+        hms.addRow(self.reservoirs)
+        hms.addRow(self.reservoirs_note)
+        self.reservoirs.hide()
         self.form.addRow(self.hms_box)
         self.hms_box.hide()
 
@@ -120,6 +149,25 @@ class HydrologySection(Section):
         names = hms_subbasins(path)
         self._fill_table([SubbasinRow(n, [], "lumped", mode_tip(n, [], "lumped")) for n in names])
         self.handbacks.set_choices(hms_elements(path))
+        self.show_structures([], "")
+        if path.is_file():
+            self.structures_requested.emit(str(path))
+
+    def say_structures(self, text: str) -> None:
+        self.reservoirs_note.setText(text)
+
+    def show_structures(self, rows: list[ReservoirRow], note: str) -> None:
+        """The engine's answer on the basin's reservoirs, read only."""
+        self.reservoirs.setRowCount(len(rows))
+        for number, row in enumerate(rows):
+            for column, text in enumerate((row.name, row.method, row.structures, row.word)):
+                item = QTableWidgetItem(text)
+                item.setToolTip(text)
+                if row.refused and column == len(STRUCTURE_COLUMNS) - 1:
+                    item.setForeground(QColor(REFUSED_COLOUR))
+                self.reservoirs.setItem(number, column, item)
+        self.reservoirs.setVisible(bool(rows))
+        self.reservoirs_note.setText(note)
 
     def _fill_table(self, rows: list[SubbasinRow]) -> None:
         """Every subbasin with its mode: a choice where the parameters are complete, rain-on-grid where not."""

@@ -326,6 +326,20 @@ def _hms_import(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _hms_structures(args: argparse.Namespace) -> int:
+    """Each reservoir of an HMS basin, its structures and the engine's refusal if any, as JSON (W75)."""
+    from wadi2d.engine.hms_structures import reservoir_structures
+
+    try:
+        found = reservoir_structures(args.basin, args.project)
+        Path(args.out).write_text(json.dumps(found, indent=2), encoding="utf-8")
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_HMS, "message": str(error)}), file=sys.stderr)
+        return EXIT_HMS
+    print(json.dumps({"ev": "done", "path": str(args.out), "reservoirs": len(found["reservoirs"])}))
+    return EXIT_OK
+
+
 def _pairs(items: list[str] | None, what: str) -> dict[str, str]:
     """``KEY=VALUE`` options as a dict, refused in words when one has no ``=``."""
     found = {}
@@ -475,6 +489,14 @@ def parser() -> argparse.ArgumentParser:
     hms.add_argument("--control", required=True)
     hms.add_argument("--out", required=True)
     hms.set_defaults(call=_hms_import)
+
+    structures = sub.add_parser(
+        "hms-structures", help="each reservoir of an HMS basin, its structures and the engine's refusal, as JSON"
+    )
+    structures.add_argument("basin", metavar="BASIN_FILE")
+    structures.add_argument("--project", default=None, help="the .hms file; default the one beside the basin")
+    structures.add_argument("--out", required=True)
+    structures.set_defaults(call=_hms_structures)
 
     book = sub.add_parser(
         "workbook",

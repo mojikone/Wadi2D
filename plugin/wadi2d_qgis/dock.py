@@ -84,6 +84,7 @@ from .sections.structures import StructuresSection
 from .sections.study import StudySection
 from .sections.terrain import TerrainSection
 from .storm_rows import rain_args, rain_reply
+from .structures_query import StructuresLinks
 from .study_rows import (
     ARF_STEP,
     arf_step_areas,
@@ -199,6 +200,7 @@ class Wadi2DDock(QgsDockWidget):
         self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
+        self.structures_links = StructuresLinks(self)  # an HMS basin's reservoirs, read only (W75)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.terrain.dx.valueChanged.connect(self._finest_changed)
