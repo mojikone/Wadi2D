@@ -69,6 +69,40 @@ def test_a_patch_at_the_window_edge_is_left_alone() -> None:
     assert sm.despeck(mask, 5)[0, 5]
 
 
+def _full_despeck(mask: np.ndarray, smallest: int) -> np.ndarray:
+    """``despeck`` on the whole array, as it ran before it worked on the mask's box."""
+    kept = mask & ~sm._small_parts(mask, smallest)
+    return kept | sm._small_parts(~kept, smallest)
+
+
+@pytest.mark.parametrize("seed", [1, 2, 3])
+@pytest.mark.parametrize("where", ["inside", "edge", "corner"])
+def test_work_on_the_mask_s_box_gives_the_whole_array_s_answer(seed: int, where: str) -> None:
+    """W50: despeckle and blur on the box round a mask, the same masks and fields to the last bit, whether the box
+    lies inside the window, on its edge or in its corner; contours there are the whole field's within float noise."""
+    rng = np.random.default_rng(seed)
+    mask = np.zeros((300, 260), bool)
+    rows, cols = {"inside": (slice(90, 190), slice(70, 160)), "edge": (slice(0, 120), slice(60, 200)),
+                  "corner": (slice(180, 300), slice(150, 260))}[where]  # fmt: skip
+    patch = ndimage.gaussian_filter(rng.normal(size=mask[rows, cols].shape), 3.0)
+    mask[rows, cols] = patch > 0.02 * patch.std()
+    mask[rows, cols][::17, ::13] ^= True  # speckle and pinholes
+    for smallest in (5, 40):
+        np.testing.assert_array_equal(sm.despeck(mask, smallest), _full_despeck(mask, smallest))
+    for sigma in (0.7, 1.0, 2.5):
+        np.testing.assert_array_equal(sm.soft_near(mask, sigma), sm.soft(mask, sigma))
+    field = sm.soft(mask, 1.0)
+    level = sm.area_iso(field, int(mask.sum()))
+    parts, dr, dc = sm.contour_near(field, level)
+    moved = [shapely.transform(p, lambda xy: xy + np.array([dc, dr])) for p in parts]
+    whole = sm.contour_polygons(field, level)
+    assert len(moved) == len(whole)
+    for a, b in zip(moved, whole, strict=True):
+        assert shapely.equals_exact(a, b, 1e-9)
+    assert sm.contour_near(np.zeros((5, 5), np.float32)) == ([], 0, 0)
+    assert sm.soft_near(np.zeros((5, 5), bool), 1.0).max() == 0.0
+
+
 def test_the_contour_holds_the_area_it_is_asked_for() -> None:
     mask = rough_classes() >= 3
     field = sm.soft(mask, 1.0)
