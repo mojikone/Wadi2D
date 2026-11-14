@@ -457,6 +457,9 @@ def _boundary(feature: Feature) -> dict:
         entry["slope"] = value
     elif kind == "flow":  # HEC-RAS's Flow Hydrograph line: the engine shares it by normal depth (W61)
         entry["flow"] = {"file": feature.properties.get("file")}
+        for key in ("momentum", "direction"):  # W70's two, written only where the table moved them off the default
+            if feature.properties.get(key) is not None:
+                entry["flow"][key] = feature.properties[key]
     return entry
 
 

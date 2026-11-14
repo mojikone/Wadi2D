@@ -250,6 +250,26 @@ def test_a_flow_line_reaches_the_engine_with_its_file_and_one_without_stops_the_
     assert not any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[flow])))
 
 
+def test_a_flow_line_s_momentum_and_direction_reach_the_engine_only_off_their_defaults(tmp_path: Path) -> None:
+    """W75: the Boundaries table's two columns; the engine's defaults are the table's (W70)."""
+    from wadi2d_qgis.boundary_rows import DIRECTIONS, MOMENTUM_DEFAULT, job_properties, new_row
+
+    flow_field = config.FlowHydrograph.model_fields
+    assert flow_field["momentum"].default is MOMENTUM_DEFAULT and flow_field["direction"].default == DIRECTIONS[0]
+    assert set(DIRECTIONS) == set(flow_field["direction"].annotation.__args__)
+    line = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
+    plain = new_row({"fid": 1, "label": "L", "kind": "flow", "file": "D:/q.csv"}, "flow", None, {})
+    assert "momentum" not in job_properties(plain) and "direction" not in job_properties(plain)
+    own = new_row({"fid": 2, "label": "M", "kind": "flow", "file": "D:/q.csv", "momentum": "no", "direction": "Left"},
+                  "flow", None, {})  # fmt: skip
+    features = [Feature("LineString", line, job_properties(row)) for row in (plain, own)]
+    parsed = config.RunConfig.model_validate(build_job(full_values(tmp_path, boundaries=features), tmp_path / "out"))
+    first, second = parsed.boundaries
+    assert first.flow.momentum is True and first.flow.direction == "auto"
+    assert "momentum" not in first.flow.model_fields_set  # left to the engine: a quadtree drops it with a warning
+    assert second.flow.momentum is False and second.flow.direction == "left"
+
+
 def test_the_table_s_ladder_is_the_engines() -> None:
     """The table answers at every key press, so it does the sum itself; this is what keeps it the engine's sum."""
     from wadi2d_qgis.mesh_rows import rung_size
