@@ -43,7 +43,7 @@ from ..gauge_rows import (
 from ..job_builder import layer_features
 from .common import Section, field_combo, layer_combo, number_box
 
-COLUMNS = ["Name", "Gauge", "Record", "Series", "Position x, y, or compared with"]
+COLUMNS = ["Name", "Gauge", "Record", "Series", "Position or line"]
 NAME_COLUMN, KIND_COLUMN, FILE_COLUMN, SERIES_COLUMN, AT_COLUMN = range(5)
 RECORD_FILES = "Station records (*.csv *.txt *.tsv *.dat *.dss);;All files (*)"
 SHOWN_ROWS = 6
