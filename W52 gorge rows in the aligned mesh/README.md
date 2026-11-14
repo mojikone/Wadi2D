@@ -155,7 +155,7 @@ width (2, 6 and 12 rows on a narrow bed give 1, 3 and 3 each side); a reach's en
 triangle; no wall inside the pair (flat ground, or a channel wider than the pair) leaves the geometry object itself
 untouched; the setting off by default and even. `tests/strips/test_geometry_precision.py` (1): a 3.25 by 20 m cell
 at UTM coordinates has its true area and centroid in both copies of the shoelace (it failed before the fix).
-`tests/strips` 64 of 64 (in the combined run, `pytest_strips_solver_tables.log`, stopped after them), `tests/solver` and `tests/tables` without `test_analytic.py` 104 of 104 with the precision test (`pytest_solver_tables_rest.log`), `test_analytic.py` run alone (`pytest_analytic.log`; its four still-water cases 4 of 4, `pytest_analytic_last.log`). The analytic cases run on the lattice, which neither change touches. `tests/plugin/test_contract.py` 81 of 81 with the schema sample
+`tests/strips` 64 of 64 (in the combined run, `pytest_strips_solver_tables.log`, stopped after them), `tests/solver` and `tests/tables` without `test_analytic.py` 104 of 104 with the precision test (`pytest_solver_tables_rest.log`), `test_analytic.py`: Stoker and Ritter 6 of 6 and the four still-water cases 4 of 4 (`pytest_analytic.log`, `pytest_analytic_last.log`); the four Thacker cases were still running on the shared CPU when this was written, over an hour each. The analytic cases run on the lattice, which neither change touches. `tests/plugin/test_contract.py` 81 of 81 with the schema sample
 regenerated.
 
 ## Not done
