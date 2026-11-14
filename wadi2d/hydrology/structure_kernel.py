@@ -6,7 +6,9 @@ by :mod:`wadi2d.hydrology.structures` as a kind code, an outlet code, three para
 
 Every law was measured against HEC-HMS 4.12 headless on a metric test project (W59), not taken from the manual alone:
 
-- broad-crested spillway and level dam top, C L H^1.5 on the pool head over the crest;
+- broad-crested spillway and level dam top, C L H^1.5 on the pool head over the crest, drowned by a tailwater over
+  the crest through one tabulated reduction on the submergence (tailwater over pool heads), linear between its
+  rows, the same for both (W67);
 - rating-curve spillway, the table read at the pool, linear between rows, never drowned by a tailwater;
 - orifice, K A sqrt(2 g H) with H from the higher of the centreline and the tailwater, g = 9.80665 m/s2 (HMS's own);
 - tabular seepage, the pool-to-tailwater table read at the pool minus the tailwater, or minus the bottom of the storage
@@ -63,6 +65,13 @@ PUMP_SWITCH_ON_TOLERANCE_M = 5.0e-4
 """A pump switches on at a step whose start lies within half a millimetre under its switch-on level (W62: HMS did at
 0.22, 0.36 and 0.38 mm under, and did not at 0.59 and 1.3 mm under; [Likely] it compares levels to the millimetre)."""
 
+SUBMERGENCE = np.array([0.76, 0.84, 0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 0.995, 1.0])
+SUBMERGED_SHARE = np.array([1.0, 0.985, 0.96, 0.93, 0.88, 0.82, 0.72, 0.575, 0.38, 0.0])
+"""HMS's drowned broad-crested spillway and level dam top (W67): the share of free flow against the submergence
+(tailwater - crest) / (pool - crest), linear between rows, none from 1. Read off HMS's output: the slope of the
+share between neighbouring steps is constant to 1e-3 between these rows and changes at each, on three runs and
+both structures; the table gives HMS's flows to round-off."""
+
 MAIN_OUTLET = 0
 AUXILIARY_OUTLET = 1
 
@@ -115,6 +124,19 @@ def _gate(level: float, row: np.ndarray) -> tuple[float, float]:
 
 
 @njit(cache=True)
+def _drowned(flow: float, slope: float, head: float, submergence: float) -> tuple[float, float]:
+    """A weir's free flow and dQ/dz reduced at a submergence s = h2 / h1: Q f(s), and since ds/dz = -s / h1,
+    dQ/dz = f dQ/dz + Q f'(s) (-s / h1). None at and past 1, no reverse flow."""
+    if submergence >= 1.0:
+        return 0.0, 0.0
+    share = _interpolate(submergence, SUBMERGENCE, SUBMERGED_SHARE)
+    if submergence <= SUBMERGENCE[0]:
+        return flow * share, slope * share
+    tilt = _row_slope(submergence, SUBMERGENCE, SUBMERGED_SHARE, False)
+    return flow * share, slope * share - flow * tilt * submergence / head
+
+
+@njit(cache=True)
 def _structure(
     index: int,
     level: float,
@@ -139,7 +161,10 @@ def _structure(
         if head <= 0.0:
             return 0.0, 0.0
         flow = parameters[index, 2] * parameters[index, 1] * head**WEIR_POWER
-        return flow, WEIR_POWER * parameters[index, 2] * parameters[index, 1] * head**WEIR_SLOPE_POWER
+        slope = WEIR_POWER * parameters[index, 2] * parameters[index, 1] * head**WEIR_SLOPE_POWER
+        if math.isnan(stage) or stage <= parameters[index, 0]:
+            return flow, slope
+        return _drowned(flow, slope, head, (stage - parameters[index, 0]) / head)
     if kind == ORIFICE:
         base = parameters[index, 0]
         if not math.isnan(stage) and stage > base:

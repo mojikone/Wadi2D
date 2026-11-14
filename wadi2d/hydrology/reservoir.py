@@ -36,6 +36,7 @@ from wadi2d.hydrology.structures import (
     Packed,
     Pump,
     RatingSpillway,
+    SpillwayGate,
     Structure,
     TabularSeepage,
     flows_at,
@@ -208,11 +209,13 @@ class ReservoirOutflowStructures:
                 raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a pump's intake at "
                                  f"{structure.intake_m} m; what HMS does then was not identified (W62)")
         if self.tailwater_m is not None:
-            for structure in (*self.spillways, *self.structures):
-                crest = getattr(structure, "crest_elevation_m", None)
-                if structure.outlet == MAIN_OUTLET and crest is not None and self.tailwater_m >= crest:
-                    raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a weir crest at {crest} m; "
-                                     "HMS's drowned-weir rule was not identified (W59)")
+            for structure in self.structures:
+                if isinstance(structure, SpillwayGate) and structure.outlet == MAIN_OUTLET and (
+                    self.tailwater_m >= structure.crest_elevation_m
+                ):
+                    raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a gated crest at "
+                                     f"{structure.crest_elevation_m} m; HMS's drowned-weir rule under a gate was not "
+                                     "identified (W62); a plain spillway or dam top is drowned as HMS does it (W67)")
 
     @cached_property
     def storage_m3(self) -> FloatArray:

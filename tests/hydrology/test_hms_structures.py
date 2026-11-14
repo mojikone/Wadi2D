@@ -244,8 +244,6 @@ def test_a_job_dates_monthly_evaporation_from_storm_rain_start(
 def test_refusals() -> None:
     z = np.linspace(100.0, 110.0, 11)
     a = np.full(11, 1.0e5)
-    with pytest.raises(ValueError, match="drowned-weir"):
-        ReservoirOutflowStructures(z, a, (Spillway(104.0, 10.0, 1.6),), 100.0, tailwater_m=104.5)
     with pytest.raises(ValueError, match="rating table ends"):
         ReservoirOutflowStructures(z, a, (), 100.0, structures=(RatingSpillway(z[:5], np.arange(5.0)),))
     with pytest.raises(ValueError, match="start date"):

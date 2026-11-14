@@ -124,8 +124,8 @@ class Orifice:
 @STRUCTURE_KINDS.register(LEVEL_DAM_TOP)
 @dataclass(frozen=True)
 class LevelDamTop:
-    """A level dam top, Q = C L H^1.5 over the crest. HMS's drowned rule is a curve not identified (W59), so a
-    reservoir refuses a tailwater that reaches the crest."""
+    """A level dam top, Q = C L H^1.5 over the crest, drowned by a tailwater over it through HMS's tabulated
+    reduction on the submergence, the same as a broad-crested spillway's (W67, ``structure_kernel.SUBMERGENCE``)."""
 
     crest_elevation_m: float
     crest_length_m: float
@@ -169,7 +169,7 @@ class SpillwayGate:
     Weir flow over the group's width at the spillway's coefficient while the head over the crest is at most the
     opening; from 1.25 openings the gate law, sluice C W B k sqrt(H) or radial C k W T^TE B^BE H^HE (W the group's
     width, k = 4.42869); linear in head over opening between. The drowned forms are not identified and a tailwater
-    reaching the crest is refused, as for every weir.
+    reaching the crest is refused (a plain spillway or dam top is drowned as HMS does it, W67).
     """
 
     kind: str

@@ -18,6 +18,19 @@ The uncomfortable findings first.
   the barrel (normal depth at the crown) reads up to 1.1 cm of pool under HMS's; neither the step count of the profile,
   a switch to full flow below the crown, nor equal-length standard steps reproduce it (`scripts/probe_profile.py`,
   `probe_stations.py`). It costs 1.4e-3 of the peak culvert flow at HMS's levels, 7.8e-4 of the peak outflow routed.
+- [Certain] **HMS's drowned weir is a table, not a formula**: W59 refused it because neither Villemonte nor the
+  manual's "smaller of two heads" fits. The share of free flow against the submergence s = (tailwater - crest) /
+  (pool - crest) is piecewise linear with rows at 0.76 (1.0), 0.84 (0.985), 0.88 (0.96), 0.90 (0.93), 0.92 (0.88),
+  0.94 (0.82), 0.96 (0.72), 0.98 (0.575), 0.995 (0.38) and 1.0 (0): the slope between neighbouring HMS steps is
+  constant to 1e-3 inside each row and jumps at each (`scripts/submergence_breaks.py`), the same on a level dam top and
+  a broad-crested spillway, three tailwaters. With it, HMS's drowned flow at HMS's own pool levels is reproduced to
+  1e-16 of the peak. [Likely] it is the broad-crested submergence curve HEC-RAS uses (submergence begins at 76 %);
+  the HMS technical reference names no curve, so the citation is HMS's own output.
+- Near full submergence the outflow moves about 16,000 m3/s per metre of pool (`level_dam_tw`, s over 0.99), and HMS
+  sub-steps there more finely than its 0.1 m rule: ours parts from HMS's pool by 3.8 mm there and rejoins it to the
+  digit once s passes 1; with 1 mm sub-steps it comes to 0.2 mm. HMS's rule is not identified, the engine keeps the
+  0.1 m rule, and the test holds that case on its pool (4 mm) and peak (2e-3). A spillway whose pool stands between its
+  crest and the tailwater shows HMS's sixtieth again (2,644 and 26,171 m3 on the two spillway runs).
 
 ## Culverts: what is built
 
@@ -35,6 +48,25 @@ Refused by name: shapes other than Box and Circular (arch, Con-Span, elliptical,
 semi-circular need HMS's own size tables, `H.class`'s 551 constants, not transcribed); a chart and scale not in the
 table above, or one of the other shape; a barrel with no fall; outlet control governing on a steep barrel (normal
 under critical depth: HMS's rule there not measured); any key not listed.
+
+## Drowned weirs: what is built
+
+| Piece | Where | Rule |
+|---|---|---|
+| Submergence table | `structure_kernel.py` `SUBMERGENCE`, `SUBMERGED_SHARE` | The ten rows above, linear between, none at and past s = 1 (no reverse flow), and dQ/dz carried through it for the Newton solve |
+| Broad-crested spillway and level dam top | `structure_kernel._structure`, `_drowned` | Free flow C L H^1.5 times the share, when a fixed main tailwater stands over the crest; with no tailwater or one under the crest the arithmetic is the old one, bit for bit |
+| Refusal narrowed | `reservoir.py` | A tailwater reaching a gated crest is still refused (the gate's drowned and orifice regimes, W62); a plain crest now routes |
+
+| Case | Tailwater, crest | HMS peak outflow, m3/s | at HMS's levels, of peak | routed: outflow, of peak | pool, m |
+|---|---|---|---|---|---|
+| `damtop_drowned` (dam top 150 m, C 1.7, beside W59's rating) | 109.7, 109.5 m | 238.77 | 5e-17 | 2.6e-4 | 2.3e-4 |
+| `level_dam_tw` (W59's case) | 110.2, 109.5 m | 257.41 | 5e-17 | 1.6e-1 at the stiff steps; peak +1.7e-3 | 3.8e-3 |
+| `broad_drowned` (60 m, C 1.6) | 108.3, 108 m | 242.64 | 4e-18 | 2.4e-3 (HMS's sixtieth) | 3.7e-3 |
+| `broad_drowned_high` | 109.5, 108 m | 258.42 | 1e-16 | 7.3e-2 (HMS's sixtieth, 26,171 m3) | 2.2e-2 |
+
+Tests: `tests/hydrology/test_hms_drowned_weirs.py` (the law on HMS's levels to 1e-9 on all four, `damtop_drowned`
+within W59's 3e-4 of peak and 3e-4 m, `level_dam_tw` on pool and peak, HMS's sixtieth on the spillway runs with ours
+at 1 on the same steps, hand numbers); W59's refusal test of a drowned crest removed.
 
 ## The basin-file keys
 
@@ -71,6 +103,7 @@ compute slowly holds here only at packing.
 
 ## Not done
 
+- Drowned gates (a tailwater over a gated crest); HMS's sub-steps near full submergence.
 - Culvert shapes other than box and circular; steep barrels in outlet control; the crown-reaching part-full barrel's
   last centimetre.
 - A culvert with a tailwater other than none or Fixed Stage (as every structure).
@@ -82,4 +115,4 @@ compute slowly holds here only at packing.
 - Probes: `submergence_breaks.py`, `fit_inlet.py`, `probe_inlet.py`, `probe_transition.py`, `probe_culvert.py`,
   `probe_outlet.py`, `probe_profile.py`, `probe_stations.py`; `class_constants.py` and `find_culvert_jar.py` read
   `hms.jar` in place. `_work/` holds the HMS projects and is not committed.
-- Tests: `tests/hydrology/test_hms_culverts.py`.
+- Tests: `tests/hydrology/test_hms_culverts.py`, `tests/hydrology/test_hms_drowned_weirs.py`.
