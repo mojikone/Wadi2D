@@ -665,13 +665,15 @@
     },
     "BreachEstimator": {
       "additionalProperties": false,
-      "description": "Breach width, side slopes and formation time from the dam and its pool, by a published regression (HEC TD-39).",
+      "description": "Breach width, side slopes and formation time from the dam and its pool, by a published regression (HEC TD-39;\nFroehlich 2016 and Xu and Zhang 2009 as West, Morris and Hassan tabulate them, HR Wallingford HRPP770, 2018).",
       "properties": {
         "method": {
           "enum": [
             "froehlich_2008",
             "macdonald_langridge_monopolis",
-            "von_thun_gillette"
+            "von_thun_gillette",
+            "froehlich_2016",
+            "xu_zhang_2009"
           ],
           "title": "Method",
           "type": "string"
@@ -739,6 +741,32 @@
           "minimum": 0.0,
           "title": "Downstream Slope",
           "type": "number"
+        },
+        "erodibility_class": {
+          "default": "medium",
+          "description": "Xu and Zhang: erodibility of the dam's material, high, medium or low",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "title": "Erodibility Class",
+          "type": "string"
+        },
+        "dam_height_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 500.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Xu and Zhang: height of the dam, m; the breach height if not given",
+          "title": "Dam Height M"
         }
       },
       "required": [

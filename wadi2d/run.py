@@ -339,6 +339,11 @@ def job_hash(cfg: RunConfig) -> str:
         data.pop("dam_levels")
     if not cfg.breaches:
         data.pop("breaches")  # a job without a breach keeps the hash it had before breaches existed (W63)
+    for breach in data.get("breaches", []):  # and a W63 estimator the hash it had before W76's two fields
+        estimator = breach.get("estimator") or {}
+        if estimator.get("erodibility_class") == "medium" and estimator.get("dam_height_m") is None:
+            estimator.pop("erodibility_class")
+            estimator.pop("dam_height_m")
     if not cfg.strips.enabled:
         data.pop("strips")  # a job without strips keeps the hash it had before strips existed
     if cfg.storm.gauges is None:

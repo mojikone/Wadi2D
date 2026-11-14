@@ -102,8 +102,51 @@ def _von_thun_cb(volume: float) -> float:
     return 54.9
 
 
-def estimate(est: BreachEstimator, mode: str, height: float) -> Estimate:
-    """Final bottom width, side slope (H:V) and formation time (s) for a breach ``height`` m deep (HEC TD-39, 2014).
+XU_ZHANG_REFERENCE_HEIGHT_M = 15.0
+XU_ZHANG_UNIT_TIME_S = 3600.0
+XU_ZHANG_WIDTH_MODE = {"overtopping": -1.207, "piping": -1.747}
+XU_ZHANG_WIDTH_ERODIBILITY = {"high": -0.613, "medium": -1.073, "low": -1.268}
+XU_ZHANG_TIME_ERODIBILITY = {"high": 0.038, "medium": 0.066, "low": 0.205}
+
+
+def _froehlich_2016(est: BreachEstimator, mode: str, hb: float) -> Estimate:
+    """Froehlich, D.C. (2016a), Empirical model of embankment dam breaching, River Flow 2016, as tabulated by West, Morris
+    and Hassan (2018), *A guide to breach prediction*, HR Wallingford HRPP770, Appendix B: B_ave = 0.23 k_o V_w^(1/3),
+    k_o 1.5 overtopping and 1.0 piping; side slopes 1.0 overtopping, 0.6 piping; t_f = 60 (V_w / (g h_b^2))^0.5 s
+    (the guide's column says hours, but its Froehlich 2008 entry, 0.0176 h, is TD-39's 63.2 s: the 60 is seconds)."""
+    ko = 1.5 if mode == "overtopping" else 1.0
+    slope = 1.0 if mode == "overtopping" else 0.6
+    bave = 0.23 * ko * est.pool_volume_m3 ** (1.0 / 3.0)
+    time = 60.0 * math.sqrt(est.pool_volume_m3 / (G * hb * hb))
+    return Estimate(max(bave - slope * hb, 0.0), slope, time, f"Froehlich (2016): B_ave {bave:.1f} m")
+
+
+def _xu_zhang_2009(est: BreachEstimator, mode: str, hb: float, slope: float | None) -> Estimate:
+    """Xu, Y. and Zhang, L.M. (2009), Breaching parameters for earth and rockfill dams, J. Geotech. Geoenviron. Eng.
+    135(12), 1957-1970: the authors' best simplified models, as tabulated by West, Morris and Hassan (2018), HRPP770,
+    Appendix B: B_ave / h_b = 5.543 (V_w^(1/3) / h_w)^0.739 exp(b4 + b5), b4 -1.207 overtopping and -1.747 piping,
+    b5 -0.613, -1.073 and -1.268 for high, medium and low erodibility; t_f / 1 h = b5' (h_d / 15 m)^0.654
+    (V_w^(1/3) / h_w)^1.246, b5' 0.038, 0.066 and 0.205. The simplified models give no side slope, which the job must,
+    and no dam-type term: the full model's dam-type coefficients were not read from a citable source (W76)."""
+    if slope is None:
+        raise ValueError("Xu and Zhang (2009): its simplified models give no side slope; give left_slope and right_slope")
+    vw = est.pool_volume_m3
+    hw = est.water_depth_m if est.water_depth_m is not None else hb
+    hd = est.dam_height_m if est.dam_height_m is not None else hb
+    shape = vw ** (1.0 / 3.0) / hw
+    exponent = XU_ZHANG_WIDTH_MODE[mode] + XU_ZHANG_WIDTH_ERODIBILITY[est.erodibility_class]
+    bave = hb * 5.543 * shape**0.739 * math.exp(exponent)
+    hours = XU_ZHANG_TIME_ERODIBILITY[est.erodibility_class] * (hd / XU_ZHANG_REFERENCE_HEIGHT_M) ** 0.654 * shape**1.246
+    return Estimate(
+        max(bave - slope * hb, 0.0), slope, hours * XU_ZHANG_UNIT_TIME_S,
+        f"Xu and Zhang (2009), {est.erodibility_class} erodibility: B_ave {bave:.1f} m",
+    )
+
+
+def estimate(est: BreachEstimator, mode: str, height: float, slope: float | None = None) -> Estimate:
+    """Final bottom width, side slope (H:V) and formation time (s) for a breach ``height`` m deep (HEC TD-39, 2014;
+    Froehlich 2016 and Xu and Zhang 2009 in :func:`_froehlich_2016` and :func:`_xu_zhang_2009`). ``slope`` is the
+    job's side slope, which only Xu and Zhang needs (it gives none) to turn B_ave into a bottom width.
 
     Froehlich (2008): B_ave = 0.27 K_o V_w^0.32 h_b^0.04, K_o 1.3 overtopping and 1.0 piping; t_f = 63.2 (V_w / (g h_b^2))^0.5
     s; side slopes 1.0 overtopping, 0.7 piping. MacDonald and Langridge-Monopolis (1984): V_er = 0.0261 (V_w h_w)^0.769
@@ -113,6 +156,10 @@ def estimate(est: BreachEstimator, mode: str, height: float) -> Estimate:
     """
     vw, hb = est.pool_volume_m3, height
     hw = est.water_depth_m if est.water_depth_m is not None else hb
+    if est.method == "froehlich_2016":
+        return _froehlich_2016(est, mode, hb)
+    if est.method == "xu_zhang_2009":
+        return _xu_zhang_2009(est, mode, hb, slope)
     if est.method == "froehlich_2008":
         ko = 1.3 if mode == "overtopping" else 1.0
         slope = 1.0 if mode == "overtopping" else 0.7
@@ -151,7 +198,8 @@ def final_geometry(b: Breach, centre: float, top: float) -> tuple[Geometry, str 
     width, left, right, time = b.bottom_width_m, b.left_slope, b.right_slope, b.formation_time_s
     note = None
     if b.estimator is not None:
-        e = estimate(b.estimator, b.mode, top - b.bottom_z)
+        mean = 0.5 * (left + right) if left is not None and right is not None else None
+        e =estimate(b.estimator, b.mode, top - b.bottom_z, mean)
         width = e.width if width is None else width
         left = e.slope if left is None else left
         right = e.slope if right is None else right

@@ -553,13 +553,18 @@ class DamLevel(_Part):
     )
 
 
-BREACH_ESTIMATORS = ("froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette")
+BREACH_ESTIMATORS = (
+    "froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette", "froehlich_2016", "xu_zhang_2009"
+)
 
 
 class BreachEstimator(_Part):
-    """Breach width, side slopes and formation time from the dam and its pool, by a published regression (HEC TD-39)."""
+    """Breach width, side slopes and formation time from the dam and its pool, by a published regression (HEC TD-39;
+    Froehlich 2016 and Xu and Zhang 2009 as West, Morris and Hassan tabulate them, HR Wallingford HRPP770, 2018)."""
 
-    method: Literal["froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette"]
+    method: Literal[
+        "froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette", "froehlich_2016", "xu_zhang_2009"
+    ]
     pool_volume_m3: float = Field(gt=0.0, description="Water in the pool when the breach starts, m3")
     water_depth_m: float | None = Field(
         None, gt=0.0, description="Depth of water over the breach bottom at failure, m; the breach height if not given"
@@ -573,6 +578,12 @@ class BreachEstimator(_Part):
     crest_width_m: float = Field(5.0, ge=0.0, le=200.0, description="MacDonald: crest width of the dam, m")
     upstream_slope: float = Field(3.0, ge=0.0, le=20.0, description="MacDonald: upstream face, H:V")
     downstream_slope: float = Field(2.5, ge=0.0, le=20.0, description="MacDonald: downstream face, H:V")
+    erodibility_class: Literal["high", "medium", "low"] = Field(
+        "medium", description="Xu and Zhang: erodibility of the dam's material, high, medium or low"
+    )
+    dam_height_m: float | None = Field(
+        None, gt=0.0, le=500.0, description="Xu and Zhang: height of the dam, m; the breach height if not given"
+    )
 
 
 class Breach(_Part):

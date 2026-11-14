@@ -78,7 +78,51 @@ W62's test of the drowned-gate refusal is removed, and its Percent Pattern refus
 - `scripts/w76_cases.py` (the cases), `export_cases.py`, `compare.py`, `bits.py`; the probes `probe_percent.py`
   (which time's opening), `probe_drowned.py` (the drowned candidates), `check_drowned.py` (the law on all ten runs).
   `_work/` holds the HMS projects and is not committed.
-- Tests: `tests/hydrology/test_hms_gate_controls.py` (28).
+- Tests: `tests/hydrology/test_hms_gate_controls.py` (28); the estimators in `tests/engine/test_breach.py` (5 new).
+
+## Breach estimators: Froehlich 2016 and Xu and Zhang 2009
+
+W63 left both out because their formulas were not cited. Neither primary paper could be read here (ASCE paywall; the
+River Flow 2016 proceedings not online), so **the source of record is a published secondary tabulation**: West, M.,
+Morris, M. and Hassan, M. (2018), *A guide to breach prediction*, HR Wallingford HRPP770, Appendix B (pp. 32 to 34),
+with its Tables 2 and 3 (p. 9) as the worked examples. The uncomfortable parts first:
+
+- [Certain] **The guide is not a clean transcription.** Its Froehlich 2008 row gives B_ave = 0.27 k_o V_w^(1/3), where
+  TD-39 (W63's source, kept) gives 0.27 k_o V_w^0.32 h_b^0.04; its own Table 3 used the wrong form (Testalinden 9.53 m
+  against TD-39's 8.58 m). Its formation-time column says hours for Froehlich 2016's 60 (V_w / (g h_b^2))^0.5, which
+  can only be seconds (its 2008 row, 0.0176 h, is TD-39's 63.2 s, and our 2008 times reproduce its table: 0.38, 1.67,
+  1.78 h). So Froehlich 2016 is [Likely] right as built, not proven against the paper.
+- [Certain] **Xu and Zhang is their simplified model, not the full one.** The guide tabulates what the authors call
+  their best simplified prediction models: failure mode and erodibility only. The full model's dam-type classes (core
+  wall, concrete faced, homogeneous or zoned) were not read from any citable source, so **dam type is not an input**.
+  The simplified models give no side slope either: the job must give `left_slope` and `right_slope`, refused in words
+  otherwise.
+
+| Method | `estimator.method` | Equations (HRPP770 Appendix B) | Inputs |
+|---|---|---|---|
+| Froehlich (2016a), *Empirical model of embankment dam breaching*, River Flow 2016 | `froehlich_2016` | B_ave = 0.23 k_o V_w^(1/3), k_o 1.5 overtopping, 1.0 piping; side slopes 1.0 and 0.6; t_f = 60 (V_w / (g h_b^2))^0.5 s | `pool_volume_m3`, the mode; h_b the dam top less `bottom_z` |
+| Xu, Y. and Zhang, L.M. (2009), *Breaching parameters for earth and rockfill dams*, J. Geotech. Geoenviron. Eng. 135(12), 1957-1970 | `xu_zhang_2009` | B_ave / h_b = 5.543 (V_w^(1/3) / h_w)^0.739 e^(b4 + b5), b4 -1.207 overtopping, -1.747 piping; b5 -0.613, -1.073, -1.268 high, medium, low; t_f / 1 h = b5' (h_d / 15 m)^0.654 (V_w^(1/3) / h_w)^1.246, b5' 0.038, 0.066, 0.205 | `pool_volume_m3`, `water_depth_m` (h_w, default h_b), `dam_height_m` (h_d, default h_b, as the guide's Table 2), `erodibility_class` (new, default medium), the mode, the job's side slopes |
+
+The bottom width is B_ave less the side slope times h_b, at least 0, as for W63's three (Xu and Zhang with the mean of
+the job's two slopes). The estimator fills only what the job leaves out, as before (`final_geometry`).
+
+**Worked examples (`tests/engine/test_breach.py`):** Xu and Zhang reproduces HRPP770's Table 3 on all three failures
+at low and high erodibility, B_ave and t_f, to the table's two decimals: Testalinden 6.49 to 12.50 m and 1.37 to
+0.25 h, Big Bay Lake (piping) 33.65 to 64.78 m and 7.73 to 1.43 h, Delhi 47.92 to 92.25 m and 7.24 to 1.34 h.
+Froehlich 2016 has no worked example in the guide; it is tested by hand. Indicative only, against the recorded
+failures of the guide's Table 2 (taken from Froehlich 2016a's own data): Froehlich 2016 gives B_ave 9.4, 59.7 and 79.4 m
+and t_f 0.36, 1.59 and 1.69 h against recorded 5.15, 83.2 and 68.6 m and 0.50, 0.92 and 1.75 h.
+
+Schema: two `method` values and two estimator fields (`erodibility_class`, `dam_height_m`); the frozen plugin sample
+regenerated (insertions); a W63 job with an estimator keeps its hash (`run.job_hash` drops the two fields at their
+defaults). `tests/engine/test_breach.py` 15 passed (5 new), `tests/plugin` 558 passed. Not run on a grid: the
+estimators change only the numbers `final_geometry` hands to W63's unchanged breach.
+
+## Not done (estimators)
+
+- The primary papers not read; Xu and Zhang's full model (dam type) and its top width; Froehlich 2016b's peak
+  discharge (k_H) and Xu and Zhang's peak discharge (not needed by a 2D breach, which computes its own outflow).
+- No dock row for the two new methods (the dock's breach table is another worker's, `plugin/`).
 
 ## Not done (gates)
 
