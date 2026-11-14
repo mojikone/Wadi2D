@@ -1,1 +1,8 @@
-......
+..............                                                           [100%]
+============================= slowest 5 durations =============================
+1542.56s call     tests/solver/test_analytic.py::test_thacker_moving_shoreline[planar-cpu]
+1290.14s call     tests/solver/test_analytic.py::test_thacker_moving_shoreline[curved-gpu]
+1131.34s call     tests/solver/test_analytic.py::test_thacker_moving_shoreline[planar-gpu]
+825.90s call     tests/solver/test_analytic.py::test_thacker_moving_shoreline[curved-cpu]
+18.35s call     tests/solver/test_analytic.py::test_stoker[x-grid0-cpu]
+14 passed in 4870.33s (1:21:10)
