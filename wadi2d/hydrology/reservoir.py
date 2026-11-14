@@ -224,7 +224,10 @@ class ReservoirOutflowStructures:
         if self.evaporation is None:
             rates = np.zeros(steps)
         elif self.start is None:
-            raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: monthly evaporation needs the run's start date")
+            raise ValueError(
+                f"{RESERVOIR_OUTFLOW_STRUCTURES}: monthly evaporation needs the run's start date "
+                "(in a job, storm.rain_start)"
+            )
         else:
             rates = self.evaporation.rates(self.start, steps, dt_minutes)
         areas = self.areas_m2 if self.areas_m2 is not None else np.zeros_like(self.elevations_m)

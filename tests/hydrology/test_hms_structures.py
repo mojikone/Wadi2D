@@ -213,6 +213,34 @@ def test_network_series_carry_pool_storage_and_each_structure() -> None:
     assert total + columns["seepage_1_m3s"] == pytest.approx(element.routing.run(hms["inflow"], STEP_MINUTES).main_m3s)
 
 
+def test_a_job_dates_monthly_evaporation_from_storm_rain_start(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """The job calendar: ``storm.rain_start`` reaches the HMS reader, so a reservoir with monthly evaporation routes
+    in a job as in HMS; with no date it refuses in words that name the field. The engine has no Source element
+    (W58), so the test basin's Source, HMS's inflow, is cut from a copy."""
+    import re
+    from types import SimpleNamespace
+
+    import wadi2d.run as run
+
+    text = (DATA / f"{EVAPORATION_ONLY}.basin").read_text(encoding="utf-8")
+    basin_file = tmp_path / "evaporation.basin"
+    basin_file.write_text(re.sub(r"\nSource: .*?\nEnd:\n", "\n", text, flags=re.S), encoding="utf-8")
+    monkeypatch.setattr(run, "_project_tables", lambda _h, _basin: _tables())
+    hydrology = SimpleNamespace(basin_json=None, hms_basin=str(basin_file), reach_routing="hms")
+    dated = SimpleNamespace(hydrology=hydrology, storm=SimpleNamespace(rain_start="2000-01-31T12:00"), dam_levels=[])
+    assert run.run_calendar(dated) == START
+    basin, _hms, _cut = run._lumped_basin(dated, "")
+    hms = load_case(EVAPORATION_ONLY)
+    ours = basin.elements["Reservoir"].routing.run(hms["inflow"], STEP_MINUTES)
+    assert _evaporated(ours).sum() == pytest.approx(hms["evaporation_m3"].sum(), rel=EVAPORATION_TOLERANCE)
+    undated = SimpleNamespace(hydrology=hydrology, storm=SimpleNamespace(rain_start=None), dam_levels=[])
+    basin, _hms, _cut = run._lumped_basin(undated, "")
+    with pytest.raises(ValueError, match=r"storm.rain_start"):
+        basin.elements["Reservoir"].routing.run(hms["inflow"], STEP_MINUTES)
+
+
 def test_refusals() -> None:
     z = np.linspace(100.0, 110.0, 11)
     a = np.full(11, 1.0e5)
