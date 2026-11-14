@@ -239,6 +239,17 @@ def test_a_full_job_passes_the_engine_validation(tmp_path: Path) -> None:
     assert parsed.outputs.points[0].name == "Dam"
 
 
+def test_a_flow_line_reaches_the_engine_with_its_file_and_one_without_stops_the_run(tmp_path: Path) -> None:
+    line = [[400000.0, 2700000.0], [400100.0, 2700050.0]]
+    flow = Feature("LineString", line, {"kind": "flow", "value": None, "file": "D:/inflow.csv"})
+    parsed = config.RunConfig.model_validate(build_job(full_values(tmp_path, boundaries=[flow]), tmp_path / "out"))
+    (b,) = parsed.boundaries
+    assert b.kind == "flow" and b.flow.file == "D:/inflow.csv" and b.flow.distribution == "normal_depth"
+    bare = Feature("LineString", line, {"kind": "flow", "value": None, "file": None})
+    assert any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[bare])))
+    assert not any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[flow])))
+
+
 def test_the_table_s_ladder_is_the_engines() -> None:
     """The table answers at every key press, so it does the sum itself; this is what keeps it the engine's sum."""
     from wadi2d_qgis.mesh_rows import rung_size

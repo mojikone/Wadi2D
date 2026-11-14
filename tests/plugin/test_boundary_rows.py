@@ -1,4 +1,4 @@
-# Wadi2D QGIS plugin tests. Copyright (C) 2026 Mojtaba.
+﻿# Wadi2D QGIS plugin tests. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The Boundaries table: a row follows the section until someone has set it, and then it stays."""
 
@@ -12,6 +12,7 @@ from wadi2d_qgis.boundary_rows import (
     line_label,
     merge_rows,
     new_row,
+    set_file,
     set_kind,
     set_value,
 )
@@ -93,3 +94,13 @@ def test_free_sends_no_value_to_the_job_whatever_the_row_holds() -> None:
 @pytest.mark.parametrize(("name", "label"), [(None, "Line 4"), ("  ", "Line 4"), ("Sea", "Sea"), (7, "7")])
 def test_a_row_is_named_by_the_layer_or_by_its_number(name, label: str) -> None:
     assert line_label(4, name) == label
+
+
+def test_a_flow_line_carries_its_file_to_the_job_and_others_carry_none() -> None:
+    row = new_row(line(kind="flow", file=" D:/q.csv "), "normal", 0.008, DEFAULTS)
+    assert job_properties(row) == {"kind": "flow", "value": None, "file": "D:/q.csv"}
+    set_file(row, "")
+    assert job_properties(row)["file"] is None
+    set_file(row, "E:/hms.dss")
+    set_kind(row, "free", DEFAULTS)
+    assert job_properties(row) == {"kind": "free", "value": None}

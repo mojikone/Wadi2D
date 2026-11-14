@@ -259,6 +259,7 @@ def problems(values: dict) -> list[str]:
     found.extend(_structure_problems(values.get("structures", {})))
     found.extend(dam_problems(values.get("dam_rows") or []))
     found.extend(initial_problems(values.get("initial_water") or []))
+    found.extend(boundary_problems(values))
     return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
 
 
@@ -366,6 +367,8 @@ def notes(values: dict) -> list[str]:
     found = []
     if not values.get("boundaries"):
         found.append("No boundary set: every edge is a wall, so water cannot leave the domain.")
+    elif all(getattr(f, "properties", {}).get("kind") == "flow" for f in values["boundaries"]):
+        found.append("Only flow lines are set: water comes in and every edge is a wall, so none can leave the domain.")
     if not values.get("hms") and values.get("rain_hours", 0.0) > values.get("duration_h", 0.0):
         found.append("The rain outlasts the simulated time, so the run ends while it is still raining.")
     if values.get("storm"):
@@ -445,7 +448,19 @@ def _boundary(feature: Feature) -> dict:
         entry["stage"] = value
     elif kind == "normal" and value is not None:
         entry["slope"] = value
+    elif kind == "flow":  # HEC-RAS's Flow Hydrograph line: the engine shares it by normal depth (W61)
+        entry["flow"] = {"file": feature.properties.get("file")}
     return entry
+
+
+def boundary_problems(values: dict) -> list[str]:
+    """A flow line with no hydrograph file stops the run."""
+    lines = values.get("boundaries") or []
+    kinds = [getattr(f, "properties", {}) for f in lines]
+    missing = [n for n, p in enumerate(kinds, start=1) if p.get("kind") == "flow" and not p.get("file")]
+    if not missing:
+        return []
+    return [f"Boundary line {', '.join(map(str, missing))}: a flow line needs its hydrograph file (CSV or DSS) in the table."]
 
 
 def _design_outputs(features: list[Feature]) -> dict:
