@@ -334,13 +334,14 @@
     },
     "Boundary": {
       "additionalProperties": false,
-      "description": "An open boundary: cells along a line whose level is prescribed; every other edge is a wall.",
+      "description": "An open boundary: cells along a line whose level is prescribed; every other edge is a wall. A ``flow`` line\nprescribes no level: its cells stay in the model and take a hydrograph.",
       "properties": {
         "kind": {
           "enum": [
             "stage",
             "normal",
-            "free"
+            "free",
+            "flow"
           ],
           "title": "Kind",
           "type": "string"
@@ -392,6 +393,31 @@
           "minimum": 0.0,
           "title": "Min Share",
           "type": "number"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What warnings and series call a flow line; else 'Inflow line n'",
+          "title": "Name"
+        },
+        "flow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FlowHydrograph"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The hydrograph of a 'flow' line"
         }
       },
       "required": [
@@ -840,6 +866,128 @@
         "y"
       ],
       "title": "DesignPoint",
+      "type": "object"
+    },
+    "FlowHydrograph": {
+      "additionalProperties": false,
+      "description": "The hydrograph a ``flow`` line brings in (HEC-RAS's Flow Hydrograph boundary): from a CSV or DSS record, or a\ntable. It enters as volume in the line's cells, shared by conveyance, with no momentum of its own (W61).",
+      "properties": {
+        "file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "CSV table or DSS file holding the flow record, m3/s or cfs",
+          "title": "File"
+        },
+        "record": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "DSS pathname or CSV column; None takes the only flow there is",
+          "title": "Record"
+        },
+        "time_unit": {
+          "default": "min",
+          "description": "Unit of a CSV's time column when it counts",
+          "enum": [
+            "s",
+            "min",
+            "h",
+            "d"
+          ],
+          "title": "Time Unit",
+          "type": "string"
+        },
+        "time_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "strptime format of a CSV's dates; None guesses ISO forms",
+          "title": "Time Format"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Date and time of the run's minute zero, for a record with dates; else storm.rain_start",
+          "title": "Start"
+        },
+        "times_s": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table times, s, in place of a file",
+          "title": "Times S"
+        },
+        "flows": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table discharges, m3/s, in place of a file",
+          "title": "Flows"
+        },
+        "distribution": {
+          "default": "normal_depth",
+          "description": "'normal_depth', HEC-RAS's rule: each refresh the flow sets a normal-depth water surface across the line from the energy slope and the cells' own sub-grid tables, and each cell takes its conveyance under it. 'conveyance': each cell takes its conveyance at its own water level, normal depth only while the line is dry",
+          "enum": [
+            "normal_depth",
+            "conveyance"
+          ],
+          "title": "Distribution",
+          "type": "string"
+        },
+        "slope": {
+          "default": 0.005,
+          "description": "Energy slope across the line for the normal depth that shares the flow",
+          "maximum": 0.5,
+          "minimum": 1e-06,
+          "title": "Slope",
+          "type": "number"
+        }
+      },
+      "title": "FlowHydrograph",
       "type": "object"
     },
     "Gauge": {

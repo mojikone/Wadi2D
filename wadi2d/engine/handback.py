@@ -41,7 +41,7 @@ def sink_lines(handbacks: list[Handback]) -> list[Boundary]:
 
 def line_labels(cfg: RunConfig) -> list[str]:
     """What a warning calls each open line, in the order ``boundary_set`` takes them."""
-    labels = [f"Open boundary {n}" for n in range(1, len(cfg.boundaries) + 1)]
+    labels = [f"Open boundary {n}" for n, b in enumerate(cfg.boundaries, start=1) if b.kind != "flow"]
     return labels + [f"Hand-back {line.name}" for line in cfg.hydrology.handbacks]
 
 

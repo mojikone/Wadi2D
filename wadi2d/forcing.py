@@ -453,6 +453,10 @@ class Injection:
         weights = np.where(wet, depth, 0.0).astype(np.float64)
         return weights / weights.sum()
 
+    def weights(self, depth: np.ndarray, q: float) -> np.ndarray:
+        """Weights over the cells for a window whose mean flow is ``q``; a point inflow's do not depend on it."""
+        return self.share(depth)
+
 
 class Forcing:
     """The net source vector over the interior cells, refreshed once per ``run.source_every_s``."""
@@ -661,12 +665,12 @@ class Forcing:
             if q <= 0.0:
                 continue
             if self.areas is None:
-                added = q * inj.share(self.depth_at(inj)) / self.area
+                added = q * inj.weights(self.depth_at(inj), q) / self.area
                 out[inj.cells] += added.astype(np.float32)
                 inj.window = float(np.float32(added).sum(dtype=np.float64)) * self.area * step
             else:
                 held = self.areas[inj.cells]
-                added = q * inj.share(self.depth_at(inj)) / held
+                added = q * inj.weights(self.depth_at(inj), q) / held
                 out[inj.cells] += added.astype(np.float32)
                 inj.window = float(np.dot(np.float32(added).astype(np.float64), held)) * step
             inflow += inj.window

@@ -199,7 +199,7 @@ def test_schema_view_resolves_references_lists_and_nullable_fields(real: SchemaV
     assert low < high
     assert real.default(job_builder.MANNING) > 0.0
     assert real.tip(job_builder.DX)
-    assert set(real.enum(job_builder.BOUNDARY_KIND)) == {"stage", "normal", "free"}
+    assert set(real.enum(job_builder.BOUNDARY_KIND)) == {"stage", "normal", "free", "flow"}
     assert real.bounds(job_builder.CURVE_NUMBER)[1] == 100.0
     assert not real.has("grid.no_such_field")
 
