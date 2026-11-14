@@ -41,7 +41,15 @@ from wadi2d.hms.typed import Method, RawBlock, TimeWindowModel
 from wadi2d.hydrology.baseflow import BASEFLOW_METHODS, NO_BASEFLOW, RECESSION
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.depth_area import StormAtPoint
-from wadi2d.hydrology.diversion import INFLOW_DIVERSION
+from wadi2d.hydrology.diversion import (
+    CONSTANT_DIVERSION,
+    INFLOW_DIVERSION,
+    LATERAL_WEIR_DIVERSION,
+    PUMP_STATION_DIVERSION,
+    SPECIFIED_DIVERSION,
+    ChannelRating,
+    DiversionLimits,
+)
 from wadi2d.hydrology.losses import LOSS_METHODS, NO_LOSS, SCS_CN
 from wadi2d.hydrology.model import (
     Basin,
@@ -160,6 +168,19 @@ CULVERT_COMMON_KEYS = frozenset({
 CULVERT_SIZE_KEYS = {"Box": ("Rise", "Span"), "Circular": ("Diameter",)}
 GATE_WIDTH_TOLERANCE_M = 1.0e-6
 NO_UNIFORM_DEPTH = "No"
+# Diverter names and keys, each written back by HEC-HMS 4.12 on re-saving W72's test basins.
+HMS_CONSTANT = "Constant"
+HMS_SPECIFIED = "Specified"
+HMS_PUMP = "Pump"
+CONSTANT_FLOW_KEY = "Constant Flow"
+FLOW_GAGE_KEY = "Flow Gage"
+DIVERTER_RATING_KEY = "Diverter Rating Table Name"
+TAILWATER_RATING_KEY = "Tailwater Rating Table Name"
+MAX_DIVERSION_FLOW_KEY = "Maximum Diversion Flow"
+MAX_DIVERSION_VOLUME_KEY = "Maximum Diversion Volume"
+LIMIT_KEYS = frozenset({MAX_DIVERSION_FLOW_KEY, MAX_DIVERSION_VOLUME_KEY})
+STATION_PUMP_OUTLET = "Auxiliary"
+FLOW_GAGE_TYPE = "Flow"
 
 
 def _scs_loss(method: ScsLoss) -> dict[str, Any]:
@@ -593,16 +614,133 @@ def _reservoir(element: HmsReservoir, tables: ProjectTables | None, start: datet
     )
 
 
-def _diversion(element: HmsDiversion, tables: ProjectTables | None) -> Diversion:
+def _limits(element: str, block: RawBlock) -> DiversionLimits:
+    """The diverter's maximum flow, m3/s, and maximum volume, which HMS's metric file holds in 1000 m3 (W72)."""
+    flow = block.get(MAX_DIVERSION_FLOW_KEY)
+    volume = block.get(MAX_DIVERSION_VOLUME_KEY)
+    return DiversionLimits(
+        max_flow_m3s=float(flow) if flow else None,
+        max_volume_m3=float(volume) * THOUSAND if volume else None,
+    )
+
+
+def _rating(element: str, block: RawBlock, key: str, tables: ProjectTables | None) -> ChannelRating | None:
+    """A Stage-Flow table named by ``key`` as a rating, stage on x; None when the key is blank."""
+    name = block.get(key)
+    if not name:
+        return None
+    table = _table(tables, name, element)
+    return ChannelRating(stages_m=table.x, flows_m3s=table.y)
+
+
+def _inflow_function(element: str, block: RawBlock, tables: ProjectTables | None, _ctx: DiversionContext) -> dict:
+    table = _table(tables, block.get(DIVERTER_TABLE_KEY), element)
+    return {"method": INFLOW_DIVERSION, "inflows_m3s": table.x, "diverted_m3s": table.y}
+
+
+def _constant_flow(element: str, block: RawBlock, _tables: ProjectTables | None, _ctx: DiversionContext) -> dict:
+    return {"method": CONSTANT_DIVERSION, "rate_m3s": _number(element, block, CONSTANT_FLOW_KEY)}
+
+
+def _specified_flow(element: str, block: RawBlock, tables: ProjectTables | None, ctx: DiversionContext) -> dict:
+    gage = block.get(FLOW_GAGE_KEY) or ""
+    if tables is None or gage not in tables.flows:
+        raise ValueError(f"{element}: flow gage {gage!r} is not available (a Flow gage in M3/S in the project .gage)")
+    if ctx.start is None:
+        raise ValueError(f"{element}: a Specified Flow diversion needs the run's start date (storm.rain_start)")
+    record = tables.flows[gage]
+    return {
+        "method": SPECIFIED_DIVERSION, "start": np.datetime64(ctx.start, "s"), "times": record.times,
+        "flows_m3s": record.flows, "gage": gage,
+    }
+
+
+def _lateral_weir(element: str, block: RawBlock, tables: ProjectTables | None, _ctx: DiversionContext) -> dict:
+    return {
+        "method": LATERAL_WEIR_DIVERSION,
+        "channel": _rating(element, block, DIVERTER_RATING_KEY, tables) or _table(tables, None, element),
+        "crest_m": _number(element, block, "Weir Elevation"),
+        "length_m": _number(element, block, "Weir Length"),
+        "coefficient": _number(element, block, "Weir Coefficient"),
+        "tailwater": _rating(element, block, TAILWATER_RATING_KEY, tables),
+    }
+
+
+def _pump_station(element: str, block: RawBlock, tables: ProjectTables | None, _ctx: DiversionContext) -> dict:
+    """W72 measured one pump group with no run or rest time and no tailwater; anything else raises."""
+    if block.get(TAILWATER_RATING_KEY):
+        raise ValueError(f"{element}: a pump station's tailwater rating is not measured against HMS")
+    pumps = block.blocks
+    if len(pumps) != 1 or (pumps[0].kind, pumps[0].name) != (PUMP_BLOCK, HEAD_DISCHARGE_PUMP):
+        raise ValueError(f"{element}: a pump station needs one {PUMP_BLOCK}: {HEAD_DISCHARGE_PUMP}")
+    pump = _fields(element, pumps[0], PUMP_KEYS)
+    if (pump.get(PUMP_OUTLET_KEY) or STATION_PUMP_OUTLET) != STATION_PUMP_OUTLET:
+        raise ValueError(f"{element}: a station pump's outlet is {STATION_PUMP_OUTLET} (HMS writes it so)")
+    if _minutes(element, pump, "Minimum Run Time") or _minutes(element, pump, "Minimum Rest Time"):
+        raise ValueError(f"{element}: a pump station's minimum run or rest time is not measured against HMS")
+    units = _number(element, pump, "Number Of Pumps")
+    if units != int(units) or units < 1:
+        raise ValueError(f"{element}: {units} pumps")
+    table = _table(tables, pump.get(PUMP_TABLE_KEY), element)
+    return {
+        "method": PUMP_STATION_DIVERSION,
+        "channel": _rating(element, block, DIVERTER_RATING_KEY, tables) or _table(tables, None, element),
+        "heads_m": table.x,
+        "flows_m3s": table.y,
+        "units": int(units),
+        "on_m": _number(element, pump, "Switch-On Elevation"),
+        "off_m": _number(element, pump, "Switch-Off Elevation"),
+        "lift_m": _number(element, pump, "Discharge Elevation") + _number(element, pump, "Equipment Head Loss"),
+    }
+
+
+@dataclass(frozen=True)
+class DiversionContext:
+    """What a diverter may need besides its block and the tables: the date of the run's first ordinate."""
+
+    start: datetime | None = None
+
+
+DiverterBuilder = Callable[[str, RawBlock, "ProjectTables | None", DiversionContext], dict]
+# HMS's internal name -> (builder, the keys besides the limits); each key written back by HEC-HMS 4.12 on re-saving
+# W72's test basins.
+DIVERTER_BUILDERS: dict[str, tuple[DiverterBuilder, frozenset[str]]] = {
+    INFLOW_DIVERSION: (_inflow_function, frozenset({DIVERTER_TABLE_KEY})),
+    HMS_CONSTANT: (_constant_flow, frozenset({CONSTANT_FLOW_KEY})),
+    HMS_SPECIFIED: (_specified_flow, frozenset({FLOW_GAGE_KEY})),
+    LATERAL_WEIR_DIVERSION: (
+        _lateral_weir,
+        frozenset({"Weir Elevation", "Weir Length", "Weir Coefficient", DIVERTER_RATING_KEY, TAILWATER_RATING_KEY}),
+    ),
+    HMS_PUMP: (_pump_station, frozenset({DIVERTER_RATING_KEY, TAILWATER_RATING_KEY})),
+}
+
+
+def diversion_from_hms(
+    element: HmsDiversion, tables: ProjectTables | None = None, start: datetime | None = None
+) -> Diversion:
+    """The engine's diversion of one HMS diversion element; ``start`` dates the first step (Specified Flow)."""
+    return _diversion(element, tables, start)
+
+
+def _diversion(element: HmsDiversion, tables: ProjectTables | None, start: datetime | None = None) -> Diversion:
     diverters = [block for block in element.blocks if block.kind == DIVERTER_BLOCK]
-    if len(diverters) != 1 or diverters[0].name != INFLOW_DIVERSION or len(element.blocks) != 1:
-        raise ValueError(f"diversion {element.name}: only one {INFLOW_DIVERSION} is supported")
-    table = _table(tables, diverters[0].get(DIVERTER_TABLE_KEY), element.name)
+    if len(diverters) != 1 or len(element.blocks) != 1:
+        raise ValueError(f"diversion {element.name}: one Diverter block is read, and nothing else")
+    block = diverters[0]
+    if block.name not in DIVERTER_BUILDERS:
+        raise ValueError(f"diversion {element.name}: diverter {block.name!r} is not supported")
+    builder, keys = DIVERTER_BUILDERS[block.name]
+    _fields(element.name, block, keys | LIMIT_KEYS)
+    if block.blocks and block.name != HMS_PUMP:
+        raise ValueError(f"diversion {element.name}: sub-blocks of a {block.name} diverter are not read")
+    parameters = builder(element.name, block, tables, DiversionContext(start))
+    method = parameters.pop("method")
     return Diversion(
         name=element.name,
         downstream=element.downstream or None,
-        routing=ROUTING_METHODS.build(INFLOW_DIVERSION, inflows_m3s=table.x, diverted_m3s=table.y),
-        branch=element.divert_to,
+        routing=ROUTING_METHODS.build(method, limits=_limits(element.name, block), **parameters),
+        branch=element.divert_to or None,
     )
 
 
@@ -631,7 +769,7 @@ def basin_from_hms(
         elif isinstance(element, HmsReservoir):
             elements.append(_reservoir(element, tables, start))
         elif isinstance(element, HmsDiversion):
-            elements.append(_diversion(element, tables))
+            elements.append(_diversion(element, tables, start))
         else:
             raise ValueError(f"element {element.name} of type {type(element).__name__} is not supported")
     return Basin(basin.name, elements)
@@ -653,13 +791,44 @@ class PairedColumns:
     y: np.ndarray
 
 
+@dataclass(frozen=True, eq=False)
+class FlowRecord:
+    """A flow gage's record: DSS times, and flows in m3/s."""
+
+    times: np.ndarray
+    flows: np.ndarray
+
+
 @dataclass(frozen=True)
 class ProjectTables:
-    """The paired tables of a project, by table name: storms in the first two, the network in ``paired``."""
+    """The paired tables of a project, by table name: storms in the first two, the network in ``paired``; the flow
+    gages a Specified Flow diversion reads, by gage name, in ``flows``."""
 
     patterns: dict[str, PercentPattern]
     area_reductions: dict[str, ArfTable]
     paired: dict[str, PairedColumns] = field(default_factory=dict)
+    flows: dict[str, FlowRecord] = field(default_factory=dict)
+
+
+def load_flow_gages(gage_file: str | Path | None) -> dict[str, FlowRecord]:
+    """The Flow gages of a ``.gage`` file in M3/S, instantaneous, whose record is found; any other is left out."""
+    from wadi2d.hms import gage as hms_gage
+
+    found: dict[str, FlowRecord] = {}
+    if gage_file is None:
+        return found
+    for item in hms_gage.load(gage_file):
+        usable = item.kind == FLOW_GAGE_TYPE and item.units == FLOW_UNITS and item.data_type == "INST-VAL"
+        if not usable or item.dss_file is None or item.pathname is None or not item.dss_file.is_file():
+            continue
+        parts = item.pathname.split("/")
+        try:
+            with open_dss(item.dss_file) as dss:
+                series = dss.read_timeseries(parts[2], parts[3], parts[6] or None, e=None)
+        except (DssLookupError, IndexError):
+            continue
+        found[item.name] = FlowRecord(series.times, series.values)
+    return found
 
 
 def _read_si(dss: DssFile, table: Table, units: dict[str, tuple[str, str]]) -> PairedColumns | None:
@@ -674,8 +843,11 @@ def _read_si(dss: DssFile, table: Table, units: dict[str, tuple[str, str]]) -> P
     return PairedColumns(np.asarray(record.x), np.asarray(record.y))
 
 
-def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> ProjectTables:
-    """Read the paired tables from the project DSS file; an ARF table follows HMS below its smallest area."""
+def load_project_tables(
+    pdata: PairedDataFile, project_dss: str | Path, gage_file: str | Path | None = None
+) -> ProjectTables:
+    """Read the paired tables from the project DSS file; an ARF table follows HMS below its smallest area. With
+    ``gage_file``, the flow gages too (:func:`load_flow_gages`)."""
     patterns: dict[str, PercentPattern] = {}
     reductions: dict[str, ArfTable] = {}
     paired: dict[str, PairedColumns] = {}
@@ -700,7 +872,7 @@ def load_project_tables(pdata: PairedDataFile, project_dss: str | Path) -> Proje
                 columns = _read_si(dss, table, units)
                 if columns is not None:
                     paired[name] = PairedColumns(columns.x, columns.y * scale[kind]) if kind in scale else columns
-    return ProjectTables(patterns, reductions, paired)
+    return ProjectTables(patterns, reductions, paired, load_flow_gages(gage_file))
 
 
 def storm_from_hms(

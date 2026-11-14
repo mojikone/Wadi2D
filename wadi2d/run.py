@@ -480,7 +480,10 @@ def _project_tables(h, hms_basin):
     if not found:
         raise InvalidJob(f"{Path(h.hms_basin).name} has reservoirs or diversions: set hydrology.hms_project")
     stem = found[0].with_suffix("")
-    return load_project_tables(load_pdata(stem.with_suffix(".pdata")), stem.with_suffix(".dss"))
+    gages = stem.with_suffix(".gage") if hms_basin.diversions else None  # a Specified Flow diversion reads one (W72)
+    return load_project_tables(
+        load_pdata(stem.with_suffix(".pdata")), stem.with_suffix(".dss"), gages if gages and gages.is_file() else None
+    )
 
 
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):

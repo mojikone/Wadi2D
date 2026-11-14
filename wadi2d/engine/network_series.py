@@ -19,7 +19,7 @@ import numpy as np
 
 from wadi2d.engine.monitor import Balance
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
-from wadi2d.hydrology.model import Basin, Element
+from wadi2d.hydrology.model import Basin, Diversion, Element
 from wadi2d.hydrology.network import Run, SubbasinWater
 from wadi2d.hydrology.reservoir import ReservoirOutflowCurve, ReservoirOutflowStructures
 from wadi2d.io.results import Results, safe_name, write_series_csv
@@ -42,6 +42,14 @@ def reservoir_columns(element: Element, inflow: FloatArray, outflow: FloatArray,
         storage, level = routing.pool(inflow, outflow, dt_minutes)
         return {"pool_m": level, "storage_m3": storage}
     return {}
+
+
+def diversion_columns(element: Element, outflow: FloatArray, branched: FloatArray | None) -> dict:
+    """A diversion's passed and diverted flows under their own names (W72), beside ``outflow_m3s`` and
+    ``branched_m3s``, which hold the same numbers; nothing for any other element."""
+    if not isinstance(element, Diversion) or branched is None:
+        return {}
+    return {"passed_m3s": outflow, "diverted_m3s": branched}
 
 
 def rain_columns(basin: Basin, water: Mapping[str, SubbasinWater], name: str, n_times: int) -> dict:
@@ -97,6 +105,7 @@ class NetworkSeries:
             if name in run.branched:
                 columns["branched_m3s"] = run.branched[name]
             columns |= reservoir_columns(self.basin.elements[name], run.inflow[name], run.outflow[name], run.grid.dt_minutes)
+            columns |= diversion_columns(self.basin.elements[name], run.outflow[name], run.branched.get(name))
             columns |= rain_columns(self.basin, run.water, name, t.size)
             results.series(NETWORK_KIND, name, t, columns)
             write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
