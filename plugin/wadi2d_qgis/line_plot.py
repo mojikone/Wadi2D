@@ -11,7 +11,7 @@ from qgis.PyQt.QtCore import QPointF, QRectF, Qt
 from qgis.PyQt.QtGui import QColor, QPainter, QPen, QPolygonF
 from qgis.PyQt.QtWidgets import QSizePolicy, QWidget
 
-from .line_view import SECONDS_PER_HOUR, Chart, Curve, Section, View, readout, ticks
+from .line_view import SECONDS_PER_HOUR, Bars, Chart, Curve, Section, View, readout, ticks
 from .profile_view import bounds, scale_points
 
 SIZE = (900, 290)
@@ -31,6 +31,9 @@ MARGIN, UNIT_GAP, LEGEND_CLEAR = 14.0, 13.0, 6.0
 AGREEMENT_LINES = 2
 """Room for the words on how observed records agree with the model, above the panels."""
 LINE_HIGH = 16.0
+RAIN_SHARE, RAIN_LEAST, RAIN_GAP = 0.2, 28.0, 18.0
+"""The rain bar (W64): a fifth of the chart, never under 28 px, the flow's title in the gap below it."""
+RAIN_FILL, EXCESS_FILL = "#a9c8e8", "#1f4e79"
 
 
 def _range(low: float, high: float) -> tuple[float, float]:
@@ -195,6 +198,10 @@ class LinePlot(QWidget):
         end = max(curve.times_h[-1] for curve in drawn)
         start = min(curve.times_h[0] for curve in drawn)
         x_range = _range(0.0 if start < end else start, end)
+        if chart.bars is not None:  # W64: the rain bar takes a thin strip at the top, the flow the rest
+            high = max(RAIN_LEAST, RAIN_SHARE * box.height())
+            self._rain(painter, QRectF(box.left(), box.top(), box.width(), high), chart.bars, x_range)
+            box = QRectF(box.left(), box.top() + high + RAIN_GAP, box.width(), box.height() - high - RAIN_GAP)
         low, high = bounds([curve.values for curve in drawn])
         y_range = (0.0, high) if chart.from_zero else (low, high)
         room = box.height() / max(box.height() - LEGEND_STEP * len(drawn) - LEGEND_CLEAR, 1.0)  # no curve under the legend
@@ -205,8 +212,55 @@ class LinePlot(QWidget):
         for curve in drawn:
             self._curve(painter, box, curve, x_range, y_range)
         painter.restore()
+        if chart.right:
+            self._right(painter, box, chart, x_range)
         self._cursor(painter, box, x_range, y_range)
-        self._legend(painter, box, drawn)
+        self._legend(painter, box, drawn + [c for c in chart.right if c.times_h])
+
+    def _rain(self, painter, box: QRectF, bars: Bars, x_range) -> None:
+        """Bars hanging from the top axis: rain light, excess dark over it; depth grows downwards."""
+        most = max(max(bars.rain_mm, default=0.0), MIN_SPAN)
+        y_range = (most * HEADROOM, 0.0)  # upside down: 0 at the top
+        title = "Rain (light) and excess (dark), mm per step"
+        metrics = painter.fontMetrics()
+        painter.setPen(QPen(QColor(AXIS_COLOUR), 1.0))
+        painter.drawRect(box)
+        for value in (0.0, most):
+            y = scale_points([x_range[0]], [value], box, x_range, y_range)[0].y()
+            text = f"{value:.3g}"
+            painter.drawText(QPointF(box.left() - metrics.horizontalAdvance(text) - TICK - 1.0, y + 4.0), text)
+        painter.setPen(QPen(QColor(TEXT_COLOUR)))
+        painter.drawText(QPointF(box.left(), box.top() - TITLE_RISE), title)
+        painter.save()
+        painter.setClipRect(box)
+        painter.setPen(Qt.NoPen)
+        for colour, depths in ((RAIN_FILL, bars.rain_mm), (EXCESS_FILL, bars.excess_mm)):
+            painter.setBrush(QColor(colour))
+            for end, depth in zip(bars.times_h, depths, strict=False):
+                if depth <= 0.0:
+                    continue
+                corner = scale_points([end - bars.width_h, end], [0.0, depth], box, x_range, y_range)
+                painter.drawRect(QRectF(corner[0], corner[1]).normalized())
+        painter.restore()
+        self._cursor(painter, box, x_range, y_range)
+
+    def _right(self, painter, box: QRectF, chart: Chart, x_range) -> None:
+        """A right-hand axis of its own, ticks inside the frame: a reservoir's pool level."""
+        drawn = [curve for curve in chart.right if curve.times_h]
+        low, high = bounds([curve.values for curve in drawn])
+        y_range = _range(low, low + (high - low) * HEADROOM)
+        metrics = painter.fontMetrics()
+        painter.setPen(QPen(QColor(drawn[0].colour), 1.0))
+        for value in ticks(*y_range):
+            y = scale_points([x_range[0]], [value], box, x_range, y_range)[0].y()
+            text = f"{value:g}"
+            painter.drawText(QPointF(box.right() - metrics.horizontalAdvance(text) - TICK, y + 4.0), text)
+        painter.drawText(QPointF(box.right() + UNIT_GAP, box.top() + 12.0), chart.right_unit)
+        painter.save()
+        painter.setClipRect(box)
+        for curve in drawn:
+            self._curve(painter, box, curve, x_range, y_range)
+        painter.restore()
 
     def _section(self, painter, box: QRectF, section: Section) -> None:
         stations = section.station_m

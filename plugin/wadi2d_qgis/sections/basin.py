@@ -49,6 +49,7 @@ from .basin_rows import (
     set_element,
     subbasin_rows,
     summary_text,
+    tc_words,
 )
 from .common import bind, layer_combo, number_box
 
@@ -145,7 +146,7 @@ class BasinBox(QGroupBox):
     def _show_rows(self) -> None:
         self.table.setRowCount(len(self.rows))
         for number, row in enumerate(self.rows):
-            for column, text in enumerate(route_words(row)):
+            for column, text in enumerate([*route_words(row), tc_words(row)]):
                 item = QTableWidgetItem(text)
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 self.table.setItem(number, column, item)
