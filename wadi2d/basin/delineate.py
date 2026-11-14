@@ -21,6 +21,7 @@ from rasterio import features
 from rasterio.transform import Affine
 from rasterio.windows import from_bounds
 
+from wadi2d.basin.barriers import GroundEdits
 from wadi2d.basin.kernels import NONE, accumulate, upstream_first
 from wadi2d.config.schema import BasinSettings, RunConfig
 from wadi2d.mesh.streams import NODATA, _accumulate, read_coarse
@@ -220,9 +221,45 @@ def _whitebox(z: np.ndarray, pixel: float, x0: float, y0: float, crs: str) -> tu
     return breached, pointer
 
 
-def flow_surface(z: np.ndarray, pixel: float, x0: float, y0: float, crs: str) -> Surface:
-    """Run the hydrology over ``z``."""
-    breached, pointer = _whitebox(z, pixel, x0, y0, crs)
+def _filled_pointer(
+    z: np.ndarray, pixel: float, x0: float, y0: float, crs: str
+) -> tuple[np.ndarray, np.ndarray]:
+    """Ground with every depression filled, and its D8 pointer: the breached ground once walls stand on it (W73)."""
+    import whitebox
+
+    tool = whitebox.WhiteboxTools()
+    tool.set_verbose_mode(False)
+    profile = {
+        "driver": "GTiff", "height": z.shape[0], "width": z.shape[1], "count": 1, "dtype": "float32",
+        "nodata": NODATA, "crs": crs or None, "transform": Affine(pixel, 0.0, x0, 0.0, -pixel, y0),
+    }  # fmt: skip
+    with tempfile.TemporaryDirectory(prefix="wadi2d_walls_") as folder:
+        tmp = Path(folder)
+        with rasterio.open(tmp / "w.tif", "w", **profile) as dst:
+            dst.write(np.nan_to_num(z, nan=NODATA).astype(np.float32), 1)
+        code = tool.fill_depressions(str(tmp / "w.tif"), str(tmp / "f.tif"), fix_flats=True)
+        if code == 0:
+            code = tool.d8_pointer(str(tmp / "f.tif"), str(tmp / "p.tif"))
+        if code != 0 or not (tmp / "p.tif").exists():
+            raise RuntimeError(f"WhiteboxTools filled no walled ground (code {code})")
+        with rasterio.open(tmp / "f.tif") as src:
+            filled = src.read(1, masked=True).filled(np.nan).astype(np.float64)
+        with rasterio.open(tmp / "p.tif") as src:
+            pointer = src.read(1, masked=True).filled(0).astype(np.int64)
+    return filled, pointer
+
+
+def flow_surface(
+    z: np.ndarray, pixel: float, x0: float, y0: float, crs: str, edits: GroundEdits | None = None
+) -> Surface:
+    """Run the hydrology over ``z``; ``edits`` are the job's delineation objects (W73), cut before the breach and raised
+    after it. ``z`` stays the ground as read, for the slopes and sections."""
+    ground = z if edits is None or edits.cut is None else edits.cut
+    breached, pointer = _whitebox(ground, pixel, x0, y0, crs)
+    if edits is not None and edits.raised is not None:
+        wall = np.isfinite(edits.raised) & np.isfinite(z)
+        filled, pointer = _filled_pointer(np.where(wall, np.fmax(breached, edits.raised), breached), pixel, x0, y0, crs)
+        breached = np.where(wall, breached, filled)  # a path off a wall's top reads the ground under it
     pointer = np.where(np.isfinite(z), pointer, 0)
     down = _receivers(pointer)
     order = upstream_first(down)

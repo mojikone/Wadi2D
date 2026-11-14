@@ -15,6 +15,7 @@ import numpy as np
 from wadi2d.basin.contract import (
     REACH,
     RESERVOIR,
+    SOURCE,
     SUBBASIN,
     Element,
     Model,
@@ -23,6 +24,7 @@ from wadi2d.basin.contract import (
     refresh,
     value_of,
 )
+from wadi2d.basin.source import SOURCE_HYDROGRAPH
 from wadi2d.config.schema import REACH_HMS
 from wadi2d.hydrology.losses import LOSS_METHODS, SCS_CN
 from wadi2d.hydrology.model import Basin, Junction, Reach, Reservoir, Subbasin
@@ -66,6 +68,17 @@ def _reservoir(element: Element, downstream: str | None) -> Reservoir:
     return Reservoir(name=element["name"], downstream=downstream, routing=routing)
 
 
+def _source(element: Element, downstream: str | None) -> Reach:
+    """A source as a reach that gives its hydrograph (W73, :mod:`wadi2d.basin.source`)."""
+    hydrograph = value_of(element, "hydrograph")
+    routing = ROUTING_METHODS.build(
+        SOURCE_HYDROGRAPH,
+        minutes=np.asarray(hydrograph["minutes"], dtype=np.float64),
+        flow_m3s=np.asarray(hydrograph["flow_m3s"], dtype=np.float64),
+    )
+    return Reach(name=element["name"], downstream=downstream, routing=routing)
+
+
 def _as_model(source: str | Path | Model) -> Model:
     return read_model(source) if isinstance(source, str | Path) else refresh(check_model(source))
 
@@ -100,6 +113,8 @@ def load_network(
             built.append(_reach(element, downstream, reach_routing))
         elif element["kind"] == RESERVOIR and not element["missing"]:
             built.append(_reservoir(element, downstream))
+        elif element["kind"] == SOURCE:
+            built.append(_source(element, downstream))
         else:
             built.append(Junction(name=element["name"], downstream=downstream))
     return Basin(model["name"], built)

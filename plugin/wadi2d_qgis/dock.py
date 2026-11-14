@@ -25,6 +25,7 @@ from qgis.PyQt.QtWidgets import (
 
 from . import settings
 from .basin_layers import load_basin_layers
+from .basin_points import BasinPointsLinks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .job_builder import (
     LayerError,
@@ -40,7 +41,7 @@ from .job_builder import (
     write_geojson,
     write_job,
 )
-from .layer_groups import model_name
+from .layer_groups import SLOT_BASIN, clear_slot, model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
 from .preview import TerrainPreview, zoom_to
@@ -193,6 +194,7 @@ class Wadi2DDock(QgsDockWidget):
         self.engine_button.clicked.connect(self.open_settings)
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
+        self.basin_points = BasinPointsLinks(self)  # the Basin points layer and its clicks (W73)
         self._basin_query: EngineQuery | None = None
         self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)
@@ -525,6 +527,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         box.set_busy(True)
         box.say("Reading the ground and the streams...")
+        clear_slot(self._basin_model, SLOT_BASIN)  # an open basin.gpkg cannot be replaced on Windows (W73)
         self._basin_query = EngineQuery(settings.engine_text(), self)
         self._basin_query.done.connect(self._basin_made)
         self._basin_query.start(basin_args(job, out, pour))

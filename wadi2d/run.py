@@ -304,6 +304,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, replaced: tuple
 def _object_key(obj: TerrainObject) -> dict:
     """An object as the cache sees it: a section table's numbers, not where the file lies."""
     data = obj.model_dump()
+    data.pop("delineate")  # the basin generator's, not the tables' (W73)
     if data["section"] is not None:
         data["section"]["table"] = None
     return data
@@ -326,6 +327,8 @@ def job_hash(cfg: RunConfig) -> str:
         data[part].pop(name)
     data.pop("project")
     data.pop("basin")  # how basin.json was made; the file's own bytes are hashed below
+    for obj in data["terrain"]["objects"]:
+        obj.pop("delineate", None)  # the same: it shapes basin.json only (W73)
     if not cfg.hydrology.handbacks:
         data["hydrology"].pop("handbacks")
     if not cfg.transmission.enabled:

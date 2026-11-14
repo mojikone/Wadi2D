@@ -119,6 +119,8 @@ class StructuresSection(Section):
         name = next((f for f in NAME_FIELDS if f in layer.fields().names()), None)
         if name:  # a crest line's name names the reservoir of a generated basin
             chosen["name"] = name
+        if "delineate" in layer.fields().names():  # a line's own tick for the basin's delineation (W73)
+            chosen["delineate"] = "delineate"
         return keyed(layer_features(layer, crs, chosen, with_id=True))
 
     def lines(self, kind: str, crs) -> list:

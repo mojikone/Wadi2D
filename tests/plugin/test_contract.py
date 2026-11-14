@@ -441,3 +441,33 @@ def test_the_route_names_of_the_rows_are_the_engines() -> None:
 
     assert (basin_rows.MODE_LUMPED, basin_rows.MODE_2D) == (MODE_LUMPED, MODE_2D)
     assert (basin_rows.ROUTE_REACH, basin_rows.ROUTE_NONE) == (ROUTE_REACH, ROUTE_NONE)
+
+
+def test_the_basin_point_kinds_and_the_delineation_defaults_are_the_engines() -> None:
+    from wadi2d_qgis import basin_point_rows as rows
+
+    from wadi2d.basin.points import POINT_KINDS
+
+    assert rows.POINT_KINDS == POINT_KINDS
+    line = [(0.0, 0.0), (10.0, 0.0)]
+    shaped = {"section": {"crest_z": 2.0, "bed_z": 0.0, "left_top_z": 2.0, "right_top_z": 2.0}}
+    engine_default = {
+        kind
+        for kind in rows.DELINEATE_KINDS
+        if config.TerrainObject(
+            kind=kind, coordinates=line, z_constant=1.0, depth=1.0, **(shaped if kind in SHAPED_KINDS else {})
+        ).delineates
+    }
+    assert engine_default == set(rows.DELINEATE_DEFAULT)
+
+
+def test_the_delineation_ticks_reach_the_generation_job_only(tmp_path: Path) -> None:
+    ticks = {"crest_line": True, "wall": False, "burn_line": True}
+    settings = {"stream_threshold_km2": 10.0, "lag_method": "kirpich"}
+    basin = {"json": None, "settings": settings, "pour_points": [], "delineate": ticks}
+    values = full_values(tmp_path, basin=basin)
+    made = config.RunConfig.model_validate(basin_job(values, tmp_path / "wadi2d_basin"))
+    by_kind = {o.kind: o.delineates for o in made.terrain.objects}
+    assert by_kind == {"crest_line": True, "wall": False, "spillway": False, "burn_line": True}
+    run = build_job({**values, "basin": {**basin, "json": str(tmp_path / "basin.json")}}, tmp_path / "out")
+    assert all("delineate" not in o for o in run["terrain"]["objects"])

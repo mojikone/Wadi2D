@@ -18,6 +18,7 @@ from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QComboBox,
     QFormLayout,
+    QGridLayout,
     QGroupBox,
     QHBoxLayout,
     QHeaderView,
@@ -28,6 +29,15 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from ..basin_point_rows import (
+    DELINEATE_DEFAULT,
+    DELINEATE_KINDS,
+    DELINEATE_WORDS,
+    KIND_WORDS,
+    POINT_KINDS,
+    absolute_files,
+    point_fields,
+)
 from ..job_builder import layer_features
 from .basin_rows import (
     JUNCTION_COLUMNS,
@@ -54,7 +64,6 @@ from .basin_rows import (
 from .common import bind, layer_combo, number_box
 
 SHOWN_ROWS = 8
-NAME_FIELDS = ("name", "Name", "NAME")
 
 
 def _fit(table: QTableWidget, rows: int = SHOWN_ROWS) -> None:
@@ -62,15 +71,15 @@ def _fit(table: QTableWidget, rows: int = SHOWN_ROWS) -> None:
     table.setMaximumHeight(high + 2 * table.frameWidth())
 
 
-def _name_field(layer) -> str | None:
-    names = layer.fields().names()
-    return next((name for name in NAME_FIELDS if name in names), None)
-
-
 class BasinBox(QGroupBox):
     """Generate the basin from the DEM. Checked, the job runs on the generated basin; an HMS project switches it off."""
 
     generate_requested = pyqtSignal()
+    new_points_requested = pyqtSignal()
+    """A new Basin points layer is wanted (W73)."""
+    place_requested = pyqtSignal(str)
+    """The next map click adds a point of this kind."""
+    place_stopped = pyqtSignal()
     subbasins_changed = pyqtSignal(list)
     """The subbasin rows of the last generation, for the section's table."""
 
@@ -99,13 +108,64 @@ class BasinBox(QGroupBox):
             "Each junction: routed through its reach, or its water enters the 2D grid and runs over the ground to the "
             "next junction. The last column fills in when a run starts."
         )
+        self.pour.setToolTip(
+            "The Basin points layer: a point layer whose kind field says what each point is (outfall, design_point, dam, "
+            "diversion, source, junction, remove_junction, join_subbasins). A layer with no kind field gives plain break "
+            "points. Every edit is a point, so Generate basin replays them all."
+        )
+        self.new_points_button = QPushButton("New layer")
+        self.new_points_button.setToolTip("An empty Basin points layer in Inputs > Hydrology, with every field; save it to keep it")
+        points_row = QWidget()
+        points_line = QHBoxLayout(points_row)
+        points_line.setContentsMargins(0, 0, 0, 0)
+        points_line.addWidget(self.pour, 1)
+        points_line.addWidget(self.new_points_button)
+        self.point_kind = QComboBox()
+        for kind in POINT_KINDS:
+            self.point_kind.addItem(KIND_WORDS[kind], kind)
+        self.place_button = QPushButton("Click on the map")
+        self.place_button.setCheckable(True)
+        self.place_button.setToolTip("One click adds a point of this kind to the Basin points layer; Generate basin applies it")
+        place_row = QWidget()
+        place_line = QHBoxLayout(place_row)
+        place_line.setContentsMargins(0, 0, 0, 0)
+        place_line.addWidget(self.point_kind, 1)
+        place_line.addWidget(self.place_button)
+        self.ticks = {kind: QCheckBox(DELINEATE_WORDS[kind]) for kind in DELINEATE_KINDS}
+        tick_row = QWidget()
+        tick_grid = QGridLayout(tick_row)
+        tick_grid.setContentsMargins(0, 0, 0, 0)
+        for number, (kind, box) in enumerate(self.ticks.items()):
+            box.setChecked(kind in DELINEATE_DEFAULT)
+            box.setToolTip(
+                "The Structures layer of this kind edits the ground the basin is delineated on, as HEC-HMS's wall and "
+                "burn tools do: walls and crests raise it, burn lines and channels cut it. A layer's own delineate field "
+                "outranks this tick. The 2D run is not affected."
+            )
+            tick_grid.addWidget(box, number // 3, number % 3)
         form.addRow("Stream threshold, km2", self.threshold)
-        form.addRow("Pour points", self.pour)
+        form.addRow("Basin points", points_row)
+        form.addRow("Add a point", place_row)
+        form.addRow("Delineate on", tick_row)
         form.addRow("Lag method", self.lag)
         form.addRow(self.generate_button)
         form.addRow(self.summary)
         form.addRow(self.table)
         self.generate_button.clicked.connect(self.generate_requested)
+        self.new_points_button.clicked.connect(self.new_points_requested)
+        self.place_button.toggled.connect(self._place_toggled)
+
+    def _place_toggled(self, on: bool) -> None:
+        if on:
+            self.place_requested.emit(self.point_kind.currentData())
+        else:
+            self.place_stopped.emit()
+
+    def point_placed(self, text: str) -> None:
+        """The dock's word after a click: the button comes back up."""
+        with QSignalBlocker(self.place_button):
+            self.place_button.setChecked(False)
+        self.say(text)
 
     def apply_schema(self, schema) -> None:
         bind(self.threshold, schema, STREAM_THRESHOLD)
@@ -159,13 +219,17 @@ class BasinBox(QGroupBox):
         return {"stream_threshold_km2": self.threshold.value(), "lag_method": self.lag.currentData()}
 
     def values(self, crs) -> dict:
-        """What the job takes: the file, the settings that made it, the pour points as the dock saw them."""
+        """What the job takes: the file, the settings that made it, the Basin points as the dock saw them (every field
+        of the W73 kinds the layer has, a source's relative file made absolute), the delineation ticks."""
         pour = self.pour.currentLayer()
         points = []
         if pour is not None:
-            field = _name_field(pour)
-            points = layer_features(pour, crs, {"name": field} if field else None)
-        return {"json": self.json_path, "settings": self.settings(), "pour_points": points}
+            fields = point_fields(pour.fields().names())
+            source = pour.source().split("|")[0]
+            folder = Path(source).parent if pour.providerType() == "ogr" and source else None
+            points = absolute_files(layer_features(pour, crs, fields or None), folder)
+        ticks = {kind: box.isChecked() for kind, box in self.ticks.items()}
+        return {"json": self.json_path, "settings": self.settings(), "pour_points": points, "delineate": ticks}
 
 
 class HandbackBox(QWidget):

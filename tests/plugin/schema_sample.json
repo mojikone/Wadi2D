@@ -304,6 +304,14 @@
           "title": "Dam Min Km2",
           "type": "number"
         },
+        "wall_raise_m": {
+          "default": 100.0,
+          "description": "A delineation wall with no level of its own raises the ground under it by this much, m (W73), after HEC-HMS's sharp raise",
+          "exclusiveMinimum": 0.0,
+          "maximum": 10000.0,
+          "title": "Wall Raise M",
+          "type": "number"
+        },
         "dam_join_m": {
           "default": 50.0,
           "description": "A spillway this close to a crest line belongs to that dam, m",
@@ -4491,6 +4499,19 @@
           "maximum": 2000.0,
           "title": "Taper Length",
           "type": "number"
+        },
+        "delineate": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Edit the ground the basin generator delineates on, as HEC-HMS's wall and burn tools do (W73): a wall or crest line raises its pixels, a burn line or channel cuts them, an embankment or dyke takes its built ground. None: on for wall and burn_line, off for the rest. A spillway never delineates. The 2D run never reads it",
+          "title": "Delineate"
         }
       },
       "required": [
@@ -4945,6 +4966,7 @@
         "reservoir_step_m": 0.5,
         "reservoir_top_m": 10.0,
         "dam_min_km2": 1.0,
+        "wall_raise_m": 100.0,
         "dam_join_m": 50.0,
         "handback_span": 1.5,
         "handback_min_cells": 4

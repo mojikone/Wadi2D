@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 
+from wadi2d.basin.barriers import ground_edits
 from wadi2d.basin.contract import (
     FORMAT,
     FORMAT_VERSION,
@@ -28,6 +29,7 @@ from wadi2d.basin.elements import Built, Namer, build_elements
 from wadi2d.basin.kernels import NONE
 from wadi2d.basin.layers import write_layers
 from wadi2d.basin.network import Network, build_network
+from wadi2d.basin.points import POINT_OUTFALL, PointEdit, keep_outfalls
 from wadi2d.basin.pour import gather
 from wadi2d.basin.routes import junction_routes
 from wadi2d.config.schema import BasinSettings, RunConfig
@@ -80,12 +82,17 @@ def assemble(
     surface: Surface | None = None,
 ) -> Assembly:
     """Measure the model; ``surface`` reuses a delineation of the same ground."""
-    surface = surface or flow_surface(*read_surface(cfg, settings))
     notes: list[str] = []
-    surface, pour = gather(cfg, surface, settings, pour_layer, notes)
-    network = build_network(surface, pour, settings)
-    namer = Namer(previous, surface.pixel, (point.name for point in pour.values()))
+    if surface is None:
+        z, pixel, x0, y0, crs = read_surface(cfg, settings)
+        surface = flow_surface(z, pixel, x0, y0, crs, ground_edits(cfg, z, pixel, x0, y0, settings, notes))
+    edits: list[PointEdit] = []
+    surface, pour = gather(cfg, surface, settings, pour_layer, notes, edits)
+    network = build_network(surface, pour, settings, edits)
+    reserved = [point.name for point in pour.values()] + [src["name"] for p in pour.values() for src in p.sources]
+    namer = Namer(previous, surface.pixel, reserved)
     built = build_elements(cfg, surface, network, settings, namer, notes)
+    _outfalls(built, network, [point.name for point in pour.values() if point.role == POINT_OUTFALL], notes)
     model: Model = {
         "format": FORMAT,
         "format_version": FORMAT_VERSION,
@@ -101,6 +108,18 @@ def assemble(
     refresh(check_model(model))
     model["routes"] = [asdict(route) for route in junction_routes(model).values()]
     return Assembly(model, surface, network, built)
+
+
+def _outfalls(built: Built, network: Network, outfalls: list[str], notes: list[str]) -> None:
+    """Keep what drains to the layer's outfalls, in place; the pixels of what leaves no longer count as assigned."""
+    if not outfalls:
+        return
+    built.elements = keep_outfalls(built.elements, outfalls, notes)
+    names = {e["name"] for e in built.elements}
+    links = [link for name, link in built.links.items() if name in names]
+    built.links = {name: link for name, link in built.links.items() if name in names}
+    built.lines = {name: line for name, line in built.lines.items() if name in names}
+    network.label = np.where(np.isin(network.label, links), network.label, NONE)
 
 
 def _counts(model: Model) -> dict[str, int]:

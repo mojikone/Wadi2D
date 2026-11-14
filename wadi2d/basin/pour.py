@@ -21,6 +21,15 @@ import shapely
 
 from wadi2d.basin.delineate import Surface
 from wadi2d.basin.kernels import NONE, above, accumulate, upstream_first
+from wadi2d.basin.points import (
+    EDIT_KINDS,
+    POINT_DAM,
+    POINT_JUNCTION,
+    POINT_SOURCE,
+    PointEdit,
+    read_points,
+    read_source,
+)
 from wadi2d.config.schema import BasinSettings, RunConfig, TerrainObject
 from wadi2d.terrain.vector import read_features
 
@@ -44,6 +53,12 @@ class PourPoint:
     """The design line this node is one crossing of."""
     line_km2: float | None = None
     """All that crosses that line, streams under the threshold included."""
+    role: str | None = None
+    """The point's kind in the Basin points layer (W73); None for a dam, a design line or a layer with no kinds."""
+    sources: list[dict] = field(default_factory=list)
+    """External hydrographs entering at this node (``source`` points)."""
+    diversion: dict | None = None
+    """What a ``diversion`` point says, for the diversion element."""
 
 
 def crossing(surface: Surface, coordinates: list[tuple[float, float]]) -> int:
@@ -148,17 +163,36 @@ def collect_at_dams(surface: Surface, dams: list[PourPoint]) -> Surface:
     return replace(surface, down=down, order=order, count=accumulate(down, order, surface.valid))
 
 
-def _layer(path: str | Path, surface: Surface, settings: BasinSettings, notes: list[str]) -> list[PourPoint]:
-    """A point layer; a feature's ``name`` field names its junction."""
+def _layer(
+    path: str | Path,
+    surface: Surface,
+    settings: BasinSettings,
+    notes: list[str],
+    edits: list[PointEdit] | None = None,
+) -> list[PourPoint]:
+    """A point layer; a feature's ``name`` field names its junction, its ``kind`` field says what it is (W73)."""
     found: list[PourPoint] = []
+    folder = Path(path).parent
     for index, (properties, shape) in enumerate(read_features(path, surface.crs), 1):
         name = next((str(properties[key]) for key in NAME_FIELDS if properties.get(key)), f"P{index}")
+        role, extra = read_points(properties, name)
         for point in shapely.get_parts(shape):
+            if role in EDIT_KINDS:
+                if edits is not None:
+                    edits.append(PointEdit(role, name, point.x, point.y))
+                continue
             pixel = snapped(surface, point.x, point.y, settings)
             if pixel == NONE:
                 notes.append(f"pour point {name} is off the ground: dropped")
-            else:
-                found.append(PourPoint(name, KIND_LAYER, pixel, point.x, point.y))
+                continue
+            found_point = PourPoint(name, KIND_LAYER, pixel, point.x, point.y, role=role)
+            if "alias" in extra:
+                found_point.aliases.append(extra["alias"])
+            found_point.line = extra.get("crest_line")  # a dam point's crest line, settled in gather
+            found_point.diversion = extra.get("diversion")
+            if role == POINT_SOURCE:
+                found_point.sources.append(read_source(properties, name, folder, notes))
+            found.append(found_point)
     return found
 
 
@@ -196,14 +230,51 @@ def _unique(name: str, taken: set[str]) -> str:
     return candidate
 
 
+def _dam_point(point: PourPoint, dams: dict[str, PourPoint], notes: list[str]) -> bool:
+    """A ``dam`` point naming a crest line of the job joins that dam as an alias; True when it did."""
+    crest, point.line = point.line, None
+    dam = dams.get(crest) if crest else None
+    if dam is None:
+        said = f"names crest line {crest!r}, which makes no dam node" if crest else "names no crest line"
+        notes.append(f"dam point {point.name} {said}: it stays a junction (W58 decision 4 is open)")
+        point.role = POINT_JUNCTION
+        return False
+    if point.name != dam.name:
+        dam.aliases.append(point.name)
+    return True
+
+
+def _settle(held: PourPoint, point: PourPoint) -> PourPoint:
+    """Two points on one pixel: one node. A source never names it while another point can."""
+    if held.role == POINT_SOURCE and point.role != POINT_SOURCE:
+        point.sources = held.sources + point.sources
+        return point
+    held.sources += point.sources
+    if point.role != POINT_SOURCE and point.name != held.name:
+        held.aliases.append(point.name)
+    held.diversion = held.diversion or point.diversion
+    return held
+
+
 def gather(
-    cfg: RunConfig, surface: Surface, settings: BasinSettings, layer: str | Path | None, notes: list[str]
+    cfg: RunConfig,
+    surface: Surface,
+    settings: BasinSettings,
+    layer: str | Path | None,
+    notes: list[str],
+    edits: list[PointEdit] | None = None,
 ) -> tuple[Surface, dict[int, PourPoint]]:
-    """The surface with the dams in it, and every pour point by pixel; one landing on a held pixel becomes an alias there."""
+    """The surface with the dams in it, and every pour point by pixel; one landing on a held pixel becomes an alias there.
+
+    ``edits`` collects the layer's ``remove_junction`` and ``join_subbasins`` points, for the network to apply.
+    """
     found = _dams(cfg, surface, settings, notes)
     surface = collect_at_dams(surface, found)
+    dams = {dam.name: dam for dam in found}
     if layer is not None:
-        found += _layer(layer, surface, settings, notes)
+        for point in _layer(layer, surface, settings, notes, edits):
+            if point.role != POINT_DAM or not _dam_point(point, dams, notes):
+                found.append(point)
     found += _design(cfg, surface, settings, notes)
     points: dict[int, PourPoint] = {}
     names: set[str] = set()
@@ -213,6 +284,10 @@ def gather(
             point.name = _unique(point.name, names)
             names.add(point.name)
             points[point.pixel] = point
-        elif point.name != held.name:
-            held.aliases.append(point.name)
+        else:
+            settled = _settle(held, point)
+            if settled is point:  # a source gives way to a point that names the node
+                point.name = _unique(point.name, names)
+                names.add(point.name)
+            points[point.pixel] = settled
     return surface, points

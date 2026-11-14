@@ -19,6 +19,7 @@ from wadi2d.basin.contract import (
     JUNCTION,
     REACH,
     RESERVOIR,
+    SOURCE,
     SOURCE_DERIVED,
     SOURCE_JOB,
     SOURCE_MISSING,
@@ -33,13 +34,14 @@ from wadi2d.basin.delineate import Surface
 from wadi2d.basin.kernels import NONE, longest_paths, longest_upstream, path_to
 from wadi2d.basin.network import Network
 from wadi2d.basin.parameters import land_slope, read_on_surface, zonal_mean
+from wadi2d.basin.points import POINT_SOURCE
 from wadi2d.basin.pour import KIND_DAM, PourPoint
 from wadi2d.basin.reservoirs import crest_of, pool_table, spillways_of
 from wadi2d.basin.sections import HIGH_GROUND, fit_section
 from wadi2d.config.schema import BasinSettings, RunConfig
 
 PREFIXES = {SUBBASIN: "S", REACH: "R", JUNCTION: "J"}
-LAYERS = {SUBBASIN: "subbasins", REACH: "reaches", JUNCTION: "junctions", RESERVOIR: "junctions"}
+LAYERS = {SUBBASIN: "subbasins", REACH: "reaches", JUNCTION: "junctions", RESERVOIR: "junctions", SOURCE: "junctions"}
 AREA_DIGITS, LENGTH_DIGITS, SLOPE_DIGITS, TABLE_DIGITS = 4, 2, 6, 3
 TEN_85_FROM_TOP = (0.15, 0.9)
 """The 10-85 points as shares of the longest path from its top, as HMS's statistics take them."""
@@ -254,8 +256,23 @@ def _node_names(surface: Surface, net: Network, namer: Namer) -> dict[int, str]:
     names: dict[int, str] = {}
     for node in net.nodes.tolist():
         point = net.pour.get(node)
-        names[node] = point.name if point else namer.name(JUNCTION, *surface.xy(node))
+        named = point is not None and point.role != POINT_SOURCE  # a source names its own element, not the junction
+        names[node] = point.name if named else namer.name(JUNCTION, *surface.xy(node))
     return names
+
+
+def _sources(point: PourPoint, junction: str, x: float, y: float) -> list[Element]:
+    """The source elements entering at a node (W73), each with its hydrograph as ``basin.json`` carries it."""
+    out = []
+    for src in point.sources:
+        parameters = {
+            "hydrograph": parameter({"minutes": src["minutes"], "flow_m3s": src["flow_m3s"]}, SOURCE_JOB),
+            "file": parameter(src["file"], SOURCE_JOB),
+            "series": parameter(src["series"], SOURCE_JOB),
+            "area_km2": parameter(src["area_km2"], SOURCE_JOB),
+        }
+        out.append(_element(SOURCE, src["name"], junction, x, y, parameters))
+    return out
 
 
 def build_elements(
@@ -319,5 +336,11 @@ def build_elements(
                 "line_km2": None if point.line_km2 is None else round(point.line_km2, AREA_DIGITS),
                 "aliases": point.aliases,
             }
+            if point.role is not None:
+                element["pour_point"]["role"] = point.role  # the kind in the Basin points layer (W73)
+            if point.diversion is not None:
+                element["diversion"] = point.diversion
         built.elements.append(element)
+        if point is not None and point.sources:
+            built.elements += _sources(point, names[node], x, y)
     return built
