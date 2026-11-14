@@ -449,6 +449,15 @@ Waiting on him:
 - **Open, separate from the race, nothing run on it (`W57 made-up cases for the race excess`):** rain on 50 % hills into a narrow channel turned 30 degrees to the grid, true peak known (112.3 m3/s): the aligned cells within about 1 % at 20, 10 and 5 m, the squares 18 to 23 % low at 5 to 20 m and 11 % low at 2 m [Likely the staircase slowing the shallow side inflow]. If it holds on real ground it bears on every square-mesh rain-on-grid design number; the settling test is Faydh's DEM turned 30 degrees. Flood waves, junctions and a gorge opening into a plain showed no excess.
 - Full suite on the merges: 2,113 of 2,117 before W55, the 4 the HMS tests W55 fixed; the final run is in `W55 .../pytest_full_final_merge.log`. The GPU driver faulted three times on 13 Nov with parallel CUDA jobs (nvlddmkm 153): a reboot is the cure, his to do.
 
+**His to-do list of 2026-11-14 (HMS work first, his order):**
+
+- HMS-style basin work (`W58 HMS elements and dam workbook`): check HMS 4.12's reservoir and diversion options against its manual, then a design note; a point layer the user clicks (outfalls, design points, dams, diversions, sources) with delineation at main confluences and a user threshold (exists: `basin.stream_threshold_km2`), all outfalls in one go; editing: merge and split subbasins and reaches, add junctions, reservoirs and sources (external inflow hydrographs) (not built); walls and burn lines from the existing terrain objects with a tick for delineation, no separate HMS tools.
+- Reservoir structures, his priority: rating tables, culverts, orifices, dam top, gates, pumps, seepage, evaporation; then the rest if not long (ogee, specified release, dam break in HMS); each checked against HEC-HMS run headless or HEC samples.
+- Diversion methods (constant, lateral weir, pump station, specified, limits).
+- Time of concentration at every element and point (HMS shows only the subbasin lag); a hydrograph chart per element with a thin rain bar on top, his layout; where to show it: his decision (dock or right-click on the map, as HMS).
+- His dam-site Excel workbook: template requested from the Block 02 session on 2026-11-14; reproduce its layout from any run for dams or picked elements, first sheet the target return period (200-yr), after his approval of what is found.
+- **To do later: dam breach in the 2D model** (much needed, his word); **inflow hydrographs as 2D boundary lines** (today only point inflows and stage, normal, free lines).
+
 **His list of 2026-11-09, kept for when he resumes (stopped for the week at 60 % usage, his word):**
 
 **Where it stands, 2026-11-13: his "Start all" at 86 % of the weekly usage, then "Stop at 93 %"; five workers ran about 50 minutes and were stopped at 93 %, none finished, nothing tested. Each left a WIP commit on its own branch off `feature/fast-products` (`8128178`), in its own worktree under `.claude/worktrees/`, with run folders uncommitted beside it:**
