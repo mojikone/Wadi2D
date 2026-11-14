@@ -62,7 +62,7 @@ from wadi2d.hydrology.reservoir import (
 from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS, MuskingumCunge
 from wadi2d.hydrology.transforms import CLARK_UH, SCS_UH, TRANSFORM_METHODS
 from wadi2d.storm import ArfTable, HypotheticalStorm, PercentPattern, StormBySubbasin, SubbasinRain
-from wadi2d.storm.grid_depth import DepthGrid
+from wadi2d.storm.grid_depth import DepthGrid, centroid_of
 
 METRIC = "Metric"
 TRAPEZOID = "Trapezoid"
@@ -431,15 +431,20 @@ def grid_storm(
     Its depth is the grid mean above each analysis point (`Uniform Depth: Yes`), or the grid mean over each
     subbasin on its own (``by_subbasin``, `Uniform Depth: No`).
     """
-    cells = {polygon.name: depths.cells_in(polygon.shape()) for polygon in subbasin_polygons(sqlite)}
+    shapes = {polygon.name: polygon.shape() for polygon in subbasin_polygons(sqlite)}
+    cells = {name: depths.cells_in(shape) for name, shape in shapes.items()}
     if by_subbasin:
-        means = {name: depths.mean_of([cells[name]]) for name in basin.subbasins}
+        means = {
+            name: depths.mean_of([cells[name]], centroid_of([shapes[name]])) for name in basin.subbasins
+        }
         rain = StormBySubbasin(storm, means)
         return lambda _point, area_km2: rain.at_area(area_km2)
 
     def at_point(point: str, area_km2: float) -> SubbasinRain:
-        upstream = basin.upstream_of(point)
-        depth = depths.mean_of(indices for name, indices in cells.items() if name in upstream)
+        above = basin.upstream_of(point)
+        upstream = [name for name in cells if name in above]
+        centroid = centroid_of(shapes[name] for name in upstream)
+        depth = depths.mean_of((cells[name] for name in upstream), centroid)
         return replace(storm, depth_mm=depth).at_area(area_km2)
 
     return at_point

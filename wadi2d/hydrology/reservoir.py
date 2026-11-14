@@ -39,6 +39,7 @@ LEVEL_ITERATIONS = 80
 LEVEL_TOLERANCE_M = 1.0e-12
 ADAPTIVE_LEVEL_CHANGE_M = 0.1
 ADAPTIVE_BISECTIONS = 8
+HALF_STEP = 0.5
 
 
 def conic_storage(elevations_m: FloatArray, areas_m2: FloatArray) -> FloatArray:
@@ -96,6 +97,21 @@ class ReservoirOutflowCurve:
     def route(self, inflow_m3s: FloatArray, dt_minutes: float) -> FloatArray:
         """The main outflow at the times of the inflow, m3/s."""
         return self.branches(inflow_m3s, dt_minutes)[0]
+
+    def pool(
+        self, inflow_m3s: FloatArray, outflow_m3s: FloatArray, dt_minutes: float
+    ) -> tuple[FloatArray, FloatArray]:
+        """Storage, m3, and pool level, m, at the times of a routed inflow and its outflow.
+
+        The storage-indication step holds S2 - S1 = dt ((I1 + I2) / 2 - (O1 + O2) / 2) exactly, so the storage is that
+        sum from the initial pool, and the level is the table read back. HMS's STORAGE and ELEVATION series of Block 2's
+        Basin 3 agree with this to 3e-7 of the storage and 1 mm (W55).
+        """
+        start = float(np.interp(self.initial_elevation_m, self.elevations_m, self.storage_m3))
+        step = HALF_STEP * dt_minutes * SECONDS_PER_MINUTE
+        change = step * (inflow_m3s[1:] + inflow_m3s[:-1] - outflow_m3s[1:] - outflow_m3s[:-1])
+        storage = start + np.concatenate(([0.0], np.cumsum(change)))
+        return storage, np.interp(storage, self.storage_m3, self.elevations_m)
 
 
 @dataclass(frozen=True)

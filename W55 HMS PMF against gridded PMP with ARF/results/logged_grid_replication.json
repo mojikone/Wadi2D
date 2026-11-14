@@ -1,0 +1,314 @@
+{
+ "DA PMP B2": {
+  "rule": {
+   "worst_percent": -0.011101509056765657,
+   "at": "RIJ-J21",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 4.243363134204259e-05,
+   "at": "FIZ-J2",
+   "max_steps": 0
+  }
+ },
+ "DA 10yr B2": {
+  "rule": {
+   "worst_percent": 0.06391520751842794,
+   "at": "RIJ-J20",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": -0.0017728104791614463,
+   "at": "FIZ-J8",
+   "max_steps": 0
+  }
+ },
+ "DA 100yr B2": {
+  "rule": {
+   "worst_percent": 0.049805968127358824,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00044549797264537006,
+   "at": "FIZ-J8",
+   "max_steps": 0
+  }
+ },
+ "DA 1000yr B2": {
+  "rule": {
+   "worst_percent": 0.041154577957569494,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00013063284542980114,
+   "at": "FAY-J5",
+   "max_steps": 0
+  }
+ },
+ "DA 10000yr B2": {
+  "rule": {
+   "worst_percent": 0.032386582200438774,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 5.008323773481038e-05,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  }
+ },
+ "DA 2yr B2": {
+  "rule": {
+   "worst_percent": 1.2156933902107703,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.0036854591349833044,
+   "at": "FIZ-J2",
+   "max_steps": 0
+  }
+ },
+ "DA 200yr B2": {
+  "rule": {
+   "worst_percent": 0.04742938943695929,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": -0.00029934568176459564,
+   "at": "FAY-J3",
+   "max_steps": 0
+  }
+ },
+ "DA 2000yr B2": {
+  "rule": {
+   "worst_percent": 0.03820188370291522,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.0001260519303603047,
+   "at": "RIJ-J11",
+   "max_steps": 0
+  }
+ },
+ "DA 25yr B2": {
+  "rule": {
+   "worst_percent": 0.048675196267744525,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.002085357986003622,
+   "at": "FAY-J5",
+   "max_steps": 0
+  }
+ },
+ "DA 5yr B2": {
+  "rule": {
+   "worst_percent": 1.928601048999612,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.00013421378646238935,
+   "at": "Z4C",
+   "max_steps": 0
+  }
+ },
+ "DA 50yr B2": {
+  "rule": {
+   "worst_percent": 0.04764079802235255,
+   "at": "RIJ-J17",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.001188899133652832,
+   "at": "HAT-J6",
+   "max_steps": 0
+  }
+ },
+ "DA 500yr B2": {
+  "rule": {
+   "worst_percent": 0.04396163542872422,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00010941718111556753,
+   "at": "FIZ-J8",
+   "max_steps": 0
+  }
+ },
+ "DA 5000yr B2": {
+  "rule": {
+   "worst_percent": 0.0333455837349117,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 6.238552736625991e-05,
+   "at": "HAT-J6",
+   "max_steps": 0
+  }
+ },
+ "DA PMP B3": {
+  "rule": {
+   "worst_percent": -0.013096445872551321,
+   "at": "RIJ-J21",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 4.190693718708616e-05,
+   "at": "FIZ-J2",
+   "max_steps": 0
+  }
+ },
+ "DA 10yr B3": {
+  "rule": {
+   "worst_percent": 0.06391520751842794,
+   "at": "RIJ-J20",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00016575767074478165,
+   "at": "HAT-J6",
+   "max_steps": 0
+  }
+ },
+ "DA 100yr B3": {
+  "rule": {
+   "worst_percent": 0.049805968127358824,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.0006891493140370741,
+   "at": "FIZ-J2",
+   "max_steps": 0
+  }
+ },
+ "DA 1000yr B3": {
+  "rule": {
+   "worst_percent": -0.04596090059162394,
+   "at": "RIJ-J21",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": -0.00024510563871871227,
+   "at": "FAY-J1",
+   "max_steps": 0
+  }
+ },
+ "DA 10000yr B3": {
+  "rule": {
+   "worst_percent": -0.04486854147046637,
+   "at": "RIJ-J21",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": -9.606482568313979e-05,
+   "at": "FAY-J1",
+   "max_steps": 0
+  }
+ },
+ "DA 2yr B3": {
+  "rule": {
+   "worst_percent": 1.2156933902107703,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.0019467839823761324,
+   "at": "Z4C",
+   "max_steps": 0
+  }
+ },
+ "DA 200yr B3": {
+  "rule": {
+   "worst_percent": 0.04742938943695929,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00064625636548854,
+   "at": "RIJ-J9",
+   "max_steps": 0
+  }
+ },
+ "DA 2000yr B3": {
+  "rule": {
+   "worst_percent": -0.039716431589054135,
+   "at": "RIJ-J21",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": -0.00041490721551795673,
+   "at": "FAY-J1",
+   "max_steps": 0
+  }
+ },
+ "DA 25yr B3": {
+  "rule": {
+   "worst_percent": 0.048675196267744525,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.002222118086803171,
+   "at": "FAY-J5",
+   "max_steps": 0
+  }
+ },
+ "DA 5yr B3": {
+  "rule": {
+   "worst_percent": 1.928601048999612,
+   "at": "RIJ-J20",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.0016154094514497785,
+   "at": "Z4C Reservoir",
+   "max_steps": 0
+  }
+ },
+ "DA 50yr B3": {
+  "rule": {
+   "worst_percent": 0.04764079802235255,
+   "at": "RIJ-J17",
+   "max_steps": 1
+  },
+  "logged_grid": {
+   "worst_percent": 0.001188899133652832,
+   "at": "HAT-J6",
+   "max_steps": 0
+  }
+ },
+ "DA 500yr B3": {
+  "rule": {
+   "worst_percent": 0.04396163542872422,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 8.197584993041573e-05,
+   "at": "FIZ-J8",
+   "max_steps": 0
+  }
+ },
+ "DA 5000yr B3": {
+  "rule": {
+   "worst_percent": 0.0333455837349117,
+   "at": "RIJ-J17",
+   "max_steps": 0
+  },
+  "logged_grid": {
+   "worst_percent": 0.00021679022390586056,
+   "at": "FAY-J1",
+   "max_steps": 0
+  }
+ }
+}

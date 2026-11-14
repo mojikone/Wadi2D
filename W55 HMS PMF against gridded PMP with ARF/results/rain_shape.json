@@ -1,0 +1,36 @@
+{
+ "fm_pmp_pattern": {
+  "wettest_1h": 0.23382857142857122,
+  "wettest_6h": 0.7989999999999999
+ },
+ "Bidah 03": {
+  "subbasin_depth_min_mm": 505.81278743423456,
+  "subbasin_depth_max_mm": 505.81278743423456,
+  "grid_wettest_1h": 0.37805806946099835,
+  "grid_wettest_6h": 0.6786611877352441
+ },
+ "Faydh 01": {
+  "subbasin_depth_min_mm": 489.23477171912015,
+  "subbasin_depth_max_mm": 490.8246631312595,
+  "grid_wettest_1h": 0.3852110373386135,
+  "grid_wettest_6h": 0.6849609779230785
+ },
+ "R2A": {
+  "subbasin_depth_min_mm": 502.61613900986913,
+  "subbasin_depth_max_mm": 538.4263720260922,
+  "grid_wettest_1h": 0.3770864006992835,
+  "grid_wettest_6h": 0.677814097771457
+ },
+ "R5A": {
+  "subbasin_depth_min_mm": 494.7340904728993,
+  "subbasin_depth_max_mm": 529.0449079720054,
+  "grid_wettest_1h": 0.3799292729003817,
+  "grid_wettest_6h": 0.680349793219961
+ },
+ "Z4C": {
+  "subbasin_depth_min_mm": 493.88774271742244,
+  "subbasin_depth_max_mm": 530.0020711604933,
+  "grid_wettest_1h": 0.3782675153032754,
+  "grid_wettest_6h": 0.6788967675551194
+ }
+}

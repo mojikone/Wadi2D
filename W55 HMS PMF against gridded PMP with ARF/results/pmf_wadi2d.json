@@ -1,0 +1,312 @@
+{
+ "Bidah 03": {
+  "b_fm_pmp": {
+   "inflow_peak": 1688.3726365802586,
+   "inflow_peak_h": 12.833333333333334,
+   "outflow_peak": 1477.233395841942,
+   "outflow_peak_h": 13.5,
+   "inflow_volume_Mm3": 27.853357685343436,
+   "outflow_volume_Mm3": 22.266828911517884,
+   "max_level_m": 104.57004658972775,
+   "max_storage_Mm3": 10.003291720401059,
+   "rain_mm": 1370.414947791359,
+   "factor": 0.9749319
+  },
+  "c_grid_arf": {
+   "inflow_peak": 865.4896165715801,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak": 187.45839021771894,
+   "outflow_peak_h": 14.833333333333334,
+   "inflow_volume_Mm3": 9.488448125959888,
+   "outflow_volume_Mm3": 3.9011765003852057,
+   "max_level_m": 101.15353896836258,
+   "max_storage_Mm3": 6.580908501225572,
+   "rain_mm": 493.13302189755444,
+   "factor": 0.9749319
+  },
+  "d_grid_no_arf": {
+   "inflow_peak": 888.5601013443512,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak": 208.29486073264383,
+   "outflow_peak_h": 14.75,
+   "inflow_volume_Mm3": 9.753123366414101,
+   "outflow_volume_Mm3": 4.165834766679495,
+   "max_level_m": 101.2376145878125,
+   "max_storage_Mm3": 6.656880781178037,
+   "rain_mm": 505.8127874342346,
+   "factor": 1.0
+  },
+  "e_lumped_depth_arf": {
+   "inflow_peak": 865.48961657158,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak": 187.45839021771894,
+   "outflow_peak_h": 14.833333333333334,
+   "inflow_volume_Mm3": 9.48844812595989,
+   "outflow_volume_Mm3": 3.9011765003852106,
+   "max_level_m": 101.15353896836258,
+   "max_storage_Mm3": 6.580908501225572,
+   "rain_mm": 493.13302189755444,
+   "factor": 0.9749319
+  },
+  "f_grid_depth_fm_pattern": {
+   "inflow_peak": 596.6070953405277,
+   "inflow_peak_h": 12.833333333333334,
+   "outflow_peak": 255.84307234119214,
+   "outflow_peak_h": 15.166666666666666,
+   "inflow_volume_Mm3": 9.48844812595989,
+   "outflow_volume_Mm3": 3.9022274504160674,
+   "max_level_m": 101.41970017930521,
+   "max_storage_Mm3": 6.822991788330379,
+   "rain_mm": 493.13302189755444,
+   "factor": 0.9749319
+  }
+ },
+ "Faydh 01": {
+  "b_fm_pmp": {
+   "inflow_peak": 4859.629704478808,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak": 4830.39689608467,
+   "outflow_peak_h": 13.5,
+   "inflow_volume_Mm3": 87.24724944512147,
+   "outflow_volume_Mm3": 70.7620107543478,
+   "max_level_m": 234.90209078679297,
+   "max_storage_Mm3": 21.774990219107245,
+   "rain_mm": 1205.0342467640382,
+   "factor": 0.9309872
+  },
+  "c_grid_arf": {
+   "inflow_peak": 2325.862529535989,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak": 1214.685095744739,
+   "outflow_peak_h": 14.583333333333334,
+   "inflow_volume_Mm3": 31.666118318226875,
+   "outflow_volume_Mm3": 15.180875814189694,
+   "max_level_m": 231.97674435283275,
+   "max_storage_Mm3": 18.613136118864436,
+   "rain_mm": 456.1254833947874,
+   "factor": 0.9309872
+  },
+  "d_grid_no_arf": {
+   "inflow_peak": 2504.49424834631,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak": 1495.5062596881135,
+   "outflow_peak_h": 14.333333333333334,
+   "inflow_volume_Mm3": 34.17127647603369,
+   "outflow_volume_Mm3": 17.686033790675886,
+   "max_level_m": 232.27772735063354,
+   "max_storage_Mm3": 18.921172496909843,
+   "rain_mm": 489.93743780235366,
+   "factor": 1.0
+  },
+  "e_lumped_depth_arf": {
+   "inflow_peak": 2325.844933469746,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak": 1214.5805393692124,
+   "outflow_peak_h": 14.583333333333334,
+   "inflow_volume_Mm3": 31.666124325874996,
+   "outflow_volume_Mm3": 15.180881818073603,
+   "max_level_m": 231.9766322897286,
+   "max_storage_Mm3": 18.61302142961962,
+   "rain_mm": 456.1254833947874,
+   "factor": 0.9309872
+  },
+  "f_grid_depth_fm_pattern": {
+   "inflow_peak": 1810.184223962346,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak": 1313.7911007424045,
+   "outflow_peak_h": 14.75,
+   "inflow_volume_Mm3": 31.667419399440174,
+   "outflow_volume_Mm3": 15.182181148336657,
+   "max_level_m": 232.082965771708,
+   "max_storage_Mm3": 18.721846781527272,
+   "rain_mm": 456.1254833947874,
+   "factor": 0.9309872
+  }
+ },
+ "R2A": {
+  "b_fm_pmp": {
+   "inflow_peak": 9107.112016276023,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak": 9091.118783046799,
+   "outflow_peak_h": 14.0,
+   "inflow_volume_Mm3": 190.1512107143998,
+   "outflow_volume_Mm3": 175.10175290372732,
+   "max_level_m": 166.2766983819349,
+   "max_storage_Mm3": 26.16555933155307,
+   "rain_mm": 1116.9533761374832,
+   "factor": 0.875825415
+  },
+  "c_grid_arf": {
+   "inflow_peak": 3597.356408551017,
+   "inflow_peak_h": 14.0,
+   "outflow_peak": 3398.0659294092484,
+   "outflow_peak_h": 14.5,
+   "inflow_volume_Mm3": 72.22555721200371,
+   "outflow_volume_Mm3": 57.17517497907395,
+   "max_level_m": 165.4369418486913,
+   "max_storage_Mm3": 23.661472239176184,
+   "rain_mm": 445.17532245697066,
+   "factor": 0.875825415
+  },
+  "d_grid_no_arf": {
+   "inflow_peak": 4165.158230227213,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak": 4089.1000344307363,
+   "outflow_peak_h": 14.25,
+   "inflow_volume_Mm3": 83.28227898307347,
+   "outflow_volume_Mm3": 68.2317757124611,
+   "max_level_m": 165.56957691085307,
+   "max_storage_Mm3": 24.045710221504084,
+   "rain_mm": 508.29230898371526,
+   "factor": 1.0
+  },
+  "e_lumped_depth_arf": {
+   "inflow_peak": 3599.2816112837554,
+   "inflow_peak_h": 14.0,
+   "outflow_peak": 3398.2358195807265,
+   "outflow_peak_h": 14.5,
+   "inflow_volume_Mm3": 72.22691839922938,
+   "outflow_volume_Mm3": 57.17652627857269,
+   "max_level_m": 165.4369856763475,
+   "max_storage_Mm3": 23.661596551502875,
+   "rain_mm": 445.17532245697066,
+   "factor": 0.875825415
+  },
+  "f_grid_depth_fm_pattern": {
+   "inflow_peak": 3494.267333555763,
+   "inflow_peak_h": 14.083333333333334,
+   "outflow_peak": 3400.158314841856,
+   "outflow_peak_h": 14.583333333333334,
+   "inflow_volume_Mm3": 72.23216333034219,
+   "outflow_volume_Mm3": 57.1829380176085,
+   "max_level_m": 165.43748163476928,
+   "max_storage_Mm3": 23.6630032830218,
+   "rain_mm": 445.17532245697066,
+   "factor": 0.875825415
+  }
+ },
+ "R5A": {
+  "b_fm_pmp": {
+   "inflow_peak": 6572.2942560220845,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak": 6558.755496080116,
+   "outflow_peak_h": 14.083333333333334,
+   "inflow_volume_Mm3": 132.72266216487105,
+   "outflow_volume_Mm3": 123.32867289512309,
+   "max_level_m": 146.7838353926502,
+   "max_storage_Mm3": 17.91383395699209,
+   "rain_mm": 1168.2406843793883,
+   "factor": 0.904618746
+  },
+  "c_grid_arf": {
+   "inflow_peak": 2410.1355644903115,
+   "inflow_peak_h": 14.416666666666666,
+   "outflow_peak": 2213.0893012793867,
+   "outflow_peak_h": 14.916666666666666,
+   "inflow_volume_Mm3": 49.25959825287053,
+   "outflow_volume_Mm3": 39.86560451069682,
+   "max_level_m": 145.64693733619498,
+   "max_storage_Mm3": 14.936159069270673,
+   "rain_mm": 454.30795227256647,
+   "factor": 0.904618746
+  },
+  "d_grid_no_arf": {
+   "inflow_peak": 2702.69597987572,
+   "inflow_peak_h": 14.416666666666666,
+   "outflow_peak": 2508.6099378621693,
+   "outflow_peak_h": 14.833333333333334,
+   "inflow_volume_Mm3": 54.847777216257725,
+   "outflow_volume_Mm3": 45.45378313448792,
+   "max_level_m": 145.87882953931222,
+   "max_storage_Mm3": 15.514277458153353,
+   "rain_mm": 502.20930561234076,
+   "factor": 1.0
+  },
+  "e_lumped_depth_arf": {
+   "inflow_peak": 2417.5850403500253,
+   "inflow_peak_h": 14.416666666666666,
+   "outflow_peak": 2216.8469004501712,
+   "outflow_peak_h": 14.916666666666666,
+   "inflow_volume_Mm3": 49.26115141092931,
+   "outflow_volume_Mm3": 39.86715760192973,
+   "max_level_m": 145.64988588814796,
+   "max_storage_Mm3": 14.94350995076511,
+   "rain_mm": 454.30795227256647,
+   "factor": 0.904618746
+  },
+  "f_grid_depth_fm_pattern": {
+   "inflow_peak": 2410.2047019786714,
+   "inflow_peak_h": 14.25,
+   "outflow_peak": 2254.2492537019325,
+   "outflow_peak_h": 14.916666666666666,
+   "inflow_volume_Mm3": 49.26622918781552,
+   "outflow_volume_Mm3": 39.87224022151712,
+   "max_level_m": 145.6792351552503,
+   "max_storage_Mm3": 15.016679081870015,
+   "rain_mm": 454.30795227256647,
+   "factor": 0.904618746
+  }
+ },
+ "Z4C": {
+  "b_fm_pmp": {
+   "inflow_peak": 9500.042944653615,
+   "inflow_peak_h": 15.0,
+   "outflow_peak": 9490.564457582968,
+   "outflow_peak_h": 15.083333333333334,
+   "inflow_volume_Mm3": 206.8767435115698,
+   "outflow_volume_Mm3": 202.3094911739518,
+   "max_level_m": 172.25612764127206,
+   "max_storage_Mm3": 10.03997428830683,
+   "rain_mm": 1013.2698501916595,
+   "factor": 0.8607484
+  },
+  "c_grid_arf": {
+   "inflow_peak": 4140.596838965553,
+   "inflow_peak_h": 15.25,
+   "outflow_peak": 4121.76553509615,
+   "outflow_peak_h": 15.416666666666666,
+   "inflow_volume_Mm3": 85.07520132126893,
+   "outflow_volume_Mm3": 80.50794696357393,
+   "max_level_m": 170.76258619490685,
+   "max_storage_Mm3": 8.223488515495736,
+   "rain_mm": 435.1623300827471,
+   "factor": 0.8607484
+  },
+  "d_grid_no_arf": {
+   "inflow_peak": 4843.614926790672,
+   "inflow_peak_h": 15.25,
+   "outflow_peak": 4826.936584041514,
+   "outflow_peak_h": 15.333333333333334,
+   "inflow_volume_Mm3": 99.87952646630004,
+   "outflow_volume_Mm3": 95.3122718631575,
+   "max_level_m": 171.00854398489224,
+   "max_storage_Mm3": 8.505116300979667,
+   "rain_mm": 505.5627522313688,
+   "factor": 1.0
+  },
+  "e_lumped_depth_arf": {
+   "inflow_peak": 4150.00180817656,
+   "inflow_peak_h": 15.25,
+   "outflow_peak": 4130.9589840668905,
+   "outflow_peak_h": 15.416666666666666,
+   "inflow_volume_Mm3": 85.0762666828085,
+   "outflow_volume_Mm3": 80.50901230052308,
+   "max_level_m": 170.76581385012904,
+   "max_storage_Mm3": 8.227178965491099,
+   "rain_mm": 435.1623300827471,
+   "factor": 0.8607484
+  },
+  "f_grid_depth_fm_pattern": {
+   "inflow_peak": 3964.24829305706,
+   "inflow_peak_h": 15.25,
+   "outflow_peak": 3957.5343055980848,
+   "outflow_peak_h": 15.416666666666666,
+   "inflow_volume_Mm3": 85.10317067861044,
+   "outflow_volume_Mm3": 80.53591835736617,
+   "max_level_m": 170.7049275526254,
+   "max_storage_Mm3": 8.157562534716527,
+   "rain_mm": 435.1623300827471,
+   "factor": 0.8607484
+  }
+ }
+}

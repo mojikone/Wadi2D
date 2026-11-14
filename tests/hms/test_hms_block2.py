@@ -121,10 +121,27 @@ def test_control(hms_project_dir: Path) -> None:
     assert model.unknown_report() == []
 
 
+def test_basin_3_has_the_five_dam_reservoirs_and_nothing_unknown(hms_project_dir: Path) -> None:
+    """Since 2026-11-11: Basin 2 is Basin 1 plus the channel network, Basin 3 is Basin 2 plus the reservoirs."""
+    model = load_basin(hms_project_dir / "Basin_3.basin")
+    assert (len(model.subbasins), len(model.reaches), len(model.junctions)) == (104, 71, 101)
+    assert set(model.reservoirs) == {f"{dam} Reservoir" for dam in ("Bidah 03", "Faydh 01", "R2A", "R5A", "Z4C")}
+    route = model.reservoirs["Faydh 01 Reservoir"].route
+    assert (route.method, route.routing_curve, route.initial_elevation) == (
+        "Modified Puls",
+        "Elevation-Area-Outflow",
+        175.8,
+    )
+    assert (route.elevation_area_table, route.elevation_outflow_table) == ("Elev-Area Faydh 01", "Elev-Dis Faydh 01")
+    assert model.unknown_report() == []
+    assert model.connectivity().dangling == []
+
+
 def test_nals(hms_project_dir: Path) -> None:
     model = load_nals(hms_project_dir / "HEC_HMS_Block_02.nals")
-    assert len(model.analyses) == 13
-    assert all(len(analysis.points) == 40 for analysis in model.analyses)
+    assert len(model.analyses) == 39
+    points = {"Basin 1": 40, "Basin 2": 91, "Basin 3": 97}
+    assert all(len(analysis.points) == points[analysis.basin_model_name] for analysis in model.analyses)
     assert model.analysis(DA_100).dss_file == "DA_100yr_B1.dss"
     assert model.unknown_report() == []
 
@@ -133,8 +150,8 @@ def test_pdata_project_and_run(hms_project_dir: Path) -> None:
     tables = load_pdata(hms_project_dir / "HEC_HMS_Block_02.pdata")
     assert tables.tables["ARF FM"].pathname == "//ARF FM/AREA-REDUCTION FACTOR///TABLE/"
     project = load_project(hms_project_dir / "HEC_HMS_Block_02.hms")
-    assert (len(project.mets), list(project.basins)) == (13, ["Basin 1"])
-    assert project.path_of(project.basins["Basin 1"]).is_file()
+    assert (len(project.mets), sorted(project.basins)) == (13, ["Basin 1", "Basin 2", "Basin 3"])
+    assert all(project.path_of(project.basins[name]).is_file() for name in project.basins)
     assert project.path_of(project.controls["Control 1"]).is_file()
     assert project.unknown_report() == []
     runs = load_run(hms_project_dir / "HEC_HMS_Block_02.run")
@@ -197,7 +214,7 @@ def test_dss_precipitation_is_period_ending(hms_project_dir: Path) -> None:
 def test_paired_data(hms_project_dir: Path) -> None:
     tables = load_pdata(hms_project_dir / "HEC_HMS_Block_02.pdata").tables
     with open_dss(hms_project_dir / "HEC_HMS_Block_02.dss") as file:
-        assert file.record_count == 6
+        assert file.record_count == 16  # 6 before Basin 3; its reservoirs' elevation tables since 2026-11-11
         arf = file.read_paired(tables["ARF FM"].pathname)
         pattern = file.read_paired(tables["FM 10-1000yr"].pathname)
     assert arf.x.size == 12
