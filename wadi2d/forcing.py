@@ -23,6 +23,7 @@ from wadi2d.hms import load_basin
 from wadi2d.hms import sqlite as hms_sqlite
 from wadi2d.hydrology.cell_rain import CellRain, rain_pixels
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
+from wadi2d.hydrology.gauge_rain import GaugeCellRain
 from wadi2d.hydrology.losses import ScsCurveNumber
 from wadi2d.io.geotiff import grid_transform
 from wadi2d.io.rain import read_rain
@@ -31,6 +32,8 @@ from wadi2d.solver.layout import STRIDE2
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import state_index
 from wadi2d.storm import STORM_METHODS, ArfTable, HypotheticalStorm, PercentPattern, Storm, UniformStorm
+from wadi2d.storm.gauge_build import build_gauge_storm
+from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
 from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.hypothetical import HYPOTHETICAL_STORM, MINUTES_PER_HOUR
@@ -63,6 +66,8 @@ def build_storm(cfg: RunConfig) -> Storm | None:
         return GriddedStorm(read_rain(s.rain_file, spec, s.rain_start))
     if s.kind == "hyetograph":
         return HyetographStorm.from_periods(s.hyetograph_min, s.hyetograph_mm)
+    if s.kind == "gauges":
+        return build_gauge_storm(cfg)
     if s.depth_grid is None and s.depth_mm <= 0.0:
         raise ValueError(f"storm kind {s.kind!r} has no depth: set storm.depth_mm or storm.depth_grid")
     depth = UNIT_DEPTH if s.depth_grid is not None else s.depth_mm
@@ -494,6 +499,9 @@ class Forcing:
         self.gridded = None
         if isinstance(storm, GriddedStorm):
             self.gridded = CellRain(storm, self._rain_pixels(storm, grid, crs), cn, self.rained)
+            self.class_of = self.gridded.pair_of
+        if isinstance(storm, GaugeStorm):  # the same two questions as gridded rain: a row per cell, excess per row
+            self.gridded = GaugeCellRain(storm, self.x, self.y, cn, self.rained)
             self.class_of = self.gridded.pair_of
         self.injections = [self._injection(cfg, tables, *h) for h in hydrographs]
 

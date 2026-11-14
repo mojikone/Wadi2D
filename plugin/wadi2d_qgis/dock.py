@@ -70,6 +70,7 @@ from .result_layers import has_products, load_cell_grid, load_products, load_str
 from .result_lines import ResultLinesPanel
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
+from .sections.gauges import GaugesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
@@ -150,13 +151,14 @@ class Wadi2DDock(QgsDockWidget):
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
+        self.gauges = GaugesSection(iface.mapCanvas())
         self.panel = RunSection()
         self.study = StudySection()
         self.study_run: StudyRun | None = None
         self._study_dir: Path | None = None
         self.sections = (
             self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.panel, self.study,
+            self.gauges, self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")

@@ -1,0 +1,403 @@
+{
+  "project": {
+    "format_version": "1.0",
+    "name": "thiessen",
+    "description": ""
+  },
+  "grid": {
+    "dx": 30.0,
+    "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\runs\\thiessen\\inputs\\domain.geojson",
+    "extent": null,
+    "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\runs\\wadi2d_cache",
+    "line_samples": 4,
+    "content_hash_limit_mb": 64.0
+  },
+  "mesh": {
+    "enabled": false,
+    "coarse_dx": 40.0,
+    "min_dx": 5.0,
+    "analysis_pixel": 5.0,
+    "stream_area_fine_km2": 10.0,
+    "stream_area_mid_km2": 1.0,
+    "stream_pixels": 3,
+    "incision_depth": 0.5,
+    "incision_width": 200.0,
+    "break_depth": 0.0,
+    "break_share": 0.4,
+    "refine_lines": true,
+    "zones": [],
+    "lines": []
+  },
+  "strips": {
+    "enabled": false,
+    "generator": "rings",
+    "min_area_fraction": 0.4,
+    "max_faces": 8,
+    "clearance_cells": 2.0,
+    "relax_rounds": 2,
+    "hard_rows": 1,
+    "corridors": [],
+    "banks": null,
+    "centre": "pairs",
+    "fixed_cells": true,
+    "cell_min_m": 20.0,
+    "cell_max_m": 50.0,
+    "width_fraction": 0.25,
+    "rows_outside": 1,
+    "min_length_m": 300.0,
+    "substeps": 0,
+    "along": null,
+    "buffer_cells": 0.5,
+    "smooth": 5
+  },
+  "breaklines": {
+    "bank_rise_m": 2.0,
+    "bank_method": "rise",
+    "bank_slope": 0.05,
+    "bank_run_m": 40.0,
+    "bank_reach_m": 300.0,
+    "bank_scarp_m": 1.0,
+    "bank_scarp_run_m": 10.0,
+    "bank_slope_cap": true,
+    "bank_depth_map": null,
+    "bank_depth_m": 0.2,
+    "bank_dry_m": 10.0,
+    "bank_offset_cells": 1.0,
+    "section_step_m": 10.0,
+    "bank_jump_steps": 3.0,
+    "disc_radius_m": 40.0,
+    "crest_height_m": 0.5,
+    "ground_slope_max": 0.15,
+    "min_length_m": 100.0,
+    "road_length_m": 1000.0,
+    "road_straightness": 0.9,
+    "smooth_vertices": 5,
+    "simplify_pixels": 0.5
+  },
+  "terrain": {
+    "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\GGC_2_MERGE_HDSM_5.tif",
+    "pixel_stride": 1,
+    "join_cells": 2.0,
+    "spillway_snap_cells": 1.0,
+    "burn_pixels": 2,
+    "spillway_stretch": 1.5,
+    "dyke_min_height": 0.05,
+    "crest_thin_ratio": 0.4,
+    "crest_eased_ratio": 1.5,
+    "crest_resolved_ratio": 2.0,
+    "crest_eased_coefficient": 2.0,
+    "crest_accurate_ratio": 0.5,
+    "volume_step": 50.0,
+    "preview_sections": 11,
+    "preview_points": 101,
+    "check_bed_length": 50.0,
+    "check_rise": 0.05,
+    "check_grade": 0.5,
+    "check_cells": 3.0,
+    "check_pixels": 2.0,
+    "check_tie_height": 0.3,
+    "objects": [],
+    "manning": 0.035,
+    "manning_raster": null,
+    "cn_raster": null
+  },
+  "tables": {
+    "rows": 16,
+    "face_depth_max": 16.0,
+    "face_depth_min": 8.0,
+    "face_conveyance": "local_radius",
+    "local_radius_beta": 9.0,
+    "crest_tolerance": 0.05
+  },
+  "numerics": {
+    "cfl": 0.45,
+    "limiter": "minmod",
+    "sheet_flow": true,
+    "mirror_dry_faces": true,
+    "face_depth_carry": true,
+    "e_wet": 0.0001,
+    "h_cfl": 0.01,
+    "u_max": 25.0,
+    "dt_max": 5.0,
+    "dt_min": 0.001,
+    "dt_every": 8,
+    "wave_floor": 3.0,
+    "plan_min": 0.02,
+    "active_every": 16,
+    "local_time_stepping": false,
+    "lts_levels": 3,
+    "lts_wave_floor": 1.0,
+    "lts_buffer": 1.0
+  },
+  "storm": {
+    "kind": "gauges",
+    "depth_mm": 0.0,
+    "depth_grid": null,
+    "duration_min": 60.0,
+    "time_percent": null,
+    "depth_percent": null,
+    "storm_area_km2": null,
+    "arf": null,
+    "hyetograph_min": null,
+    "hyetograph_mm": null,
+    "rain_file": null,
+    "rain_variable": null,
+    "rain_units": "auto",
+    "rain_interval_min": null,
+    "rain_stamp": "end",
+    "rain_start": "2021-10-04 00:00",
+    "gauges": {
+      "gauges": [
+        {
+          "name": "West",
+          "x": 433000.0,
+          "y": 2725500.0,
+          "file": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\data\\west.csv",
+          "record": null,
+          "hms_gage": null,
+          "values": "incremental",
+          "units": "mm",
+          "time_unit": "min",
+          "time_format": null,
+          "interval_min": null
+        },
+        {
+          "name": "East",
+          "x": 438500.0,
+          "y": 2725500.0,
+          "file": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\data\\east.csv",
+          "record": null,
+          "hms_gage": null,
+          "values": "incremental",
+          "units": "mm",
+          "time_unit": "min",
+          "time_format": null,
+          "interval_min": null
+        }
+      ],
+      "method": "thiessen",
+      "power": 2.0,
+      "search_radius_m": null,
+      "quadrants": true,
+      "weights": null,
+      "gaps": "error",
+      "samples": 2000
+    }
+  },
+  "hydrology": {
+    "hms_basin": null,
+    "reach_routing": "hms",
+    "hms_project": null,
+    "hms_sqlite": null,
+    "basin_json": null,
+    "polygons": null,
+    "time_step_min": 5.0,
+    "curve_number": null,
+    "subbasins": [],
+    "inflows": [],
+    "handbacks": [],
+    "inject_radius": 30.0,
+    "inject_min_depth": 0.1,
+    "inject_max_offset": 200.0,
+    "entry_erode_m": 80.0,
+    "overlap_share": 0.01
+  },
+  "transmission": {
+    "enabled": false,
+    "rate_mm_h": 25.0,
+    "max_depth_mm": null,
+    "min_depth_m": 0.1,
+    "water_share": 0.5,
+    "area": null
+  },
+  "boundaries": [
+    {
+      "kind": "normal",
+      "coordinates": [
+        [
+          440290.0,
+          2725700.0
+        ],
+        [
+          440290.0,
+          2728700.0
+        ]
+      ],
+      "stage": 0.0,
+      "slope": 0.01,
+      "snap_m": 150.0,
+      "min_share": 0.6
+    },
+    {
+      "kind": "normal",
+      "coordinates": [
+        [
+          437300.0,
+          2728690.0
+        ],
+        [
+          440300.0,
+          2728690.0
+        ]
+      ],
+      "stage": 0.0,
+      "slope": 0.01,
+      "snap_m": 150.0,
+      "min_share": 0.6
+    }
+  ],
+  "initial_levels": [],
+  "dam_levels": [],
+  "outputs": {
+    "map_every_s": 900.0,
+    "series_every_s": 60.0,
+    "live_every_s": 5.0,
+    "live_stride": 2,
+    "hazard": "dv",
+    "maxima_every": 4,
+    "arrival_depth": 0.1,
+    "speed_depth": 0.05,
+    "wet_depth": 0.1,
+    "edge_depth": 3.0,
+    "progress_every_s": 2.0,
+    "frame_bytes_per_cell": 10.0,
+    "face_discharge": true,
+    "pixels": {
+      "enabled": false,
+      "pixel_m": 0.0,
+      "cell_depth": 0.05,
+      "depth_floor": 0.05,
+      "hazard_limits": [
+        [
+          0.3,
+          0.3,
+          2.0
+        ],
+        [
+          0.6,
+          0.5,
+          2.0
+        ],
+        [
+          0.6,
+          1.2,
+          2.0
+        ],
+        [
+          1.0,
+          2.0,
+          2.0
+        ],
+        [
+          4.0,
+          4.0,
+          4.0
+        ]
+      ],
+      "link_margin": 0.01,
+      "link_ratio": 0.5,
+      "edge_band": 0.3,
+      "edge_passes": 3,
+      "peak_lift": 3.0,
+      "batch_pixels": 50000000
+    },
+    "smooth": {
+      "enabled": true,
+      "sigma_px": 1.0,
+      "speckle_m2": 500.0,
+      "simplify_px": 0.1,
+      "block_px": 4096,
+      "workers": 0,
+      "domain_sigma_cells": 0.8,
+      "depth_scale": 2,
+      "depth_sigma_px": 0.7,
+      "wet_edge_px": 1.0
+    },
+    "terrain_map": false,
+    "points": [],
+    "lines": [
+      {
+        "name": "Bidah 03",
+        "coordinates": [
+          [
+            438100.0,
+            2727420.0
+          ],
+          [
+            438259.32,
+            2727264.77
+          ],
+          [
+            438807.68,
+            2726752.81
+          ],
+          [
+            438870.0,
+            2726640.0
+          ]
+        ],
+        "drainage_area_km2": null
+      }
+    ],
+    "observed": [
+      {
+        "name": "Dam gauge",
+        "file": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\data\\observed_flow.csv",
+        "record": null,
+        "quantity": "flow",
+        "compare": "line",
+        "target": "Bidah 03",
+        "series": "outflow",
+        "time_unit": "min",
+        "time_format": null,
+        "start": "2021-10-04 00:00",
+        "offset": 0.0
+      }
+    ]
+  },
+  "run": {
+    "duration_s": 10800.0,
+    "backend": "auto",
+    "source_every_s": 30.0,
+    "checkpoint_every_s": 300.0,
+    "balance_every": 8,
+    "estimate_depth": 7.5,
+    "estimate_speed": 8.0,
+    "estimate_wave": 1.3,
+    "estimate_overhead": 1.5
+  },
+  "arf": {
+    "areas_km2": [],
+    "n_areas": 6,
+    "area_min_km2": 10.0,
+    "area_max_km2": 600.0,
+    "exact_points": false,
+    "bracket": false,
+    "bracket_ratio": 2.0,
+    "bracket_max": 6,
+    "accumulation": null,
+    "accumulation_units": "cells"
+  },
+  "basin": {
+    "lag_method": "kirpich",
+    "stream_threshold_km2": 10.0,
+    "analysis_pixel": null,
+    "max_pixels": 400000000,
+    "snap_m": 100.0,
+    "min_reach_m": 100.0,
+    "min_subbasin_km2": 0.05,
+    "min_slope": 0.0001,
+    "min_raster_share": 0.9,
+    "section_spacing_m": 100.0,
+    "section_half_width_m": 500.0,
+    "section_depth_m": 4.0,
+    "section_depths": 9,
+    "section_search_m": 30.0,
+    "reservoir_step_m": 0.5,
+    "reservoir_top_m": 10.0,
+    "dam_min_km2": 1.0,
+    "dam_join_m": 50.0,
+    "handback_span": 1.5,
+    "handback_min_cells": 4
+  }
+}

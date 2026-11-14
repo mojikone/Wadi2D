@@ -1,0 +1,53 @@
+    0.0 script loaded
+    5.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a3132c2f6f21cfeed\plugin\wadi2d_qgis\__init__.py
+    7.3 PASS engine found Engine ready.
+    7.4 === 1 the section and its table
+    7.4 PASS gauges come after the results points 
+    7.4 PASS the heading 7b. Gauges (optional)
+    7.4 PASS the storm offers the rain gauges 
+    7.4 PASS an empty table 
+    7.4 PASS each point is a rain gauge row [('West', 'rain'), ('East', 'rain')]
+    7.4 PASS at its point (433000.0, 2725500.0)
+    7.4 PASS the table shows the position 433000.0, 2725500.0
+    7.4 PASS a flow gauge row typed by hand 
+    7.4 PASS typed name and line reach the row ('Dam gauge', 'Bidah 03')
+    8.2 === 2 what stops a run
+    8.3 PASS a gauge with no record is refused in words Gauge West: choose its record, a CSV table or a DSS file. Gauge East: choose its record, a CSV table or a DSS file. Gauge Dam gauge: choose its record, a CSV table or a DSS file.
+    8.3 PASS no run started 
+    8.3 PASS the record shows in the table 
+    8.3 === 3 a run by thiessen
+    8.3 PASS thiessen: the radius only for inverse distance 
+    8.5 dock says: Starting...
+   18.1 dock says: water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   18.9 PASS thiessen: finished Finished. water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+   18.9 PASS thiessen: the job's storm is the gauges gauges
+   18.9 PASS thiessen: the run starts at the time typed 2021-10-04 00:00
+   18.9 PASS thiessen: the observed record names the line [{'name': 'Dam gauge', 'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\data\\observed_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah 03', 'start': '2021
+   18.9 thiessen: shares {'West': 0.4444, 'East': 0.5556}, totals {'West': 40.0, 'East': 10.0}, mean 23.332 mm, rain 667188.0 m3
+   18.9 PASS thiessen: observed compared after the run []
+   18.9 thiessen: {'peak': 141.662, 'rain_m3': 667188.0074175694, 'mean_mm': 23.332, 'area_m2': 28595405.769654095, 'stats': {'nse': -3.735201523854604, 'rsr': 2.1760518201216175, 'pbias_percent': 138.10147847097065, 'peak_ratio': 2.3610333333333333, 'observed_peak': 60.0, 'simulated_peak': 141.662}}
+   18.9 === 3 a run by inverse_distance
+   18.9 PASS inverse_distance: the radius only for inverse distance 
+   19.0 dock says: Starting...
+   24.5 dock says: water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   24.8 PASS inverse_distance: finished Finished. water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+   24.8 PASS inverse_distance: the job's storm is the gauges gauges
+   24.8 PASS inverse_distance: the run starts at the time typed 2021-10-04 00:00
+   24.8 PASS inverse_distance: the observed record names the line [{'name': 'Dam gauge', 'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\dock_check\\dock_gauges\\data\\observed_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah 03', 'start': '2021
+   24.8 inverse_distance: shares {'West': 0.4688, 'East': 0.5312}, totals {'West': 40.0, 'East': 10.0}, mean 24.064 mm, rain 688138.2 m3
+   24.8 PASS inverse_distance: observed compared after the run []
+   24.8 inverse_distance: {'peak': 142.487, 'rain_m3': 688138.1565110396, 'mean_mm': 24.064, 'area_m2': 28596166.743311156, 'stats': {'nse': -3.7919304139818646, 'rsr': 2.1890478327304463, 'pbias_percent': 142.88322235585605, 'peak_ratio': 2.3747833333333332, 'observed_peak': 60.0, 'simulated_peak': 142.487}}
+   24.8 PASS the rained area is one area under both methods (28595405.769654095, 28596166.743311156)
+   24.8 PASS the rained area is the domain's, about 28.8 km2 28595405.769654095
+   24.8 FAIL the two methods differ at the dam line (141.662, 142.487)
+   24.8 === 4 the observed flow in Result lines, on the time slider
+   24.8 dock says: Finished. water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+   28.6 PASS the observed flow is drawn with the computed one ['upfront', 'frames', 'observed']
+   28.6 PASS drawn distinctly: dashed, with a dot per value Observed: Dam gauge
+   28.6 PASS labelled as observed Observed: Dam gauge
+   28.6 PASS the agreement is stated Observed Dam gauge: peak 60.00 m3/s at 1 h 30 min, model 142.49 at 1 h 20 min; volume 0.216 against 0.522 Mm3; Nash-Sutcliffe -3.79; RMSE over the observed spread 2.19; bias 142.9 % (model high).
+   28.6 PASS its peak is the record's 60.0
+   28.6 PASS the readout names the observed value at the frame 1 h 15 min from the start of the run; flow 141.10 m3/s (upfront); flow 141.25 m3/s (frames); flow 45.13 m3/s (observed); deepest 0.78 m (frames)
+   28.6 SUMMARY 34 passed, 1 failed 
+   28.6   FAILED the two methods differ at the dam line: (141.662, 142.487)
+   28.6 DONE

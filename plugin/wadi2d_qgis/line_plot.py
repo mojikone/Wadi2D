@@ -26,6 +26,9 @@ AXIS_COLOUR, GRID_COLOUR, TEXT_COLOUR, CURSOR_COLOUR = "#666666", "#e4e4e4", "#2
 GROUND_FILL, GROUND_LINE, WATER_FILL, WATER_LINE = "#d9c9a8", "#8a6d3b", "#9cc9ec", "#1a5f9a"
 MIN_SPAN = 1e-6
 MARGIN, UNIT_GAP, LEGEND_CLEAR = 14.0, 13.0, 6.0
+AGREEMENT_LINES = 2
+"""Room for the words on how observed records agree with the model, above the panels."""
+LINE_HIGH = 16.0
 
 
 def _range(low: float, high: float) -> tuple[float, float]:
@@ -62,15 +65,19 @@ class LinePlot(QWidget):
         self.frame = frame
         self.update()
 
+    def _header(self) -> float:
+        return HEADER + (AGREEMENT_LINES * LINE_HIGH if self.view is not None and self.view.agreement else 0.0)
+
     def _boxes(self, count: int) -> list[QRectF]:
         """One box per panel: side by side on a wide widget, one under the other on a tall one."""
+        top = self._header()
         wide = self.width() - LEFT - RIGHT
-        high = self.height() - HEADER - FOOTER - AXIS
+        high = self.height() - top - FOOTER - AXIS
         if self.width() >= WIDE_RATIO * self.height():
             each = (wide - GAP * (count - 1)) / count
-            return [QRectF(LEFT + n * (each + GAP), HEADER, each, high) for n in range(count)]
+            return [QRectF(LEFT + n * (each + GAP), top, each, high) for n in range(count)]
         each = (high - GAP_HIGH * (count - 1)) / count
-        return [QRectF(LEFT, HEADER + n * (each + GAP_HIGH), wide, each) for n in range(count)]
+        return [QRectF(LEFT, top + n * (each + GAP_HIGH), wide, each) for n in range(count)]
 
     def paintEvent(self, _event) -> None:
         painter = QPainter(self)
@@ -99,6 +106,9 @@ class LinePlot(QWidget):
         font.setBold(False)
         painter.setFont(font)
         painter.drawText(QRectF(MARGIN, 20.0, wide, 16.0), Qt.AlignLeft, readout(view, self.frame))
+        if view.agreement:
+            room = QRectF(MARGIN, 36.0, wide, AGREEMENT_LINES * LINE_HIGH)
+            painter.drawText(room, int(Qt.AlignLeft | Qt.AlignTop) | int(Qt.TextWordWrap), view.agreement)
         painter.setPen(QPen(QColor(AXIS_COLOUR)))
         bottom = QRectF(MARGIN, self.height() - FOOTER, wide, FOOTER)
         painter.drawText(bottom, int(Qt.AlignLeft | Qt.AlignBottom) | int(Qt.TextWordWrap), view.limit)
@@ -145,7 +155,7 @@ class LinePlot(QWidget):
         if len(curve.times_h) < 1:
             return
         points = scale_points(curve.times_h, curve.values, box, x_range, y_range)
-        painter.setPen(QPen(QColor(curve.colour), LINE_WIDTH))
+        painter.setPen(QPen(QColor(curve.colour), LINE_WIDTH, Qt.DashLine if curve.dashed else Qt.SolidLine))
         painter.setBrush(Qt.NoBrush)
         painter.drawPolyline(QPolygonF(points))
         if curve.markers:
@@ -162,7 +172,7 @@ class LinePlot(QWidget):
             x = box.left() + 6.0
             room = QRectF(x - 2.0, y - 11.0, LEGEND_BAR + 8.0 + metrics.horizontalAdvance(curve.label), LEGEND_STEP)
             painter.fillRect(room, QColor(255, 255, 255, 215))
-            painter.setPen(QPen(QColor(curve.colour), 2.0))
+            painter.setPen(QPen(QColor(curve.colour), 2.0, Qt.DashLine if curve.dashed else Qt.SolidLine))
             painter.drawLine(QPointF(x, y - 4.0), QPointF(x + LEGEND_BAR, y - 4.0))
             painter.setPen(QPen(QColor(TEXT_COLOUR)))
             painter.drawText(QPointF(x + LEGEND_BAR + 4.0, y), curve.label)

@@ -1,0 +1,24 @@
+{
+  "method": "thiessen",
+  "gauges": {
+    "West": 40.0,
+    "East": 10.0
+  },
+  "positions": {
+    "West": [
+      433000.0,
+      2725500.0
+    ],
+    "East": [
+      438500.0,
+      2725500.0
+    ]
+  },
+  "start": "2021-10-04T00:00:00",
+  "rain_ends_min": 60.0,
+  "cell_shares": {
+    "West": 0.4444,
+    "East": 0.5556
+  },
+  "subbasin_shares": {}
+}

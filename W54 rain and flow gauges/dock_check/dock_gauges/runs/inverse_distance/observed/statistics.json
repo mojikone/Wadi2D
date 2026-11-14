@@ -1,0 +1,45 @@
+{
+  "formulas": {
+    "time_base": "observed instants with a value inside the simulated record; simulated read straight between its samples",
+    "nse": "1 - sum((s - o)^2) / sum((o - mean(o))^2)",
+    "rsr": "sqrt(sum((s - o)^2) / n) / sqrt(sum((o - mean(o))^2) / n) = sqrt(1 - NSE)",
+    "pbias_percent": "100 * sum(s - o) / sum(o); positive when the model is high (Moriasi 2007 uses the other sign)",
+    "rmse": "sqrt(sum((s - o)^2) / n), in the quantity's unit",
+    "peaks": "highest value of each series on its own samples between the first and last instant of the time base",
+    "volumes_m3": "trapezoid of each series on its own samples in the same window, flow only; an observed gap bridged"
+  },
+  "records": [
+    {
+      "name": "Dam gauge",
+      "quantity": "flow",
+      "unit": "m3/s",
+      "compare": "line",
+      "target": "Bidah 03",
+      "series": null,
+      "observed_source": "observed_flow.csv",
+      "simulated_source": "result line Bidah 03, size of the discharge",
+      "start": "2021-10-04T00:00:00",
+      "outside_run": 1,
+      "file": "Dam_gauge.csv",
+      "points": 36,
+      "window_s": [
+        300.0,
+        10800.0
+      ],
+      "observed_peak": 60.0,
+      "observed_peak_t_s": 5400.0,
+      "simulated_peak": 142.487,
+      "simulated_peak_t_s": 4770.0,
+      "peak_ratio": 2.3747833333333332,
+      "peak_shift_s": -630.0,
+      "nse": -3.7919304139818646,
+      "rsr": 2.1890478327304463,
+      "pbias_percent": 142.88322235585605,
+      "rmse": 43.93271085887328,
+      "observed_volume_m3": 216000.0,
+      "simulated_volume_m3": 522050.3589519694,
+      "volume_ratio": 2.4168998099628216
+    }
+  ],
+  "failed": []
+}

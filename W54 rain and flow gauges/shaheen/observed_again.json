@@ -1,0 +1,15 @@
+[
+ {
+  "name": "Bani Umar 5 min",
+  "file": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a3132c2f6f21cfeed\\W54 rain and flow gauges\\shaheen\\observed_flow_5min.csv",
+  "target": "gauge",
+  "start": "2021-10-03 23:15"
+ },
+ {
+  "name": "HMS gage DB839224AD - Shahin",
+  "file": "W:\\2224 Flood Protection Scheme in North & South Batinah_MAFWWR\\06-WORKING\\03-Hydrology\\calibration\\HMS_Albatinah_Calibration\\Albatinah_Calibration\\Albatinah_Calibration.dss",
+  "record": "//DB839224AD - Shahin/FLOW//6MIN/GAGE/",
+  "target": "gauge",
+  "start": "2021-10-03 23:15"
+ }
+]

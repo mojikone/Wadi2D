@@ -254,3 +254,38 @@ def test_a_design_record_is_the_number_of_record_and_the_grid_alone_is_drawn_bes
     framed = line_view(entries({"lines": [DESIGN]})[0], READ)
     assert [c.values[1] for c in framed.charts[0].curves][:2] == [401.0, 12.0]
     assert "passes the line inside a reach" in framed.limit
+
+
+OBSERVED_FLOW = {
+    "name": "Gauge", "quantity": "flow", "unit": "m3/s", "compare": "line", "target": "L", "t_s": [0.0, 300.0, 600.0],
+    "observed": [0.0, 10.0, 4.0], "simulated": [0.0, 12.0, 6.0], "observed_peak": 10.0, "observed_peak_t_s": 300.0,
+    "simulated_peak": 12.0, "simulated_peak_t_s": 300.0, "observed_volume_m3": 5100.0, "simulated_volume_m3": 6000.0,
+    "nse": 0.5, "rsr": 0.71, "pbias_percent": 28.6,
+}  # fmt: skip
+
+
+def test_an_observed_record_is_drawn_dashed_on_the_line_it_was_compared_with() -> None:
+    level = {**OBSERVED_FLOW, "name": "Stage", "quantity": "level", "unit": "m", "compare": "point", "target": "P",
+             "observed_volume_m3": None}  # fmt: skip
+    found = entries({"lines": [dict(RECORD)], "points": [dict(POINT)], "observed": [OBSERVED_FLOW, level]})
+    view = record_view(found[0], [])
+    observed = [c for c in view.charts[0].curves if c.source == "observed"]
+    assert len(observed) == 1 and observed[0].dashed and observed[0].markers
+    assert observed[0].label == "Observed: Gauge" and observed[0].values == [0.0, 10.0, 4.0]
+    assert "Nash-Sutcliffe 0.50" in view.agreement and "(model high)" in view.agreement
+    assert "volume 0.005 against 0.006 Mm3" in view.agreement
+    framed = line_view(found[0], READ)
+    assert any(c.source == "observed" for c in framed.charts[0].curves) and framed.agreement == view.agreement
+    point = point_view(found[1], [])
+    assert [c.source for c in point.charts[1].curves] == ["upfront", "observed"]
+    assert point.charts[0].curves[-1].source == "upfront" and "volume" not in point.agreement
+
+
+def test_the_readout_names_the_observed_value_at_the_frame() -> None:
+    found = entries({"lines": [dict(RECORD)], "observed": [OBSERVED_FLOW]})
+    view = record_view(found[0], [0.0, 300.0])
+    assert "flow 10.00 m3/s (observed)" in readout(view, 1)
+
+
+def test_a_line_with_no_observed_record_says_nothing_about_agreement() -> None:
+    assert record_view(entries({"lines": [dict(RECORD)]})[0], []).agreement == ""

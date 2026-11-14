@@ -1,0 +1,76 @@
+{
+  "formulas": {
+    "time_base": "observed instants with a value inside the simulated record; simulated read straight between its samples",
+    "nse": "1 - sum((s - o)^2) / sum((o - mean(o))^2)",
+    "rsr": "sqrt(sum((s - o)^2) / n) / sqrt(sum((o - mean(o))^2) / n) = sqrt(1 - NSE)",
+    "pbias_percent": "100 * sum(s - o) / sum(o); positive when the model is high (Moriasi 2007 uses the other sign)",
+    "rmse": "sqrt(sum((s - o)^2) / n), in the quantity's unit",
+    "peaks": "highest value of each series on its own samples between the first and last instant of the time base",
+    "volumes_m3": "trapezoid of each series on its own samples in the same window, flow only; an observed gap bridged"
+  },
+  "records": [
+    {
+      "name": "Bani Umar 5 min",
+      "quantity": "flow",
+      "unit": "m3/s",
+      "compare": "line",
+      "target": "gauge",
+      "series": null,
+      "observed_source": "observed_flow_5min.csv",
+      "simulated_source": "result line gauge, size of the discharge",
+      "start": "2021-10-03T23:15:00",
+      "outside_run": 209,
+      "file": "Bani_Umar_5_min.csv",
+      "points": 223,
+      "window_s": [
+        300.0,
+        66900.0
+      ],
+      "observed_peak": 2540.0,
+      "observed_peak_t_s": 17100.0,
+      "simulated_peak": 2378.98,
+      "simulated_peak_t_s": 14190.0,
+      "peak_ratio": 0.9366062992125984,
+      "peak_shift_s": -2910.0,
+      "nse": 0.7816598116164662,
+      "rsr": 0.46726886091792347,
+      "pbias_percent": -0.6841958799768774,
+      "rmse": 338.9411907207612,
+      "observed_volume_m3": 29602350.0,
+      "simulated_volume_m3": 29399189.53217091,
+      "volume_ratio": 0.9931370155467695
+    },
+    {
+      "name": "HMS gage DB839224AD - Shahin",
+      "quantity": "flow",
+      "unit": "m3/s",
+      "compare": "line",
+      "target": "gauge",
+      "series": null,
+      "observed_source": "Albatinah_Calibration.dss //DB839224AD - Shahin/FLOW/03Oct2021-04Oct2021/6Minute/GAGE/",
+      "simulated_source": "result line gauge, size of the discharge",
+      "start": "2021-10-03T23:15:00",
+      "outside_run": 62,
+      "file": "HMS_gage_DB839224AD_-_Shahin.csv",
+      "points": 179,
+      "window_s": [
+        2700.0,
+        66780.0
+      ],
+      "observed_peak": 2540.0,
+      "observed_peak_t_s": 19980.0,
+      "simulated_peak": 2378.98,
+      "simulated_peak_t_s": 14190.0,
+      "peak_ratio": 0.9366062992125984,
+      "peak_shift_s": -5790.0,
+      "nse": 0.6365527933023285,
+      "rsr": 0.6028658281057829,
+      "pbias_percent": -17.12024337641276,
+      "rmse": 465.56879810777116,
+      "observed_volume_m3": 35470422.00173378,
+      "simulated_volume_m3": 29398156.575542662,
+      "volume_ratio": 0.8288076351080822
+    }
+  ],
+  "failed": []
+}
