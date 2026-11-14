@@ -13,7 +13,7 @@ import numpy as np
 
 from wadi2d.config.schema import Pixels
 from wadi2d.products.hazard import classify
-from wadi2d.render.frame_pixels import DEPTH, FIELDS, HAZARD, SPEED
+from wadi2d.render.frame_pixels import DEPTH, FIELDS, SPEED
 from wadi2d.render.run_source import RunSource
 from wadi2d.render.view import View
 
