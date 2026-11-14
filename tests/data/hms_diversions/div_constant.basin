@@ -1,0 +1,88 @@
+Basin: W59 div_constant saved
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 16:24:25
+     Version: 4.12
+     Filepath Separator: \
+     Unit System: Metric
+     Missing Flow To Zero: No
+     Enable Flow Ratio: No
+     Compute Local Flow At Junctions: No
+     Unregulated Output Required: No
+
+     Enable Sediment Routing: No
+End:
+
+Source: Inflow
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 1000.0
+     Downstream: Diversion
+
+     Flow Method: GAGE_FLOW
+     Flow Gage: W59 Inflow
+     End Flow Method:
+End:
+
+Diversion: Diversion
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 500.0
+     Downstream: Outlet
+     Divert To: Diverted
+
+     Diverter: Constant
+     Constant Flow: 50
+     End Diverter:
+End:
+
+Sink: Outlet
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 0.0
+     Canvas Y: 0.0
+End:
+
+Sink: Diverted
+     Last Modified Date: 14 November 2026
+     Last Modified Time: 12:00:00
+     Canvas X: 500.0
+     Canvas Y: 0.0
+End:
+
+Basin Layer Properties:
+     Element Layer:
+          Name: Icons
+          Layer shown: Yes
+     End Layer:
+End:
+
+Basin Spatial Properties:
+End:
+
+Basin Schematic Properties:
+     Last View N: 2000.0
+     Last View S: -500.0
+     Last View W: -1000.0
+     Last View E: 1000.0
+     Maximum View N: 2000.0
+     Maximum View S: -500.0
+     Maximum View W: -1000.0
+     Maximum View E: 1000.0
+     Extent Method: Elements
+     Buffer: 0
+     Draw Icons: Yes
+     Draw Icon Labels: Name
+     Draw Map Objects: No
+     Draw Gridlines: No
+     Draw Flow Direction: No
+     Draw HillShade Layer: Yes
+     Draw Elevation Layer: Yes
+     Elevation Layer Color Palette: Gray Scale
+     Ignore Elevation Color Ramp Scale: No
+     Use Interpolated Color Ramp for Elevation Layer: Yes
+     Color Ramp Opacity Level for Elevation Layer: 33.0
+     Fix Element Locations: No
+     Fix Hydrologic Order: No
+End:

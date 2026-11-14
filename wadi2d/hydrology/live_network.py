@@ -18,6 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from wadi2d.hydrology.diversion import SpecifiedDiversion
 from wadi2d.hydrology.model import Basin, Branching, Reach, Subbasin, TimeGrid
 from wadi2d.hydrology.network import LumpedEngine, Run
 from wadi2d.storm.base import FloatArray
@@ -79,6 +80,11 @@ def plan_routes(
             raise ValueError(
                 f"a hand-back's route runs through subbasin {name}: a subbasin takes no live inflow; "
                 "give the route a re-entry above it"
+            )
+        if isinstance(element, Branching) and isinstance(element.routing, SpecifiedDiversion):
+            raise ValueError(
+                f"a hand-back's route runs through diversion {name}, whose gage record ends: the drain after the run "
+                "would read past it. Give the route a re-entry above it (W72)"
             )
         live.add(name)
         main = element.downstream
