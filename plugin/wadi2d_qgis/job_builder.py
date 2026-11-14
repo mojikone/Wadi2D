@@ -15,6 +15,7 @@ import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .basin_point_rows import apply_delineate, delineate_field
 from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
 from .gauge_rows import gauge_problems, observed_records, rain_storm
@@ -440,6 +441,9 @@ def _object(kind: str, feature: Feature) -> dict:
     for key in ("coefficient", "length"):
         if feature.properties.get(key) is not None:
             entry[key] = feature.properties[key]
+    own = delineate_field(feature.properties.get("delineate"))
+    if own is not None:  # the feature's own tick for the basin's delineation (W73)
+        entry["delineate"] = own
     return entry
 
 
@@ -636,6 +640,7 @@ def basin_job(values: dict, out_dir: Path | str) -> dict:
     job.pop("storm", None)
     job["run"] = {}
     job["basin"] = basin_settings(**settings)
+    apply_delineate(job["terrain"]["objects"], values["basin"].get("delineate"))  # W73: the box's ticks
     return job
 
 
