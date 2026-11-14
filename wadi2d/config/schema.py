@@ -482,6 +482,88 @@ class DamLevel(_Part):
     )
 
 
+BREACH_ESTIMATORS = ("froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette")
+
+
+class BreachEstimator(_Part):
+    """Breach width, side slopes and formation time from the dam and its pool, by a published regression (HEC TD-39)."""
+
+    method: Literal["froehlich_2008", "macdonald_langridge_monopolis", "von_thun_gillette"]
+    pool_volume_m3: float = Field(gt=0.0, description="Water in the pool when the breach starts, m3")
+    water_depth_m: float | None = Field(
+        None, gt=0.0, description="Depth of water over the breach bottom at failure, m; the breach height if not given"
+    )
+    dam_type: Literal["earthfill", "core_or_rockfill"] = Field(
+        "earthfill", description="MacDonald and Langridge-Monopolis: earthfill, or a clay core or rockfill dam"
+    )
+    erodibility: Literal["erodible", "resistant"] = Field(
+        "erodible", description="Von Thun and Gillette: easily erodible or erosion resistant"
+    )
+    crest_width_m: float = Field(5.0, ge=0.0, le=200.0, description="MacDonald: crest width of the dam, m")
+    upstream_slope: float = Field(3.0, ge=0.0, le=20.0, description="MacDonald: upstream face, H:V")
+    downstream_slope: float = Field(2.5, ge=0.0, le=20.0, description="MacDonald: downstream face, H:V")
+
+
+class Breach(_Part):
+    """A breach of a dam line on the grid (W63), after HEC-RAS's user-entered breach: a trapezoid whose bottom falls from
+    the dam top (or a pipe that grows from its centre) to ``bottom_z`` while its bottom width grows to its final value,
+    over the formation time, linearly or as a sine wave; started by a pool level, a level held for a duration, or a
+    time. The faces it covers are rebuilt from the DEM's pixels as it grows."""
+
+    dam: str = Field(description="Name of a crest line or embankment on the grid")
+    station_m: float | None = Field(
+        None, ge=0.0, description="Breach centre along the dam line from its first vertex, m; the lowest ground if not given"
+    )
+    mode: Literal["overtopping", "piping"] = "overtopping"
+    bottom_z: float = Field(description="Final breach bottom elevation, m")
+    bottom_width_m: float | None = Field(None, ge=0.0, le=5000.0, description="Final bottom width, m")
+    left_slope: float | None = Field(
+        None, ge=0.0, le=10.0, description="Side slope towards the line's first vertex, H:V"
+    )
+    right_slope: float | None = Field(None, ge=0.0, le=10.0, description="Side slope towards its last vertex, H:V")
+    formation_time_s: float | None = Field(None, gt=0.0, le=2.6e6, description="Breach formation time, s")
+    progression: Literal["linear", "sine"] = "linear"
+    trigger: Literal["level", "level_duration", "time"] = "level"
+    trigger_level: float | None = Field(None, description="Pool level that starts the breach, m")
+    trigger_duration_s: float | None = Field(
+        None, ge=0.0, description="Time the pool must stay at or above the trigger level, s"
+    )
+    trigger_time_s: float | None = Field(None, ge=0.0, description="Run time at which the breach starts, s")
+    weir_coefficient: float = Field(
+        1.44, ge=0.5, le=4.0, description="Breach weir C in Q = C L H^1.5, m^0.5/s (HEC-RAS 2.6 in US units)"
+    )
+    piping_coefficient: float = Field(0.5, gt=0.0, le=1.0, description="Orifice coefficient of the pipe")
+    piping_z: float | None = Field(None, description="Initial piping elevation, the pipe's centre, m")
+    collapse_ratio: float | None = Field(
+        None,
+        gt=0.0,
+        le=1.0,
+        description="Pipe height over breach height at which the roof falls in; otherwise when the pool drops to the "
+        "pipe's top or the pipe reaches the dam top",
+    )
+    update_s: float = Field(5.0, gt=0.0, le=600.0, description="Interval of geometry updates and trigger checks, s")
+    estimator: BreachEstimator | None = None
+
+    @model_validator(mode="after")
+    def _complete(self) -> Breach:
+        if self.estimator is None:
+            missing = [
+                n for n in ("bottom_width_m", "left_slope", "right_slope", "formation_time_s") if getattr(self, n) is None
+            ]
+            if missing:
+                raise ValueError(f"breach of {self.dam}: give {', '.join(missing)} or an estimator")
+        needs = {"level": ("trigger_level",), "level_duration": ("trigger_level", "trigger_duration_s"), "time": ("trigger_time_s",)}
+        for n in needs[self.trigger]:
+            if getattr(self, n) is None:
+                raise ValueError(f"breach of {self.dam}: a '{self.trigger}' trigger needs {n}")
+        if self.mode == "piping":
+            if self.piping_z is None:
+                raise ValueError(f"breach of {self.dam}: piping needs piping_z")
+            if self.piping_z < self.bottom_z:
+                raise ValueError(f"breach of {self.dam}: piping_z lies below the final bottom")
+        return self
+
+
 class DesignPoint(_Part):
     """A point where depth and level are recorded."""
 
@@ -1324,6 +1406,7 @@ class RunConfig(_Part):
     boundaries: list[Boundary] = []
     initial_levels: list[InitialLevel] = []
     dam_levels: list[DamLevel] = []
+    breaches: list[Breach] = []
     outputs: Outputs = Outputs()
     run: Run = Run()
     arf: ArfStudy = ArfStudy()
