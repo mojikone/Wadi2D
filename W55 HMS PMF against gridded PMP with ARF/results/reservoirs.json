@@ -1,0 +1,396 @@
+{
+ "DA PMP B3": {
+  "Bidah 03": {
+   "drainage_area_km2": 20.971,
+   "initial_elevation_m": 84.7,
+   "table_bottom_m": 84.7,
+   "table_top_m": 109.7,
+   "hms": {
+    "inflow_peak": 1688.3726365802577,
+    "outflow_peak": 1477.233395841942,
+    "attenuation_percent": 12.505488194002668,
+    "inflow_peak_h": 12.833333333333334,
+    "outflow_peak_h": 13.5,
+    "inflow_volume_Mm3": 27.853357685343425,
+    "outflow_volume_Mm3": 22.266828911517877,
+    "max_level_m": 104.57004658972775,
+    "max_storage_Mm3": 10.003291720401057
+   },
+   "wadi2d": {
+    "inflow_peak": 1688.3726365802586,
+    "outflow_peak": 1477.233395841942,
+    "attenuation_percent": 12.505488194002712,
+    "inflow_peak_h": 12.833333333333334,
+    "outflow_peak_h": 13.5,
+    "inflow_volume_Mm3": 27.853357685343436,
+    "outflow_volume_Mm3": 22.266828911517884,
+    "max_level_m": 104.57004658972775,
+    "max_storage_Mm3": 10.003291720401059
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 4.547473508864641e-13,
+    "outflow_peak_error_percent": 0.0,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 2.0482354423148894e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 9.094947017729282e-13,
+    "outflow_max_abs_diff": 1.1368683772161603e-12,
+    "level_max_abs_diff_m": 2.842170943040401e-14
+   }
+  },
+  "Faydh 01": {
+   "drainage_area_km2": 74.304,
+   "initial_elevation_m": 175.8,
+   "table_bottom_m": 175.8,
+   "table_top_m": 239.8,
+   "hms": {
+    "inflow_peak": 4859.6297030062415,
+    "outflow_peak": 4830.396847799555,
+    "attenuation_percent": 0.6015449117162674,
+    "inflow_peak_h": 13.333333333333334,
+    "outflow_peak_h": 13.5,
+    "inflow_volume_Mm3": 87.24724931884204,
+    "outflow_volume_Mm3": 70.76201062806857,
+    "max_level_m": 234.9020907677583,
+    "max_storage_Mm3": 21.774990197193528
+   },
+   "wadi2d": {
+    "inflow_peak": 4859.629704478808,
+    "outflow_peak": 4830.39689608467,
+    "attenuation_percent": 0.6015439482394358,
+    "inflow_peak_h": 13.333333333333334,
+    "outflow_peak_h": 13.5,
+    "inflow_volume_Mm3": 87.24724944512147,
+    "outflow_volume_Mm3": 70.7620107543478,
+    "max_level_m": 234.90209078679297,
+    "max_storage_Mm3": 21.774990219107245
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 8.185452315956354e-12,
+    "outflow_peak_error_percent": -1.5543122344752192e-13,
+    "level_max_abs_diff_m": 8.526512829121202e-14,
+    "storage_max_rel_diff": 2.7372983517151146e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.00030878623900321145,
+    "outflow_max_abs_diff": 0.00010090386786032468,
+    "level_max_abs_diff_m": 1.909685209966483e-06
+   }
+  },
+  "R2A": {
+   "drainage_area_km2": 175.8665,
+   "initial_elevation_m": 141.0,
+   "table_bottom_m": 141.0,
+   "table_top_m": 170.0,
+   "hms": {
+    "inflow_peak": 9107.1120473907,
+    "outflow_peak": 9091.118760749607,
+    "attenuation_percent": 0.17561315330115734,
+    "inflow_peak_h": 13.916666666666666,
+    "outflow_peak_h": 14.0,
+    "inflow_volume_Mm3": 190.15121193276676,
+    "outflow_volume_Mm3": 175.10175412270368,
+    "max_level_m": 166.27669837917963,
+    "max_storage_Mm3": 26.165559323096023
+   },
+   "wadi2d": {
+    "inflow_peak": 9107.112016276023,
+    "outflow_peak": 9091.118783046799,
+    "attenuation_percent": 0.17561256741590592,
+    "inflow_peak_h": 13.916666666666666,
+    "outflow_peak_h": 14.0,
+    "inflow_volume_Mm3": 190.1512107143998,
+    "outflow_volume_Mm3": 175.10175290372732,
+    "max_level_m": 166.2766983819349,
+    "max_storage_Mm3": 26.16555933155307
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 1.000444171950221e-11,
+    "outflow_peak_error_percent": -4.440892098500626e-14,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 1.566111879248463e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.0036386565741395316,
+    "outflow_max_abs_diff": 0.0021919986861576035,
+    "level_max_abs_diff_m": 1.2645761529483934e-05
+   }
+  },
+  "R5A": {
+   "drainage_area_km2": 117.1046,
+   "initial_elevation_m": 127.0,
+   "table_bottom_m": 127.0,
+   "table_top_m": 151.0,
+   "hms": {
+    "inflow_peak": 6572.294256251847,
+    "outflow_peak": 6558.755494159682,
+    "attenuation_percent": 0.20599750352453539,
+    "inflow_peak_h": 13.916666666666666,
+    "outflow_peak_h": 14.083333333333334,
+    "inflow_volume_Mm3": 132.7226608074469,
+    "outflow_volume_Mm3": 123.32867153771289,
+    "max_level_m": 146.78383539235372,
+    "max_storage_Mm3": 17.91383395617404
+   },
+   "wadi2d": {
+    "inflow_peak": 6572.2942560220845,
+    "outflow_peak": 6558.755496080116,
+    "attenuation_percent": 0.20599747081565534,
+    "inflow_peak_h": 13.916666666666666,
+    "outflow_peak_h": 14.083333333333334,
+    "inflow_volume_Mm3": 132.72266216487105,
+    "outflow_volume_Mm3": 123.32867289512309,
+    "max_level_m": 146.7838353926502,
+    "max_storage_Mm3": 17.91383395699209
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 5.4569682106375694e-12,
+    "outflow_peak_error_percent": 2.220446049250313e-14,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 1.3517143789119972e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.0025420671107951875,
+    "outflow_max_abs_diff": 0.00041657347173895687,
+    "level_max_abs_diff_m": 5.629756714142786e-06
+   }
+  },
+  "Z4C": {
+   "drainage_area_km2": 211.085,
+   "initial_elevation_m": 149.5,
+   "table_bottom_m": 149.5,
+   "table_top_m": 175.0,
+   "hms": {
+    "inflow_peak": 9500.042312655525,
+    "outflow_peak": 9490.563727565303,
+    "attenuation_percent": 0.09977413550670278,
+    "inflow_peak_h": 15.0,
+    "outflow_peak_h": 15.083333333333334,
+    "inflow_volume_Mm3": 206.87673840283924,
+    "outflow_volume_Mm3": 202.30948606522992,
+    "max_level_m": 172.2561274685289,
+    "max_storage_Mm3": 10.039974065876725
+   },
+   "wadi2d": {
+    "inflow_peak": 9500.042944653615,
+    "outflow_peak": 9490.564457582968,
+    "attenuation_percent": 0.09977309708879556,
+    "inflow_peak_h": 15.0,
+    "outflow_peak_h": 15.083333333333334,
+    "inflow_volume_Mm3": 206.8767435115698,
+    "outflow_volume_Mm3": 202.3094911739518,
+    "max_level_m": 172.25612764127206,
+    "max_storage_Mm3": 10.03997428830683
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 7.275957614183426e-12,
+    "outflow_peak_error_percent": -2.220446049250313e-14,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 2.226274853312547e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.002484894845295571,
+    "outflow_max_abs_diff": 0.0013913282946305117,
+    "level_max_abs_diff_m": 1.1629870954266153e-05
+   }
+  }
+ },
+ "DA 100yr B3": {
+  "Bidah 03": {
+   "drainage_area_km2": 20.971,
+   "initial_elevation_m": 84.7,
+   "table_bottom_m": 84.7,
+   "table_top_m": 109.7,
+   "hms": {
+    "inflow_peak": 362.3712369744859,
+    "outflow_peak": 0.0,
+    "attenuation_percent": 100.0,
+    "inflow_peak_h": 12.75,
+    "outflow_peak_h": 0.0,
+    "inflow_volume_Mm3": 3.4128537493801887,
+    "outflow_volume_Mm3": 0.0,
+    "max_level_m": 97.03811072926496,
+    "max_storage_Mm3": 3.412853749380189
+   },
+   "wadi2d": {
+    "inflow_peak": 362.371236974486,
+    "outflow_peak": 0.0,
+    "attenuation_percent": 100.0,
+    "inflow_peak_h": 12.75,
+    "outflow_peak_h": 0.0,
+    "inflow_volume_Mm3": 3.412853749380188,
+    "outflow_volume_Mm3": 0.0,
+    "max_level_m": 97.03811072926496,
+    "max_storage_Mm3": 3.412853749380185
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 0.0,
+    "outflow_peak_error_percent": NaN,
+    "level_max_abs_diff_m": 1.4210854715202004e-14,
+    "storage_max_rel_diff": 9.551036318934437e-16
+   },
+   "chain": {
+    "inflow_max_abs_diff": 3.410605131648481e-13,
+    "outflow_max_abs_diff": 0.0,
+    "level_max_abs_diff_m": 1.4210854715202004e-14
+   }
+  },
+  "Faydh 01": {
+   "drainage_area_km2": 74.304,
+   "initial_elevation_m": 175.8,
+   "table_bottom_m": 175.8,
+   "table_top_m": 239.8,
+   "hms": {
+    "inflow_peak": 993.4747659585726,
+    "outflow_peak": 0.0,
+    "attenuation_percent": 100.0,
+    "inflow_peak_h": 13.25,
+    "outflow_peak_h": 0.0,
+    "inflow_volume_Mm3": 12.11688639352913,
+    "outflow_volume_Mm3": 0.0,
+    "max_level_m": 224.63181232329976,
+    "max_storage_Mm3": 12.116886393529125
+   },
+   "wadi2d": {
+    "inflow_peak": 993.4747657928015,
+    "outflow_peak": 0.0,
+    "attenuation_percent": 100.0,
+    "inflow_peak_h": 13.25,
+    "outflow_peak_h": 0.0,
+    "inflow_volume_Mm3": 12.11688762779826,
+    "outflow_volume_Mm3": 0.0,
+    "max_level_m": 224.63181393899794,
+    "max_storage_Mm3": 12.116887627798262
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 0.0,
+    "outflow_peak_error_percent": NaN,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 1.2297846748654373e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.0006612008241546619,
+    "outflow_max_abs_diff": 0.0,
+    "level_max_abs_diff_m": 6.109595631187403e-06
+   }
+  },
+  "R2A": {
+   "drainage_area_km2": 175.8665,
+   "initial_elevation_m": 141.0,
+   "table_bottom_m": 141.0,
+   "table_top_m": 170.0,
+   "hms": {
+    "inflow_peak": 1356.1082087282866,
+    "outflow_peak": 433.7624472520439,
+    "attenuation_percent": 68.01417140164561,
+    "inflow_peak_h": 14.25,
+    "outflow_peak_h": 17.666666666666668,
+    "inflow_volume_Mm3": 26.03690746026892,
+    "outflow_volume_Mm3": 10.98731493888931,
+    "max_level_m": 163.19259336940866,
+    "max_storage_Mm3": 17.76611827606152
+   },
+   "wadi2d": {
+    "inflow_peak": 1356.1082389012427,
+    "outflow_peak": 433.7625034419721,
+    "attenuation_percent": 68.01416796985033,
+    "inflow_peak_h": 14.25,
+    "outflow_peak_h": 17.666666666666668,
+    "inflow_volume_Mm3": 26.036909113458883,
+    "outflow_volume_Mm3": 10.987316591003738,
+    "max_level_m": 163.1925934717305,
+    "max_storage_Mm3": 17.76611852142455
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 5.115907697472721e-13,
+    "outflow_peak_error_percent": 1.1102230246251565e-13,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 9.435829528201755e-16
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.0028856710430318344,
+    "outflow_max_abs_diff": 0.0006288071722053701,
+    "level_max_abs_diff_m": 0.00037658622306935285
+   }
+  },
+  "R5A": {
+   "drainage_area_km2": 117.1046,
+   "initial_elevation_m": 127.0,
+   "table_bottom_m": 127.0,
+   "table_top_m": 151.0,
+   "hms": {
+    "inflow_peak": 887.0947610195961,
+    "outflow_peak": 428.9428945922973,
+    "attenuation_percent": 51.64632760323315,
+    "inflow_peak_h": 14.75,
+    "outflow_peak_h": 16.833333333333332,
+    "inflow_volume_Mm3": 18.104523183295743,
+    "outflow_volume_Mm3": 8.71053209116215,
+    "max_level_m": 143.8738965816499,
+    "max_storage_Mm3": 11.010622806588371
+   },
+   "wadi2d": {
+    "inflow_peak": 887.0947663853581,
+    "outflow_peak": 428.9428717937539,
+    "attenuation_percent": 51.646330465732994,
+    "inflow_peak_h": 14.75,
+    "outflow_peak_h": 16.833333333333332,
+    "inflow_volume_Mm3": 18.104528894403998,
+    "outflow_volume_Mm3": 8.710537802197662,
+    "max_level_m": 143.8738965472426,
+    "max_storage_Mm3": 11.01062274029178
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 5.684341886080801e-13,
+    "outflow_peak_error_percent": 1.3322676295501878e-13,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 1.3533440801306283e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.002502021364932716,
+    "outflow_max_abs_diff": 0.000575570316499352,
+    "level_max_abs_diff_m": 8.469088069773534e-05
+   }
+  },
+  "Z4C": {
+   "drainage_area_km2": 211.085,
+   "initial_elevation_m": 149.5,
+   "table_bottom_m": 149.5,
+   "table_top_m": 175.0,
+   "hms": {
+    "inflow_peak": 1666.3974130709803,
+    "outflow_peak": 1583.249638251313,
+    "attenuation_percent": 4.989672581550364,
+    "inflow_peak_h": 15.583333333333334,
+    "outflow_peak_h": 16.0,
+    "inflow_volume_Mm3": 31.036313426452857,
+    "outflow_volume_Mm3": 26.469060298960933,
+    "max_level_m": 169.30331382133727,
+    "max_storage_Mm3": 6.650848560899815
+   },
+   "wadi2d": {
+    "inflow_peak": 1666.3976650650322,
+    "outflow_peak": 1583.24984444355,
+    "attenuation_percent": 4.98967457556041,
+    "inflow_peak_h": 15.583333333333334,
+    "outflow_peak_h": 16.0,
+    "inflow_volume_Mm3": 31.036335078462358,
+    "outflow_volume_Mm3": 26.46908194517076,
+    "max_level_m": 169.3033140246372,
+    "max_storage_Mm3": 6.65084876489989
+   },
+   "routing_alone": {
+    "outflow_max_abs_diff": 1.1368683772161603e-13,
+    "outflow_peak_error_percent": 0.0,
+    "level_max_abs_diff_m": 2.842170943040401e-14,
+    "storage_max_rel_diff": 1.2602757520019807e-15
+   },
+   "chain": {
+    "inflow_max_abs_diff": 0.0037267167531780387,
+    "outflow_max_abs_diff": 0.0026814646025172806,
+    "level_max_abs_diff_m": 8.72901901232126e-05
+   }
+  }
+ }
+}
