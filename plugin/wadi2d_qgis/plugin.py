@@ -34,6 +34,9 @@ class Wadi2DPlugin:
         self.iface.addPluginToMenu(MENU, self.toggle_action)
         self.iface.addPluginToMenu(MENU, self.engine_action)
         QgsApplication.instance().aboutToQuit.connect(self.release_run)
+        from . import slider_layer
+
+        slider_layer.register()  # before a project is read: its time slider at the pixel is a layer of this provider
         if run_is_live(settings.last_run()):
             self.toggle_action.setChecked(True)  # a run outlived the last session: show it
 

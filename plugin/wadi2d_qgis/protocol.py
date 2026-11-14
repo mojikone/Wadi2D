@@ -34,6 +34,7 @@ LINE_LAYER = "design_lines"
 REACH_LAYER = "reaches"
 FRAMES_FILE = "frames.nc"
 FRAMES_TIMEOUT_S = 3600  # the full extent takes minutes
+SLIDER_PROVIDER = "wadi2d_slider"  # the raster provider of the time slider drawn at the pixel (W51)
 FRAMES_EPOCH = (2000, 1, 1)  # the date in the frames file that stands for the start of a run
 LINES_LIST = "lines.json"
 LINE_REQUEST = "line_request.json"
@@ -159,6 +160,12 @@ def run_args(job: Path | str, out_dir: Path | str, dry_run: bool = False, resume
 def study_args(job: Path | str, out_dir: Path | str) -> list[str]:
     """The arguments of ``wadi2d arf``: the engine choice travels in the job."""
     return ["arf", str(job), "--out", str(out_dir)]
+
+
+def render_args(run: Path | str, backend: str | None = None) -> list[str]:
+    """The arguments of ``wadi2d render``: a finished run's saved maps drawn on demand, requests on stdin (W51)."""
+    args = ["render", str(run)]
+    return [*args, "--backend", backend] if backend else args
 
 
 def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:

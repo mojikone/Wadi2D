@@ -78,6 +78,12 @@ class RunSection(Section):
         self.frames_button = QPushButton("Time slider")
         self.frames_button.setEnabled(False)
         self.frames_button.setToolTip("The saved frames of the last finished run as one layer that moves with the Temporal Controller")
+        self.pixel_frames_button = QPushButton("Time slider at the pixel")
+        self.pixel_frames_button.setEnabled(False)
+        self.pixel_frames_button.setToolTip(
+            "The saved frames of the last finished run drawn at the terrain pixel for what is on screen, as RAS Mapper "
+            "draws them: nothing is written per frame"
+        )
         self.lines_button = QPushButton("Result lines")
         self.lines_button.setEnabled(False)
         self.lines_button.setToolTip("Hydrograph, depth and water surface on a line: upfront ones, or one drawn now over the saved frames")
@@ -103,6 +109,7 @@ class RunSection(Section):
         self.form.addRow("Map background", self.background)
         self.form.addRow(self.map_button)
         self.form.addRow(self.frames_button)
+        self.form.addRow(self.pixel_frames_button)
         self.form.addRow(self.lines_button)
 
     @staticmethod
@@ -150,6 +157,7 @@ class RunSection(Section):
         self.stop_button.setEnabled(running)
         if running:
             self.frames_button.setEnabled(False)
+            self.pixel_frames_button.setEnabled(False)
             self.lines_button.setEnabled(False)
         self.maps.setEnabled(not running)
         self.pixels.setEnabled(not running)
