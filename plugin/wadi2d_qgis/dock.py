@@ -40,7 +40,7 @@ from .job_builder import (
     write_geojson,
     write_job,
 )
-from .layer_groups import model_name
+from .layer_groups import SLOT_BASIN, clear_slot, model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
 from .preview import TerrainPreview, zoom_to
@@ -525,6 +525,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         box.set_busy(True)
         box.say("Reading the ground and the streams...")
+        clear_slot(self._basin_model, SLOT_BASIN)  # an open basin.gpkg cannot be replaced on Windows (W73)
         self._basin_query = EngineQuery(settings.engine_text(), self)
         self._basin_query.done.connect(self._basin_made)
         self._basin_query.start(basin_args(job, out, pour))
