@@ -13,6 +13,7 @@ from wadi2d_qgis.protocol import STUDY_FILE, next_study_dir, study_args
 from wadi2d_qgis.study_rows import (
     ACCUMULATION_WORDS,
     BRACKET,
+    GRID_WORDS,
     LINE_WORDS,
     LISTED,
     SPACED,
@@ -128,7 +129,8 @@ def test_design_lines_are_named_as_the_job_names_them() -> None:
     [
         ({"hms": None, "storm": None, "rain_mm_h": 25.0}, STORM_WORDS),
         ({"storm": {"kind": "uniform", "mm_h": 25.0, "hours": 1.0}}, STORM_WORDS),
-        ({"storm": {"kind": "gridded", "file": "x"}}, STORM_WORDS),
+        ({"storm": {"kind": "gridded", "file": "x"}}, GRID_WORDS),
+        ({"storm": {"kind": "hyetograph", "rows": [(30.0, 1.0)]}}, STORM_WORDS),
         ({"storm": {"kind": "hypothetical", "arf": []}}, TABLE_WORDS),
         ({"design": design(None)}, LINE_WORDS),
         ({"design": []}, LINE_WORDS),
@@ -142,6 +144,14 @@ def test_an_hms_storm_or_a_design_storm_with_a_table_and_an_area_line_can_start(
     assert study_problems(values(tmp_path)) == []
     storm = {"kind": "hypothetical", "arf": [(10.0, 0.98), (100.0, 0.9)]}
     assert study_problems(values(tmp_path, hms=None, storm=storm)) == []
+
+
+def test_gridded_rain_with_its_area_reduction_can_start_a_study(tmp_path: Path) -> None:
+    """Grids of point depths (W53): a study's runs read the table at their own storm areas."""
+    own = {"kind": "gridded", "file": "x", "arf_on": True, "area_km2": 20.971, "arf": [(10.0, 0.98), (100.0, 0.9)]}
+    assert study_problems(values(tmp_path, hms=None, storm=own)) == []
+    hms_table = {"kind": "gridded", "file": "x", "arf_on": True, "area_km2": 20.971, "arf": [], "arf_from_hms": True}
+    assert study_problems(values(tmp_path, storm=hms_table)) == []
 
 
 def test_notes_name_lines_without_flow_and_lines_outside_the_storm_areas(tmp_path: Path) -> None:

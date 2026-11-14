@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 
 from .protocol import STUDY_FILE
-from .storm_rows import KIND_DESIGN
+from .storm_rows import KIND_DESIGN, KIND_GRID
 
 AREA_KEY = "drainage_area_km2"
 AREA_DECIMALS = 4
@@ -38,10 +38,14 @@ COLUMNS = (
     "Read as",
 )
 STORM_WORDS = (
-    "A study needs a design storm with an area reduction table: in Storm, choose As in the HMS project, or Design "
-    "storm with area reduction and fill its table."
+    "A study needs a design storm with an area reduction table: in Storm, choose As in the HMS project, Design "
+    "storm with area reduction and fill its table, or Gridded rain with Reduce by area ticked."
 )
 TABLE_WORDS = "Fill the area reduction table of the design storm in Storm: without it every run is the same run."
+GRID_WORDS = (
+    "Tick Reduce by area for the gridded rain in Storm: without an area reduction table every run is the same run."
+)
+STUDY_KINDS = (KIND_DESIGN, KIND_GRID)
 LINE_WORDS = (
     "The study needs a design line with a drainage area: in Results points, choose the line layer and the field that "
     "holds each line's drainage area in km2."
@@ -143,9 +147,11 @@ def study_problems(values: dict) -> list[str]:
     """What stops a study beyond what stops a run, in plain words."""
     found = []
     storm = values.get("storm")
-    if (storm is None and not values.get("hms")) or (storm is not None and storm.get("kind") != KIND_DESIGN):
+    if (storm is None and not values.get("hms")) or (storm is not None and storm.get("kind") not in STUDY_KINDS):
         found.append(STORM_WORDS)
-    elif storm is not None and not storm.get("arf"):
+    elif storm is not None and storm.get("kind") == KIND_GRID and not storm.get("arf_on"):
+        found.append(GRID_WORDS)
+    elif storm is not None and storm.get("kind") == KIND_DESIGN and not storm.get("arf"):
         found.append(TABLE_WORDS)
     if not design_lines(values.get("design") or [])[0]:
         found.append(LINE_WORDS)

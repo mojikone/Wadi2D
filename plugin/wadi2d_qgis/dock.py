@@ -287,7 +287,11 @@ class Wadi2DDock(QgsDockWidget):
                 failed(f"The HMS project could not be read. {engine_error_text(err)}")
                 return
             data = json.loads(imported.read_text(encoding="utf-8"))
-            complete = merge_hms(job, data, hms)
+            try:
+                complete = merge_hms(job, data, hms)
+            except ValueError as error:  # what the import lacks, in the dock's words
+                failed(str(error))
+                return
             for note in merge_notes(job, complete):
                 say(note, "note")
             then(write_job(complete, out))

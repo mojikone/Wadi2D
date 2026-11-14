@@ -8,6 +8,7 @@ from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import (
     QApplication,
+    QCheckBox,
     QComboBox,
     QFormLayout,
     QHBoxLayout,
@@ -94,6 +95,7 @@ class StormSection(Section):
     """The rain file or how it is read has changed: ask the engine what it holds."""
 
     def build(self) -> None:
+        self._hms_in_use = False
         self.kind = QComboBox()
         self.form.addRow("Rain", self.kind)
         self.pages = QStackedWidget()
@@ -169,6 +171,7 @@ class StormSection(Section):
         form.addRow("A time with no period", self.stamp)
         form.addRow("Run starts at", self.start)
         form.addRow(self.rain_label)
+        form.addRow(self._grid_reduction())
         self.is_folder.currentIndexChanged.connect(self._source_changed)
         self.rain_file.fileChanged.connect(self._file_changed)
         for signal in (self.variable.activated, self.units.activated, self.stamp.activated):
@@ -176,6 +179,38 @@ class StormSection(Section):
         self.period.editingFinished.connect(self._reading_changed)
         self.start.editingFinished.connect(self._reading_changed)
         return page
+
+    def _grid_reduction(self) -> QWidget:
+        """Grids of design point depths take the area reduction a design storm takes; observed rain does not."""
+        page = QWidget()
+        form = QFormLayout(page)
+        form.setContentsMargins(0, 0, 0, 0)
+        self.grid_arf_on = QCheckBox("Reduce by area: the grids hold point depths")
+        self.grid_arf_on.setToolTip(
+            "Every frame is multiplied by the table's factor at the storm area, on the 2D cells and the lumped "
+            "subbasins alike. Leave it off for observed rain."
+        )
+        self.grid_area = number_box(3)
+        self.grid_area.setRange(0.0, 1e7)
+        self.grid_area.setToolTip("The area at which the reduction table is read: the design point's drainage area")
+        self.grid_arf = PairTable("Area, km2", "Reduction factor")
+        self.grid_hms_note = QLabel("Left empty, the table of the HMS project is used.")
+        self.grid_hms_note.setWordWrap(True)
+        self.grid_reduction = QWidget()
+        inner = QFormLayout(self.grid_reduction)
+        inner.setContentsMargins(0, 0, 0, 0)
+        inner.addRow("Storm area, km2", self.grid_area)
+        inner.addRow(self.grid_arf)
+        inner.addRow(self.grid_hms_note)
+        form.addRow(self.grid_arf_on)
+        form.addRow(self.grid_reduction)
+        self.grid_arf_on.toggled.connect(self._grid_reduction_shown)
+        self._grid_reduction_shown()
+        return page
+
+    def _grid_reduction_shown(self) -> None:
+        self.grid_reduction.setVisible(self.grid_arf_on.isChecked())
+        self.grid_hms_note.setVisible(self._hms_in_use)
 
     def apply_schema(self, schema) -> None:
         bind(self.rain, schema, RAIN_DEPTH)
@@ -205,7 +240,9 @@ class StormSection(Section):
         self._kind_changed()
 
     def hms_changed(self, in_use: bool) -> None:
-        """An HMS project brings its own storm, which can still be replaced from here."""
+        """An HMS project brings its own storm, which can still be replaced from here, and its reduction table."""
+        self._hms_in_use = in_use
+        self._grid_reduction_shown()
         self._fill_kinds(in_use)
 
     def _kind_changed(self) -> None:
@@ -251,6 +288,10 @@ class StormSection(Section):
             "interval_min": self.period.value(),
             "stamp": self.stamp.currentData(),
             "start": self.start.text().strip(),
+            "arf_on": self.grid_arf_on.isChecked(),
+            "area_km2": self.grid_area.value(),
+            "arf": self.grid_arf.rows(),
+            "arf_from_hms": self._hms_in_use,
         }
 
     def values(self, crs) -> dict:

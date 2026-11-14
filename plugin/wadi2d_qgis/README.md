@@ -61,7 +61,10 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    NetCDF file, a DSS file or a folder of GeoTIFFs. An HMS project starts on its own storm, and any of these replaces it.
    The same rain reaches the 2D cells and the lumped subbasins: a cell reads the pixel it stands in, a subbasin the
    area-weighted mean of the pixels under its polygon. Tables paste from a spreadsheet. Pick a rain file and the dock says
-   what it holds. Area reduction belongs to design storms: a hyetograph or gridded rain is the rain itself.
+   what it holds. A hyetograph is the rain itself and takes no area reduction. Gridded rain takes none either, unless
+   **Reduce by area** is ticked, for grids of design point depths: every frame is then multiplied by the reduction
+   table's factor at the storm area, over the whole event, on the cells and the lumped subbasins alike, and the run says
+   which factor that was. Left empty while an HMS project is loaded, the table is the HMS project's.
 5. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
    Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
    shows the result on the map in seconds, without a run.
@@ -75,7 +78,8 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    answers, else the CPU), GPU only, or CPU only, for a PC with no NVIDIA card or a driver that misbehaves; only a choice
    other than Automatic goes into the job.
 9. **Depth-area study.** One 2D run per storm area, the design storm read from its area reduction table at that area, on
-   lumped and 2D parts alike; it needs the HMS storm or a design storm with its table, and a design line with a drainage
+   lumped and 2D parts alike; it needs the HMS storm, a design storm with its table or gridded rain with Reduce by area
+   ticked, and a design line with a drainage
    area. Storm areas are **Around the drainage areas** by default: log-spaced from the smallest to the largest area of the
    design lines and of the lumped elements a hand-back feeds, at most 6, neighbours at most 2 x apart; or log-spaced
    between two areas; or listed. Each design line reads log Q against log A between the two runs either side of its own

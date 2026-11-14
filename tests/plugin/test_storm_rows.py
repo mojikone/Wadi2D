@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import pytest
-from wadi2d_qgis.job_builder import build_job, merge_hms, notes, preview_job, problems
+from wadi2d_qgis.job_builder import build_job, merge_hms, merge_notes, notes, preview_job, problems
 from wadi2d_qgis.storm_rows import (
     pasted_rows,
     rain_args,
@@ -60,6 +60,48 @@ def test_gridded_rain_writes_only_what_the_user_set(tmp_path) -> None:
     assert full["rain_variable"] == "pr"
     assert full["rain_interval_min"] == 30.0
     assert Storm(**full).rain_start == "2021-10-03 06:00"
+
+
+ARF_ROWS = [(10.0, 0.987), (20.0, 0.976), (30.0, 0.965)]
+
+
+def test_gridded_rain_left_unticked_carries_no_area_reduction(tmp_path) -> None:
+    """Off unless asked: an area and a table typed but not ticked stay out of the job."""
+    job = storm_job(grid(tmp_path, arf_on=False, area_km2=20.971, arf=ARF_ROWS))
+    assert "arf" not in job and "storm_area_km2" not in job
+
+
+def test_gridded_rain_ticked_carries_its_area_and_its_table(tmp_path) -> None:
+    job = storm_job(grid(tmp_path, arf_on=True, area_km2=20.971, arf=ARF_ROWS))
+    storm = Storm(**job)
+    assert storm.kind == "gridded" and storm.storm_area_km2 == 20.971
+    assert storm.arf.areas_km2 == [10.0, 20.0, 30.0] and storm.arf.factors == [0.987, 0.976, 0.965]
+
+
+def test_gridded_rain_ticked_with_an_empty_table_takes_the_hms_projects(tmp_path) -> None:
+    hms = {"basin": "b", "met": "m", "control": "c", "folder": "f", "modes": {}}
+    table = {"areas_km2": [1.0, 100.0], "factors": [0.999, 0.913], "reduces_below_table": False}
+    imported = {"storm": {"kind": "hypothetical", "arf": table}, "run": {"duration_s": 3600.0}, "hydrology": {}}
+    storm = grid(tmp_path, arf_on=True, area_km2=20.971, arf=[], arf_from_hms=True)
+    assert storm_problems(storm) == []
+    job = build_job(values(tmp_path, hms=hms, storm=storm, duration_h=1.0), tmp_path / "a")
+    assert job["storm"]["storm_area_km2"] == 20.971 and "arf" not in job["storm"]
+    merged = merge_hms(job, imported, hms)
+    assert merged["storm"]["kind"] == "gridded" and merged["storm"]["arf"] == table
+    assert Storm(**merged["storm"]).arf.reduces_below_table is False
+    assert any("area reduction table of the HMS project" in n for n in merge_notes(job, merged))
+    with pytest.raises(ValueError, match="has none"):
+        merge_hms(job, {**imported, "storm": {"kind": "hypothetical"}}, hms)
+    own = build_job(values(tmp_path, hms=hms, storm=grid(tmp_path, arf_on=True, area_km2=5.0, arf=ARF_ROWS)), tmp_path / "b")
+    assert merge_hms(own, imported, hms)["storm"]["arf"]["factors"] == [0.987, 0.976, 0.965], "its own table wins"
+
+
+def test_the_area_reduction_of_gridded_rain_is_refused_in_plain_words(tmp_path) -> None:
+    ticked = grid(tmp_path, arf_on=True, area_km2=20.971, arf=ARF_ROWS)
+    assert storm_problems(ticked) == []
+    assert "storm area" in storm_problems({**ticked, "area_km2": 0.0})[0]
+    assert "load the HMS project" in storm_problems({**ticked, "arf": []})[0]
+    assert "must rise" in storm_problems({**ticked, "arf": [(10.0, 0.9), (5.0, 0.95)]})[0]
 
 
 def test_problems_are_said_in_plain_words(tmp_path) -> None:
