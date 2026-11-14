@@ -33,6 +33,9 @@ class Stepper:
         self.refresh_due = True
         self.dt = self.num.cfl * self.grid.dx / self.num.wave_floor
         """Tiles that stay active whatever the water does: sources and boundaries."""
+        self.kick = None
+        """A momentum source on faces (W70, ``solver.momentum.FaceKick``), applied before every step; the uniform
+        step only."""
 
     def pin(self, tiles: np.ndarray) -> None:
         """Tiles that must see every smallest step; the uniform step has no other kind."""
@@ -62,6 +65,8 @@ class Stepper:
             self.refresh_due = False
             activate = self.nsteps % num.active_every == 0
             dt = min(self.dt, t_end - self.t, num.dt_max)
+            if self.kick is not None:
+                self.kick.apply(b, dt)
             b.step(dt, refresh, activate)
             self.t += dt
             self.nsteps += 1

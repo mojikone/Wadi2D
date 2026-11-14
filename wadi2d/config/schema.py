@@ -442,7 +442,8 @@ FLOW_NORMAL_DEPTH, FLOW_CONVEYANCE = "normal_depth", "conveyance"
 
 class FlowHydrograph(_Part):
     """The hydrograph a ``flow`` line brings in (HEC-RAS's Flow Hydrograph boundary): from a CSV or DSS record, or a
-    table. It enters as volume in the line's cells, shared by conveyance, with no momentum of its own (W61)."""
+    table. It enters as volume in the line's cells, shared by conveyance (W61), and by default carries its momentum
+    normal to the line onto each cell's downstream faces (W70)."""
 
     file: str | None = Field(None, description="CSV table or DSS file holding the flow record, m3/s or cfs")
     record: str | None = Field(None, description="DSS pathname or CSV column; None takes the only flow there is")
@@ -461,6 +462,18 @@ class FlowHydrograph(_Part):
     )
     slope: float = Field(
         0.005, ge=1e-6, le=0.5, description="Energy slope across the line for the normal depth that shares the flow"
+    )
+    momentum: bool = Field(
+        True,
+        description="The water enters moving: each cell's share Q brings Q U of momentum normal to the line, U its share "
+        "over its flow area across the line, onto the cell's downstream faces (W70). Off: it enters at rest, as in W61. "
+        "Uniform step only: with the quadtree or local time stepping it is refused when asked for, dropped with a "
+        "warning when left at its default",
+    )
+    direction: Literal["auto", "left", "right"] = Field(
+        "auto",
+        description="Which side of the line the water flows to, seen along the line as drawn: 'auto' takes the side "
+        "with more active cells, or the lower ground when both sides are in the domain",
     )
 
     @model_validator(mode="after")

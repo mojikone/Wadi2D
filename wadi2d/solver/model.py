@@ -123,6 +123,16 @@ class Model:
         self.stepper.rebuild_active(retain=True)
         self.stepper.refresh_due = True
 
+    def kicks_faces(self) -> bool:
+        """Whether this model's step takes a momentum source on faces: the uniform step on a uniform grid."""
+        return type(self.stepper) is Stepper
+
+    def set_momentum(self, kick) -> None:
+        """A momentum source on faces (``solver.momentum.FaceKick``) for the steps until the next call; None clears it."""
+        if kick is not None and not self.kicks_faces():
+            raise ValueError("a momentum source on faces needs the uniform step: no quadtree, no local time stepping")
+        self.stepper.kick = None if kick is None else kick.on(self.backend)
+
     def device_index(self, index: np.ndarray):
         """State indices in the form ``read_cells`` takes."""
         cp = getattr(self.backend, "cp", None)

@@ -39,7 +39,7 @@ from wadi2d.engine.gauge_job import (
     resolve_station_paths,
 )
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
-from wadi2d.engine.inflow_lines import flow_lines, line_injections, open_lines
+from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kick, momentum_lines, open_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.rain_once import check_rain_once
@@ -980,13 +980,17 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     forcing = Forcing(cfg, tables, model, bset, storm, polygons, flows, crs, None if hybrid is None else hybrid.forcing_cells())
     if hybrid is not None:
         forcing.strip_depth = hybrid.strip_depth_real
+    carried: list = []  # flow lines whose water brings its momentum (W70)
     if flow_lines(cfg.boundaries):
         try:
             injected, notes = line_injections(cfg, tables, forcing, crs)
+            moving, more = momentum_lines(cfg, model.kicks_faces())
         except (ValueError, FileNotFoundError) as error:
             raise InvalidJob(f"flow line: {error}") from error
         forcing.injections += injected
-        for note in notes:
+        if moving:
+            carried = [inj for inj in injected if inj.east is not None]
+        for note in notes + more:
             progress.emit("warn", message=note)
     if isinstance(storm, GaugeStorm):
         report_gauges(storm, forcing, cfg, progress, out)
@@ -1057,6 +1061,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
                 model.set_source_cells(forcing.state, rate[: forcing.n_lattice])
                 if hybrid is not None:
                     hybrid.set_strip_source(rate[forcing.n_lattice :])
+            if carried:
+                model.set_momentum(momentum_kick(carried, grid.dx, cfg.numerics.u_max))
             dry = rain + inflow + loss <= 0.0
             back = link.reentry_volume() if link is not None else 0.0
             monitor.open_window(t, t_next, rain, inflow, back, loss)
