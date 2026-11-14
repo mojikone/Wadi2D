@@ -39,6 +39,8 @@ HOLD = 3
 """A gorge reach is at least this many vertices running, as a change of row count must last three stations."""
 SUSTAIN = 2
 """The ground must stand above the wall height on this many samples running to be the wall."""
+NARROW_PERCENTILE = 10.0
+"""A reach's row count is set at this percentile of its wall distances, so one narrow station does not thin it all."""
 BLOCK_POINTS = 8192
 """Points per window read of the DEM sampler."""
 WINDOW_PIXELS_MAX = 64_000_000
@@ -248,7 +250,10 @@ def split_gorge_rows(mesh: StripMesh, ground: Callable[[np.ndarray], np.ndarray]
                     reaches += 1
                     for s in (0, 1):
                         w = np.minimum(_running_median(wall[i:j, s], SMOOTH_WINDOW), SHARE_MAX * lengths[i:j, s])
-                        n_rows = int(max(1, min(per_side, np.floor(w.min() / rule.cell_min_m + 1e-9))))
+                        # the count from the reach's narrow end (its tenth percentile, not one vertex), and where the
+                        # bed is narrower still the cut moves up the wall so no row is under the floor
+                        n_rows = int(max(1, min(per_side, np.floor(np.percentile(w, NARROW_PERCENTILE) / rule.cell_min_m + 1e-9))))
+                        w = np.minimum(np.maximum(w, n_rows * rule.cell_min_m), SHARE_MAX * lengths[i:j, s])
                         widths.append(float(np.median(w)) / n_rows)
                         for q in range(i, j):
                             v, o = path[q], int(far[q, s])
