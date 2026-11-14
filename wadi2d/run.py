@@ -27,6 +27,14 @@ from wadi2d.breach import build_breaches
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import ENTRY_POINT, REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
+from wadi2d.edge_valleys import (
+    crossing_notes,
+    edge_pools,
+    pool_notes,
+    stream_crossings,
+    write_crossings,
+    write_pools,
+)
 from wadi2d.engine.design_lines import DESIGN_KIND, NETWORK, TOTAL
 from wadi2d.engine.design_lines import plans as design_plans
 from wadi2d.engine.design_lines import records as design_records
@@ -144,6 +152,7 @@ NOT_WATER = (
     ("outputs", "frame_bytes_per_cell"),
     ("outputs", "face_discharge"),
     ("outputs", "observed"),
+    ("outputs", "edge_check"),
     ("hydrology", "overlap_share"),
     ("arf", "bracket"),
     ("arf", "bracket_ratio"),
@@ -738,6 +747,38 @@ def edge_ponding(grid: TileGrid, depth: np.ndarray, open_cells: np.ndarray) -> t
     return float(depth[j, i]), float(x), float(y)
 
 
+def _edge_streams(cfg: RunConfig, crs: str, out: Path, progress) -> list[str]:
+    """Streams across closed edges before the run (W78): the warnings, the points in ``edge_checks.gpkg``. A check
+    that fails costs a warning, never the run."""
+    if not cfg.outputs.edge_check.enabled:
+        return []
+    try:
+        cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
+        found = stream_crossings(cfg, crs, cache)
+        path = write_crossings(out, found, crs)
+    except Exception as error:  # the ground, the DEM or WhiteboxTools: the run goes on without the check
+        return [f"the check for streams across the domain edge could not run: {error}"]
+    if path is not None:
+        progress.emit("output", kind="edge_checks", path=str(path), streams=len(found))
+    return crossing_notes(found, cfg.outputs.edge_check)
+
+
+def _edge_pools(cfg, tables, depth, open_cells, out: Path, crs, progress) -> list[str] | None:
+    """Deep water against closed edges after the run (W78), or None when the check is off or fails: the single
+    deepest-cell warning then stands, as before."""
+    check = cfg.outputs.edge_check
+    if not check.enabled or getattr(tables.grid, "quad", False):
+        return None
+    try:
+        pools = edge_pools(tables.grid, depth, tables.zmin, open_cells, EDGE_REACH, cfg.outputs.edge_depth, check)
+        path = write_pools(out, pools, crs)
+    except Exception:  # the old warning stands in for it
+        return None
+    if path is not None:
+        progress.emit("output", kind="edge_checks", path=str(path), pools=len(pools))
+    return pool_notes(pools, check)
+
+
 def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, crs, progress, tags) -> None:
     fields_ = monitor.maxima.fields()
     grid = tables.grid
@@ -759,8 +800,12 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     results.maxima(fields_)
     for more in monitor.extra_maxima:
         results.maxima(more())
+    pooled = _edge_pools(cfg, tables, fields_["depth"], monitor.boundary.mask, out, crs, progress)
     deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask)
-    if deep > cfg.outputs.edge_depth:
+    if pooled is not None:
+        for note in pooled:
+            progress.emit("warn", message=note)
+    elif deep > cfg.outputs.edge_depth:
         progress.emit(
             "warn",
             message=f"water stood {deep:.1f} m deep against the domain edge at ({x:.0f}, {y:.0f}): "
@@ -922,6 +967,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
                 )
             progress.emit("warn", message=f"rain: {said}")
     for note in spillway_notes(cfg) + check_terrain(cfg):
+        progress.emit("warn", message=note)
+    for note in _edge_streams(cfg, crs, out, progress):
         progress.emit("warn", message=note)
     if cfg.mesh.enabled and cfg.mesh.lines:
         from wadi2d.mesh.build import rounding_notes
