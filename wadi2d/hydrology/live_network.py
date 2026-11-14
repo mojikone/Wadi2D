@@ -149,6 +149,8 @@ class LiveNetwork:
         self.routes = routes
         self.reentries = dict(reentries)
         self.grid = base.grid
+        self.water = base.water
+        """The subbasins' rain and excess of the base run: the live elements' series carry them (W64)."""
         self.engine = LumpedEngine(basin)
         self.lateral = self._frozen(base)
 

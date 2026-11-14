@@ -5,19 +5,22 @@ as ``series/network/<element>`` in ``results.h5`` and ``series/network_<element>
 live are left to it (:mod:`wadi2d.engine.handback`), which writes their final series under the same names. On an HMS
 network only the elements whose water reached the grid are written (``keep``); the rest never ran in this model (W39; his word of 2026-11-07).
 
-Interface: :class:`NetworkSeries`.
+Each element's series carries ``rain_mm`` and ``excess_mm`` per step beside its flows (W64): the chart's rain bar.
+
+Interface: :class:`NetworkSeries`, :func:`reservoir_columns`, :func:`rain_columns`.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 
 import h5py
+import numpy as np
 
 from wadi2d.engine.monitor import Balance
 from wadi2d.hydrology.constants import SECONDS_PER_MINUTE
 from wadi2d.hydrology.model import Basin, Element
-from wadi2d.hydrology.network import Run
+from wadi2d.hydrology.network import Run, SubbasinWater
 from wadi2d.hydrology.reservoir import ReservoirOutflowCurve, ReservoirOutflowStructures
 from wadi2d.io.results import Results, safe_name, write_series_csv
 from wadi2d.storm.base import FloatArray
@@ -39,6 +42,30 @@ def reservoir_columns(element: Element, inflow: FloatArray, outflow: FloatArray,
         storage, level = routing.pool(inflow, outflow, dt_minutes)
         return {"pool_m": level, "storage_m3": storage}
     return {}
+
+
+def rain_columns(basin: Basin, water: Mapping[str, SubbasinWater], name: str, n_times: int) -> dict:
+    """``rain_mm`` and ``excess_mm`` in each step ending at the series' times, the first time 0 (W64).
+
+    A subbasin carries its own depths, the area reduction of the storm already in them. Any other element carries the
+    area-weighted depths of the subbasins above it through `Downstream` links, the area its drainage area counts. Nothing
+    when no subbasin above it was computed with rain.
+    """
+    above = Basin._walk(basin.main_upstream, name)  # the walk drainage_area takes
+    subbasins = basin.subbasins
+    parts = [(subbasins[key].area_km2, water[key]) for key in sorted(above) if key in water and key in subbasins]
+    area = sum(a for a, _ in parts)
+    if not parts or area <= 0.0:
+        return {}
+
+    def weighted(depths: list[FloatArray]) -> FloatArray:
+        mean = sum(a * d for (a, _), d in zip(parts, depths, strict=True)) / area
+        return np.concatenate(([0.0], mean))[:n_times]
+
+    return {
+        "rain_mm": weighted([w.precipitation for _, w in parts]),
+        "excess_mm": weighted([w.excess for _, w in parts]),
+    }
 
 
 class NetworkSeries:
@@ -70,6 +97,7 @@ class NetworkSeries:
             if name in run.branched:
                 columns["branched_m3s"] = run.branched[name]
             columns |= reservoir_columns(self.basin.elements[name], run.inflow[name], run.outflow[name], run.grid.dt_minutes)
+            columns |= rain_columns(self.basin, run.water, name, t.size)
             results.series(NETWORK_KIND, name, t, columns)
             write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
 
