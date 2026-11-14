@@ -21,6 +21,8 @@ EXIT_OK = 0
 EXIT_HMS = 2
 EXIT_FRAMES = 3
 EXIT_RAIN = 4
+EXIT_WORKBOOK = 2
+"""Inputs the workbook cannot use read as an invalid job, as run.py's EXIT_INVALID."""
 """An HMS project that cannot become a job is an invalid job."""
 PACKAGES = ("numpy", "numba", "rasterio", "h5py", "shapely", "pydantic", "hecdss", "cupy")
 NVIDIA_QUERY = ["nvidia-smi", "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"]
@@ -306,6 +308,44 @@ def _hms_import(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _pairs(items: list[str] | None, what: str) -> dict[str, str]:
+    """``KEY=VALUE`` options as a dict, refused in words when one has no ``=``."""
+    found = {}
+    for item in items or []:
+        key, sep, value = item.partition("=")
+        if not sep or not key.strip() or not value.strip():
+            raise ValueError(f"{what} {item!r}: expected KEY=VALUE")
+        found[key.strip()] = value.strip()
+    return found
+
+
+def _workbook(args: argparse.Namespace) -> int:
+    from wadi2d.workbook import make
+    from wadi2d.workbook.sources import parse_element
+
+    try:
+        runs = {k: Path(v) for k, v in _pairs(args.run, "--run").items()}
+        dss = {k: Path(v) for k, v in _pairs(args.dss, "--dss").items()}
+        areas = {k: float(v) for k, v in _pairs(args.area, "--area").items()}
+        path = make(
+            args.out,
+            [parse_element(e) for e in args.element],
+            runs=runs or None,
+            dss=dss or None,
+            basin_file=Path(args.basin) if args.basin else None,
+            areas=areas,
+            target=args.target,
+            project=args.project,
+            method=args.method,
+            tile_charts=not args.no_period_charts,
+        )
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_WORKBOOK, "message": str(error)}), file=sys.stderr)
+        return EXIT_WORKBOOK
+    print(json.dumps({"ev": "workbook", "path": str(path)}))
+    return EXIT_OK
+
+
 def parser() -> argparse.ArgumentParser:
     top = argparse.ArgumentParser(
         prog="wadi2d", description="GPU 2D shallow-water engine with hydrology inside"
@@ -410,6 +450,25 @@ def parser() -> argparse.ArgumentParser:
     hms.add_argument("--control", required=True)
     hms.add_argument("--out", required=True)
     hms.set_defaults(call=_hms_import)
+
+    book = sub.add_parser(
+        "workbook",
+        help="the dam-site Excel workbook: inflow (outflow, pool, storage where a reservoir routes) at named "
+        "elements over a set of return periods, from finished runs or HMS DSS files",
+    )
+    book.add_argument("--out", required=True, help="the .xlsx to write")
+    book.add_argument(
+        "--element", action="append", required=True, help="NAME or NAME=SHEET, once per dam, in sheet order"
+    )
+    book.add_argument("--run", action="append", help="RP=RUN_DIR, once per return period (200yr, PMP ...)")
+    book.add_argument("--dss", action="append", help="RP=FILE.dss of HMS results, once per return period")
+    book.add_argument("--basin", default=None, help="HMS .basin file: catchment areas and which elements are reservoirs")
+    book.add_argument("--area", action="append", help="NAME=KM2, a catchment area by hand")
+    book.add_argument("--target", default="200yr", help="the return period of the side-by-side sheet")
+    book.add_argument("--project", default="", help="named in the titles, e.g. 'Block 02'")
+    book.add_argument("--method", default="", help="named in the chart titles, e.g. 'depth-area analyses'")
+    book.add_argument("--no-period-charts", action="store_true", help="leave out the inflow-outflow chart per period")
+    book.set_defaults(call=_workbook)
     return top
 
 

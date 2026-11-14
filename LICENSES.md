@@ -19,6 +19,7 @@ is not legal advice.
 | whitebox (WhiteboxTools) | 2.3.6 | MIT | compatible; optional, the mesher's streams only |
 | affine | 2.4.0 | BSD | compatible |
 | contourpy | 1.3.3 | BSD-3-Clause | compatible |
+| openpyxl, et_xmlfile | 3.1.5, 2.0.0 | MIT | compatible; the dam workbook (added 2026-11-14) |
 | cupy-cuda12x | 14.2.0 | MIT | compatible |
 | **nvidia-cuda-runtime, nvrtc, cublas, cufft, curand, cusolver, cusparse, nvjitlink (cu12)** | 12.9 | **NVIDIA proprietary** | **see below** |
 | QGIS (plugin host) | 3.34+ | GPL-2.0-or-later | compatible; the plugin is GPL-3.0-or-later |
