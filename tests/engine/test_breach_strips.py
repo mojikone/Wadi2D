@@ -145,3 +145,19 @@ def test_a_pipe_between_strip_cells_flows_then_collapses_and_closes_the_books(de
     piping = rows[np.isfinite(rows[:, 4])]
     assert piping[1:, 7].max() > 0.0 and (~np.isfinite(rows[:, 4])).any()
     assert abs(s.balance.relative) < 1e-6
+
+
+def test_an_embankment_breach_keeps_a_burn_beside_it(dem, tmp_path) -> None:  # noqa: F811
+    """W63 cut an embankment's breach down to the raw DEM, undoing a channel burnt under it; the ground without the dam
+    now keeps the job's other edits."""
+    across = [(X0 + CREST_X, Y0), (X0 + CREST_X, Y0 - NY * DX)]
+    burn = [(X0 + 150.0, Y0 - MID), (X0 + 260.0, Y0 - MID)]
+    objects = [
+        {"kind": "embankment", "name": "Dam", "coordinates": across, "z_constant": CREST_Z, "section": {"width": 4.0}},
+        {"kind": "burn_line", "name": "cut", "coordinates": burn, "width": 8.0, "depth": 1.0},
+    ]
+    cfg = pool_job(dem, [breach(station_m=MID)], objects=objects)
+    tables, crs, model, _h = _model(cfg, tmp_path)
+    run = build_breaches(cfg, tables, model, None, crs).runs[0]
+    # the lowest pixels stand 1 m off the axis, 0.2 m up the side; the burn takes 1 m off them (W63 read 98.2 m here)
+    assert run.faces.free.min() == pytest.approx(BED_AT_DAM + 0.2 - 1.0, abs=0.05), "the burn stands under the breach"

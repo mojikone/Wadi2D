@@ -346,8 +346,11 @@ def build_breaches(cfg: RunConfig, tables, model, forcing, crs: str, progress=No
                 raise ValueError(f"breach: no crest line or embankment named '{b.dam}'")
             width = obj.section.width if obj.kind == "embankment" and obj.section is not None else 0.0
             snap = 0.75 * grid.dx + 0.5 * width
-            free_edit = None if obj.kind == "embankment" else edits.edit
-            faces = build_faces(tables, bed, edits, obj, manning, snap)
+            free_edit = edits.edit
+            if obj.kind == "embankment":  # the ground without this dam keeps every other edit (W69; W63 took the raw DEM)
+                others = [o for o in cfg.terrain.objects if o is not obj]
+                free_edit = apply_objects(grid, others, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
+            faces = build_faces(tables, bed, edits, obj, manning, snap, free_edit)
             strip = build_strip_faces(cfg, tables, bed, edits, free_edit, obj, model)
             if faces is None and strip is None:
                 raise ValueError(f"breach: no open crest face of '{obj.name}' on the grid")

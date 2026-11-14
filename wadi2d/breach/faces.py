@@ -100,9 +100,10 @@ def _profile(bed, edit, axis: int, j: int, i: int, k: int) -> tuple[np.ndarray, 
     return pick(edited), pick(raw)
 
 
-def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float) -> BreachFaces | None:
-    """The dam's faces with everything a rebuild needs, None where it has no open face on the squares (W69: the dam
-    may lie on a strip's faces alone); ``edits`` is :func:`wadi2d.terrain.apply_objects`' result."""
+def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float, free_edit=None) -> BreachFaces | None:
+    """The dam's faces with everything a rebuild needs, None where it has no open face on the squares; ``edits`` is
+    :func:`wadi2d.terrain.apply_objects`' result, ``free_edit`` the pixel edit of the ground without the dam (W69: the
+    job's other edits kept under an embankment's breach), the raw DEM when None."""
     grid = tables.grid
     k = round(grid.dx / bed.pixel)
     found = find_faces(tables, edits.crest, obj, snap)
@@ -123,7 +124,10 @@ def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float) ->
         edited, raw = _profile(bed, edits.edit, a, j, i, k)
         cz = (edits.crest.xz if a == WEST else edits.crest.yz)[j, i]
         crested[m] = np.maximum(edited, cz)
-        free[m] = raw if obj.kind == "embankment" else edited
+        if obj.kind != "embankment":
+            free[m] = edited
+        else:
+            free[m] = raw if free_edit is None else _profile(bed, free_edit, a, j, i, k)[0]
         if a == WEST:
             x, y = np.full(k, grid.x0 + i * grid.dx), grid.y0 - j * grid.dx - q
         else:
