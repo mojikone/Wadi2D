@@ -1,0 +1,1436 @@
+{
+ "code": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-abeb573cf55b53188",
+ "runs": {
+  "full_RP5_nc": {
+   "name": "full_RP5_nc",
+   "mode": "full",
+   "storm": "RP5",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 12.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 50445,
+   "loop_s": 8.03,
+   "balance": {
+    "rain_m3": 670335.3258847928,
+    "inflow_m3": 0.0,
+    "outflow_m3": 589194.5688859571,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 81140.74160758214,
+    "error_m3": 0.015391253575216979,
+    "relative_error": 2.2960528829211958e-08
+   },
+   "line": {
+    "peak_m3s": 95.1646,
+    "peak_h": 12.975,
+    "volume_m3": 470180.30821808096
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 4.1 m deep against the domain edge at (436211, 2722625): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP5_dss": {
+   "name": "full_RP5_dss",
+   "mode": "full",
+   "storm": "RP5",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 15.8,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 50494,
+   "loop_s": 8.08,
+   "balance": {
+    "rain_m3": 671350.7155454636,
+    "inflow_m3": 0.0,
+    "outflow_m3": 590135.6760746018,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 81215.02383061849,
+    "error_m3": 0.015640243291272782,
+    "relative_error": 2.3296680749889856e-08
+   },
+   "line": {
+    "peak_m3s": 95.3547,
+    "peak_h": 12.975,
+    "volume_m3": 470947.1541689415
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 4.1 m deep against the domain edge at (436211, 2722625): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10_nc": {
+   "name": "full_RP10_nc",
+   "mode": "full",
+   "storm": "RP10",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 13.8,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 55924,
+   "loop_s": 9.59,
+   "balance": {
+    "rain_m3": 1077492.2488578914,
+    "inflow_m3": 0.0,
+    "outflow_m3": 957019.9351272311,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 120472.29137873974,
+    "error_m3": 0.022351920619257726,
+    "relative_error": 2.0744391101606597e-08
+   },
+   "line": {
+    "peak_m3s": 175.26,
+    "peak_h": 12.775,
+    "volume_m3": 757564.9422545851
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10_dss": {
+   "name": "full_RP10_dss",
+   "mode": "full",
+   "storm": "RP10",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 18.1,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 55955,
+   "loop_s": 9.41,
+   "balance": {
+    "rain_m3": 1079316.4037556802,
+    "inflow_m3": 0.0,
+    "outflow_m3": 958711.9601852378,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 120604.42069053501,
+    "error_m3": 0.02287990736658685,
+    "relative_error": 2.1198517216056385e-08
+   },
+   "line": {
+    "peak_m3s": 175.545,
+    "peak_h": 12.775,
+    "volume_m3": 759033.2594834254
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 4.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP25_nc": {
+   "name": "full_RP25_nc",
+   "mode": "full",
+   "storm": "RP25",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 15.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 59482,
+   "loop_s": 10.92,
+   "balance": {
+    "rain_m3": 1689988.9331252202,
+    "inflow_m3": 0.0,
+    "outflow_m3": 1511497.5574238927,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 178491.33421140004,
+    "error_m3": 0.04148992753471248,
+    "relative_error": 2.455041374619361e-08
+   },
+   "line": {
+    "peak_m3s": 302.415,
+    "peak_h": 12.641666666666667,
+    "volume_m3": 1189729.4900417272
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 6.1 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP25_dss": {
+   "name": "full_RP25_dss",
+   "mode": "full",
+   "storm": "RP25",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 20.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 59594,
+   "loop_s": 10.8,
+   "balance": {
+    "rain_m3": 1693569.0784822113,
+    "inflow_m3": 0.0,
+    "outflow_m3": 1514852.5678685422,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 178716.47953427958,
+    "error_m3": 0.031079389591468498,
+    "relative_error": 1.835141535491547e-08
+   },
+   "line": {
+    "peak_m3s": 303.526,
+    "peak_h": 12.625,
+    "volume_m3": 1192700.9648603797
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 6.1 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP50_nc": {
+   "name": "full_RP50_nc",
+   "mode": "full",
+   "storm": "RP50",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 14.9,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 61703,
+   "loop_s": 10.42,
+   "balance": {
+    "rain_m3": 2217562.393769082,
+    "inflow_m3": 0.0,
+    "outflow_m3": 1990668.9928151718,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 226893.35202214087,
+    "error_m3": 0.0489317694446072,
+    "relative_error": 2.2065566038680998e-08
+   },
+   "line": {
+    "peak_m3s": 415.744,
+    "peak_h": 12.558333333333334,
+    "volume_m3": 1561613.413079335
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 6.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP50_dss": {
+   "name": "full_RP50_dss",
+   "mode": "full",
+   "storm": "RP50",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 19.2,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 61684,
+   "loop_s": 9.84,
+   "balance": {
+    "rain_m3": 2223147.4899116275,
+    "inflow_m3": 0.0,
+    "outflow_m3": 1995886.159066271,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 227261.28158358016,
+    "error_m3": 0.04926177629386075,
+    "relative_error": 2.215857315693389e-08
+   },
+   "line": {
+    "peak_m3s": 416.987,
+    "peak_h": 12.558333333333334,
+    "volume_m3": 1566126.518470111
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 6.9 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP100_nc": {
+   "name": "full_RP100_nc",
+   "mode": "full",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 15.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 65806,
+   "loop_s": 11.19,
+   "balance": {
+    "rain_m3": 2801395.728322547,
+    "inflow_m3": 0.0,
+    "outflow_m3": 2527363.243011144,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 274032.4292958308,
+    "error_m3": 0.05601557216141373,
+    "relative_error": 1.999559419438231e-08
+   },
+   "line": {
+    "peak_m3s": 528.884,
+    "peak_h": 12.508333333333333,
+    "volume_m3": 1973140.232445522
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP100_dss": {
+   "name": "full_RP100_dss",
+   "mode": "full",
+   "storm": "RP100",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 22.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 66113,
+   "loop_s": 12.03,
+   "balance": {
+    "rain_m3": 2809706.887492703,
+    "inflow_m3": 0.0,
+    "outflow_m3": 2535205.6869939794,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 274501.1368008208,
+    "error_m3": 0.06369790260214359,
+    "relative_error": 2.2670657528617038e-08
+   },
+   "line": {
+    "peak_m3s": 531.014,
+    "peak_h": 12.508333333333333,
+    "volume_m3": 1979923.595745767
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP200_nc": {
+   "name": "full_RP200_nc",
+   "mode": "full",
+   "storm": "RP200",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 33.7,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 68469,
+   "loop_s": 24.67,
+   "balance": {
+    "rain_m3": 3449023.04599918,
+    "inflow_m3": 0.0,
+    "outflow_m3": 3125419.5654762485,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 323603.4025534077,
+    "error_m3": 0.07796952384524047,
+    "relative_error": 2.2606263514441882e-08
+   },
+   "line": {
+    "peak_m3s": 637.634,
+    "peak_h": 12.458333333333334,
+    "volume_m3": 2429241.966514812
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 8.6 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP200_dss": {
+   "name": "full_RP200_dss",
+   "mode": "full",
+   "storm": "RP200",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 41.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 68477,
+   "loop_s": 29.84,
+   "balance": {
+    "rain_m3": 3460466.008983878,
+    "inflow_m3": 0.0,
+    "outflow_m3": 3136251.488243709,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 324214.44047850213,
+    "error_m3": 0.08026166696799919,
+    "relative_error": 2.3193889713012096e-08
+   },
+   "line": {
+    "peak_m3s": 639.674,
+    "peak_h": 12.458333333333334,
+    "volume_m3": 2438716.5779471486
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 8.6 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP500_nc": {
+   "name": "full_RP500_nc",
+   "mode": "full",
+   "storm": "RP500",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 18.4,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 71508,
+   "loop_s": 13.14,
+   "balance": {
+    "rain_m3": 4404624.248880031,
+    "inflow_m3": 0.0,
+    "outflow_m3": 4009963.693314271,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 394660.4470339285,
+    "error_m3": 0.10853183106519282,
+    "relative_error": 2.4640428997499468e-08
+   },
+   "line": {
+    "peak_m3s": 757.891,
+    "peak_h": 12.425,
+    "volume_m3": 3103459.561576163
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 9.6 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP500_dss": {
+   "name": "full_RP500_dss",
+   "mode": "full",
+   "storm": "RP500",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 25.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 71572,
+   "loop_s": 13.38,
+   "balance": {
+    "rain_m3": 4421580.335841379,
+    "inflow_m3": 0.0,
+    "outflow_m3": 4026081.2623822917,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 395498.9731404576,
+    "error_m3": 0.10031862981850281,
+    "relative_error": 2.268841052266288e-08
+   },
+   "line": {
+    "peak_m3s": 759.905,
+    "peak_h": 12.425,
+    "volume_m3": 3117471.359820253
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 9.6 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP1000_nc": {
+   "name": "full_RP1000_nc",
+   "mode": "full",
+   "storm": "RP1000",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 18.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 74696,
+   "loop_s": 13.2,
+   "balance": {
+    "rain_m3": 5200107.563455018,
+    "inflow_m3": 0.0,
+    "outflow_m3": 4746867.760871084,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 453239.6888218958,
+    "error_m3": 0.11376203800318763,
+    "relative_error": 2.187686247159139e-08
+   },
+   "line": {
+    "peak_m3s": 825.328,
+    "peak_h": 12.408333333333333,
+    "volume_m3": 3664153.775592148
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 11.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP1000_dss": {
+   "name": "full_RP1000_dss",
+   "mode": "full",
+   "storm": "RP1000",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 21.7,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 74603,
+   "loop_s": 12.09,
+   "balance": {
+    "rain_m3": 5222634.2173175225,
+    "inflow_m3": 0.0,
+    "outflow_m3": 4768288.572015505,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 454345.53255427966,
+    "error_m3": 0.11274773755576462,
+    "relative_error": 2.1588289139972493e-08
+   },
+   "line": {
+    "peak_m3s": 827.362,
+    "peak_h": 12.408333333333333,
+    "volume_m3": 3682813.1076491824
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 11.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP2000_nc": {
+   "name": "full_RP2000_nc",
+   "mode": "full",
+   "storm": "RP2000",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 16.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 77538,
+   "loop_s": 11.97,
+   "balance": {
+    "rain_m3": 6076397.004653496,
+    "inflow_m3": 0.0,
+    "outflow_m3": 5595573.399927699,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 480823.4657094789,
+    "error_m3": 0.1390163178439252,
+    "relative_error": 2.2878083465820642e-08
+   },
+   "line": {
+    "peak_m3s": 885.884,
+    "peak_h": 12.408333333333333,
+    "volume_m3": 4282349.188951477
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 12.6 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP2000_dss": {
+   "name": "full_RP2000_dss",
+   "mode": "full",
+   "storm": "RP2000",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 21.2,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 77078,
+   "loop_s": 11.8,
+   "balance": {
+    "rain_m3": 6105640.504498342,
+    "inflow_m3": 0.0,
+    "outflow_m3": 5624471.121755854,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 481169.24301066576,
+    "error_m3": 0.13973182206973433,
+    "relative_error": 2.2885694296411106e-08
+   },
+   "line": {
+    "peak_m3s": 888.389,
+    "peak_h": 12.408333333333333,
+    "volume_m3": 4306614.410313973
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 12.6 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP5000_nc": {
+   "name": "full_RP5000_nc",
+   "mode": "full",
+   "storm": "RP5000",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 19.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 78530,
+   "loop_s": 15.64,
+   "balance": {
+    "rain_m3": 7378080.665808857,
+    "inflow_m3": 0.0,
+    "outflow_m3": 6866351.296159699,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 511729.20163114043,
+    "error_m3": 0.16801801836118102,
+    "relative_error": 2.2772591676830256e-08
+   },
+   "line": {
+    "peak_m3s": 1007.8,
+    "peak_h": 12.375,
+    "volume_m3": 5201009.780559178
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 14.0 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP5000_dss": {
+   "name": "full_RP5000_dss",
+   "mode": "full",
+   "storm": "RP5000",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 21.5,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 78277,
+   "loop_s": 12.28,
+   "balance": {
+    "rain_m3": 7417926.406796391,
+    "inflow_m3": 0.0,
+    "outflow_m3": 6905773.723779284,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 512152.5162274471,
+    "error_m3": 0.16678965964820236,
+    "relative_error": 2.2484674355273694e-08
+   },
+   "line": {
+    "peak_m3s": 1014.57,
+    "peak_h": 12.375,
+    "volume_m3": 5233283.803186887
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 14.0 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10000_nc": {
+   "name": "full_RP10000_nc",
+   "mode": "full",
+   "storm": "RP10000",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 17.9,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 79035,
+   "loop_s": 12.56,
+   "balance": {
+    "rain_m3": 8471255.601110147,
+    "inflow_m3": 0.0,
+    "outflow_m3": 7934135.483839319,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 537119.9315514881,
+    "error_m3": 0.18571934010833502,
+    "relative_error": 2.1923472605878725e-08
+   },
+   "line": {
+    "peak_m3s": 1168.71,
+    "peak_h": 12.358333333333333,
+    "volume_m3": 5972020.321482784
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 15.0 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10000_dss": {
+   "name": "full_RP10000_dss",
+   "mode": "full",
+   "storm": "RP10000",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 21.7,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 79027,
+   "loop_s": 13.61,
+   "balance": {
+    "rain_m3": 8521087.215046823,
+    "inflow_m3": 0.0,
+    "outflow_m3": 7983433.925704774,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 537653.0924229823,
+    "error_m3": 0.19691906624939293,
+    "relative_error": 2.3109617502994995e-08
+   },
+   "line": {
+    "peak_m3s": 1177.67,
+    "peak_h": 12.358333333333333,
+    "volume_m3": 6013569.710465975
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 15.0 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_PMP_nc": {
+   "name": "full_PMP_nc",
+   "mode": "full",
+   "storm": "PMP",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 20.8,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 82814,
+   "loop_s": 16.08,
+   "balance": {
+    "rain_m3": 13251542.161767242,
+    "inflow_m3": 0.0,
+    "outflow_m3": 12606373.590708803,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 645168.2620176214,
+    "error_m3": 0.3090408176649362,
+    "relative_error": 2.332112096028845e-08
+   },
+   "line": {
+    "peak_m3s": 1666.88,
+    "peak_h": 12.325,
+    "volume_m3": 9361424.142139386
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 18.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_PMP_dss": {
+   "name": "full_PMP_dss",
+   "mode": "full",
+   "storm": "PMP",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 24.5,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 82978,
+   "loop_s": 14.16,
+   "balance": {
+    "rain_m3": 13326708.32389314,
+    "inflow_m3": 0.0,
+    "outflow_m3": 12680810.258336043,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 645897.7445995759,
+    "error_m3": 0.3209575202781707,
+    "relative_error": 2.4083780666433104e-08
+   },
+   "line": {
+    "peak_m3s": 1672.8,
+    "peak_h": 12.325,
+    "volume_m3": 9424226.737919949
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 18.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP100_nc_cpu": {
+   "name": "full_RP100_nc_cpu",
+   "mode": "full",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "cpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 168.6,
+   "backend_used": "cpu",
+   "cells": 31971,
+   "steps": 65895,
+   "loop_s": 165.45,
+   "balance": {
+    "rain_m3": 2801395.728322547,
+    "inflow_m3": 0.0,
+    "outflow_m3": 2527363.043081209,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 274032.6812165297,
+    "error_m3": 0.004024808178655803,
+    "relative_error": 1.4367153265653853e-09
+   },
+   "line": {
+    "peak_m3s": 528.872,
+    "peak_h": 12.508333333333333,
+    "volume_m3": 1973174.458549541
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_PMP_dss_cpu": {
+   "name": "full_PMP_dss_cpu",
+   "mode": "full",
+   "storm": "PMP",
+   "fmt": "dss",
+   "backend": "cpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 340.6,
+   "backend_used": "cpu",
+   "cells": 31971,
+   "steps": 82999,
+   "loop_s": 332.22,
+   "balance": {
+    "rain_m3": 13326708.32389312,
+    "inflow_m3": 0.0,
+    "outflow_m3": 12680810.608735317,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 645897.7108566291,
+    "error_m3": 0.0043011740781366825,
+    "relative_error": 3.227484217107998e-10
+   },
+   "line": {
+    "peak_m3s": 1672.85,
+    "peak_h": 12.325,
+    "volume_m3": 9424286.444964707
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 18.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10_nc_arf": {
+   "name": "full_RP10_nc_arf",
+   "mode": "full",
+   "storm": "RP10",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 34.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 55661,
+   "loop_s": 29.61,
+   "balance": {
+    "rain_m3": 1036038.9311346395,
+    "inflow_m3": 0.0,
+    "outflow_m3": 919548.8776254134,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 116490.03376607678,
+    "error_m3": 0.01974314940162003,
+    "relative_error": 1.9056377910430365e-08
+   },
+   "line": {
+    "peak_m3s": 166.914,
+    "peak_h": 12.791666666666666,
+    "volume_m3": 728257.123897417
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 4.8 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10_dss_arf": {
+   "name": "full_RP10_dss_arf",
+   "mode": "full",
+   "storm": "RP10",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 28.7,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 55682,
+   "loop_s": 19.52,
+   "balance": {
+    "rain_m3": 1037806.4927908557,
+    "inflow_m3": 0.0,
+    "outflow_m3": 921188.3655715126,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 116618.10472094471,
+    "error_m3": 0.022498398378957063,
+    "relative_error": 2.1678799020089634e-08
+   },
+   "line": {
+    "peak_m3s": 167.174,
+    "peak_h": 12.791666666666666,
+    "volume_m3": 729650.8787358507
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 4.8 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP100_nc_arf": {
+   "name": "full_RP100_nc_arf",
+   "mode": "full",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 18.1,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 65311,
+   "loop_s": 14.86,
+   "balance": {
+    "rain_m3": 2710569.063791036,
+    "inflow_m3": 0.0,
+    "outflow_m3": 2443475.0208833315,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 267093.9813102951,
+    "error_m3": 0.061597409483511,
+    "relative_error": 2.27248994708735e-08
+   },
+   "line": {
+    "peak_m3s": 509.442,
+    "peak_h": 12.508333333333333,
+    "volume_m3": 1908971.701715904
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP100_dss_arf": {
+   "name": "full_RP100_dss_arf",
+   "mode": "full",
+   "storm": "RP100",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 19.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 65376,
+   "loop_s": 10.84,
+   "balance": {
+    "rain_m3": 2718653.0203895057,
+    "inflow_m3": 0.0,
+    "outflow_m3": 2451102.69659404,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 267550.2704838624,
+    "error_m3": 0.05331160337664187,
+    "relative_error": 1.96095650959547e-08
+   },
+   "line": {
+    "peak_m3s": 511.07,
+    "peak_h": 12.508333333333333,
+    "volume_m3": 1915545.407602503
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10000_nc_arf": {
+   "name": "full_RP10000_nc_arf",
+   "mode": "full",
+   "storm": "RP10000",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 24.1,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 78039,
+   "loop_s": 19.5,
+   "balance": {
+    "rain_m3": 8232432.967586187,
+    "inflow_m3": 0.0,
+    "outflow_m3": 7700909.219650232,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 531523.5627498671,
+    "error_m3": 0.18518608738668263,
+    "relative_error": 2.2494697268209962e-08
+   },
+   "line": {
+    "peak_m3s": 1132.47,
+    "peak_h": 12.375,
+    "volume_m3": 5802641.596044068
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 14.8 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_RP10000_dss_arf": {
+   "name": "full_RP10000_dss_arf",
+   "mode": "full",
+   "storm": "RP10000",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 32.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 77979,
+   "loop_s": 21.09,
+   "balance": {
+    "rain_m3": 8280990.953698739,
+    "inflow_m3": 0.0,
+    "outflow_m3": 7748947.631169879,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 532043.131517766,
+    "error_m3": 0.19101109448820353,
+    "relative_error": 2.306621219081125e-08
+   },
+   "line": {
+    "peak_m3s": 1141.23,
+    "peak_h": 12.358333333333333,
+    "volume_m3": 5843025.746023805
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 14.8 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_PMP_nc_arf": {
+   "name": "full_PMP_nc_arf",
+   "mode": "full",
+   "storm": "PMP",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 37.6,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 82776,
+   "loop_s": 32.02,
+   "balance": {
+    "rain_m3": 12891280.023546455,
+    "inflow_m3": 0.0,
+    "outflow_m3": 12254031.404045906,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 637248.3136936459,
+    "error_m3": 0.30580690363422036,
+    "relative_error": 2.3721996813012472e-08
+   },
+   "line": {
+    "peak_m3s": 1618.75,
+    "peak_h": 12.325,
+    "volume_m3": 9105494.552254552
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 18.1 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "full_PMP_dss_arf": {
+   "name": "full_PMP_dss_arf",
+   "mode": "full",
+   "storm": "PMP",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 52.4,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 82816,
+   "loop_s": 43.72,
+   "balance": {
+    "rain_m3": 12964544.15738854,
+    "inflow_m3": 0.0,
+    "outflow_m3": 12326584.348503353,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 637959.4884427955,
+    "error_m3": 0.3204423914430663,
+    "relative_error": 2.471682672008526e-08
+   },
+   "line": {
+    "peak_m3s": 1624.25,
+    "peak_h": 12.325,
+    "volume_m3": 9166572.955212949
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 18.1 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ]
+  },
+  "hms_RP100_nc": {
+   "name": "hms_RP100_nc",
+   "mode": "hms",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 48.0,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 120073,
+   "loop_s": 38.92,
+   "balance": {
+    "rain_m3": 734466.2682858829,
+    "inflow_m3": 2062099.3557731274,
+    "outflow_m3": 2545165.82420848,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 251399.73869948045,
+    "error_m3": 0.06115105000208132,
+    "relative_error": 2.1866481328382004e-08
+   },
+   "line": {
+    "peak_m3s": 311.406,
+    "peak_h": 12.925,
+    "volume_m3": 2070036.1648053718
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 7.3 m deep against the domain edge at (430991, 2725505): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 311.932,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 2062099.241935248
+   }
+  },
+  "hms_RP100_nc_arf": {
+   "name": "hms_RP100_nc_arf",
+   "mode": "hms",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 60.3,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 118847,
+   "loop_s": 51.7,
+   "balance": {
+    "rain_m3": 710392.3807578451,
+    "inflow_m3": 1995426.3502848782,
+    "outflow_m3": 2461009.063864275,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 244809.60134632248,
+    "error_m3": 0.06583212580881082,
+    "relative_error": 2.4329835939690434e-08
+   },
+   "line": {
+    "peak_m3s": 301.467,
+    "peak_h": 12.925,
+    "volume_m3": 2002990.4883954755
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 7.1 m deep against the domain edge at (430991, 2725505): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 301.99,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 1995426.4125547912
+   }
+  },
+  "hms_RP100_dss": {
+   "name": "hms_RP100_dss",
+   "mode": "hms",
+   "storm": "RP100",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 33.4,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 120738,
+   "loop_s": 21.03,
+   "balance": {
+    "rain_m3": 735947.794616166,
+    "inflow_m3": 2068960.3650943243,
+    "outflow_m3": 2553060.6588529404,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 251847.43848372746,
+    "error_m3": 0.06237382226390764,
+    "relative_error": 2.2237384866941804e-08
+   },
+   "line": {
+    "peak_m3s": 312.298,
+    "peak_h": 12.925,
+    "volume_m3": 2077047.458014549
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 7.3 m deep against the domain edge at (430991, 2725505): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 312.82,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 2068959.67153404
+   }
+  },
+  "hms_RP100_dss_arf": {
+   "name": "hms_RP100_dss_arf",
+   "mode": "hms",
+   "storm": "RP100",
+   "fmt": "dss",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 31.2,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 118949,
+   "loop_s": 17.77,
+   "balance": {
+    "rain_m3": 711833.16378942,
+    "inflow_m3": 2002100.7031740693,
+    "outflow_m3": 2468688.346370942,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 245245.45997468606,
+    "error_m3": 0.06061786142527126,
+    "relative_error": 2.2335791657699503e-08
+   },
+   "line": {
+    "peak_m3s": 302.36,
+    "peak_h": 12.925,
+    "volume_m3": 2009688.310074758
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 7.1 m deep against the domain edge at (430991, 2725505): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 302.856,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 2002100.181762957
+   }
+  },
+  "hms_PMP_nc": {
+   "name": "hms_PMP_nc",
+   "mode": "hms",
+   "storm": "PMP",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": null,
+   "exit_code": 0,
+   "wall_s": 29.2,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 138966,
+   "loop_s": 22.89,
+   "balance": {
+    "rain_m3": 3542004.8457955504,
+    "inflow_m3": 9690338.94397603,
+    "outflow_m3": 12631652.341463465,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 600691.1362398207,
+    "error_m3": 0.31206829322036356,
+    "relative_error": 2.35837504056982e-08
+   },
+   "line": {
+    "peak_m3s": 886.042,
+    "peak_h": 12.908333333333333,
+    "volume_m3": 9791967.33600743
+   },
+   "area_reduction": [],
+   "warnings": [
+    "water stood 17.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 885.506,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 9690339.581184
+   }
+  },
+  "hms_PMP_nc_arf": {
+   "name": "hms_PMP_nc_arf",
+   "mode": "hms",
+   "storm": "PMP",
+   "fmt": "nc",
+   "backend": "gpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 39.5,
+   "backend_used": "gpu",
+   "cells": 31971,
+   "steps": 139099,
+   "loop_s": 31.7,
+   "balance": {
+    "rain_m3": 3445389.218280217,
+    "inflow_m3": 9427251.351947585,
+    "outflow_m3": 12279196.05134273,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 593444.2151001228,
+    "error_m3": 0.30378494947217405,
+    "relative_error": 2.3599272256134944e-08
+   },
+   "line": {
+    "peak_m3s": 863.101,
+    "peak_h": 12.908333333333333,
+    "volume_m3": 9524842.048092071
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 17.0 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 862.507,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 9427251.23758458
+   }
+  },
+  "hms_RP100_nc_arf_cpu": {
+   "name": "hms_RP100_nc_arf_cpu",
+   "mode": "hms",
+   "storm": "RP100",
+   "fmt": "nc",
+   "backend": "cpu",
+   "area": 20.971,
+   "exit_code": 0,
+   "wall_s": 1372.9,
+   "backend_used": "cpu",
+   "cells": 31971,
+   "steps": 118812,
+   "loop_s": 1357.03,
+   "balance": {
+    "rain_m3": 710392.3807578447,
+    "inflow_m3": 1995426.3509327546,
+    "outflow_m3": 2461009.444341914,
+    "storage_start_m3": 0.0,
+    "storage_end_m3": 244809.27807291996,
+    "error_m3": 0.00927576536196284,
+    "relative_error": 3.4280808441914102e-09
+   },
+   "line": {
+    "peak_m3s": 301.502,
+    "peak_h": 12.925,
+    "volume_m3": 2002971.5970211101
+   },
+   "area_reduction": [
+    {
+     "factor": 0.9749319,
+     "storm_area_km2": 20.971,
+     "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+    }
+   ],
+   "warnings": [
+    "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+    "water stood 7.1 m deep against the domain edge at (430991, 2725505): an edge is a wall, so check the domain polygon there"
+   ],
+   "network_S13": {
+    "peak_m3s": 301.99,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 1995426.4125547912
+   }
+  }
+ }
+}

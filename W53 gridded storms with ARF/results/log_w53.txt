@@ -1,0 +1,92 @@
+    0.0 script loaded
+    7.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-abeb573cf55b53188\plugin\wadi2d_qgis\__init__.py
+    7.9 PASS engine found Engine ready.
+    7.9 === 0 the widgets
+    7.9 PASS Reduce by area is off by default 
+    7.9 PASS its area and table are hidden while it is off 
+    7.9 PASS its label says what it is for Reduce by area: the grids hold point depths
+   12.0 rain label: 144 frames of 10 min, 24 h, from 2000-01-01 00:00:00. 494 x 605 pixels. Total 135.5 mm on average, 269.1 mm at most.
+   12.0 PASS the dock reads 144 frames of 10 min 
+   12.0 === 1 the grid as it is, then reduced at S13's area; the gross rain on CN 100, the design peak on the CN grid
+   12.0 dock says: Starting...
+   30.2 dock says: water stood 8.8 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   31.3 PASS gross_plain: the run finished Finished. water stood 8.8 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   31.4 PASS gross_plain: mass error under 1e-06 2.213089847442706e-08
+   31.4 gross_plain: line {'peak_m3s': 645.958, 'peak_h': 12.441666666666666, 'volume_m3': 2681276.7140523726}, rain 3824785.2 m3, reduction []
+   31.4   warn: water stood 8.8 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   31.4 PASS gross_plain: unticked, the job carries no reduction {'kind': 'gridded', 'rain_file': 'D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc', 'rain_units': 'auto', 'rain_stamp': 'end'}
+   31.4 PASS gross_plain: no factor is reported 
+   32.6 dock says: Starting...
+   36.7 dock says: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+   48.2 dock says: water stood 8.7 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   48.8 PASS gross_arf: the run finished Finished. rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event. water stood 8.7 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there.
+   48.8 PASS gross_arf: mass error under 1e-06 2.1018553162253956e-08
+   48.8 gross_arf: line {'peak_m3s': 627.052, 'peak_h': 12.441666666666666, 'volume_m3': 2613468.658448701}, rain 3728905.1 m3, reduction [{'ev': 'output', 'kind': 'area_reduction', 'factor': 0.9749319, 'storm_area_km2': 20.971, 'arf_table_type': 'fixed-area'}]
+   48.8   warn: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+   48.8   warn: water stood 8.7 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there
+   48.8 PASS gross_arf: the job carries the area and the typed table {'kind': 'gridded', 'rain_file': 'D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc', 'rain_units': 'auto', 'rain_stamp': 'end', 'storm_area_km2': 20.971, 'arf': {'areas_km2': [1.0, 5.0, 10.0, 20.0, 30.0,
+   48.8 PASS gross_arf: the factor reported is the table's at 20.971 km2 0.9749319 against 0.9749319
+   48.8 PASS gross_arf: the dock shows the factor in words ['rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event', 'water stood 8.7 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there']
+   48.8 PASS gross: the rain is the factor times the grid within 1e-06 0.974931898 against 0.974931900
+   48.8 dock says: Starting...
+   68.8 dock says: water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   69.3 PASS cn_plain: the run finished Finished. water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+   69.4 PASS cn_plain: mass error under 1e-06 1.999559419438231e-08
+   69.4 cn_plain: line {'peak_m3s': 528.884, 'peak_h': 12.508333333333333, 'volume_m3': 1973140.2324455222}, rain 2801395.7 m3, reduction []
+   69.4   warn: water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   69.4 PASS cn_plain: unticked, the job carries no reduction {'kind': 'gridded', 'rain_file': 'D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc', 'rain_units': 'auto', 'rain_stamp': 'end'}
+   69.4 PASS cn_plain: no factor is reported 
+   69.5 dock says: Starting...
+   74.0 dock says: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+   84.1 dock says: water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   84.5 PASS cn_arf: the run finished Finished. rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event. water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+   84.5 PASS cn_arf: mass error under 1e-06 2.2724899642668158e-08
+   84.5 cn_arf: line {'peak_m3s': 509.442, 'peak_h': 12.508333333333333, 'volume_m3': 1908971.7017159038}, rain 2710569.1 m3, reduction [{'ev': 'output', 'kind': 'area_reduction', 'factor': 0.9749319, 'storm_area_km2': 20.971, 'arf_table_type': 'fixed-area'}]
+   84.5   warn: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+   84.5   warn: water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+   84.5 PASS cn_arf: the job carries the area and the typed table {'kind': 'gridded', 'rain_file': 'D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc', 'rain_units': 'auto', 'rain_stamp': 'end', 'storm_area_km2': 20.971, 'arf': {'areas_km2': [1.0, 5.0, 10.0, 20.0, 30.0,
+   84.5 PASS cn_arf: the factor reported is the table's at 20.971 km2 0.9749319 against 0.9749319
+   84.5 PASS cn_arf: the dock shows the factor in words ['rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event', 'water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there']
+   84.5 === 2 the HMS project loaded, the table left empty: the job takes the project's ARF FM
+   84.5 PASS the dock says an empty table takes the HMS project's Left empty, the table of the HMS project is used.
+   84.9 dock says: Starting...
+   86.7 dock says: The gridded rain is reduced by the area reduction table of the HMS project.
+   90.7 dock says: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+  108.4 PASS hms_table: the run finished Finished. rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event. water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+  108.4 PASS hms_table: mass error under 1e-06 2.356030530758783e-08
+  108.4 hms_table: line {'peak_m3s': 509.442, 'peak_h': 12.508333333333333, 'volume_m3': 1914183.9392009038}, rain 2710569.1 m3, reduction [{'ev': 'output', 'kind': 'area_reduction', 'factor': 0.9749319, 'storm_area_km2': 20.971, 'arf_table_type': 'as supplied in the HMS project; check whether it is fixed-area or storm-centred'}]
+  108.4   warn: rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event
+  108.4   warn: water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there
+  108.4 PASS hms_table: the job's table is ARF FM {'areas_km2': [1.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 2000.0], 'factors': [0.999, 0.994, 0.987, 0.976, 0.965, 0.956, 0.948, 0.913, 0.864, 0.776, 0.694, 0.606], 'table_type': 'as supplied in the HMS project; check whether it is fix
+  108.4 PASS hms_table: the same factor 0.9749319
+  108.4 PASS hms_table: the HMS control file set 48 h 
+  108.4 === 3 a depth-area study on the gridded storm, its own table, three storm areas
+  108.5 PASS the ARF-step rule is offered, 0.05 by default 0.05
+  108.5 ARF-step label: 1 run, one per storm area: 20.97 km2; the area reduction changes by at most 0.05 between neighbouring runs.
+  108.5 PASS the dock counts the ARF-step runs before the study 1 run, one per storm area: 20.97 km2; the area reduction changes by at most 0.05 between neighbouring runs.
+  108.5 PASS the flow accumulation row shows with the composite map off 
+  108.5 dock says: Finished. rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event. water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+  144.6 study says: Finished: 3 runs, 1 design flow, for design lines and lumped elements. rain: every frame is multiplied by 0.9870, the area-reduction table at 10 km2, over the whole event. water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there. rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event. rain: every frame is multiplied by 0.9650, the area-reduction table at 30 km2, over the whole event. water stood 7.4 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there.
+  144.7 PASS the study finished Finished: 3 runs, 1 design flow, for design lines and lumped elements. rain: every frame is multiplied by 0.9870, the area-reduction table at 10 km2, over the whole event. water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, 
+  144.7 study factors: {10.0: 0.987, 20.971: 0.9749319, 30.0: 0.965}
+  144.7 PASS each study run is reduced at its own storm area {10.0: 0.987, 20.971: 0.9749319, 30.0: 0.965}
+  144.7 PASS the study's run at 20.971 km2 is the single reduced run 509.442 against 509.442
+  144.7 PASS the design peak is that run's 509.44183202309057 against 509.442
+  144.7 PASS a smaller storm area gives the larger peak (518.838, 509.442, 501.902)
+  144.7 study row: {'design_point': 'Bidah 03', 'drainage_area_km2': 20.971, 'storm_area_low_km2': 10.0, 'storm_area_high_km2': 20.971, 'peak_low_m3s': 518.8380301907891, 'peak_high_m3s': 509.4418320230907, 'design_peak_m3s': 509.44183202309057, 'time_of_peak_s': 45030.0, 'arf_table_type': 'fixed-area', 'read_as': 'design line, 2D runs either side'}; log-area check 507.36
+  144.7 PASS the raster is in the study job, the composite map off {'areas_km2': [10.0, 20.971, 30.0], 'accumulation': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-abeb573cf55b53188\\_throwaway_w53\\study_lines\\accumulation_km2.tif', 'accumulation_units': 'km2', 'composite': False}
+  144.7 === 4 lines after the study: a tributary drawn on the map, the design line from the list
+  144.7 PASS the study offers its result lines 
+  152.9 panel says: A depth-area study, runs at 10, 20.97, 30 km2. Each line drawn or picked takes the largest drainage area on the study's flow accumulation raster where it crosses the model, a design line its own, and reads the two runs either side of it, blended as the study reads its design points.
+  152.9 PASS the panel says it is a study and how its lines read A depth-area study, runs at 10, 20.97, 30 km2. Each line drawn or picked takes the largest drainage area on the study's flow accumulation raster where it crosses the model, a design line its own, and reads the two runs either side of it, blended as the study r
+  152.9 PASS the design line is listed as such Design line: Bidah 03
+  152.9 design line note: The line drains 20.97 km2 (its design line's). Read from the run at that storm area, 20.971 km2. Peak 509.6 m3/s, as the study reads a design point; the curves blend the two runs frame by frame.
+  152.9 PASS the design line reads its own area, the 20.971 km2 run The line drains 20.97 km2 (its design line's). Read from the run at that storm area, 20.971 km2. Peak 509.6 m3/s, as the study reads a design point; the curves blend the two runs frame by frame.
+  154.9 drawn line on the plot in 1.9 s: Temporary line: Line 1. Read from saved frames. The line drains 19.48 km2 (flow accumulation, the largest where it crosses). Read from the runs at 10 km2, weight 0.100, and 20.971 km2, weight 0.900, linear in log area. Peak 442.7 m3/s, as the study reads a design point; the curves blend the two runs frame by frame.
+  154.9 limit: Saved frames, every 15 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twice reads the net flow through both crossings.
+  154.9 PASS the drawn line names its area, the two runs and their weights The line drains 19.48 km2 (flow accumulation, the largest where it crosses). Read from the runs at 10 km2, weight 0.100, and 20.971 km2, weight 0.900, linear in log area. Peak 442.7 m3/s, as the study reads a design point; the curves blend the two runs frame b
+  154.9 PASS the drawn line's peak is read as the study reads a design point The line drains 19.48 km2 (flow accumulation, the largest where it crosses). Read from the runs at 10 km2, weight 0.100, and 20.971 km2, weight 0.900, linear in log area. Peak 442.7 m3/s, as the study reads a design point; the curves blend the two runs frame b
+  154.9 PASS water on the drawn line 442.745
+  154.9 PASS the line went where it was clicked, within two pixels of 5.0 m [[438780.80294117646, 2727389.197058823], [438989.19705882354, 2727180.802941176]]
+  155.0 SUMMARY 48 passed, 0 failed 
+  155.0 DONE
