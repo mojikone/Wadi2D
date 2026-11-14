@@ -158,9 +158,20 @@ def test_a_cell_named_twice_counts_once(tmp_path: Path) -> None:
     assert grid.mean_of([first, first, second]) == pytest.approx(1.5)
 
 
-def test_a_polygon_holding_no_cell_centre_raises_instead_of_guessing(tmp_path: Path) -> None:
+def test_a_polygon_holding_no_cell_centre_reads_the_cell_nearest_its_centroid(tmp_path: Path) -> None:
+    """HMS's rule on Block 2's Basin 3 (W55): a catchment smaller than a cell reads the cell under its centroid."""
     path = tmp_path / "pmp.tif"
     geographic_raster(path)
-    between = around_centre(57.10, 22.90, 100.0)
+    grid = DepthGrid.load(path, UTM)
+    small = around_centre(57.08, 22.92, 100.0)
+    assert grid.cells_in(small).size == 0
+    assert grid.mean_over([small]) == pytest.approx(1.0)
+    pair = [around_centre(57.08, 22.92, 100.0), around_centre(57.082, 22.92, 100.0)]
+    assert grid.mean_over(pair) == pytest.approx(1.0)
+
+
+def test_a_polygon_off_the_grid_still_raises(tmp_path: Path) -> None:
+    path = tmp_path / "pmp.tif"
+    geographic_raster(path)
     with pytest.raises(ValueError, match="no grid cell"):
-        DepthGrid.load(path, UTM).mean_over([between])
+        DepthGrid.load(path, UTM).mean_over([around_centre(58.5, 21.5, 100.0)])

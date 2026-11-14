@@ -13,7 +13,8 @@ area-weighted mean of the polygons' own centroids, the union's centroid for poly
 Block 2's Basin 3 (2026-11-11), where ten subbasins of 0.35 to 1.35 km2 under the 958 m PMP grid hold no centre:
 the three analysis points whose upstream polygons hold none, BID-J17 (one subbasin), BID-J19 (one) and BID-J45
 (two), read HMS's logged depth to 0.001 mm by this rule, and BID-J45 rules out a cell per polygon. Where the
-polygons hold at least one centre, an empty polygon adds nothing, as all 94 other points of that analysis show.
+polygons hold at least one centre, an empty polygon adds nothing, as all 94 other points of that analysis show. A
+centroid farther than a cell spacing from every wet centre is off the grid and still raises.
 """
 
 from __future__ import annotations
@@ -65,9 +66,22 @@ class DepthGrid:
         return candidates[shapely.contains_xy(polygon, self.x.flat[candidates], self.y.flat[candidates])]
 
     def nearest_cell(self, x: float, y: float) -> int:
-        """The flat index of the wet cell whose centre lies nearest a point."""
+        """The flat index of the wet cell whose centre lies nearest a point that lies on the grid.
+
+        A point farther from every wet centre than one cell spacing is off the grid (or in another coordinate
+        system, Majlas's failure) and raises: the rule is for a small catchment inside the grid, nothing else.
+        """
         distance = np.where(np.isfinite(self.depths), (self.x - x) ** 2 + (self.y - y) ** 2, np.inf)
-        return int(np.argmin(distance))
+        nearest = int(np.argmin(distance))
+        if not distance.flat[nearest] <= self.spacing**2:
+            raise ValueError("no grid cell is centred in these polygons, and their centroid lies off the grid")
+        return nearest
+
+    @property
+    def spacing(self) -> float:
+        """The largest median distance between neighbouring cell centres, along the rows or the columns."""
+        steps = [np.hypot(np.diff(self.x, axis=axis), np.diff(self.y, axis=axis)) for axis in (0, 1)]
+        return float(max((np.median(step) for step in steps if step.size), default=np.inf))
 
     def mean_of(self, cells: Iterable[NDArray[np.intp]], centroid: tuple[float, float] | None = None) -> float:
         """The mean depth of these cells, a cell named twice counting once; none, the cell nearest ``centroid``."""
