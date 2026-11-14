@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import itertools
+
 from qgis.core import (
     Qgis,
     QgsBilinearRasterResampler,
@@ -11,6 +13,7 @@ from qgis.core import (
     QgsColorRampLegendNodeSettings,
     QgsColorRampShader,
     QgsFillSymbol,
+    QgsGraduatedSymbolRenderer,
     QgsLineSymbol,
     QgsMarkerSymbol,
     QgsMeshDatasetIndex,
@@ -19,6 +22,7 @@ from qgis.core import (
     QgsPalLayerSettings,
     QgsRasterShader,
     QgsRendererCategory,
+    QgsRendererRange,
     QgsSingleBandPseudoColorRenderer,
     QgsSingleSymbolRenderer,
     QgsTextBufferSettings,
@@ -325,3 +329,36 @@ def style_subbasins(layer) -> None:
     ]
     layer.setRenderer(QgsCategorizedSymbolRenderer("mode", categories))
     _labels(layer, "label", 8.5, "#5a2d00", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+RAIN_BLUES = ("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c")
+"""Total rain depth from least to most: the storm map before the run (W77)."""
+
+
+def _rain_colours(low: float, high: float) -> list[tuple[float, QColor]]:
+    span = (high - low) or 1.0
+    step = span / (len(RAIN_BLUES) - 1)
+    return [(low + n * step, QColor(colour)) for n, colour in enumerate(RAIN_BLUES)]
+
+
+def style_rain_areas(layer, low: float, high: float) -> None:
+    """Each lumped subbasin and the 2D area in the blue of its depth, named with it."""
+    stops = _rain_colours(low, high)
+    bands = [(start, end, colour) for (start, _c), (end, colour) in itertools.pairwise(stops)] if high > low else [
+        (low, high, stops[-1][1])
+    ]  # fmt: skip
+    ranges = []
+    for start, end, colour in bands:
+        symbol = QgsFillSymbol.createSimple({"outline_color": "#1f3a66", "outline_width": "0.4"})
+        symbol.setColor(colour)
+        symbol.setOpacity(0.75)
+        ranges.append(QgsRendererRange(start, end, symbol, f"{start:.0f} to {end:.0f} mm"))
+    layer.setRenderer(QgsGraduatedSymbolRenderer("depth_mm", ranges))
+    _labels(layer, "label", 8.0, "#08306b", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+def style_rain_total(layer, low: float, high: float) -> None:
+    """The total depth over the domain, the same blues."""
+    items = [QgsColorRampShader.ColorRampItem(value, colour, f"{value:.0f} mm") for value, colour in _rain_colours(low, high)]
+    _pseudocolor(layer, QgsColorRampShader.Interpolated, items)
+    layer.setOpacity(0.8)

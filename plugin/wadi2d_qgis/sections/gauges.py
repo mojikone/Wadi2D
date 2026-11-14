@@ -21,7 +21,9 @@ NOTE = (
     "time first, as minutes from the run's start or as dates, then the values. Rain gauges are set in the Storm "
     "section, Rain source: Rain gauges."
 )
-AT_TIP = "A flow gauge: the name of a result line or a lumped element. A level gauge: the name of a result point."
+AT_TIP = (
+    "A flow gauge: the name of a result line or a lumped element. A level gauge: the name of a result point."
+)
 
 
 class GaugesSection(Section):
@@ -32,7 +34,11 @@ class GaugesSection(Section):
         self.note = QLabel(NOTE)
         self.note.setWordWrap(True)
         self.gauges = GaugeTable((FLOW, LEVEL), "Line, point or element", AT_TIP)
-        self.table, self.add_buttons, self.remove_button = self.gauges.table, self.gauges.add_buttons, self.gauges.remove_button
+        self.table, self.add_buttons, self.remove_button = (
+            self.gauges.table,
+            self.gauges.add_buttons,
+            self.gauges.remove_button,
+        )
         self.start = QLineEdit()
         self.start.setPlaceholderText("As the rain gauges' start, in the Storm section")
         self.start.setToolTip(
@@ -54,7 +60,9 @@ class GaugesSection(Section):
         self.gauges.set_row(index, **fields)
 
     def values(self, crs) -> dict:
-        return {"observed_gauges": {"rows": self.gauges.current_rows(crs), "start": self.start.text().strip()}}
+        return {
+            "observed_gauges": {"rows": self.gauges.current_rows(crs), "start": self.start.text().strip()}
+        }
 
 
 __all__ = ["FLOW", "LEVEL", "RAIN", "GaugesSection"]

@@ -272,6 +272,40 @@ def storm_gauges(dock, crs) -> None:
     storm.gauge_start.clear()
 
 
+def storm_map(dock) -> dict:
+    """The storm map's layers by name, in the model's Inputs > Hydrology (W77)."""
+    from wadi2d_qgis.layer_groups import HYDROLOGY, SLOT, SLOT_RAIN, input_group, model_name
+
+    group = input_group(model_name(dock.panel.folder.filePath()), HYDROLOGY)
+    return {node.layer().name(): node.layer() for node in group.findLayers() if node.customProperty(SLOT) == SLOT_RAIN}
+
+
+def gauge_preview(dock) -> None:
+    """Two rain gauges on the plane, nearest gauge: the map steps from 30 to 10 mm; the old map is replaced."""
+    storm, table = dock.storm, dock.storm.gauge_table
+    pick(storm.kind, "gauges")
+    for name, x, mm in (("West", 400500.0, 15.0), ("East", 401500.0, 5.0)):
+        record = WORK / f"rain_{name}.csv"
+        record.write_text(f"minute,mm\n5,{mm}\n10,{mm}\n", encoding="utf-8")  # inside the run's 15 min
+        row = table.add_row("rain")
+        row.name, row.x, row.y, row.file = name, x, 2701000.0, str(record)
+    table._show()
+    pick(storm.gauge_method, "thiessen")
+    storm.preview_button.click()
+    pump(lambda: storm.preview_button.isEnabled(), 120.0, "the gauge rain preview")
+    rows = storm.preview_table.rows
+    check(len(rows) == 1 and abs(rows[0]["depth_mm"] - 20.0) < 1e-6, f"real: two halves of 30 and 10 mm, {rows}")
+    shown = storm_map(dock)
+    check(len(shown) == 2, f"real: the gauge storm map replaces the last, with its raster {list(shown)}")
+    total = shown.get("Total rain depth, before the run")
+    stats = total.dataProvider().bandStatistics(1) if total is not None else None
+    check(stats is not None and abs(stats.minimumValue - 10.0) < 1e-4 and abs(stats.maximumValue - 30.0) < 1e-4,
+          f"real: the raster steps from 10 to 30 mm {stats and (stats.minimumValue, stats.maximumValue)}")  # fmt: skip
+    check(total is not None and total.renderer().type() == "singlebandpseudocolor", "real: the raster styled")
+    table.rows.clear()
+    table._show()
+
+
 def real_preview(dock) -> None:
     """Preview rain through the real engine: the 2D area's depth after the reduction, before any run (W65)."""
     storm = dock.storm
@@ -288,7 +322,12 @@ def real_preview(dock) -> None:
     check(abs(rows[0]["peak_mm_h"] - 100.0) < 1e-3, "real: at 100 mm/h")
     check(abs(rows[0]["area_km2"] - 4.0) < 1e-6, "real: over the 4 km2 of the plane")
     check(not storm.preview_chart.isHidden() and storm.preview_chart.row is rows[0], "real: its hyetograph drawn")
+    shown = storm_map(dock)
+    check(list(shown) == ["Rain depth by area, before the run"], f"real: the storm map, no raster for even rain {shown}")
+    area = shown["Rain depth by area, before the run"]
+    check(area.featureCount() == 1 and abs(next(area.getFeatures())["depth_mm"] - 20.0) < 1e-6, "real: the 2D area, 20 mm")
 
+    gauge_preview(dock)
     pick(storm.kind, "hypothetical")
     storm.design_depth.setValue(80.0)
     storm.design_hours.setValue(0.25)

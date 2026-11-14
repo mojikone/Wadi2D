@@ -62,7 +62,9 @@ class GaugeTable(QWidget):
         self.layer = self.name_field = None
         if points:
             self.layer = layer_combo(QgsMapLayerProxyModel.PointLayer, "None")
-            self.layer.setToolTip("A point layer of rain gauges: each point a row of the table, at its position.")
+            self.layer.setToolTip(
+                "A point layer of rain gauges: each point a row of the table, at its position."
+            )
             self.name_field = field_combo(self.layer)
             form.addRow("Rain gauge points", self.layer)
             form.addRow("Name field", self.name_field)
@@ -125,7 +127,10 @@ class GaugeTable(QWidget):
             self.table.setRowCount(len(self.rows))
             for number, row in enumerate(self.rows):
                 self._show_row(number, row)
-        high = self.table.horizontalHeader().height() + self.table.verticalHeader().defaultSectionSize() * SHOWN_ROWS
+        high = (
+            self.table.horizontalHeader().height()
+            + self.table.verticalHeader().defaultSectionSize() * SHOWN_ROWS
+        )
         self.table.setMaximumHeight(high + 2 * self.table.frameWidth())
 
     def _show_row(self, number: int, row: GaugeRow) -> None:

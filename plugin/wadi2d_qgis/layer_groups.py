@@ -14,7 +14,8 @@
             Terrain                  Preview terrain: the change and the modified ground
             Boundaries
             Structures
-            Hydrology                the basin generated from the DEM; a Basin points layer made by the dock (W73)
+            Hydrology                the basin generated from the DEM; a Basin points layer made by the dock (W73);
+                                     the storm map of Preview rain (W77)
             Mesh                     the mesh preview, suggested breaklines and thalwegs
 
 Every name is a constant here, so changing one is one edit. A layer the plugin adds carries a custom property naming
@@ -60,6 +61,7 @@ SLOT = "wadi2d/slot"  # on the plugin's layer nodes: what made them, so the next
 SLOT_TERRAIN = "terrain preview"
 SLOT_BASIN = "basin"
 SLOT_BASIN_POINTS = "basin points"  # the user's edits (W73): a regeneration replaces the basin, never these
+SLOT_RAIN = "storm map"  # Preview rain's map (W77): each preview replaces the last
 SLOT_MESH = "mesh preview"
 SLOT_SUGGEST = "suggested breaklines"
 SLOT_RESULT = "result"
