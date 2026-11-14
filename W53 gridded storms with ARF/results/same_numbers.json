@@ -1,0 +1,77 @@
+{
+ "full_RP200_dss": {
+  "series_files": 1,
+  "series_identical": true,
+  "series_set_identical": true,
+  "maps": {
+   "arrival.tif": true,
+   "hazard.tif": true,
+   "max_depth.tif": true,
+   "max_level.tif": true,
+   "max_mean_depth.tif": true,
+   "max_speed.tif": true
+  },
+  "maps_identical": true,
+  "steps": [
+   68477,
+   68477
+  ],
+  "balance_identical": false,
+  "rain_m3": 3460466.0089838775,
+  "job_hash": [
+   "4feac5d647d7b1206163e299",
+   "4feac5d647d7b1206163e299"
+  ],
+  "job_hash_identical": true
+ },
+ "full_RP200_nc": {
+  "series_files": 1,
+  "series_identical": true,
+  "series_set_identical": true,
+  "maps": {
+   "arrival.tif": true,
+   "hazard.tif": true,
+   "max_depth.tif": true,
+   "max_level.tif": true,
+   "max_mean_depth.tif": true,
+   "max_speed.tif": true
+  },
+  "maps_identical": true,
+  "steps": [
+   68469,
+   68469
+  ],
+  "balance_identical": false,
+  "rain_m3": 3449023.045999179,
+  "job_hash": [
+   "9ef4ed3dca051e159f8d885f",
+   "9ef4ed3dca051e159f8d885f"
+  ],
+  "job_hash_identical": true
+ },
+ "hms_RP100_nc": {
+  "series_files": 2,
+  "series_identical": true,
+  "series_set_identical": true,
+  "maps": {
+   "arrival.tif": true,
+   "hazard.tif": true,
+   "max_depth.tif": true,
+   "max_level.tif": true,
+   "max_mean_depth.tif": true,
+   "max_speed.tif": true
+  },
+  "maps_identical": true,
+  "steps": [
+   120073,
+   120073
+  ],
+  "balance_identical": false,
+  "rain_m3": 734466.2682858828,
+  "job_hash": [
+   "d6daa6873410cc070144643f",
+   "d6daa6873410cc070144643f"
+  ],
+  "job_hash_identical": true
+ }
+}

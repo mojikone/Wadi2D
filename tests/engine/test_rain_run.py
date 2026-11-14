@@ -81,6 +81,76 @@ def test_gridded_rain_takes_each_cells_own_losses(tmp_path) -> None:
     assert run.balance.rain == pytest.approx(sum(excess) / 2.0 / 1000.0 * AREA, rel=1e-4)
 
 
+TABLE = {"areas_km2": [10.0, 1000.0], "factors": [1.0, 0.5], "table_type": "test table"}
+AT_505 = 0.75
+"""The table's factor at 505 km2."""
+
+
+def events(folder) -> list[dict]:
+    return [json.loads(line) for line in (folder / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+
+
+def test_gridded_rain_with_an_area_reduction_rains_the_factor_times_the_grid(tmp_path) -> None:
+    dem, folder = box(tmp_path), stack(tmp_path, 40.0, 10.0)
+    plain = run_job(job(dem, SIDE, SIDE, DX, storm=gridded(folder), run=QUICK), tmp_path / "plain")
+    reduced = job(dem, SIDE, SIDE, DX, storm=gridded(folder, storm_area_km2=505.0, arf=TABLE), run=QUICK)
+    run = run_job(reduced, tmp_path / "reduced")
+    assert run.exit_code == plain.exit_code == 0
+    assert run.balance.rain == pytest.approx(AT_505 * plain.balance.rain, rel=1e-6)
+    assert run.balance.rain == pytest.approx(AT_505 * 0.5 * AREA * 0.05, rel=1e-5)
+    said = [e for e in events(tmp_path / "reduced") if e.get("kind") == "area_reduction"]
+    assert [(e["factor"], e["storm_area_km2"], e["arf_table_type"]) for e in said] == [(AT_505, 505.0, "test table")]
+    words = [e["message"] for e in events(tmp_path / "reduced") if e.get("ev") == "warn"]
+    assert "rain: every frame is multiplied by 0.7500, the area-reduction table at 505 km2, over the whole event" in words
+    assert not [e for e in events(tmp_path / "plain") if e.get("kind") == "area_reduction"]
+    assert not [e for e in events(tmp_path / "plain") if "area-reduction" in str(e.get("message", ""))]
+
+
+def test_gridded_rain_is_reduced_before_each_cells_losses(tmp_path) -> None:
+    cn = 80.0
+    cfg = job(
+        box(tmp_path), SIDE, SIDE, DX, storm=gridded(stack(tmp_path, 80.0, 40.0), storm_area_km2=505.0, arf=TABLE),
+        hydrology={"curve_number": cn}, run=QUICK,
+    )  # fmt: skip
+    run = run_job(cfg, tmp_path / "out")
+    s = (1000.0 / cn - 10.0) * 25.4
+    ia = 0.2 * s
+    excess = [(p - ia) ** 2 / (p - ia + s) for p in (AT_505 * 80.0, AT_505 * 40.0)]
+    assert run.balance.rain == pytest.approx(sum(excess) / 2.0 / 1000.0 * AREA, rel=1e-4)
+
+
+def test_a_gridded_job_that_asks_for_no_reduction_is_the_job_it_was(tmp_path) -> None:
+    """Off unless asked. A table read where its factor is 1, and a table with no storm area, change no number."""
+    dem, folder = box(tmp_path), stack(tmp_path, 40.0, 10.0)
+    cn = {"curve_number": 80.0}
+    plain = run_job(job(dem, SIDE, SIDE, DX, storm=gridded(folder), hydrology=cn, run=QUICK), tmp_path / "plain")
+    at_one = run_job(
+        job(dem, SIDE, SIDE, DX, storm=gridded(folder, storm_area_km2=10.0, arf=TABLE), hydrology=cn, run=QUICK),
+        tmp_path / "at_one",
+    )
+    no_area = run_job(job(dem, SIDE, SIDE, DX, storm=gridded(folder, arf=TABLE), hydrology=cn, run=QUICK), tmp_path / "no_area")
+    said = [e["message"] for e in events(tmp_path / "no_area") if e.get("ev") == "warn"]
+    assert "rain: an area-reduction table without a storm area leaves the rain whole" in said
+    for run in (at_one, no_area):
+        assert run.exit_code == plain.exit_code == 0
+        # the booked rain is a parallel sum: one job run twice on the CPU differs in its last digit (W53), the water not
+        assert run.balance.rain == pytest.approx(plain.balance.rain, rel=1e-13)
+        assert run.balance.storage == plain.balance.storage
+        assert run.steps == plain.steps
+
+
+def test_a_rain_file_read_twice_is_read_once_until_it_changes(tmp_path) -> None:
+    """A depth-area study builds its storm once per run and per lumped element: the frames are kept, a changed file not."""
+    folder = stack(tmp_path, 40.0, 10.0)
+    cfg = job("x.tif", 8, 8, 4.0, storm=gridded(folder))
+    first = build_storm(cfg)
+    assert build_storm(cfg).frames is first.frames
+    stack(tmp_path, 50.0, 10.0)
+    again = build_storm(cfg)
+    assert again.frames is not first.frames
+    assert again.total_depth == pytest.approx(30.0)
+
+
 def test_refreshing_often_or_rarely_gives_the_same_gridded_rain(tmp_path) -> None:
     dem, folder = box(tmp_path), stack(tmp_path, 40.0, 10.0)
     volumes = []
@@ -146,3 +216,24 @@ def test_lumped_subbasins_read_the_rain_under_their_own_polygons() -> None:
     plain = LumpedEngine(small_basin()).run(UniformStorm(10.0, 60.0), GRID)
     run = LumpedEngine(small_basin()).run(rain, GRID)
     assert run.outflow["OUT"] == pytest.approx(plain.outflow["OUT"], rel=1e-9)
+
+
+def test_lumped_subbasins_take_the_area_reduction_a_frequency_storm_would() -> None:
+    """Gridded rain with a table against the uniform storm of the same depth, table and storm area: the same
+    hydrographs, so the lumped side reduces as HMS's frequency storm does."""
+    from shapely.geometry import box as rectangle
+
+    from wadi2d.storm import ArfTable
+
+    steps = 12
+    starts = 5.0 * np.arange(steps)
+    depths = np.full((steps, 1, 3), 10.0 / steps)
+    frames = RainFrames(depths, starts, starts + 5.0, 0.0, 3000.0, 1000.0, 3000.0, CRS)
+    polygons = {name: rectangle(100.0, 100.0, 2500.0, 2500.0) for name in ("A", "B", "C")}
+    table = ArfTable(np.array([10.0, 1000.0]), np.array([1.0, 0.5]))
+    rain = GriddedStorm(frames, arf=table, storm_area_km2=505.0).bind(polygons, CRS)
+    design = LumpedEngine(small_basin()).run(UniformStorm(10.0, 60.0, storm_area_km2=505.0, arf=table), GRID)
+    run = LumpedEngine(small_basin()).run(rain, GRID)
+    assert run.outflow["OUT"] == pytest.approx(design.outflow["OUT"], rel=1e-9)
+    whole = LumpedEngine(small_basin()).run(GriddedStorm(frames).bind(polygons, CRS), GRID)
+    assert run.outflow["OUT"].max() == pytest.approx(AT_505 * whole.outflow["OUT"].max(), rel=1e-9), "no losses: linear"

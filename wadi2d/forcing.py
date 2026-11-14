@@ -9,7 +9,9 @@ level is overwritten; the balance counts what crosses the faces into them.
 
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import shapely
@@ -37,7 +39,7 @@ from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
 from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.hypothetical import HYPOTHETICAL_STORM, MINUTES_PER_HOUR
-from wadi2d.storm.rain_frames import RainSpec
+from wadi2d.storm.rain_frames import RainFrames, RainSpec
 from wadi2d.storm.uniform import UNIFORM_STORM
 from wadi2d.tables import GridTables, hbar_at_level
 from wadi2d.terrain.crest import NORTH, staircase
@@ -53,6 +55,32 @@ SNAP_DEPTH = 1.5
 KIND_FIXED, KIND_FREE, KIND_FOLLOW = 0, 1, 2
 
 
+def arf_table(s) -> ArfTable | None:
+    """The job's area-reduction table, for whichever storm takes one."""
+    if s.arf is None:
+        return None
+    return ArfTable(
+        np.asarray(s.arf.areas_km2),
+        np.asarray(s.arf.factors),
+        reduces_below_table=s.arf.reduces_below_table,
+    )
+
+
+def _file_stamp(path: str | Path) -> tuple:
+    """Size and date of a rain file, or of each file of a folder of frames: what tells a changed file from the same."""
+    source = Path(path)
+    files = sorted(child for child in source.iterdir() if child.is_file()) if source.is_dir() else [source]
+    return tuple((child.name, child.stat().st_size, child.stat().st_mtime_ns) for child in files)
+
+
+@functools.lru_cache(maxsize=1)
+def _rain_frames(path: str, spec: RainSpec, start: str | None, _stamp: tuple) -> RainFrames:
+    """The frames of a rain file, kept from one reading to the next. A depth-area study builds its storm once per run
+    and once per lumped element, and a DSS file of 144 frames of 2 km pixels takes 7 s to read. Frames are never
+    written to, so sharing them is safe."""
+    return read_rain(path, spec, start)
+
+
 def build_storm(cfg: RunConfig) -> Storm | None:
     """The job's storm through the storm registry; None when the job has no rain.
 
@@ -63,7 +91,8 @@ def build_storm(cfg: RunConfig) -> Storm | None:
         return None
     if s.kind == "gridded":
         spec = RainSpec(s.rain_variable, s.rain_units, s.rain_interval_min, s.rain_stamp)
-        return GriddedStorm(read_rain(s.rain_file, spec, s.rain_start))
+        frames = _rain_frames(str(s.rain_file), spec, s.rain_start, _file_stamp(s.rain_file))
+        return GriddedStorm(frames, arf=arf_table(s), storm_area_km2=s.storm_area_km2)
     if s.kind == "hyetograph":
         return HyetographStorm.from_periods(s.hyetograph_min, s.hyetograph_mm)
     if s.kind == "gauges":
@@ -71,13 +100,7 @@ def build_storm(cfg: RunConfig) -> Storm | None:
     if s.depth_grid is None and s.depth_mm <= 0.0:
         raise ValueError(f"storm kind {s.kind!r} has no depth: set storm.depth_mm or storm.depth_grid")
     depth = UNIT_DEPTH if s.depth_grid is not None else s.depth_mm
-    arf = None
-    if s.arf is not None:
-        arf = ArfTable(
-            np.asarray(s.arf.areas_km2),
-            np.asarray(s.arf.factors),
-            reduces_below_table=s.arf.reduces_below_table,
-        )
+    arf = arf_table(s)
     if s.kind == "uniform":
         storm: UniformStorm = STORM_METHODS.build(
             UNIFORM_STORM, depth_mm=depth, duration_minutes=s.duration_min,

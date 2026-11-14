@@ -681,7 +681,7 @@ class Outputs(_Part):
 
 
 OBSERVED_STORMS = ("hyetograph", "gridded")
-"""Rain given as it falls: no area reduction applies."""
+"""Rain given as it falls: no depth grid applies. A hyetograph takes no area reduction; a grid of point depths may."""
 GAUGE_STORM = "gauges"
 """Rain from station records (W54): observed too, with its own check so the line above stays as it was."""
 
@@ -714,7 +714,12 @@ class Storm(_Part):
     time_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of duration")
     depth_percent: list[float] | None = Field(None, description="Hypothetical pattern, percent of depth")
     storm_area_km2: float | None = Field(None, gt=0.0, description="Area at which the ARF table is read")
-    arf: ArfTableConfig | None = None
+    arf: ArfTableConfig | None = Field(
+        None,
+        description="Area-reduction table. The depth of a uniform or hypothetical storm is multiplied by its factor at "
+        "storm_area_km2. So is every frame of a gridded storm, for grids of point depths: on 2D cells and under "
+        "lumped subbasins alike. None, or no storm area, leaves the rain whole",
+    )
     hyetograph_min: list[float] | None = Field(None, description="End of each period, minutes from the start")
     hyetograph_mm: list[float] | None = Field(None, description="Depth in each period, mm")
     rain_file: str | None = Field(None, description="NetCDF file, DSS file, or folder of one GeoTIFF per period")
@@ -743,8 +748,10 @@ class Storm(_Part):
     def _pattern(self) -> Storm:
         if self.kind == "hypothetical" and (self.time_percent is None or self.depth_percent is None):
             raise ValueError("a hypothetical storm needs time_percent and depth_percent")
-        if self.kind in OBSERVED_STORMS and (self.arf is not None or self.depth_grid is not None):
-            raise ValueError(f"a {self.kind} storm takes no area reduction and no depth grid: it is the rain itself")
+        if self.kind in OBSERVED_STORMS and self.depth_grid is not None:
+            raise ValueError(f"a {self.kind} storm takes no depth grid: it is the rain itself")
+        if self.kind == "hyetograph" and self.arf is not None:
+            raise ValueError("a hyetograph takes no area reduction: it is the rain itself, at one area")
         if self.kind == "hyetograph":
             self._check_hyetograph()
         if self.kind == "gridded" and self.rain_file is None:
@@ -948,8 +955,30 @@ class ArfStudy(_Part):
         2.0, gt=1.0, le=100.0, description="Widest ratio of neighbouring bracketing storm areas, unless bracket_max caps them"
     )
     bracket_max: int = Field(6, ge=2, le=32, description="Most bracketing storm areas")
-    accumulation: str | None = Field(None, description="Flow accumulation raster for the composite map")
+    by_arf_step: bool = Field(
+        False,
+        description="Storm areas from the smallest to the largest drainage area of the design lines and of the lumped "
+        "elements that take 2D water, placed so the storm's area-reduction factor changes by at most arf_step_max "
+        "between neighbouring runs; areas_km2, the log-spaced and the bracketing settings are then not used",
+    )
+    arf_step_max: float = Field(
+        0.05, gt=0.0, lt=1.0, description="Largest change of the area-reduction factor between neighbouring storm-area runs"
+    )
+    accumulation: str | None = Field(
+        None,
+        description="Flow accumulation raster: the composite map's drainage area per cell, and the drainage area of a "
+        "line read after the study",
+    )
     accumulation_units: Literal["cells", "km2"] = "cells"
+    composite: bool = Field(
+        True, description="Write the composite maps when accumulation is given; False keeps the raster for lines alone"
+    )
+
+    @model_validator(mode="after")
+    def _one_rule(self) -> ArfStudy:
+        if self.by_arf_step and self.bracket:
+            raise ValueError("arf: choose bracket or by_arf_step, not both")
+        return self
 
 
 class Run(_Part):

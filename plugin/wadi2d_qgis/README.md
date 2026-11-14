@@ -61,7 +61,10 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    NetCDF file, a DSS file or a folder of GeoTIFFs. An HMS project starts on its own storm, and any of these replaces it.
    The same rain reaches the 2D cells and the lumped subbasins: a cell reads the pixel it stands in, a subbasin the
    area-weighted mean of the pixels under its polygon. Tables paste from a spreadsheet. Pick a rain file and the dock says
-   what it holds. Area reduction belongs to design storms: a hyetograph or gridded rain is the rain itself.
+   what it holds. A hyetograph is the rain itself and takes no area reduction. Gridded rain takes none either, unless
+   **Reduce by area** is ticked, for grids of design point depths: every frame is then multiplied by the reduction
+   table's factor at the storm area, over the whole event, on the cells and the lumped subbasins alike, and the run says
+   which factor that was. Left empty while an HMS project is loaded, the table is the HMS project's.
 5. **Structures.** Line layers. Crest lines and spillways need an elevation: a field, or Z on the vertices.
    Embankments, channels and channels with dykes rebuild the ground along the line (section below). **Preview terrain**
    shows the result on the map in seconds, without a run.
@@ -75,17 +78,29 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    answers, else the CPU), GPU only, or CPU only, for a PC with no NVIDIA card or a driver that misbehaves; only a choice
    other than Automatic goes into the job.
 9. **Depth-area study.** One 2D run per storm area, the design storm read from its area reduction table at that area, on
-   lumped and 2D parts alike; it needs the HMS storm or a design storm with its table, and a design line with a drainage
+   lumped and 2D parts alike; it needs the HMS storm, a design storm with its table or gridded rain with Reduce by area
+   ticked, and a design line with a drainage
    area. Storm areas are **Around the drainage areas** by default: log-spaced from the smallest to the largest area of the
    design lines and of the lumped elements a hand-back feeds, at most 6, neighbours at most 2 x apart; or log-spaced
-   between two areas; or listed. Each design line reads log Q against log A between the two runs either side of its own
+   between two areas; or listed; or **By the change of area reduction**: from the smallest to the largest drainage area,
+   as few runs as keep the reduction factor changing by at most the **Largest ARF change between runs** (0.05 by
+   default) from one run to the next, in equal steps of the factor as the runs read it; the dock lists the runs before
+   the study starts (with the HMS project's table, once the job is written). On Block 2's ARF FM from 10 to 2,000 km2,
+   0.05 gives 9 runs and 0.02 gives 21, where 6 log-spaced runs step the factor by 2.1 to 13.8 %. Each design line reads log Q against log A between the two runs either side of its own
    area. A lumped element with no 2D water above it is rerun lumped at its own area, as HMS's depth-area analysis does,
    in seconds and with no interpolation; one a hand-back feeds reads the 2D runs as a line does; one whose water runs on
    the grid and never comes back has no flow of its own, and the dock names it. **Start study** shows which run of how
    many and how many are left; **Stop study** ends the run in progress as Stop does and writes no table, since the table
    needs every storm area. At the end the table appears in the dock and in `design_points.csv` and `study.json` of
-   `<folder>_arf`, beside the output folder, with each run in `runs/`. **Composite map (experimental)**, off by default,
-   needs a flow accumulation raster and loads depth, speed and hazard read per cell at its own drainage area.
+   `<folder>_arf`, beside the output folder, with each run in `runs/`. **Flow accumulation** gives each cell its
+   drainage area; **Composite map (experimental)**, off by default, needs it and loads depth, speed and hazard read per
+   cell at its own drainage area. **Result lines** under the table opens the line panel on the study: a design line takes
+   its own drainage area, any line drawn or picked the largest on the flow accumulation raster where it crosses the model,
+   and every series (flow, deepest water, the water surface) is read from the two runs either side of that area and
+   blended with the weights the composite map uses, linear in log area; the plot names the area, the two runs and their
+   weights, and gives the peak as the study reads a design point. Outside the runs the end run holds and the plot says
+   so; with no raster, a line that is no design line reads the smallest run alone, named. One request reads both runs:
+   about 2 s on Bidah 03 at 30 m, 0.1 to 0.9 s more than one run.
 
 During a run the depth appears as a blue layer. When the simulation ends the bar restarts for the pixel maps, unless the
 box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons, a depth drawing with a soft wet edge. At

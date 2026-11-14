@@ -21,7 +21,7 @@ from .mesh_rows import reversed_note, rounded_note
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
-from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems
+from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems, takes_hms_table
 from .study_rows import AREA_KEY, line_area
 
 DX = "grid.dx"
@@ -36,6 +36,10 @@ BOUNDARY_STAGE = "boundaries.stage"
 BOUNDARY_SLOPE = "boundaries.slope"
 SPILLWAY_C = "terrain.objects.coefficient"
 DAM_LEVELS = "dam_levels"
+NO_HMS_TABLE = (
+    "The gridded rain is to take the HMS project's area reduction table, and the project has none: fill the table "
+    "in Storm."
+)
 MESH_ENABLED = "mesh.enabled"
 MESH_COARSE = "mesh.coarse_dx"
 STRIPS_ENABLED = "strips.enabled"
@@ -401,13 +405,16 @@ def _line_notes(values: dict) -> list[str]:
 
 def merge_notes(job: dict, merged: dict) -> list[str]:
     """What the HMS import changed from the form, for the user to see before the run starts."""
+    found = []
     asked, set_by_hms = job["run"]["duration_s"], merged["run"]["duration_s"]
-    if asked == set_by_hms:
-        return []
-    return [
-        f"The HMS control file sets {set_by_hms / SECONDS_PER_HOUR:g} h of simulated time, "
-        f"not the {asked / SECONDS_PER_HOUR:g} h in the form."
-    ]
+    if asked != set_by_hms:
+        found.append(
+            f"The HMS control file sets {set_by_hms / SECONDS_PER_HOUR:g} h of simulated time, "
+            f"not the {asked / SECONDS_PER_HOUR:g} h in the form."
+        )
+    if takes_hms_table(job.get("storm") or {}):
+        found.append("The gridded rain is reduced by the area reduction table of the HMS project.")
+    return found
 
 
 def _elevation(feature: Feature):
@@ -641,6 +648,11 @@ def merge_hms(job: dict, imported: dict, hms: dict) -> dict:
     for key in ("storm", "arf"):
         if key in imported and key not in job:
             merged[key] = imported[key]
+    if takes_hms_table(merged.get("storm") or {}):
+        table = (imported.get("storm") or {}).get("arf")
+        if not table:
+            raise ValueError(NO_HMS_TABLE)
+        merged["storm"] = {**merged["storm"], "arf": table}
     if "duration_s" in imported.get("run", {}):
         merged["run"] = {**job["run"], "duration_s": imported["run"]["duration_s"]}
     hydrology = {**imported.get("hydrology", {}), **job.get("hydrology", {})}

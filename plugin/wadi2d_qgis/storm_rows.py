@@ -77,7 +77,22 @@ def _grid_problems(storm: dict) -> list[str]:
         return ["A folder of GeoTIFFs needs the length of each period."]
     if storm.get("choices") and not storm.get("variable"):
         return ["Choose which series in the rain file is the rain."]
+    if storm.get("arf_on"):
+        return _grid_arf_problems(storm)
     return []
+
+
+def _grid_arf_problems(storm: dict) -> list[str]:
+    """The area reduction of a grid of point depths: an area, and a table of its own or the HMS project's."""
+    found = []
+    if storm.get("area_km2", 0.0) <= 0.0:
+        found.append("An area reduction needs the storm area.")
+    rows = storm.get("arf") or []
+    if not rows and not storm.get("arf_from_hms"):
+        found.append("Fill the reduction table, or load the HMS project whose table it takes.")
+    if rows and not _rising([r[0] for r in rows]):
+        found.append("The areas of the reduction table must rise.")
+    return found
 
 
 def _steady_problems(storm: dict) -> list[str]:
@@ -143,7 +158,16 @@ def storm_job(storm: dict) -> dict:
         job["rain_interval_min"] = storm["interval_min"]
     if storm.get("start"):
         job["rain_start"] = storm["start"]
+    if storm.get("arf_on"):  # a grid of point depths, reduced as a design storm is; an empty table is the HMS one's
+        job["storm_area_km2"] = storm["area_km2"]
+        if storm.get("arf"):
+            job.update(_arf(storm))
     return job
+
+
+def takes_hms_table(storm: dict) -> bool:
+    """A gridded storm whose area reduction is to use the HMS project's table (``merge_hms`` puts it in)."""
+    return storm.get("kind") == KIND_GRID and "storm_area_km2" in storm and "arf" not in storm
 
 
 def rain_args(storm: dict) -> list[str]:

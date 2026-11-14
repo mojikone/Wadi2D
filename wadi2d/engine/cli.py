@@ -243,14 +243,17 @@ def _compare(args: argparse.Namespace) -> int:
 
 def _lines(args: argparse.Namespace) -> int:
     from wadi2d.products.result_lines import catalogue, read_line
+    from wadi2d.products.study_lines import is_study, read_study_line, study_catalogue
 
     run = Path(args.run)
+    study = is_study(run)  # a depth-area study's folder: lines take their own area from its runs (W53)
     try:
         if args.line:
             request = json.loads(Path(args.line).read_text(encoding="utf-8"))
-            found = read_line(run, request["coordinates"], request.get("name", ""))
+            reader = read_study_line if study else read_line
+            found = reader(run, request["coordinates"], request.get("name", ""))
         else:
-            found = catalogue(run)
+            found = study_catalogue(run) if study else catalogue(run)
         Path(args.out).write_text(json.dumps(found), encoding="utf-8")
     except (ValueError, KeyError, OSError) as error:
         print(json.dumps({"ev": "error", "code": EXIT_FRAMES, "message": str(error)}), file=sys.stderr)
@@ -373,7 +376,11 @@ def parser() -> argparse.ArgumentParser:
     rain.add_argument("--start", default=None)
     rain.set_defaults(call=_rain)
 
-    lines = sub.add_parser("lines", help="a finished run's upfront lines and points, or any line read from its saved maps")
+    lines = sub.add_parser(
+        "lines",
+        help="a finished run's upfront lines and points, or any line read from its saved maps; given a depth-area "
+        "study's folder, the line is read from the two runs either side of its own drainage area",
+    )
     lines.add_argument("run", metavar="RUN_DIR")
     lines.add_argument("--line", default=None, help="JSON file with name and coordinates; without it, what the run holds")
     lines.add_argument("--out", required=True)

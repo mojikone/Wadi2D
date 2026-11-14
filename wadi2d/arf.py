@@ -8,7 +8,8 @@ every output, because a storm-centred ratio is not a fixed-area curve.
 
 The lumped elements of the job's network get rows of their own (:mod:`wadi2d.arf_network`): one with no 2D water
 above it is rerun lumped at its own area, one fed by a hand-back reads the 2D runs as a line does. ``arf.bracket``
-spans the storm areas over the drainage areas the table needs. The 2D runs are one per storm area, whatever the
+spans the storm areas over the drainage areas the table needs; ``arf.by_arf_step`` spans the same areas in equal steps
+of the area-reduction factor, each at most ``arf.arf_step_max`` (W53). The 2D runs are one per storm area, whatever the
 number of elements.
 """
 
@@ -25,7 +26,7 @@ import rasterio
 from wadi2d.arf_network import EXACT, FROM_RUNS, ON_GRID, exact_peaks, plan_elements, series_peak
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
-from wadi2d.forcing import build_storm
+from wadi2d.forcing import arf_table, build_storm
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.io.geotiff import NODATA, write_map
 from wadi2d.io.progress import Progress
@@ -73,18 +74,29 @@ def bracket_areas(wanted: list[float], ratio: float, most: int) -> list[float]:
     return list(np.geomspace(low, high, min(max(n, 2), most)))
 
 
+def arf_step_areas(cfg: RunConfig, low: float, high: float) -> list[float]:
+    """Storm areas from ``low`` to ``high`` with the storm's own table changing by at most ``arf.arf_step_max``
+    between neighbours. One table serves the whole event (W53), so there is no duration to choose."""
+    table = arf_table(cfg.storm)
+    if table is None:
+        raise InvalidJob("arf.by_arf_step needs storm.arf: the areas are placed by its factors")
+    return table.step_areas(low, high, cfg.arf.arf_step_max)
+
+
 def storm_areas(cfg: RunConfig, element_areas: list[float] = ()) -> list[float]:
     """The explicit areas, log-spaced ones, or ones bracketing the design lines and ``element_areas``; with the design
     points' own areas when asked."""
     a = cfg.arf
     lines = [p.drainage_area_km2 for p in cfg.outputs.lines if p.drainage_area_km2 is not None]
-    if a.bracket:
+    if a.bracket or a.by_arf_step:
         wanted = [*lines, *element_areas]
+        rule = "arf.bracket" if a.bracket else "arf.by_arf_step"
         if not wanted:
-            raise InvalidJob(
-                "arf.bracket needs a design line with a drainage area, or a lumped element a hand-back feeds"
-            )
-        base = bracket_areas(wanted, a.bracket_ratio, a.bracket_max)
+            raise InvalidJob(f"{rule} needs a design line with a drainage area, or a lumped element a hand-back feeds")
+        if a.bracket:
+            base = bracket_areas(wanted, a.bracket_ratio, a.bracket_max)
+        else:
+            base = arf_step_areas(cfg, min(wanted), max(wanted))
     else:
         base = list(a.areas_km2) or list(np.geomspace(a.area_min_km2, a.area_max_km2, a.n_areas))
     if a.exact_points:
@@ -199,15 +211,23 @@ def accumulation_on_grid(path: str, units: str, grid: TileGrid) -> np.ndarray:
     return out * scale
 
 
+def log_area_weights(areas: np.ndarray, area):
+    """The two runs that bracket ``area`` and the weight of the larger, linear in ln A: ``(low, high, w)`` with the
+    value read as ``(1 - w) * low + w * high``. Outside the runs the end run holds, weight 0 or 1. ``area`` may be an
+    array, one drainage area per cell; ``areas`` rise and hold two at least. The study's maps and the lines drawn after
+    it read the runs with these weights."""
+    ln_a = np.log(areas)
+    ln_c = np.log(np.clip(area, areas[0], areas[-1]))
+    high = np.clip(np.searchsorted(ln_a, ln_c), 1, ln_a.size - 1)
+    low = high - 1
+    return low, high, (ln_c - ln_a[low]) / (ln_a[high] - ln_a[low])
+
+
 def composite_map(maps: list[np.ndarray], areas: np.ndarray, cell_area: np.ndarray) -> np.ndarray:
     """Per cell, the runs that bracket its drainage area, linear in ln A; outside them, the end run."""
     if areas.size == 1:
         return np.array(maps[0], dtype=np.float64)
-    ln_a = np.log(areas)
-    ln_c = np.log(np.clip(cell_area, areas[0], areas[-1]))
-    high = np.clip(np.searchsorted(ln_a, ln_c), 1, ln_a.size - 1)
-    low = high - 1
-    w = (ln_c - ln_a[low]) / (ln_a[high] - ln_a[low])
+    low, high, w = log_area_weights(areas, cell_area)
     stack = np.stack(maps)
     rows, cols = np.indices(cell_area.shape, sparse=True)
     return (1.0 - w) * stack[low, rows, cols] + w * stack[high, rows, cols]
@@ -306,7 +326,7 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
     summary.table = design_table(cfg, summary.areas_km2, summary.runs)
     summary.table += element_table(cfg, summary.areas_km2, folders, plans, exact)
     write_table(folder / "design_points.csv", summary.table)
-    if cfg.arf.accumulation is not None:
+    if cfg.arf.accumulation is not None and cfg.arf.composite:
         summary.composite = composite_maps(cfg, tables, crs, folder, summary.areas_km2, folders)
     on_grid = [p.name for p in plans if p.how == ON_GRID]
     (folder / "study.json").write_text(

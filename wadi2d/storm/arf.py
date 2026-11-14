@@ -35,3 +35,33 @@ class ArfTable:
         if area_km2 < self.areas_km2[0] and not self.reduces_below_table:
             return 1.0
         return float(np.interp(area_km2, self.areas_km2, self.factors))
+
+    def step_areas(self, low_km2: float, high_km2: float, largest_change: float) -> list[float]:
+        """Storm areas from ``low_km2`` to ``high_km2``, both included, with the factor changing by at most
+        ``largest_change`` between neighbours, in as few runs as that allows.
+
+        The factor is read as :meth:`factor` reads it, so the bound holds on the factors the runs apply. The table's
+        total change over the span is split into equal steps of at most ``largest_change``: no run sits a hair below
+        the end, which a greedy walk leaves. A factor that rises again is counted by its whole path, up and down.
+        """
+        if largest_change <= 0.0:
+            raise ValueError("the largest change of the area-reduction factor must be above zero")
+        if high_km2 <= low_km2 * (1.0 + 1e-9):
+            return [float(low_km2)]
+        first = float(self.areas_km2[0])
+        knots = sorted({float(low_km2), float(high_km2), *(float(a) for a in self.areas_km2 if low_km2 < a < high_km2)})
+        values = [self.factor(a) for a in knots]
+        if not self.reduces_below_table and low_km2 < first < high_km2:  # the whole depth just below the first area
+            at = knots.index(first)
+            knots.insert(at, first)
+            values.insert(at, 1.0)
+        path = np.concatenate(([0.0], np.cumsum(np.abs(np.diff(values)))))
+        steps = max(1, int(np.ceil(path[-1] / largest_change - 1e-9)))
+        found = [float(low_km2)]
+        for target in path[-1] * np.arange(1, steps) / steps:
+            k = int(np.searchsorted(path, target, side="left"))  # the segment whose path reaches the target
+            k = min(max(k, 1), len(knots) - 1)
+            share = (target - path[k - 1]) / (path[k] - path[k - 1]) if path[k] > path[k - 1] else 1.0
+            found.append(float(knots[k - 1] + share * (knots[k] - knots[k - 1])))
+        found.append(float(high_km2))
+        return sorted(set(found))

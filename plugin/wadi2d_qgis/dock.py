@@ -82,6 +82,9 @@ from .sections.study import StudySection
 from .sections.terrain import TerrainSection
 from .storm_rows import rain_args, rain_reply
 from .study_rows import (
+    ARF_STEP,
+    arf_step_areas,
+    arf_step_text,
     form_problems,
     read_study,
     study_areas,
@@ -207,6 +210,8 @@ class Wadi2DDock(QgsDockWidget):
         self.study.start_button.clicked.connect(self.start_study)
         self.study.stop_button.clicked.connect(self.stop_study)
         self.study.open_button.clicked.connect(self.open_study)
+        self.study.lines_button.clicked.connect(self.study_lines)
+        self.study.context = self._study_context
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
         self.preview = TerrainPreview(iface.mapCanvas(), self)
@@ -322,7 +327,11 @@ class Wadi2DDock(QgsDockWidget):
                 failed(f"The HMS project could not be read. {engine_error_text(err)}")
                 return
             data = json.loads(imported.read_text(encoding="utf-8"))
-            complete = merge_hms(job, data, hms)
+            try:
+                complete = merge_hms(job, data, hms)
+            except ValueError as error:  # what the import lacks, in the dock's words
+                failed(str(error))
+                return
             for note in merge_notes(job, complete):
                 say(note, "note")
             then(write_job(complete, out))
@@ -544,6 +553,15 @@ class Wadi2DDock(QgsDockWidget):
 
     # The depth-area study: the job of a run plus its storm areas, one engine process for all its runs.
 
+    def _study_context(self) -> dict | None:
+        """The design lines and the storm, for the storm areas the study will run; None when they cannot be read."""
+        dem = self.terrain.dem_layer()
+        crs = dem.crs() if dem is not None else QgsProject.instance().crs()
+        try:
+            return {**self.storm.values(crs), **self.points.values(crs)}
+        except LayerError:
+            return None
+
     def start_study(self) -> None:
         box = self.study
         values = self._checked_values(box.say)
@@ -554,7 +572,7 @@ class Wadi2DDock(QgsDockWidget):
         if found:
             box.say(" ".join(found), "bad")
             return
-        areas = study_areas(form)
+        areas = arf_step_areas(form, values) if form["spacing"] == ARF_STEP else study_areas(form)
         chosen = Path(values["output"])
         out = next_study_dir(chosen)
         values["name"] = out.name
@@ -565,10 +583,21 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.estimate_button.setEnabled(False)
         count = f"{len(areas)} runs" if areas else "Storm areas picked when it starts"
         messages = [f"{count}, into {out.name}.", *notes(values), *study_notes(values, areas)]
+        if form["spacing"] == ARF_STEP and areas:
+            messages.insert(1, arf_step_text(areas, form["arf_step"]))
         box.say(" ".join(messages), "note" if len(messages) > 1 else "info")
         self._crs = values["crs"]
         self._study_dir = out
-        self._safely(values, out, lambda job: self._launch_study(job, out), self._study_failed, box.say)
+
+        def launch(job: Path) -> None:
+            if form["spacing"] == ARF_STEP and not areas:  # the HMS project's table: known once the job is written
+                table = (json.loads(job.read_text(encoding="utf-8")).get("storm") or {}).get("arf")
+                found = arf_step_areas(form, values, table) if table else None
+                if found:
+                    box.say(f"{arf_step_text(found, form['arf_step'])} Into {out.name}.", "info")
+            self._launch_study(job, out)
+
+        self._safely(values, out, launch, self._study_failed, box.say)
 
     def _launch_study(self, job: Path, out: Path) -> None:
         self.study_run = StudyRun(settings.engine_text(), self)
@@ -611,6 +640,14 @@ class Wadi2DDock(QgsDockWidget):
     def open_study(self) -> None:
         if self._study_dir is not None:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(self._study_dir)))
+
+    def study_lines(self) -> None:
+        """The Result lines panel on the finished study: a line reads the runs either side of its own area (W53)."""
+        if self._study_dir is None:
+            return
+        if self.line_panel is None:
+            self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
+        self.line_panel.open_run(self._study_dir)
 
     # Preview: the terrain as the objects leave it, with no run.
 

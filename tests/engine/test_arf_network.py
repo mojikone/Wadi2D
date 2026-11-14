@@ -56,6 +56,43 @@ def test_a_bracketing_study_takes_the_design_lines_and_the_fed_elements(tmp_path
         storm_areas(type(cfg).model_validate(data))
 
 
+ARF_FM = {
+    "areas_km2": [1.0, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0, 100.0, 200.0, 500.0, 1000.0, 2000.0],
+    "factors": [0.999, 0.994, 0.987, 0.976, 0.965, 0.956, 0.948, 0.913, 0.864, 0.776, 0.694, 0.606],
+    "reduces_below_table": False,
+}  # fmt: skip
+
+
+def test_a_study_by_arf_step_spans_the_design_lines_and_the_fed_elements_in_steps_of_the_factor(tmp_path):
+    data = plain_network(tmp_path)[1].model_dump(mode="json")
+    data["storm"]["arf"] = ARF_FM
+    data["arf"].update(by_arf_step=True, arf_step_max=0.05, areas_km2=[3.0, 7.0])
+    data["outputs"]["lines"] = [
+        {"name": n, "coordinates": [(0.0, 0.0), (1.0, 0.0)], "drainage_area_km2": a} for n, a in (("A", 2000.0), ("B", 74.3))
+    ]  # fmt: skip
+    cfg = type(plain_network(tmp_path)[1]).model_validate(data)
+    areas = storm_areas(cfg, [10.0])
+    assert len(areas) == 9 and areas[0] == 10.0 and areas[-1] == 2000.0, "the listed areas are not used"
+    factors = [build_storm(cfg.model_copy(update={"storm": cfg.storm.model_copy(update={"storm_area_km2": a})})).at_area(a).total_depth for a in areas]
+    assert np.abs(np.diff(factors)).max() <= 0.05 * 30.0 * (1.0 + 1e-6), "30 mm: the depth steps by at most 5 % of it"
+    data["arf"]["arf_step_max"] = 0.02
+    assert len(storm_areas(type(cfg).model_validate(data), [10.0])) == 21
+    data["outputs"]["lines"] = []
+    with pytest.raises(InvalidJob, match=r"arf.by_arf_step needs"):
+        storm_areas(type(cfg).model_validate(data))
+
+
+def test_by_arf_step_and_bracket_are_one_choice_and_both_are_off_by_default(tmp_path):
+    from pydantic import ValidationError
+
+    cfg = plain_network(tmp_path)[1]
+    assert cfg.arf.by_arf_step is False and cfg.arf.arf_step_max == 0.05 and cfg.arf.bracket is False
+    data = cfg.model_dump(mode="json")
+    data["arf"].update(by_arf_step=True, bracket=True)
+    with pytest.raises(ValidationError, match="not both"):
+        type(cfg).model_validate(data)
+
+
 def test_with_no_2d_water_above_every_element_is_rerun_alone_at_its_own_area_as_hms_does(tmp_path):
     basin_file, cfg = plain_network(tmp_path)
     view, plans = plan_elements(cfg, "")
@@ -114,3 +151,37 @@ def test_a_study_reads_a_hand_back_element_from_its_2d_runs_and_its_lumped_subba
     assert design == pytest.approx(expected, rel=1e-9)
     saved = json.loads((out / "study.json").read_text(encoding="utf-8"))
     assert saved["on_grid"] == ["Out"]
+
+
+def frames_of_the_storm(tmp_path) -> dict:
+    """``STORM``'s rain as frames: 30 mm in 20 min at a steady rate, one pixel over the whole box, with its table."""
+    import rasterio
+    from rasterio.transform import from_origin
+
+    folder = tmp_path / "rain"
+    folder.mkdir(exist_ok=True)
+    for n in range(4):
+        with rasterio.open(
+            folder / f"r{n}.tif", "w", driver="GTiff", height=1, width=1, count=1, dtype="float32", crs="EPSG:32640",
+            transform=from_origin(X0, 2_700_000.0, 512.0, 512.0),
+        ) as dst:  # fmt: skip
+            dst.write(np.full((1, 1), 7.5, np.float32), 1)
+    return {"kind": "gridded", "rain_file": str(folder), "rain_interval_min": 5.0, "arf": STORM["arf"]}
+
+
+def test_under_gridded_rain_an_element_is_rerun_at_its_own_area_as_under_the_design_storm_it_equals(tmp_path):
+    """The frames hold the uniform storm's rain, so the study must give the uniform storm's design flows: each
+    element's polygon mean multiplied by the table's factor at the element's own drainage area."""
+    _basin, design = plain_network(tmp_path)
+    gridded = design.model_copy(update={"storm": type(design.storm).model_validate(frames_of_the_storm(tmp_path))})
+    view, plans = plan_elements(gridded, "")
+    assert {p.name: p.how for p in plans} == {"Side": EXACT, "J": EXACT, "R2": EXACT, "Out": EXACT}
+    found = exact_peaks(view, plans, "")
+    wanted = exact_peaks(*plan_elements(design, ""), "")
+    for name in ("Side", "J", "R2", "Out"):
+        assert found[name][0] == pytest.approx(wanted[name][0], rel=1e-9)
+        assert found[name][1] == wanted[name][1]
+    whole = gridded.model_copy(update={"storm": gridded.storm.model_copy(update={"arf": None})})
+    unreduced = exact_peaks(*plan_elements(whole, ""), "")
+    factor = 1.0 - 0.5 * (0.1 - 0.01) / (10.0 - 0.01)
+    assert found["Side"][0] == pytest.approx(factor * unreduced["Side"][0], rel=1e-9), "CN 100: linear in the rain"

@@ -63,6 +63,20 @@
           "title": "Bracket Max",
           "type": "integer"
         },
+        "by_arf_step": {
+          "default": false,
+          "description": "Storm areas from the smallest to the largest drainage area of the design lines and of the lumped elements that take 2D water, placed so the storm's area-reduction factor changes by at most arf_step_max between neighbouring runs; areas_km2, the log-spaced and the bracketing settings are then not used",
+          "title": "By Arf Step",
+          "type": "boolean"
+        },
+        "arf_step_max": {
+          "default": 0.05,
+          "description": "Largest change of the area-reduction factor between neighbouring storm-area runs",
+          "exclusiveMaximum": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Arf Step Max",
+          "type": "number"
+        },
         "accumulation": {
           "anyOf": [
             {
@@ -73,7 +87,7 @@
             }
           ],
           "default": null,
-          "description": "Flow accumulation raster for the composite map",
+          "description": "Flow accumulation raster: the composite map's drainage area per cell, and the drainage area of a line read after the study",
           "title": "Accumulation"
         },
         "accumulation_units": {
@@ -84,6 +98,12 @@
           ],
           "title": "Accumulation Units",
           "type": "string"
+        },
+        "composite": {
+          "default": true,
+          "description": "Write the composite maps when accumulation is given; False keeps the raster for lines alone",
+          "title": "Composite",
+          "type": "boolean"
         }
       },
       "title": "ArfStudy",
@@ -3124,7 +3144,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Area-reduction table. The depth of a uniform or hypothetical storm is multiplied by its factor at storm_area_km2. So is every frame of a gridded storm, for grids of point depths: on 2D cells and under lumped subbasins alike. None, or no storm area, leaves the rain whole"
         },
         "hyetograph_min": {
           "anyOf": [
@@ -4411,8 +4432,11 @@
         "bracket": false,
         "bracket_ratio": 2.0,
         "bracket_max": 6,
+        "by_arf_step": false,
+        "arf_step_max": 0.05,
         "accumulation": null,
-        "accumulation_units": "cells"
+        "accumulation_units": "cells",
+        "composite": true
       }
     },
     "basin": {

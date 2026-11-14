@@ -1,0 +1,84 @@
+{
+ "raster": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-abeb573cf55b53188\\_throwaway_w53\\study_lines\\accumulation_km2.tif",
+ "study_s": null,
+ "areas_km2": [
+  5.0,
+  10.0,
+  20.971,
+  40.0
+ ],
+ "line": [
+  [
+   436798.933982822,
+   2726431.066017178
+  ],
+  [
+   437011.066017178,
+   2726218.933982822
+  ]
+ ],
+ "requests": {
+  "tributary": {
+   "study_request_s": [
+    2.3429999999934807,
+    2.2660000000614673,
+    2.375
+   ],
+   "single_run_request_s": [
+    1.5939999999245629,
+    1.422000000020489,
+    1.3900000000139698
+   ],
+   "study": {
+    "drainage_area_km2": 8.169300079345703,
+    "area_source": "flow accumulation",
+    "low_km2": 5.0,
+    "high_km2": 10.0,
+    "weight_low": 0.291716,
+    "weight_high": 0.708284,
+    "clamped": null,
+    "design_peak_m3s": 231.398,
+    "words": "The line drains 8.169 km2 (flow accumulation, the largest where it crosses). Read from the runs at 5 km2, weight 0.292, and 10 km2, weight 0.708, linear in log area."
+   },
+   "peak_blended_series_m3s": 231.401
+  },
+  "on Bidah 03": {
+   "study_request_s": [
+    2.0160000000614673,
+    1.5469999999040738,
+    1.5150000000139698
+   ],
+   "single_run_request_s": [
+    1.6099999999860302,
+    1.562000000034459,
+    1.6099999999860302
+   ],
+   "study": {
+    "drainage_area_km2": 20.971,
+    "area_source": "design line",
+    "low_km2": 20.971,
+    "high_km2": 20.971,
+    "weight_low": 1.0,
+    "weight_high": 0.0,
+    "clamped": null,
+    "design_peak_m3s": 509.583,
+    "words": "The line drains 20.97 km2 (its design line's). Read from the run at that storm area, 20.971 km2."
+   },
+   "peak_blended_series_m3s": 509.583
+  }
+ },
+ "study_table": [
+  {
+   "design_point": "Bidah 03",
+   "drainage_area_km2": 20.971,
+   "storm_area_low_km2": 10.0,
+   "storm_area_high_km2": 20.971,
+   "peak_low_m3s": 518.8380301907891,
+   "peak_high_m3s": 509.4418320230907,
+   "design_peak_m3s": 509.44183202309057,
+   "time_of_peak_s": 45030.0,
+   "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred",
+   "read_as": "design line, 2D runs either side"
+  }
+ ]
+}

@@ -17,6 +17,8 @@ from .profile_view import bounds, scale_points
 SIZE = (900, 290)
 LEFT, RIGHT, GAP, GAP_HIGH = 56.0, 28.0, 70.0, 52.0
 HEADER, FOOTER, AXIS = 60.0, 48.0, 18.0
+NOTE_HIGH = 30.0
+"""Two lines under the readout for a view's note, a study's area and runs (W53)."""
 TITLE_RISE, LEGEND_STEP, LEGEND_BAR, TICK = 5.0, 14.0, 16.0, 4.0
 WIDE_RATIO = 2.0
 """Wider than this over its height, the panels stand side by side."""
@@ -66,7 +68,10 @@ class LinePlot(QWidget):
         self.update()
 
     def _header(self) -> float:
-        return HEADER + (AGREEMENT_LINES * LINE_HIGH if self.view is not None and self.view.agreement else 0.0)
+        view = self.view
+        if view is None:
+            return HEADER
+        return HEADER + (NOTE_HIGH if view.note else 0.0) + (AGREEMENT_LINES * LINE_HIGH if view.agreement else 0.0)
 
     def _boxes(self, count: int) -> list[QRectF]:
         """One box per panel: side by side on a wide widget, one under the other on a tall one."""
@@ -106,8 +111,12 @@ class LinePlot(QWidget):
         font.setBold(False)
         painter.setFont(font)
         painter.drawText(QRectF(MARGIN, 20.0, wide, 16.0), Qt.AlignLeft, readout(view, self.frame))
+        y = 36.0
+        if view.note:
+            painter.drawText(QRectF(MARGIN, y, wide, NOTE_HIGH), int(Qt.AlignLeft) | int(Qt.TextWordWrap), view.note)
+            y += NOTE_HIGH
         if view.agreement:
-            room = QRectF(MARGIN, 36.0, wide, AGREEMENT_LINES * LINE_HIGH)
+            room = QRectF(MARGIN, y, wide, AGREEMENT_LINES * LINE_HIGH)
             painter.drawText(room, int(Qt.AlignLeft | Qt.AlignTop) | int(Qt.TextWordWrap), view.agreement)
         painter.setPen(QPen(QColor(AXIS_COLOUR)))
         bottom = QRectF(MARGIN, self.height() - FOOTER, wide, FOOTER)

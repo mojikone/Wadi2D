@@ -1,0 +1,297 @@
+{
+  "runs": {
+    "gross_plain": {
+      "finished": true,
+      "balance": {
+        "rain_m3": 3824785.155290098,
+        "inflow_m3": 0.0,
+        "outflow_m3": 3472659.592747111,
+        "storage_start_m3": 0.0,
+        "storage_end_m3": 352125.4778970551,
+        "error_m3": 0.0846459319582209,
+        "relative_error": 2.213089847442706e-08
+      },
+      "line": {
+        "peak_m3s": 645.958,
+        "peak_h": 12.441666666666666,
+        "volume_m3": 2681276.7140523726
+      },
+      "job_storm": {
+        "kind": "gridded",
+        "rain_file": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc",
+        "rain_units": "auto",
+        "rain_stamp": "end"
+      },
+      "area_reduction": [],
+      "warnings": [
+        "water stood 8.8 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there"
+      ]
+    },
+    "gross_arf": {
+      "finished": true,
+      "balance": {
+        "rain_m3": 3728905.050877578,
+        "inflow_m3": 0.0,
+        "outflow_m3": 3383868.928208657,
+        "storage_start_m3": 0.0,
+        "storage_end_m3": 345036.04429273197,
+        "error_m3": 0.07837618904886767,
+        "relative_error": 2.1018553162253956e-08
+      },
+      "line": {
+        "peak_m3s": 627.052,
+        "peak_h": 12.441666666666666,
+        "volume_m3": 2613468.658448701
+      },
+      "job_storm": {
+        "kind": "gridded",
+        "rain_file": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc",
+        "rain_units": "auto",
+        "rain_stamp": "end",
+        "storm_area_km2": 20.971,
+        "arf": {
+          "areas_km2": [
+            1.0,
+            5.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            1000.0,
+            2000.0
+          ],
+          "factors": [
+            0.999,
+            0.994,
+            0.987,
+            0.976,
+            0.965,
+            0.956,
+            0.948,
+            0.913,
+            0.864,
+            0.776,
+            0.694,
+            0.606
+          ]
+        }
+      },
+      "area_reduction": [
+        {
+          "ev": "output",
+          "kind": "area_reduction",
+          "factor": 0.9749319,
+          "storm_area_km2": 20.971,
+          "arf_table_type": "fixed-area"
+        }
+      ],
+      "warnings": [
+        "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+        "water stood 8.7 m deep against the domain edge at (434861, 2723525): an edge is a wall, so check the domain polygon there"
+      ]
+    },
+    "cn_plain": {
+      "finished": true,
+      "balance": {
+        "rain_m3": 2801395.728322547,
+        "inflow_m3": 0.0,
+        "outflow_m3": 2527363.243011144,
+        "storage_start_m3": 0.0,
+        "storage_end_m3": 274032.4292958308,
+        "error_m3": 0.05601557216141373,
+        "relative_error": 1.999559419438231e-08
+      },
+      "line": {
+        "peak_m3s": 528.884,
+        "peak_h": 12.508333333333333,
+        "volume_m3": 1973140.2324455222
+      },
+      "job_storm": {
+        "kind": "gridded",
+        "rain_file": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc",
+        "rain_units": "auto",
+        "rain_stamp": "end"
+      },
+      "area_reduction": [],
+      "warnings": [
+        "water stood 7.6 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+      ]
+    },
+    "cn_arf": {
+      "finished": true,
+      "balance": {
+        "rain_m3": 2710569.0637910366,
+        "inflow_m3": 0.0,
+        "outflow_m3": 2443475.0208833315,
+        "storage_start_m3": 0.0,
+        "storage_end_m3": 267093.9813102951,
+        "error_m3": 0.06159740994917229,
+        "relative_error": 2.2724899642668158e-08
+      },
+      "line": {
+        "peak_m3s": 509.442,
+        "peak_h": 12.508333333333333,
+        "volume_m3": 1908971.7017159038
+      },
+      "job_storm": {
+        "kind": "gridded",
+        "rain_file": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc",
+        "rain_units": "auto",
+        "rain_stamp": "end",
+        "storm_area_km2": 20.971,
+        "arf": {
+          "areas_km2": [
+            1.0,
+            5.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            1000.0,
+            2000.0
+          ],
+          "factors": [
+            0.999,
+            0.994,
+            0.987,
+            0.976,
+            0.965,
+            0.956,
+            0.948,
+            0.913,
+            0.864,
+            0.776,
+            0.694,
+            0.606
+          ]
+        }
+      },
+      "area_reduction": [
+        {
+          "ev": "output",
+          "kind": "area_reduction",
+          "factor": 0.9749319,
+          "storm_area_km2": 20.971,
+          "arf_table_type": "fixed-area"
+        }
+      ],
+      "warnings": [
+        "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+        "water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+      ]
+    },
+    "hms_table": {
+      "finished": true,
+      "balance": {
+        "rain_m3": 2710569.0637910366,
+        "inflow_m3": 0.0,
+        "outflow_m3": 2454083.9682639386,
+        "storage_start_m3": 0.0,
+        "storage_end_m3": 256485.03166526335,
+        "error_m3": 0.06386183470021933,
+        "relative_error": 2.356030530758783e-08
+      },
+      "line": {
+        "peak_m3s": 509.442,
+        "peak_h": 12.508333333333333,
+        "volume_m3": 1914183.9392009038
+      },
+      "job_storm": {
+        "kind": "gridded",
+        "rain_file": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Grid\\netCDF\\Precipitation_RP100_10min.nc",
+        "rain_units": "auto",
+        "rain_stamp": "end",
+        "storm_area_km2": 20.971,
+        "arf": {
+          "areas_km2": [
+            1.0,
+            5.0,
+            10.0,
+            20.0,
+            30.0,
+            40.0,
+            50.0,
+            100.0,
+            200.0,
+            500.0,
+            1000.0,
+            2000.0
+          ],
+          "factors": [
+            0.999,
+            0.994,
+            0.987,
+            0.976,
+            0.965,
+            0.956,
+            0.948,
+            0.913,
+            0.864,
+            0.776,
+            0.694,
+            0.606
+          ],
+          "table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred",
+          "reduces_below_table": false
+        }
+      },
+      "area_reduction": [
+        {
+          "ev": "output",
+          "kind": "area_reduction",
+          "factor": 0.9749319,
+          "storm_area_km2": 20.971,
+          "arf_table_type": "as supplied in the HMS project; check whether it is fixed-area or storm-centred"
+        }
+      ],
+      "warnings": [
+        "rain: every frame is multiplied by 0.9749, the area-reduction table at 20.971 km2, over the whole event",
+        "water stood 7.5 m deep against the domain edge at (432611, 2727275): an edge is a wall, so check the domain polygon there"
+      ]
+    }
+  },
+  "study": {
+    "row": {
+      "design_point": "Bidah 03",
+      "drainage_area_km2": 20.971,
+      "storm_area_low_km2": 10.0,
+      "storm_area_high_km2": 20.971,
+      "peak_low_m3s": 518.8380301907891,
+      "peak_high_m3s": 509.4418320230907,
+      "design_peak_m3s": 509.44183202309057,
+      "time_of_peak_s": 45030.0,
+      "arf_table_type": "fixed-area",
+      "read_as": "design line, 2D runs either side"
+    },
+    "factors": {
+      "10.0": 0.987,
+      "20.971": 0.9749319,
+      "30.0": 0.965
+    }
+  },
+  "drawn_line": {
+    "heading": "Temporary line: Line 1. Read from saved frames.",
+    "note": "The line drains 19.48 km2 (flow accumulation, the largest where it crosses). Read from the runs at 10 km2, weight 0.100, and 20.971 km2, weight 0.900, linear in log area. Peak 442.7 m3/s, as the study reads a design point; the curves blend the two runs frame by frame.",
+    "limit": "Saved frames, every 15 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twice reads the net flow through both crossings.",
+    "wait_s": 1.922000000020489,
+    "peak_m3s": 442.745,
+    "coordinates": [
+      [
+        438780.80294117646,
+        2727389.197058823
+      ],
+      [
+        438989.19705882354,
+        2727180.802941176
+      ]
+    ]
+  }
+}
