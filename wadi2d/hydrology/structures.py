@@ -1,7 +1,8 @@
 """Reservoir outflow structures of HEC-HMS 4.12, behind one interface: each packs itself for the compiled kernel.
 
 Interface: :class:`Structure` (the protocol), :class:`RatingSpillway`, :class:`Orifice`, :class:`LevelDamTop`,
-:class:`TabularSeepage`, :class:`MonthlyEvaporation`, :class:`Packed`, :func:`pack_all`, :data:`STRUCTURE_KINDS`.
+:class:`TabularSeepage`, :class:`SpillwayGate`, :class:`Pump`, :class:`MonthlyEvaporation`, :class:`Packed`,
+:func:`pack_all`, :data:`STRUCTURE_KINDS`.
 The broad-crested :class:`~wadi2d.hydrology.reservoir.Spillway` packs the same way. The laws live in
 :mod:`wadi2d.hydrology.structure_kernel`, once; a new structure is a class here and a kind there.
 
@@ -9,7 +10,9 @@ What HMS does that is not in its manual, measured on W59's runs: an orifice's he
 centreline and the tailwater; a seepage with no tailwater reads its table at the pool over the bottom of the storage
 table, and its tailwater-to-pool table changed nothing in any run, a tailwater above the pool giving negative seepage
 from the pool-to-tailwater table instead; monthly evaporation spreads each month's depth over 28 days in February of a
-leap year too, by the month a control step starts in.
+leap year too, by the month a control step starts in. W62's: a gate passes weir flow over its width at the spillway's
+coefficient up to a head of one opening, its own law from 1.25 openings, linear between, with sqrt(2 g) as 4.42869; a
+pump's minimum run and rest times are minutes, and a pump switches on and off at the start of a step.
 """
 
 from __future__ import annotations
@@ -33,6 +36,9 @@ MONTHS = 12
 FEBRUARY = 2
 HMS_FEBRUARY_DAYS = 28
 NO_PARAMETER = 0.0
+PARAMETER_SLOTS = 8
+"""Numbers a packed structure carries; a kind uses the first few and the rest are zero."""
+SECONDS_PER_MINUTE = 60.0
 
 
 @dataclass(frozen=True, eq=False)
@@ -41,7 +47,7 @@ class Packed:
 
     kind: int
     outlet: int
-    parameters: tuple[float, float, float]
+    parameters: tuple[float, ...]
     table_x: FloatArray = field(default_factory=lambda: np.zeros(0))
     table_y: FloatArray = field(default_factory=lambda: np.zeros(0))
 
@@ -61,6 +67,10 @@ RATING_SPILLWAY = "Rating Curve Spillway"
 ORIFICE = "Orifice"
 LEVEL_DAM_TOP = "Level Dam"
 TABULAR_SEEPAGE = "Tabular Dam Seepage"
+SLUICE_GATE = "Sluice"
+RADIAL_GATE = "Radial"
+HEAD_DISCHARGE_PUMP = "Head-Discharge Pump"
+SLUICE_HEAD_EXPONENT = 0.5
 
 
 def _rising(name: str, x: FloatArray, y: FloatArray) -> None:
@@ -145,6 +155,109 @@ class TabularSeepage:
         return "seepage"
 
 
+@STRUCTURE_KINDS.register(SLUICE_GATE)
+@STRUCTURE_KINDS.register(RADIAL_GATE)
+@dataclass(frozen=True)
+class SpillwayGate:
+    """A group of identical gates on a broad-crested spillway (HMS's Spillway Gate with a Fixed Opening).
+
+    Weir flow over the group's width at the spillway's coefficient while the head over the crest is at most the
+    opening; from 1.25 openings the gate law, sluice C W B k sqrt(H) or radial C k W T^TE B^BE H^HE (W the group's
+    width, k = 4.42869); linear in head over opening between. The drowned forms are not identified and a tailwater
+    reaching the crest is refused, as for every weir.
+    """
+
+    kind: str
+    crest_elevation_m: float
+    weir_coefficient: float
+    gates: int
+    width_m: float
+    coefficient: float
+    opening_m: float
+    trunnion_height_m: float = 0.0
+    trunnion_exponent: float = 0.0
+    opening_exponent: float = 1.0
+    head_exponent: float = SLUICE_HEAD_EXPONENT
+    outlet: int = MAIN_OUTLET
+
+    def __post_init__(self) -> None:
+        if self.kind not in (SLUICE_GATE, RADIAL_GATE):
+            raise ValueError(f"spillway gate {self.kind!r}: only {SLUICE_GATE} and {RADIAL_GATE}")
+        if self.gates < 1 or self.width_m <= 0.0 or self.opening_m < 0.0:
+            raise ValueError(f"spillway gate: {self.gates} gates of {self.width_m} m open {self.opening_m} m")
+        if self.kind == SLUICE_GATE and (self.head_exponent, self.opening_exponent, self.trunnion_exponent) != (
+            SLUICE_HEAD_EXPONENT, 1.0, 0.0
+        ):
+            raise ValueError("a sluice gate has no exponents of its own: head 0.5, opening 1, trunnion 0")
+
+    @property
+    def total_width_m(self) -> float:
+        return self.gates * self.width_m
+
+    def pack(self) -> Packed:
+        width = self.total_width_m
+        factor = (
+            self.coefficient * kernel.GATE_SQRT_2G * width
+            * self.trunnion_height_m**self.trunnion_exponent * self.opening_m**self.opening_exponent
+        )
+        return Packed(
+            kernel.GATE, self.outlet,
+            (self.crest_elevation_m, self.weir_coefficient * width, factor, self.opening_m, self.head_exponent),
+        )
+
+    def label(self) -> str:
+        return "gate"
+
+
+@STRUCTURE_KINDS.register(HEAD_DISCHARGE_PUMP)
+@dataclass(frozen=True, eq=False)
+class Pump:
+    """HMS's Head-Discharge Pump: ``units`` identical pumps that switch together.
+
+    On when the pool reaches ``on_m`` and the pumps have rested ``rest_min``; off below ``off_m`` once they have run
+    ``run_min``, and below the intake at once. While on, each pumps the table's flow at the total head, the discharge
+    elevation less the pool plus the equipment loss (W62: HMS's flows to the last digit). The table is head against
+    flow; a head outside it refuses the run, since what HMS does there is not known.
+    """
+
+    heads_m: FloatArray
+    flows_m3s: FloatArray
+    units: int
+    intake_m: float
+    discharge_elevation_m: float
+    on_m: float
+    off_m: float
+    head_loss_m: float = 0.0
+    run_min: float = 0.0
+    rest_min: float = 0.0
+    outlet: int = MAIN_OUTLET
+
+    def __post_init__(self) -> None:
+        _rising(HEAD_DISCHARGE_PUMP, self.heads_m, self.flows_m3s)
+        if self.units < 1:
+            raise ValueError(f"{HEAD_DISCHARGE_PUMP}: {self.units} pumps")
+        if not self.intake_m <= self.off_m <= self.on_m:
+            raise ValueError(f"{HEAD_DISCHARGE_PUMP}: intake {self.intake_m} m, switch-off {self.off_m} m and "
+                             f"switch-on {self.on_m} m must rise in that order, as HMS requires")
+        if self.run_min < 0.0 or self.rest_min < 0.0:
+            raise ValueError(f"{HEAD_DISCHARGE_PUMP}: negative run or rest time")
+
+    def head_m(self, level_m: FloatArray) -> FloatArray:
+        """The total head at a pool level."""
+        return self.discharge_elevation_m + self.head_loss_m - np.asarray(level_m)
+
+    def pack(self) -> Packed:
+        return Packed(
+            kernel.PUMP, self.outlet,
+            (self.on_m, self.off_m, self.intake_m, self.discharge_elevation_m + self.head_loss_m, float(self.units),
+             self.run_min * SECONDS_PER_MINUTE, self.rest_min * SECONDS_PER_MINUTE),
+            self.heads_m, self.flows_m3s,
+        )
+
+    def label(self) -> str:
+        return "pump"
+
+
 @dataclass(frozen=True)
 class MonthlyEvaporation:
     """HMS's Monthly Evaporation: twelve depths, mm, January first, each spread evenly over its month's steps."""
@@ -186,7 +299,10 @@ def pack_all(structures: tuple[Structure, ...]) -> PackedSet:
     return PackedSet(
         kinds=np.array([p.kind for p in packed], dtype=np.int64),
         outlets=np.array([p.outlet for p in packed], dtype=np.int64),
-        parameters=np.array([p.parameters for p in packed], dtype=np.float64).reshape(len(packed), 3),
+        parameters=np.array(
+            [tuple(p.parameters) + (NO_PARAMETER,) * (PARAMETER_SLOTS - len(p.parameters)) for p in packed],
+            dtype=np.float64,
+        ).reshape(len(packed), PARAMETER_SLOTS),
         table_x=np.concatenate([np.asarray(p.table_x, dtype=np.float64) for p in packed] + [np.zeros(0)]),
         table_y=np.concatenate([np.asarray(p.table_y, dtype=np.float64) for p in packed] + [np.zeros(0)]),
         table_start=(ends - lengths).astype(np.int64),
@@ -195,13 +311,21 @@ def pack_all(structures: tuple[Structure, ...]) -> PackedSet:
 
 
 def flows_at(
-    structures: tuple[Structure, ...], levels: FloatArray, tailwater: tuple[float, float], bottom: float
+    structures: tuple[Structure, ...],
+    levels: FloatArray,
+    tailwater: tuple[float, float],
+    bottom: float,
+    active: np.ndarray | None = None,
 ) -> np.ndarray:
     """The flow of each structure at each pool level, m3/s (rows: levels); ``tailwater`` is (main, auxiliary),
-    NaN for none, and ``bottom`` the first elevation of the storage table."""
+    NaN for none, ``bottom`` the first elevation of the storage table, and ``active`` each structure's state at each
+    level (a pump on, 1, or off, 0), every structure active when None."""
     arrays = pack_all(structures)
+    levels = np.atleast_1d(np.asarray(levels, dtype=np.float64))
+    if active is None:
+        active = np.ones((len(levels), len(structures)))
     return kernel.structure_flows(
-        np.atleast_1d(np.asarray(levels, dtype=np.float64)),
+        levels,
         arrays.kinds,
         arrays.outlets,
         arrays.parameters,
@@ -211,4 +335,5 @@ def flows_at(
         arrays.table_end,
         np.array(tailwater, dtype=np.float64),
         bottom,
+        np.asarray(active, dtype=np.float64),
     )

@@ -33,6 +33,7 @@ from wadi2d.hydrology.structure_kernel import BROAD_CRESTED, route_structures
 from wadi2d.hydrology.structures import (
     MonthlyEvaporation,
     Packed,
+    Pump,
     RatingSpillway,
     Structure,
     TabularSeepage,
@@ -197,6 +198,9 @@ class ReservoirOutflowStructures:
                 if structure.heads_m[-1] < top - low:
                     raise ValueError(f"{name}: the seepage table ends at a head of {structure.heads_m[-1]} m, "
                                      f"below the {top - low} m the pool can reach")
+            if isinstance(structure, Pump) and self.tailwater_m is not None and self.tailwater_m >= structure.intake_m:
+                raise ValueError(f"{name}: tailwater {self.tailwater_m} m reaches a pump's intake at "
+                                 f"{structure.intake_m} m; what HMS does then was not identified (W62)")
         if self.tailwater_m is not None:
             for structure in (*self.spillways, *self.structures):
                 crest = getattr(structure, "crest_elevation_m", None)
@@ -224,12 +228,15 @@ class ReservoirOutflowStructures:
         if self.evaporation is None:
             rates = np.zeros(steps)
         elif self.start is None:
-            raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: monthly evaporation needs the run's start date")
+            raise ValueError(
+                f"{RESERVOIR_OUTFLOW_STRUCTURES}: monthly evaporation needs the run's start date "
+                "(in a job, storm.rain_start)"
+            )
         else:
             rates = self.evaporation.rates(self.start, steps, dt_minutes)
         areas = self.areas_m2 if self.areas_m2 is not None else np.zeros_like(self.elevations_m)
         tailwater = np.array([np.nan if self.tailwater_m is None else self.tailwater_m, np.nan])
-        main, auxiliary, lost, level, storage, overtopped = route_structures(
+        main, auxiliary, lost, level, storage, active, overtopped = route_structures(
             np.asarray(inflow_m3s, dtype=np.float64),
             dt_minutes * SECONDS_PER_MINUTE,
             self.elevations_m,
@@ -252,7 +259,16 @@ class ReservoirOutflowStructures:
         )
         if overtopped:
             raise ValueError(f"{RESERVOIR_OUTFLOW_STRUCTURES}: the pool passed the top of its table")
-        flows = flows_at(structures, level, (tailwater[0], tailwater[1]), float(self.elevations_m[0]))
+        flows = flows_at(structures, level, (tailwater[0], tailwater[1]), float(self.elevations_m[0]), active)
+        for index, structure in enumerate(structures):
+            if isinstance(structure, Pump):
+                heads = structure.head_m(level[active[:, index] > 0.0])
+                if heads.size and (heads.min() < structure.heads_m[0] or heads.max() > structure.heads_m[-1]):
+                    raise ValueError(
+                        f"{RESERVOIR_OUTFLOW_STRUCTURES}: a pump ran at a head of {heads.min():.3f} to "
+                        f"{heads.max():.3f} m, outside its table ({structure.heads_m[0]} to {structure.heads_m[-1]} "
+                        "m); what HMS does there is not known"
+                    )
         labels: dict[str, int] = {}
         named: dict[str, FloatArray] = {}
         for index, structure in enumerate(structures):

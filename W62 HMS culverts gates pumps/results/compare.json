@@ -1,0 +1,183 @@
+{
+ "gate_sluice": {
+  "hms_outflow_peak_m3s": 140.6935715197139,
+  "outflow_max_abs_diff_of_peak": 0.00013702655735517736,
+  "outflow_peak_rel_diff": -7.187087591842278e-06,
+  "pool_max_abs_diff_m": 0.00012395722919222862,
+  "storage_max_rel_diff": 1.6970286831560665e-05,
+  "hms_unbooked_m3": 171.22042801348755,
+  "gate_flow_max_abs_diff_of_peak": 0.00013702655735517736
+ },
+ "gate_radial": {
+  "hms_outflow_peak_m3s": 179.31409440440143,
+  "outflow_max_abs_diff_of_peak": 0.00040656491165566263,
+  "outflow_peak_rel_diff": -2.2742641755058024e-05,
+  "pool_max_abs_diff_m": 0.0003033887945207425,
+  "storage_max_rel_diff": 4.4992932277192916e-05,
+  "hms_unbooked_m3": 347.5726945434914,
+  "gate_flow_max_abs_diff_of_peak": 0.00040656491165566263
+ },
+ "gate_two": {
+  "hms_outflow_peak_m3s": 256.3715179864157,
+  "outflow_max_abs_diff_of_peak": 0.00010721789275364225,
+  "outflow_peak_rel_diff": 6.195104993222955e-06,
+  "pool_max_abs_diff_m": 7.128383965948615e-05,
+  "storage_max_rel_diff": 1.1937918578171446e-05,
+  "hms_unbooked_m3": 58.93324246517068,
+  "gate_flow_max_abs_diff_of_peak": 0.00010721789275364225
+ },
+ "pump": {
+  "hms_outflow_peak_m3s": 145.821098641996,
+  "outflow_max_abs_diff_of_peak": 0.005396113539923677,
+  "outflow_peak_rel_diff": 0.0027124728866287917,
+  "pool_max_abs_diff_m": 0.03559009007142322,
+  "storage_max_rel_diff": 0.003423170678883824,
+  "hms_unbooked_m3": -27733.819933072973,
+  "pump_state_disagreements": 0,
+  "pump_switches_hms": [
+   56
+  ],
+  "pump_switches_ours": [
+   56
+  ]
+ },
+ "pump_tw": {
+  "hms_outflow_peak_m3s": 145.821098641996,
+  "outflow_max_abs_diff_of_peak": 0.005396113539923677,
+  "outflow_peak_rel_diff": 0.0027124728866287917,
+  "pool_max_abs_diff_m": 0.03559009007142322,
+  "storage_max_rel_diff": 0.003423170678883824,
+  "hms_unbooked_m3": -27733.819933072973,
+  "pump_state_disagreements": 0,
+  "pump_switches_hms": [
+   56
+  ],
+  "pump_switches_ours": [
+   56
+  ]
+ },
+ "pump_closed": {
+  "hms_outflow_peak_m3s": 146.23247570550024,
+  "outflow_max_abs_diff_of_peak": 0.0002151389343613293,
+  "outflow_peak_rel_diff": -0.00010832947375716273,
+  "pool_max_abs_diff_m": 0.0011998592226092342,
+  "storage_max_rel_diff": 0.00012333366999919268,
+  "hms_unbooked_m3": -983.3349619635829,
+  "pump_state_disagreements": 0,
+  "pump_switches_hms": [
+   56
+  ],
+  "pump_switches_ours": [
+   56
+  ]
+ },
+ "pump_cycle": {
+  "hms_outflow_peak_m3s": 162.5146448704379,
+  "outflow_max_abs_diff_of_peak": 0.40235712194079454,
+  "outflow_peak_rel_diff": 0.0017356317887680106,
+  "pool_max_abs_diff_m": 0.018617053923591698,
+  "storage_max_rel_diff": 0.0019450954843338556,
+  "hms_unbooked_m3": -21233.535784328877,
+  "pump_state_disagreements": 2,
+  "pump_switches_hms": [
+   45,
+   415,
+   576
+  ],
+  "pump_switches_ours": [
+   45,
+   416
+  ]
+ },
+ "pump_intake": {
+  "hms_outflow_peak_m3s": 162.70131596757176,
+  "outflow_max_abs_diff_of_peak": 0.4017792959326057,
+  "outflow_peak_rel_diff": 0.0005863166261212971,
+  "pool_max_abs_diff_m": 0.03300276249052558,
+  "storage_max_rel_diff": 0.003445948157784987,
+  "hms_unbooked_m3": -19195.93127588821,
+  "pump_state_disagreements": 3,
+  "pump_switches_hms": [
+   45,
+   415,
+   575
+  ],
+  "pump_switches_ours": [
+   45,
+   416
+  ]
+ },
+ "pump_times": {
+  "hms_outflow_peak_m3s": 162.5146448704379,
+  "outflow_max_abs_diff_of_peak": 0.002391994350900465,
+  "outflow_peak_rel_diff": 0.0017356317887680106,
+  "pool_max_abs_diff_m": 0.01951704663268572,
+  "storage_max_rel_diff": 0.0019450954843338556,
+  "hms_unbooked_m3": -25747.63341795935,
+  "pump_state_disagreements": 0,
+  "pump_switches_hms": [
+   45,
+   445
+  ],
+  "pump_switches_ours": [
+   45,
+   445
+  ]
+ },
+ "pump_rest": {
+  "hms_outflow_peak_m3s": 162.5146448704379,
+  "outflow_max_abs_diff_of_peak": 0.39963005508386895,
+  "outflow_peak_rel_diff": 0.0017356317887680106,
+  "pool_max_abs_diff_m": 0.018617053923591698,
+  "storage_max_rel_diff": 0.0019450954843338556,
+  "hms_unbooked_m3": -26464.649766987575,
+  "pump_state_disagreements": 1,
+  "pump_switches_hms": [
+   45,
+   415
+  ],
+  "pump_switches_ours": [
+   45,
+   416
+  ]
+ },
+ "pump_on_band": {
+  "hms_outflow_peak_m3s": 162.5146448704379,
+  "outflow_max_abs_diff_of_peak": 0.4021182812198965,
+  "outflow_peak_rel_diff": 0.0017356317887680106,
+  "pool_max_abs_diff_m": 0.018617053923591698,
+  "storage_max_rel_diff": 0.0019450954843338556,
+  "hms_unbooked_m3": -35784.23217002889,
+  "pump_state_disagreements": 2,
+  "pump_switches_hms": [
+   45,
+   415,
+   576
+  ],
+  "pump_switches_ours": [
+   45,
+   416
+  ]
+ },
+ "pump_off_band": {
+  "hms_outflow_peak_m3s": 162.5146448704379,
+  "outflow_max_abs_diff_of_peak": 0.4023576966703569,
+  "outflow_peak_rel_diff": 0.0017356317887680106,
+  "pool_max_abs_diff_m": 0.19367605488685058,
+  "storage_max_rel_diff": 0.02023512534959375,
+  "hms_unbooked_m3": -21160.224466471485,
+  "pump_state_disagreements": 17,
+  "pump_switches_hms": [
+   45,
+   414,
+   549,
+   557
+  ],
+  "pump_switches_ours": [
+   45,
+   415,
+   558,
+   566
+  ]
+ }
+}

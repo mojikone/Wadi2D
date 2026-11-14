@@ -12,6 +12,7 @@ import time
 import traceback
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -573,9 +574,19 @@ def _lumped_basin(cfg: RunConfig, crs: str):
     from wadi2d.hydrology.from_hms import basin_from_hms
 
     hms_basin = load_basin(h.hms_basin)
-    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing)
+    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing, run_calendar(cfg))
     with_dam_starts(basin, cfg.dam_levels)
     return basin, hms_basin, ()
+
+
+def run_calendar(cfg: RunConfig) -> datetime | None:
+    """The date and time of the run's minute zero, ``storm.rain_start``; None when the job gives none.
+
+    The lumped network's first step is the run's minute zero, so a reservoir with monthly evaporation reads its
+    months from here; without a date it refuses to route.
+    """
+    start = cfg.storm.rain_start
+    return None if start is None else datetime.fromisoformat(start)
 
 
 def _taken_starts(cfg: RunConfig, lumped) -> dict[str, float]:

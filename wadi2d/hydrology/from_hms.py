@@ -62,12 +62,16 @@ from wadi2d.hydrology.reservoir import (
 )
 from wadi2d.hydrology.routing import LAG, MUSKINGUM_CUNGE, NO_ROUTING, ROUTING_METHODS, MuskingumCunge
 from wadi2d.hydrology.structures import (
+    HEAD_DISCHARGE_PUMP,
     LEVEL_DAM_TOP,
     ORIFICE,
+    RADIAL_GATE,
     RATING_SPILLWAY,
+    SLUICE_GATE,
     STRUCTURE_KINDS,
     TABULAR_SEEPAGE,
     MonthlyEvaporation,
+    SpillwayGate,
     Structure,
 )
 from wadi2d.hydrology.transforms import CLARK_UH, SCS_UH, TRANSFORM_METHODS
@@ -127,6 +131,25 @@ ORIFICE_KEYS = frozenset(
 )
 LEVEL_DAM_KEYS = frozenset({DAM_TOP_OUTLET_KEY, "Top Elevation", "Top Length", "Overflow Coefficient"})
 SEEPAGE_KEYS = frozenset({SEEPAGE_OUTLET_KEY, SEEPAGE_OUT_KEY, SEEPAGE_IN_KEY})
+# W62's, each written back by HEC-HMS 4.12 on re-saving its test basins.
+BROAD_KEYS = frozenset(
+    {SPILLWAY_OUTLET_KEY, "Spillway Crest Elevation", "Spillway Crest Length", "Spillway Coefficient"}
+)
+GATE_BLOCK = "Spillway Gate"
+GATE_CONTROL_BLOCK = "Gate Control"
+FIXED_OPENING = "Fixed Opening"
+GATE_OPENING_KEY = "Gate Opening"
+SLUICE_KEYS = frozenset({"Number Gates", "Gate Width", "Gate Coefficient", "Orifice Coefficient"})
+RADIAL_KEYS = SLUICE_KEYS | {"Trunnion Height", "Trunnion Exponent", "Opening Exponent", "Head Exponent"}
+GATE_KEYS = {SLUICE_GATE: SLUICE_KEYS, RADIAL_GATE: RADIAL_KEYS}
+PUMP_BLOCK = "Pump"
+PUMP_OUTLET_KEY = "Pump Outlet"
+PUMP_TABLE_KEY = "Head-Discharge Table Name"
+PUMP_KEYS = frozenset({
+    PUMP_OUTLET_KEY, "Number Of Pumps", "Intake Elevation", "Discharge Elevation", "Switch-On Elevation",
+    "Switch-Off Elevation", "Minimum Run Time", "Minimum Rest Time", PUMP_TABLE_KEY, "Equipment Head Loss",
+})
+GATE_WIDTH_TOLERANCE_M = 1.0e-6
 NO_UNIFORM_DEPTH = "No"
 
 
@@ -254,6 +277,8 @@ def _outflow_curve(element: HmsReservoir, route: ReservoirRoute, tables: Project
 def _spillway(element: str, block: RawBlock) -> Spillway:
     if block.name != BROAD_CRESTED:
         raise ValueError(f"{element}: spillway {block.name!r} is not supported")
+    if block.blocks:
+        raise ValueError(f"{element}: a gated spillway is read by _gated_spillway")
     return Spillway(
         crest_elevation_m=float(block.get("Spillway Crest Elevation") or "nan"),
         crest_length_m=float(block.get("Spillway Crest Length") or "nan"),
@@ -328,13 +353,95 @@ def _tabular_seepage(element: str, block: RawBlock, tables: ProjectTables | None
     )
 
 
-# (block kind, block name) -> builder; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W59's test basins.
+def _gate(element: str, block: RawBlock, crest: float, weir: float, outlet: int) -> SpillwayGate:
+    """One Spillway Gate block: a group of identical sluice or radial gates with a Fixed Opening."""
+    if block.kind != GATE_BLOCK or block.name not in GATE_KEYS:
+        raise ValueError(f"{element}: spillway sub-block {block.kind} {block.name!r} is not supported")
+    _fields(element, block, GATE_KEYS[block.name])
+    controls = block.blocks
+    if len(controls) != 1 or controls[0].kind != GATE_CONTROL_BLOCK:
+        raise ValueError(f"{element}: a {block.name} gate needs one Gate Control")
+    control = controls[0]
+    if control.name != FIXED_OPENING:
+        raise ValueError(f"{element}: gate control {control.name!r} is not supported, only {FIXED_OPENING}")
+    _fields(element, control, frozenset({GATE_OPENING_KEY}))
+    gates = _number(element, block, "Number Gates")
+    if gates != int(gates) or gates < 1:
+        raise ValueError(f"{element}: {gates} gates")
+    radial = {}
+    if block.name == RADIAL_GATE:
+        radial = {
+            "trunnion_height_m": _number(element, block, "Trunnion Height"),
+            "trunnion_exponent": _number(element, block, "Trunnion Exponent"),
+            "opening_exponent": _number(element, block, "Opening Exponent"),
+            "head_exponent": _number(element, block, "Head Exponent"),
+        }
+    return SpillwayGate(
+        kind=block.name,
+        crest_elevation_m=crest,
+        weir_coefficient=weir,
+        gates=int(gates),
+        width_m=_number(element, block, "Gate Width"),
+        coefficient=_number(element, block, "Gate Coefficient"),
+        opening_m=_number(element, control, GATE_OPENING_KEY),
+        outlet=outlet,
+        **radial,
+    )
+
+
+def _gated_spillway(element: str, block: RawBlock) -> list[Structure]:
+    """A broad-crested spillway carrying gates: one structure per gate group; the crest passes nothing else.
+
+    HMS requires the gates' widths to add up to the crest length (its error 42204), and so does this reader."""
+    _fields(element, block, BROAD_KEYS)
+    crest = _number(element, block, "Spillway Crest Elevation")
+    weir = _number(element, block, "Spillway Coefficient")
+    outlet = _outlet(element, block, SPILLWAY_OUTLET_KEY)
+    gates = [_gate(element, sub, crest, weir, outlet) for sub in block.blocks]
+    length = _number(element, block, "Spillway Crest Length")
+    widths = sum(gate.total_width_m for gate in gates)
+    if abs(widths - length) > GATE_WIDTH_TOLERANCE_M:
+        raise ValueError(f"{element}: the gates are {widths} m wide on a crest of {length} m; HMS refuses that")
+    return list(gates)
+
+
+def _minutes(element: str, block: RawBlock, key: str) -> float:
+    """A pump's minimum run or rest time, minutes (W62: 2000 binds a pump on for 2000 min); blank is none."""
+    value = block.get(key)
+    return 0.0 if value in (None, "") else float(value)
+
+
+def _pump(element: str, block: RawBlock, tables: ProjectTables | None) -> Structure:
+    _fields(element, block, PUMP_KEYS)
+    units = _number(element, block, "Number Of Pumps")
+    if units != int(units) or units < 1:
+        raise ValueError(f"{element}: {units} pumps")
+    table = _table(tables, block.get(PUMP_TABLE_KEY), element)
+    return STRUCTURE_KINDS.build(
+        HEAD_DISCHARGE_PUMP,
+        heads_m=table.x,
+        flows_m3s=table.y,
+        units=int(units),
+        intake_m=_number(element, block, "Intake Elevation"),
+        discharge_elevation_m=_number(element, block, "Discharge Elevation"),
+        on_m=_number(element, block, "Switch-On Elevation"),
+        off_m=_number(element, block, "Switch-Off Elevation"),
+        head_loss_m=_number(element, block, "Equipment Head Loss"),
+        run_min=_minutes(element, block, "Minimum Run Time"),
+        rest_min=_minutes(element, block, "Minimum Rest Time"),
+        outlet=_outlet(element, block, PUMP_OUTLET_KEY),
+    )
+
+
+# (block kind, block name) -> builder; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W59's and W62's
+# test basins.
 StructureBuilder = Callable[[str, RawBlock, "ProjectTables | None"], Structure]
 STRUCTURE_BUILDERS: dict[tuple[str, str], StructureBuilder] = {
     (SPILLWAY_BLOCK, RATING_SPILLWAY): _rating_spillway,
     (CONDUIT_BLOCK, ORIFICE): _orifice,
     (DAM_TOP_BLOCK, LEVEL_DAM_TOP): _level_dam_top,
     (SEEPAGE_BLOCK, TABULAR_SEEPAGE): _tabular_seepage,
+    (PUMP_BLOCK, HEAD_DISCHARGE_PUMP): _pump,
 }
 
 
@@ -371,7 +478,9 @@ def _outflow_structures(
     structures: list[Structure] = []
     evaporation: MonthlyEvaporation | None = None
     for block in element.blocks:
-        if block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED:
+        if block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED and block.blocks:
+            structures.extend(_gated_spillway(element.name, block))
+        elif block.kind == SPILLWAY_BLOCK and block.name == BROAD_CRESTED:
             spillways.append(_spillway(element.name, block))
         elif (block.kind, block.name) in STRUCTURE_BUILDERS:
             structures.append(STRUCTURE_BUILDERS[block.kind, block.name](element.name, block, tables))
