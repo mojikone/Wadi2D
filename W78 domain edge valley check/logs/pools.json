@@ -1,0 +1,426 @@
+{
+  "faydh_w11_20m": {
+    "pools": [
+      {
+        "x": 424375.98973783385,
+        "y": 2726850.393463373,
+        "kind": "bowl",
+        "depth_m": 12.885757446289062,
+        "level_m": 921.8009033203125,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 418955.98973783385,
+        "y": 2729170.393463373,
+        "kind": "bowl",
+        "depth_m": 9.827266693115234,
+        "level_m": 1026.0560302734375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 418835.98973783385,
+        "y": 2728730.393463373,
+        "kind": "bowl",
+        "depth_m": 9.581618309020996,
+        "level_m": 857.0181274414062,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 424435.98973783385,
+        "y": 2726870.393463373,
+        "kind": "bowl",
+        "depth_m": 8.149657249450684,
+        "level_m": 913.563232421875,
+        "spread_m": 0.01153564453125,
+        "edge_m": 40.0,
+        "area_km2": 0.0008
+      },
+      {
+        "x": 423535.98973783385,
+        "y": 2726970.393463373,
+        "kind": "bowl",
+        "depth_m": 7.969967365264893,
+        "level_m": 946.6239013671875,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 423195.98973783385,
+        "y": 2727070.393463373,
+        "kind": "bowl",
+        "depth_m": 7.929198741912842,
+        "level_m": 884.4833374023438,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 430995.98973783385,
+        "y": 2733910.393463373,
+        "kind": "pool",
+        "depth_m": 7.802472114562988,
+        "level_m": 213.5022735595703,
+        "spread_m": 3.0517578125e-05,
+        "edge_m": 300.0,
+        "area_km2": 0.0412
+      },
+      {
+        "x": 424095.98973783385,
+        "y": 2726910.393463373,
+        "kind": "bowl",
+        "depth_m": 7.72728157043457,
+        "level_m": 887.986083984375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 422355.98973783385,
+        "y": 2727230.393463373,
+        "kind": "bowl",
+        "depth_m": 7.529014587402344,
+        "level_m": 869.6033325195312,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 424975.98973783385,
+        "y": 2726530.393463373,
+        "kind": "bowl",
+        "depth_m": 7.171175479888916,
+        "level_m": 864.6250610351562,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 427035.98973783385,
+        "y": 2726990.393463373,
+        "kind": "bowl",
+        "depth_m": 6.831653118133545,
+        "level_m": 879.2662353515625,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 422935.98973783385,
+        "y": 2727190.393463373,
+        "kind": "bowl",
+        "depth_m": 6.400511741638184,
+        "level_m": 827.3157958984375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 432115.98973783385,
+        "y": 2733850.393463373,
+        "kind": "pool",
+        "depth_m": 6.212387561798096,
+        "level_m": 201.5848846435547,
+        "spread_m": 9.1552734375e-05,
+        "edge_m": 140.0,
+        "area_km2": 0.0076
+      },
+      {
+        "x": 429075.98973783385,
+        "y": 2727610.393463373,
+        "kind": "bowl",
+        "depth_m": 6.0983381271362305,
+        "level_m": 651.0051879882812,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 431615.98973783385,
+        "y": 2732950.393463373,
+        "kind": "pool",
+        "depth_m": 5.59653902053833,
+        "level_m": 192.87046813964844,
+        "spread_m": 0.0,
+        "edge_m": 120.0,
+        "area_km2": 0.0088
+      },
+      {
+        "x": 419935.98973783385,
+        "y": 2726590.393463373,
+        "kind": "bowl",
+        "depth_m": 5.508650779724121,
+        "level_m": 1060.597900390625,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0008
+      },
+      {
+        "x": 420135.98973783385,
+        "y": 2726550.393463373,
+        "kind": "bowl",
+        "depth_m": 5.487796306610107,
+        "level_m": 1037.8187255859375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 424535.98973783385,
+        "y": 2726830.393463373,
+        "kind": "bowl",
+        "depth_m": 5.410095691680908,
+        "level_m": 942.3659057617188,
+        "spread_m": 0.00732421875,
+        "edge_m": 40.0,
+        "area_km2": 0.0008
+      },
+      {
+        "x": 426655.98973783385,
+        "y": 2726850.393463373,
+        "kind": "bowl",
+        "depth_m": 5.374000072479248,
+        "level_m": 906.931640625,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 424295.98973783385,
+        "y": 2726910.393463373,
+        "kind": "bowl",
+        "depth_m": 5.360592365264893,
+        "level_m": 907.1900024414062,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 420655.98973783385,
+        "y": 2726210.393463373,
+        "kind": "bowl",
+        "depth_m": 5.215057373046875,
+        "level_m": 1057.2183837890625,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 419735.98973783385,
+        "y": 2727570.393463373,
+        "kind": "bowl",
+        "depth_m": 4.934839248657227,
+        "level_m": 809.496826171875,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 430095.98973783385,
+        "y": 2730990.393463373,
+        "kind": "bowl",
+        "depth_m": 4.56169319152832,
+        "level_m": 402.2703857421875,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 423515.98973783385,
+        "y": 2727010.393463373,
+        "kind": "bowl",
+        "depth_m": 4.400020599365234,
+        "level_m": 953.4647827148438,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 424215.98973783385,
+        "y": 2726910.393463373,
+        "kind": "bowl",
+        "depth_m": 4.350848197937012,
+        "level_m": 863.6316528320312,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0008
+      },
+      {
+        "x": 422595.98973783385,
+        "y": 2727230.393463373,
+        "kind": "bowl",
+        "depth_m": 4.350148677825928,
+        "level_m": 869.4533081054688,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 423935.98973783385,
+        "y": 2726830.393463373,
+        "kind": "bowl",
+        "depth_m": 4.146447658538818,
+        "level_m": 926.8548583984375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 420795.98973783385,
+        "y": 2730590.393463373,
+        "kind": "bowl",
+        "depth_m": 4.04243278503418,
+        "level_m": 960.7813110351562,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 419815.98973783385,
+        "y": 2726650.393463373,
+        "kind": "bowl",
+        "depth_m": 4.0160231590271,
+        "level_m": 1038.222900390625,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 419195.98973783385,
+        "y": 2729430.393463373,
+        "kind": "bowl",
+        "depth_m": 4.009861946105957,
+        "level_m": 951.412841796875,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 428355.98973783385,
+        "y": 2735770.393463373,
+        "kind": "bowl",
+        "depth_m": 3.723827838897705,
+        "level_m": 481.22802734375,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 423055.98973783385,
+        "y": 2727150.393463373,
+        "kind": "bowl",
+        "depth_m": 3.567678689956665,
+        "level_m": 819.6630249023438,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0008
+      },
+      {
+        "x": 419135.98973783385,
+        "y": 2729370.393463373,
+        "kind": "bowl",
+        "depth_m": 3.4556987285614014,
+        "level_m": 950.5235595703125,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 421615.98973783385,
+        "y": 2726990.393463373,
+        "kind": "bowl",
+        "depth_m": 3.135889768600464,
+        "level_m": 883.2075805664062,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 419455.98973783385,
+        "y": 2729910.393463373,
+        "kind": "bowl",
+        "depth_m": 3.069711446762085,
+        "level_m": 998.3076171875,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      },
+      {
+        "x": 421355.98973783385,
+        "y": 2731290.393463373,
+        "kind": "bowl",
+        "depth_m": 3.068791627883911,
+        "level_m": 781.3684692382812,
+        "spread_m": 0.0,
+        "edge_m": 20.0,
+        "area_km2": 0.0004
+      }
+    ],
+    "warnings": [
+      "water stood 7.8 m deep against the domain edge at (430996, 2733910), its level 213.50 m flat within 0.00 m over 300 m of edge and 0.041 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line",
+      "water stood 6.2 m deep against the domain edge at (432116, 2733850), its level 201.58 m flat within 0.00 m over 140 m of edge and 0.008 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line",
+      "water stood 5.6 m deep against the domain edge at (431616, 2732950), its level 192.87 m flat within 0.00 m over 120 m of edge and 0.009 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line",
+      "water stood 12.9 m deep against the domain edge at (424376, 2726850), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 9.8 m deep against the domain edge at (418956, 2729170), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 9.6 m deep against the domain edge at (418836, 2728730), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 8.1 m deep against the domain edge at (424436, 2726870), in 800 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 8.0 m deep against the domain edge at (423536, 2726970), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 7.9 m deep against the domain edge at (423196, 2727070), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "water stood 7.7 m deep against the domain edge at (424096, 2726910), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment",
+      "26 more places with deep water against the domain edge: see edge_checks.gpkg"
+    ]
+  },
+  "bidah_flow_line": {
+    "status": "finished",
+    "edge_warnings": [
+      "a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 1.01 km2 leaves the domain at (437791, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 0.43 km2 leaves the domain at (439281, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 0.27 km2 leaves the domain at (440081, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 1.01 km2 beyond the edge enters the domain at (438021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.83 km2 beyond the edge enters the domain at (437300, 2728315) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 m over 100 m of edge and 0.034 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line"
+    ],
+    "outputs": [
+      {
+        "ev": "output",
+        "kind": "edge_checks",
+        "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w78runs\\bidah_flow_line\\edge_checks.gpkg",
+        "streams": 9
+      },
+      {
+        "ev": "output",
+        "kind": "edge_checks",
+        "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w78runs\\bidah_flow_line\\edge_checks.gpkg",
+        "pools": 1
+      }
+    ]
+  },
+  "bidah_clean": {
+    "status": "finished",
+    "edge_warnings": [
+      "a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 1.01 km2 beyond the edge enters the domain at (438021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.83 km2 beyond the edge enters the domain at (437300, 2728315) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line"
+    ],
+    "outputs": [
+      {
+        "ev": "output",
+        "kind": "edge_checks",
+        "path": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w78runs\\bidah_clean\\edge_checks.gpkg",
+        "streams": 5
+      }
+    ]
+  }
+}

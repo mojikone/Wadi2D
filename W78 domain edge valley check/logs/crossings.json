@@ -1,0 +1,482 @@
+{
+  "faydh": {
+    "seconds": 15.0,
+    "found": [
+      {
+        "kind": "stream enters",
+        "x": 431591,
+        "y": 2733860,
+        "area_km2": 1.263,
+        "no_ground": false,
+        "from_known_m": 10068
+      },
+      {
+        "kind": "stream enters",
+        "x": 432121,
+        "y": 2732940,
+        "area_km2": 0.541,
+        "no_ground": false,
+        "from_known_m": 9861
+      },
+      {
+        "kind": "stream leaves",
+        "x": 431006,
+        "y": 2733905,
+        "area_km2": 0.276,
+        "no_ground": false,
+        "from_known_m": 9689
+      }
+    ],
+    "warnings": [
+      "a stream draining 0.28 km2 leaves the domain at (431006, 2733905) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 1.26 km2 beyond the edge enters the domain at (431591, 2733860) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.54 km2 beyond the edge enters the domain at (432121, 2732940) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line"
+    ],
+    "ground_at_nearest": [
+      [
+        -300.0,
+        227.64
+      ],
+      [
+        -275.0,
+        227.59
+      ],
+      [
+        -250.0,
+        223.38
+      ],
+      [
+        -225.0,
+        221.68
+      ],
+      [
+        -200.0,
+        221.09
+      ],
+      [
+        -175.0,
+        220.34
+      ],
+      [
+        -150.0,
+        216.93
+      ],
+      [
+        -125.0,
+        216.84
+      ],
+      [
+        -100.0,
+        215.85
+      ],
+      [
+        -75.0,
+        213.15
+      ],
+      [
+        -50.0,
+        211.43
+      ],
+      [
+        -25.0,
+        207.94
+      ],
+      [
+        0.0,
+        206.45
+      ],
+      [
+        25.0,
+        208.27
+      ],
+      [
+        50.0,
+        206.43
+      ],
+      [
+        75.0,
+        209.52
+      ],
+      [
+        100.0,
+        211.12
+      ],
+      [
+        125.0,
+        213.47
+      ],
+      [
+        150.0,
+        217.21
+      ],
+      [
+        175.0,
+        218.26
+      ],
+      [
+        200.0,
+        223.73
+      ],
+      [
+        225.0,
+        226.22
+      ],
+      [
+        250.0,
+        226.82
+      ],
+      [
+        275.0,
+        220.39
+      ],
+      [
+        300.0,
+        217.9
+      ]
+    ]
+  },
+  "bidah_flow_line": {
+    "seconds": 0.6,
+    "found": [
+      {
+        "kind": "stream leaves",
+        "x": 438561,
+        "y": 2728700,
+        "area_km2": 4.013,
+        "no_ground": false,
+        "from_known_m": 855
+      },
+      {
+        "kind": "stream enters",
+        "x": 437300,
+        "y": 2727855,
+        "area_km2": 3.412,
+        "no_ground": false,
+        "from_known_m": 2275
+      },
+      {
+        "kind": "stream enters",
+        "x": 438821,
+        "y": 2725700,
+        "area_km2": 2.475,
+        "no_ground": false,
+        "from_known_m": 3049
+      },
+      {
+        "kind": "stream leaves",
+        "x": 437791,
+        "y": 2728700,
+        "area_km2": 1.012,
+        "no_ground": false,
+        "from_known_m": 1625
+      },
+      {
+        "kind": "stream enters",
+        "x": 438021,
+        "y": 2725700,
+        "area_km2": 1.008,
+        "no_ground": false,
+        "from_known_m": 3299
+      },
+      {
+        "kind": "stream enters",
+        "x": 437300,
+        "y": 2728315,
+        "area_km2": 0.825,
+        "no_ground": false,
+        "from_known_m": 2149
+      },
+      {
+        "kind": "stream enters",
+        "x": 439021,
+        "y": 2725700,
+        "area_km2": 0.74,
+        "no_ground": false,
+        "from_known_m": 3016
+      },
+      {
+        "kind": "stream leaves",
+        "x": 439281,
+        "y": 2728700,
+        "area_km2": 0.43,
+        "no_ground": false,
+        "from_known_m": 135
+      },
+      {
+        "kind": "stream leaves",
+        "x": 440081,
+        "y": 2728700,
+        "area_km2": 0.268,
+        "no_ground": false,
+        "from_known_m": 665
+      }
+    ],
+    "warnings": [
+      "a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 1.01 km2 leaves the domain at (437791, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 0.43 km2 leaves the domain at (439281, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 0.27 km2 leaves the domain at (440081, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley",
+      "a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 1.01 km2 beyond the edge enters the domain at (438021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.83 km2 beyond the edge enters the domain at (437300, 2728315) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line"
+    ],
+    "ground_at_nearest": [
+      [
+        -300.0,
+        79.62
+      ],
+      [
+        -275.0,
+        79.63
+      ],
+      [
+        -250.0,
+        80.69
+      ],
+      [
+        -225.0,
+        82.65
+      ],
+      [
+        -200.0,
+        82.66
+      ],
+      [
+        -175.0,
+        81.45
+      ],
+      [
+        -150.0,
+        80.6
+      ],
+      [
+        -125.0,
+        80.22
+      ],
+      [
+        -100.0,
+        79.3
+      ],
+      [
+        -75.0,
+        77.99
+      ],
+      [
+        -50.0,
+        76.26
+      ],
+      [
+        -25.0,
+        75.21
+      ],
+      [
+        0.0,
+        73.9
+      ],
+      [
+        25.0,
+        74.33
+      ],
+      [
+        50.0,
+        74.95
+      ],
+      [
+        75.0,
+        74.73
+      ],
+      [
+        100.0,
+        73.56
+      ],
+      [
+        125.0,
+        72.71
+      ],
+      [
+        150.0,
+        74.58
+      ],
+      [
+        175.0,
+        75.16
+      ],
+      [
+        200.0,
+        74.65
+      ],
+      [
+        225.0,
+        77.25
+      ],
+      [
+        250.0,
+        75.91
+      ],
+      [
+        275.0,
+        75.43
+      ],
+      [
+        300.0,
+        71.18
+      ]
+    ]
+  },
+  "bidah_clean": {
+    "seconds": 0.5,
+    "found": [
+      {
+        "kind": "stream enters",
+        "x": 437300,
+        "y": 2727855,
+        "area_km2": 3.412,
+        "no_ground": false,
+        "from_known_m": 2275
+      },
+      {
+        "kind": "stream enters",
+        "x": 438821,
+        "y": 2725700,
+        "area_km2": 2.475,
+        "no_ground": false,
+        "from_known_m": 3049
+      },
+      {
+        "kind": "stream enters",
+        "x": 438021,
+        "y": 2725700,
+        "area_km2": 1.008,
+        "no_ground": false,
+        "from_known_m": 3299
+      },
+      {
+        "kind": "stream enters",
+        "x": 437300,
+        "y": 2728315,
+        "area_km2": 0.825,
+        "no_ground": false,
+        "from_known_m": 2149
+      },
+      {
+        "kind": "stream enters",
+        "x": 439021,
+        "y": 2725700,
+        "area_km2": 0.74,
+        "no_ground": false,
+        "from_known_m": 3016
+      }
+    ],
+    "warnings": [
+      "a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 1.01 km2 beyond the edge enters the domain at (438021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.83 km2 beyond the edge enters the domain at (437300, 2728315) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line",
+      "a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line"
+    ],
+    "ground_at_nearest": [
+      [
+        -300.0,
+        98.53
+      ],
+      [
+        -275.0,
+        96.54
+      ],
+      [
+        -250.0,
+        95.66
+      ],
+      [
+        -225.0,
+        97.46
+      ],
+      [
+        -200.0,
+        98.77
+      ],
+      [
+        -175.0,
+        99.44
+      ],
+      [
+        -150.0,
+        98.84
+      ],
+      [
+        -125.0,
+        96.37
+      ],
+      [
+        -100.0,
+        93.21
+      ],
+      [
+        -75.0,
+        92.17
+      ],
+      [
+        -50.0,
+        91.78
+      ],
+      [
+        -25.0,
+        91.3
+      ],
+      [
+        0.0,
+        91.01
+      ],
+      [
+        25.0,
+        91.04
+      ],
+      [
+        50.0,
+        90.55
+      ],
+      [
+        75.0,
+        90.26
+      ],
+      [
+        100.0,
+        90.29
+      ],
+      [
+        125.0,
+        89.94
+      ],
+      [
+        150.0,
+        89.62
+      ],
+      [
+        175.0,
+        90.33
+      ],
+      [
+        200.0,
+        95.18
+      ],
+      [
+        225.0,
+        95.51
+      ],
+      [
+        250.0,
+        92.03
+      ],
+      [
+        275.0,
+        89.81
+      ],
+      [
+        300.0,
+        88.37
+      ]
+    ]
+  }
+}
