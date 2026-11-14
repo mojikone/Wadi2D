@@ -558,7 +558,11 @@ class Pixels(_Part):
 class Smooth(_Part):
     """The smooth drawing of the pixel maps. The pixel rasters stay the numbers of record."""
 
-    enabled: bool = Field(True, description="Make smooth class polygons and the depth drawing")
+    enabled: bool = Field(
+        False,
+        description="Make smooth class polygons and the depth drawing with the run; off, they are made when a map "
+        "sheet needs them (wadi2d drawings). They take several times as long as the rasters of record",
+    )
     sigma_px: float = Field(
         1.0, ge=0.25, le=8.0, description="Width of the soft class masks, Gaussian sigma in pixels"
     )

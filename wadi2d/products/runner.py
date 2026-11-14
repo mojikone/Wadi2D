@@ -7,6 +7,7 @@ with the step's own outcome.
 
 from __future__ import annotations
 
+import json
 import traceback
 from collections.abc import Iterable
 from pathlib import Path
@@ -14,7 +15,19 @@ from pathlib import Path
 from wadi2d.config.schema import RunConfig
 from wadi2d.io.progress import Progress
 from wadi2d.products.frames import frame_names
-from wadi2d.products.step import PIXEL_DIR, ProductsStopped, Watch, make_products
+from wadi2d.products.step import (
+    DEPTH_FILE,
+    HAZARD_FILE,
+    PIXEL_DIR,
+    STAGES,
+    STAGES_DRAWING,
+    STAGES_RECORD,
+    STATS_FILE,
+    ProductsStopped,
+    Watch,
+    make_products,
+    read_record,
+)
 
 PRODUCTS_NONE, PRODUCTS_DONE, PRODUCTS_STOPPED, PRODUCTS_FAILED, PRODUCTS_SKIPPED = (
     "none", "finished", "stopped", "failed", "skipped",
@@ -33,7 +46,8 @@ def make_after_run(
         progress.emit("output", kind="pixels_skipped", reason="the run saved no maps")
         return PRODUCTS_SKIPPED
     stops = (out / "stop", *stop_files)
-    watch = Watch(progress.emit, lambda: any(path.exists() for path in stops))
+    stages = STAGES if cfg.outputs.smooth.enabled else STAGES_RECORD
+    watch = Watch(progress.emit, lambda: any(path.exists() for path in stops), stages)
     try:
         make_products(cfg, tables, crs, out, watch, backend or cfg.run.backend, tags)
     except ProductsStopped:
@@ -69,6 +83,59 @@ def remake(run: Path, backend: str | None = None, echo: bool = False) -> int:
         except InvalidJob as error:
             progress.emit("error", code=EXIT_INVALID, message=str(error))
             return EXIT_INVALID
+        code = {PRODUCTS_STOPPED: EXIT_STOPPED, PRODUCTS_FAILED: EXIT_FAILED}.get(outcome, EXIT_OK)
+        progress.emit("done", status=outcome, code=code, products=outcome)
+    return code
+
+
+def _draw(run: Path, backend: str | None, progress: Progress) -> None:
+    """The polygons and the depth drawing from the rasters a run holds; the layers too when the run has none."""
+    from wadi2d.io.geopackage import layer_names
+    from wadi2d.products.pixels import array_module
+    from wadi2d.products.smooth import DOMAIN_LAYER, LAYERS_FILE, make_drawings, run_layers
+    from wadi2d.run import InvalidJob, prepare_grid
+
+    config, folder = run / "config.resolved.json", run / PIXEL_DIR
+    if not config.is_file() or not all((folder / name).is_file() for name in (HAZARD_FILE, DEPTH_FILE)):
+        raise InvalidJob(f"{run} holds no pixel rasters to draw: wadi2d products makes them")
+    cfg = RunConfig.model_validate_json(config.read_text(encoding="utf-8"))
+    stop = run / "stop"
+    watch = Watch(progress.emit, stop.exists, STAGES_DRAWING)
+    watch.tick("smooth", 0, 1)
+    classes, depth, profile = read_record(folder)
+    layers = None
+    if DOMAIN_LAYER not in layer_names(folder / LAYERS_FILE):  # a run made before every run kept its layers
+        cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else run / "cache"
+        tables, crs = prepare_grid(cfg, cache, progress)
+        layers = run_layers(cfg, tables, crs)
+    xp = array_module(backend or cfg.run.backend)
+    accounts = make_drawings(cfg, classes, depth, profile, folder, profile["crs"], watch, xp, layers)
+    stats_file = folder / STATS_FILE
+    stats = json.loads(stats_file.read_text(encoding="utf-8")) if stats_file.is_file() else {}
+    stats_file.write_text(json.dumps({**stats, "smooth": accounts}, indent=1), encoding="utf-8")
+
+
+def draw(run: Path, backend: str | None = None, echo: bool = False) -> int:
+    """``wadi2d drawings``: the smooth class polygons and the depth drawing of a finished run, made when they are
+    wanted and not with every run (W50). They are drawn from the run's rasters of record, as the run draws them."""
+    from wadi2d.run import InvalidJob
+
+    with Progress(run / PRODUCTS_LOG, echo=echo) as progress:
+        outcome = PRODUCTS_DONE
+        try:
+            _draw(run, backend, progress)
+        except InvalidJob as error:
+            progress.emit("error", code=EXIT_INVALID, message=str(error))
+            return EXIT_INVALID
+        except ProductsStopped:
+            (run / "stop").unlink(missing_ok=True)
+            progress.emit("warn", message="The drawing stopped on request. The run's rasters are as they were.")
+            outcome = PRODUCTS_STOPPED
+        except Exception as error:  # the protocol wants a code and an event, never a traceback alone
+            progress.emit("error", code=EXIT_FAILED, message=f"The drawing could not be made: {error}", trace=traceback.format_exc())
+            outcome = PRODUCTS_FAILED
+        else:
+            progress.emit("output", kind="drawings", path=str(run / PIXEL_DIR))
         code = {PRODUCTS_STOPPED: EXIT_STOPPED, PRODUCTS_FAILED: EXIT_FAILED}.get(outcome, EXIT_OK)
         progress.emit("done", status=outcome, code=code, products=outcome)
     return code

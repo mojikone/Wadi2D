@@ -165,6 +165,12 @@ def _products(args: argparse.Namespace) -> int:
     return remake(Path(args.run), args.backend, echo=True)
 
 
+def _drawings(args: argparse.Namespace) -> int:
+    from wadi2d.products.runner import draw
+
+    return draw(Path(args.run), args.backend, echo=True)
+
+
 def _frames(args: argparse.Namespace) -> int:
     from wadi2d.products.time_slider import write_frames
 
@@ -288,10 +294,17 @@ def parser() -> argparse.ArgumentParser:
     arf.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     arf.set_defaults(call=_arf)
 
-    products = sub.add_parser("products", help="pixel depth, hazard and their drawing, for a finished run")
+    products = sub.add_parser("products", help="pixel depth and hazard for a finished run, drawn if its job asks")
     products.add_argument("run", metavar="RUN_DIR")
     products.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     products.set_defaults(call=_products)
+
+    drawings = sub.add_parser(
+        "drawings", help="smooth class polygons and the depth drawing, from the pixel rasters a finished run holds"
+    )
+    drawings.add_argument("run", metavar="RUN_DIR")
+    drawings.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
+    drawings.set_defaults(call=_drawings)
 
     frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
     frames.add_argument("run", metavar="RUN_DIR")

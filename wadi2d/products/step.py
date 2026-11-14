@@ -2,7 +2,8 @@
 
 Called by ``run_job`` at the end of a run and by ``wadi2d products`` on any run folder that holds its saved maps.
 Everything lands in ``<run>/pixels/``. The 5 m rasters there are the numbers of record; the polygons and the depth
-drawing are how they are shown.
+drawing are how they are shown, and are made only when asked for: with the run (``outputs.smooth.enabled``) or
+after it (``wadi2d drawings``).
 """
 
 from __future__ import annotations
@@ -11,7 +12,7 @@ import gc
 import json
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, closing
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -19,6 +20,7 @@ import rasterio
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
+from wadi2d.io.geopackage import write_geopackage
 from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, raster_profile
 from wadi2d.products.frames import frame_names, read_frames, run_maxima
 from wadi2d.products.ground import CellPixels, face_sills, read_cells
@@ -36,6 +38,10 @@ STATS_FILE = "pixels.json"
 NO_DEPTH = -9999.0
 STAGES = {"ground": (0.0, 5.0), "maps": (5.0, 80.0), "rasters": (80.0, 85.0), "smooth": (85.0, 100.0)}
 """Share of the step each stage runs through, percent, for the progress bar."""
+STAGES_RECORD = {"ground": (0.0, 40.0), "maps": (40.0, 60.0), "rasters": (60.0, 100.0)}
+"""The same for a step that makes the rasters of record alone (W50)."""
+STAGES_DRAWING = {"smooth": (0.0, 100.0)}
+"""And for the polygons and the depth drawing made after the run."""
 WINDOW = 8 * BLOCK
 """Pixels along a window of the rasters of record as they are written: a whole number of their blocks."""
 
@@ -50,6 +56,7 @@ class Watch:
 
     emit: Callable[..., None]
     stopped: Callable[[], bool]
+    stages: dict = field(default_factory=lambda: STAGES)
 
     def check(self) -> None:
         if self.stopped():
@@ -57,7 +64,7 @@ class Watch:
 
     def tick(self, stage: str, done: int, of: int) -> None:
         self.check()
-        low, high = STAGES[stage]
+        low, high = self.stages[stage]
         share = done / of if of else 1.0
         self.emit("products", stage=stage, done=done, of=of, percent=round(low + (high - low) * share, 1))
 
@@ -284,8 +291,11 @@ def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp)
 def make_products(
     cfg: RunConfig, tables: GridTables, crs, out: Path, watch: Watch, backend: str, tags: dict | None = None
 ) -> dict:
-    """The whole step; returns the statistics. ``ProductsStopped`` leaves nothing half-written behind."""
-    from wadi2d.products.smooth import make_drawings, run_layers
+    """The whole step; returns the statistics. ``ProductsStopped`` leaves nothing half-written behind.
+
+    The rasters of record and the run's map layers always; the class polygons and the depth drawing when
+    ``outputs.smooth.enabled`` asks for them, and later through :func:`wadi2d.products.runner.draw` when it did not."""
+    from wadi2d.products.smooth import LAYERS_FILE, crs_text, make_drawings, run_layers
 
     on_mesh = getattr(tables.grid, "quad", False)
     maxima_of = mesh_maxima if on_mesh else pixel_maxima
@@ -318,15 +328,17 @@ def make_products(
     else:
         written = write_pixels(cfg, tables, crs, found, folder, tags, strip, watch)
     stats, profile = written["stats"], written["profile"]
+    layers = run_layers(cfg, tables, crs)
     if cfg.outputs.smooth.enabled:
-        layers = run_layers(cfg, tables, crs)
         del found, written
         _free_device(xp)
-        # the rasters are written window by window and not held, so the drawing reads them back; on a mesh this is
-        # new: the picture there was drawn from every kept pixel's depth, now from the depth of record, dry under
-        # the floor, as on the uniform grid
+        # from the files, as a drawing asked for later is made, so the two cannot differ; on a mesh this is new: the
+        # picture there was drawn from every kept pixel's depth, now from the depth of record, dry under the floor
         classes, depth, _profile = read_record(folder)
         stats["smooth"] = make_drawings(cfg, classes, depth, profile, folder, crs, watch, xp, layers)
+    else:
+        write_geopackage(folder / LAYERS_FILE, layers, crs_text(crs))
+        watch.tick("rasters", 1, 1)
     (folder / STATS_FILE).write_text(json.dumps(stats, indent=1), encoding="utf-8")
     return stats
 
