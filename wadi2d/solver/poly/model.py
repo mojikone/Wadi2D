@@ -58,6 +58,11 @@ class PolyState:
         self.nums = (m.rows, F(r.g), F(r.dx), F(r.e_wet), F(r.h_cfl), F(r.u_max), F(r.lead), F(r.a_min), r.sheet, True, r.carry)
         self.wave = 0.0
 
+    def face_arrays(self) -> dict[str, np.ndarray]:
+        """The per-face arrays a face rebuild writes (W69, a breach on strip faces), by name; the arrays themselves."""
+        fl, fr, gl, gr, ef, cw, ftab = self.static[10:]
+        return {"fl": fl, "fr": fr, "gl": gl, "gr": gr, "ef": ef, "cw": cw, "ftab": ftab, "dzl": self.dzl, "dzr": self.dzr}
+
     def zero_vectors(self) -> None:
         for a in (self.Ux, self.Uy, self.Rx, self.Ry, self.Gx, self.Gy):
             a[:] = ZERO

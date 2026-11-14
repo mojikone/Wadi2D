@@ -89,6 +89,11 @@ class PolyGpuState:
     def set_real(self, name: str, values: np.ndarray) -> None:
         getattr(self, name)[: self.nreal] = self.cp.asarray(np.asarray(values, F))
 
+    def face_arrays(self) -> dict:
+        """The per-face arrays a face rebuild writes (W69, a breach on strip faces), by name; the device arrays."""
+        fl, fr, gl, gr, ef, cw = self.static[8:14]
+        return {"fl": fl, "fr": fr, "gl": gl, "gr": gr, "ef": ef, "cw": cw, "ftab": self.ftab, "dzl": self.dzl, "dzr": self.dzr}
+
     # ---- launches
     def levels(self) -> None:
         nf = self.mesh.nfaces

@@ -100,13 +100,14 @@ def _profile(bed, edit, axis: int, j: int, i: int, k: int) -> tuple[np.ndarray, 
     return pick(edited), pick(raw)
 
 
-def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float) -> BreachFaces:
-    """The dam's faces with everything a rebuild needs; ``edits`` is :func:`wadi2d.terrain.apply_objects`' result."""
+def build_faces(tables, bed, edits, obj: TerrainObject, manning, snap: float) -> BreachFaces | None:
+    """The dam's faces with everything a rebuild needs, None where it has no open face on the squares (W69: the dam
+    may lie on a strip's faces alone); ``edits`` is :func:`wadi2d.terrain.apply_objects`' result."""
     grid = tables.grid
     k = round(grid.dx / bed.pixel)
     found = find_faces(tables, edits.crest, obj, snap)
     if not found:
-        raise ValueError(f"breach: no open crest face of '{obj.name}' on the grid")
+        return None
     axis, jj, ii = (np.array(v, np.int64) for v in zip(*found, strict=True))
     n = axis.size
     crested = np.empty((n, k))
