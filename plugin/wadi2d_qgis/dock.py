@@ -40,6 +40,7 @@ from .job_builder import (
     write_geojson,
     write_job,
 )
+from .layer_groups import model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
 from .preview import TerrainPreview, zoom_to
@@ -193,6 +194,7 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self._basin_query: EngineQuery | None = None
+        self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
         self.panel.estimate_button.clicked.connect(self.estimate)
@@ -209,6 +211,8 @@ class Wadi2DDock(QgsDockWidget):
         self._slider_timer = QTimer(self)
         self._slider_timer.timeout.connect(self._slider_poll)
         self.panel.lines_button.clicked.connect(self.result_lines)
+        self.panel.workbook_button.clicked.connect(self.dam_workbook)
+        self.workbook_dialog = None
         self.study.start_button.clicked.connect(self.start_study)
         self.study.stop_button.clicked.connect(self.stop_study)
         self.study.open_button.clicked.connect(self.open_study)
@@ -416,7 +420,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         summary = json.loads(Path(event["summary"]).read_text(encoding="utf-8"))
         sizes = [float(size.split()[0]) for size in summary["tiles_by_size"]]
-        self._mesh_layer = show_mesh(event["raster"], sizes, self._mesh_layer)
+        self._mesh_layer = show_mesh(event["raster"], sizes, model_name(self.panel.folder.filePath()))
         if self._mesh_folder:
             shutil.rmtree(self._mesh_folder, ignore_errors=True)
         self._mesh_folder = self._mesh_folder_next
@@ -509,6 +513,7 @@ class Wadi2DDock(QgsDockWidget):
             box.say(" ".join(found))
             return
         out = Path(values["output"]) / BASIN_DIR
+        self._basin_model = model_name(values["output"])
         pour = None
         try:
             job = write_job(basin_job(values, out), out)
@@ -535,7 +540,7 @@ class Wadi2DDock(QgsDockWidget):
             return
         try:
             box.take(event)
-            layers = load_basin_layers(event["geometry"])
+            layers = load_basin_layers(event["geometry"], self._basin_model)
         finally:
             box.set_busy(False)
         if layers:
@@ -900,6 +905,15 @@ class Wadi2DDock(QgsDockWidget):
         if self.line_panel is None:
             self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
         self.line_panel.open_run(self.results_dir)
+
+    def dam_workbook(self) -> None:
+        """The dam workbook dialog (W60), the last finished run as its first return period."""
+        from .workbook_dialog import WorkbookDialog
+
+        if self.workbook_dialog is None or not self.workbook_dialog.isVisible():
+            self.workbook_dialog = WorkbookDialog(self.results_dir, self)
+        self.workbook_dialog.show()
+        self.workbook_dialog.raise_()
 
     def _drop_book(self) -> None:
         """The last sheets and the layers that only they use; layouts of the same name go too."""

@@ -18,35 +18,29 @@ from qgis.PyQt.QtCore import QObject, pyqtSignal
 from . import settings
 from .engine_process import EngineQuery
 from .job_builder import LayerError, preview_job, preview_problems, write_job
+from .layer_groups import SLOT_TERRAIN, TERRAIN, add_layer, clear_slot, input_group, model_name
 from .protocol import engine_error_text, exit_message, terrain_args
 from .shaped import volumes_text
 from .style import style_change
 
-GROUP = "Wadi2D terrain preview"
 CHANGE_LAYER = "terrain change"
 MODIFIED_LAYER = "terrain modified"
 PREVIEW_PREFIX = "wadi2d_preview_"
 
 
-def load_terrain(files: dict) -> list:
-    """The two rasters of a preview into their own group, replacing the last preview."""
-    project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    old = root.findGroup(GROUP)
-    if old is not None:
-        project.removeMapLayers(old.findLayerIds())
-        root.removeChildNode(old)
+def load_terrain(files: dict, model: str) -> list:
+    """The two rasters of a preview into the model's Inputs > Terrain, replacing the last preview there."""
+    clear_slot(model, SLOT_TERRAIN)
     change = QgsRasterLayer(files["change"], CHANGE_LAYER)
     modified = QgsRasterLayer(files["modified"], MODIFIED_LAYER)
     layers = [layer for layer in (change, modified) if layer.isValid()]
     if not layers:
         return []
-    group = root.insertGroup(0, GROUP)
+    group = input_group(model, TERRAIN)
     for index, layer in enumerate(layers):
         if layer.name() == CHANGE_LAYER:
             style_change(layer)
-        project.addMapLayer(layer, False)
-        group.addLayer(layer).setItemVisibilityChecked(index == 0)
+        add_layer(group, layer, SLOT_TERRAIN, shown=index == 0, index=index)
     return layers
 
 
@@ -70,6 +64,7 @@ class TerrainPreview(QObject):
         self.data: list[dict] = []
         self.report: dict = {}
         self._query: EngineQuery | None = None
+        self._model = model_name(None)
 
     @property
     def running(self) -> bool:
@@ -81,6 +76,7 @@ class TerrainPreview(QObject):
         if found:
             self.finished.emit(" ".join(found), False)
             return
+        self._model = model_name(values.get("output"))
         parent = Path(values["output"]).parent if values.get("output") else None
         if parent is not None and not parent.is_dir():
             parent = None
@@ -105,7 +101,7 @@ class TerrainPreview(QObject):
             return
         self.report = report
         self.data = json.loads(Path(report["files"]["preview"]).read_text(encoding="utf-8"))
-        layers = load_terrain(report["files"])
+        layers = load_terrain(report["files"], self._model)
         if not layers:
             self.finished.emit("The engine finished, but its rasters could not be loaded.", False)
             return

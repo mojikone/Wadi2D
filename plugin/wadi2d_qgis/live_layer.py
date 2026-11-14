@@ -17,6 +17,16 @@ from qgis.core import (
 from qgis.gui import QgsVertexMarker
 from qgis.PyQt.QtGui import QColor
 
+from .layer_groups import (
+    MESH,
+    SLOT_MESH,
+    add_layer,
+    clear_slot,
+    drop_results,
+    input_group,
+    run_results,
+    subgroup,
+)
 from .progress import live_source
 from .protocol import MAPS_DIR
 from .result_layers import GROUP_CELLS, hide_band_name
@@ -28,16 +38,14 @@ MARKER_SIZE = 18
 MARKER_PEN = 3
 
 
-def show_mesh(path: Path | str, sizes: list[float], old_id: str | None) -> str | None:
-    """The preview on the map, one colour per cell size, in place of the last one. Returns the layer's id."""
-    project = QgsProject.instance()
-    if old_id and project.mapLayer(old_id) is not None:
-        project.removeMapLayer(old_id)
+def show_mesh(path: Path | str, sizes: list[float], model: str) -> str | None:
+    """The preview in the model's Inputs > Mesh, one colour per cell size, in place of the last one there. Its id."""
+    clear_slot(model, SLOT_MESH)
     layer = QgsRasterLayer(str(path), MESH_NAME)
     if not layer.isValid():
         return None
     style_mesh(layer, sizes)
-    project.addMapLayer(layer)
+    add_layer(input_group(model, MESH), layer, SLOT_MESH, index=0)
     return layer.id()
 
 
@@ -61,7 +69,7 @@ class LiveLayer:
         if stamp == self._stamp:
             return
         if self._layer_id is None:
-            self._add(path)
+            self._add(path, out_dir)
             self._stamp = stamp
             return
         layer = QgsProject.instance().mapLayer(self._layer_id)
@@ -76,12 +84,12 @@ class LiveLayer:
         layer.triggerRepaint()
         self._stamp = stamp
 
-    def _add(self, path: Path) -> None:
+    def _add(self, path: Path, out_dir: Path | str) -> None:
         layer = QgsRasterLayer(str(path), LIVE_NAME)
         if not layer.isValid():  # caught in mid-write: the next poll tries again
             return
         style_depth(layer)
-        QgsProject.instance().addMapLayer(layer)
+        add_layer(run_results(out_dir), layer, index=0)  # the run's results group; its maps replace it at the end
         self._layer_id = layer.id()
         self._path = path
 
@@ -96,31 +104,25 @@ class LiveLayer:
 
 
 def load_maps(out_dir: Path | str, name: str, tucked: bool = False, folder: str = MAPS_DIR) -> list:
-    """``maps/*.tif``, or the ``folder`` given, into a group named after the run; loading a run again replaces its group.
+    """``maps/*.tif``, or the ``folder`` given, into the run's results group, ``name`` its label in its model; loading
+    a run again replaces its results group, and only that (``layer_groups``).
 
     ``tucked`` puts them in a closed subgroup, switched off, under what the run made after them.
     """
-    project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    old = root.findGroup(name)
-    if old is not None:
-        project.removeMapLayers(old.findLayerIds())
-        root.removeChildNode(old)
     paths = sorted((Path(out_dir) / folder).glob("*.tif"), key=_map_rank)
     layers = [layer for layer in (QgsRasterLayer(str(path), path.stem) for path in paths) if layer.isValid()]
+    group = run_results(out_dir, name, fresh=True)
     if not layers:
+        drop_results(group)
         return []
-    group = root.insertGroup(0, name)
     if tucked:
-        group = group.addGroup(GROUP_CELLS)
+        group = subgroup(group, GROUP_CELLS)
         group.setExpanded(False)
     for index, layer in enumerate(layers):
         style = STYLES.get(layer.name())
         if style:
             style(layer)
-        project.addMapLayer(layer, False)
-        node = group.addLayer(layer)
-        node.setItemVisibilityChecked(index == 0 and not tucked)
+        node = add_layer(group, layer, shown=index == 0 and not tucked)
         hide_band_name(node)
     return layers
 

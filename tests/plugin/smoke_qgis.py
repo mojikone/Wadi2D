@@ -143,7 +143,10 @@ def start(dock) -> None:
 
 
 def group(name: str):
-    return PROJECT.layerTreeRoot().findGroup(name)
+    """A run's results group, under its model's group (W68)."""
+    from wadi2d_qgis.layer_groups import results_title
+
+    return PROJECT.layerTreeRoot().findGroup(results_title(name))
 
 
 def qgis_loader() -> None:
@@ -462,7 +465,7 @@ def smoke() -> None:
     os.environ["WADI2D_FAKE_STEP_S"] = "0.08"
     check(dock.live.layer() is None, "live layer leaves when the maps arrive")
     node = group("run")
-    check(node is not None, "maps in a group named after the run")
+    check(node is not None, "maps in the results group named after the run")
     names = [child.name() for child in node.children()]
     check(names[:2] == ["max_depth", "hazard"] and len(names) == 6, "maps ordered, depth first")
     layers = {child.name(): child.layer() for child in node.children()}

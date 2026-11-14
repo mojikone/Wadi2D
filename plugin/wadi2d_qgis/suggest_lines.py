@@ -159,12 +159,12 @@ class Suggester:
     def _load(self, event: dict) -> None:
         from qgis.core import QgsProject, QgsVectorLayer
 
-        project = QgsProject.instance()
-        for old in self.layer_ids:
-            if project.mapLayer(old) is not None:
-                project.removeMapLayer(old)
-        self.layer_ids = []
-        root = project.layerTreeRoot()
+        from .layer_groups import MESH, SLOT_SUGGEST, add_layer, clear_slot, input_group, model_name
+
+        model = model_name(self.dock.panel.folder.filePath())
+        clear_slot(model, SLOT_SUGGEST)  # the last suggestion still in the model's Mesh group; one moved out stays
+        self.layer_ids = [old for old in self.layer_ids if QgsProject.instance().mapLayer(old) is not None]
+        group = input_group(model, MESH)
         reference = QgsVectorLayer.LayerOptions()
         reference.forceReadOnly = True
         thalwegs = QgsVectorLayer(
@@ -175,8 +175,7 @@ class Suggester:
             if not layer.isValid():
                 continue
             style(layer)
-            project.addMapLayer(layer, False)
-            root.insertLayer(0, layer)
+            add_layer(group, layer, SLOT_SUGGEST, index=0)
             self.layer_ids.append(layer.id())
         if lines.isValid():
             lines.startEditing()

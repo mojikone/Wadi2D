@@ -1,17 +1,17 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""The three layers of a generated basin, styled, in their own group; a new generation replaces the last."""
+"""The three layers of a generated basin, styled, in the model's Inputs > Hydrology; a new generation replaces the last."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from qgis.core import QgsProject, QgsVectorLayer
+from qgis.core import QgsVectorLayer
 
 from . import style
+from .layer_groups import HYDROLOGY, SLOT_BASIN, add_layer, clear_slot, input_group
 from .protocol import BASIN_LAYERS
 
-GROUP = "Wadi2D basin"
 TITLES = {"subbasins": "Subbasins, generated", "reaches": "Reaches, generated", "junctions": "Junctions, generated"}
 STYLES = {
     "subbasins": style.style_basin_subbasins,
@@ -27,14 +27,9 @@ def open_basin_layer(gpkg: Path | str, name: str):
     return layer if layer.isValid() else None
 
 
-def load_basin_layers(gpkg: Path | str) -> list:
-    """Subbasins, reaches and junctions into the basin group, replacing the last generation's."""
-    project = QgsProject.instance()
-    root = project.layerTreeRoot()
-    old = root.findGroup(GROUP)
-    if old is not None:
-        project.removeMapLayers(old.findLayerIds())
-        root.removeChildNode(old)
+def load_basin_layers(gpkg: Path | str, model: str) -> list:
+    """Subbasins, reaches and junctions into the model's Inputs > Hydrology, replacing the last generation's there."""
+    clear_slot(model, SLOT_BASIN)
     layers = []
     for name in reversed(BASIN_LAYERS):  # junctions on top
         layer = open_basin_layer(gpkg, name)
@@ -43,8 +38,7 @@ def load_basin_layers(gpkg: Path | str) -> list:
             layers.append(layer)
     if not layers:
         return []
-    group = root.insertGroup(0, GROUP)
-    for layer in reversed(layers):
-        project.addMapLayer(layer, False)
-        group.addLayer(layer)
+    group = input_group(model, HYDROLOGY)
+    for index, layer in enumerate(reversed(layers)):
+        add_layer(group, layer, SLOT_BASIN, index=index)
     return layers

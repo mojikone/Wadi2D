@@ -104,8 +104,11 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
 
 During a run the depth appears as a blue layer. When the simulation ends the bar restarts for the pixel maps, unless the
 box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons, a depth drawing with a soft wet edge. At
-the end the layers load into a group named after the run: **Model setup**, **Flood maps**, **Pixel rasters, the numbers of
-record**, **Cell maps**. Model setup also holds the **Cell grid**, the cells the solver really stepped, coarse tiles coarse, on every run even with pixel maps off; it draws once you are near enough for a cell to reach 1 mm on screen, and its name says the scale. If the run fails, the message says why and a red cross marks the cell.
+the end the layers load into the run's group, **Results – <run>**, inside the model's group, **Wadi2D – <output folder>**:
+**Model setup**, **Flood maps**, **Pixel rasters, the numbers of record**, **Cell maps**, and later **Time slider** and **Lines**. The
+model's group also holds **Inputs** (Terrain, Boundaries, Structures, Hydrology, Mesh), where Preview terrain, Generate basin,
+the mesh preview and Suggest breaklines put their layers. A rerun replaces only its own results group; your own layers are never
+deleted, and one you move out of the group stays where you put it. The names are set in `layer_groups.py`. Model setup also holds the **Cell grid**, the cells the solver really stepped, coarse tiles coarse, on every run even with pixel maps off; it draws once you are near enough for a cell to reach 1 mm on screen, and its name says the scale. If the run fails, the message says why and a red cross marks the cell.
 
 **Time slider** steps through the saved frames: it writes `frames.nc`, loads it as a mesh layer with depth, speed and hazard on the real cells, and sets up the Temporal Controller, one step per saved frame. The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run. It switches the Flood maps group off, since the run's maximum under a rising flood would read as the flood; tick it back on. These are cell values and show how the flood moves; the pixel rasters stay the numbers of record. A large run takes minutes to read, and QGIS waits meanwhile. It needs two saved maps. Speed and hazard are in the layer's own styling panel.
 
@@ -199,6 +202,7 @@ later session), `engine.out`, `engine.err`. The schema carries structures, bound
 | `profile_canvas.py`, `profile_editor.py` | the profile editor: the plot you take hold of, and the dialog | yes |
 | `engine_process.py` | `QProcess` wrappers: short commands and runs, start, attach, stop | yes |
 | `live_layer.py`, `result_layers.py`, `style.py` | layers on the map, grouped and styled | yes |
+| `layer_groups.py` | the layer tree's pattern: one group per model, its results and inputs, every name a constant | yes |
 | `time_layer.py` | the frames file as a mesh layer, and the Temporal Controller | yes |
 | `suggest_lines.py` | Suggest breaklines: the job, the engine's `breaklines` command, the editable layer | adapters only |
 | `map_notes.py` | the words on a sheet, from the run folder | no |

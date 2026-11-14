@@ -1,0 +1,36 @@
+    0.0 script loaded
+    4.2 hand-back line 1119 m inside the domain
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af7bb88e5b3b8b23f\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.1 PASS the hand-back line enters the reservoir Bidah 03 Reservoir
+    5.1 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+    6.1 dock says: The HMS control file sets 48 h of simulated time, not the 12 h in the form.
+    8.2 dock says: line S14 ring crosses no active face
+  306.2 dock says: water stood 12.2 m deep against the domain edge at (431741, 2726975): an edge is a wall, so check the domain polygon there
+  306.5 PASS the run finished Finished. line Faydh 01 crosses no active face. line R5A crosses no active face. line R2A crosses no active face. line Z4C crosses no active face. line Faydh 01 ring crosses no active face. line R2A ring crosses no active face. line Z4C ring crosses no active 
+  306.5 PASS the reservoir's series is written ['network_Bidah_03_Reservoir.csv', 'network_W68_Outlet.csv']
+  306.5 reservoir columns: ['t_s', 'inflow_m3s', 'outflow_m3s', 'branched_m3s', 'pool_m', 'storage_m3', 'orifice_1_m3s', 'rating_spillway_1_m3s', 'dam_top_1_m3s', 'rain_mm', 'excess_mm']
+  306.5 PASS each structure's flow is a column ['t_s', 'inflow_m3s', 'outflow_m3s', 'branched_m3s', 'pool_m', 'storage_m3', 'orifice_1_m3s', 'rating_spillway_1_m3s', 'dam_top_1_m3s', 'rain_mm', 'excess_mm']
+  306.5 reservoir: peak in 703.7, out 25.4 m3/s, highest pool 96.15 m, orifice 25.40
+  306.5 PASS the 2D flood reaches the reservoir 703.677
+  306.5 PASS the structures attenuate it (703.677, 25.4022)
+  306.5 PASS below the spillway the orifice carries it all (96.1542, 25.4022, 25.4022)
+  306.5 PASS the pool rises above its start 96.1542
+  306.5 PASS one group for the model 
+  306.5 PASS its results on top, its inputs below ['Results – structures_hms', 'Inputs']
+  306.5 PASS the inputs' fixed pattern ['Terrain', 'Boundaries', 'Structures', 'Hydrology', 'Mesh']
+  306.5 PASS a run with no pixel maps: its setup, then its cell maps ['Model setup', 'max_depth', 'hazard', 'max_speed', 'max_level', 'arrival', 'max_mean_depth']
+  306.5 PASS the user's own layers stay at the root 
+  306.5 dock says: Finished. line Faydh 01 crosses no active face. line R5A crosses no active face. line R2A crosses no active face. line Z4C crosses no active face. line Faydh 01 ring crosses no active face. line R2A ring crosses no active face. line Z4C ring crosses no active face. line S1 ring crosses no active fac
+  309.3 panel: ['Upfront line: Bidah 03', 'Upfront line: Faydh 01', 'Upfront line: R5A', 'Upfront line: R2A', 'Upfront line: Z4C', 'Upfront line: Bidah 03 ring', 'Upfront line: Faydh 01 ring', 'Upfront line: R5A ring', 'Upfront line: R2A ring', 'Upfront line: Z4C ring', 'Upfront line: S1 ring', 'Upfront line: S2 ring']
+  309.3 right-click on the hand-back line: ['Hydrograph: Upfront line: Bidah 03', 'Hydrograph: Upfront line: Bidah 03 ring', 'Hydrograph: Lumped element: Bidah 03 Reservoir']
+  309.3 PASS the pan tool is the map tool QgsMapToolPan
+  309.3 PASS the right-click offers the reservoir's hydrograph ['Hydrograph: Upfront line: Bidah 03', 'Hydrograph: Upfront line: Bidah 03 ring', 'Hydrograph: Lumped element: Bidah 03 Reservoir']
+  309.3 PASS the reservoir's chart opens in the panel Lumped element: Bidah 03 Reservoir.
+  309.4 PASS the dialog opens on the last run [('', 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\dock\\dock_hms_structures\\runs\\structures_hms')]
+  309.4 workbook elements offered: ['Bidah_03_Reservoir', 'W68_Outlet', 'Bidah_03', 'Bidah_03_ring', 'Faydh_01', 'Faydh_01_ring', 'R2A', 'R2A_ring', 'R5A', 'R5A_ring', 'S11_ring', 'S14_ring', 'S1_ring', 'S2_ring', 'S5_ring', 'S6_ring', 'Z4C', 'Z4C_ring']
+  310.5 PASS the workbook is written Workbook written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock\dock_hms_structures\dam_workbook.xlsx
+  310.5 workbook sheets: ['Read me', '200-year', 'Peak inflow', 'Inflow volume', 'Time to peak', 'Peak outflow', 'Attenuation', 'Highest pool level', 'Bidah_03_Reservoir']
+  310.5 PASS its target sheet and the dam's sheet ['Read me', '200-year', 'Peak inflow', 'Inflow volume', 'Time to peak', 'Peak outflow', 'Attenuation', 'Highest pool level', 'Bidah_03_Reservoir']
+  310.5 SUMMARY 21 passed, 0 failed 
+  310.5 DONE
