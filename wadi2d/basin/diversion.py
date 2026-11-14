@@ -245,8 +245,10 @@ def diversion_routing(block: dict[str, Any]):
 
 
 def check_targets(elements: list[dict[str, Any]]) -> None:
-    """Every diversion's ``divert_to`` is an element of the model, not itself and not where its main flow goes."""
-    names = {e["name"] for e in elements}
+    """Every diversion's ``divert_to`` is an element of the model, not itself, not where its main flow goes, and not
+    above it (the run would refuse the loop at its start)."""
+    by_name = {e["name"]: e for e in elements}
+    names = set(by_name)
     for element in elements:
         block = element.get("diversion")
         if not block or block.get("divert_to") is None:
@@ -260,3 +262,12 @@ def check_targets(elements: list[dict[str, Any]]) -> None:
             )
         if target in (name, element["downstream"]):
             raise ValueError(f"diversion {name}: divert_to {target!r} is the diversion or its own main channel")
+        below, at = set(), target
+        while at is not None and at not in below:
+            below.add(at)
+            at = by_name[at]["downstream"]
+        if name in below:
+            raise ValueError(
+                f"diversion {name}: divert_to {target!r} drains back into {name}, a loop; divert to an element "
+                "below it or on another branch"
+            )

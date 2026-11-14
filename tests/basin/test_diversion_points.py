@@ -99,6 +99,7 @@ def test_not_connected_leaves_the_network(valley: Valley) -> None:
         ({"method": "Constant Flow", "parameters": '{"rate_m3s": 5, "pattern": "x"}'}, "takes no \\['pattern'\\]"),
         ({"method": "Inflow-Diversion Table"}, "the table field is empty"),
         ({"method": "Constant Flow", "parameters": '{"rate_m3s": 5}', "divert_to": "Nowhere"}, "divert_to 'Nowhere'"),
+        ({"method": "Constant Flow", "parameters": '{"rate_m3s": 5}', "divert_to": "In"}, "drains back into Div, a loop"),
         ({"method": "Constant Flow", "parameters": '{"rate_m3s": 5}', "limits": '{"max_cfs": 5}'}, "limits \\['max_cfs'\\]"),
     ],
 )
