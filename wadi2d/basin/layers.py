@@ -24,6 +24,7 @@ SUBBASIN_COLUMNS = {
     "area_km2": float,
     "flow_length_m": float,
     "slope": float,
+    "tc_minutes": float,
 }
 REACH_COLUMNS = {
     "length_m": float,
@@ -31,8 +32,11 @@ REACH_COLUMNS = {
     "manning_n": float,
     "bottom_width_m": float,
     "side_slope": float,
+    "tc_minutes": float,
 }
-NODE_COLUMNS = {"drainage_area_km2": float}
+NODE_COLUMNS = {"drainage_area_km2": float, "tc_minutes": float}
+"""``tc_minutes`` (W64): Kirpich on the subbasin's own path; on a reach, junction or reservoir, the longest path from
+the whole drainage area above its outlet."""
 
 
 def _polygons(surface: Surface, label: np.ndarray) -> dict[int, shapely.Geometry]:

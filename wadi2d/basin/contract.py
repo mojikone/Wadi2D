@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from wadi2d.basin.parameters import index_celerity, kirpich_lag_minutes, nrcs_lag_minutes
+from wadi2d.basin.parameters import index_celerity, kirpich_lag_minutes, kirpich_tc_minutes, nrcs_lag_minutes
 from wadi2d.config.schema import LAG_HMS_KIRPICH, LAG_KIRPICH, LAG_NRCS
 
 FORMAT = "wadi2d-basin"
@@ -75,8 +75,20 @@ def _lag(element: Element, method: str) -> float | None:
     return nrcs_lag_minutes(length, curve, slope) if length and curve and slope else None
 
 
+def _tc(element: Element) -> float | None:
+    """Kirpich's tc on the element's path: a subbasin's own, any other element's the longest from its whole drainage
+    area (W64). None while the path or its slope is absent, or the slope is not a fall."""
+    keys = ("flow_length_m", "slope_10_85") if element["kind"] == SUBBASIN else ("tc_flow_length_m", "tc_slope_10_85")
+    length, slope = (value_of(element, key) for key in keys)
+    return kirpich_tc_minutes(length, slope) if length and slope and length > 0.0 and slope > 0.0 else None
+
+
 def _derive(element: Element, section_depth_m: float, lag_method: str) -> None:
     """Fill what follows from the rest."""
+    if value_of(element, "tc_minutes") is None:
+        tc = _tc(element)
+        if tc is not None:
+            _fill(element, "tc_minutes", round(tc, 2))
     if element["kind"] == SUBBASIN and value_of(element, "lag_minutes") is None:
         lag = _lag(element, lag_method)
         if lag is not None:

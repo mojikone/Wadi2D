@@ -126,6 +126,30 @@ def test_the_network_series_are_written_for_every_element(valley: dict, lumped: 
     assert float(np.trapezoid(outflow, t)) == pytest.approx(excess_m3(valley, list(valley["areas"])), rel=2e-3)
 
 
+def test_every_series_carries_the_rain_and_excess_above_it_and_the_listing_its_tc(valley: dict, lumped: tuple) -> None:
+    """W64: 60 mm in an hour on 2-min steps is 2 mm a step, 27.17 mm of excess by hand, on every element alike."""
+    import csv
+
+    from wadi2d.products.result_lines import catalogue
+
+    _run, out = lumped
+    for name in [valley["outlet"], valley["fork"], *valley["arms"]]:
+        with (out / "series" / f"network_{name}.csv").open(encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+        rain = np.array([float(r["rain_mm"]) for r in rows])
+        excess = np.array([float(r["excess_mm"]) for r in rows])
+        assert rain[0] == 0.0 and excess[0] == 0.0  # the step ending at t = 0 holds nothing
+        assert rain.sum() == pytest.approx(60.0, rel=1e-4), name
+        assert excess.sum() == pytest.approx(EXCESS_MM, rel=1e-3), name
+        assert rain[1:31] == pytest.approx(np.full(30, 2.0), rel=1e-4)
+    listing = catalogue(out)
+    facts = {item["name"]: item.get("element") for item in listing["lumped"]}
+    model = {e["name"]: e for e in read_model(valley["basin"])["elements"]}
+    for name, fact in facts.items():
+        assert fact is not None and fact["tc_minutes"] == value_of(model[name], "tc_minutes"), name
+    assert facts[valley["outlet"]]["drainage_area_km2"] == pytest.approx(sum(valley["areas"].values()), rel=1e-3)
+
+
 def test_one_arm_in_2d_gives_the_same_water_and_a_line_at_the_fork_that_closes(valley: dict, lumped: tuple, one_arm_2d: tuple) -> None:
     run, out = one_arm_2d
     assert run.exit_code == 0, run.message

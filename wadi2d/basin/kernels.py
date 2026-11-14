@@ -1,7 +1,7 @@
 """The compiled core of the delineation: walks over a D8 raster held as flat receiver indices.
 
 Interface: :func:`upstream_first`, :func:`accumulate`, :func:`mark_paths`, :func:`find_nodes`, :func:`trace_links`,
-:func:`label_catchments`, :func:`above`, :func:`longest_paths`, :func:`path_to`. A pixel is its flat index, ``down[p]`` the
+:func:`label_catchments`, :func:`above`, :func:`longest_paths`, :func:`longest_upstream`, :func:`path_to`. A pixel is its flat index, ``down[p]`` the
 pixel it drains to, :data:`NONE` where it drains nowhere. Numba on plain arrays, so a raster of tens of millions of pixels
 takes seconds.
 """
@@ -166,6 +166,24 @@ def longest_paths(
                 longest[name] = distance[pixel]
                 start[name] = pixel
     return longest, start
+
+
+@njit(cache=True)
+def longest_upstream(down: np.ndarray, order: np.ndarray, nx: int, size: float) -> tuple[np.ndarray, np.ndarray]:
+    """At every pixel, the longest way along the D8 lines from any pixel draining through it, m, and the pixel it
+    starts from: one pass upstream first. The whole drainage area counts, across every link and label (W64)."""
+    diagonal = size * math.sqrt(2.0)
+    distance = np.zeros(down.size, dtype=np.float64)
+    head = np.arange(down.size, dtype=np.int64)
+    for pixel in order:
+        receiver = down[pixel]
+        if receiver != NONE:
+            step = size if abs(receiver - pixel) == 1 or abs(receiver - pixel) == nx else diagonal
+            reach = distance[pixel] + step
+            if reach > distance[receiver]:
+                distance[receiver] = reach
+                head[receiver] = head[pixel]
+    return distance, head
 
 
 @njit(cache=True)

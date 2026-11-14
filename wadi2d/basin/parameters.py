@@ -1,6 +1,6 @@
 """What the terrain and the job's rasters say about an element.
 
-Interface: :func:`kirpich_lag_minutes`, :func:`nrcs_lag_minutes`, :func:`index_celerity`, :func:`land_slope`,
+Interface: :func:`kirpich_lag_minutes`, :func:`kirpich_tc_minutes`, :func:`nrcs_lag_minutes`, :func:`index_celerity`, :func:`land_slope`,
 :func:`zonal_mean`, :func:`read_on_surface`.
 Pure functions; which of them an element gets, and from what source, is decided in :mod:`wadi2d.basin.elements`.
 """
@@ -50,6 +50,17 @@ def kirpich_lag_minutes(flow_length_m: float, slope_10_85: float) -> float:
 
 hms_kirpich_lag_minutes = kirpich_lag_minutes
 """The older name of the same rule; files that say ``hms_kirpich`` read it."""
+
+
+def kirpich_tc_minutes(flow_length_m: float, slope_10_85: float) -> float:
+    """Kirpich's time of concentration as the owner writes it, tc = (0.75 L)^0.77 / (52 S^0.385), minutes.
+
+    The same expression whose 0.6 is :func:`kirpich_lag_minutes` (the SCS lag-to-tc relation, NEH 630 chapter 15,
+    eq. 15-3: L = 0.6 Tc). Kirpich (1940) was fitted on small Tennessee farm basins of 0.5 to 45 ha; a junction of
+    hundreds of km2 is far outside it, so a junction's tc is shown and no lag is taken from it (W58 section 6.1).
+    """
+    length = TEN_TO_85_SHARE * flow_length_m
+    return length**KIRPICH_LENGTH_POWER / (KIRPICH_DIVISOR * slope_10_85**KIRPICH_SLOPE_POWER)
 
 
 def nrcs_lag_minutes(flow_length_m: float, curve_number: float, slope: float) -> float:

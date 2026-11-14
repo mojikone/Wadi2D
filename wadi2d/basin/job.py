@@ -56,6 +56,8 @@ from wadi2d.hydrology.model import Basin
 
 MODE_LUMPED, MODE_2D = "lumped", "2d"
 LAG_INPUTS = ("curve_number", "flow_length_m", "slope", "slope_10_85")
+TC_INPUTS = ("flow_length_m", "slope_10_85")
+"""A subbasin's Kirpich tc follows these two (W64)."""
 """An override of one of these re-derives a derived lag; a lag the user or the terrain gave stays."""
 JUNCTION_SHIFT_CELLS = 1.0
 """A built hand-back line sits this far down the reach from a junction: on the reach, clear of the confluence."""
@@ -124,6 +126,9 @@ def with_overrides(model: Model, subbasins: list[Subbasin]) -> Model:
             lag = element["parameters"].get("lag_minutes")
             if key in LAG_INPUTS and lag is not None and lag["source"] == SOURCE_DERIVED:
                 element["parameters"]["lag_minutes"] = parameter(None, SOURCE_DERIVED)
+            tc = element["parameters"].get("tc_minutes")
+            if key in TC_INPUTS and tc is not None and tc["source"] == SOURCE_DERIVED:
+                element["parameters"]["tc_minutes"] = parameter(None, SOURCE_DERIVED)
     return refresh(model)
 
 

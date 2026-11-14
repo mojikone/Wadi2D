@@ -101,12 +101,28 @@ class Curve:
 
 
 @dataclass
+class Bars:
+    """Rain per step, hung from the top of a hydrograph, HMS's way (W64): each bar spans the step ending at its time."""
+
+    times_h: list[float]
+    width_h: float
+    rain_mm: list[float]
+    excess_mm: list[float]
+
+
+@dataclass
 class Chart:
     title: str
     quantity: str
     unit: str
     curves: list[Curve]
     from_zero: bool = True
+    right: list[Curve] = field(default_factory=list)
+    """Curves on a right-hand axis of their own: a reservoir's pool level (W64)."""
+    right_quantity: str = ""
+    right_unit: str = ""
+    bars: Bars | None = None
+    """A thin rain bar over the flow (W64)."""
 
 
 @dataclass
@@ -362,4 +378,8 @@ def readout(view: View, frame: int) -> str:
             found = value_at(curve, t_s / SECONDS_PER_HOUR)
             if found is not None:
                 words.append(f"{chart.quantity} {found:,.2f} {chart.unit} ({curve.source})")
+        for curve in chart.right:
+            found = value_at(curve, t_s / SECONDS_PER_HOUR)
+            if found is not None:
+                words.append(f"{chart.right_quantity} {found:,.2f} {chart.right_unit}")
     return "; ".join(words)

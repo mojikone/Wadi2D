@@ -336,6 +336,35 @@ def _series(f: h5py.File, kind: str, name: str) -> dict:
     return {}
 
 
+def element_facts(cfg: RunConfig) -> tuple[dict[str, dict], dict[str, dict]]:
+    """What the chart's header says of each element of a generated basin (W64): kind, drainage area, Kirpich tc and,
+    for a subbasin, its lag; by element name, and by design line for the junctions a design line pours into. Empty on a
+    job without ``basin.json``: an HMS basin has its lags and no terrain path."""
+    path = cfg.hydrology.basin_json
+    if path is None:
+        return {}, {}
+    from wadi2d.basin.contract import SUBBASIN, read_model, value_of
+
+    try:
+        model = read_model(path)
+    except (OSError, ValueError):
+        return {}, {}
+    by_name, by_line = {}, {}
+    for element in model["elements"]:
+        subbasin = element["kind"] == SUBBASIN
+        facts = {
+            "kind": element["kind"],
+            "drainage_area_km2": value_of(element, "area_km2" if subbasin else "drainage_area_km2"),
+            "tc_minutes": value_of(element, "tc_minutes"),
+            "lag_minutes": value_of(element, "lag_minutes") if subbasin else None,
+        }
+        by_name[element["name"]] = facts
+        line = (element.get("pour_point") or {}).get("line")
+        if line:
+            by_line[line] = facts
+    return by_name, by_line
+
+
 def catalogue(run: Path) -> dict:
     """What a run holds: its saved frames, its upfront lines and points, and its lumped elements, with their series."""
     results = run / "results.h5"
@@ -357,6 +386,13 @@ def catalogue(run: Path) -> dict:
             {"name": str(group.attrs.get("name", key)), **_series(f, NETWORK_KIND, str(group.attrs.get("name", key)))}
             for key, group in (f["series"][NETWORK_KIND].items() if f"series/{NETWORK_KIND}" in f else ())
         ]
+    by_name, by_line = element_facts(cfg)
+    for item in lumped + points:
+        if item["name"] in by_name:
+            item["element"] = by_name[item["name"]]
+    for line in lines:
+        if line["name"] in by_line:
+            line["element"] = by_line[line["name"]]
     return {
         "crs": crs,
         "frames_s": times.tolist(),

@@ -17,16 +17,22 @@ from pathlib import Path
 from qgis.core import (
     QgsCoordinateReferenceSystem,
     QgsCoordinateTransform,
+    QgsFeatureRequest,
+    QgsGeometry,
     QgsMapLayerProxyModel,
     QgsPointXY,
     QgsProject,
+    QgsRectangle,
     QgsTemporalNavigationObject,
+    QgsVectorLayer,
+    QgsWkbTypes,
 )
 from qgis.gui import QgsDockWidget
 from qgis.PyQt.QtCore import QDate, QDateTime, Qt, QTime
 from qgis.PyQt.QtWidgets import QComboBox, QHBoxLayout, QLabel, QPushButton, QSlider, QVBoxLayout, QWidget
 
 from . import settings
+from .element_view import element_view, matching, with_facts
 from .engine_process import EngineQuery
 from .job_builder import LayerError, layer_features
 from .line_plot import LinePlot
@@ -41,7 +47,6 @@ from .line_view import (
     entries,
     frame_at,
     line_view,
-    lumped_view,
     point_view,
     record_view,
     step_showing,
@@ -64,6 +69,11 @@ DRAW_NOTE = "Click along the line on the map, right-click to end it, Escape to d
 TIME_NOTE = "The map moves with this slider once Time slider has been pressed in the dock."
 FEATURE_NAME = "name"
 MILLISECONDS = 1000.0
+PICK_PIXELS = 6.0
+"""A right-click takes the features within this many screen pixels (W64)."""
+HYDROGRAPH = "Hydrograph: {label}"
+GEOMETRY_ORDER = {QgsWkbTypes.PointGeometry: 0, QgsWkbTypes.LineGeometry: 1, QgsWkbTypes.PolygonGeometry: 2}
+"""A junction on a subbasin is offered first: the polygon holds every click inside it."""
 
 
 class ResultLinesPanel(QgsDockWidget):
@@ -95,6 +105,7 @@ class ResultLinesPanel(QgsDockWidget):
         self.tool.dropped.connect(self._draw_over)
         self.controller = self.canvas.temporalController()
         self.controller.updateTemporalRange.connect(self._range_moved)
+        self.canvas.contextMenuAboutToShow.connect(self._context_menu)  # right-click an element: its chart (W64)
         iface.addDockWidget(Qt.BottomDockWidgetArea, self)
 
     def _build(self) -> None:
@@ -222,16 +233,16 @@ class ResultLinesPanel(QgsDockWidget):
 
     def _show(self, entry: Entry) -> None:
         if entry.kind == UPFRONT_POINT:
-            self.plot.show_view(point_view(entry, self.frames_s), self.frame)
+            self.plot.show_view(with_facts(point_view(entry, self.frames_s), entry), self.frame)
             self.say(self.note)
             return
         if entry.kind == LUMPED:
-            self.plot.show_view(lumped_view(entry, self.frames_s), self.frame)
+            self.plot.show_view(element_view(entry, self.frames_s), self.frame)
             self.say(self.note)
             return
         known = self.read.get(id(entry))
         if known is not None:
-            self.plot.show_view(line_view(entry, known), self.frame)
+            self.plot.show_view(with_facts(line_view(entry, known), entry), self.frame)
             self.say(self.note)
             return
         if self.query is not None:
@@ -248,7 +259,7 @@ class ResultLinesPanel(QgsDockWidget):
         self.read[id(entry)] = json.loads(Path(answer).read_text(encoding="utf-8"))
         self.say(self.note)
         if entry is self._current():
-            self.plot.show_view(line_view(entry, self.read[id(entry)]), self.frame)
+            self.plot.show_view(with_facts(line_view(entry, self.read[id(entry)]), entry), self.frame)
 
     def _add(self, entry: Entry) -> None:
         self.items.append(entry)
@@ -325,6 +336,47 @@ class ResultLinesPanel(QgsDockWidget):
         name = self._feature_name(layer, index)
         self._add(Entry(TEMPORARY, f"{name}, from {layer.name()}", self.picked[index].xy()))
 
+    # Right-click on the map (W64): one shared panel, as HMS opens an element's graph, without a window per element.
+
+    def _context_menu(self, menu, event) -> None:
+        """A "Hydrograph" entry for every element, design point or line of this run under the click."""
+        if not self.items:
+            return
+        for index in matching(self.items, self.names_under(event.mapPoint())):
+            action = menu.addAction(HYDROGRAPH.format(label=self.items[index].label))
+            action.triggered.connect(lambda _checked=False, chosen=index: self.show_entry(chosen))
+
+    def names_under(self, point) -> list[str]:
+        """The ``name`` of every feature of a shown vector layer within a few pixels of a map point, points first."""
+        project = QgsProject.instance()
+        root = project.layerTreeRoot()
+        reach = PICK_PIXELS * self.canvas.mapUnitsPerPixel()
+        area = QgsRectangle(point.x() - reach, point.y() - reach, point.x() + reach, point.y() + reach)
+        found: list[tuple[int, str]] = []
+        for layer in project.mapLayers().values():
+            node = root.findLayer(layer.id())
+            if not isinstance(layer, QgsVectorLayer) or node is None or not node.isVisible():
+                continue
+            if layer.fields().indexOf(FEATURE_NAME) < 0:
+                continue
+            to_layer = QgsCoordinateTransform(self.canvas.mapSettings().destinationCrs(), layer.crs(), project)
+            box = to_layer.transformBoundingBox(area)
+            shape = QgsGeometry.fromRect(box)
+            rank = GEOMETRY_ORDER.get(layer.geometryType(), len(GEOMETRY_ORDER))
+            for feature in layer.getFeatures(QgsFeatureRequest().setFilterRect(box)):
+                if feature.hasGeometry() and feature.geometry().intersects(shape) and feature[FEATURE_NAME]:
+                    found.append((rank, str(feature[FEATURE_NAME])))
+        return [name for _rank, name in sorted(found, key=lambda pair: pair[0])]
+
+    def show_entry(self, index: int) -> None:
+        """Bring the panel up on one entry of the list."""
+        self.show()
+        self.raise_()
+        if self.choice.currentIndex() == index:
+            self._chosen(index)
+        else:
+            self.choice.setCurrentIndex(index)
+
     # Time.
 
     def _show_time(self) -> None:
@@ -368,6 +420,7 @@ class ResultLinesPanel(QgsDockWidget):
     def release(self) -> None:
         """QGIS is closing or the plugin is going away: leave nothing behind but the scratch layer."""
         self.controller.updateTemporalRange.disconnect(self._range_moved)
+        self.canvas.contextMenuAboutToShow.disconnect(self._context_menu)
         self.canvas.unsetMapTool(self.tool)
         shutil.rmtree(self.folder, ignore_errors=True)
         self.iface.removeDockWidget(self)

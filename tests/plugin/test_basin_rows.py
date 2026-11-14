@@ -20,6 +20,7 @@ from wadi2d_qgis.sections.basin_rows import (
     set_element,
     subbasin_rows,
     summary_text,
+    tc_words,
 )
 
 
@@ -116,3 +117,14 @@ def test_the_basin_part_of_a_job_and_what_stops_a_generation() -> None:
         "Choose an output folder first: the basin files are kept beside the runs.",
     ]
     assert basin_problems({"dem": "x", "output": "y"}) == []
+
+
+def test_the_junction_table_shows_each_junction_tc_from_the_file() -> None:
+    """W64: the Tc column reads the file's tc_minutes; a file from before it leaves the cell empty."""
+    model = {**MODEL, "elements": [dict(e) for e in MODEL["elements"]]}
+    for e in model["elements"]:
+        if e["name"] == "J2":
+            e["parameters"] = {"tc_minutes": {"value": 95.37, "source": "derived"}}
+    rows = {r["junction"]: r for r in junction_rows(model)}
+    assert tc_words(rows["J2"]) == "95"
+    assert tc_words(rows["J1"]) == ""

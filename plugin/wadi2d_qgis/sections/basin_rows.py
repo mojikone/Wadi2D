@@ -33,7 +33,9 @@ ROUTING_WORDS = {
     "conserving": "Conserving (Todini 2007): the routed volume closes to round-off",
 }
 """What the dock calls each reach routing scheme; the keys are the engine's."""
-JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction"]
+JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction", "Tc, min"]
+"""The last (W64): Kirpich on the longest path from the whole drainage area above; a figure outside Kirpich's range on a
+large junction, and never a lag."""
 
 
 @dataclass
@@ -81,6 +83,7 @@ def subbasin_rows(model: dict, asked: dict[str, str] | None = None) -> list[Subb
 def junction_rows(model: dict) -> list[dict]:
     """The routes as the file holds them; the run's event completes them (``merge_event``)."""
     kinds = {e["name"]: e.get("kind", "junction") for e in model.get("elements", [])}
+    tc = {e["name"]: (e.get("parameters", {}).get("tc_minutes") or {}).get("value") for e in model.get("elements", [])}
     return [
         {
             "junction": route["junction"],
@@ -92,6 +95,7 @@ def junction_rows(model: dict) -> list[dict]:
             "enters_2d": None,
             "handback": None,
             "two_d_sources": [],
+            "tc_minutes": tc.get(route["junction"]),
         }
         for route in model.get("routes", [])
     ]
@@ -104,6 +108,12 @@ def merge_event(rows: list[dict], event: dict) -> list[dict]:
         row = by_name.setdefault(plan["junction"], {"junction": plan["junction"], "reach_missing": []})
         row.update(plan)
     return list(by_name.values())
+
+
+def tc_words(row: dict) -> str:
+    """The Tc cell of a junction row; empty on a basin file written before W64 or a junction with no path."""
+    tc = row.get("tc_minutes")
+    return "" if tc is None else f"{tc:,.0f}"
 
 
 def route_words(row: dict) -> list[str]:
