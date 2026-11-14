@@ -1,0 +1,44 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa5473262ee1c0ef9\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.0 === 1 the tick
+    5.0 PASS the tick is in the Run section 
+    5.0 PASS it is unticked by default Smooth map polygons and depth picture (slower)
+    5.0 PASS its label is plain Smooth map polygons and depth picture (slower)
+    5.0 PASS its tip says Make map makes them Smooth polygons of the hazard classes and a depth picture with a soft wet edge, for map sheets. They take several times as long as the pixel maps themselves, which are the numbers of record either way. Left unticked, Make map has them made when a sheet needs t
+    5.0 PASS greyed out without the pixel maps 
+    5.0 PASS back with them 
+    5.0 === 2 a run with the tick off
+    5.0 dock says: Starting...
+    9.5 dock says: water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   10.6 PASS the run finished Finished. water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there.
+   10.6 PASS the job leaves the default alone {'map_every_s': 900.0}
+   10.6 PASS no depth picture 
+   10.6 PASS the setup layers are written, the polygons not ['boundaries', 'domain']
+   10.6 PASS setup, record and cells load, no Flood maps ['Model setup', 'Pixel rasters, the numbers of record', 'Cell maps']
+   10.6 PASS the depth of record is the one shown ['Open boundary', '2D model domain, closed walls except open boundaries', 'Cell grid, 20 m, drawn from 1:20,000 in', 'Depth, m']
+   10.6 PASS Make map is offered 
+   10.7 PASS Make map starts the drawing This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run.
+   10.7 PASS it says why This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run.
+   10.7 PASS Run waits meanwhile 
+   10.7 dock says: This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run.
+   17.1 progress seen: [(0, 'Pixel maps: drawing the polygons and the depth'), (100, 'Pixel maps: drawing the polygons and the depth')] .. [(0, 'Pixel maps: drawing the polygons and the depth'), (100, 'Pixel maps: drawing the polygons and the depth')]
+   17.1 PASS progress was shown [0, 100]
+   17.1 PASS it speaks of the drawing, not the run's clock ['Pixel maps: drawing the polygons and the depth']
+   17.1 PASS the sheets were written Map written: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa5473262ee1c0ef9\W50 products speed and time slider maps\dock_check\dock_smooth_option\runs\plain\pixels\plain_maps.pdf
+   17.1 PASS the picture and the polygons are there now 
+   17.1 PASS the rasters of record were not touched 
+   17.1 PASS the run's own engine log is untouched 
+   17.1 PASS Flood maps join the run's group ['Model setup', 'Flood maps', 'Pixel rasters, the numbers of record', 'Cell maps']
+   17.1 PASS the picture takes over from the depth of record ['Open boundary', '2D model domain, closed walls except open boundaries', 'Cell grid, 20 m, drawn from 1:20,000 in', 'Maximum depth, m']
+   17.1 PASS Run is free again 
+   19.1 PASS a second Make map draws nothing again Map written: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa5473262ee1c0ef9\W50 products speed and time slider maps\dock_check\dock_smooth_option\runs\plain\pixels\plain_maps.pdf
+   19.1 === 3 a run with the tick on
+   19.1 dock says: Starting...
+   22.2 dock says: water stood 7.5 m deep against the domain edge at (432636, 2727270): an edge is a wall, so check the domain polygon there
+   25.2 PASS the job asks for them {'enabled': True}
+   25.2 PASS the picture comes with the run 
+   25.2 PASS Flood maps load with the run ['Model setup', 'Flood maps', 'Pixel rasters, the numbers of record', 'Cell maps']
+   26.9 PASS Make map needs no engine Map written: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa5473262ee1c0ef9\W50 products speed and time slider maps\dock_check\dock_smooth_option\runs\ticked\pixels\ticked_maps.pdf
+   27.0 SUMMARY 32 passed, 0 failed 
+   27.0 DONE

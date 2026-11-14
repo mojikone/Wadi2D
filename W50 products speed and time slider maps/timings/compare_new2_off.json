@@ -1,0 +1,62 @@
+{
+ "run": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa5473262ee1c0ef9\\W50 products speed and time slider maps\\remake\\runs\\new2_off\\pixels",
+ "reference": "D:\\Mojtaba\\Renardet\\Wadi2D\\W50 products speed and time slider maps\\profile\\block2_b20\\pixels",
+ "rasters": {
+  "pixel_depth.tif": {
+   "shape": [
+    72440,
+    60120
+   ],
+   "same_grid": true,
+   "dtype": "float32",
+   "nodata": -9999.0,
+   "pixels_differing": 0,
+   "max_abs_difference": 0.0,
+   "pixels_with_data": 216571351,
+   "bytes": 684133844,
+   "reference_bytes": 699127403
+  },
+  "pixel_speed.tif": {
+   "shape": [
+    72440,
+    60120
+   ],
+   "same_grid": true,
+   "dtype": "float32",
+   "nodata": -9999.0,
+   "pixels_differing": 0,
+   "max_abs_difference": 0.0,
+   "pixels_with_data": 216571351,
+   "bytes": 723277927,
+   "reference_bytes": 738271486
+  },
+  "pixel_dv.tif": {
+   "shape": [
+    72440,
+    60120
+   ],
+   "same_grid": true,
+   "dtype": "float32",
+   "nodata": -9999.0,
+   "pixels_differing": 0,
+   "max_abs_difference": 0.0,
+   "pixels_with_data": 216571351,
+   "bytes": 673803199,
+   "reference_bytes": 688796758
+  },
+  "pixel_hazard.tif": {
+   "shape": [
+    72440,
+    60120
+   ],
+   "same_grid": true,
+   "dtype": "uint8",
+   "nodata": 0.0,
+   "pixels_differing": 0,
+   "max_abs_difference": 0.0,
+   "pixels_with_data": 216571351,
+   "bytes": 21051687,
+   "reference_bytes": 25475715
+  }
+ }
+}
