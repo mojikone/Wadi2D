@@ -69,7 +69,15 @@ INTRO = (
     "parts alike. Each design line then reads log Q against log A between the two runs either side of its own drainage "
     "area. It uses everything above, with the output folder and the engine of Run, and writes beside the output folder."
 )
+LINES_TIP = (
+    "Hydrograph, depth and water surface on a line drawn or picked now, read from the two runs either side of its "
+    "own drainage area, as the study reads its design points"
+)
 LISTED_TIP = "Storm areas in km2, separated by commas or spaces, as 10, 30, 90"
+ACCUMULATION_TIP = (
+    "Each cell's drainage area: a line drawn or picked after the study reads the two runs either side of its own "
+    "area, and the composite map reads it per cell. None: such a line reads the smallest run alone."
+)
 COMPOSITE_TIP = (
     "Experimental: each cell of the depth, speed and hazard maps reads the two runs either side of its own drainage "
     "area, from a flow accumulation raster. Off until a composite map has been checked."
@@ -119,12 +127,13 @@ class StudySection(Section):
         self.composite = QCheckBox("Composite map (experimental)")
         self.composite.setToolTip(COMPOSITE_TIP)
         self.accumulation = layer_combo(QgsMapLayerProxyModel.RasterLayer, "None")
+        self.accumulation.setToolTip(ACCUMULATION_TIP)
         self.units = QComboBox()
-        self.composite_box = QWidget()
-        composite = QFormLayout(self.composite_box)
-        composite.setContentsMargins(0, 0, 0, 0)
-        composite.addRow("Flow accumulation", self.accumulation)
-        composite.addRow("Its values are", self.units)
+        self.accumulation_box = QWidget()
+        accumulation = QFormLayout(self.accumulation_box)
+        accumulation.setContentsMargins(0, 0, 0, 0)
+        accumulation.addRow("Flow accumulation", self.accumulation)
+        accumulation.addRow("Its values are", self.units)
 
         self.start_button = QPushButton("Start study")
         self.stop_button = QPushButton("Stop study")
@@ -147,6 +156,9 @@ class StudySection(Section):
         self.file_label = self._text_label()
         self.open_button = QPushButton("Open study folder")
         self.open_button.hide()
+        self.lines_button = QPushButton("Result lines")
+        self.lines_button.setToolTip(LINES_TIP)
+        self.lines_button.hide()
 
         self.form.addRow(intro)
         self.form.addRow("Storm areas", self.spacing)
@@ -154,8 +166,8 @@ class StudySection(Section):
         self.form.addRow(self.listed_box)
         self.form.addRow(self.arf_step_box)
         self.form.addRow(self.areas_label)
+        self.form.addRow(self.accumulation_box)
         self.form.addRow(self.composite)
-        self.form.addRow(self.composite_box)
         self.form.addRow(buttons)
         self.form.addRow(self.bar)
         self.form.addRow(self.status)
@@ -163,14 +175,13 @@ class StudySection(Section):
         self.form.addRow(self.table)
         self.form.addRow(self.file_label)
         self.form.addRow(self.open_button)
+        self.form.addRow(self.lines_button)
 
         self.spacing.currentIndexChanged.connect(self._spacing_changed)
         for box in (self.count, self.smallest, self.largest, self.arf_step):
             box.valueChanged.connect(self._refresh_areas)
         self.collapsedStateChanged.connect(self._refresh_areas)  # the design lines and the storm may have changed
         self.listed.textChanged.connect(self._refresh_areas)
-        self.composite.toggled.connect(self.composite_box.setVisible)
-        self.composite_box.hide()
         self._spacing_changed()
 
     @staticmethod
@@ -234,7 +245,7 @@ class StudySection(Section):
     def set_running(self, running: bool) -> None:
         self.start_button.setEnabled(not running)
         self.stop_button.setEnabled(running)
-        widgets = (self.spacing, self.spaced_box, self.listed_box, self.arf_step_box, self.composite, self.composite_box)
+        widgets = (self.spacing, self.spaced_box, self.listed_box, self.arf_step_box, self.accumulation_box, self.composite)
         for widget in widgets:
             widget.setEnabled(not running)
         if running:
@@ -244,6 +255,7 @@ class StudySection(Section):
             self.table.setRowCount(0)
             self.file_label.clear()
             self.open_button.hide()
+            self.lines_button.hide()
 
     def show_state(self, state) -> None:
         self.bar.setValue(state.percent)
@@ -270,3 +282,4 @@ class StudySection(Section):
             words.append(on_grid_text(on_grid))
         self.file_label.setText(" ".join(words))
         self.open_button.show()
+        self.lines_button.show()

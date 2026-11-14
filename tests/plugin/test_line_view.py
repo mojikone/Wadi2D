@@ -14,6 +14,7 @@ from wadi2d_qgis.line_view import (
     FRAMES,
     LUMPED,
     NO_DEM,
+    STUDY_LINE,
     TEMPORARY,
     UPFRONT,
     UPFRONT_LINE,
@@ -29,6 +30,7 @@ from wadi2d_qgis.line_view import (
     readout,
     record_view,
     step_showing,
+    study_text,
     ticks,
     value_at,
 )
@@ -254,3 +256,30 @@ def test_a_design_record_is_the_number_of_record_and_the_grid_alone_is_drawn_bes
     framed = line_view(entries({"lines": [DESIGN]})[0], READ)
     assert [c.values[1] for c in framed.charts[0].curves][:2] == [401.0, 12.0]
     assert "passes the line inside a reach" in framed.limit
+
+
+STUDY = {
+    "drainage_area_km2": 74.3, "area_source": "flow accumulation", "low_km2": 30.0, "high_km2": 100.0,
+    "weight_low": 0.247, "weight_high": 0.753, "clamped": None, "design_peak_m3s": 412.345,
+    "words": "The line drains 74.3 km2 (the largest on the flow accumulation raster where it crosses). Read from the runs at 30 km2, weight 0.247, and 100 km2, weight 0.753, linear in log area as the study reads its design points.",
+}  # fmt: skip
+
+
+def test_a_line_after_a_study_says_its_area_its_runs_and_their_weights() -> None:
+    """W53: the plot names the line's own drainage area, the two runs and their weights, in words."""
+    view = line_view(Entry(TEMPORARY, "Line 1"), {**READ, "flow_source": FLOW_FACES, "study": STUDY})
+    assert view.heading == "Temporary line: Line 1. Read from saved frames."
+    assert view.note.startswith("The line drains 74.3 km2")
+    assert "30 km2, weight 0.247, and 100 km2, weight 0.753" in view.note
+    assert view.note.endswith("Peak 412.3 m3/s, as the study reads a design point; the curves blend the two runs frame by frame.")
+    alone = {**STUDY, "drainage_area_km2": None, "words": "The study has no flow accumulation raster ... 10 km2 alone."}
+    assert "Peak" not in line_view(Entry(TEMPORARY, "Line 1"), {**READ, "study": alone}).note
+    assert line_view(Entry(TEMPORARY, "Line 1"), READ).note == "", "a single run's line has no note"
+
+
+def test_a_studys_design_lines_are_listed_as_such_and_its_lines_explained() -> None:
+    found = entries({"lines": [{"name": "Bidah 03", "coordinates": [[0.0, 0.0], [1.0, 1.0]]}], "study": {"areas_km2": [10.0]}})
+    assert [(item.kind, item.label) for item in found] == [(STUDY_LINE, "Design line: Bidah 03")]
+    assert line_view(found[0], READ).heading == "Design line: Bidah 03. Read from saved frames."
+    assert "blended as the study reads its design points" in study_text({"areas_km2": [10.0, 20.971], "accumulation": True})
+    assert "the smallest run alone" in study_text({"areas_km2": [10.0, 20.971], "accumulation": False})

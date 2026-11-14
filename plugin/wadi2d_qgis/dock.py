@@ -175,6 +175,7 @@ class Wadi2DDock(QgsDockWidget):
         self.study.start_button.clicked.connect(self.start_study)
         self.study.stop_button.clicked.connect(self.stop_study)
         self.study.open_button.clicked.connect(self.open_study)
+        self.study.lines_button.clicked.connect(self.study_lines)
         self.study.context = self._study_context
         self.panel.folder.fileChanged.connect(self._folder_chosen)
         self.panel.folder.setFilePath(settings.last_folder())
@@ -599,6 +600,14 @@ class Wadi2DDock(QgsDockWidget):
     def open_study(self) -> None:
         if self._study_dir is not None:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(self._study_dir)))
+
+    def study_lines(self) -> None:
+        """The Result lines panel on the finished study: a line reads the runs either side of its own area (W53)."""
+        if self._study_dir is None:
+            return
+        if self.line_panel is None:
+            self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
+        self.line_panel.open_run(self._study_dir)
 
     # Preview: the terrain as the objects leave it, with no run.
 

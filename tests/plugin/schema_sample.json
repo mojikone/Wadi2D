@@ -87,7 +87,7 @@
             }
           ],
           "default": null,
-          "description": "Flow accumulation raster for the composite map",
+          "description": "Flow accumulation raster: the composite map's drainage area per cell, and the drainage area of a line read after the study",
           "title": "Accumulation"
         },
         "accumulation_units": {
@@ -98,6 +98,12 @@
           ],
           "title": "Accumulation Units",
           "type": "string"
+        },
+        "composite": {
+          "default": true,
+          "description": "Write the composite maps when accumulation is given; False keeps the raster for lines alone",
+          "title": "Composite",
+          "type": "boolean"
         }
       },
       "title": "ArfStudy",
@@ -3953,7 +3959,8 @@
         "by_arf_step": false,
         "arf_step_max": 0.05,
         "accumulation": null,
-        "accumulation_units": "cells"
+        "accumulation_units": "cells",
+        "composite": true
       }
     },
     "basin": {

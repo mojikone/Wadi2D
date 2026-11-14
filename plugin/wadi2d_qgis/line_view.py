@@ -16,6 +16,8 @@ from dataclasses import dataclass, field
 
 UPFRONT_LINE, UPFRONT_POINT, TEMPORARY = "upfront line", "upfront point", "temporary line"
 LUMPED = "lumped element"
+STUDY_LINE = "study design line"
+"""A design line of a depth-area study: read through the study, with no single run's record."""
 SECONDS_PER_HOUR = 3600.0
 SECONDS_PER_MINUTE = 60.0
 FRAME_TOLERANCE_S = 0.5
@@ -47,6 +49,9 @@ DESIGN_NOTE = (
     "only at the reach's end, below the line."
 )
 POINT_NOTE = "Computed during the run, at every series step: the number of record."
+STUDY_PEAK = (
+    "Peak {peak:,.1f} m3/s, as the study reads a design point; the curves blend the two runs frame by frame."
+)
 LUMPED_NOTE = (
     "Computed by the lumped network at its own step: the number of record for a lumped subbasin, reach or reservoir. "
     "A line across the cells where its hydrograph enters the grid reads the pond's surge there, not this."
@@ -72,6 +77,7 @@ class Entry:
     def label(self) -> str:
         words = {
             UPFRONT_LINE: "Upfront line", UPFRONT_POINT: "Upfront point", TEMPORARY: "Temporary line", LUMPED: "Lumped element",
+            STUDY_LINE: "Design line",
         }  # fmt: skip
         return f"{words[self.kind]}: {self.name}"
 
@@ -113,14 +119,31 @@ class View:
     charts: list[Chart]
     section: Section | None
     frames_s: list[float]
+    note: str = ""
+    """Under the heading: a line read after a study names its area, its two runs and their weights (W53)."""
 
 
 def entries(listing: dict) -> list[Entry]:
     """The upfront lines, then the upfront points, of what ``wadi2d lines`` wrote."""
-    lines = [Entry(UPFRONT_LINE, item["name"], item["coordinates"], item) for item in listing.get("lines", [])]
+    kind = STUDY_LINE if listing.get("study") else UPFRONT_LINE
+    lines = [Entry(kind, item["name"], item["coordinates"], item) for item in listing.get("lines", [])]
     points = [Entry(UPFRONT_POINT, item["name"], None, item) for item in listing.get("points", [])]
     lumped = [Entry(LUMPED, item["name"], None, item) for item in listing.get("lumped", [])]
     return lines + points + lumped
+
+
+def study_text(study: dict) -> str:
+    """What a depth-area study's lines are, before any is read."""
+    areas = ", ".join(f"{a:.4g}" for a in study.get("areas_km2", []))
+    if study.get("accumulation"):
+        how = (
+            "Each line drawn or picked takes the largest drainage area on the study's flow accumulation raster where "
+            "it crosses the model, a design line its own,"
+        )
+    else:
+        how = "The study has no flow accumulation raster: a design line takes its own drainage area, any other line"
+        return f"A depth-area study, runs at {areas} km2. {how} the smallest run alone."
+    return f"A depth-area study, runs at {areas} km2. {how} and reads the two runs either side of it, blended as the study reads its design points."
 
 
 def frame_at(times_s: list[float], t_s: float) -> int:
@@ -240,12 +263,20 @@ def line_view(entry: Entry, read: dict) -> View:
     section = Section(title, read["station_m"], read["ground_m"], read["level_m"])
     if entry.kind == TEMPORARY:
         heading = f"Temporary line: {entry.name}. Read from saved frames."
+    elif entry.kind == STUDY_LINE:
+        heading = f"Design line: {entry.name}. Read from saved frames."
     else:
         heading = f"Upfront line: {entry.name}. Flow computed during the run; depth and water surface read from saved frames."
     limit = (FACES_LIMIT if of_record else LIMIT).format(every=interval)
     if entry.record.get("design"):
         limit = f"{DESIGN_NOTE} {limit}"
-    return View(heading, limit, charts, section, read["t_s"])
+    study = read.get("study")
+    note = ""
+    if study:  # a line read after a depth-area study: its own area, the runs either side, their weights (W53)
+        note = study["words"]
+        if study.get("drainage_area_km2") is not None:
+            note = f"{note} {STUDY_PEAK.format(peak=study['design_peak_m3s'])}"
+    return View(heading, limit, charts, section, read["t_s"], note)
 
 
 def value_at(curve: Curve, hours: float) -> float | None:

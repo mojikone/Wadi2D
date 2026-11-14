@@ -280,7 +280,7 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
         low = low.astype(np.float64)
         ground, source = _terrain(cfg, samples, mask, x0, y0, dx, low.reshape(STENCIL, count)[MIDDLE])
         faces = FacePickers(face_crossing(mask, x0, y0, dx, coordinates, tiles)) if frames_have_faces(f, names) else None
-        flows, deepest, levels = [], [], []
+        flows, deepest, levels, speeds = [], [], [], []
         for frame in names:
             group = f["maps"][frame]
             depth = cells.stencil.read(dataset_window(group["depth"])).astype(np.float64)
@@ -297,6 +297,8 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
             deep = np.where(np.isfinite(water) & (water > 0.0), water, 0.0)
             deepest.append(float(deep.max()))
             levels.append(np.where(deep > 0.0, surface, np.nan))
+            speed = cells.middle.read(dataset_window(group["speed"])).astype(np.float64)
+            speeds.append(np.where(deep > 0.0, speed, np.nan))
     times = frame_seconds(names)
     return {
         "name": name,
@@ -310,6 +312,7 @@ def read_line(run: Path, coordinates: list, name: str = "") -> dict:
         "ground_m": _rounded(ground, DIGITS_LEVEL),
         "ground_source": source,
         "level_m": [_rounded(level, DIGITS_LEVEL) for level in levels],
+        "speed_m_s": [_rounded(speed, DIGITS_LEVEL) for speed in speeds],
     }
 
 

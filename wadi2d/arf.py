@@ -211,15 +211,23 @@ def accumulation_on_grid(path: str, units: str, grid: TileGrid) -> np.ndarray:
     return out * scale
 
 
+def log_area_weights(areas: np.ndarray, area):
+    """The two runs that bracket ``area`` and the weight of the larger, linear in ln A: ``(low, high, w)`` with the
+    value read as ``(1 - w) * low + w * high``. Outside the runs the end run holds, weight 0 or 1. ``area`` may be an
+    array, one drainage area per cell; ``areas`` rise and hold two at least. The study's maps and the lines drawn after
+    it read the runs with these weights."""
+    ln_a = np.log(areas)
+    ln_c = np.log(np.clip(area, areas[0], areas[-1]))
+    high = np.clip(np.searchsorted(ln_a, ln_c), 1, ln_a.size - 1)
+    low = high - 1
+    return low, high, (ln_c - ln_a[low]) / (ln_a[high] - ln_a[low])
+
+
 def composite_map(maps: list[np.ndarray], areas: np.ndarray, cell_area: np.ndarray) -> np.ndarray:
     """Per cell, the runs that bracket its drainage area, linear in ln A; outside them, the end run."""
     if areas.size == 1:
         return np.array(maps[0], dtype=np.float64)
-    ln_a = np.log(areas)
-    ln_c = np.log(np.clip(cell_area, areas[0], areas[-1]))
-    high = np.clip(np.searchsorted(ln_a, ln_c), 1, ln_a.size - 1)
-    low = high - 1
-    w = (ln_c - ln_a[low]) / (ln_a[high] - ln_a[low])
+    low, high, w = log_area_weights(areas, cell_area)
     stack = np.stack(maps)
     rows, cols = np.indices(cell_area.shape, sparse=True)
     return (1.0 - w) * stack[low, rows, cols] + w * stack[high, rows, cols]
@@ -318,7 +326,7 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
     summary.table = design_table(cfg, summary.areas_km2, summary.runs)
     summary.table += element_table(cfg, summary.areas_km2, folders, plans, exact)
     write_table(folder / "design_points.csv", summary.table)
-    if cfg.arf.accumulation is not None:
+    if cfg.arf.accumulation is not None and cfg.arf.composite:
         summary.composite = composite_maps(cfg, tables, crs, folder, summary.areas_km2, folders)
     on_grid = [p.name for p in plans if p.how == ON_GRID]
     (folder / "study.json").write_text(

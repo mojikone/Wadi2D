@@ -905,8 +905,15 @@ class ArfStudy(_Part):
     arf_step_max: float = Field(
         0.05, gt=0.0, lt=1.0, description="Largest change of the area-reduction factor between neighbouring storm-area runs"
     )
-    accumulation: str | None = Field(None, description="Flow accumulation raster for the composite map")
+    accumulation: str | None = Field(
+        None,
+        description="Flow accumulation raster: the composite map's drainage area per cell, and the drainage area of a "
+        "line read after the study",
+    )
     accumulation_units: Literal["cells", "km2"] = "cells"
+    composite: bool = Field(
+        True, description="Write the composite maps when accumulation is given; False keeps the raster for lines alone"
+    )
 
     @model_validator(mode="after")
     def _one_rule(self) -> ArfStudy:

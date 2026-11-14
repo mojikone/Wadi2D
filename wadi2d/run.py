@@ -128,6 +128,7 @@ NOT_WATER = (
     ("arf", "bracket_max"),
     ("arf", "by_arf_step"),  # how a study picks its areas, and whether it maps: no run's water (W53)
     ("arf", "arf_step_max"),
+    ("arf", "composite"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""
 

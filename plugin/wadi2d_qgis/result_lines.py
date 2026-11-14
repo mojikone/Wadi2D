@@ -45,6 +45,7 @@ from .line_view import (
     point_view,
     record_view,
     step_showing,
+    study_text,
 )
 from .protocol import (
     FRAMES_EPOCH,
@@ -84,6 +85,8 @@ class ResultLinesPanel(QgsDockWidget):
         self.asked = 0
         self.frame = 0
         self.pushing = False
+        self.note = ""
+        """What stays under the plot between answers: what a study's lines are."""
         self.folder = tempfile.mkdtemp(prefix="wadi2d_lines_")
         self.tool = DrawLine(self.canvas)
         self.old_tool = None
@@ -188,7 +191,12 @@ class ResultLinesPanel(QgsDockWidget):
         self._show_time()
         self.items = entries(listing) + [item for item in self.items if item.kind == TEMPORARY]
         self._fill_choice(0)
-        self.say("" if self.items else "This run has no upfront lines or points. Draw a line, or pick one from a layer.")
+        study = listing.get("study")
+        self.note = study_text(study) if study else ""
+        if study:
+            self.say(self.note)
+        else:
+            self.say("" if self.items else "This run has no upfront lines or points. Draw a line, or pick one from a layer.")
 
     def _fill_choice(self, index: int) -> None:
         self.choice.blockSignals(True)
@@ -215,16 +223,16 @@ class ResultLinesPanel(QgsDockWidget):
     def _show(self, entry: Entry) -> None:
         if entry.kind == UPFRONT_POINT:
             self.plot.show_view(point_view(entry, self.frames_s), self.frame)
-            self.say("")
+            self.say(self.note)
             return
         if entry.kind == LUMPED:
             self.plot.show_view(lumped_view(entry, self.frames_s), self.frame)
-            self.say("")
+            self.say(self.note)
             return
         known = self.read.get(id(entry))
         if known is not None:
             self.plot.show_view(line_view(entry, known), self.frame)
-            self.say("")
+            self.say(self.note)
             return
         if self.query is not None:
             self.waiting = True
@@ -238,7 +246,7 @@ class ResultLinesPanel(QgsDockWidget):
 
     def _line_read(self, entry: Entry, answer: str) -> None:
         self.read[id(entry)] = json.loads(Path(answer).read_text(encoding="utf-8"))
-        self.say("")
+        self.say(self.note)
         if entry is self._current():
             self.plot.show_view(line_view(entry, self.read[id(entry)]), self.frame)
 
@@ -258,7 +266,7 @@ class ResultLinesPanel(QgsDockWidget):
         self.canvas.unsetMapTool(self.tool)
         if self.old_tool is not None:
             self.canvas.setMapTool(self.old_tool)
-        self.say("")
+        self.say(self.note)
 
     def _scratch(self):
         project = QgsProject.instance()

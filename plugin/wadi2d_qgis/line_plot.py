@@ -17,6 +17,8 @@ from .profile_view import bounds, scale_points
 SIZE = (900, 290)
 LEFT, RIGHT, GAP, GAP_HIGH = 56.0, 28.0, 70.0, 52.0
 HEADER, FOOTER, AXIS = 60.0, 48.0, 18.0
+NOTE_HIGH = 30.0
+"""Two lines under the readout for a view's note, a study's area and runs (W53)."""
 TITLE_RISE, LEGEND_STEP, LEGEND_BAR, TICK = 5.0, 14.0, 16.0, 4.0
 WIDE_RATIO = 2.0
 """Wider than this over its height, the panels stand side by side."""
@@ -65,12 +67,13 @@ class LinePlot(QWidget):
     def _boxes(self, count: int) -> list[QRectF]:
         """One box per panel: side by side on a wide widget, one under the other on a tall one."""
         wide = self.width() - LEFT - RIGHT
-        high = self.height() - HEADER - FOOTER - AXIS
+        header = HEADER + (NOTE_HIGH if self.view is not None and self.view.note else 0.0)
+        high = self.height() - header - FOOTER - AXIS
         if self.width() >= WIDE_RATIO * self.height():
             each = (wide - GAP * (count - 1)) / count
-            return [QRectF(LEFT + n * (each + GAP), HEADER, each, high) for n in range(count)]
+            return [QRectF(LEFT + n * (each + GAP), header, each, high) for n in range(count)]
         each = (high - GAP_HIGH * (count - 1)) / count
-        return [QRectF(LEFT, HEADER + n * (each + GAP_HIGH), wide, each) for n in range(count)]
+        return [QRectF(LEFT, header + n * (each + GAP_HIGH), wide, each) for n in range(count)]
 
     def paintEvent(self, _event) -> None:
         painter = QPainter(self)
@@ -99,6 +102,8 @@ class LinePlot(QWidget):
         font.setBold(False)
         painter.setFont(font)
         painter.drawText(QRectF(MARGIN, 20.0, wide, 16.0), Qt.AlignLeft, readout(view, self.frame))
+        if view.note:
+            painter.drawText(QRectF(MARGIN, 36.0, wide, NOTE_HIGH), int(Qt.AlignLeft) | int(Qt.TextWordWrap), view.note)
         painter.setPen(QPen(QColor(AXIS_COLOUR)))
         bottom = QRectF(MARGIN, self.height() - FOOTER, wide, FOOTER)
         painter.drawText(bottom, int(Qt.AlignLeft | Qt.AlignBottom) | int(Qt.TextWordWrap), view.limit)

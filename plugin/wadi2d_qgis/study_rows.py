@@ -120,9 +120,11 @@ def study_job(form: dict) -> dict:
         block = {"areas_km2": parse_areas(form["listed"]) or []}
     else:
         block = {"n_areas": form["count"], "area_min_km2": form["smallest"], "area_max_km2": form["largest"]}
-    if form["composite"] and form["accumulation"]:
+    if form["accumulation"]:  # the lines read after the study take their area from it, with or without the map
         block["accumulation"] = str(Path(form["accumulation"]).resolve())
         block["accumulation_units"] = form["units"]
+        if not form["composite"]:
+            block["composite"] = False
     return block
 
 
@@ -199,7 +201,8 @@ def areas_text(areas: list[float] | None, ratio: float, most: int) -> str:
         return "Set the storm areas."
     listed = ", ".join(_area(a) for a in areas[:-1])
     listed = f"{listed} and {_area(areas[-1])}" if listed else _area(areas[-1])
-    return f"{len(areas)} runs, one per storm area: {listed} km2."
+    runs = "1 run" if len(areas) == 1 else f"{len(areas)} runs"
+    return f"{runs}, one per storm area: {listed} km2."
 
 
 def _factor(areas: list[float], factors: list[float], whole_below: bool, area: float) -> float:

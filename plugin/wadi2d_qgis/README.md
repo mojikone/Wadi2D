@@ -92,8 +92,15 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    the grid and never comes back has no flow of its own, and the dock names it. **Start study** shows which run of how
    many and how many are left; **Stop study** ends the run in progress as Stop does and writes no table, since the table
    needs every storm area. At the end the table appears in the dock and in `design_points.csv` and `study.json` of
-   `<folder>_arf`, beside the output folder, with each run in `runs/`. **Composite map (experimental)**, off by default,
-   needs a flow accumulation raster and loads depth, speed and hazard read per cell at its own drainage area.
+   `<folder>_arf`, beside the output folder, with each run in `runs/`. **Flow accumulation** gives each cell its
+   drainage area; **Composite map (experimental)**, off by default, needs it and loads depth, speed and hazard read per
+   cell at its own drainage area. **Result lines** under the table opens the line panel on the study: a design line takes
+   its own drainage area, any line drawn or picked the largest on the flow accumulation raster where it crosses the model,
+   and every series (flow, deepest water, the water surface) is read from the two runs either side of that area and
+   blended with the weights the composite map uses, linear in log area; the plot names the area, the two runs and their
+   weights, and gives the peak as the study reads a design point. Outside the runs the end run holds and the plot says
+   so; with no raster, a line that is no design line reads the smallest run alone, named. One request reads both runs:
+   about 2 s on Bidah 03 at 30 m, 0.1 to 0.9 s more than one run.
 
 During a run the depth appears as a blue layer. When the simulation ends the bar restarts for the pixel maps, unless the
 box is unticked: depth at the DEM pixel, hazard H1 to H6, smooth class polygons, a depth drawing with a soft wet edge. At

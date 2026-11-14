@@ -103,7 +103,11 @@ def test_the_job_block_holds_what_the_form_asks_for(tmp_path: Path) -> None:
     raster = tmp_path / "acc.tif"
     block = study_job(form(composite=True, accumulation=str(raster), units="km2"))
     assert block == {"bracket": True, "accumulation": str(raster.resolve()), "accumulation_units": "km2"}
-    assert "accumulation" not in study_job(form(composite=False, accumulation=str(raster)))
+    lines_only = study_job(form(composite=False, accumulation=str(raster), units="km2"))
+    assert lines_only == {"bracket": True, "accumulation": str(raster.resolve()), "accumulation_units": "km2", "composite": False}, (
+        "W53: the raster gives the lines read after the study their area, with no map"
+    )
+    assert "accumulation" not in study_job(form(composite=False, accumulation=None))
 
 
 def test_a_study_job_carries_its_block_and_a_run_job_never_does(tmp_path: Path) -> None:
