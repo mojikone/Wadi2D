@@ -828,6 +828,19 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     if isinstance(storm, GriddedStorm):
         for note in storm.notes(cfg.run.duration_s / SECONDS_PER_MINUTE):
             progress.emit("warn", message=f"rain: {note}")
+        if storm.arf is not None:  # which factor the rain was multiplied by, on the record of the run
+            progress.emit(
+                "output", kind="area_reduction", factor=storm.area_factor, storm_area_km2=storm.storm_area_km2,
+                arf_table_type=cfg.storm.arf.table_type,
+            )  # fmt: skip
+            if storm.storm_area_km2 is None:
+                said = "an area-reduction table without a storm area leaves the rain whole"
+            else:
+                said = (
+                    f"every frame is multiplied by {storm.area_factor:.4f}, the area-reduction table at "
+                    f"{storm.storm_area_km2:g} km2, over the whole event"
+                )
+            progress.emit("warn", message=f"rain: {said}")
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     if cfg.mesh.enabled and cfg.mesh.lines:

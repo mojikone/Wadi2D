@@ -44,13 +44,15 @@ class CellRain:
         _pairs, first, self.pair_of = np.unique(keys, return_index=True, return_inverse=True)
         used, self.column = np.unique(pixel[first], return_inverse=True)
         self.series = PixelSeries(frames, used)
+        self.reduced = storm.reduced
+        """The storm's area reduction: the losses act on the reduced rain, as under a frequency storm."""
         pair_cn = cn[first]
         self.has_loss = np.isfinite(pair_cn)
         self.loss = ScsCurveNumber(curve_number=pair_cn[self.has_loss])
 
     def excess_mm(self, minutes: float) -> FloatArray:
         """Cumulative excess per pair; rain passes whole where there is no curve number."""
-        rain = self.series.at(minutes)[self.column]
+        rain = self.reduced(self.series.at(minutes)[self.column])
         with np.errstate(divide="ignore", invalid="ignore"):
             rain[self.has_loss] = np.nan_to_num(self.loss.cumulative_excess(rain[self.has_loss]))
         return rain

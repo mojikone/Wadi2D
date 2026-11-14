@@ -2697,7 +2697,8 @@
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "description": "Area-reduction table. The depth of a uniform or hypothetical storm is multiplied by its factor at storm_area_km2. So is every frame of a gridded storm, for grids of point depths: on 2D cells and under lumped subbasins alike. None, or no storm area, leaves the rain whole"
         },
         "hyetograph_min": {
           "anyOf": [

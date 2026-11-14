@@ -114,3 +114,37 @@ def test_a_study_reads_a_hand_back_element_from_its_2d_runs_and_its_lumped_subba
     assert design == pytest.approx(expected, rel=1e-9)
     saved = json.loads((out / "study.json").read_text(encoding="utf-8"))
     assert saved["on_grid"] == ["Out"]
+
+
+def frames_of_the_storm(tmp_path) -> dict:
+    """``STORM``'s rain as frames: 30 mm in 20 min at a steady rate, one pixel over the whole box, with its table."""
+    import rasterio
+    from rasterio.transform import from_origin
+
+    folder = tmp_path / "rain"
+    folder.mkdir(exist_ok=True)
+    for n in range(4):
+        with rasterio.open(
+            folder / f"r{n}.tif", "w", driver="GTiff", height=1, width=1, count=1, dtype="float32", crs="EPSG:32640",
+            transform=from_origin(X0, 2_700_000.0, 512.0, 512.0),
+        ) as dst:  # fmt: skip
+            dst.write(np.full((1, 1), 7.5, np.float32), 1)
+    return {"kind": "gridded", "rain_file": str(folder), "rain_interval_min": 5.0, "arf": STORM["arf"]}
+
+
+def test_under_gridded_rain_an_element_is_rerun_at_its_own_area_as_under_the_design_storm_it_equals(tmp_path):
+    """The frames hold the uniform storm's rain, so the study must give the uniform storm's design flows: each
+    element's polygon mean multiplied by the table's factor at the element's own drainage area."""
+    _basin, design = plain_network(tmp_path)
+    gridded = design.model_copy(update={"storm": type(design.storm).model_validate(frames_of_the_storm(tmp_path))})
+    view, plans = plan_elements(gridded, "")
+    assert {p.name: p.how for p in plans} == {"Side": EXACT, "J": EXACT, "R2": EXACT, "Out": EXACT}
+    found = exact_peaks(view, plans, "")
+    wanted = exact_peaks(*plan_elements(design, ""), "")
+    for name in ("Side", "J", "R2", "Out"):
+        assert found[name][0] == pytest.approx(wanted[name][0], rel=1e-9)
+        assert found[name][1] == wanted[name][1]
+    whole = gridded.model_copy(update={"storm": gridded.storm.model_copy(update={"arf": None})})
+    unreduced = exact_peaks(*plan_elements(whole, ""), "")
+    factor = 1.0 - 0.5 * (0.1 - 0.01) / (10.0 - 0.01)
+    assert found["Side"][0] == pytest.approx(factor * unreduced["Side"][0], rel=1e-9), "CN 100: linear in the rain"

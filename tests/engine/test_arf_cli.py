@@ -99,6 +99,55 @@ def test_arf_study_end_to_end(arf_job, tmp_path):
     assert depth.max() > 0.0
 
 
+def as_frames(cfg: RunConfig, tmp_path) -> RunConfig:
+    """The job with its uniform storm written as frames: the same depth at the same steady rate, one GeoTIFF per
+    half of the storm over the whole box, with the storm's own area-reduction table."""
+    folder = tmp_path / "rain"
+    folder.mkdir()
+    for n in range(2):
+        with rasterio.open(
+            folder / f"r{n}.tif", "w", driver="GTiff", height=1, width=2, count=1, dtype="float32", crs=CRS,
+            transform=Affine(64.0, 0.0, X0, 0.0, -64.0, Y0),
+        ) as dst:  # fmt: skip
+            dst.write(np.full((1, 2), cfg.storm.depth_mm / 2.0, np.float32), 1)
+    data = cfg.model_dump(mode="json")
+    data["storm"] = {
+        "kind": "gridded", "rain_file": str(folder), "rain_interval_min": cfg.storm.duration_min / 2.0,
+        "arf": data["storm"]["arf"],
+    }  # fmt: skip
+    return RunConfig.model_validate(data)
+
+
+def test_a_study_on_gridded_rain_gives_the_design_flows_of_the_design_storm_it_equals(arf_job, tmp_path):
+    """Each run multiplies the frames by the table's factor at its own storm area, and says which factor that was."""
+    design = arf_study(arf_job, tmp_path / "design")
+    study = arf_study(as_frames(arf_job, tmp_path), tmp_path / "gridded")
+    assert study.exit_code == design.exit_code == 0, study.message
+    assert study.areas_km2 == design.areas_km2 == [10.0, 900.0]
+    for run, twin in zip(study.runs, design.runs, strict=True):
+        assert run.balance.rain == pytest.approx(twin.balance.rain, rel=1e-6)
+    row, wanted = study.table[0], design.table[0]
+    for key in ("peak_low_m3s", "peak_high_m3s", "design_peak_m3s"):
+        assert row[key] == pytest.approx(wanted[key], rel=1e-4)
+    assert row["peak_low_m3s"] > row["design_peak_m3s"] > row["peak_high_m3s"] > 0.0
+    assert row["arf_table_type"] == "storm-centred ratio"
+    factors = {}
+    for folder in sorted((tmp_path / "gridded" / "runs").iterdir()):
+        events = [json.loads(s) for s in (folder / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+        said = [e for e in events if e.get("kind") == "area_reduction"]
+        assert len(said) == 1
+        factors[said[0]["storm_area_km2"]] = said[0]["factor"]
+    assert factors == pytest.approx({10.0: 1.0 - 0.5 * 9.0 / 999.0, 900.0: 1.0 - 0.5 * 899.0 / 999.0})
+
+
+def test_a_study_on_gridded_rain_without_a_table_is_refused_in_words(arf_job, tmp_path):
+    data = as_frames(arf_job, tmp_path).model_dump(mode="json")
+    data["storm"]["arf"] = None
+    study = arf_study(RunConfig.model_validate(data), tmp_path / "study")
+    assert study.exit_code == 2
+    assert "needs storm.arf" in study.message
+
+
 def test_a_study_names_each_run_and_its_folder_before_it_starts(arf_job, tmp_path):
     """The dock follows the run in progress through its own progress file, so the study says where it is."""
     out = tmp_path / "study"

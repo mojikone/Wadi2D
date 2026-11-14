@@ -2,13 +2,18 @@
 
 A 2D cell takes the pixel its centre falls in. A lumped subbasin takes the mean of the pixels under its polygon, each
 weighted by the area it shares with the polygon, so a subbasin smaller than a pixel still has rain; a satellite pixel is
-about 10 km wide. Observed rain has no area reduction: it already is what fell over the area.
+about 10 km wide.
+
+Observed rain has no area reduction: it already is what fell over the area. A grid of design point depths has not been
+reduced, so the storm takes the table a frequency storm takes: with ``arf`` and ``storm_area_km2`` set, every frame is
+multiplied by the table's factor at that area, before the losses, under the cells and under the polygons alike. Without
+them the factor is 1 and nothing changes.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Self
 
 import numpy as np
@@ -16,6 +21,7 @@ import pyproj
 import shapely
 from numpy.typing import ArrayLike
 
+from wadi2d.storm.arf import ArfTable
 from wadi2d.storm.base import CumulativeStorm, FloatArray, Storm
 from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.rain_frames import PixelSeries, RainFrames
@@ -71,6 +77,8 @@ class GriddedStorm(CumulativeStorm):
     frames: RainFrames
     polygons: Mapping[str, Any] = field(default_factory=dict)
     polygon_crs: str = ""
+    arf: ArfTable | None = None
+    storm_area_km2: float | None = None
     _storms: dict[str, HyetographStorm] = field(default_factory=dict, init=False, repr=False)
     _covered: dict[str, float] = field(default_factory=dict, init=False, repr=False)
 
@@ -82,16 +90,28 @@ class GriddedStorm(CumulativeStorm):
         return self
 
     @property
+    def area_factor(self) -> float:
+        """What every frame is multiplied by: the table's factor at the storm area, 1 without a table or an area."""
+        if self.arf is None or self.storm_area_km2 is None:
+            return 1.0
+        return self.arf.factor(self.storm_area_km2)
+
+    def reduced(self, depth_mm: Any) -> Any:
+        """Depths after the area reduction; untouched when there is none, so such a run keeps its numbers to the digit."""
+        factor = self.area_factor
+        return depth_mm if factor == 1.0 else depth_mm * factor
+
+    @property
     def total_depth(self) -> float:
-        """The mean depth over the pixels with data, mm."""
-        return float(np.nanmean(self.frames.totals()))
+        """The mean depth over the pixels with data, after any area reduction, mm."""
+        return float(self.reduced(float(np.nanmean(self.frames.totals()))))
 
     def cumulative_depth(self, minutes: ArrayLike) -> FloatArray:
         """The mean over the grid, for reports; cells and subbasins read their own pixels."""
         totals = self.frames.totals()
         pixels = np.flatnonzero(np.isfinite(totals))
         series = PixelSeries(self.frames, pixels)
-        return np.array([series.at(float(m)).mean() for m in np.atleast_1d(minutes)])
+        return self.reduced(np.array([series.at(float(m)).mean() for m in np.atleast_1d(minutes)]))
 
     def over(self, subbasin: str) -> Storm:
         """The area-weighted mean of the pixels under one subbasin."""
@@ -104,7 +124,7 @@ class GriddedStorm(CumulativeStorm):
         if pixels.size == 0:
             raise ValueError(f"subbasin {subbasin} lies outside the rain grid")
         series = PixelSeries(self.frames, pixels)
-        storm = HyetographStorm(series.edges, series.cumulative @ (areas / areas.sum()))
+        storm = HyetographStorm(series.edges, self.reduced(series.cumulative @ (areas / areas.sum())))
         self._storms[subbasin] = storm
         self._covered[subbasin] = covered
         return storm
@@ -131,5 +151,7 @@ class GriddedStorm(CumulativeStorm):
         return found
 
     def at_area(self, area_km2: float) -> Self:
-        """Observed rain has no area reduction: the same rain."""
-        return self
+        """The same frames and polygons with the table read at ``area_km2``; rain with no table is the same rain."""
+        if self.arf is None:
+            return self
+        return replace(self, storm_area_km2=area_km2)
