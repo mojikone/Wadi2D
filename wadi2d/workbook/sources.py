@@ -62,7 +62,7 @@ def structure_columns(cols: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
     return {k[: -len(FLOW_SUFFIX)]: v for k, v in cols.items() if STRUCTURE_COLUMN.match(k)}
 
 
-def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
+def from_network_columns(cols: dict[str, np.ndarray]) -> Hydrograph:
     t_h = cols["t_s"] / SECONDS_PER_HOUR
     inflow, outflow = cols.get("inflow_m3s"), cols.get("outflow_m3s")
     if inflow is None or not np.any(inflow):
@@ -76,13 +76,13 @@ def _from_network(cols: dict[str, np.ndarray]) -> Hydrograph:
     return Hydrograph(t_h, inflow, outflow, pool, storage, structures)
 
 
-def _run_series(run: Path, name: str) -> tuple[Hydrograph, str]:
+def run_series(run: Path, name: str) -> tuple[Hydrograph, str]:
     from wadi2d.io.results import safe_name
 
     folder, safe = run / "series", safe_name(name)
     network = folder / f"network_{safe}.csv"
     if network.is_file():
-        return _from_network(_read_csv(network)), "Wadi2D network element"
+        return from_network_columns(_read_csv(network)), "Wadi2D network element"
     design = folder / f"design_{safe}.csv"
     if design.is_file():
         cols = _read_csv(design)
@@ -102,15 +102,29 @@ def _step_s(t_h: np.ndarray) -> int:
 
 
 def from_runs(
-    runs: dict[str, Path], elements: list[tuple[str, str]], areas: dict[str, float] | None = None
+    runs: dict[str, Path],
+    elements: list[tuple[str, str]],
+    areas: dict[str, float] | None = None,
+    notes: list[str] | None = None,
 ) -> tuple[list[Dam], int]:
-    """(dams, step in s) from one finished run per return period. ``areas`` gives catchments in km2 by name."""
+    """(dams, step in s) from one finished run, or one depth-area study folder (W74), per return period. ``areas``
+    gives catchments in km2 by name; in a study they are also the area an element is read at. How each element of a
+    study was read is appended to ``notes``, once per distinct reading."""
+    from wadi2d.workbook.study import is_study, study_element
+
     areas = areas or {}
     dams, steps = [], set()
     for name, label in elements:
         dam = Dam(name, label, "", areas.get(name))
         for rp, run in runs.items():
-            hydrograph, kind = _run_series(Path(run), name)
+            if is_study(run):
+                hydrograph, kind, area, words = study_element(Path(run), name, areas.get(name))
+                if dam.catchment_km2 is None:
+                    dam.catchment_km2 = round(area, 2)
+                if notes is not None and words not in notes:
+                    notes.append(words)
+            else:
+                hydrograph, kind = run_series(Path(run), name)
             dam.series[rp], dam.element_kind = hydrograph, kind
             steps.add(_step_s(hydrograph.t_h))
         dams.append(dam)

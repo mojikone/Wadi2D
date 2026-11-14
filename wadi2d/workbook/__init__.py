@@ -27,15 +27,23 @@ def make(
     method: str = "",
     tile_charts: bool = True,
 ) -> Path:
-    """Read the series from runs or HMS DSS files (one per return period, keyed ``200yr``, ``PMP`` ...) and write."""
+    """Read the series from runs, depth-area study folders or HMS DSS files (one per return period, keyed ``200yr``,
+    ``PMP`` ...) and write."""
     from wadi2d.workbook import layout, sources
 
     if bool(runs) == bool(dss):
         raise ValueError("give either runs or DSS files, one per return period")
+    notes: list[str] = []
     if runs:
-        dams, dt = sources.from_runs(runs, elements, areas)
-        listed = "; ".join(f"{rp} = {Path(p).name}" for rp, p in runs.items())
+        from wadi2d.workbook.study import is_study
+
+        dams, dt = sources.from_runs(runs, elements, areas, notes)
+        studies = [rp for rp, p in runs.items() if is_study(p)]
+        listed = "; ".join(f"{rp} = {Path(p).name}" + (" (depth-area study)" if rp in studies else "") for rp, p in runs.items())
         source, short = f"Wadi2D runs, one per return period: {listed}.", "Wadi2D"
+        if studies:
+            source += " A study's element is read at its own drainage area, as the study reads it:"
+            method = method or "depth-area study"
     else:
         dams, dt = sources.from_hms_dss(dss, elements, basin_file)
         listed = ", ".join(Path(p).name for p in dss.values())
@@ -48,5 +56,5 @@ def make(
             for dam in dams:
                 dam.catchment_km2 = areas.get(dam.name, dam.catchment_km2)
     rps = sorted((runs or dss).keys(), key=rp_sort_key)
-    wi = WorkbookInput(dams, rps, target, dt, source, short, method, project)
+    wi = WorkbookInput(dams, rps, target, dt, source, short, method, project, notes)
     return layout.write(wi, out, tile_charts)
