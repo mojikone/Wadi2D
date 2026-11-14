@@ -466,9 +466,13 @@ def test_the_route_names_of_the_rows_are_the_engines() -> None:
 def test_the_basin_point_kinds_and_the_delineation_defaults_are_the_engines() -> None:
     from wadi2d_qgis import basin_point_rows as rows
 
-    from wadi2d.basin.points import POINT_KINDS
+    from wadi2d.basin.diversion import METHODS, NEEDS, TABLE_PARAMETERS
+    from wadi2d.basin.points import DIVERSION_FIELDS, POINT_KINDS
 
     assert rows.POINT_KINDS == POINT_KINDS
+    assert rows.DIVERSION_METHODS == METHODS and set(rows.DIVERSION_NEEDS) == set(NEEDS)  # W75
+    assert rows.DIVERSION_EDITS == DIVERSION_FIELDS and rows.TABLE_PARAMETERS == TABLE_PARAMETERS
+    assert set(DIVERSION_FIELDS) <= {name for name, _type in rows.POINT_FIELDS}
     line = [(0.0, 0.0), (10.0, 0.0)]
     shaped = {"section": {"crest_z": 2.0, "bed_z": 0.0, "left_top_z": 2.0, "right_top_z": 2.0}}
     engine_default = {
