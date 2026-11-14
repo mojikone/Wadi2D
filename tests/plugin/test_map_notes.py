@@ -105,6 +105,8 @@ def test_the_plugin_names_the_engine_s_files_and_layers() -> None:
     assert protocol.LAYERS_FILE == smooth.LAYERS_FILE
     assert protocol.HAZARD_LAYER == smooth.CLASS_LAYER
     assert protocol.DOMAIN_LAYER == smooth.DOMAIN_LAYER
+    runner = pytest.importorskip("wadi2d.products.runner")
+    assert protocol.PRODUCTS_LOG == runner.PRODUCTS_LOG
     assert protocol.SUBBASIN_LAYER == setup.SUBBASIN_LAYER
     assert protocol.INFLOW_LAYER == setup.INFLOW_LAYER
     assert protocol.BOUNDARY_LAYER == setup.BOUNDARY_LAYER

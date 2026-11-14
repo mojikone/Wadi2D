@@ -25,7 +25,7 @@ from qgis.PyQt.QtWidgets import (
 
 from . import settings
 from .basin_layers import load_basin_layers
-from .engine_process import EngineQuery, EngineRun, StudyRun
+from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .job_builder import (
     LayerError,
     SchemaView,
@@ -57,6 +57,7 @@ from .protocol import (
     engine_error_text,
     estimate_text,
     exit_message,
+    has_drawings,
     mesh_args,
     mesh_text,
     next_run_dir,
@@ -66,7 +67,7 @@ from .protocol import (
     parse_mesh,
     run_args,
 )
-from .result_layers import has_products, load_cell_grid, load_products, load_strip_mesh
+from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
@@ -93,6 +94,10 @@ LOG_TAG = "Wadi2D"
 HMS_JOB = "hms_import.json"
 
 FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
+DRAWING_NOTE = (
+    "This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes "
+    "them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run."
+)
 FRAMES_NOTE = (
     "Use the Temporal Controller to step through the flood. These are cells; the pixel rasters stay the numbers of record. "
     "The date on the slider is a stand-in: 1 January 2000, 00:00, is the start of the run."
@@ -119,6 +124,8 @@ class Wadi2DDock(QgsDockWidget):
         self._mesh_folder_next = ""
         self._book = None
         self.line_panel: ResultLinesPanel | None = None
+        self.drawing: DrawingRun | None = None
+        self._open_shown = False
 
         self.terrain = TerrainSection(iface.mapCanvas())
         self.mesh = MeshSection(iface.mapCanvas())
@@ -216,7 +223,7 @@ class Wadi2DDock(QgsDockWidget):
         self.mesh.set_finest(snap_dx(self.terrain.dx.value(), pixel))
 
     def _set_ready(self, ready: bool) -> None:
-        idle = self.run is None and self.study_run is None
+        idle = self.run is None and self.study_run is None and self.drawing is None
         self.panel.run_button.setEnabled(ready and idle)
         self.panel.estimate_button.setEnabled(ready and idle)
         self.mesh.preview_button.setEnabled(ready and idle and self.mesh.enabled.isChecked())
@@ -501,6 +508,10 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.stop_button.setEnabled(False)
             self.panel.say("Stopping: the engine finishes the step and writes its maps.")
             self.run.stop()
+        elif self.drawing is not None:
+            self.panel.stop_button.setEnabled(False)
+            self.panel.say("Stopping the drawing. The run and its rasters stay as they are.")
+            self.drawing.stop()
 
     # The depth-area study: the job of a run plus its storm areas, one engine process for all its runs.
 
@@ -684,8 +695,51 @@ class Wadi2DDock(QgsDockWidget):
     # 2 min on 15,000 km2.
 
     def make_map(self) -> None:
-        if self.results_dir is None:
+        if self.results_dir is None or self.drawing is not None:
             return
+        if has_drawings(self.results_dir):
+            self._write_sheets()
+        else:
+            self._draw_first()
+
+    # A run makes its smooth polygons and depth picture only when ticked. The sheets are drawn from them, so a run
+    # without them has the engine make them now, from its pixel rasters, and the sheets follow.
+
+    def _draw_first(self) -> None:
+        self._open_shown = self.panel.open_button.isVisible()
+        self.drawing = DrawingRun(settings.engine_text(), self)
+        self.drawing.updated.connect(self.panel.show_state)
+        self.drawing.ended.connect(self._drawn)
+        try:
+            self.drawing.start_drawing(self.results_dir)
+        except (OSError, ValueError) as problem:
+            self.drawing = None
+            self.panel.say(f"The map could not be made: {problem}", "bad")
+            return
+        self.panel.set_running(True)
+        self.study.start_button.setEnabled(False)
+        self.panel.show_state(self.drawing.state)  # the drawing's words at once, not the finished run's clock
+        self.panel.say(DRAWING_NOTE, "note")
+
+    def _drawn(self, state) -> None:
+        drawing, self.drawing = self.drawing, None
+        run = drawing.out_dir
+        self.panel.set_running(False)
+        self._set_ready(self.schema is not None)
+        self.panel.open_button.setVisible(self._open_shown)
+        self.panel.map_button.setEnabled(has_products(run))
+        self.panel.frames_button.setEnabled(has_results(run))
+        self.panel.lines_button.setEnabled(has_results(run))
+        if not state.succeeded or not has_drawings(run):
+            tone = "note" if state.exit_code == EXIT_STOPPED else "bad"
+            self.panel.say(f"The map was not made. {state.outcome()}", tone)
+            return
+        self.panel.bar.setValue(100)
+        self.results_dir = run
+        load_drawings(run, run.name)
+        self._write_sheets()
+
+    def _write_sheets(self) -> None:
         self.panel.say("Making the map...")
         QApplication.setOverrideCursor(Qt.WaitCursor)
         QApplication.processEvents()
@@ -759,6 +813,9 @@ class Wadi2DDock(QgsDockWidget):
         if self.study_run is not None:
             self.study_run.release()
             self.study_run = None
+        if self.drawing is not None:
+            self.drawing.release()
+            self.drawing = None
         self.live.clear()
         self._clear_last_run()
         self._drop_book()
