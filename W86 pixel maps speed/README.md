@@ -95,8 +95,11 @@ did not agree with itself; it is now the CPU's strip to the digit, and the same 
 **One thing left that depends on the blocks** [Certain, measured, last row]: the strip's Newton fill, as the old code
 wrote it, goes on until every cell of the lot has settled, so a cell that still moves by less than the tolerance can
 take one more step in one lot than in another. Cut into several blocks, a strip pixel can differ from the one-block
-answer in the last digit of float32 (9.5e-7 m here), no class changed. The cure is to stop each cell on its own
-step, as the squares' fill does. It was not taken, because it moves the last digit against the old CPU code. His call.
+answer by a step under the fill's tolerance, 0.1 mm: 9.5e-7 m at most on the window, and on Block 2's run 3 cut in 8
+blocks against 23 (`s03_compare.py`, 93,080 x 97,560 pixels, 502 M wet) 13,056 depth pixels and 8,032 depth x speed
+pixels differ, by 0.12 mm and 1.8e-4 m2/s at most, with the hazard and speed rasters identical and `pixels.json`
+equal. The cure is to stop each cell on its own step, as the squares' fill does. It was not taken, because it moves
+the same last digits against the old CPU code. His call.
 
 Tests (`tests/products/`): `test_blocks.py` (one block and many blocks against the step as it was before W86, built
 in the test from `PixelMaxima` and the old `strip_pixel_maxima`; the plan of blocks; the retry in smaller blocks),

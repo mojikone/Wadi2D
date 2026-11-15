@@ -176,8 +176,8 @@ def test_a_strip_in_one_block_is_the_whole_strip_to_the_digit(striped) -> None:
 
 def test_a_strip_in_many_blocks_keeps_its_pixels(striped, tmp_path, monkeypatch) -> None:
     """A block's strip cells are worked with the rings of cells their surface reads. The Newton fill stops when
-    the cells of the lot have settled, so a pixel may differ from the whole strip's in the last digits of float32
-    and no more; the squares beside the strip are the whole run's to the digit."""
+    the cells of the lot have settled, so a pixel may differ from the whole strip's by a step under the fill's
+    tolerance and no more (far less here); the squares beside the strip are the whole run's to the digit."""
     cfg, tables, crs, run = striped
     (tmp_path / "results.h5").write_bytes((run / "results.h5").read_bytes())
     written = _small_blocks(monkeypatch, 16)
