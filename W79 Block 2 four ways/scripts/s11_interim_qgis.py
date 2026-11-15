@@ -1,4 +1,8 @@
-"""Block2_four_ways_interim_cells.qgz: what the reruns hold so far, before their pixel rasters, in the plugin's group pattern.
+"""Block2_four_ways_interim_cells.qgz (the rerun set), or Block2_four_ways.qgz (the final rerun2 set, W79_SET=rerun2):
+the runs in the plugin's group pattern.
+
+Final project (rerun2), his asks of 2026-11-15: run 2 at the top; run 3's group shows its HMS catchments (above the dams
+orange, above HAT-J4 red, rain on the grid blue); depth layers drawn from 0.05 m; the light time slider only, off.
 
 Run with ``"C:\\Program Files\\QGIS 3.44.8\\bin\\python-qgis-ltr.bat" s11_interim_qgis.py``: its own QgsApplication
 without a GUI, CPU only, writing only W79's interim project. A common group (terrain hillshade from the 5 m DEM, the
@@ -38,15 +42,19 @@ from qgis.core import (  # noqa: E402
 app = QgsApplication([], False)
 app.initQgis()
 
-from w79 import DAMS, DEM5, INPUTS, JOBS, RUN_NAMES, RUN_TITLES, RUNS, safe_csv_uri  # noqa: E402
+from w79 import DAMS, DEM5, DOMAIN_NO_RIM, INPUTS, JOBS, RUN_NAMES, RUN_TITLES, RUNS, SET, safe_csv_uri  # noqa: E402
 from wadi2d_qgis import layer_groups as lg  # noqa: E402
 from wadi2d_qgis import result_layers as rl  # noqa: E402
 from wadi2d_qgis import style  # noqa: E402
 from wadi2d_qgis import time_layer as tl  # noqa: E402
 
 CRS = QgsCoordinateReferenceSystem("EPSG:32640")
-OUT = Path(os.environ.get("W79_QGZ", HERE / "Block2_four_ways_interim_cells.qgz"))
-INTERIM = "interim, cell maps"
+FINAL = SET != "rerun"
+OUT = Path(os.environ.get("W79_QGZ", HERE / ("Block2_four_ways.qgz" if FINAL else "Block2_four_ways_interim_cells.qgz")))
+INTERIM = "final rerun, 2026-11-15" if FINAL else "interim, cell maps"
+DOMAIN = DOMAIN_NO_RIM if FINAL else INPUTS / "domain.geojson"
+DEPTH_CUTOFF_M = 0.05
+"""His display cutoff: shallower water is not drawn (run 1 rains on every cell)."""
 project = QgsProject.instance()
 project.setCrs(CRS)
 project.setTitle(f"Block 2 four ways (W79), {INTERIM}")
@@ -90,7 +98,7 @@ def outflow_lines() -> Path:
     features = [{"type": "Feature", "properties": {"kind": b["kind"], "slope": b.get("slope"), "number": i + 1},
                  "geometry": {"type": "LineString", "coordinates": b["coordinates"]}}
                 for i, b in enumerate(job["boundaries"])]
-    path = RUNS / "inputs" / "outflow_lines.geojson"
+    path = RUNS / "inputs" / f"outflow_lines_{SET}.geojson"
     path.write_text(json.dumps({"type": "FeatureCollection", "crs": {"type": "name", "properties": {
         "name": "urn:ogc:def:crs:EPSG::32640"}}, "features": features}), encoding="utf-8")
     return path
@@ -115,7 +123,7 @@ def common() -> None:
     top = root.insertGroup(0, f"Block 2 \N{EN DASH} common inputs ({INTERIM})")
     hill = QgsRasterLayer(str(DEM5), "Terrain, GGC HDSM 5 m, hillshade")
     hill.setRenderer(QgsHillshadeRenderer(hill.dataProvider(), 1, 315.0, 45.0))
-    dom = vec(str(INPUTS / "domain.geojson"), "2D domain to the sea (Basin 3 polygons + coast strip)")
+    dom = vec(str(DOMAIN), "2D domain to the sea (Basin 3's outline + coast strip)")
     style.style_domain(dom)
     out = vec(str(outflow_lines()), "Outflow lines: the sea, the side and north outlets (normal depth)")
     style.style_boundaries(out)
@@ -124,7 +132,7 @@ def common() -> None:
     subs.setRenderer(QgsSingleSymbolRenderer(QgsFillSymbol.createSimple(
         {"color": "0,0,0,0", "outline_color": "#1f4e8c", "outline_width": "0.35"})))
     style._labels(subs, "name", 7.0, "#1f3a66", Qgis.LabelPlacement.OverPoint, bold=True)
-    peaks = table(HERE / "dam_peaks.csv", "Dam peaks so far, with the ARF of each (dam_peaks.csv)")
+    peaks = table(HERE / "dam_peaks.csv", "Dam peaks of the four runs, with the ARF of each (dam_peaks.csv)")
     run2 = table(RUNS / RUN_NAMES[2] / "network_peaks.csv",
                  "Run 2, full HMS way: every element at its own area (dams: Reservoir rows)", "\"kind\" = 'Reservoir'")
     add_all(top, [peaks, run2, *dam_layers(), out, subs, dom])
@@ -146,7 +154,15 @@ def grid_run(number: int) -> bool:
     pixels = rl.has_products(folder)
     group.setName(f"{lg.model_title(model)}  ({RUN_TITLES[number]}; {'pixel rasters' if pixels else INTERIM})")
     if pixels:
-        rl.load_products(folder)
+        found = rl.load_products(folder)
+        if FINAL and found is not None:
+            seen = set()
+            for layer in (found.depth, found.record_depth, *found.record):
+                if layer is None or id(layer) in seen or not isinstance(layer, QgsRasterLayer):
+                    continue
+                seen.add(id(layer))
+                if layer.name().lower().startswith("depth"):
+                    cut_depth(layer)
     rl.load_cell_grid(folder)
     for layer in rl.load_strip_mesh(folder):  # 0.5 M outlines and 1.3 M faces: off until zoomed in
         root.findLayer(layer.id()).setItemVisibilityChecked(False)
@@ -180,7 +196,11 @@ def grid_run(number: int) -> bool:
         if layer.isValid():
             if styler is not None:
                 styler(layer)
+            if FINAL and name == "max_depth.tif":
+                cut_depth(layer)
             add_all(cells, [layer], shown=name == "max_depth.tif" and not pixels)
+    if FINAL and number == 3:
+        catchments(lg.input_group(model, lg.HYDROLOGY))
     series = lg.subgroup(results, "Dam result lines: series of record (every 60 s)")
     tables = []
     for dam in DAMS:
@@ -255,31 +275,80 @@ def slider(folder: Path, number: int) -> None:
             layer.setCrs(CRS)
             style.style_frames(layer)
             lg.add_layer(group, layer, shown=False, index=0)
-    full = tl.open_frames(folder)
+    full = None if FINAL else tl.open_frames(folder)  # the full file hung QGIS on his PC: not in the final project
     if full is not None:
         full.setName("Flood over time, full: every 15 min, every square cell (heavy, no aligned cells)")
         heavy = lg.subgroup(group, "Full file (heavy: 2.9 M cells; turn on with care)")
         lg.add_layer(heavy, full, shown=False)
         heavy.setItemVisibilityChecked(False)
         heavy.setExpanded(False)
-    else:
+    elif not light.is_file():
         notes.append(f"run {number}: no time-slider file yet")
+
+
+def cut_depth(layer) -> None:
+    """Water shallower than DEPTH_CUTOFF_M is not drawn: the ramp starts there and clips below it."""
+    from qgis.core import QgsColorRampShader, QgsSingleBandPseudoColorRenderer
+
+    renderer = layer.renderer()
+    if not isinstance(renderer, QgsSingleBandPseudoColorRenderer):
+        return
+    function = renderer.shader().rasterShaderFunction()
+    old = function.colorRampItemList()
+    items = [item for item in old if item.value >= DEPTH_CUTOFF_M]
+    if not items or items[0].value > DEPTH_CUTOFF_M:
+        below = [item for item in old if item.value < DEPTH_CUTOFF_M]
+        colour = (below[-1] if below else old[0]).color
+        items.insert(0, QgsColorRampShader.ColorRampItem(DEPTH_CUTOFF_M, colour, f"{DEPTH_CUTOFF_M:g} m"))
+    function.setColorRampItemList(items)
+    function.setClip(True)
+    function.setMinimumValue(DEPTH_CUTOFF_M)
+    renderer.setClassificationMin(DEPTH_CUTOFF_M)
+    layer.setName(f"{layer.name()} (from {DEPTH_CUTOFF_M:g} m)")
+    layer.triggerRepaint()
+
+
+CATCHMENT_COLOURS = {"HMS above the five dams": "#f28e2b", "HMS above HAT-J4": "#d62728", "Rain on the grid": "#1f77b4"}
+
+
+def catchments(group) -> None:
+    """Run 3's catchments by how they are modelled (s17_run3_catchments.py), above the run's other inputs."""
+    from qgis.core import QgsCategorizedSymbolRenderer, QgsRendererCategory
+
+    path = RUNS / "inputs" / "run3_catchments.gpkg"
+    layer = vec(f"{path}|layername=parts",
+                "Run 3 catchments: HMS above the dams (orange), above HAT-J4 (red), rain on the grid (blue)")
+    categories = []
+    for value in [f["part"] for f in layer.getFeatures()]:
+        colour = next(c for key, c in CATCHMENT_COLOURS.items() if value.startswith(key))
+        symbol = QgsFillSymbol.createSimple({"color": colour, "outline_color": colour, "outline_width": "0.6"})
+        symbol.setOpacity(0.35)
+        categories.append(QgsRendererCategory(value, symbol, value))
+    layer.setRenderer(QgsCategorizedSymbolRenderer("part", categories))
+    subs = vec(f"{path}|layername=subbasins", "Run 3 subbasins: name, how carried, ARF area")
+    subs.setRenderer(QgsSingleSymbolRenderer(QgsFillSymbol.createSimple(
+        {"color": "0,0,0,0", "outline_color": "#404040", "outline_width": "0.2"})))
+    style._labels(subs, "name", 6.5, "#202020", Qgis.LabelPlacement.OverPoint)
+    add_all(group, [subs, layer])
 
 
 def main() -> None:
     common()
-    lumped_run()
-    lg.find_model(lg.model_of_run(RUNS / RUN_NAMES[2])).setItemVisibilityChecked(False)
+    if not FINAL:
+        lumped_run()
+        lg.find_model(lg.model_of_run(RUNS / RUN_NAMES[2])).setItemVisibilityChecked(False)
     made = [n for n in (4, 3, 1) if grid_run(n)]  # each model group goes on top: run 1 ends first
+    if FINAL:
+        lumped_run()  # last, so on top: his ask
     for number in made:
-        if number != min(made):
+        if FINAL or number != min(made):
             node = lg.find_model(lg.model_of_run(RUNS / RUN_NAMES[number]))
             if node is not None:
                 node.setItemVisibilityChecked(False)
     for child in root.children():
         if isinstance(child, QgsLayerTreeGroup):
             child.setExpanded(False)
-    dom = vec(str(INPUTS / "domain.geojson"), "extent")
+    dom = vec(str(DOMAIN), "extent")
     project.viewSettings().setDefaultViewExtent(QgsReferencedRectangle(dom.extent(), CRS))
     project.writeEntryBool("Paths", "/Absolute", False)
     if not project.write(str(OUT)):

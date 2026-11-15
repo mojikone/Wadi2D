@@ -185,7 +185,55 @@ def dam_areas(job: dict) -> dict[str, list[str]]:
     return above
 
 
+HAT_JUNCTION = "HAT-J4"
+HAT_AREA_KM2 = 260.97
+"""His definition of run 3 (2026-11-15): HMS's subbasins and reaches above the HAT-S7 / HAT-S8 confluence, junction HAT-J4
+(HAT-S1 to HAT-S8), as above the five dams; the junction's own upstream area for their ARF, as run 2 reads it."""
+
+
+def above_hat(name: str) -> bool:
+    downstream = {e.name: e.downstream for e in load_basin(HMS_DIR / BASIN).elements}
+    seen = name
+    while seen in downstream and downstream[seen]:
+        seen = downstream[seen]
+        if seen == HAT_JUNCTION:
+            return True
+    return False
+
+
+def run3_hms_mountains(job: dict, inputs: dict) -> dict:
+    """Run 3 as he defined it on 2026-11-15: HMS in the mountains (S1 to S18 above the five dams, HAT-S1 to HAT-S8 above
+    HAT-J4), lumped with their reaches and reservoirs, each at its own ARF area (a dam's, or HAT-J4's), carried to the
+    grid by inflows at the dams and at HAT-J4 and left out of the mesh (grid.exclude_lumped, W88); the other 78
+    subbasins and the coast strip rain on the grid at 100 km2. The domain reaches the sea as run 1's."""
+    job = common(job, inputs, 3)
+    above = dam_areas(job)
+    model = load_basin(HMS_DIR / BASIN)
+    junction = next(e for e in model.elements if e.name == HAT_JUNCTION)
+    hat = []
+    for s in job["hydrology"]["subbasins"]:
+        if s.get("storm_area_km2") is not None:
+            s["outlet"] = None  # carried by its reservoir's inflow
+        elif above_hat(s["name"]):
+            s.update({"outlet": None, "storm_area_km2": HAT_AREA_KM2})
+            hat.append(s["name"])
+        else:
+            s.update({"mode": "2d", "outlet": None, "entry": "point", "storm_area_km2": None})
+    job["hydrology"]["inflows"] = [
+        {"name": f"{dam} outflow", "x": inputs["dams"][dam]["entry"][0], "y": inputs["dams"][dam]["entry"][1],
+         "element": RESERVOIR[dam], "entry": "point"}
+        for dam in DAMS
+    ] + [{"name": f"{HAT_JUNCTION} outflow", "x": junction.canvas_x, "y": junction.canvas_y, "element": HAT_JUNCTION,
+          "entry": "point"}]
+    job["grid"]["exclude_lumped"] = True
+    print("run 3, carried:", {k: sorted(v) for k, v in above.items()}, HAT_JUNCTION, sorted(hat),
+          "rain on the grid:", sum(1 for s in job["hydrology"]["subbasins"] if s["mode"] == "2d"))
+    return job
+
+
 def run3(job: dict, inputs: dict) -> dict:
+    if SET != "rerun":
+        return run3_hms_mountains(job, inputs)
     job = common(job, inputs, 3)
     above = dam_areas(job)
     for s in job["hydrology"]["subbasins"]:

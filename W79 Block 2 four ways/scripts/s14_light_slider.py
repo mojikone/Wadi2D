@@ -23,7 +23,7 @@ import h5py
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from w79 import RUN_NAMES, RUNS  # noqa: E402
+from w79 import RUN_NAMES, RUNS, SET  # noqa: E402
 
 from wadi2d.config.schema import RunConfig  # noqa: E402
 from wadi2d.products import time_slider as ts  # noqa: E402
@@ -33,6 +33,8 @@ from wadi2d.products.hazard import classify  # noqa: E402
 EVERY = 4
 WET_M = 0.1
 OUT_NAME = "frames_light.nc"
+CUTOFF_M = 0.05 if SET != "rerun" else 0.0
+"""His display cutoff in the final set: a cell shallower than this is empty in a frame, as below the depth floor."""
 
 
 def squares(mask: np.ndarray, keep: np.ndarray, x0: float, y0: float, dx: float):
@@ -106,7 +108,7 @@ def write(folder: Path) -> dict:
                 d = np.concatenate([d, np.zeros(n_strip, np.float32)])
                 s = np.concatenate([s, np.zeros(n_strip, np.float32)])
             hazard = classify(d, s, d * s, rule).astype(np.float32)
-            dry = d < rule.depth_floor
+            dry = d < max(rule.depth_floor, CUTOFF_M)
             for key, values in (("depth", d), ("speed", s), ("hazard", hazard)):
                 f[key][index, :] = np.where(dry, ts.FILL, values)
     tmp.replace(path)

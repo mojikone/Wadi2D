@@ -62,6 +62,8 @@ RUN_TITLES = {
     3: "Hybrid, lumped reaches and reservoirs, 2D below the dams",
     4: "Hybrid, lumped subbasins, all routing and the dams on the grid",
 }
+if SET != "rerun":  # his definition of run 3, 2026-11-15
+    RUN_TITLES[3] = "HMS in the mountains (above the dams and HAT-J4, left out of the mesh), rain on the grid below"
 
 
 def load_json(path: Path):

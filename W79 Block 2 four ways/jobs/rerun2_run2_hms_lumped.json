@@ -1740,6 +1740,7 @@
   "inject_min_depth": 0.1,
   "inject_max_offset": 200.0,
   "entry_erode_m": 80.0,
+  "entry_snap_m": 500.0,
   "overlap_share": 0.01
  },
  "transmission": {

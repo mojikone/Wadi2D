@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from w79 import DAMS, HERE, JOBS, RESERVOIR, RUN_NAMES, RUN_TITLES, RUNS, load_json  # noqa: E402
+from w79 import DAMS, HERE, JOBS, RESERVOIR, RUN_NAMES, RUN_TITLES, RUNS, SET, load_json  # noqa: E402
 
 from wadi2d.config.schema import RunConfig  # noqa: E402
 from wadi2d.forcing import arf_table  # noqa: E402
@@ -69,7 +69,7 @@ def main() -> None:
                 "ring_inflow_peak_m3s": round(d["inflow_by_ring"]["peak_m3s"], 1) if "inflow_by_ring" in d else "",
                 "ring_inflow_volume_Mm3": round(d["inflow_by_ring"]["volume_Mm3"], 3) if "inflow_by_ring" in d else "",
             })
-    out = HERE / "dam_peaks.csv"
+    out = HERE / ("dam_peaks_rerun.csv" if SET == "rerun" else "dam_peaks.csv")  # the final set is the live table
     with out.open("w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=FIELDS)
         w.writeheader()
