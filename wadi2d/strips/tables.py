@@ -276,6 +276,52 @@ def _cell_pieces(cx: np.ndarray, cy: np.ndarray, pix, dx: float) -> list[np.ndar
     return np.split(order, np.flatnonzero(np.diff(key[order])) + 1)
 
 
+def _ring_ranges(geo, n: int, pix) -> tuple[np.ndarray, ...]:
+    """The pixel box of each of the first ``n`` rings on the window."""
+    first = geo.ring_start[:n]
+    stop = geo.ring_start[n]
+    xs, ys = geo.x[geo.ring_node[:stop]], geo.y[geo.ring_node[:stop]]
+    return _pixel_ranges(
+        np.minimum.reduceat(xs, first), np.minimum.reduceat(ys, first), np.maximum.reduceat(xs, first), np.maximum.reduceat(ys, first), pix
+    )  # fmt: skip
+
+
+def owned_pixels(geo, n: int, pix, dx: float, workers: int | None = None) -> tuple[np.ndarray, ...]:
+    """The pixels of the first ``n`` cells, as ``_owners`` on the whole window gives them, read a piece at a time
+    (W81): their rows and columns on the window, their cell and their ground, by cell and within a cell in the window's
+    row order. A pixel two rings claim goes to the later of the first ``n``, as on the whole window."""
+    empty = np.zeros(0, np.int64)
+    if n == 0:
+        return empty, empty, empty, np.zeros(0)
+    area, cx, cy = geo.areas_centroids()
+    nr, nc = pix.shape
+    cr0, cr1, cc0, cc1 = _ring_ranges(geo, n, pix)
+    pieces = _cell_pieces(cx[:n], cy[:n], pix, dx)
+    found: list = [None] * len(pieces)
+    pad = PIECE_PAD_PIXELS
+
+    def one(q: int) -> None:
+        own = np.sort(pieces[q])
+        r_lo, r_hi = max(int(cr0[own].min()) - pad, 0), min(int(cr1[own].max()) + pad, nr - 1)
+        c_lo, c_hi = max(int(cc0[own].min()) - pad, 0), min(int(cc1[own].max()) + pad, nc - 1)
+        h, w = r_hi - r_lo + 1, c_hi - c_lo + 1
+        near = np.flatnonzero((cr1 >= r_lo - 1) & (cr0 <= r_hi + 1) & (cc1 >= c_lo - 1) & (cc0 <= c_hi + 1))
+        owner = _owners_of(geo.ring_start, geo.ring_node, geo.x, geo.y, near, pix.x0, pix.y0, pix.pixel, nr, nc, r_lo, c_lo, h, w)
+        mine = np.zeros(n, bool)
+        mine[own] = True
+        r, c = np.nonzero((owner >= 0) & mine[np.maximum(owner, 0)])
+        if r.size == 0:
+            found[q] = (empty, empty, empty, np.zeros(0))
+            return
+        z = np.asarray(pix.window(r_lo, c_lo, h, w), np.float64)
+        found[q] = (r + r_lo, c + c_lo, owner[r, c], z[r, c])
+
+    run_all(range(len(pieces)), one, table_workers(workers))
+    r, c, cell, z = (np.concatenate([f[k] for f in found]) for k in range(4))
+    order = np.argsort(cell, kind="stable")  # a cell's pixels all come from its own piece, in the window's row order
+    return r[order], c[order], cell[order], z[order]
+
+
 def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers=None) -> None:
     """Every cell and kept face table, a piece at a time (W81): a piece is the cells whose centroids share a square of
     ``PIECE_CELLS`` cells a side, with the faces whose left cell it holds; its window covers their rings and their
