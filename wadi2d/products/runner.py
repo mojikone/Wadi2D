@@ -65,6 +65,20 @@ def make_after_run(
     return PRODUCTS_DONE
 
 
+def _cell_maps(run: Path, tables, crs, progress: Progress) -> None:
+    """A run on an aligned mesh made before its cell maps held the strip's cells (W86) gets them with a remake:
+    seconds, and the wadis are no longer blank in ``maps/``. A failure here is not in the way of the pixel maps."""
+    from wadi2d.products.cell_maps import remake_cell_maps
+
+    try:
+        filled = remake_cell_maps(run, tables, crs)
+    except Exception as error:
+        progress.emit("warn", message=f"The cell maps could not be written again with the strip's cells: {error}")
+        return
+    if filled:
+        progress.emit("output", kind="cell_maps", path=str(run / "maps"), strip_squares=filled)
+
+
 def remake(run: Path, backend: str | None = None, echo: bool = False) -> int:
     """The step again on a run folder, with this engine and that run's own configuration."""
     from wadi2d.run import InvalidJob, prepare_grid
@@ -79,6 +93,7 @@ def remake(run: Path, backend: str | None = None, echo: bool = False) -> int:
             cfg = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"pixels": asked})})
             cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else run / "cache"
             tables, crs = prepare_grid(cfg, cache, progress)
+            _cell_maps(run, tables, crs, progress)
             outcome = make_after_run(cfg, tables, crs, run, backend, progress, (), None)
         except InvalidJob as error:
             progress.emit("error", code=EXIT_INVALID, message=str(error))

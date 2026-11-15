@@ -30,11 +30,14 @@ def write_map(
     crs,
     valid: np.ndarray | None = None,
     tags: dict[str, str] | None = None,
+    also: np.ndarray | None = None,
 ) -> Path:
-    """One float32 band, nodata where ``valid`` is False or the cell is outside the domain."""
+    """One float32 band, nodata where ``valid`` is False or the cell is outside the domain. ``also`` marks cells
+    outside the lattice's own mask that hold a value all the same: the squares an aligned strip replaced (W86)."""
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
-    keep = grid.mask if valid is None else (grid.mask & valid)
+    inside = grid.mask if also is None else (grid.mask | also)
+    keep = inside if valid is None else (inside & valid)
     band = np.where(keep, data, NODATA).astype(np.float32)
     ny, nx = band.shape
     profile = {

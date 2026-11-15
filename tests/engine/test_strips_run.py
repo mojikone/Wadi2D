@@ -262,13 +262,15 @@ def test_an_inflow_on_the_corridor_enters_the_strip(tilted_dem, tmp_path) -> Non
     upstream = [d for x, y, d in depths if x < X0 + 50.0]
     wet_share = float(np.mean([d > 0.02 for d in downstream]))
     assert wet_share > 0.4 and max(upstream) < 0.01, (wet_share, max(upstream))  # the water runs down the corridor
+    import h5py
     import rasterio
 
-    with rasterio.open(out / "maps" / "max_depth.tif") as src:
-        grid_max = src.read(1)
-        grid_max = np.where(grid_max == src.nodata, 0.0, grid_max)
+    with h5py.File(out / "results.h5", "r") as f:  # the squares' own cells: the strip's are not among them
+        grid_max = f["maxima"]["depth"][:]
     centre = max(d for x, y, d in depths if abs(y - MID_Y) < 4.0)
     assert centre > 2.0 * float(grid_max.max()) > 0.0, (centre, float(grid_max.max()))  # deepest on the corridor's middle rows
+    with rasterio.open(out / "maps" / "max_depth.tif") as src:  # and the cell map holds the corridor too (W86)
+        assert float(src.read(1).max()) == pytest.approx(max(d for _x, _y, d in depths), rel=1e-6)
 
 
 def test_a_stopped_run_with_a_corridor_resumes_to_the_unbroken_run(tilted_dem, tmp_path, monkeypatch) -> None:  # noqa: F811

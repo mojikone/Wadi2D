@@ -76,7 +76,6 @@ from wadi2d.io.cache import (
     save_tables,
 )
 from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoint
-from wadi2d.io.geotiff import write_map
 from wadi2d.io.identity import file_identity
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
@@ -867,26 +866,24 @@ def _edge_pools(cfg, tables, depth, open_cells, out: Path, crs, progress) -> lis
 
 
 def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, crs, progress, tags) -> None:
+    from wadi2d.products.cell_maps import lattice_maps, paint_strip, strip_on_lattice, write_cell_maps
+
     fields_ = monitor.maxima.fields()
     grid = tables.grid
-    arrived = fields_["arrival"] >= 0.0
-    level = tables.zmin + fields_["depth"]
-    maps = {
-        "max_depth": (fields_["depth"], None),
-        "max_level": (level, fields_["depth"] > 0.0),
-        "max_speed": (fields_["speed"], None),
-        "hazard": (fields_["hazard"], None),
-        "arrival": (fields_["arrival"], arrived),
-        "max_mean_depth": (fields_["mean_depth"], None),
-    }
-    for name, (data, valid) in maps.items():
-        write_map(out / "maps" / f"{name}.tif", data, grid, crs, valid, tags)
+    maps = lattice_maps(fields_, tables.zmin)
+    more = [make() for make in monitor.extra_maxima]
+    strip_maxima = {name: a for held in more for name, a in held.items()}
+    where, also = strip_on_lattice(tables), None
+    if where is not None and where[0].size and "strip_depth" in strip_maxima:
+        # the squares a strip replaced read the strip cell at their centre: the wadis are not blank (W86)
+        also = paint_strip(maps, strip_maxima, where, tables.strip.mesh.zmin)
+    write_cell_maps(out / "maps", maps, grid, crs, tags, also)
     for make in monitor.extra_products:
         kind, path = make(out / "maps", crs)
         progress.emit("output", kind=kind, path=str(path))
     results.maxima(fields_)
-    for more in monitor.extra_maxima:
-        results.maxima(more())
+    for held in more:
+        results.maxima(held)
     pooled = _edge_pools(cfg, tables, fields_["depth"], monitor.boundary.mask, out, crs, progress)
     deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask, domain_cells(tables))
     if pooled is not None:
