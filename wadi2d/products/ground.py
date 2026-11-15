@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import rasterio
@@ -21,6 +22,7 @@ from rasterio.windows import Window
 from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import GridTables
 from wadi2d.terrain import Ground, RasterBed, apply_objects
@@ -75,15 +77,17 @@ def read_cells(
     tick: Callable[[int, int], None] = lambda _a, _b: None,
     scale: int = 1,
     datum: float | None = None,
+    cache: str | Path | None = None,
 ) -> CellPixels:
     """The pixels of the cells in ``keep``, a strip of tiles at a time. ``tick`` may raise to stop the read.
 
     On a mesh ``keep`` is on a lattice of cells ``scale`` finest cells wide, and ``datum`` is shared by every size.
+    ``cache`` is the run's cache folder, where the DEM's chunk store lies (W84); None takes the job's own.
     """
     grid = tables.grid
     with RasterBed(cfg.terrain.dem) as probe:
         native = probe.native
-    with RasterBed(cfg.terrain.dem, bed_stride(cfg, native)) as bed:
+    with open_bed(cfg, cache if cache is not None else cache_folder(cfg), bed_stride(cfg, native)) as bed:
         k = bed.pixels_per_cell(grid.dx * scale)
         bed.bind(grid.x0, grid.y0)
         objects = with_tables(cfg).terrain.objects
@@ -97,7 +101,7 @@ def read_cells(
         count = len(first) - 1
         with (
             rasterio.Env(GDAL_CACHEMAX=READ_CACHE_MB),
-            _ThreadBeds(cfg.terrain.dem, bed.stride, grid.x0, grid.y0) as beds,
+            _ThreadBeds(bed, grid.x0, grid.y0) as beds,
         ):
             for strip in range(count):
                 a, b = int(first[strip]), int(first[strip + 1])
@@ -147,8 +151,10 @@ def _raw(bed: RasterBed, row0: int, col0: int, nrows: int, ncols: int) -> tuple[
     Through the bed's own window reader, or at a stride through :func:`_strided_window`, which picks the same
     pixels: ``read(fill=False)`` gives a window that is all holes as zeros, not NaN, so a hole could not be told
     from ground there. ``terrain/dem.py`` is left as it is: it is hashed into every grid cache key, and editing it
-    would rebuild every user's tables once for nothing."""
-    read = bed._window if bed.stride == 1 else partial(_strided_window, bed)
+    would rebuild every user's tables once for nothing. A bed on the chunk store picks those pixels itself, at any
+    stride, with no decoding (W84)."""
+    stored = getattr(bed, "store", None) is not None and bed.whole_pixels
+    read = bed._window if bed.stride == 1 or stored else partial(_strided_window, bed)
     return read(bed.row_origin + row0 * bed.stride, bed.col_origin + col0 * bed.stride, nrows, ncols)
 
 
@@ -230,8 +236,8 @@ class _ThreadBeds:
     read is the file's own value whatever window holds it, and a hole is filled from the pixel the strip's own fill
     would take (W50)."""
 
-    def __init__(self, path, stride: int, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
-        self.path, self.stride, self.origin = path, stride, (x0, y0)
+    def __init__(self, source: RasterBed, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
+        self.source, self.origin = source, (x0, y0)
         self.workers = workers
         self._local = threading.local()
         self._lock = threading.Lock()
@@ -241,7 +247,7 @@ class _ThreadBeds:
     def _bed(self) -> RasterBed:
         bed = getattr(self._local, "bed", None)
         if bed is None:
-            bed = RasterBed(self.path, self.stride)
+            bed = self.source.reopen()  # a handle of this thread's own, on the source's chunk store if it has one
             bed.bind(*self.origin)
             self._local.bed = bed
             with self._lock:

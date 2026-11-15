@@ -215,8 +215,9 @@ class MeshResult:
         return next(iter(self.cells.values())).pixel
 
 
-def read_parts(cfg: RunConfig, tables: GridTables, keep: np.ndarray, tick) -> dict[int, CellPixels]:
-    """The pixels of the kept cells, size by size; one datum, or the surfaces would not meet."""
+def read_parts(cfg: RunConfig, tables: GridTables, keep: np.ndarray, tick, cache=None) -> dict[int, CellPixels]:
+    """The pixels of the kept cells, size by size; one datum, or the surfaces would not meet. ``cache`` is the run's
+    cache folder, where the DEM's chunk store lies (W84)."""
     grid: QuadGrid = tables.grid
     size = grid.from_tiles(
         np.broadcast_to(grid.level[:, None, None], (grid.ntiles, TILE, TILE)).astype(np.int32), -1
@@ -226,7 +227,7 @@ def read_parts(cfg: RunConfig, tables: GridTables, keep: np.ndarray, tick) -> di
     for s in range(int(grid.level.max()) + 1):
         own = own_cells(size, keep, s)
         if own.any():
-            parts[s] = read_cells(cfg, tables, own, tick, 1 << s, datum)
+            parts[s] = read_cells(cfg, tables, own, tick, 1 << s, datum, cache)
     return parts
 
 
