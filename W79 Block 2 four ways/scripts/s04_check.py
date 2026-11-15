@@ -10,10 +10,12 @@ superseded squares run, is read with ``1 run1_full_2d`` (its job file is its con
 - each dam's inflow and outflow: peak, time to peak from the storm's start, volume over the run.
 
 Dam inflow and outflow by run:
-- 1 and 4 (dams as 2D pools): outflow is the dam line (W1's line along the crest); inflow is the line round the pool's
-  upstream edge, plus, in run 4, the lumped hydrographs that enter on the grid inside that line (their series of
-  record, ``series/network_<subbasin>.csv``). In run 1 the rain that falls inside the line, on the pool and its
-  margin, is in neither: its size is given per dam.
+- 1 and 4 (dams as 2D pools): outflow is the dam line (W1's line along the crest). Inflow is the pool's own balance:
+  the change of the water in the pool polygon between two saved maps (squares and aligned cells, from results.h5) plus
+  the dam-line outflow in between, a 15-min mean; its volume is exact, its peak a 15-min mean. In run 1 it holds the
+  rain that falls on the pool. The line round the pool's upstream edge (plus, in run 4, the lumped entries inside it)
+  is kept as ``inflow_by_ring``: it over-reads where the line crosses a wadi more than once (run 4: R5A +3.6 Mm3,
+  R2A +2.9, Faydh 01 +0.5 against the pool balance, which closes on the lumped hydrographs within 0.3 %).
 - 2 and 3 (lumped reservoirs): the reservoir's own inflow and outflow in the lumped network's series.
 A line's sign is set so that its run volume is positive: a line reads positive to its right, and W1's lines were not
 all drawn the same way round.
@@ -90,9 +92,62 @@ def line_flow(folder: Path, name: str) -> tuple[np.ndarray, np.ndarray, float]:
     return t, sign * q, sign
 
 
+def pool_storage(folder: Path, pool: dict[str, shapely.Geometry]) -> tuple[np.ndarray, dict[str, np.ndarray]]:
+    """Water in each pool polygon at every saved map, m3: the squares' mean depth times their area plus the aligned
+    cells' (by centroid), from results.h5; the start of the run, dry, is put in front."""
+    import geopandas as gpd
+    import h5py
+    from affine import Affine
+    from rasterio import features
+
+    with h5py.File(folder / "results.h5", "r") as f:
+        mask = f["mask"][:].astype(bool)
+        x0, y0, dx = (float(f.attrs[k]) for k in ("x0", "y0", "dx"))
+        names = sorted(f["maps"].keys())
+        lab = features.rasterize([(pool[d], i + 1) for i, d in enumerate(DAMS)], out_shape=mask.shape,
+                                 transform=Affine(dx, 0, x0, 0, -dx, y0), fill=0, dtype="uint8")
+        cells = gpd.read_file(folder / "maps" / "strip_mesh.gpkg", layer="strip_cells", columns=["cell", "area_m2"])
+        c = cells.geometry.centroid
+        sj = np.clip(np.floor((y0 - c.y.to_numpy()) / dx).astype(int), 0, mask.shape[0] - 1)
+        si = np.clip(np.floor((c.x.to_numpy() - x0) / dx).astype(int), 0, mask.shape[1] - 1)
+        slab, sidx, sarea = lab[sj, si], cells["cell"].to_numpy(), cells["area_m2"].to_numpy()
+        where = {d: np.nonzero(mask & (lab == i + 1)) for i, d in enumerate(DAMS)}
+        swhere = {d: slab == i + 1 for i, d in enumerate(DAMS)}
+        t = np.array([0.0] + [float(int(n[1:])) for n in names])
+        out = {d: [0.0] for d in DAMS}
+        for n in names:
+            depth = f["maps"][n]["mean_depth"][:]
+            strip = f["maps"][n]["strip_mean_depth"][0] if "strip_mean_depth" in f["maps"][n] else None
+            for d in DAMS:
+                v = float(depth[where[d]].sum()) * dx * dx
+                if strip is not None:
+                    v += float((strip[sidx[swhere[d]]] * sarea[swhere[d]]).sum())
+                out[d].append(v)
+    return t, {d: np.array(v) for d, v in out.items()}
+
+
+def balance_inflow(t: np.ndarray, storage: np.ndarray, t_out: np.ndarray, q_out: np.ndarray) -> dict:
+    """The pool's inflow by its own balance: the change of the water in the pool between two saved maps plus what left
+    over the dam line in between, as a mean flow over each interval (15 min). It needs no line across the wadi."""
+    flow, mid = [], []
+    for a, b in zip(t[:-1], t[1:], strict=True):
+        if b <= a:
+            continue
+        inside = (t_out >= a) & (t_out <= b)
+        left = np.trapezoid(q_out[inside], t_out[inside]) if inside.sum() > 1 else 0.0
+        flow.append((storage[len(mid) + 1] - storage[len(mid)] + left) / (b - a))
+        mid.append(b)
+    flow, mid = np.array(flow), np.array(mid)
+    k = int(flow.argmax())
+    return {"peak_m3s": float(flow[k]), "time_to_peak_h": float(mid[k] / 3600.0),
+            "volume_Mm3": float((storage[-1] - storage[0] + np.trapezoid(q_out, t_out)) / 1e6),
+            "stored_at_end_Mm3": float(storage[-1] / 1e6), "most_stored_Mm3": float(storage.max() / 1e6)}
+
+
 def grid_dams(number: int, folder: Path, entries: list[dict]) -> dict:
     out = {}
     pool = pools()
+    t_maps, stored = pool_storage(folder, pool)
     for dam in DAMS:
         t, q_out, s_out = line_flow(folder, dam)
         t_in, q_ring, s_in = line_flow(folder, f"{dam} inflow")
@@ -104,8 +159,10 @@ def grid_dams(number: int, folder: Path, entries: list[dict]) -> dict:
                 q_in = q_in + np.interp(t_in, tn, cols["outflow_m3s"])
                 inside.append(e["name"])
         out[dam] = {
-            "inflow": stats(t_in, q_in), "outflow": stats(t, q_out),
-            "inflow_source": "line round the pool" + (f" + lumped entries inside it: {', '.join(inside)}" if inside else ""),
+            "inflow": balance_inflow(t_maps, stored[dam], t, q_out), "outflow": stats(t, q_out),
+            "inflow_source": "pool balance: change of the water in the pool + dam-line outflow, 15-min means",
+            "inflow_by_ring": stats(t_in, q_in),
+            "ring_source": "line round the pool" + (f" + lumped entries inside it: {', '.join(inside)}" if inside else ""),
             "outflow_source": "dam line", "ring_sign": s_in, "dam_line_sign": s_out, "ring_alone": stats(t_in, q_ring),
             "pool_area_km2": float(pool[dam].area / 1e6),
         }

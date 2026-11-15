@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -34,12 +35,17 @@ GGC_MINUS_NSA = 2.39
 DAMS = ["Bidah 03", "Faydh 01", "R5A", "R2A", "Z4C"]
 RESERVOIR = {d: f"{d} Reservoir" for d in DAMS}
 
+SET = os.environ.get("W79_SET", "rerun")
+"""Which set of jobs and runs the scripts work on. ``rerun``: the rerun of 2026-11-15, on the domain with the 40 m rim
+(inputs/domain.geojson). ``rerun2``: the same jobs on the domain without the rim (inputs/domain_no_rim.geojson), made
+after his finding of 2026-11-15 that the rim was rained on in runs 3 and 4; not run yet."""
 RUN_NAMES = {
-    1: "rerun_run1_full_2d_aligned",
-    2: "rerun_run2_hms_lumped",
-    3: "rerun_run3_hybrid_aligned",
-    4: "rerun_run4_hybrid_2d_routing_aligned",
+    1: f"{SET}_run1_full_2d_aligned",
+    2: f"{SET}_run2_hms_lumped",
+    3: f"{SET}_run3_hybrid_aligned",
+    4: f"{SET}_run4_hybrid_2d_routing_aligned",
 }
+DOMAIN_NO_RIM = INPUTS / "domain_no_rim.geojson"
 """The rerun of 2026-11-15 (the first attempt's jobs, without the ``rerun_`` prefix, stay in jobs/ and runs/ as the
 superseded record). Runs 1, 3 and 4 on the aligned centre mesh at 20 m (his decision of 2026-11-14) at the 0.5 m pixel.
 The first run 1 on plain 20 m squares stays in runs/run1_full_2d."""

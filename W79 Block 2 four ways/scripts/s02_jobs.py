@@ -39,6 +39,7 @@ from w79 import (  # noqa: E402
     DAM_AREA_KM2,
     DAMS,
     DEM,
+    DOMAIN_NO_RIM,
     DX,
     HMS_DIR,
     INPUTS,
@@ -49,6 +50,7 @@ from w79 import (  # noqa: E402
     RUN_NAMES,
     RUN_TITLES,
     RUNS,
+    SET,
     STORM_AREA_KM2,
     load_json,
     write_json,
@@ -60,20 +62,33 @@ from wadi2d.hms import load_basin  # noqa: E402
 MANNING_PLAIN = 0.04
 CN_FALLBACK = 88.0
 """W1's value, for the 0.4 % of cells where his CN raster holds no data (the coast strip): the run refuses them otherwise."""
-SIDE_KM2 = 1.0
+SIDE_KM2 = 0.95
 SIDE_SLOPE = 0.005
 SIDE_HALF_M = 250.0
 """A stream of 1 km2 or more that leaves through the domain's side, away from the sea (the first try of run 1 found
 Wadi Fizh's southern branch, 274.7 km2, leaving 2 km inland through Basin 3's south-east edge): the edge there is
-opened as a `normal` line 500 m long at 0.005 [Guessing: the fan's slope, not measured], so it is not dammed."""
+opened as a `normal` line 500 m long at 0.005 [Guessing: the fan's slope, not measured], so it is not dammed. The limit
+was 1 km2; the north edge's 1.01 km2 stream at (439069, 2740618) reads 0.997 km2 on the outline without the rim, so the
+limit is 0.95 to keep that outlet in both sets (no other crossing lies between 0.65 and 1.0 km2 in either). On the
+outline without the rim the two 2 km2 streams at the south end near the sea no longer leave (they enter: 2.06 km2, and
+leave as 0.5 km2 pieces), so the ``rerun2`` jobs have three side lines where the first set has five."""
 NORTH = (432446.0, 2740899.0)
 NORTH_SLOPE = 0.0057
 """His decision of 2026-11-14: the edge check's 276.65 km2 crossing of the north edge (Wadi HAT's main stem, HAT-R4,
 where the outline runs on a 107 to 110 m terrace beside the bed and the HDSM ends just outside) gets a `normal` line
 too, at the ground's slope along HAT-R4 over 2 km either side (0.0057 on the 5 m DEM; HMS's reach slope 0.0063)."""
+NORTH_REACH_M = 150.0
+"""The crossing is looked for this near the point: the outline without the rim lies 40 m inside the first one."""
 SUGGEST = RUNS / "inputs" / "suggest" / "suggested_breaklines.gpkg"
 """The Suggest breaklines file of this domain (``wadi2d breaklines`` on run 1's job, the 1 km2 streams as W45 and W46
 made it for Block 2 at 30 m): its thalwegs are the centre generator's guide lines."""
+
+
+def domain_file(inputs: dict) -> str:
+    """The first rerun's domain is Basin 3's polygons + 40 m: its 2-cell rim lies outside every subbasin polygon, so
+    runs 3 and 4 rained on it (6.2 km2 round the outline, 1.1 Mm3 of excess running into the hills from the edge; his
+    finding of 2026-11-15). The ``rerun2`` set takes the domain without the rim (s16_domain_no_rim.py)."""
+    return inputs["domain"] if SET == "rerun" else str(DOMAIN_NO_RIM)
 
 
 def base() -> dict:
@@ -113,7 +128,7 @@ def common(job: dict, inputs: dict, number: int) -> dict:
     job["storm"]["arf"]["table_type"] = (
         "ARF FM of his HMS project, read at one storm area of 100 km2 (his choice of 2026-11-15); his met file names 300 km2"
     )
-    job["grid"] = {"dx": DX, "domain": inputs["domain"], "cache_dir": str(CACHE)}
+    job["grid"] = {"dx": DX, "domain": domain_file(inputs), "cache_dir": str(CACHE)}
     job["terrain"].update({"dem": str(DEM), "pixel_stride": 1, "manning": MANNING_PLAIN,
                            "manning_raster": inputs["manning_raster"], "cn_raster": str(CN), "objects": []})
     job["boundaries"] = [{"kind": "normal", "slope": inputs["sea_slope"], "coordinates": c} for c in inputs["sea"]]
@@ -223,10 +238,10 @@ def side_outlets(b: dict, inputs: dict) -> list[dict]:
     cfg = RunConfig.model_validate(probe)
     with rasterio.open(DEM) as src:
         crs = src.crs.to_wkt()
-    dom = shapely.geometry.shape(load_json(Path(inputs["domain"]))["features"][0]["geometry"])
+    dom = shapely.geometry.shape(load_json(Path(domain_file(inputs)))["features"][0]["geometry"])
     out = []
     for c in stream_crossings(cfg, crs, CACHE):
-        north = c.kind == LEAVES and abs(c.x - NORTH[0]) < 50.0 and abs(c.y - NORTH[1]) < 50.0
+        north = c.kind == LEAVES and abs(c.x - NORTH[0]) < NORTH_REACH_M and abs(c.y - NORTH[1]) < NORTH_REACH_M
         if not north and (c.kind != LEAVES or c.area_km2 < SIDE_KM2 or c.no_ground):
             print("left closed:", c)
             continue

@@ -21,7 +21,7 @@ FIELDS = [
     "run", "method", "dam", "arf_area_km2", "arf_factor",
     "inflow_peak_m3s", "inflow_time_to_peak_h", "inflow_volume_Mm3",
     "outflow_peak_m3s", "outflow_time_to_peak_h", "outflow_volume_Mm3",
-    "inflow_source", "outflow_source",
+    "inflow_source", "outflow_source", "ring_inflow_peak_m3s", "ring_inflow_volume_Mm3",
 ]
 
 
@@ -66,6 +66,8 @@ def main() -> None:
                 "outflow_time_to_peak_h": round(d["outflow"]["time_to_peak_h"], 2) if d["outflow"]["peak_m3s"] > 0.05 else "",
                 "outflow_volume_Mm3": round(d["outflow"]["volume_Mm3"], 3),
                 "inflow_source": d["inflow_source"], "outflow_source": d["outflow_source"],
+                "ring_inflow_peak_m3s": round(d["inflow_by_ring"]["peak_m3s"], 1) if "inflow_by_ring" in d else "",
+                "ring_inflow_volume_Mm3": round(d["inflow_by_ring"]["volume_Mm3"], 3) if "inflow_by_ring" in d else "",
             })
     out = HERE / "dam_peaks.csv"
     with out.open("w", newline="", encoding="utf-8") as f:

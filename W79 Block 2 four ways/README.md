@@ -2,7 +2,8 @@
 
 **Live: the rerun of 2026-11-15 (`jobs/rerun_*.json`, `runs/rerun_*`). The first attempt (jobs without the `rerun_`
 prefix, `runs/run1_*`, `runs/run2_hms_lumped`) is superseded: it read the ARF at 1,370.77 km2 and ran at 1 m pixels.**
-All four runs are done. The pixel rasters of the three aligned 2D runs are not made: the products
+All four runs are done. Runs 3 and 4 rained on a 40 m rim round the outline (6.2 km2, 0.6 % of the water: Findings);
+the jobs without it are written (`jobs/rerun2_*`, `inputs/domain_no_rim.geojson`) and not run. The pixel rasters of the three aligned 2D runs are not made: the products
 step fails in the strip's pixel stage at 0.5 m (below), an engine fault the pixel-maps work is fixing; the cell maps,
 the series and the time-slider files are made. `Block2_four_ways_interim_cells.qgz` holds what exists ("interim, cell
 maps"); `Block2_four_ways.qgz` waits for the pixel rasters. `Block2_four_ways_interim.qgz` is not ours: written at
@@ -36,30 +37,57 @@ run 2's to 0.1 m3/s.
 
 | Dam | ARF run 1 / 2-4 | Run 1 in / out | Run 2 in / out | Run 3 in / out | Run 4 in / out | Inflow time to peak, runs 1 / 2 / 4 |
 |---|---|---|---|---|---|---|
-| Bidah 03 | 0.913 / 0.975 | 635 / 0 | 455 / 0 | 455 / 0 | 450 / 0 | 12.3 / 12.8 / 13.1 |
-| Faydh 01 | 0.913 / 0.931 | 2,354 / 0 | 1,240 / 0 | 1,240 / 0 | 1,224 / 0 | 12.1 / 13.2 / 13.5 |
-| R5A | 0.913 / 0.905 | 2,126 / 604 | 1,144 / 754 | 1,144 / 754 | 1,464 / 668 | 13.4 / 14.7 / 15.0 |
-| R2A | 0.913 / 0.876 | 3,762 / 1,134 | 1,736 / 818 | 1,736 / 818 | 1,876 / 844 | 12.7 / 14.2 / 14.8 |
-| Z4C | 0.913 / 0.861 | 3,526 / 3,458 | 2,101 / 2,025 | 2,101 / 2,025 | 2,085 / 2,019 | 13.7 / 15.4 / 15.8 |
+| Bidah 03 | 0.913 / 0.975 | 581 / 0 | 455 / 0 | 455 / 0 | 446 / 0 | 12.5 / 12.8 / 13.3 |
+| Faydh 01 | 0.913 / 0.931 | 2,321 / 0 | 1,240 / 0 | 1,240 / 0 | 1,221 / 0 | 12.3 / 13.2 / 13.8 |
+| R5A | 0.913 / 0.905 | 2,075 / 604 | 1,144 / 754 | 1,144 / 754 | 1,136 / 668 | 12.8 / 14.7 / 15.0 |
+| R2A | 0.913 / 0.876 | 3,949 / 1,134 | 1,736 / 818 | 1,736 / 818 | 1,515 / 844 | 12.8 / 14.2 / 14.0 |
+| Z4C | 0.913 / 0.861 | 3,249 / 3,458 | 2,101 / 2,025 | 2,101 / 2,025 | 2,078 / 2,019 | 13.8 / 15.4 / 16.0 |
 
-Inflow volumes, Mm3 (runs 1 / 2 / 4): Bidah 03 3.5 / 4.3 / 4.3; Faydh 01 14.3 / 15.2 / 15.7; R5A 23.9 / 22.9 / 26.5; R2A 34.4 / 32.9 / 35.8; Z4C 41.4 / 39.2 / 39.1.
+Inflow volumes, Mm3 (runs 1 / 2 / 4): Bidah 03 3.8 / 4.3 / 4.3; Faydh 01 14.9 / 15.2 / 15.2; R5A 22.8 / 22.9 / 22.8; R2A 34.3 / 32.9 / 32.8; Z4C 41.7 / 39.2 / 39.1.
 
-How each is read: runs 2 and 3, the lumped reservoir's inflow and outflow; runs 1 and 4, the outflow on the dam line
-and the inflow on the line round the pool (plus, in run 4, any lumped entry inside it). In runs 1 and 4 the rain on the
-pool itself is in neither.
+How each is read: runs 2 and 3, the lumped reservoir's inflow and outflow (5-min step). Runs 1 and 4: the outflow on
+the dam line (60 s series); the inflow by the pool's own balance, the change of the water in the pool polygon between
+two saved maps plus the dam-line outflow in between (`scripts/s04_check.py`). Its volume is exact; its peak is a 15-min
+mean, so a few per cent under an instantaneous one (Z4C in run 1 reads 3,249 in against 3,458 out for that reason). In
+run 1 it holds the rain on the pool. The first table of this rerun read the inflow on a line round each pool; that
+line over-reads where it crosses a wadi more than once, and is kept only as the `ring_inflow_*` columns.
 
 Findings:
-- [Certain] The full-2D inflow peaks are 1.4 to 2.2 times HMS's (run 1 against run 2), 0.5 to 1.7 h earlier, as on
+- [Certain] The full-2D inflow peaks are 1.3 to 2.3 times HMS's (run 1 against run 2), 0.3 to 1.9 h earlier, as on
   Block 2 since W1. Part of the gap here is the ARF: run 1 reads 0.913 everywhere, while run 2 reads 0.861 to 0.975.
   Bidah 03 is the reverse: 0.913 against 0.975. Most of the gap is the method, as before.
 - [Certain] Runs 2 and 3 agree at the five dams: the grid below a dam does not touch its lumped hydrograph.
 - Bidah 03 and Faydh 01 do not spill in any run: their pools hold the whole 200-yr inflow from empty.
-- Run 4 against run 2 (the same lumped hydrographs, routed in 2D instead of Muskingum-Cunge and Modified Puls): Bidah
-  03, Faydh 01 and Z4C within 1.3 % in peak inflow and outflow, with inflow volumes equal at Bidah 03 and Z4C. R5A reads
-  +28 % peak and +16 % volume inflow, and R2A +8 % and +9 %. Rain cannot explain the extra: the only grid rain in run 4
-  falls on the 40 m rim outside the polygons, about 0.7 Mm3 round R5A. [Likely] the ring line reads part of the flow
-  twice where it crosses a wadi more than once: R5A and R2A each sit on two wadi branches, with two spillways. Until the
-  rings are checked, run 4's R5A and R2A inflows, and run 1's at those dams, are not for use; their dam-line outflows are.
+- [Certain] Run 4 against run 2 (the same lumped hydrographs, routed in 2D instead of Muskingum-Cunge and Modified
+  Puls): inflow volumes within 0.3 % at all five dams (4.33, 15.22, 22.82, 32.83, 39.13 Mm3 against 4.33, 15.23,
+  22.85, 32.93, 39.18). Inflow peaks are 0.7 to 1.8 % lower at Bidah 03, Faydh 01, R5A and Z4C, and 12.7 % lower at
+  R2A (1,515 against 1,736 m3/s; [Guessing] its six subbasins meet on two branches, at other times than the reaches give). Outflow peaks: R5A -11 %, R2A +3 %, Z4C
+  -0.3 %. The +28 % and +8 % inflow first reported at R5A and R2A were the ring line over-reading (R5A +3.6 Mm3, R2A
+  +2.9, Faydh 01 +0.5), not water: the pool's balance closes on the lumped hydrographs.
+- [Certain] **Runs 3 and 4 rained on a 40 m rim round the outline** (his finding on the max depth maps, 2026-11-15).
+  The domain is Basin 3's polygons + 40 m (`s01_inputs.py`), and rain falls on every active cell whose centre lies
+  outside every lumped polygon. With all 104 subbasins lumped that left a band 2 cells wide: 14,250 squares and 1,139
+  aligned cells, 6.18 km2, 1.42 Mm3 of rain and about 1.2 Mm3 of excess (0.6 % of the water in each run; identical in
+  runs 3 and 4, whose rain books agree to 9 digits at 6.43 Mm3, the rest being the coast strip's 26.6 km2). Where the
+  rim drains inward it makes the fans he saw at the west and south-west edge; where it drains outward it stands
+  against the closed edge, which is the 740 small edge pools of the checks. The masks do what the engine says (aligned
+  cells are masked by position like squares: 25 of 542,980 differ at polygon edges; 3 squares lie in gaps between
+  polygons), so this is the job's fault, not the engine's. Effect on the dams: Bidah 03, Faydh 01 and R5A have no rim
+  on their catchments; R2A has 0.02 km2; Z4C has 1.40 km2 (0.27 Mm3 of excess, under 0.7 % of its inflow). Run 3 is
+  dry above Bidah 03, Faydh 01 and R5A; above Z4C 2.75 km2 was wet with 0.15 Mm3 at most, and its dam line reads no
+  net flow. At the sea it is at most 1.2 Mm3 of 214. Fixed for the next run: `inputs/domain_no_rim.geojson`
+  (`scripts/s16_domain_no_rim.py`: 13 cells left outside every polygon away from the coast strip, against 17,420) and
+  the `rerun2_*` jobs on it (`W79_SET=rerun2`). Not run yet.
+- The wet hill wadis outside the five dam catchments in runs 3 and 4 are the job as written, not the rim: the 86
+  subbasins that drain to no dam are lumped and each enters at its own wadi outlet, 147.9 Mm3 in all, and the grid
+  routes it from there. Twelve of them enter west of easting 436 km, in the hills (67.9 Mm3; Wadi HAT's eight, up to 835 m3/s), so
+  Wadi HAT and its branches run on the grid from the hills down. If run 3 is to keep the hills dry, those subbasins
+  must be routed by HMS's reaches to the mountain front and enter there: his decision.
+- Engine, a record fault only: `entries.json` lists a wadi-outlet point, "enters at the wadi outlet of its polygon",
+  for every lumped subbasin with `entry: wadi`, also for one with no outlet that is carried by an inflow below it
+  (run 3's S1 to S18). No water enters there (`entries.py`, `_wanted` takes them all; `with_entries` places only real
+  flows). The smallest case: one lumped subbasin with `entry: wadi`, `outlet: null`, and an inflow from the element
+  below it.
 - [Certain] The aligned cells' maximum speed has spikes in all three 2D runs: 1,513 to 4,846 aligned cells over 10 m/s,
   93 to 165 over 100 m/s, and a largest value of 1e7 to 7.6e8 m/s, mostly on the 'triangle' transition cells. The
   squares have 47 to 78 cells over 10 m/s. The depths and the water balance are not affected (mass errors 9e-10 to
@@ -77,8 +105,8 @@ Findings:
 The edge pools: the largest, 0.6 to 0.7 km2 and 4.7 to 4.9 m deep at (444440, 2740955), lies 1 km inside the sea line's
 north end, where a 0.59 km2 stream leaves (under the 1 km2 rule; the first attempt had it too). A 0.065 km2 pool 5 to
 5.7 m deep lies at (432840, 2740735), 420 m east of the north line at Wadi HAT. The rest, 740 cells, are pools of
-0.001 to 0.003 km2 against the hill edges, 6 m median depth in steep cells. [Likely] they are cell-floor depths in the
-40 m rim outside Basin 3's polygons, which takes grid rain in every run. None changes a dam figure.
+0.001 to 0.003 km2 against the hill edges, 6 m median depth in steep cells: the rain on the 40 m rim that drains
+outward (Findings). None changes a dam figure.
 
 ### Times
 
@@ -238,4 +266,5 @@ builds the final headless QGIS project in the plugin's group pattern (it needs t
 builds a job's grid tables into the cache on the CPU, timed. `s09_run.py <n>` runs a job on the GPU once no other
 engine run holds it, then checks it. `s10_products.py <n> [products|frames|both]` remakes products or the time-slider
 file, timing each stage and sampling memory. `s12` to `s15` are the run 2 charts, the aligned-cell maxima, the light
-slider and its timing test. Run outputs are in `runs/` (out of git).
+slider and its timing test. `s16_domain_no_rim.py` writes the domain without the rim; every script works on the set
+named by `W79_SET` (`rerun`, the default, or `rerun2`). Run outputs are in `runs/` (out of git).
