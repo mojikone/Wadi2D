@@ -57,6 +57,15 @@ class PolyState:
         r = self.rec
         self.nums = (m.rows, F(r.g), F(r.dx), F(r.e_wet), F(r.h_cfl), F(r.u_max), F(r.lead), F(r.a_min), r.sheet, True, r.carry)
         self.wave = 0.0
+        self.speed_w = tuple(w.astype(F) for w in m.speed_weights())
+        self.speed_cap = F(kernel.SPEED_CAP * r.u_max)
+        self.vx, self.vy, self.speed = (np.zeros(self.nreal, F) for _ in range(3))
+
+    def cell_speed(self) -> np.ndarray:
+        """The speed of record at each real cell's centre now, from the faces' velocities (W87); the array is reused."""
+        L, R = self.static[0], self.static[1]
+        kernel.cell_speed(self.mesh.nfaces, self.nreal, L, R, *self.speed_w, self.u, self.speed_cap, self.vx, self.vy, self.speed)
+        return self.speed
 
     def face_arrays(self) -> dict[str, np.ndarray]:
         """The per-face arrays a face rebuild writes (W69, a breach on strip faces), by name; the arrays themselves."""

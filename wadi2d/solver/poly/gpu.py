@@ -14,6 +14,7 @@ import numpy as np
 from wadi2d.config.schema import Numerics
 from wadi2d.solver.backend import NumericsRecord
 from wadi2d.solver.gpu.backend import KERNELS, header, load_module
+from wadi2d.solver.poly.kernel import SPEED_CAP
 from wadi2d.solver.poly.mesh import PolyMesh
 
 F = np.float32
@@ -73,13 +74,20 @@ class PolyGpuState:
         self.hc, self.dtab = cp.asarray(m.hc.astype(F)), cp.asarray(m.dtab.astype(F).reshape(-1))
         ptr, face, sign = cell_faces(m.left, m.right, nc)
         self.ptr, self.cf, self.cs = cp.asarray(ptr), cp.asarray(face), cp.asarray(sign)
+        # the speed of record (W87): each cell's weights on its faces' velocities, in the CSR's order
+        wlx, wly, wrx, wry = m.speed_weights()
+        own = sign > 0.0
+        self.wx = cp.asarray(np.where(own, wlx[face], wrx[face]).astype(F))
+        self.wy = cp.asarray(np.where(own, wly[face], wry[face]).astype(F))
+        self.speed_cap = F(SPEED_CAP * self.rec.u_max)
+        self.speed = z(self.nreal, F)
         source = header() + (KERNELS / "common.cuh").read_text(encoding="utf-8") + "\n"
         source += (KERNELS / "poly.cu").read_text(encoding="utf-8") + f"\n// strip at {mesh.dx} m, {m.rows} rows\n"
         self.module = load_module(cp, source, self.rec, mesh.dx, m.rows)
         self.k = {n: self.module.get_function(n) for n in (
             "poly_levels", "poly_sums", "poly_rates", "poly_faces", "poly_limit", "poly_scale", "poly_update",
             "poly_ghost_src", "poly_edges", "poly_mirror", "poly_restore", "poly_cell_maxima", "poly_face_maxima",
-            "poly_tally", "poly_accumulate",
+            "poly_tally", "poly_accumulate", "poly_cell_speed",
         )}  # fmt: skip
 
     # ---- host views
@@ -175,8 +183,17 @@ class PolyGpuState:
 
     def maxima(self, speed_depth: float, max_d, max_h, max_s, max_dv, max_q) -> None:
         n, nf = self.nreal, self.mesh.nfaces
-        self.k["poly_cell_maxima"](grid_of(n), (THREADS,), (n, F(speed_depth), self.d, self.h, self.Ux, self.Uy, max_d, max_h, max_s, max_dv))
+        self.k["poly_cell_maxima"](
+            grid_of(n), (THREADS,),
+            (n, F(speed_depth), self.speed_cap, self.ptr, self.cf, self.wx, self.wy, self.d, self.h, self.u, max_d, max_h, max_s, max_dv),
+        )  # fmt: skip
         self.k["poly_face_maxima"](grid_of(nf), (THREADS,), (nf, self.q, max_q))
+
+    def cell_speed(self):
+        """The speed of record at each real cell's centre now, from the faces' velocities (W87); on the device."""
+        n = self.nreal
+        self.k["poly_cell_speed"](grid_of(n), (THREADS,), (n, self.speed_cap, self.ptr, self.cf, self.wx, self.wy, self.u, self.speed))
+        return self.speed
 
     def tally(self, faces, ghosts, dt: float, left, left_ghost) -> None:
         nb = int(faces.size)

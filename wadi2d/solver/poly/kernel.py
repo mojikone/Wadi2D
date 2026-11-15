@@ -262,6 +262,34 @@ def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, 
             om[c] = cell_plan(hn, hc[c], tab, rows)
 
 
+SPEED_CAP = float(np.sqrt(2.0))
+"""The speed of record is capped at this many times ``numerics.u_max``: what a square's centre reads when its four
+faces all run at the velocity cap, so no polygon records more than a square can (W87)."""
+
+
+@njit(cache=True)
+def cell_speed(nf, nreal, L, R, wlx, wly, wrx, wry, u, cap, vx, vy, speed) -> None:
+    """The speed of record at each real cell's centre, from its faces' velocities: the lattice's rule on a polygon
+    (W87). ``w`` are the weights of :meth:`wadi2d.solver.poly.mesh.PolyMesh.speed_weights`; a face velocity is the
+    kernel's own, limited by friction and capped at ``u_max``, and zero on a dry face, so the speed never divides a
+    discharge by a vanishing volume as the Perot momentum vector ``U`` does in a cell that has just drained."""
+    for c in range(nreal):
+        vx[c] = ZERO
+        vy[c] = ZERO
+    for f in range(nf):
+        uf = u[f]
+        if uf != ZERO:
+            a, b = L[f], R[f]
+            if a < nreal:
+                vx[a] += wlx[f] * uf
+                vy[a] += wly[f] * uf
+            if b < nreal:
+                vx[b] += wrx[f] * uf
+                vy[b] += wry[f] * uf
+    for c in range(nreal):
+        speed[c] = min(F(np.sqrt(vx[c] * vx[c] + vy[c] * vy[c])), cap)
+
+
 @njit(cache=True)
 def boundary(bcell, bd0, bh0, h, d) -> None:
     for n in range(bcell.size):

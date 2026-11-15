@@ -121,6 +121,21 @@ class PolyMesh:
         """The angle between each face's normal and its centre-to-centre line: 0 on an orthogonal mesh."""
         return np.degrees(np.arctan2(np.hypot(self.sx, self.sy), self.dn))
 
+    def speed_weights(self) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Per face, what its normal velocity adds to the centre velocity of its left cell (x, y) and of its right
+        cell (x, y): ``(xf - c) L / A`` with the sign that makes the velocity an outflow of that cell (W87).
+
+        Perot's reconstruction of a cell vector from its faces' normal components: exact for a uniform velocity on any
+        closed polygon, and on a square the mean of the two opposite faces, which is the lattice's own rule for the
+        speed at a cell centre (``wadi2d.engine.maxima``). Taken in double precision from the map coordinates: a
+        float32 holds a northing of 2.7e6 to 0.25 m, so the lever arms must be differenced before they are cast."""
+        L, R = self.left, self.right
+        over_l, over_r = self.length / self.area[L], self.length / self.area[R]
+        return (
+            (self.xf - self.cx[L]) * over_l, (self.yf - self.cy[L]) * over_l,
+            -(self.xf - self.cx[R]) * over_r, -(self.yf - self.cy[R]) * over_r,
+        )  # fmt: skip
+
     def faces_of(self) -> list[np.ndarray]:
         """The faces of each cell, by index, for the readers that need a cell's ring."""
         found: list[list[int]] = [[] for _ in range(self.ncells)]

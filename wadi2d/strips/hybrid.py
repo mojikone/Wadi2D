@@ -254,15 +254,18 @@ class Hybrid:
         """The largest cell speed (where the cell is deeper than ``speed_depth``) and depth x speed, on the host."""
         raise NotImplementedError
 
+    def strip_cell_speed(self) -> np.ndarray:
+        """The speed of record at each real cell's centre now, on the host: from the faces' velocities, as the
+        squares read theirs (W87), never the cell's momentum over its volume."""
+        raise NotImplementedError
+
     def strip_frame_fields(self) -> dict[str, np.ndarray]:
         """The strip's cells in a saved map: level above zmin, mean depth and cell speed, each (1, n)."""
         n = self.nreal
-        ux, uy = self.strip_host("Ux")[:n], self.strip_host("Uy")[:n]
-        speed = np.hypot(ux.astype(np.float64), uy.astype(np.float64)).astype(F)
         return {
             "strip_depth": self.strip_host("d")[:n][None, :],
             "strip_mean_depth": self.strip_host("h")[:n][None, :],
-            "strip_speed": speed[None, :],
+            "strip_speed": self.strip_cell_speed()[None, :],
         }
 
     def strip_maxima_fields(self) -> dict[str, np.ndarray]:
@@ -432,6 +435,9 @@ class HybridCpu(Hybrid):
     def strip_speed_maxima(self) -> tuple[np.ndarray, np.ndarray]:
         return self.max_s, self.max_dv
 
+    def strip_cell_speed(self) -> np.ndarray:
+        return self.state.cell_speed().copy()
+
     def watch_boundary(self, faces: np.ndarray) -> None:
         self.b_faces = np.asarray(faces, np.int64)
 
@@ -515,7 +521,7 @@ class HybridCpu(Hybrid):
         np.maximum(self.max_d, s.d[:n], out=self.max_d)
         np.maximum(self.max_h, s.h[:n], out=self.max_h)
         np.maximum(self.max_q, np.abs(s.q), out=self.max_q)
-        speed = np.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
+        speed = s.cell_speed() * (s.d[:n] > self.speed_depth)
         np.maximum(self.max_s, speed, out=self.max_s)
         np.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
 
