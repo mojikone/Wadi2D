@@ -38,6 +38,7 @@ NATURAL_WAVE_RATIO = 1.5
 """Wave speed over mean velocity, the EM's suggestion for natural channels (paragraph 9-3c(2)(b))."""
 K_DIGITS, X_DIGITS = 4, 3
 """A proposal is rounded to what a table shows, so the number shown is the number used."""
+WHOLE_FLOWS_FROM_M3S = 1000.0
 CUT_GUARD = 1.0e-9
 """A ceiling that is a whole number of the last digit shown, less round-off, is that number."""
 DEPTH_ITERATIONS = 200
@@ -111,6 +112,11 @@ class Proposal:
 
     def as_dict(self) -> dict:
         return asdict(self)
+
+
+def flow_words(flow_m3s: float) -> str:
+    """A flow as a reader writes it: whole cubic metres with separators from 1,000 up, four figures below."""
+    return f"{flow_m3s:,.0f}" if flow_m3s >= WHOLE_FLOWS_FROM_M3S else f"{flow_m3s:.4g}"
 
 
 def _count(k_hours: float, dt_minutes: float) -> int:
@@ -199,7 +205,7 @@ def at_reference_flow(
     x, lowered = _settle(k_hours, raw, count, dt_minutes)
     stable, range_words = _stability_words(k_hours, x, count, dt_minutes)
     words = (
-        f"{lead}Cunge (1969) at {reference_flow_m3s:,.4g} m3/s: normal depth {state.depth_m:.2f} m, top width "
+        f"{lead}Cunge (1969) at {flow_words(reference_flow_m3s)} m3/s: normal depth {state.depth_m:.2f} m, top width "
         f"{state.top_width_m:.1f} m, mean velocity {state.velocity_ms:.2f} m/s, wave speed {state.celerity_ms:.2f} m/s "
         f"(Seddon, c = dQ/dy / B). K = L / c = {k_hours:g} h. {count} subreach{'es' if count > 1 else ''} of "
         f"{length_m / count:,.0f} m"

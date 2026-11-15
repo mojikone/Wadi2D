@@ -43,6 +43,9 @@ class ReachRow:
     words: str = ""
     proposed: bool = False
     problems: list[str] = field(default_factory=list)
+    """What is wrong with K, X or the subreaches; a row with any stays out of the job."""
+    flow_problem: str = ""
+    """What is wrong with the reference flow typed; the flow is then not used, and the row is not held back."""
 
     def complete(self) -> bool:
         return self.k_hours is not None and self.x is not None and not self.problems
@@ -73,9 +76,26 @@ def _number(text: str) -> float | None:
     return float(cleaned) if cleaned else None
 
 
+def _set_flow(row: ReachRow, text: str) -> None:
+    """The reference flow is only a question to the helper: one that means nothing is left out of the question and
+    named, and never keeps the row's K and X from the job."""
+    try:
+        value = _number(text)
+    except ValueError:
+        row.flow, row.flow_problem = None, f"Ref. flow: {text!r} is not a number, so none is used"
+        return
+    if value is not None and value <= 0.0:
+        row.flow, row.flow_problem = None, "Ref. flow: above zero, so none is used"
+        return
+    row.flow, row.flow_problem = value, ""
+
+
 def set_cell(row: ReachRow, column: int, text: str) -> None:
     """What the user typed into a cell; a number that means nothing stays out and is named in ``problems``."""
-    names = {FLOW_COLUMN: "flow", K_COLUMN: "k_hours", X_COLUMN: "x", COUNT_COLUMN: "subreaches"}
+    if column == FLOW_COLUMN:
+        _set_flow(row, text)
+        return
+    names = {K_COLUMN: "k_hours", X_COLUMN: "x", COUNT_COLUMN: "subreaches"}
     try:
         value = _number(text)
     except ValueError:
@@ -88,9 +108,8 @@ def set_cell(row: ReachRow, column: int, text: str) -> None:
         else:
             value = int(value)
     setattr(row, names[column], value)
-    if column != FLOW_COLUMN:
-        row.proposed = False
-        row.words = "" if row.empty() else TYPED
+    row.proposed = False
+    row.words = "" if row.empty() else TYPED
     row.problems = [p for p in row.problems if not p.startswith(COLUMNS[column].split(",")[0])]
     if bad:
         row.problems.append(bad)
@@ -98,10 +117,8 @@ def set_cell(row: ReachRow, column: int, text: str) -> None:
 
 
 def check(row: ReachRow) -> None:
-    """The range problems of a row's numbers, replacing the ones found before."""
+    """The range problems of a row's K, X and subreaches, replacing the ones found before."""
     found = [p for p in row.problems if "is not a" in p]
-    if row.flow is not None and row.flow <= 0.0:
-        found.append("Ref. flow: above zero")
     if row.k_hours is not None and row.k_hours <= 0.0:
         found.append("K: above zero")
     if row.x is not None and not X_RANGE[0] <= row.x <= X_RANGE[1]:
@@ -206,5 +223,7 @@ def cell_text(row: ReachRow, column: int) -> str:
     if column == 0:
         return row.name
     if column == WORDS_COLUMN:
-        return "; ".join(row.problems) if row.problems else row.words
+        if row.problems:
+            return "; ".join(row.problems)
+        return " ".join(part for part in (row.flow_problem and f"{row.flow_problem}.", row.words) if part)
     return "" if value is None else f"{value:g}"

@@ -112,7 +112,7 @@ class Muskingum:
         else:
             what = (
                 f"the step of {dt_minutes:g} min is over 2K(1-X) = {high:.3g} min of a subreach, so the old "
-                "outflow's weight is negative and the outflow overshoots"
+                "outflow's weight is negative and the outflow swings about the inflow, below zero as a flood ends"
             )
         if fewest <= most:
             cure = f"{fewest} to {most} subreaches are stable at this step" if fewest < most else (

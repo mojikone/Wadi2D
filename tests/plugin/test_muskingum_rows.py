@@ -77,6 +77,23 @@ def test_typed_cells_become_numbers_and_what_means_nothing_is_named() -> None:
     assert [cell_text(row, c) for c in (0, FLOW_COLUMN, X_COLUMN, COUNT_COLUMN)] == ["R1", "1200", "0.2", ""]
 
 
+def test_a_reference_flow_that_means_nothing_is_dropped_and_never_holds_the_row_back() -> None:
+    """Found through the real dock: a flow of 0 typed for a reach below a dry dam kept its K and X out of the job."""
+    row = ReachRow("R1", k_hours=1.0, x=0.2)
+    set_cell(row, FLOW_COLUMN, "0")
+    assert row.flow is None and row.complete() and "above zero, so none is used" in cell_text(row, WORDS_COLUMN)
+    assert proposal_args("b", "o", [row], None, None) == ["muskingum", "b", "--out", "o"]
+    assert job_rows([row]) == [{"reach": "R1", "k_hours": 1.0, "x": 0.2, "subreaches": 1}]
+    assert table_note([row], True) == "1 of 1 reaches have K and X."
+    set_cell(row, FLOW_COLUMN, "abc")
+    assert row.flow is None and "is not a number" in row.flow_problem and row.complete()
+    row.words = "derived so"
+    assert cell_text(row, WORDS_COLUMN).endswith("so none is used. derived so")
+    set_cell(row, FLOW_COLUMN, "350")
+    assert row.flow == 350.0 and row.flow_problem == "" and cell_text(row, WORDS_COLUMN) == "derived so"
+    assert row.words == "derived so"  # a flow is a question to the helper, not an edit of the row's numbers
+
+
 def test_the_question_carries_the_flows_the_velocity_and_the_control_file() -> None:
     rows = [ReachRow("R1", flow=800.0), ReachRow("R2"), ReachRow("R3", flow=0.0)]
     assert proposal_args("b.basin", "o.json", rows, None, None) == [
