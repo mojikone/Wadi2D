@@ -139,6 +139,9 @@ def common(job: dict, inputs: dict, number: int) -> dict:
     job["outputs"]["smooth"]["enabled"] = False
     job["run"].update({"backend": "gpu", "checkpoint_every_s": 0.0})
     job["dam_levels"] = []
+    if SET != "rerun":  # W85, merged after the first rerun: pits filled in the tables, the cells that set the step named
+        job["terrain"]["fill_pits"] = True
+        job["outputs"]["step_limiter"] = "layer"
     return job
 
 
