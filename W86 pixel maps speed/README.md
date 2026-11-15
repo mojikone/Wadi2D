@@ -172,6 +172,7 @@ they are:
 | Peak on the card | 12.8 GB |
 | Before the products could start, once | 14.4 min: the merge moves every cache key (W85's note), so the domain mask, the centre mesh (12 of the minutes, one core), the tables and the strip were built again, and the DEM's 23 GB chunk store was made |
 | Result | the same class areas to four decimals as before the merge |
+| Against the old fill on the same 23 blocks, all of Block 2, on the card (`s03_compare.py`, 502 M wet pixels) | depth differs on 157.5 M pixels, **0.081 mm at most**; 61 pixels change class, 19 of them wet in one and dry in the other; 21 pixels of speed, 0.044 m/s at most |
 
 Both remakes shared the cores with other work for part of their time (this session's tests in each case), so the 8
 minutes between them are not all the stored DEM's. [Likely] most of it is: the strip's ground is read a block at a
