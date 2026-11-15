@@ -60,6 +60,27 @@ def test_tiles_on_threads_read_what_the_whole_strips_read(holed, monkeypatch, ma
     assert fast.datum == whole.datum
 
 
+@pytest.mark.parametrize("stride", [2, 3, 4])
+def test_a_strided_window_read_whole_and_sliced_is_gdals_decimated_read(holed, stride) -> None:
+    """W80: the same pixels and holes as :meth:`RasterBed._window`, windows inside, across and past the raster."""
+    from wadi2d.terrain import RasterBed
+
+    cfg, _tables, _keep = holed
+    rng = np.random.default_rng(stride)
+    with RasterBed(cfg.terrain.dem, stride) as bed:
+        h, w = bed.src.height, bed.src.width
+        boxes = [(-7, -5, 40, 50), (h - 30, w - 41, 30, 40), (h + 5, 0, 10, 10), (0, 0, h // stride, w // stride)]
+        boxes += [(int(rng.integers(-20, h)), int(rng.integers(-20, w)), int(rng.integers(1, 90)), int(rng.integers(1, 90))) for _ in range(40)]
+        for row, col, nrows, ncols in boxes:
+            z, mask = ground_mod._strided_window(bed, row, col, nrows, ncols)
+            z0, mask0 = bed._window(row, col, nrows, ncols)
+            np.testing.assert_array_equal(mask, mask0)
+            np.testing.assert_array_equal(z, z0)
+        bed.bind(bed.left, bed.top)
+        for fill in (True, False):  # and the whole read, fill and all
+            np.testing.assert_array_equal(ground_mod._read(bed, 3, 5, 60, 70, fill), bed.read(3, 5, 60, 70, fill))
+
+
 def test_one_thread_reads_what_many_read(holed, monkeypatch) -> None:
     cfg, tables, keep = holed
     many = read_cells(cfg, tables, keep)

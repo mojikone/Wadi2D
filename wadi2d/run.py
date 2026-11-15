@@ -737,13 +737,27 @@ def status_tags(summary: RunSummary, t: float, cfg: RunConfig) -> dict[str, str]
     }
 
 
-def edge_ponding(grid: TileGrid, depth: np.ndarray, open_cells: np.ndarray) -> tuple[float, float, float]:
+def domain_cells(tables: GridTables) -> np.ndarray:
+    """The lattice cells inside the domain's outline: the active ones and the squares an aligned strip replaced, which
+    are inactive on the lattice but still the domain (W80: their joins counted as edges, 338 false pools on Block 2)."""
+    grid = tables.grid
+    strip = getattr(tables, "strip", None)
+    if strip is None or not strip.strip.masked[0].size:
+        return grid.mask
+    inside = grid.mask.copy()
+    inside[strip.strip.masked[0], strip.strip.masked[1]] = True
+    return inside
+
+
+def edge_ponding(
+    grid: TileGrid, depth: np.ndarray, open_cells: np.ndarray, domain: np.ndarray | None = None
+) -> tuple[float, float, float]:
     """Deepest water on the domain edge away from any boundary: (depth, x, y).
 
     An edge is a wall. Water deep against one is a domain drawn too tight or a gap between polygons, and the
-    balance closes all the same, so nothing else would tell.
+    balance closes all the same, so nothing else would tell. ``domain`` as in :func:`domain_cells`.
     """
-    edge = grid.mask & ~ndimage.binary_erosion(grid.mask, border_value=0)
+    edge = grid.mask & ~ndimage.binary_erosion(grid.mask if domain is None else domain, border_value=0)
     closed = edge & ~ndimage.binary_dilation(open_cells, iterations=EDGE_REACH)
     if not closed.any():
         return 0.0, 0.0, 0.0
@@ -775,7 +789,9 @@ def _edge_pools(cfg, tables, depth, open_cells, out: Path, crs, progress) -> lis
     if not check.enabled or getattr(tables.grid, "quad", False):
         return None
     try:
-        pools = edge_pools(tables.grid, depth, tables.zmin, open_cells, EDGE_REACH, cfg.outputs.edge_depth, check)
+        pools = edge_pools(
+            tables.grid, depth, tables.zmin, open_cells, EDGE_REACH, cfg.outputs.edge_depth, check, domain_cells(tables)
+        )
         path = write_pools(out, pools, crs)
     except Exception:  # the old warning stands in for it
         return None
@@ -806,7 +822,7 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     for more in monitor.extra_maxima:
         results.maxima(more())
     pooled = _edge_pools(cfg, tables, fields_["depth"], monitor.boundary.mask, out, crs, progress)
-    deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask)
+    deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask, domain_cells(tables))
     if pooled is not None:
         for note in pooled:
             progress.emit("warn", message=note)
