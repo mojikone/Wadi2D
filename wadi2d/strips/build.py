@@ -22,7 +22,7 @@ from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.hybrid import ghosts_for
 from wadi2d.strips.mesher import Corridor, StripMesh, build_strip_mesh
 from wadi2d.strips.objects import crest_polylines, faces_from_objects
-from wadi2d.strips.tables import Pixels, build_poly_tables
+from wadi2d.strips.tables import BedPixels, build_poly_tables
 from wadi2d.tables.builder import GridTables
 from wadi2d.terrain import Ground, apply_objects
 
@@ -204,12 +204,10 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     row0 = int(np.floor((grid.y0 - y_hi) / bed.pixel))
     ncols = int(np.ceil((x_hi - x_lo) / bed.pixel)) + 1
     nrows = int(np.ceil((y_hi - y_lo) / bed.pixel)) + 1
-    z = np.asarray(bed.read(row0, col0, nrows, ncols), np.float64)
     ground = Ground(bed, grid.x0, grid.y0)
     edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
-    if edits.edit is not None:  # burn lines and shaped objects rebuild the strip's ground as they do the squares'
-        edits.edit(z, row0, col0)
-    pix = Pixels(z, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k)
+    # the window is read a piece at a time with the edits on each (W81): whole, it asked for 66.5 GiB on Block 2
+    pix = BedPixels(bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k)
     ghosts = ghosts_for(geo, grid, tables)
     lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
     crest, cw, wall = faces_from_objects(geo, ghosts, lines)

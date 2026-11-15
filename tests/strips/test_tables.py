@@ -133,3 +133,36 @@ def test_a_face_profile_reads_the_higher_pixel_either_side() -> None:
     assert prof.size == 10 and np.all(prof == 2.0)
     prof, _ = face_profile(pix, 2.0, -5.0, 8.0, -5.0)  # across the plain, short of the ridge
     assert np.all(prof == 0.0)
+
+
+@pytest.mark.parametrize("conveyance", ["strips", "local_radius"])
+def test_tables_built_in_pieces_are_the_whole_windows_to_the_digit(monkeypatch, conveyance) -> None:
+    """W81: a strip's tables are built a piece at a time, each piece's window read alone (from a bed, with the edit on
+    each piece); a corridor at 45 degrees with its gap triangles, in pieces of 2 cells, gives the one-piece tables."""
+    import wadi2d.strips.tables as st
+    from tests.strips.test_mesher import DX as MDX
+    from tests.strips.test_mesher import K as MK
+    from tests.strips.test_mesher import _bed, strip_case
+    from wadi2d.strips.tables import BedPixels
+    from wadi2d.tables import ArrayBed
+
+    tg, _tables, _sc, _tc, strip = strip_case(45.0)
+    _tg, _t, _sc2, _tc2, z = _bed(45.0)
+    geo = strip.geometry
+    cfg = Tables(face_conveyance=conveyance, face_depth_max=4.0)
+    monkeypatch.setattr(st, "PIECE_CELLS", 10_000)
+    whole, kept = build_poly_tables(geo, Pixels(z, tg.x0, tg.y0, MDX / MK), cfg, MDX, 0.03)
+    monkeypatch.setattr(st, "PIECE_CELLS", 2)
+    edited = []
+
+    def edit(win, row0, col0):
+        edited.append(win.shape)
+        win -= 0.0
+
+    nr, nc = z.shape
+    bed = BedPixels(ArrayBed(z, MDX / MK), edit, 0, 0, nr, nc, tg.x0, tg.y0, MDX / MK)
+    pieces, kept2 = build_poly_tables(geo, bed, cfg, MDX, 0.03)
+    assert len(edited) > 4 and max(r * c for r, c in edited) < nr * nc  # read in pieces, none of them the whole window
+    np.testing.assert_array_equal(kept, kept2)
+    for name in ("zmin", "zbar", "hc", "dtab", "zf", "ef", "ftab", "cw"):
+        np.testing.assert_array_equal(getattr(whole, name), getattr(pieces, name), err_msg=name)
