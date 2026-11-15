@@ -1002,6 +1002,42 @@ def _edge_streams(cfg: RunConfig, crs: str, out: Path, progress, left: LeftOut |
     return crossing_notes(found, cfg.outputs.edge_check)
 
 
+class _EdgeCheckBeside:
+    """``_edge_streams`` on a thread of its own while the tables are built (W91): on a domain outline the cache has
+    not seen it reads the whole DEM under the outline at the coarse pixel and runs D8, 225 s on Block 2's run 3,
+    and needs nothing the tables make. Its events are held and written in their own order by ``report``, so the
+    run's progress file carries the same lines; ``report`` without ``start`` runs the check where it stands."""
+
+    def __init__(self, cfg: RunConfig, crs: str, out: Path, left: LeftOut | None) -> None:
+        self.args = (cfg, crs, out)
+        self.left = left
+        self.events: list[tuple[str, dict]] = []
+        self.pool = None
+        self.future = None
+
+    def emit(self, ev: str, **fields) -> None:
+        self.events.append((ev, fields))
+
+    def start(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+
+        self.pool = ThreadPoolExecutor(1, thread_name_prefix="edge-check")
+        self.future = self.pool.submit(_edge_streams, *self.args, self, self.left)
+
+    def report(self, progress) -> None:
+        if self.future is None:
+            notes = _edge_streams(*self.args, self, self.left)
+        else:
+            try:
+                notes = self.future.result()
+            finally:
+                self.pool.shutdown()
+        for ev, fields in self.events:
+            progress.emit(ev, **fields)
+        for note in notes:
+            progress.emit("warn", message=note)
+
+
 def _edge_pools(cfg, tables, depth, open_cells, out: Path, crs, progress) -> list[str] | None:
     """Deep water against closed edges after the run (W78), or None when the check is off or fails: the single
     deepest-cell warning then stands, as before."""
@@ -1267,8 +1303,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     left = getattr(tables, "left_out", None) if tables is not None else left_out_of(cfg, crs)
-    for note in _edge_streams(cfg, crs, out, progress, left):
-        progress.emit("warn", message=note)
+    edges = _EdgeCheckBeside(cfg, crs, out, left)  # beside the tables when they are built here (W91)
+    if tables is not None:
+        edges.report(progress)
     if cfg.mesh.enabled and cfg.mesh.lines:
         from wadi2d.mesh.build import rounding_notes
 
@@ -1277,7 +1314,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     rebuild = None
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
-        tables, crs = prepare_grid(cfg, cache, progress, left)
+        edges.start()
+        try:
+            tables, crs = prepare_grid(cfg, cache, progress, left)
+        finally:
+            edges.report(progress)
 
         def rebuild(job: RunConfig, before: GridTables) -> GridTables:
             return prepare_grid(job, cache, progress, left, base=before)[0]
