@@ -80,34 +80,86 @@ def read_cells(
 
     On a mesh ``keep`` is on a lattice of cells ``scale`` finest cells wide, and ``datum`` is shared by every size.
     """
-    grid = tables.grid
-    with RasterBed(cfg.terrain.dem) as probe:
-        native = probe.native
-    with RasterBed(cfg.terrain.dem, bed_stride(cfg, native)) as bed:
-        k = bed.pixels_per_cell(grid.dx * scale)
-        bed.bind(grid.x0, grid.y0)
-        objects = with_tables(cfg).terrain.objects
-        edit = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
-        rows, cols = np.nonzero(keep)
-        if datum is None:
-            datum = float(tables.zmin[keep].min()) if rows.size else 0.0
-        ground = np.empty((rows.size, k * k), np.float32)
-        strips = rows // TILE
-        first = np.searchsorted(strips, np.arange(strips.max() + 2 if rows.size else 1))
-        count = len(first) - 1
-        with (
-            rasterio.Env(GDAL_CACHEMAX=READ_CACHE_MB),
-            _ThreadBeds(cfg.terrain.dem, bed.stride, grid.x0, grid.y0) as beds,
-        ):
-            for strip in range(count):
-                a, b = int(first[strip]), int(first[strip + 1])
-                tick(strip, count)
-                if a == b:
-                    continue
-                if edit is None and beds.pick(rows[a:b], cols[a:b], k, datum, ground[a:b]):
-                    continue
-                _whole_strip(bed, edit, rows[a:b], cols[a:b], k, strip * TILE * k, datum, ground[a:b])
-    return CellPixels(rows, cols, k, bed.pixel, datum, ground)
+    with CellReader(cfg, tables, keep, scale, datum) as reader:
+        ground = np.empty((reader.rows.size, reader.k**2), np.float32)
+        for strip in range(reader.strips):
+            tick(strip, reader.strips)
+            a, b = reader.strip_range(strip)
+            reader.read_strip(strip, a, b, ground[a:b])
+        return CellPixels(reader.rows, reader.cols, reader.k, reader.pixel, reader.datum, ground)
+
+
+class CellReader:
+    """The ground of the kept cells, any run of them at a time, each pixel what the read of all of them gives (W86).
+
+    The kept cells stand row by row, so the cells of a band of rows are a run ``[a, b)`` of the list. A strip of tiles
+    is read as the whole read reads it: where a hole is filled or a terrain object edits the ground the answer depends
+    on the window, so that window stays the strip from its first to its last kept column, whatever part is asked for.
+    One thread reads at a time; the tiles of a strip go to this reader's own pool.
+    """
+
+    def __init__(self, cfg: RunConfig, tables: GridTables, keep: np.ndarray, scale: int = 1, datum: float | None = None) -> None:
+        grid = tables.grid
+        self._stack = ExitStack()
+        with RasterBed(cfg.terrain.dem) as probe:
+            native = probe.native
+        self.bed = bed = self._stack.enter_context(RasterBed(cfg.terrain.dem, bed_stride(cfg, native)))
+        try:
+            self.k = bed.pixels_per_cell(grid.dx * scale)
+            self.pixel = bed.pixel
+            bed.bind(grid.x0, grid.y0)
+            objects = with_tables(cfg).terrain.objects
+            self.edit = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0)).edit
+            self.rows, self.cols = np.nonzero(keep)
+            if datum is None:
+                datum = float(tables.zmin[keep].min()) if self.rows.size else 0.0
+            self.datum = datum
+            strips = self.rows // TILE
+            self.first = np.searchsorted(strips, np.arange(strips.max() + 2 if self.rows.size else 1))
+            self.strips = len(self.first) - 1
+            # each strip's first and last kept column: the window its fill and its edits see
+            self.spans = [
+                (int(self.cols[a:b].min()), int(self.cols[a:b].max())) if b > a else (0, 0)
+                for a, b in zip(self.first[:-1], self.first[1:], strict=True)
+            ]
+            self._stack.enter_context(rasterio.Env(GDAL_CACHEMAX=READ_CACHE_MB))
+            self.beds = self._stack.enter_context(_ThreadBeds(cfg.terrain.dem, bed.stride, grid.x0, grid.y0))
+        except BaseException:
+            self._stack.close()
+            raise
+
+    def strip_range(self, strip: int) -> tuple[int, int]:
+        """The run of kept cells in one strip of tiles."""
+        return int(self.first[strip]), int(self.first[strip + 1])
+
+    def read_strip(self, strip: int, a: int, b: int, out: np.ndarray) -> None:
+        """The ground of kept cells ``[a, b)``, all in ``strip``, into ``out``."""
+        if a >= b:
+            return
+        rows, cols, k, span = self.rows[a:b], self.cols[a:b], self.k, self.spans[strip]
+        if self.edit is None and self.beds.pick(rows, cols, k, self.datum, out, span):
+            return
+        _whole_strip(self.bed, self.edit, rows, cols, k, strip * TILE * k, self.datum, out, span)
+
+    def read(self, a: int, b: int) -> np.ndarray:
+        """The ground of kept cells ``[a, b)``, (cells, k * k), float32 over the datum."""
+        out = np.empty((max(b - a, 0), self.k**2), np.float32)
+        if b <= a:
+            return out
+        for strip in range(int(self.rows[a]) // TILE, int(self.rows[b - 1]) // TILE + 1):
+            lo, hi = self.strip_range(strip)
+            lo, hi = max(lo, a), min(hi, b)
+            self.read_strip(strip, lo, hi, out[lo - a : hi - a])
+        return out
+
+    def close(self) -> None:
+        self._stack.close()
+
+    def __enter__(self) -> CellReader:
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self.close()
 
 
 def _picked(z: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int, col0: int) -> np.ndarray:
@@ -117,11 +169,13 @@ def _picked(z: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int
     return z[top, left].reshape(rows.size, -1)
 
 
-def _whole_strip(bed: RasterBed, edit, rows, cols, k: int, row0: int, datum: float, out: np.ndarray) -> None:
+def _whole_strip(bed: RasterBed, edit, rows, cols, k: int, row0: int, datum: float, out: np.ndarray, span=None) -> None:
     """One strip of tiles read whole, from its first to its last kept column: what a terrain object edits, and
-    where a kept pixel is a hole and needs the fill, whose nearest good pixel depends on the window."""
-    col0 = int(cols.min()) * k
-    ncols = (int(cols.max()) + 1) * k - col0
+    where a kept pixel is a hole and needs the fill, whose nearest good pixel depends on the window. ``span`` is
+    that first and last column when ``cols`` are only some of the strip's kept cells."""
+    first, last = (int(cols.min()), int(cols.max())) if span is None else span
+    col0 = first * k
+    ncols = (last + 1) * k - col0
     top = (rows * k - row0)[:, None, None] + np.arange(k)[None, :, None]
     left = (cols * k - col0)[:, None, None] + np.arange(k)[None, None, :]
     # without the fill first: the cells kept are inside the DEM almost always, and the fill is a distance
@@ -259,12 +313,14 @@ class _ThreadBeds:
                 return None
         return _picked(z, rows, cols, k, row0, col0)
 
-    def pick(self, rows, cols, k: int, datum: float, out: np.ndarray) -> bool:
+    def pick(self, rows, cols, k: int, datum: float, out: np.ndarray, span=None) -> bool:
         """The ground of one strip's kept cells into ``out``, tile column by tile column over the box of the cells
-        kept in each; False, and ``out`` unspecified, when a hole's fill needs the strip read whole."""
+        kept in each; False, and ``out`` unspecified, when a hole's fill needs the strip read whole. ``span`` is the
+        strip's first and last kept column when ``cols`` are only some of its kept cells."""
         row0 = int(rows.min()) // TILE * TILE * k
+        first, last = (int(cols.min()), int(cols.max())) if span is None else span
         # what the strip reads whole, and so where its fill looks
-        bounds = (row0, int(cols.min()) * k, row0 + TILE * k, (int(cols.max()) + 1) * k)
+        bounds = (row0, first * k, row0 + TILE * k, (last + 1) * k)
         tiles = cols // TILE
         order = np.argsort(tiles, kind="stable")
         cuts = np.flatnonzero(np.diff(tiles[order])) + 1

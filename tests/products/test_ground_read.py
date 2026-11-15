@@ -3,12 +3,14 @@ holes and their fill included."""
 
 from __future__ import annotations
 
+from itertools import pairwise
+
 import numpy as np
 import pytest
 
 from tests.engine.conftest import job, write_dem
 from wadi2d.products import ground as ground_mod
-from wadi2d.products.ground import read_cells
+from wadi2d.products.ground import CellReader, read_cells
 from wadi2d.run import prepare_grid
 from wadi2d.solver.layout import TILE
 
@@ -88,3 +90,20 @@ def test_one_thread_reads_what_many_read(holed, monkeypatch) -> None:
     real = ground_mod._ThreadBeds.__init__
     monkeypatch.setattr(ground_mod._ThreadBeds, "__init__", lambda self, *a: real(self, *a, workers=1))
     np.testing.assert_array_equal(read_cells(cfg, tables, keep).ground, many.ground)
+
+
+@pytest.mark.parametrize("threads", [True, False])
+def test_a_run_of_kept_cells_reads_the_ground_the_whole_read_gives(holed, monkeypatch, threads) -> None:
+    """Holes are filled from the strip of tiles the whole read sees, whatever part of the strip is asked for; with
+    the tiles on threads and with each strip read whole."""
+    cfg, tables, keep = holed
+    whole = read_cells(cfg, tables, keep)
+    if not threads:
+        monkeypatch.setattr(ground_mod._ThreadBeds, "pick", lambda *_a: False)
+    rng = np.random.default_rng(11)
+    with CellReader(cfg, tables, keep) as reader:
+        assert reader.datum == whole.datum and reader.k == whole.k
+        cuts = np.sort(rng.integers(0, whole.rows.size, 9))
+        for a, b in pairwise(cuts):
+            np.testing.assert_array_equal(reader.read(int(a), int(b)), whole.ground[a:b])
+        assert reader.read(5, 5).shape == (0, whole.k**2)
