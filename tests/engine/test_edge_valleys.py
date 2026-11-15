@@ -8,7 +8,7 @@ import sqlite3
 import numpy as np
 import pytest
 
-from tests.engine.conftest import CRS, X0, Y0, job, write_dem
+from tests.engine.conftest import CRS, X0, Y0, job, tilted_dem, write_dem  # noqa: F401
 from wadi2d.config.schema import EdgeCheck
 from wadi2d.edge_valleys import (
     BOWL,
@@ -174,6 +174,49 @@ def test_deep_water_at_an_open_boundary_is_not_listed():
     open_cells = np.zeros(grid.shape, bool)
     open_cells[19, 4:7] = True
     assert pools_of(grid, depth, zmin, open_cells) == []
+
+
+def test_squares_beside_a_strip_are_joins_not_edges():
+    """W80: the squares an aligned corridor replaced leave the mask; deep water beside them is no pool of the edge."""
+    grid = Grid()
+    zmin = np.full(grid.shape, 100.0)
+    depth = np.zeros(grid.shape)
+    domain = grid.mask.copy()
+    grid.mask[8:12, 4:16] = False  # the corridor's squares
+    depth[7, 4:16] = depth[12, 4:16] = 5.0  # the squares either side of it, deep
+    assert [p.kind for p in pools_of(grid, depth, zmin)]  # read on the mask alone: false pools
+    assert edge_pools(grid, depth, zmin, np.zeros(grid.shape, bool), EDGE_REACH, 3.0, EdgeCheck(), domain) == []
+    depth[19, 5] = 9.0  # the outline is still checked
+    found = edge_pools(grid, depth, zmin, np.zeros(grid.shape, bool), EDGE_REACH, 3.0, EdgeCheck(), domain)
+    assert [p.kind for p in found] == [BOWL] and found[0].depth_m == 9.0
+
+
+def test_a_strip_run_names_no_pool_at_its_joins(tilted_dem, tmp_path):  # noqa: F811
+    """A corridor across the middle of a rained plane: water against the outline may be named, never at the squares
+    beside the corridor, however shallow the depth that counts."""
+    import re
+
+    from tests.engine.test_strips_run import MID_Y, corridor, plane_job
+
+    cfg = plane_job(tilted_dem, corridor())
+    data = cfg.model_dump(mode="json")
+    data["outputs"]["edge_depth"] = 0.001  # any water at a join would be listed
+    data["outputs"]["edge_check"] = {"max_listed": 1000}
+    cfg = type(cfg).model_validate(data)
+    out = tmp_path / "run"
+    run = run_job(cfg, out, "cpu")
+    assert run.exit_code == 0, run.message
+    events = [json.loads(line) for line in (out / "progress.jsonl").read_text().splitlines()]
+    (built,) = [e for e in events if e.get("ev") == "strips"]
+    assert built["replaced"] > 0
+    named = [
+        (float(x), float(y))
+        for e in events
+        if e["ev"] == "warn"
+        for x, y in re.findall(r"against the domain edge at \((-?[\d.]+), (-?[\d.]+)\)", e["message"])
+    ]
+    at_joins = [(x, y) for x, y in named if X0 + 30.0 < x < X0 + 170.0 and abs(y - MID_Y) < 24.0]
+    assert at_joins == [], at_joins
 
 
 def test_a_run_against_a_closed_valley_names_both(ground, tmp_path):

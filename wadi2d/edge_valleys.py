@@ -222,9 +222,13 @@ def edge_pools(
     reach: int,
     depth_limit: float,
     check: EdgeCheck,
+    domain: np.ndarray | None = None,
 ) -> list[Pool]:
-    """Groups of closed-edge cells deeper than ``depth_limit``, the deepest first: a pool where the level is flat."""
-    edge = grid.mask & ~ndimage.binary_erosion(grid.mask, border_value=0)
+    """Groups of closed-edge cells deeper than ``depth_limit``, the deepest first: a pool where the level is flat.
+
+    ``domain`` is the domain's own cells when they differ from the active mask: on a strip run the squares an aligned
+    corridor replaced are inactive, and a square beside them is a join to the strip, not an edge (W80)."""
+    edge = grid.mask & ~ndimage.binary_erosion(grid.mask if domain is None else domain, border_value=0)
     closed = edge & ~ndimage.binary_dilation(open_cells, iterations=reach)
     deep = closed & (depth > depth_limit)
     if not deep.any():
