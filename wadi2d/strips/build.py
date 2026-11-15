@@ -24,6 +24,7 @@ from wadi2d.strips.mesher import Corridor, StripMesh, build_strip_mesh
 from wadi2d.strips.objects import crest_polylines, faces_from_objects
 from wadi2d.strips.tables import BedPixels, build_poly_tables
 from wadi2d.tables.builder import GridTables
+from wadi2d.tables.parallel import ThreadBeds
 from wadi2d.terrain import Ground, apply_objects
 
 
@@ -49,7 +50,14 @@ def corridors_of(
     snap_nearest = cfg.centre != "thalweg"
     if not specs and cfg.banks:
         from wadi2d.config.schema import CorridorSpec
-        from wadi2d.strips.banks import CellRule, corridor_specs, corridor_specs_thalweg, pair_banks, read_layers, read_thalwegs
+        from wadi2d.strips.banks import (
+            CellRule,
+            corridor_specs,
+            corridor_specs_thalweg,
+            pair_banks,
+            read_layers,
+            read_thalwegs,
+        )
 
         if domain is None:
             raise ValueError("corridors from a banks file need the domain: give grid.domain or grid.extent")
@@ -206,8 +214,12 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     nrows = int(np.ceil((y_hi - y_lo) / bed.pixel)) + 1
     ground = Ground(bed, grid.x0, grid.y0)
     edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
-    # the window is read a piece at a time with the edits on each (W81): whole, it asked for 66.5 GiB on Block 2
-    pix = BedPixels(bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k)
+    # the window is read a piece at a time with the edits on each, the pieces on threads with a bed each (W81):
+    # whole, it asked for 66.5 GiB on Block 2
+    beds = ThreadBeds(bed)
+    pix = BedPixels(
+        bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k, beds
+    )  # fmt: skip
     ghosts = ghosts_for(geo, grid, tables)
     lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
     crest, cw, wall = faces_from_objects(geo, ghosts, lines)
@@ -219,10 +231,13 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
         left, right = geo.face_cell[:, 0], geo.face_cell[:, 1]
         rows_both = (strip.gorge[left] != 0) & (right >= 0) & (strip.gorge[np.maximum(right, 0)] != 0)
         dn_floor = np.where(rows_both, DN_MIN * cfg.strips.gorge_cell_min_m, DN_MIN * grid.dx)
-    mesh, kept = build_poly_tables(
-        geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest,
-        dn_floor=dn_floor,
-    )
+    try:
+        mesh, kept = build_poly_tables(
+            geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest,
+            dn_floor=dn_floor,
+        )  # fmt: skip
+    finally:
+        beds.close()
     return StripTables(strip, mesh, kept)
 
 

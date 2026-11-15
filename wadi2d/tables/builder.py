@@ -15,7 +15,14 @@ from wadi2d.config.constants import CRITICAL_WEIR_COEFF
 from wadi2d.config.schema import Tables
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.solver.layout import CLOSED, TILE
-from wadi2d.tables.core import centre_beds, tile_local_radius, tile_tables
+from wadi2d.tables.core import (
+    centre_beds,
+    tile_local_radius,
+    tile_local_radius_serial,
+    tile_tables,
+    tile_tables_serial,
+)
+from wadi2d.tables.parallel import ThreadBeds, run_all, table_workers
 
 
 class BedSource(Protocol):
@@ -109,10 +116,13 @@ def build_tables(
     crest: CrestFaces | None = None,
     edit=None,
     lining=None,
+    workers: int | None = None,
 ) -> GridTables:
     """Build all tables. ``manning`` is one value or a (ny, nx) grid; ``edit(z, row0, col0)`` edits pixels in place.
 
     ``lining(z, n, row0, col0)`` writes a Manning n per pixel into ``n``, which starts as NaN, after the edits.
+    ``workers`` threads build the tiles (``table_workers``: all physical cores unless told), each tile into its own
+    slots, so the tables do not depend on it (W81). ``edit`` and ``lining`` are called from those threads.
     """
     k = round(grid.dx / bed.pixel)
     if abs(k * bed.pixel - grid.dx) > 1e-6 * grid.dx:
@@ -135,42 +145,48 @@ def build_tables(
     ftabx = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
     ftaby = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
 
-    # per tile scratch in float64; the solver's float32 is taken at the very end
-    w_zmin, w_rel, w_hc = (np.zeros((TILE, TILE)) for _ in range(3))
-    w_dtab = np.zeros((TILE, TILE, rows))
-    w_zfx, w_efx, w_zfy, w_efy = (np.zeros((TILE, TILE)) for _ in range(4))
-    w_ftabx = np.zeros((TILE, TILE, rows, 2))
-    w_ftaby = np.zeros((TILE, TILE, rows, 2))
-    npix = np.full((1, 1), np.nan)
     local = cfg.face_conveyance == "local_radius"
     margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
     """W49: a face's line reaches this many pixels past its ends, for the local hydraulic radius's window."""
     zcx_g = np.zeros((ny, nx))
     zcy_g = np.zeros((ny, nx))
-    for t in range(1, nt):
+    threads = table_workers(workers)
+    cells, radius = (tile_tables_serial, tile_local_radius_serial) if threads > 1 else (tile_tables, tile_local_radius)
+    beds = ThreadBeds(bed)
+
+    def one(t: int) -> None:
+        """Tile ``t``'s tables, into its own slots (W81: tiles run on threads, each on its own handle of the bed)."""
+        src = beds.get()
+        # per tile scratch in float64; the solver's float32 is taken at the very end
+        w_zmin, w_rel, w_hc = (np.zeros((TILE, TILE)) for _ in range(3))
+        w_dtab = np.zeros((TILE, TILE, rows))
+        w_zfx, w_efx, w_zfy, w_efy = (np.zeros((TILE, TILE)) for _ in range(4))
+        w_ftabx = np.zeros((TILE, TILE, rows, 2))
+        w_ftaby = np.zeros((TILE, TILE, rows, 2))
+        npix = np.full((1, 1), np.nan)
         tj, ti = grid.tiles[t]
         j0, i0 = int(tj) * TILE, int(ti) * TILE
         if local:
-            zbig = bed.read(j0 * k - 1 - margin, i0 * k - 1 - margin, TILE * k + 1 + 2 * margin, TILE * k + 1 + 2 * margin)
+            zbig = src.read(j0 * k - 1 - margin, i0 * k - 1 - margin, TILE * k + 1 + 2 * margin, TILE * k + 1 + 2 * margin)
             if edit is not None:
                 edit(zbig, j0 * k - 1 - margin, i0 * k - 1 - margin)
             z = np.ascontiguousarray(zbig[margin : margin + TILE * k + 1, margin : margin + TILE * k + 1])
         else:
-            z = bed.read(j0 * k - 1, i0 * k - 1, TILE * k + 1, TILE * k + 1)
+            z = src.read(j0 * k - 1, i0 * k - 1, TILE * k + 1, TILE * k + 1)
             if edit is not None:
                 edit(z, j0 * k - 1, i0 * k - 1)
         if lining is not None:
             npix = np.full(z.shape, np.nan)
             lining(z, npix, j0 * k - 1, i0 * k - 1)
         sl = (slice(j0, j0 + TILE), slice(i0, i0 + TILE))
-        tile_tables(
+        cells(
             z, k, TILE, bed.pixel, nman[sl], npix,
             crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl],
             cfg.face_depth_min, cfg.face_depth_max,
             w_zmin, w_rel, w_hc, w_dtab, w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby,
         )  # fmt: skip
         if local:
-            tile_local_radius(
+            radius(
                 zbig, margin, k, TILE, bed.pixel, nman[sl], npix, crest.xz[sl], crest.xlen[sl], crest.yz[sl], crest.ylen[sl],
                 w_zfx, w_efx, w_ftabx, w_zfy, w_efy, w_ftaby, cfg.local_radius_beta, cfg.face_depth_max,
             )  # fmt: skip
@@ -178,6 +194,11 @@ def build_tables(
         cx_bed, cy_bed = centre_beds(z, k, TILE)
         zcx_g[sl], zcy_g[sl] = cx_bed - w_zmin, cy_bed - w_zmin
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
+
+    try:
+        run_all(range(1, nt), one, threads)
+    finally:
+        beds.close()
 
     zbar_g = zmin_g + rel_g
     active = grid.mask

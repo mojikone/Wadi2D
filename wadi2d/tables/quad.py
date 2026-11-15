@@ -15,7 +15,18 @@ from wadi2d.config.schema import Tables
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import BedSource, CrestFaces, GridTables
-from wadi2d.tables.core import _face_table, _lined, _local_radius_conveyance, centre_beds, tile_local_radius, tile_tables, window_top
+from wadi2d.tables.core import (
+    _face_table,
+    _lined,
+    _local_radius_conveyance,
+    centre_beds,
+    tile_local_radius,
+    tile_local_radius_serial,
+    tile_tables,
+    tile_tables_serial,
+    window_top,
+)
+from wadi2d.tables.parallel import ThreadBeds, run_all, table_workers
 
 HALF = TILE // 2
 
@@ -88,10 +99,12 @@ def build_quad_tables(
     crest: CrestFaces | None = None,
     edit=None,
     lining=None,
+    workers: int | None = None,
 ) -> GridTables:
     """All static arrays. ``crest`` and a Manning grid are on the finest raster; crests must lie in finest tiles.
 
     ``edit`` and ``lining`` are the hooks of ``build_tables``: they work on pixels, so they do not care for the cell size.
+    ``workers`` threads build the tiles, as in ``build_tables`` (W81).
     """
     k0 = round(grid.dx / bed.pixel)
     if abs(k0 * bed.pixel - grid.dx) > 1e-6 * grid.dx:
@@ -111,31 +124,36 @@ def build_quad_tables(
     efx, efy = np.ones((total, TILE, TILE), np.float32), np.ones((total, TILE, TILE), np.float32)
     ftabx = np.zeros((total, TILE, TILE, rows, 2), np.float32)
     ftaby = np.zeros((total, TILE, TILE, rows, 2), np.float32)
-    w_hc, w_efx, w_efy = (np.zeros((TILE, TILE)) for _ in range(3))
-    w_dtab = np.zeros((TILE, TILE, rows))
-    w_ftabx, w_ftaby = np.zeros((TILE, TILE, rows, 2)), np.zeros((TILE, TILE, rows, 2))
     east_south = {(int(r[0]), int(r[1])): r for r in grid.interfaces if r[1] >= 2}
-    npix = np.full((1, 1), np.nan)
     fx, fy = np.zeros((total, TILE, TILE, 2)), np.zeros((total, TILE, TILE, 2))
     """Invert of the extra faces, per table tile; the second layer marks a used face."""
     local = cfg.face_conveyance == "local_radius"
     margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
     """W49: every tile is read this many pixels wider on each side, for the local hydraulic radius's window."""
-    zbig = None
+    threads = table_workers(workers)
+    cells, radius = (tile_tables_serial, tile_local_radius_serial) if threads > 1 else (tile_tables, tile_local_radius)
+    beds = ThreadBeds(bed)
 
-    for t in range(1, nt):
+    def one(t: int) -> None:
+        """Tile ``t``'s tables and its east and south interface faces, into their own slots (W81: on threads)."""
+        src = beds.get()
+        w_hc, w_efx, w_efy = (np.zeros((TILE, TILE)) for _ in range(3))
+        w_dtab = np.zeros((TILE, TILE, rows))
+        w_ftabx, w_ftaby = np.zeros((TILE, TILE, rows, 2)), np.zeros((TILE, TILE, rows, 2))
+        npix = np.full((1, 1), np.nan)
+        zbig = None
         size = 1 << int(grid.level[t])
         k = k0 * size
         j0, i0 = int(grid.tiles[t, 0]) * TILE, int(grid.tiles[t, 1]) * TILE
         row0, col0 = j0 * k0 - 1, i0 * k0 - 1
         if local:
             n_big = TILE * k + 2 + 2 * margin
-            zbig = bed.read(row0 - margin, col0 - margin, n_big, n_big)
+            zbig = src.read(row0 - margin, col0 - margin, n_big, n_big)
             if edit is not None:
                 edit(zbig, row0 - margin, col0 - margin)
             z = np.ascontiguousarray(zbig[margin : margin + TILE * k + 2, margin : margin + TILE * k + 2])
         else:
-            z = bed.read(row0, col0, TILE * k + 2, TILE * k + 2)
+            z = src.read(row0, col0, TILE * k + 2, TILE * k + 2)
             if edit is not None:
                 edit(z, row0, col0)
         if lining is not None:
@@ -147,12 +165,12 @@ def build_quad_tables(
         else:
             cxz, cxl = np.full((TILE, TILE), np.nan), np.ones((TILE, TILE))
             cyz, cyl = cxz, cxl
-        tile_tables(
+        cells(
             z, k, TILE, bed.pixel, nman_t[t], npix, cxz, cxl, cyz, cyl, cfg.face_depth_min, cfg.face_depth_max,
             zmin[t], rel[t], w_hc, w_dtab, zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby,
         )  # fmt: skip
         if local:
-            tile_local_radius(
+            radius(
                 zbig, margin, k, TILE, bed.pixel, nman_t[t], npix, cxz, cxl, cyz, cyl,
                 zfx[t], w_efx, w_ftabx, zfy[t], w_efy, w_ftaby, cfg.local_radius_beta, cfg.face_depth_max,
             )  # fmt: skip
@@ -188,6 +206,10 @@ def build_quad_tables(
             (fx if side == 2 else fy)[pt, rw, :, 0] = zf
             (fx if side == 2 else fy)[pt, rw, :, 1] = 1.0
 
+    try:
+        run_all(range(1, nt), one, threads)
+    finally:
+        beds.close()
     zbar = zmin + rel
     x = _face_arrays(grid, cfg, zmin, zbar, zfx, fx, 0, crest)
     y = _face_arrays(grid, cfg, zmin, zbar, zfy, fy, 1, crest)

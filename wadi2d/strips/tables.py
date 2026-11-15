@@ -23,6 +23,7 @@ from wadi2d.config.schema import Tables
 from wadi2d.solver.poly.mesh import PolyMesh
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.tables.core import _cell_table, _face_table, _local_radius_conveyance, window_top
+from wadi2d.tables.parallel import run_all, table_workers
 
 
 @dataclass
@@ -267,7 +268,15 @@ def _pixel_ranges(xmin, ymin, xmax, ymax, pix) -> tuple[np.ndarray, ...]:
     return r0, r1, c0, c1
 
 
-def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab) -> None:
+def _cell_pieces(cx: np.ndarray, cy: np.ndarray, pix, dx: float) -> list[np.ndarray]:
+    """The cells by piece: those whose centroids share a square of ``PIECE_CELLS`` cells a side on the window."""
+    side = PIECE_CELLS * dx
+    key = np.floor((pix.y0 - cy) / side).astype(np.int64) * (1 << 31) + np.floor((cx - pix.x0) / side).astype(np.int64)
+    order = np.argsort(key, kind="stable")
+    return np.split(order, np.flatnonzero(np.diff(key[order])) + 1)
+
+
+def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers=None) -> None:
     """Every cell and kept face table, a piece at a time (W81): a piece is the cells whose centroids share a square of
     ``PIECE_CELLS`` cells a side, with the faces whose left cell it holds; its window covers their rings and their
     faces' sampling reach, and its owners are found among every cell that reaches the window, so each table is the
@@ -289,11 +298,7 @@ def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin
     ax, ay, bx, by = geo.x[a], geo.y[a], geo.x[b], geo.y[b]
     length = np.hypot(bx - ax, by - ay)  # numpy's hypot, as face_profile takes it
     fr0, fr1, fc0, fc1 = _pixel_ranges(np.minimum(ax, bx), np.minimum(ay, by), np.maximum(ax, bx), np.maximum(ay, by), pix)
-    side = PIECE_CELLS * dx
-    key = np.floor((pix.y0 - cy) / side).astype(np.int64) * (1 << 31) + np.floor((cx - pix.x0) / side).astype(np.int64)
-    order = np.argsort(key, kind="stable")
-    cuts = np.flatnonzero(np.diff(key[order])) + 1
-    pieces = np.split(order, cuts)
+    pieces = _cell_pieces(cx, cy, pix, dx)
     piece_of = np.empty(n, np.int64)
     for q, own in enumerate(pieces):
         piece_of[own] = q
@@ -326,8 +331,7 @@ def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin
             local, cfg.local_radius_beta, zf, ef, ftab,
         )  # fmt: skip
 
-    for q in range(len(pieces)):
-        one(q)
+    run_all(range(len(pieces)), one, table_workers(workers))  # pieces write their own cells and faces (W81)
 
 
 def build_poly_tables(
@@ -341,6 +345,7 @@ def build_poly_tables(
     ghosts: Ghosts | None = None,
     crest: np.ndarray | None = None,
     dn_floor: np.ndarray | None = None,
+    workers: int | None = None,
 ) -> tuple[PolyMesh, np.ndarray]:
     """The mesh's tables; and the index of each kept face in the geometry (boundary faces and walls are left out).
 
@@ -372,7 +377,7 @@ def build_poly_tables(
     lk, rk = left[kept], right[kept]
     n_face = np.where(rk >= n, nman[lk], 0.5 * (nman[lk] + nman[np.minimum(rk, n - 1)]))  # an interface face: the strip cell's
     lift = np.full(m, np.nan) if crest is None else np.asarray(crest, np.float64)[kept]
-    _build_in_pieces(geo, pix, cfg, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab)
+    _build_in_pieces(geo, pix, cfg, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers)
     if ghosts is not None:
         g = ghosts
         area = np.concatenate((area, g.area))

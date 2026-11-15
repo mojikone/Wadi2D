@@ -217,31 +217,51 @@ def tile_tables(
     pixel wide, on either side of it, and takes that pixel's lining. ``npix`` is a Manning n per pixel of ``z``, NaN
     where the cell's own n holds; a 1 x 1 array means no pixel is lined.
     """
+    for j in prange(tile):
+        _tile_row(j, z, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, e_lo, e_hi, zmin, relmean, hc, dtab, zfx, efx, ftabx, zfy, efy, ftaby)
+
+
+@njit(cache=True, nogil=True)
+def tile_tables_serial(
+    z, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, e_lo, e_hi,
+    zmin, relmean, hc, dtab, zfx, efx, ftabx, zfy, efy, ftaby,
+) -> None:  # fmt: skip
+    """``tile_tables`` on the calling thread, free of the interpreter lock, for a build that runs tiles on threads
+    (W81); the same rows in the same arithmetic."""
+    for j in range(tile):
+        _tile_row(j, z, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, e_lo, e_hi, zmin, relmean, hc, dtab, zfx, efx, ftabx, zfy, efy, ftaby)
+
+
+@njit(cache=True, nogil=True)
+def _tile_row(
+    j, z, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, e_lo, e_hi,
+    zmin, relmean, hc, dtab, zfx, efx, ftabx, zfy, efy, ftaby,
+) -> None:  # fmt: skip
+    """Row ``j`` of ``tile_tables``."""
     rows = dtab.shape[2]
     lined = npix.shape[0] > 1
-    for j in prange(tile):
-        prof = np.empty(k)
-        weight = np.ones(k)
-        for i in range(tile):
-            r0, c0 = 1 + j * k, 1 + i * k
-            cell = z[r0 : r0 + k, c0 : c0 + k]
-            zmin[j, i], relmean[j, i], hc[j, i] = _cell_table(cell, rows, dtab[j, i])
-            for q in range(k):
-                near, far = z[r0 + q, c0], z[r0 + q, c0 - 1]
-                prof[q] = max(far, near)
-                if lined:
-                    weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i])
-            zfx[j, i], efx[j, i] = _face_table(
-                prof, xcrest[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], e_lo, e_hi, ftabx[j, i]
-            )
-            for q in range(k):
-                near, far = z[r0, c0 + q], z[r0 - 1, c0 + q]
-                prof[q] = max(far, near)
-                if lined:
-                    weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i])
-            zfy[j, i], efy[j, i] = _face_table(
-                prof, ycrest[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], e_lo, e_hi, ftaby[j, i]
-            )
+    prof = np.empty(k)
+    weight = np.ones(k)
+    for i in range(tile):
+        r0, c0 = 1 + j * k, 1 + i * k
+        cell = z[r0 : r0 + k, c0 : c0 + k]
+        zmin[j, i], relmean[j, i], hc[j, i] = _cell_table(cell, rows, dtab[j, i])
+        for q in range(k):
+            near, far = z[r0 + q, c0], z[r0 + q, c0 - 1]
+            prof[q] = max(far, near)
+            if lined:
+                weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i])
+        zfx[j, i], efx[j, i] = _face_table(
+            prof, xcrest[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], e_lo, e_hi, ftabx[j, i]
+        )
+        for q in range(k):
+            near, far = z[r0, c0 + q], z[r0 - 1, c0 + q]
+            prof[q] = max(far, near)
+            if lined:
+                weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i])
+        zfy[j, i], efy[j, i] = _face_table(
+            prof, ycrest[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], e_lo, e_hi, ftaby[j, i]
+        )
 
 
 def centre_beds(z: np.ndarray, k: int, tile: int) -> tuple[np.ndarray, np.ndarray]:
@@ -288,30 +308,47 @@ def tile_local_radius(
     A face's table top is raised to the relief of its whole window, at most ``e_hi``, and its table rebuilt at the new
     levels: above its top a table grows its conveyance with its area, which is the strips sum's law on a flat face but
     not the local radius's, so a flat face in a deep narrow channel must not reach its top while the walls still count."""
-    lined = npix.shape[0] > 1
     for j in prange(tile):
-        weight = np.ones(k)
-        full = np.empty(k + 2 * margin)
-        for i in range(tile):
-            r0, c0 = 1 + j * k, 1 + i * k
-            if np.isnan(xcrest[j, i]):
-                for t in range(k + 2 * margin):
-                    full[t] = max(zbig[r0 + t, margin + c0 - 1], zbig[r0 + t, margin + c0])
-                for q in range(k):
-                    near, far = zbig[margin + r0 + q, margin + c0], zbig[margin + r0 + q, margin + c0 - 1]
-                    weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i]) if lined else 1.0
-                _raise_top(full, margin, k, zfx, efx, ftabx, j, i, pixel, nman[j, i], weight, xlen[j, i], e_hi)
-                e = min(margin, int(np.ceil(beta * efx[j, i] / pixel)))
-                _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfx[j, i], efx[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], beta, ftabx[j, i])
-            if np.isnan(ycrest[j, i]):
-                for t in range(k + 2 * margin):
-                    full[t] = max(zbig[margin + r0 - 1, c0 + t], zbig[margin + r0, c0 + t])
-                for q in range(k):
-                    near, far = zbig[margin + r0, margin + c0 + q], zbig[margin + r0 - 1, margin + c0 + q]
-                    weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i]) if lined else 1.0
-                _raise_top(full, margin, k, zfy, efy, ftaby, j, i, pixel, nman[j, i], weight, ylen[j, i], e_hi)
-                e = min(margin, int(np.ceil(beta * efy[j, i] / pixel)))
-                _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfy[j, i], efy[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], beta, ftaby[j, i])
+        _local_radius_row(j, zbig, margin, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, zfx, efx, ftabx, zfy, efy, ftaby, beta, e_hi)
+
+
+@njit(cache=True, nogil=True)
+def tile_local_radius_serial(
+    zbig, margin, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, zfx, efx, ftabx, zfy, efy, ftaby, beta, e_hi,
+) -> None:  # fmt: skip
+    """``tile_local_radius`` on the calling thread, free of the interpreter lock (W81)."""
+    for j in range(tile):
+        _local_radius_row(j, zbig, margin, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, zfx, efx, ftabx, zfy, efy, ftaby, beta, e_hi)
+
+
+@njit(cache=True, nogil=True)
+def _local_radius_row(
+    j, zbig, margin, k, tile, pixel, nman, npix, xcrest, xlen, ycrest, ylen, zfx, efx, ftabx, zfy, efy, ftaby, beta, e_hi,
+) -> None:  # fmt: skip
+    """Row ``j`` of ``tile_local_radius``."""
+    lined = npix.shape[0] > 1
+    weight = np.ones(k)
+    full = np.empty(k + 2 * margin)
+    for i in range(tile):
+        r0, c0 = 1 + j * k, 1 + i * k
+        if np.isnan(xcrest[j, i]):
+            for t in range(k + 2 * margin):
+                full[t] = max(zbig[r0 + t, margin + c0 - 1], zbig[r0 + t, margin + c0])
+            for q in range(k):
+                near, far = zbig[margin + r0 + q, margin + c0], zbig[margin + r0 + q, margin + c0 - 1]
+                weight[q] = _lined(npix[r0 + q, c0 - 1] if far > near else npix[r0 + q, c0], nman[j, i]) if lined else 1.0
+            _raise_top(full, margin, k, zfx, efx, ftabx, j, i, pixel, nman[j, i], weight, xlen[j, i], e_hi)
+            e = min(margin, int(np.ceil(beta * efx[j, i] / pixel)))
+            _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfx[j, i], efx[j, i], pixel, 1.0 / nman[j, i], weight, xlen[j, i], beta, ftabx[j, i])
+        if np.isnan(ycrest[j, i]):
+            for t in range(k + 2 * margin):
+                full[t] = max(zbig[margin + r0 - 1, c0 + t], zbig[margin + r0, c0 + t])
+            for q in range(k):
+                near, far = zbig[margin + r0, margin + c0 + q], zbig[margin + r0 - 1, margin + c0 + q]
+                weight[q] = _lined(npix[r0 - 1, c0 + q] if far > near else npix[r0, c0 + q], nman[j, i]) if lined else 1.0
+            _raise_top(full, margin, k, zfy, efy, ftaby, j, i, pixel, nman[j, i], weight, ylen[j, i], e_hi)
+            e = min(margin, int(np.ceil(beta * efy[j, i] / pixel)))
+            _local_radius_conveyance(full[margin - e : margin + k + e], e, e + k, zfy[j, i], efy[j, i], pixel, 1.0 / nman[j, i], weight, ylen[j, i], beta, ftaby[j, i])
 
 
 @njit(cache=True)
