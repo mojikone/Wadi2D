@@ -25,9 +25,13 @@ from qgis.PyQt.QtWidgets import (
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
+    ARF_BY_ELEMENT,
     CURVE_NUMBER,
     EXCLUDE_LUMPED,
     HMS_KEYS,
+    LUMPED_ENTRY,
+    LUMPED_ENTRY_WORDS,
+    LUMPED_ONLY,
     SUBBASIN_MODE,
     hms_files,
     hms_subbasins,
@@ -76,6 +80,13 @@ class HydrologySection(Section):
         hms.addRow(self.reservoirs)
         hms.addRow(self.reservoirs_note)
         self.reservoirs.hide()
+        self.lumped_entry = QComboBox()
+        hms.addRow("Lumped water enters the 2D model", self.lumped_entry)
+        self.lumped_only = QCheckBox("The HMS way only: the lumped network alone, no 2D model")
+        hms.addRow(self.lumped_only)
+        self.arf_by_element = QCheckBox("Each element at its own drainage area's area reduction (depth-area analysis)")
+        hms.addRow(self.arf_by_element)
+        self.lumped_only.toggled.connect(self._lumped_only_toggled)
         self.form.addRow(self.hms_box)
         self.hms_box.hide()
 
@@ -94,6 +105,7 @@ class HydrologySection(Section):
         self.muskingum = MuskingumBox()
         self.form.addRow(self.muskingum)
         self.muskingum.hide()
+        self._exclude_known = False
         self.exclude = QCheckBox("Leave the catchments the lumped network carries out of the 2D mesh")
         self.form.addRow(self.exclude)
 
@@ -123,9 +135,17 @@ class HydrologySection(Section):
         default = schema.default(REACH_ROUTING)
         if default is not None:
             self.routing.setCurrentIndex(max(self.routing.findData(default), 0))
+        self.lumped_entry.clear()
+        for key in schema.enum(LUMPED_ENTRY) or []:
+            self.lumped_entry.addItem(LUMPED_ENTRY_WORDS.get(key, key), key)
+        self.lumped_entry.setToolTip(schema.tip(LUMPED_ENTRY))
+        self.lumped_only.setToolTip(schema.tip(LUMPED_ONLY))
+        self.lumped_only.setEnabled(schema.has(LUMPED_ONLY))  # an engine from before W88 would refuse the fields
+        self.arf_by_element.setToolTip(schema.tip(ARF_BY_ELEMENT))
         self.exclude.setChecked(bool(schema.default(EXCLUDE_LUMPED, False)))
         self.exclude.setToolTip(schema.tip(EXCLUDE_LUMPED))
-        self.exclude.setEnabled(schema.has(EXCLUDE_LUMPED))  # an engine from before W88 would refuse the field
+        self._exclude_known = schema.has(EXCLUDE_LUMPED)
+        self._lumped_only_toggled(self.lumped_only.isChecked())
         self.basin.apply_schema(schema)
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
@@ -156,6 +176,11 @@ class HydrologySection(Section):
             self.muskingum.set_reaches(model_reaches(self.basin.model), True)
         else:
             self.muskingum.set_reaches([], False)
+
+    def _lumped_only_toggled(self, on: bool) -> None:
+        self.arf_by_element.setEnabled(on)
+        self.lumped_entry.setEnabled(not on and self.lumped_entry.count() > 0)
+        self.exclude.setEnabled(not on and self._exclude_known)
 
     def _use_hms(self) -> bool:
         path = self.folder.filePath()
@@ -249,6 +274,9 @@ class HydrologySection(Section):
         if self._use_hms():
             hms = {key: combo.currentText() for key, combo in self.files.items()}
             values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}
+            values["lumped_entry"] = self.lumped_entry.currentData() if self.lumped_entry.isEnabled() else None
+            values["lumped_only"] = self.lumped_only.isChecked() and self.lumped_only.isEnabled()
+            values["arf_by_element"] = values["lumped_only"] and self.arf_by_element.isChecked()
         elif self.basin.isChecked():
             values["basin"] = {**self.basin.values(crs), "modes": self._subbasin_modes()}
         return values

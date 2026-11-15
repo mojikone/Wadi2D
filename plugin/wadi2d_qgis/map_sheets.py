@@ -35,6 +35,7 @@ from qgis.core import (
 )
 from qgis.PyQt.QtGui import QColor, QFont
 
+from . import style
 from .map_notes import RunFacts, depth_notes, hazard_notes, read_facts, setup_notes
 from .protocol import PIXEL_DIR, has_drawings
 from .result_layers import RunLayers, open_layers
@@ -257,7 +258,7 @@ def build_book(
     pixel = f"Depth at the {facts.pixel:g} m pixel, sloped water surface"
     sheets.sheet(
         1, f"{title}: maximum depth", pixel, over + [found.depth] + base, [found.depth, *legend_over],
-        depth_notes(facts) + closing,
+        depth_notes(facts, style.depth_cutoff()) + closing,
     )  # fmt: skip
     every = f"{facts.map_every_s / 60.0:g}-minute maps" if facts.map_every_s else "the run's maxima"
     sheets.sheet(

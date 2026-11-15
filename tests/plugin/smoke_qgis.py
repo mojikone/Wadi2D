@@ -638,9 +638,11 @@ def smoke() -> None:
     layers = {child.name(): child.layer() for child in node.children()}
     depth_renderer = layers["max_depth"].renderer()
     check(depth_renderer.type() == "singlebandpseudocolor", "depth styled")
-    items = depth_renderer.shader().rasterShaderFunction().colorRampItemList()
-    check(
-        items[0].color.alpha() == 0 and items[-1].color.blue() > items[-1].color.red(),
+    shader = depth_renderer.shader().rasterShaderFunction()
+    items = shader.colorRampItemList()
+    check(  # W88: under the display cutoff nothing is drawn; with none the ramp fades from transparent
+        ((shader.clip() and items[0].value > 0.0) or items[0].color.alpha() == 0)
+        and items[-1].color.blue() > items[-1].color.red(),
         "ramp is transparent blue",
     )
     ramp = layers["hazard"].renderer().shader().rasterShaderFunction()

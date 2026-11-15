@@ -52,6 +52,9 @@ BASIN_DIR = "wadi2d_basin"  # beside the run folders too: basin.json and basin.g
 BASIN_FILE = "basin.json"
 BASIN_GEOMETRY = "basin.gpkg"
 BASIN_LAYERS = ("subbasins", "reaches", "junctions")
+NETWORK_FILE = "network.gpkg"  # a run with a lumped network (W88): the catchments that ran the HMS way, with peaks
+NETWORK_LAYERS = ("subbasins", "reaches", "points")
+LUMPED_MARKER = "lumped_run.json"  # a lumped-only run (W88): no grid, no maps, the network's series and layers
 POUR_POINTS_FILE = "pour_points.geojson"
 STUDY_SUFFIX = "_arf"  # a study's folder sits beside the run folders, so it shares their grid cache
 STUDY_FILE = "study.json"
@@ -181,6 +184,11 @@ def mesh_args(job: Path | str, out_dir: Path | str) -> list[str]:
 def drawings_args(run: Path | str) -> list[str]:
     """The arguments of ``wadi2d drawings``: the smooth polygons and the depth picture of a finished run."""
     return ["drawings", str(run)]
+
+
+def is_lumped_run(run: Path | str) -> bool:
+    """A lumped-only run, the HMS way: series and network layers, no grid, no maps, no frames (W88)."""
+    return (Path(run) / LUMPED_MARKER).is_file()
 
 
 def has_record(run: Path | str) -> bool:

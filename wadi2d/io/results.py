@@ -38,8 +38,9 @@ class Results:
     """An open results file; snapshots append, so a stopped run keeps what it wrote."""
 
     def __init__(
-        self, path: str | Path, grid: TileGrid, crs_wkt: str, config_json: str, append: bool = False
+        self, path: str | Path, grid: TileGrid | None, crs_wkt: str, config_json: str, append: bool = False
     ) -> None:
+        """``grid`` None: a run with no grid, the lumped network alone (W88): no mask, no maps, series only."""
         self.path = Path(path)
         self.salvaged = False
         try:
@@ -53,9 +54,12 @@ class Results:
             return
         a = self.f.attrs
         a["format_version"] = FORMAT_VERSION
-        a["x0"], a["y0"], a["dx"] = grid.x0, grid.y0, grid.dx
         a["crs"] = crs_wkt
         a["config"] = config_json
+        if grid is None:
+            a["lumped_only"] = True
+            return
+        a["x0"], a["y0"], a["dx"] = grid.x0, grid.y0, grid.dx
         self.f.create_dataset("mask", data=grid.mask, compression="gzip", compression_opts=GZIP_LEVEL)
 
     def _map(self, group: h5py.Group, name: str, a: np.ndarray) -> None:

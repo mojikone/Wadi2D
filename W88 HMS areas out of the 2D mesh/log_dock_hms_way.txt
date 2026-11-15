@@ -1,0 +1,48 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac15ed26a8cd5ded2\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.0 === 1 the HMS way only
+    5.0 PASS the dock has the three HMS-way controls 
+    5.0 PASS the lumped entry choices are the engine's ['outlet', 'network']
+    5.0 PASS the arf tick waits for the HMS way 
+    5.0 PASS then it is offered, and the network choices step aside 
+    5.1 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+    8.4 dock says: rain: each of the 40 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it
+    8.6 PASS the lumped-only run finished Finished. rain: each of the 40 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it.
+    8.6 PASS the job asks for the HMS way and each element's area ({'duration_s': 172800.0, 'backend': 'cpu', 'lumped_only': True}, True)
+    8.6 PASS it wrote no grid 
+    8.6 PASS its group holds the network ['Lumped network, the HMS way']
+    8.6 PASS subbasins and junctions are loaded ['points', 'reaches', 'subbasins']
+    8.6 PASS 18 catchments, each labelled with area and peak ['S1\n59.08 km2\n629 m3/s at 13.8 h', 'S2\n44.39 km2\n512 m3/s at 13.6 h']
+    8.6 PASS Time slider buttons are off, Result lines on 
+    8.6 PASS each element read at its own area 20.971
+    8.6 peaks: Bidah 03 362.4, Faydh 01 993.5, Z4C 1666.4, R5A 887.1, R2A 1356.1
+    8.7 dock says: Finished. rain: each of the 40 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it.
+   10.2 PASS Result lines lists the elements 40
+   10.2 PASS a right-click on the dam's junction finds its chart ['Bidah 03', 'Bidah 03 ring', 'S13', 'Bidah 03']
+   10.2 PASS its chart holds the run's peak (362.371, 362.371236974486)
+   10.4 === 2 the folder opened again
+   10.4 PASS choosing the folder brings the network back ['Lumped network, the HMS way']
+   10.4 === 3 S13 on the grid, the rest down the reaches, the carried catchments left out
+   10.4 PASS the network choices come back 
+   10.4 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+   12.0 dock says: The HMS control file sets 48 h of simulated time, not the 1.5 h in the form.
+   14.5 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   15.5 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   15.8 dock says: the 2D mesh leaves out 17 lumped subbasins, 578.36 km2 and 1106 cells of the domain: the lumped network carries their water, and their edge is a closed wall
+  622.0 dock says: 44 more places with deep water against the domain edge: see edge_checks.gpkg
+  628.7 PASS the hybrid finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+  628.7 PASS the job asks for both 
+  628.7 PASS the other dams' water leaves at the network's outlets ['R2A', 'Z4C', 'R5A', 'Faydh 01']
+  628.7 PASS the run names what it left out {'ev': 'left_out', 'subbasins': ['S7', 'S10', 'S5', 'S6', 'S9', 'S8', 'S3', 'S4', 'S2', 'S1', 'S16', 'S17', 'S14', 'S15', 'S18', 'S11', 'S12'], 'cells': 1106, 'area_km2': 578.3604, 'owners': {'S7': 'R2A outflow', 'S10': 'R2A outflow', 'S5': 'R2A outflow', 'S6'
+  628.7 PASS the network layer marks them left out {'S1': 1, 'S2': 1, 'S3': 1, 'S4': 1, 'S5': 1, 'S6': 1, 'S7': 1, 'S8': 1, 'S9': 1, 'S10': 1, 'S11': 1, 'S12': 1, 'S14': 1, 'S15': 1, 'S16': 1, 'S17': 1, 'S18': 1}
+  628.7 PASS depth layers are styled by the cutoff ['Depth, m', 'max_depth']
+  628.7 PASS cut at the 0.05 m default [0.05, 0.05]
+  628.7 PASS the cutoff is saved 0.1
+  628.7 PASS a new cutoff restyles them [0.1, 0.1]
+  628.8 dock says: This run has no smooth polygons and depth picture yet: the sheets are drawn from them, so the engine makes them now from the run's pixel rasters. The map follows. Tick them in the Run section to have them with a run.
+  636.2 PASS Make map wrote the sheets Map written: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\dock2\dock_hms_way\runs\hybrid\pixels\hybrid_maps.pdf
+  636.2 12 sheet labels read
+  636.2 PASS the depth sheet says the cutoff 12
+  636.2 SUMMARY 30 passed, 0 failed 
+  636.2 DONE

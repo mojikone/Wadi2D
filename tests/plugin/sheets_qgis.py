@@ -75,9 +75,11 @@ assert len(found.record) == 4
 
 colours = {c.value(): c.symbol().color().name() for c in found.hazard.renderer().categories()}
 assert colours[1] == "#0000ff" and colours[6] == "#ff0000", colours
-items = found.depth.renderer().shader().rasterShaderFunction().colorRampItemList()
+shader = found.depth.renderer().shader().rasterShaderFunction()
+items = shader.colorRampItemList()
 assert items[-1].value == 3.0 and items[-1].color.name() == "#08306b"
-assert items[0].color.alpha() == 0
+# W88: below the display cutoff nothing is drawn (the shader clips); with no cutoff the ramp fades from transparent
+assert (shader.clip() and items[0].value > 0.0) or items[0].color.alpha() == 0
 assert found.depth.resampleFilter().zoomedInResampler() is not None
 
 load_maps(RUN, "run", tucked=True)
