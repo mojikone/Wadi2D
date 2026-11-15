@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from tests.engine.conftest import X0, Y0, write_dem
+from tests.engine.conftest import X0, Y0, tilted_box, write_dem
 from tests.engine.conftest import job as base_job
 from tests.engine.test_run import valley
 from wadi2d.config.schema import RunConfig, TerrainObject
@@ -141,3 +141,50 @@ def test_the_strip_keeps_its_tables_only_when_no_fill_is_near_it(pits_dem):
     assert not strip_untouched(fill_at(near), base, strip)
     assert not strip_untouched(fill_at(far), base, strip_of([square(X0, Y0, 1.0)]))  # another mesh
     assert not strip_untouched(cfg, base, strip)  # no fills: nothing says the job is the base's
+
+
+def _strip_arrays(tables) -> dict[str, np.ndarray]:
+    s = tables.strip
+    out = {f"m_{k}": v for k, v in vars(s.mesh).items() if isinstance(v, np.ndarray)}
+    out["kept"] = s.kept
+    return out
+
+
+def test_the_strip_pieces_the_fills_reach_built_again_are_the_whole_build_to_the_digit(tmp_path, monkeypatch):
+    import wadi2d.strips.tables as st
+
+    dem = write_dem(tmp_path / "long.tif", tilted_box(400, 48, 2.0, 0.01), 2.0)
+    mid = Y0 - 48.0
+    strips = {"enabled": True, "corridors": [
+        {"name": "mid", "centre": [(X0 + 40.0, mid), (X0 + 760.0, mid)], "offsets": [-12.0, -8.0, -4.0, 0.0, 4.0, 8.0, 12.0]}
+    ]}  # fmt: skip
+    asked = base_job(dem, 200, 24, 4.0, terrain={"manning": 0.04, "fill_pits": True}, strips=strips)
+    before, _crs = prepare_grid(asked, tmp_path / "a")
+    assert before.strip_raw is not None and not hasattr(before.strip.mesh, "raw")  # kept off the cached strip
+    # two cells beside the corridor's west end, raised: the strip reads them through its faces' local radius
+    fills = [
+        TerrainObject(kind="fill", name=f"pit fill 1.{m}", coordinates=square(X0 + x, mid + 16.0, 4.0).tolist(), z_constant=100.5)
+        for m, x in ((1, 60.0), (2, 64.0))
+    ]  # fmt: skip
+    filled = asked.model_copy(update={"terrain": asked.terrain.model_copy(update={"objects": fills})})
+    assert not strip_untouched(filled, before, before.strip_mesh[1])  # near: the strip's tables must change
+    sizes = []
+    real = st.run_all
+
+    def counted(items, work, workers):
+        items = list(items)
+        sizes.append(len(items))
+        return real(items, work, workers)
+
+    monkeypatch.setattr(st, "run_all", counted)
+    part, _crs = prepare_grid(filled, tmp_path / "b", base=before)
+    built = list(sizes)
+    sizes.clear()
+    whole, _crs = prepare_grid(filled, tmp_path / "c")
+    assert max(built) < max(sizes)  # some pieces, not all
+    a, b = _strip_arrays(part), _strip_arrays(whole)
+    assert a.keys() == b.keys()
+    for name in a:
+        assert np.array_equal(a[name], b[name], equal_nan=True), name
+    assert not np.array_equal(part.strip.mesh.ftab, before.strip.mesh.ftab)  # the fills did reach the strip
+    same(part, whole)

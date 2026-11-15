@@ -9,13 +9,14 @@ and nothing else, so of the second build only these change:
   through the same edits and gets the same slots, and the faces are closed again on the whole grid;
 * the strip's tables, only when a fill lies within a strip cell's reach (:func:`strip_untouched`): its cells read
   the pixels under them, its faces the pixels along them and, for the local hydraulic radius, past their ends, its
-  ghosts the tables of the squares beside it;
+  ghosts the tables of the squares beside it; and then only the pieces whose window holds a filled pixel
+  (:func:`strip_base`), the ghosts and the finish whole;
 * never the strip's mesh: its lines are the job's crests and walls and the banks file's thalwegs, its floors the raw
   DEM's.
 
 Each is the whole build's to the digit; ``tests/engine/test_pit_rebuild.py`` holds that against a whole build.
 
-Interface: :func:`fills_follow`, :func:`fill_tiles`, :func:`strip_untouched`.
+Interface: :func:`fills_follow`, :func:`fill_tiles`, :func:`strip_untouched`, :func:`strip_base`.
 """
 
 from __future__ import annotations
@@ -63,6 +64,17 @@ def fill_tiles(cfg: RunConfig, base: GridTables | None, grid, bed) -> set[int] |
     r1 = np.ceil((grid.y0 - bounds[:, 1]) / p) + 1
     boxes = np.stack((r0, c0, r1, c1), axis=1).astype(np.int64)
     return tiles_reading(grid, k, tile_margin(cfg.tables, bed), boxes)
+
+
+def strip_base(cfg: RunConfig, base: GridTables | None, strip) -> tuple[object, np.ndarray] | tuple[None, None]:
+    """(the strip's piece tables before the fills, the fills' map boxes) for a build of only the pieces the fills
+    reach; (None, None) for a whole build: no base, another mesh, or a base whose strip was read from the cache."""
+    held = getattr(base, "strip_mesh", None) if base is not None else None
+    raw = getattr(base, "strip_raw", None) if base is not None else None
+    bounds = _fill_bounds(cfg)
+    if held is None or held[1] is not strip or raw is None or bounds.shape[0] == 0:
+        return None, None
+    return raw, bounds
 
 
 def strip_untouched(cfg: RunConfig, base: GridTables | None, strip) -> bool:

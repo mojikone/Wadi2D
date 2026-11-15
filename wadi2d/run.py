@@ -60,7 +60,7 @@ from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kic
 from wadi2d.engine.left_out import LeftOut, cells_key, choose, snap_entries
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
-from wadi2d.engine.pit_rebuild import fill_tiles, fills_follow, strip_untouched
+from wadi2d.engine.pit_rebuild import fill_tiles, fills_follow, strip_base, strip_untouched
 from wadi2d.engine.pit_step import resolve_pits
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
@@ -527,7 +527,10 @@ def prepare_grid(
                 jj, ii = np.nonzero(tables.grid.mask)
                 sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
                 cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
-                tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
+                n = manning_grid(cfg, tables.grid, crs, cells)
+                held, changed = strip_base(cfg, base, strip)  # only the pieces the pit fills reach (W91)
+                tables.strip = strip_tables(cfg, tables, bed, strip, n, held, changed, keep_raw=fills_follow(cfg))
+                tables.strip_raw = tables.strip.mesh.__dict__.pop("raw", None)  # kept off the cached strip
             save_strip(spath, spath.stem.removeprefix("strip_"), mask, tables.strip)
             emit("output", kind="strip_cache_saved", path=str(spath))
     tables.left_out = left

@@ -33,6 +33,7 @@ def resolve_pits(
     tables in hand cannot be replaced, and a fill asked for is then refused in a warning."""
     cfg, tables, pits = _resolve(cfg, tables, crs, out, progress, rebuild)
     tables.raw = None  # what a build kept for the rebuild (W91): five arrays of the grid's size, not needed again
+    tables.strip_raw = None  # and the strip's piece tables
     return cfg, tables, pits
 
 
