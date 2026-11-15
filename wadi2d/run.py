@@ -36,7 +36,7 @@ from wadi2d.config.schema import (
     TerrainObject,
 )
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
-from wadi2d.demstore import open_bed
+from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.edge_valleys import (
     crossing_notes,
     edge_pools,
@@ -61,6 +61,7 @@ from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kic
 from wadi2d.engine.left_out import LeftOut, cells_key, choose, snap_entries
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.pit_rebuild import fill_tiles, fills_follow, strip_base, strip_untouched
 from wadi2d.engine.pit_step import resolve_pits
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
@@ -438,10 +439,18 @@ class NothingOnTheGrid(InvalidJob):
 
 
 def prepare_grid(
-    cfg: RunConfig, cache_dir: Path, progress: Progress | None = None, left_out: LeftOut | str | None = FIND
+    cfg: RunConfig,
+    cache_dir: Path,
+    progress: Progress | None = None,
+    left_out: LeftOut | str | None = FIND,
+    base: GridTables | None = None,
 ) -> tuple[GridTables, str]:
     """The tables and the CRS as WKT, from the cache when nothing changed. The tables carry ``left_out``, the
-    catchments the job leaves out of the mesh (None for none)."""
+    catchments the job leaves out of the mesh (None for none).
+
+    ``base`` is the tables of this same job before its pit fills (``resolve_pits``, W85): the strip's mesh is taken
+    from it, only the tiles the fills reach are built again, and the strip's tables are its own when no fill lies near
+    the strip (W91), each the whole build's to the digit."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
     cfg = with_tables(cfg)
     with open_bed(cfg, cache_dir) as bed:  # the DEM decoded once into the cache folder, then read raw (W84)
@@ -477,6 +486,9 @@ def prepare_grid(
                 emit("output", kind="strip_cache_hit", path=str(spath))
                 mask, made = held
                 strip = made.strip
+        held_mesh = getattr(base, "strip_mesh", None)
+        if cfg.strips.enabled and strip is None and held_mesh is not None:
+            mask, strip = held_mesh  # a pit fill shapes no strip mesh: its lines, banks and floors are the job's (W91)
         if cfg.strips.enabled and strip is None:
             from wadi2d.strips.build import mask_for_strips
 
@@ -505,20 +517,32 @@ def prepare_grid(
             ground = Ground(bed, grid.x0, grid.y0)
             edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
             n = manning_grid(cfg, grid, crs)
-            tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
+            only = fill_tiles(cfg, base, grid, bed)
+            tables = build_tables(
+                grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining, base=base if only is not None else None,
+                only=only, keep_raw=fills_follow(cfg),
+            )  # fmt: skip
             save_tables(path, tables, key)
             emit("output", kind="grid_cache_saved", path=str(path))
+        if cfg.strips.enabled:
+            tables.strip_mesh = (mask, strip)  # for the build with the pit fills, if one follows (W91)
         if made is not None:
             tables.strip = made
         elif strip is not None:  # cached with its key since W81: minutes on Block 2, on every start and products remake
             from wadi2d.io.cache import save_strip
             from wadi2d.strips.build import strip_squares, strip_tables
 
-            bed.bind(tables.grid.x0, tables.grid.y0)
-            jj, ii = np.nonzero(tables.grid.mask)
-            sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
-            cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
-            tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
+            if strip_untouched(cfg, base, strip):
+                tables.strip = base.strip
+            else:
+                bed.bind(tables.grid.x0, tables.grid.y0)
+                jj, ii = np.nonzero(tables.grid.mask)
+                sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
+                cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
+                n = manning_grid(cfg, tables.grid, crs, cells)
+                held, changed = strip_base(cfg, base, strip)  # only the pieces the pit fills reach (W91)
+                tables.strip = strip_tables(cfg, tables, bed, strip, n, held, changed, keep_raw=fills_follow(cfg))
+                tables.strip_raw = tables.strip.mesh.__dict__.pop("raw", None)  # kept off the cached strip
             save_strip(spath, spath.stem.removeprefix("strip_"), mask, tables.strip)
             emit("output", kind="strip_cache_saved", path=str(spath))
     tables.left_out = left
@@ -655,9 +679,13 @@ def check_terrain(cfg: RunConfig) -> list[str]:
         return terrain_notes(cfg.terrain.objects, ground, dx, bed.pixel, cfg.terrain, bounds)
 
 
-def survey_terrain(cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool) -> TerrainReport:
-    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it."""
-    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+def survey_terrain(
+    cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool, cache_dir: Path | None = None
+) -> TerrainReport:
+    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it. The
+    ground is read through the DEM's chunk store under ``cache_dir`` when there is one, as the tables read it (W91:
+    the same pixels, minutes faster on a 0.5 m terrain)."""
+    with open_bed(cfg, cache_dir) as bed:
         bed.bind(grid.x0, grid.y0)
         ground = Ground(bed, grid.x0, grid.y0)
         edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
@@ -993,6 +1021,42 @@ def _edge_streams(cfg: RunConfig, crs: str, out: Path, progress, left: LeftOut |
     return crossing_notes(found, cfg.outputs.edge_check)
 
 
+class _EdgeCheckBeside:
+    """``_edge_streams`` on a thread of its own while the tables are built (W91): on a domain outline the cache has
+    not seen it reads the whole DEM under the outline at the coarse pixel and runs D8, 225 s on Block 2's run 3,
+    and needs nothing the tables make. Its events are held and written in their own order by ``report``, so the
+    run's progress file carries the same lines; ``report`` without ``start`` runs the check where it stands."""
+
+    def __init__(self, cfg: RunConfig, crs: str, out: Path, left: LeftOut | None) -> None:
+        self.args = (cfg, crs, out)
+        self.left = left
+        self.events: list[tuple[str, dict]] = []
+        self.pool = None
+        self.future = None
+
+    def emit(self, ev: str, **fields) -> None:
+        self.events.append((ev, fields))
+
+    def start(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+
+        self.pool = ThreadPoolExecutor(1, thread_name_prefix="edge-check")
+        self.future = self.pool.submit(_edge_streams, *self.args, self, self.left)
+
+    def report(self, progress) -> None:
+        if self.future is None:
+            notes = _edge_streams(*self.args, self, self.left)
+        else:
+            try:
+                notes = self.future.result()
+            finally:
+                self.pool.shutdown()
+        for ev, fields in self.events:
+            progress.emit(ev, **fields)
+        for note in notes:
+            progress.emit("warn", message=note)
+
+
 def _edge_pools(cfg, tables, depth, open_cells, out: Path, crs, progress) -> list[str] | None:
     """Deep water against closed edges after the run (W78), or None when the check is off or fails: the single
     deepest-cell warning then stands, as before."""
@@ -1287,8 +1351,9 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
     left = getattr(tables, "left_out", None) if tables is not None else left_out_of(cfg, crs)
-    for note in _edge_streams(cfg, crs, out, progress, left):
-        progress.emit("warn", message=note)
+    edges = _EdgeCheckBeside(cfg, crs, out, left)  # beside the tables when they are built here (W91)
+    if tables is not None:
+        edges.report(progress)
     if cfg.mesh.enabled and cfg.mesh.lines:
         from wadi2d.mesh.build import rounding_notes
 
@@ -1297,15 +1362,19 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     rebuild = None
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
+        edges.start()
         try:
-            tables, crs = prepare_grid(cfg, cache, progress, left)
+            try:
+                tables, crs = prepare_grid(cfg, cache, progress, left)
+            finally:
+                edges.report(progress)
         except NothingOnTheGrid as error:  # every cell is left out: the job is the lumped network alone (W88)
             cfg = cfg.model_copy(update={"run": cfg.run.model_copy(update={"lumped_only": True})})
             why = f"{error}: the run is the lumped network alone, the HMS way"
             return _lumped(cfg, out, crs, progress, summary, left, why)
 
-        def rebuild(job: RunConfig) -> GridTables:
-            return prepare_grid(job, cache, progress, left)[0]
+        def rebuild(job: RunConfig, before: GridTables) -> GridTables:
+            return prepare_grid(job, cache, progress, left, base=before)[0]
 
     if cfg.hydrology.arf_by_element:
         raise InvalidJob(
@@ -1329,7 +1398,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         progress.emit("warn", message=f"The cell grid layer could not be written: {error}")
     if any(o.kind in PIXEL_KINDS for o in cfg.terrain.objects):
         wanted = cfg.outputs.terrain_map
-        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
+        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted, cache_folder(cfg, out))
         progress.emit("terrain", volumes=report.volumes, files=report.files)
     flows = _placed_entries(cfg, tables, polygons, flows, crs, out, progress)
     subs = cfg.hydrology.subbasins

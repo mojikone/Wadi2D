@@ -114,6 +114,20 @@ class GridTables:
         return self.dtab.shape[-1]
 
 
+@dataclass
+class RawFaces:
+    """What a fresh build knows before it closes the faces (W91), per cell on the grid, float64: the mean bed over the
+    lowest pixel, the absolute face inverts of the west and north faces, and the centre-line beds over the lowest
+    pixel before they are clamped. A table read from the cache has none: only a build carries it, so a rebuild of a
+    few tiles (``build_tables(base=...)``) can close every face again exactly as a whole build does."""
+
+    rel: np.ndarray
+    zfx: np.ndarray
+    zfy: np.ndarray
+    zcx: np.ndarray
+    zcy: np.ndarray
+
+
 def build_tables(
     grid: TileGrid,
     bed: BedSource,
@@ -123,12 +137,21 @@ def build_tables(
     edit=None,
     lining=None,
     workers: int | None = None,
+    base: GridTables | None = None,
+    only=None,
+    keep_raw: bool = False,
 ) -> GridTables:
     """Build all tables. ``manning`` is one value or a (ny, nx) grid; ``edit(z, row0, col0)`` edits pixels in place.
 
     ``lining(z, n, row0, col0)`` writes a Manning n per pixel into ``n``, which starts as NaN, after the edits.
     ``workers`` threads build the tiles (``table_workers``: all physical cores unless told), each tile into its own
     slots, so the tables do not depend on it (W81). ``edit`` and ``lining`` are called from those threads.
+
+    ``base`` and ``only`` rebuild the tiles ``only`` and take every other tile's slots from ``base`` (W91: the pit
+    fills touch a few tiles of thousands): ``base`` must be a fresh build (it carries :class:`RawFaces`) of the same grid
+    whose other tiles these arguments would give unchanged. The faces are then closed on the whole grid as a whole
+    build closes them, so the result is the whole build's to the digit. ``keep_raw`` keeps those on the result as
+    ``raw`` (five arrays of the grid's size), for a rebuild to follow; else ``raw`` is None.
     """
     k = round(grid.dx / bed.pixel)
     if abs(k * bed.pixel - grid.dx) > 1e-6 * grid.dx:
@@ -140,25 +163,35 @@ def build_tables(
     )
     nt, rows = grid.ntiles, cfg.rows
 
-    zmin_g = np.zeros((ny, nx))
-    rel_g = np.zeros((ny, nx))
-    zfx_g = np.zeros((ny, nx))
-    zfy_g = np.zeros((ny, nx))
-    hc = np.zeros((nt, TILE, TILE), np.float32)
-    dtab = np.zeros((nt, TILE, TILE, rows), np.float32)
-    efx = np.ones((nt, TILE, TILE), np.float32)
-    efy = np.ones((nt, TILE, TILE), np.float32)
-    ftabx = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
-    ftaby = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
+    if base is None:
+        zmin_g = np.zeros((ny, nx))
+        rel_g = np.zeros((ny, nx))
+        zfx_g = np.zeros((ny, nx))
+        zfy_g = np.zeros((ny, nx))
+        hc = np.zeros((nt, TILE, TILE), np.float32)
+        dtab = np.zeros((nt, TILE, TILE, rows), np.float32)
+        efx = np.ones((nt, TILE, TILE), np.float32)
+        efy = np.ones((nt, TILE, TILE), np.float32)
+        ftabx = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
+        ftaby = np.zeros((nt, TILE, TILE, rows, 2), np.float32)
+        zcx_g = np.zeros((ny, nx))
+        zcy_g = np.zeros((ny, nx))
+        todo = range(1, nt)
+    else:
+        raw = getattr(base, "raw", None)
+        if raw is None:
+            raise ValueError("a partial rebuild needs base tables from a build that kept its raw faces")
+        if base.grid.shape != grid.shape or base.rows != rows or not np.array_equal(base.grid.mask, grid.mask):
+            raise ValueError("a partial rebuild needs the base tables of the same grid and table rows")
+        zmin_g = base.zmin.copy()
+        rel_g, zfx_g, zfy_g, zcx_g, zcy_g = (a.copy() for a in (raw.rel, raw.zfx, raw.zfy, raw.zcx, raw.zcy))
+        hc, dtab, efx, efy, ftabx, ftaby = (
+            a.copy() for a in (base.hc, base.dtab, base.efx, base.efy, base.ftabx, base.ftaby)
+        )
+        todo = sorted(int(t) for t in only)
 
     local = cfg.face_conveyance == "local_radius"
-    margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
-    """W49: a face's line reaches this many pixels past its ends, for the local hydraulic radius's window."""
-    margin = min(margin, getattr(bed, "span", margin))
-    """W85: and no further than a bed in memory is long. The reach is 144 m whatever the pixel: on a bed of 5 mm pixels
-    that was 28,800 px a side, a window of 24.8 GiB per tile for every thread, all but 4 m of it repeats of the edge."""
-    zcx_g = np.zeros((ny, nx))
-    zcy_g = np.zeros((ny, nx))
+    margin = tile_margin(cfg, bed)
     threads = table_workers(workers)
     cells, radius = (tile_tables_serial, tile_local_radius_serial) if threads > 1 else (tile_tables, tile_local_radius)
     beds = ThreadBeds(bed)
@@ -205,21 +238,53 @@ def build_tables(
         hc[t], dtab[t], efx[t], efy[t], ftabx[t], ftaby[t] = w_hc, w_dtab, w_efx, w_efy, w_ftabx, w_ftaby
 
     try:
-        run_all(range(1, nt), one, threads)
+        run_all(todo, one, threads)
     finally:
         beds.close()
 
+    raw = RawFaces(rel_g, zfx_g, zfy_g, zcx_g, zcy_g)
     zbar_g = zmin_g + rel_g
     active = grid.mask
     zcx_g, zcy_g = (np.nan_to_num(np.maximum(a, 0.0), nan=0.0, posinf=0.0, neginf=0.0) for a in (zcx_g, zcy_g))
     fx = _faces(zfx_g, zmin_g, zbar_g, active, 1, crest.xc, cfg.crest_tolerance, crest.xwall)
     fy = _faces(zfy_g, zmin_g, zbar_g, active, 0, crest.yc, cfg.crest_tolerance, crest.ywall)
-    return GridTables(
+    tables = GridTables(
         grid, zmin_g, zbar_g, hc, dtab,
         *(grid.to_tiles(a) for a in fx[:4]), efx, grid.to_tiles(fx[4]), ftabx,
         *(grid.to_tiles(a) for a in fy[:4]), efy, grid.to_tiles(fy[4]), ftaby,
         grid.to_tiles(zcx_g).astype(np.float32), grid.to_tiles(zcy_g).astype(np.float32),
     )  # fmt: skip
+    tables.raw = raw if keep_raw else None  # not a field: the cache neither writes nor reads it
+    return tables
+
+
+def tile_margin(cfg: Tables, bed: BedSource) -> int:
+    """Pixels a tile's window reaches past the tile's own pixels and the one row and column before them (W49): a
+    face's line runs this far past its ends for the local hydraulic radius; none for the strips sum."""
+    if cfg.face_conveyance != "local_radius":
+        return 0
+    margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel))
+    # W85: and no further than a bed in memory is long. The reach is 144 m whatever the pixel: on a bed of 5 mm pixels
+    # that was 28,800 px a side, a window of 24.8 GiB per tile for every thread, all but 4 m of it repeats of the edge
+    return min(margin, getattr(bed, "span", margin))
+
+
+def tiles_reading(grid: TileGrid, k: int, margin: int, boxes: np.ndarray) -> set[int]:
+    """The tiles whose pixel window (as ``build_tables`` reads it, ``k`` pixels a cell and ``margin`` past the edge)
+    holds a pixel of any of ``boxes``, (n, 4) rows of (row0, col0, row1, col1) in bed pixels from the grid origin,
+    the ends exclusive (W91)."""
+    if len(boxes) == 0:
+        return set()
+    b = np.asarray(boxes, np.int64)
+    tj, ti = grid.tiles[1:, 0].astype(np.int64), grid.tiles[1:, 1].astype(np.int64)
+    r0 = tj * TILE * k - 1 - margin
+    c0 = ti * TILE * k - 1 - margin
+    span = TILE * k + 1 + 2 * margin
+    hit = (
+        (r0[:, None] < b[None, :, 2]) & (b[None, :, 0] < (r0 + span)[:, None])
+        & (c0[:, None] < b[None, :, 3]) & (b[None, :, 1] < (c0 + span)[:, None])
+    )  # fmt: skip
+    return {int(t) + 1 for t in np.flatnonzero(hit.any(axis=1))}
 
 
 def _faces(zf, zmin, zbar, active, axis, crest_c, tol, wall=None):

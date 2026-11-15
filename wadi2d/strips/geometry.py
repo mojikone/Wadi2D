@@ -44,7 +44,34 @@ class MeshGeometry:
     def areas_centroids(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Signed area (positive counter-clockwise) and centroid of every ring, by the shoelace rule on coordinates
         taken from the ring's first node. On map coordinates themselves (UTM, 1e5 to 1e6 m) the products cancel to
-        a few metres of error in a small cell's centroid (W52: up to 4 m, median 0.5 m on cells under 100 m2)."""
+        a few metres of error in a small cell's centroid (W52: up to 4 m, median 0.5 m on cells under 100 m2).
+
+        A ring at a time in Python: 18 s on Block 2's 190,000 strip cells, asked four times by one strip build. The
+        answer is kept for the nodes and rings it was made from, checked by their bytes on every call, so a geometry
+        edited in place is measured again (W91); the copy kept never goes into a pickle."""
+        key = self._fingerprint()
+        held = self.__dict__.get("_areas")
+        if held is None or held[0] != key:
+            held = (key, self._areas_centroids())
+            self.__dict__["_areas"] = held
+        return tuple(a.copy() for a in held[1])
+
+    def _fingerprint(self) -> bytes:
+        import hashlib
+
+        digest = hashlib.blake2b(digest_size=16)
+        for a in (self.x, self.y, self.ring_start, self.ring_node):
+            a = np.ascontiguousarray(a)
+            digest.update(f"{a.dtype.str}{a.shape}".encode())
+            digest.update(a.tobytes())
+        return digest.digest()
+
+    def __getstate__(self) -> dict:
+        state = dict(self.__dict__)
+        state.pop("_areas", None)  # a strip cache holds what it held before W91
+        return state
+
+    def _areas_centroids(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         n = self.ncells
         area = np.zeros(n)
         cx = np.zeros(n)

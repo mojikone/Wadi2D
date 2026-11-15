@@ -26,10 +26,18 @@ def resolve_pits(
     crs: str,
     out: Path,
     progress: Progress,
-    rebuild: Callable[[RunConfig], GridTables] | None,
+    rebuild: Callable[[RunConfig, GridTables], GridTables] | None,
 ) -> tuple[RunConfig, GridTables, list[Pit]]:
-    """(the job as it runs, its tables, the pits found). ``rebuild`` gives the tables of a job; None says the tables
-    in hand cannot be replaced, and a fill asked for is then refused in a warning."""
+    """(the job as it runs, its tables, the pits found). ``rebuild(job, before)`` gives the tables of a job, ``before``
+    the tables of the same job without its fills (W91: it builds again only what the fills reach); None says the
+    tables in hand cannot be replaced, and a fill asked for is then refused in a warning."""
+    cfg, tables, pits = _resolve(cfg, tables, crs, out, progress, rebuild)
+    tables.raw = None  # what a build kept for the rebuild (W91): five arrays of the grid's size, not needed again
+    tables.strip_raw = None  # and the strip's piece tables
+    return cfg, tables, pits
+
+
+def _resolve(cfg, tables, crs, out, progress, rebuild):
     terrain = cfg.terrain
     if not (terrain.pit_check or terrain.fill_pits) or any(is_pit_fill(o) for o in terrain.objects):
         return cfg, tables, []
@@ -47,7 +55,7 @@ def resolve_pits(
     if filled:
         objects = [*terrain.objects, *fill_objects(pits, tables)]
         cfg = cfg.model_copy(update={"terrain": terrain.model_copy(update={"objects": objects})})
-        tables = rebuild(cfg)
+        tables = rebuild(cfg, tables)
         left = find_pits(tables, terrain)
         if left:
             deepest = left[0]

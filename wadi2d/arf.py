@@ -308,7 +308,9 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
     cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else folder / "cache"
     tables, crs = prepare_grid(cfg, cache, progress)
     # the pits once for the whole study (W85): its runs share this grid, and take the job with its fills as it is
-    cfg, tables, _pits = resolve_pits(cfg, tables, crs, folder, progress, lambda job: prepare_grid(job, cache, progress)[0])
+    cfg, tables, _pits = resolve_pits(
+        cfg, tables, crs, folder, progress, lambda job, before: prepare_grid(job, cache, progress, base=before)[0]
+    )
     kind = table_type(cfg)
     counts = {how: sum(p.how == how for p in plans) for how in (EXACT, FROM_RUNS, ON_GRID)}
     progress.emit("start", areas_km2=summary.areas_km2, arf_table_type=kind, elements=counts)

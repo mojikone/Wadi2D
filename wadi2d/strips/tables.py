@@ -46,6 +46,23 @@ class Ghosts:
         return int(self.state.size)
 
 
+@dataclass
+class PieceTables:
+    """The strip's own cells' and kept faces' tables as the pieces wrote them, before the ghosts join and the mesh is
+    finished (W91): what a partial build takes for the pieces it does not build again."""
+
+    zmin: np.ndarray
+    zbar: np.ndarray
+    hc: np.ndarray
+    dtab: np.ndarray
+    zf: np.ndarray
+    ef: np.ndarray
+    ftab: np.ndarray
+    faces: tuple | None = None
+    """What the job's crests, spillways and walls give the geometry's faces (``faces_from_objects``): a pit fill
+    changes none of it, and it is a minute of Block 2's strip build."""
+
+
 PIECE_CELLS = 32
 """The strip's tables are built a piece at a time (W81): the cells whose centroids share a square of this many lattice
 cells a side, and their faces, with the DEM read under that piece alone. One window under the whole strip asked for
@@ -322,11 +339,16 @@ def owned_pixels(geo, n: int, pix, dx: float, workers: int | None = None) -> tup
     return r[order], c[order], cell[order], z[order]
 
 
-def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers=None) -> None:
+def _build_in_pieces(
+    geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers=None, boxes=None
+) -> None:
     """Every cell and kept face table, a piece at a time (W81): a piece is the cells whose centroids share a square of
     ``PIECE_CELLS`` cells a side, with the faces whose left cell it holds; its window covers their rings and their
     faces' sampling reach, and its owners are found among every cell that reaches the window, so each table is the
-    one the whole window gave."""
+    one the whole window gave.
+
+    ``boxes``, (n, 4) rows of (row0, col0, row1, col1) on the window, ends exclusive, builds only the pieces whose
+    window holds a pixel of one (W91: the pieces a pit fill reaches); the others keep what the arrays hold."""
     n = geo.ncells
     if n == 0:
         return
@@ -352,7 +374,7 @@ def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin
     face_order = np.argsort(face_piece, kind="stable")
     face_cuts = np.searchsorted(face_piece[face_order], np.arange(len(pieces) + 1))
 
-    def one(q: int) -> None:
+    def window_of(q: int) -> tuple[np.ndarray, np.ndarray, int, int, int, int]:
         own = np.sort(pieces[q])
         faces = face_order[face_cuts[q] : face_cuts[q + 1]]
         r_lo = min(cr0[own].min(), fr0[faces].min(initial=nr)) - pad
@@ -361,6 +383,10 @@ def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin
         c_hi = max(cc1[own].max(), fc1[faces].max(initial=-1)) + pad
         r_lo, c_lo = max(int(r_lo), 0), max(int(c_lo), 0)
         r_hi, c_hi = min(int(r_hi), nr - 1), min(int(c_hi), nc - 1)
+        return own, faces, r_lo, r_hi, c_lo, c_hi
+
+    def one(q: int) -> None:
+        own, faces, r_lo, r_hi, c_lo, c_hi = window_of(q)
         h, w = r_hi - r_lo + 1, c_hi - c_lo + 1
         z = np.ascontiguousarray(pix.window(r_lo, c_lo, h, w), dtype=np.float64)
         near = np.flatnonzero((cr1 >= r_lo - 1) & (cr0 <= r_hi + 1) & (cc1 >= c_lo - 1) & (cc0 <= c_hi + 1))
@@ -377,7 +403,15 @@ def _build_in_pieces(geo, pix, cfg: Tables, dx, cx, cy, kept, n_face, lift, zmin
             local, cfg.local_radius_beta, zf, ef, ftab,
         )  # fmt: skip
 
-    run_all(range(len(pieces)), one, table_workers(workers))  # pieces write their own cells and faces (W81)
+    todo = range(len(pieces))
+    if boxes is not None:
+        b = np.asarray(boxes, np.int64).reshape(-1, 4)
+        todo = []
+        for q in range(len(pieces)):
+            _own, _faces, r_lo, r_hi, c_lo, c_hi = window_of(q)
+            if ((b[:, 0] <= r_hi) & (b[:, 2] > r_lo) & (b[:, 1] <= c_hi) & (b[:, 3] > c_lo)).any():
+                todo.append(q)
+    run_all(todo, one, table_workers(workers))  # pieces write their own cells and faces (W81)
 
 
 def build_poly_tables(
@@ -392,6 +426,9 @@ def build_poly_tables(
     crest: np.ndarray | None = None,
     dn_floor: np.ndarray | None = None,
     workers: int | None = None,
+    base: PieceTables | None = None,
+    boxes: np.ndarray | None = None,
+    keep_raw: bool = False,
 ) -> tuple[PolyMesh, np.ndarray]:
     """The mesh's tables; and the index of each kept face in the geometry (boundary faces and walls are left out).
 
@@ -400,6 +437,12 @@ def build_poly_tables(
     faces and ``crest`` the elevation they lift each face to, NaN where none (stage 6); ``ghosts`` the tile cells
     boundary faces open onto, kept as ghost cells after the real ones; ``dn_floor`` the least centre distance of
     each of the geometry's faces, m, where the mesher knows better than the mesh's own floor (the gorge rows, W52).
+
+    ``base`` and ``boxes`` build only the pieces whose window holds a pixel of ``boxes`` (pixel boxes on ``pix``, see
+    ``_build_in_pieces``) and take every other cell's and face's table from ``base``, the :class:`PieceTables` of a
+    build of the same geometry on the same window that ``keep_raw`` kept (W91: a pit fill's pixels); the ghosts and
+    the finish are done whole, so the result is the whole build's to the digit. ``keep_raw`` puts those tables on the
+    mesh as ``raw``; without it the mesh has no ``raw``.
     """
     area, cx, cy = geo.areas_centroids()
     if (area <= 0.0).any():
@@ -423,7 +466,18 @@ def build_poly_tables(
     lk, rk = left[kept], right[kept]
     n_face = np.where(rk >= n, nman[lk], 0.5 * (nman[lk] + nman[np.minimum(rk, n - 1)]))  # an interface face: the strip cell's
     lift = np.full(m, np.nan) if crest is None else np.asarray(crest, np.float64)[kept]
-    _build_in_pieces(geo, pix, cfg, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers)
+    if base is not None:
+        if base.zmin.shape != zmin.shape or base.zf.shape != zf.shape or base.dtab.shape != dtab.shape:
+            raise ValueError("a partial strip build needs the base tables of the same geometry and table rows")
+        zmin, zbar, hc, dtab, zf, ef, ftab = (
+            a.copy() for a in (base.zmin, base.zbar, base.hc, base.dtab, base.zf, base.ef, base.ftab)
+        )
+    _build_in_pieces(
+        geo, pix, cfg, dx, cx, cy, kept, n_face, lift, zmin, zbar, hc, dtab, zf, ef, ftab, workers,
+        boxes if base is not None else None,
+    )  # fmt: skip
+    # the arrays themselves: the ghosts join into new arrays and the finish makes a new zf, so these stay as written
+    raw = PieceTables(zmin, zbar, hc, dtab, zf, ef, ftab) if keep_raw else None
     if ghosts is not None:
         g = ghosts
         area = np.concatenate((area, g.area))
@@ -440,4 +494,7 @@ def build_poly_tables(
         nreal=n if ghosts is not None else -1, ghost_state=None if ghosts is None else np.asarray(ghosts.state, np.int64),
         dn_floor=None if dn_floor is None else np.asarray(dn_floor, np.float64)[kept], cut_faces=dn_floor is not None,
     )  # fmt: skip
-    return mesh.finish(cfg.crest_tolerance, given_cw=cw.copy()), kept
+    done = mesh.finish(cfg.crest_tolerance, given_cw=cw.copy())
+    if raw is not None:
+        done.raw = raw  # not a field of the mesh, and taken off it before the strip is cached (W91)
+    return done, kept

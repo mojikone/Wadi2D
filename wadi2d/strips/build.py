@@ -197,9 +197,22 @@ def strip_manning(geo: MeshGeometry, grid: TileGrid, manning: float | np.ndarray
     return np.where(np.isfinite(n), n, fallback)
 
 
-def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, manning: float | np.ndarray) -> StripTables:
+def strip_tables(
+    cfg: RunConfig,
+    tables: GridTables,
+    bed,
+    strip: StripMesh,
+    manning: float | np.ndarray,
+    base=None,
+    changed: np.ndarray | None = None,
+    keep_raw: bool = False,
+) -> StripTables:
     """The strip's polygon mesh with its tables from the DEM window under it, and its ghosts on the lattice.
-    ``manning`` is the squares' grid, read at the squares under the strip as well, or one value."""
+    ``manning`` is the squares' grid, read at the squares under the strip as well, or one value.
+
+    ``base`` (the :class:`~wadi2d.strips.tables.PieceTables` a build of this strip kept with ``keep_raw``) and
+    ``changed``, (n, 4) map boxes of (xmin, ymin, xmax, ymax) outside which no pixel differs from that build's, build
+    again only the pieces whose window reaches a box (W91: the pit fills)."""
     grid = tables.grid
     geo = strip.geometry
     pad = 2.0 * grid.dx
@@ -226,8 +239,11 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
         bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k, beds
     )  # fmt: skip
     ghosts = ghosts_for(geo, grid, tables)
-    lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
-    crest, cw, wall = faces_from_objects(geo, ghosts, lines)
+    if base is not None and changed is not None and base.faces is not None:
+        crest, cw, wall = base.faces  # a pit fill is no line (W91); the build before it measured these
+    else:
+        lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
+        crest, cw, wall = faces_from_objects(geo, ghosts, lines)
     n = strip_manning(geo, grid, manning, cfg.terrain.manning)
     dn_floor = None
     if strip.gorge is not None and (strip.gorge != 0).any():
@@ -236,13 +252,23 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
         left, right = geo.face_cell[:, 0], geo.face_cell[:, 1]
         rows_both = (strip.gorge[left] != 0) & (right >= 0) & (strip.gorge[np.maximum(right, 0)] != 0)
         dn_floor = np.where(rows_both, DN_MIN * cfg.strips.gorge_cell_min_m, DN_MIN * grid.dx)
+    boxes = None
+    if base is not None and changed is not None:
+        b, p = np.asarray(changed, np.float64).reshape(-1, 4), pix.pixel
+        boxes = np.stack(
+            (np.floor((pix.y0 - b[:, 3]) / p) - 1, np.floor((b[:, 0] - pix.x0) / p) - 1,
+             np.ceil((pix.y0 - b[:, 1]) / p) + 1, np.ceil((b[:, 2] - pix.x0) / p) + 1),
+            axis=1,
+        ).astype(np.int64)  # fmt: skip
     try:
         mesh, kept = build_poly_tables(
             geo, pix, cfg.tables, grid.dx, n, wall=wall if wall.any() else None, given_cw=cw, ghosts=ghosts, crest=crest,
-            dn_floor=dn_floor,
+            dn_floor=dn_floor, base=base if boxes is not None else None, boxes=boxes, keep_raw=keep_raw,
         )  # fmt: skip
     finally:
         beds.close()
+    if keep_raw:
+        mesh.raw.faces = (crest, cw, wall)
     return StripTables(strip, mesh, kept)
 
 
