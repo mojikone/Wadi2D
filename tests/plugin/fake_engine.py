@@ -147,6 +147,28 @@ def run(job_path: Path, out: Path, dry_run: bool, stop: Path | None = None) -> i
     return 0
 
 
+def muskingum(argv: list[str]) -> int:
+    """``wadi2d muskingum`` as the real command answers (W89): one proposal per ``Reach:`` of the basin file, at the
+    reference flow given for it, the velocity and the control file named in the words; the reach R_none gets none."""
+    import re
+
+    text = Path(argv[1]).read_text(encoding="utf-8", errors="replace")
+    flows = dict(argv[i + 1].split("=") for i, flag in enumerate(argv) if flag == "--flow")
+    extras = [f"{flag} {argv[argv.index(flag) + 1]}" for flag in ("--velocity", "--control") if flag in argv]
+    reaches = []
+    for name in re.findall(r"^Reach:\s*(.+?)\s*$", text, re.MULTILINE):
+        at = f"at {flows[name]} m3/s" if name in flows else "at the index celerity"
+        proposal = {"k_hours": 1.5, "x": 0.25, "subreaches": 18, "stable": True, "basis": "reference flow"}
+        row = {"name": name, "method": "Muskingum Cunge", "own": None, "proposal": proposal,
+               "words": " ".join([f"fake proposal {at}", *extras])}
+        if name == "R_none":
+            row |= {"proposal": None, "words": "No proposal: give K and X."}
+        reaches.append(row)
+    found = {"basin": argv[1], "kind": "hms", "step_minutes": 5.0, "reaches": reaches}
+    Path(argv[argv.index("--out") + 1]).write_text(json.dumps(found), encoding="utf-8")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     command = argv[0] if argv else ""
     if command == "schema":
@@ -170,6 +192,8 @@ def main(argv: list[str]) -> int:
         return run(Path(argv[1]), out, "--dry-run" in argv)
     if command == "arf":
         return study(Path(argv[1]), Path(argv[argv.index("--out") + 1]))
+    if command == "muskingum":
+        return muskingum(argv)
     print(f"unknown command {command}", file=sys.stderr)
     return 2
 

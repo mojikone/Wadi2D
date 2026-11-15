@@ -207,6 +207,23 @@ def test_the_command_prints_or_writes_and_changes_nothing(hms_file: Path, tmp_pa
     assert hms_file.read_bytes() == before
 
 
+def test_the_step_is_the_hms_control_files_unless_one_is_given(hms_file: Path, tmp_path: Path) -> None:
+    """An HMS run steps at its control file's interval, so the subreaches are counted for that step."""
+    control = tmp_path / "c.control"
+    control.write_text(
+        "Control: C\n     Version: 4.12\n     Start Date: 31 January 2000\n     Start Time: 12:00\n"
+        "     End Date: 2 February 2000\n     End Time: 12:00\n     Time Interval: 15\nEnd:\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "found.json"
+    assert main(["muskingum", str(hms_file), "--control", str(control), "--out", str(out)]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["step_minutes"] == 15.0
+    assert main(["muskingum", str(hms_file), "--control", str(control), "--dt", "2", "--out", str(out)]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["step_minutes"] == 2.0
+    assert main(["muskingum", str(hms_file), "--out", str(out)]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["step_minutes"] == 5.0
+
+
 def test_a_reach_with_a_length_and_a_slope_only_gets_kirpich(tmp_path: Path) -> None:
     from wadi2d.engine.muskingum_proposals import _propose
 

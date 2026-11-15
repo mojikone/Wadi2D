@@ -47,6 +47,7 @@ from .job_builder import (
 from .layer_groups import SLOT_BASIN, clear_slot, model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
+from .muskingum_query import MuskingumLinks
 from .preview import TerrainPreview, zoom_to
 from .profile_editor import ProfileEditor
 from .profile_view import ProfileDialog
@@ -204,6 +205,7 @@ class Wadi2DDock(QgsDockWidget):
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
         self.structures_links = StructuresLinks(self)  # an HMS basin's reservoirs, read only (W75)
+        self.muskingum_links = MuskingumLinks(self)  # the reach table's Propose K and X (W89)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.terrain.dx.valueChanged.connect(self._finest_changed)
