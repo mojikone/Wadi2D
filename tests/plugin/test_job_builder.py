@@ -64,6 +64,14 @@ def test_fill_pits_and_the_step_limiter_reach_the_job_only_when_ticked(tmp_path:
     assert job["terrain"]["fill_pits"] is True and job["outputs"]["step_limiter"] == "layer"
 
 
+def test_leaving_the_carried_catchments_out_reaches_the_job_only_when_ticked(tmp_path: Path) -> None:
+    """W88: an unticked box leaves the job as it was, and its hash with it."""
+    plain = build_job(values(tmp_path), tmp_path / "out")
+    assert "exclude_lumped" not in plain["grid"]
+    assert build_job(values(tmp_path, exclude_lumped=False), tmp_path / "out") == plain
+    assert build_job(values(tmp_path, exclude_lumped=True), tmp_path / "out")["grid"]["exclude_lumped"] is True
+
+
 def test_the_engine_choice_survives_the_hms_merge(tmp_path: Path) -> None:
     job = build_job(values(tmp_path, hms={"folder": "x"}, backend="cpu"), tmp_path / "out")
     merged = merge_hms(job, {"run": {"duration_s": 7200.0}, "hydrology": {}}, {"modes": {}})

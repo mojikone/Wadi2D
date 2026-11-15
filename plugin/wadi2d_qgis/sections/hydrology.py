@@ -11,6 +11,7 @@ from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QFormLayout,
     QHeaderView,
@@ -24,6 +25,7 @@ from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
     CURVE_NUMBER,
+    EXCLUDE_LUMPED,
     HMS_KEYS,
     SUBBASIN_MODE,
     hms_files,
@@ -86,6 +88,8 @@ class HydrologySection(Section):
 
         self.routing = QComboBox()
         self.form.addRow("Reach routing", self.routing)
+        self.exclude = QCheckBox("Leave the catchments the lumped network carries out of the 2D mesh")
+        self.form.addRow(self.exclude)
 
         self.handbacks = HandbackBox()
         self.form.addRow(self.handbacks)
@@ -112,6 +116,9 @@ class HydrologySection(Section):
         default = schema.default(REACH_ROUTING)
         if default is not None:
             self.routing.setCurrentIndex(max(self.routing.findData(default), 0))
+        self.exclude.setChecked(bool(schema.default(EXCLUDE_LUMPED, False)))
+        self.exclude.setToolTip(schema.tip(EXCLUDE_LUMPED))
+        self.exclude.setEnabled(schema.has(EXCLUDE_LUMPED))  # an engine from before W88 would refuse the field
         self.basin.apply_schema(schema)
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
@@ -195,6 +202,7 @@ class HydrologySection(Section):
             "curve_number": self.cn.value() if self.cn.box.isEnabled() else None,
             "cn_raster": self.cn.path(),
             "reach_routing": self.routing.currentData(),
+            "exclude_lumped": self.exclude.isChecked() and self.exclude.isEnabled(),
             "handbacks": self.handbacks.features(crs),
             "transmission": self.loss.values(),
         }

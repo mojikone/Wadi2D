@@ -95,6 +95,8 @@ LINES_NOTE = (
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
 FILL_PITS = "terrain.fill_pits"
+EXCLUDE_LUMPED = "grid.exclude_lumped"
+"""The 2D mesh leaves out the catchments the lumped network carries (W88)."""
 STEP_LIMITER = "outputs.step_limiter"
 STEP_LIMITER_ON = "layer"
 """What the dock's tick asks for: the limiter in the progress and as a layer (W85)."""
@@ -525,6 +527,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             job["terrain"][key] = str(Path(values[key]).resolve())
     if values.get("fill_pits"):  # only a tick away from the engine's default: an old job stays the job it was
         job["terrain"]["fill_pits"] = True
+    if values.get("exclude_lumped"):  # the same
+        job["grid"]["exclude_lumped"] = True
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("reach_routing"):
