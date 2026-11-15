@@ -17,6 +17,10 @@ from wadi2d.config.gauges import GaugeRain, Observed
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
 """Terrain objects with a cross-section: they reshape the ground along an alignment."""
+FILL_KIND = "fill"
+"""A terrain object that raises the ground inside a closed outline to a level (W85)."""
+PIT_FILL_NAME = "pit fill"
+"""How the fills the engine makes for ``terrain.fill_pits`` are named: they are found again by it, never by hand."""
 
 
 class _Part(BaseModel):
@@ -203,9 +207,11 @@ class Section(_Part):
 class TerrainObject(_Part):
     """A vector edit of the terrain, applied when the tables are built; the DEM file never changes."""
 
-    kind: Literal["crest_line", "wall", "burn_line", "spillway", "embankment", "channel", "channel_dyke"]
+    kind: Literal["crest_line", "wall", "burn_line", "spillway", "embankment", "channel", "channel_dyke", "fill"]
     name: str = Field("", description="Name in reports and messages")
-    coordinates: list[tuple[float, float]] = Field(description="Polyline vertices in the DEM CRS, m")
+    coordinates: list[tuple[float, float]] = Field(
+        description="Polyline vertices in the DEM CRS, m; for a fill, the outline of the area, closed by the engine"
+    )
     z: list[float] | None = Field(None, description="Crest or invert elevation per vertex, m")
     z_constant: float | None = Field(None, description="Constant crest or invert elevation, m")
     width: float = Field(0.0, ge=0.0, le=200.0, description="Burn width, m; 0 means two DEM pixels")
@@ -250,6 +256,8 @@ class TerrainObject(_Part):
             raise ValueError(f"{self.kind} needs z or z_constant")
         if self.kind == "burn_line" and self.z is None and self.z_constant is None and self.depth <= 0.0:
             raise ValueError("burn_line needs z, z_constant or depth")
+        if self.kind == FILL_KIND and (self.z_constant is None or self.z is not None or len(self.coordinates) < 3):
+            raise ValueError("a fill needs an outline of at least three vertices and z_constant, the level it fills to")
         if self.kind in SHAPED_KINDS:
             self._check_shaped()
         elif self.section is not None or self.openings or self.lining_n is not None:
@@ -348,6 +356,24 @@ class Terrain(_Part):
         description="A section ending this far off the ground has nothing to tie into, m",
     )
     objects: list[TerrainObject] = []
+    pit_check: bool = Field(
+        True,
+        description="Before a run, name the pits of the ground as the cells hold it (W85): closed sinks, small in plan "
+        "and deep, whose water can leave over no face. A hole of a terrain model stands like this, and water standing "
+        "deep on a sliver of a cell can set the time step of the whole run",
+    )
+    pit_max_cells: float = Field(
+        2.0, gt=0.0, le=10000.0, description="A sink is a pit when its water surface at the spill level covers less than this many cells"
+    )
+    pit_min_depth: float = Field(
+        5.0, gt=0.0, le=1000.0, description="and its lowest point lies at least this far below its spill level, m"
+    )
+    fill_pits: bool = Field(
+        False,
+        description="Fill those pits to their spill level when the tables are built: each cell of a pit becomes a "
+        "'fill' terrain object named 'pit fill ...' in the resolved job, so the tables, the maps and every later "
+        "reading take the same ground. The DEM file never changes",
+    )
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
     manning_raster: str | None = None
     cn_raster: str | None = None

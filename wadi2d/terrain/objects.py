@@ -205,6 +205,51 @@ class BurnLine:
         return edit
 
 
+@TERRAIN_OBJECTS.register("fill")
+class Fill:
+    """Ground raised to a level inside a closed outline (W85): a pixel whose centre lies inside takes the higher of
+    its own height and ``z_constant``; nothing is lowered and no face is touched. The centre rule makes the edit the
+    same through whatever window a pixel is read."""
+
+    phase = 0
+    barrier = False
+
+    def faces(self, _obj: TerrainObject, _target: FaceSet) -> None:
+        return None
+
+    def pixels(self, obj: TerrainObject, grid: TileGrid, pixel: float, cfg: Terrain) -> PixelEdit | None:
+        area = shapely.Polygon(obj.coordinates)
+        shapely.prepare(area)
+        xmin, ymin, xmax, ymax = area.bounds
+        # as a DEM holds it: float32 pixels keep still water still (W8); rounded down, so a pixel standing at the
+        # level is never raised by the rounding
+        level32 = np.float32(obj.z_constant)
+        if float(level32) > obj.z_constant:
+            level32 = np.nextafter(level32, np.float32(-np.inf))
+        level = float(level32)
+
+        def edit(z: np.ndarray, row0: int, col0: int) -> None:
+            west = grid.x0 + col0 * pixel
+            north = grid.y0 - row0 * pixel
+            ny, nx = z.shape
+            if xmax < west or xmin > west + nx * pixel or ymin > north or ymax < north - ny * pixel:
+                return
+            # only the pixels the outline's box reaches: a run may hold hundreds of these
+            c0, c1 = max(int((xmin - west) / pixel) - 1, 0), min(int((xmax - west) / pixel) + 2, nx)
+            r0, r1 = max(int((north - ymax) / pixel) - 1, 0), min(int((north - ymin) / pixel) + 2, ny)
+            if c1 <= c0 or r1 <= r0:
+                return
+            # pixel centres against the outline itself, not a rasteriser: tiles are built on threads (W81), and a
+            # GDAL rasterise from several at once now and then loses its geotransform (seen here, with a warning)
+            xs = west + (np.arange(c0, c1) + 0.5) * pixel
+            ys = north - (np.arange(r0, r1) + 0.5) * pixel
+            hit = shapely.contains_xy(area, *np.meshgrid(xs, ys))
+            block = z[r0:r1, c0:c1]
+            np.maximum(block, level, out=block, where=hit)
+
+        return edit
+
+
 @TERRAIN_OBJECTS.register("embankment")
 @TERRAIN_OBJECTS.register("channel")
 @TERRAIN_OBJECTS.register("channel_dyke")

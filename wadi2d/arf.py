@@ -26,6 +26,7 @@ import rasterio
 from wadi2d.arf_network import EXACT, FROM_RUNS, ON_GRID, exact_peaks, plan_elements, series_peak
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
+from wadi2d.engine.pit_step import resolve_pits
 from wadi2d.forcing import arf_table, build_storm
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.io.geotiff import NODATA, write_map
@@ -306,6 +307,8 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
     stop = folder / "stop"
     cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else folder / "cache"
     tables, crs = prepare_grid(cfg, cache, progress)
+    # the pits once for the whole study (W85): its runs share this grid, and take the job with its fills as it is
+    cfg, tables, _pits = resolve_pits(cfg, tables, crs, folder, progress, lambda job: prepare_grid(job, cache, progress)[0])
     kind = table_type(cfg)
     counts = {how: sum(p.how == how for p in plans) for how in (EXACT, FROM_RUNS, ON_GRID)}
     progress.emit("start", areas_km2=summary.areas_km2, arf_table_type=kind, elements=counts)
