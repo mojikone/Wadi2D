@@ -18,7 +18,7 @@ from concurrent.futures import wait as wait_for
 import numpy as np
 
 from wadi2d.config.schema import RunConfig
-from wadi2d.demstore import open_bed
+from wadi2d.demstore import StoredBed, open_bed
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.products.ground import bed_stride
 from wadi2d.solver.layout import TILE
@@ -33,15 +33,16 @@ Key = tuple[int, int, int]
 class GroundStore:
     def __init__(self, cfg: RunConfig, grid: TileGrid, datum: float, cache=None) -> None:
         self.cfg = with_tables(cfg)
-        self.cache = cache
-        """The run's cache folder: its tables left the DEM's chunks there, so a tile is read without decoding (W84)."""
         self.grid, self.datum = grid, datum
         rule = cfg.outputs.slider
         with RasterBed(cfg.terrain.dem) as probe:
             self.stride = bed_stride(cfg, probe.native)
-        with RasterBed(cfg.terrain.dem, self.stride) as bed:
+        with open_bed(cfg, cache, self.stride) as bed:
             self.per_cell = bed.pixels_per_cell(grid.dx)
             self.pixel = bed.pixel
+            self.chunks = bed.store
+            """The DEM's chunk store in the run's cache folder, or None: the run's tables left the chunks there, so
+            a tile is copied, not decoded (W84)."""
         self.steps = [m for m in range(1, self.per_cell + 1) if self.per_cell % m == 0]
         """Pixel steps a view may take, finest first."""
         self.budget = rule.ground_cache_mb * BYTES_PER_MB
@@ -78,7 +79,7 @@ class GroundStore:
     def _bed(self, m: int) -> RasterBed:
         beds = self.local.__dict__.setdefault("beds", {})
         if m not in beds:
-            bed = open_bed(self.cfg, self.cache, self.stride * m)
+            bed = StoredBed(self.cfg.terrain.dem, self.stride * m, self.chunks)
             bed.bind(self.grid.x0, self.grid.y0)
             beds[m] = bed
         return beds[m]
@@ -90,7 +91,8 @@ class GroundStore:
             return None
         with self.edit_lock:
             if m not in self.edits:
-                bed = open_bed(self.cfg, self.cache, self.stride * m)  # left open: the edit may read through it
+                # left open: the edit may read through it
+                bed = StoredBed(self.cfg.terrain.dem, self.stride * m, self.chunks)
                 bed.bind(self.grid.x0, self.grid.y0)
                 ground = Ground(bed, self.grid.x0, self.grid.y0)
                 self.edits[m] = apply_objects(self.grid, objects, bed.pixel, self.cfg.terrain, ground).edit
