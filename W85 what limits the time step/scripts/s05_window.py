@@ -12,6 +12,7 @@ free outfall, the run's own storm, losses and roughness, 48 h. Variants:
     plan100     the DEM as it is, numerics.plan_min 1.0: the wet share out of the step rule altogether
     lts         the DEM as it is, local time stepping on
     bank        the DEM as it is, an embankment object over the pit with its top at the spill level
+    fillpits    the DEM as it is, terrain.fill_pits on: the engine finds the pits and fills them itself
 
 Each run writes its folder with ``outputs.step_limiter: layer``; ``window_summary.json`` holds steps, loop time, the
 smallest step, the balance and the water in the pit's cells at the end.
@@ -57,6 +58,7 @@ VARIANTS = {
     "plan100": ("dem.tif", {"numerics": {"plan_min": 1.0}}),
     "lts": ("dem.tif", {"numerics": {"local_time_stepping": True}}),
     "bank": ("dem.tif", {"terrain": {"objects": [BANK]}}),
+    "fillpits": ("dem.tif", {"terrain": {"fill_pits": True}}),
 }
 
 

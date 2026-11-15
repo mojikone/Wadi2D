@@ -152,8 +152,7 @@ Read from `window/window_table.json` (`scripts/s07_window_table.py`), four CPU t
 3. Tests: `tests/solver/test_limiter.py` (10, of which 3 on the GPU), `tests/engine/test_step_limiter.py` (5); the
    frozen schema sample takes the one new field.
 
-Not in the dock: `step_limiter` is a job field only. By his rule it is not a finished feature until a dock control
-sets it and the layer loads there.
+In the dock since the same day: a tick in Run, and the layer in Inputs > Terrain (below).
 
 ## A fault of this session, and the builder fix it led to
 
@@ -185,9 +184,100 @@ stopped it at 325 GB of commit.
 - **Tests since then**: one file at a time, CPU, four threads, each in its own process under the 8 GB cap
   (`scripts/capped_files.py`, `pytest_capped.log`): 18 files, **216 passed, none failed**, with the builder fix in: `tests/tables` (14), `tests/solver` all nine files and the limiter's (74: Stoker, Ritter, Thacker, still water, MacDonald's steady profiles, the 45-degree channel, the quadtree, local stepping, polygons), the engine's run, physics, resume, io and limiter files (36), the plugin contract (92). The Thacker tests pass with their own assertions under the cap, 36 s and 9 s.
 
+## The pit check, Fill pits and the dock (the coordinator's go, the same day)
+
+The owner's standing order is the fastest stable engine end to end; the coordinator took options A and C together.
+
+**1. The pit check, before every run, always on** (`terrain.pit_check`, `wadi2d/terrain/pits.py`). It reads the cell
+tables, so it sees the ground as the solver holds it and costs nothing to build: the cells are a graph, a cell's lowest
+pixel its height, a face's invert the pass between two cells, the cells on the domain's edge the outlets. One priority
+flood gives every cell the level at which its water first gets out, its spill level. A sink is the cells that share a
+spill level across faces below it. It is a **pit** when its lowest point lies `terrain.pit_min_depth` (5 m) below that
+level and its water surface there covers less than `terrain.pit_max_cells` (2) cells. A pond, a quarry or a dam's pool
+is a sink too, and large in plan: a 6 by 6 cell bowl with a hole 20 m deeper in one cell is one sink of 36 cells and no
+pit (test). Named in the run's warnings (the five deepest, the rest counted) and as points in `terrain_checks.gpkg`.
+
+Block 2 at 20 m, from the tables W79's run was built on (`scripts/s09_block2_pits.py`, `block2_pits/`):
+
+| `pit_max_cells` | `pit_min_depth`, m | Pits | Cells | Dead storage, m3 | The check, s |
+|---|---|---|---|---|---|
+| **2** | **5** | **63** | 284 | 62,554 | 1.1 |
+| 2 | 3 | 264 | 1,070 | 137,818 | 0.9 |
+| 2 | 10 | 4 | 18 | 15,762 | 0.8 |
+| 1 | 5 | 37 | 122 | 27,956 | 0.9 |
+| 5 | 5 | 90 | 584 | 136,235 | 0.9 |
+
+- 1.1 s on 3.5 M cells. 62,554 m3 is 0.03 % of the run's 186 Mm3 of rain.
+- Of the four cells the frames named: the hole at the cliff is the deepest pit of the block, **117.1 m** below a spill
+  level of 1,181.60 m, 280 m2, 11,123 m3, in 4 cells; the hole by the building 12.5 m; the fourth 7.1 m; the third
+  (4 m below a flat patch) is **not a pit at 5 m**. It asks for 0.385 s against the pools' 0.42 s, so it costs little.
+- The spill level here is the model's, 1,181.60 m: the lowest face invert out of the sink's cells. The rim of the hole
+  at the pixel is 1,187.84 m. Between the two the hole stays in the DEM and holds no water in the model.
+- `block2_pits/block2_pits.geojson` holds the 63 as points, to look at in QGIS before filling them.
+
+**2. `terrain.fill_pits`** (off by default). Each cell of each pit becomes a `fill` terrain object, a new kind: the
+ground inside an outline raised to a level, never lowered, the DEM file untouched. A pixel under the spill level in a
+cell of the sink can drain over no face, so nothing that drains is touched. The fills are added to the job as it runs
+and written into `config.resolved.json`, so the tables, the pixel maps and every later reading (products remade, the
+time slider, lines drawn after the run) take the same ground. The tables are built again on that ground and checked
+again; the run log names each pit filled and the volume in all. A depth-area study resolves them once for all its
+runs. A job without the fill keeps its hash; one with it is the same job before and after its fills are made (tests).
+
+- **The window round the hole**, `fillpits` (`window/fillpits/`, 30 h, CPU): the engine finds the one pit by itself,
+  "117.1 m deep below its spill level of 1181.60 m, 262 m2 of water surface there (0.66 cells), 11092 m3, in 4 cells",
+  fills it, and takes **101,741 steps, 0.306 of the base's 332,919**: the same as the fills made by hand (101,749 and
+  101,804).
+- **Block 2 by the frames** (`frames_run1/steps_fill_pits.log`), the faces of all 284 pit cells out of the step rule:
+  **393,568 steps, 0.558 of the run's**, against 0.546 with the four cells named by hand: about 1,090 s of loop in
+  place of 1,956 s, 14 min less. [Likely: step counts times the run's cost per step; not rerun on the GPU.]
+- Cost of the switch on Block 2: [Likely, not timed] the tables loaded twice and the check run twice, about 15 s a
+  run; the first time, two table builds. The check alone, 1.1 s.
+- Limits: uniform grids only (a quadtree is told so in a warning); pits on a strip's own polygons are not looked for;
+  with strips on, the strip's tables are built again on the filled ground.
+
+**3. The dock.** Terrain has a tick, "Fill pits: small deep holes of the terrain, to their spill level"; Run has
+"Name the cell that sets the time step". Both off; unticked they leave the job as it was, and an engine without the
+fields greys them out. After a run the pits and the limiter cells load as points in the model's Inputs > Terrain.
+Tested through the real dock on QGIS 3.44.8, offscreen, CPU: with the fake engine the ticks reach the job; with the
+real engine a hole in a plane is named in the dock's message (11.8 m to its rim), then with both ticks on it is filled,
+the limiter speaks, the two layers are on the map and no deep water is left (`tests/plugin/smoke_qgis.py`,
+`checks_qgis.py`). No human hand has ticked them.
+
+**4. For the W79 jobs: rely on `fill_pits`, not on a file of four holes.** It is one line, it finds three of the four
+and sixty more of the same kind, and a file of four would be this DEM's only. The lines, in each job's JSON:
+
+```json
+"terrain": { "fill_pits": true },
+"outputs": { "step_limiter": "layer" }
+```
+
+merged into the `terrain` and `outputs` sections the job already has. The second line is not needed for the speed: it
+makes the next run say what holds its step once the pits are gone. `"pit_min_depth": 3.0` beside the first would take
+the third cell too, with 264 pits and 137,818 m3: not without a look at them.
+
+**5. The same reach cap in the quadtree builder and the strip's pixel block** (commit `e7e93f5`). `tables/quad.py`
+takes the cap as `build_tables` has it. For the strips the line that asks for memory is the pad of the strip's pixel
+block in `strips/build.py`, not `strips/tables.py:336`, which only clips its piece windows to that block; the cap is
+there, and past the bed's edge a face's line reads the same repeats of it as before. Quadtree tables of a long bed, a
+short flat one and a short sloping one: all arrays equal to the digit before and after
+(`s08_builder_margin.py save_quad / compare_quad`). A raster bed has no span, which a test holds.
+
+**Found on the way, not mine to fix here:** a GDAL rasterise called from several table threads at once now and then
+loses its geotransform (a NotGeoreferencedWarning, the mask right in the calls I saw). Burn lines and shaped objects
+rasterise on those threads since W81. The new `fill` object tests pixel centres against its outline with shapely and
+no GDAL. [Likely] a risk for jobs with burn lines; worth its own look.
+
+**Tests**, each file in its own process under the 8 GB cap, CPU: `tests/terrain/test_pits.py` (7),
+`tests/engine/test_fill_pits.py` (4: the check and the fill through whole runs, the step with and without, the
+balance, cells away from the pit equal to the digit, hashes, old jobs), `tests/plugin` (the contract, the job builder,
+the check layers and both smoke tests on QGIS's Python), and the engine, terrain, product and render files listed in
+`pytest_capped_engine.log`: 38 files and folders, **713 passed, none failed**; the files the last changes touched again in `pytest_capped_last.log`.
+
 ## What was not built, and the options
 
-No fix was built into the engine: the limiter is the terrain, and the published remedy is the modeller's. His call:
+No fix was built into a kernel: the limiter is the terrain, and the published remedy is the modeller's. This is the
+table as first reported; A and C have since been built together as the pit check and `terrain.fill_pits` (above),
+with the sink read on the cell graph and a depth and plan-area rule in place of "deeper than its width".
 
 | | What | For | Against |
 |---|---|---|---|
@@ -218,7 +308,8 @@ kernels are unchanged, and the limiter reading was on for that run.
 
 - No GPU run: not the Block 2 rerun with the holes mended, not the limiter's GPU path on a real job (its three GPU
   tests passed once, run by mistake while the W79 rerun was on the card; the rerun went on undisturbed).
-- The dock control for `step_limiter`.
+- A human hand on the two dock ticks; the Block 2 run with `fill_pits` on (another worker's, on the GPU).
+- `fill_pits` on a quadtree and on a strip's own polygons.
 - The three single cells were read on the DEM and in the frames, not run on a window.
 - Whether the aligned rerun's 0.23 s in its recession is the same hole with less water in it: [Likely], not read.
 - The full suite was not run: targeted files only, as asked, listed above. The GPU-marked tests were deselected.
@@ -233,7 +324,9 @@ kernels are unchanged, and the limiter reading was on for that run.
 - `scripts/s06_faydh_plan_min.py`, `faydh/faydh_plan_min.json`: Faydh 01 on the CPU, the default only.
 - `scripts/s07_window_table.py`, `window/window_table.json`: the window runs side by side.
 - `scripts/s08_builder_margin.py`, `builder_margin/`: the tables before and after the reach is capped.
-- `scripts/capped_pytest.py`, `scripts/capped_files.py`, `pytest_capped.log`: tests under a hard cap on commit.
+- `scripts/capped_pytest.py`, `scripts/capped_files.py`, `pytest_capped*.log`: tests under a hard cap on commit.
+- `scripts/s09_block2_pits.py`, `block2_pits/`: the pit check on the whole of Block 2, the 63 pits as points.
+- `frames_run1/steps_fill_pits.csv`, `.log`: the step per frame with every pit filled.
 - The per-face wave maps (70 MB a frame) and the DEM windows are not in git; the scripts remake them.
 
 ## [PRESERVE-CHECK]
@@ -242,10 +335,17 @@ kernels are unchanged, and the limiter reading was on for that run.
   checkpoints of existing jobs.
 - CHANGE: new `outputs.step_limiter` (off), new modules `wadi2d/solver/limiter.py` and
   `wadi2d/engine/step_limiter.py`; a `limiter` progress event, a `warn` and `step_limiter.gpkg` only when asked.
+  On the coordinator's second go: `terrain.pit_check` (on: one more warning and a layer when a run has pits, no
+  water changed), `terrain.fill_pits` (off), a `fill` terrain object kind, two dock ticks and a dock layer group
+  entry; the limiter also speaks once at the end of a run.
   Separately, on the coordinator's go: the builder's local-radius reach capped at the length of a bed in memory, and
   `ArrayBed.read` without its second copy; face-table rows deeper than a ninth of a short sloping bed change, and
   every table cache key moves.
 - FILES: `wadi2d/config/schema.py` (one field), `wadi2d/engine/monitor.py` (create and tick), `wadi2d/run.py` (the
   `NOT_WATER` entry, writing the layer and the warning), `tests/plugin/schema_sample.json`, the two new test files;
   `wadi2d/tables/builder.py` (`ArrayBed.read`, `ArrayBed.span`, one line of `build_tables`),
-  `tests/tables/test_local_radius.py` (two tests).
+  `tests/tables/test_local_radius.py`; `wadi2d/tables/quad.py`, `wadi2d/strips/build.py` (the cap);
+  `wadi2d/terrain/objects.py` (the `fill` kind), new `wadi2d/terrain/pits.py` and `wadi2d/engine/pit_step.py`,
+  `wadi2d/arf.py` (one call), `wadi2d/run.py` (the pit step, the job hash, the strip key);
+  `plugin/wadi2d_qgis/` (`job_builder.py`, `sections/terrain.py`, `sections/run.py`, `dock.py`, new
+  `check_layers.py`).

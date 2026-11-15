@@ -47,7 +47,11 @@ def quad_beds() -> dict[str, tuple]:
     from wadi2d.grid.quad import QuadGrid
 
     out = {}
-    for name, dx, k in (("quad_long", 10.0, 10), ("quad_short_flat", 0.625, 5), ("quad_short_slope", 0.625, 5)):
+    for name, dx, k in (
+        ("quad_long", 10.0, 10),
+        ("quad_short_flat", 0.625, 5),
+        ("quad_short_slope", 0.625, 5),
+    ):
         mask = np.zeros((64, 128), bool)
         mask[2:-2, 2:-2] = True
         level = np.zeros((2, 4), np.int32)

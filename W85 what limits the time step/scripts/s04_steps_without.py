@@ -1,6 +1,9 @@
 """W85 step 4, from the saved frames: the step of a finished run with some cells taken out of the step rule.
 
-    python s04_steps_without.py <run folder> <grid cache .h5> <out csv> [every]
+    python s04_steps_without.py <run folder> <grid cache .h5> <out csv> [every] [pit cells .npz]
+
+With the cells of ``s09_block2_pits.py`` as a fifth argument a further scenario, ``dt_fill_pits``, takes the faces of
+every pit ``terrain.fill_pits`` would fill out of the rule.
 
 For every saved frame (or every ``every``-th) the wave speed of every face is read as in ``s01_frame_waves.py`` and the
 step it gives is taken four ways: all faces; without the faces of the pit's cells; without those and the three single
@@ -79,6 +82,12 @@ def main() -> None:
     dx = grid.dx
     pit_x, pit_y = faces_of(near(grid, (PIT,)))
     four_x, four_y = faces_of(near(grid, (PIT, *SINGLES)))
+    pits_x = pits_y = None
+    if len(sys.argv) > 5:
+        held = np.load(sys.argv[5])
+        cells = np.zeros(grid.shape, bool)
+        cells[held["j"], held["i"]] = True
+        pits_x, pits_y = faces_of(cells)
     flx, frx = grid.from_tiles(tables.flx), grid.from_tiles(tables.frx)
     fly, fry = grid.from_tiles(tables.fly), grid.from_tiles(tables.fry)
     t_run, dt_run = run_steps(run)
@@ -120,6 +129,8 @@ def main() -> None:
             row["dt_all"] = step(wx, wy)
             row["dt_no_pit"] = step(np.where(pit_x, 0.0, wx), np.where(pit_y, 0.0, wy))
             row["dt_no_four"] = step(np.where(four_x, 0.0, wx), np.where(four_y, 0.0, wy))
+            if pits_x is not None:
+                row["dt_fill_pits"] = step(np.where(pits_x, 0.0, wx), np.where(pits_y, 0.0, wy))
             for pm in PLAN_MINS:
                 fx = np.sqrt(np.maximum(px, num.plan_min) / np.maximum(px, pm))
                 fy = np.sqrt(np.maximum(py, num.plan_min) / np.maximum(py, pm))
@@ -154,7 +165,8 @@ def main() -> None:
     base = np.array([r["dt_run"] for r in rows])
     frame = np.array([r["dt_all"] for r in rows])
     print(f"\nsteps of the run by its own step at the frames: {int((span / base).sum()):,}")
-    for key in ("dt_all", "dt_no_pit", "dt_no_four", *(f"dt_plan_min_{pm:.2f}" for pm in PLAN_MINS)):
+    more = ("dt_fill_pits",) if pits_x is not None else ()
+    for key in ("dt_all", "dt_no_pit", "dt_no_four", *more, *(f"dt_plan_min_{pm:.2f}" for pm in PLAN_MINS)):
         ratio = np.array([r[key] for r in rows]) / frame
         steps = (span / np.minimum(base * ratio, num.dt_max)).sum()
         print(f"   {key:18s} steps {int(steps):>9,}  ({steps / (span / base).sum():.3f} of the run's)")
