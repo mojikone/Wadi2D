@@ -47,9 +47,9 @@ class StripGround:
     ptr: np.ndarray
     """CSR of pixels by cell, (ncells + 1)."""
     weights: np.ndarray
-    """(npix, MAX_NODES) Wachspress weights, zero in a padded slot."""
+    """(npix, width) Wachspress weights, zero in a padded slot; width is the widest ring, 4 at least."""
     incidence: np.ndarray
-    """(npix, MAX_NODES) index into the (cell, node) incidence list of each slot."""
+    """(npix, width) index into the (cell, node) incidence list of each slot."""
     inc_cell: np.ndarray
     inc_node: np.ndarray
     pair_a: np.ndarray
@@ -106,10 +106,12 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
         found = np.searchsorted(sorted_keys, cells.astype(np.int64) * nnodes + nodes)
         return key_order[np.minimum(found, sorted_keys.size - 1)]
 
-    # the nodes of each pixel's cell, padded to MAX_NODES with the first node and zero weight
+    # the nodes of each pixel's cell, padded to the widest ring (MAX_NODES at least) with the first node and zero
+    # weight: the ring corridors have quads and triangles, the centre mesh (W46) cells of up to max_faces sides
     npix = r.size
-    weights = np.zeros((npix, MAX_NODES), np.float32)
-    incidence = np.zeros((npix, MAX_NODES), np.int64)
+    width = max(MAX_NODES, int(length.max()) if length.size else MAX_NODES)
+    weights = np.zeros((npix, width), np.float32)
+    incidence = np.zeros((npix, width), np.int64)
     px = pix.x0 + (c + 0.5) * pix.pixel
     py = pix.y0 - (r + 0.5) * pix.pixel
     for m in np.unique(length):
@@ -121,7 +123,7 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
         w = _wachspress(px[on], py[on], geo.x[nodes], geo.y[nodes])
         weights[on, :m] = w
         incidence[on, :m] = incidence_of(np.repeat(cell[on], m), nodes.ravel()).reshape(-1, m)
-        if m < MAX_NODES:
+        if m < width:
             incidence[on, m:] = incidence[on, :1]
     # pairs across inner faces at both of their nodes
     inner = np.nonzero(mesh.right < n)[0]
