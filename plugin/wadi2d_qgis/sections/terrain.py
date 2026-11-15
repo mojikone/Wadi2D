@@ -5,8 +5,9 @@
 from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel
+from qgis.PyQt.QtWidgets import QCheckBox
 
-from ..job_builder import DX, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
+from ..job_builder import DX, FILL_PITS, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
 
 
@@ -22,6 +23,8 @@ class TerrainSection(Section):
         self.form.addRow("Cell size, m", self.dx)
         self.form.addRow("Domain", self.domain)
         self.form.addRow("Manning n", self.manning)
+        self.fill_pits = QCheckBox("Fill pits: small deep holes of the terrain, to their spill level")
+        self.form.addRow(self.fill_pits)
         self.dem.layerChanged.connect(self._dem_changed)
         self._dem_changed(self.dem.currentLayer())
 
@@ -32,6 +35,9 @@ class TerrainSection(Section):
     def apply_schema(self, schema) -> None:
         bind(self.dx, schema, DX, default=PREFERRED_DX)
         bind(self.manning.box, schema, MANNING)
+        self.fill_pits.setChecked(bool(schema.default(FILL_PITS, False)))
+        self.fill_pits.setToolTip(schema.tip(FILL_PITS))
+        self.fill_pits.setEnabled(schema.has(FILL_PITS))  # an engine from before W85 would refuse the field
 
     def dem_layer(self):
         return self.dem.currentLayer()
@@ -47,6 +53,7 @@ class TerrainSection(Section):
             "dx": self.dx.value(),
             "manning": self.manning.value(),
             "manning_raster": self.manning.path(),
+            "fill_pits": self.fill_pits.isChecked() and self.fill_pits.isEnabled(),
         }
         if domain is not None:
             values["domain"] = layer_features(domain, crs)

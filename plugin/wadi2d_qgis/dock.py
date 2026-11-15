@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (
 from . import settings
 from .basin_layers import load_basin_layers
 from .basin_points import BasinPointsLinks
+from .check_layers import clear_terrain_checks, load_terrain_checks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .gauge_rows import joined_gauges
@@ -447,6 +448,7 @@ class Wadi2DDock(QgsDockWidget):
         chosen = Path(values["output"])
         out = next_run_dir(chosen)
         clear_edge_checks(out)
+        clear_terrain_checks(out)
         values["name"] = out.name
         settings.set_last_folder(str(chosen))
         self.panel.set_running(True)
@@ -750,6 +752,7 @@ class Wadi2DDock(QgsDockWidget):
         load_cell_grid(run.out_dir, run.out_dir.name)
         load_strip_mesh(run.out_dir, run.out_dir.name)
         load_edge_checks(run.out_dir)
+        load_terrain_checks(run.out_dir)
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
         self.panel.frames_button.setEnabled(has_results(run.out_dir))
