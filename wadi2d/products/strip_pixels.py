@@ -229,7 +229,7 @@ class StripReader:
         wanted = np.unique(self.piece_of[np.flatnonzero(take)])
         found: list = [None] * wanted.size
         pad = PIECE_PAD_PIXELS
-        none = np.zeros(0, np.int64)
+        none = np.zeros(0, np.int32)
 
         def one(i: int) -> None:
             own = np.sort(self.pieces[wanted[i]])
@@ -245,7 +245,8 @@ class StripReader:
                 found[i] = (none, none, none, np.zeros(0, np.float32))
                 return
             z = np.asarray(pix.window(r_lo, c_lo, h, w), np.float64)
-            found[i] = (r + r_lo, c + c_lo, owner[r, c], (z[r, c] - self.datum).astype(np.float32))
+            small = np.int32  # a block holds tens of millions of pixels: their places as 32-bit numbers
+            found[i] = ((r + r_lo).astype(small), (c + c_lo).astype(small), owner[r, c].astype(small), (z[r, c] - self.datum).astype(np.float32))
 
         run_all(range(wanted.size), one, table_workers(None))
         if not found:

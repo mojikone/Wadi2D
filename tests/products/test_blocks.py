@@ -211,6 +211,6 @@ def test_a_try_that_does_not_fit_the_card_is_made_again_in_smaller_blocks(wadi, 
         return real(*args)
 
     monkeypatch.setattr(step, "lattice_pixels", tight)
-    make_products(cfg, tables, crs, tmp_path, Watch(lambda kind, **_k: events.append(kind), lambda: False), "gpu")
+    make_products(cfg, tables, crs, tmp_path, Watch(lambda ev, **_k: events.append(ev), lambda: False), "gpu")
     assert squeezes == [1.0, 0.5] and "warn" not in events
     np.testing.assert_array_equal(_rasters(tmp_path)[step.HAZARD_FILE], _rasters(run)[step.HAZARD_FILE])

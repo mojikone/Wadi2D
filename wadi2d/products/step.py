@@ -411,6 +411,11 @@ def lattice_pixels(
         runs = [lattice.cell_rows(*band) for band, _blocks in bands]
         per_cell = STACK_VALUE_BYTES * max(len(names), 1)
         groups = plan_bands(np.array([(b - a) * per_cell for a, b in runs], float), STACK_BYTES)
+        watch.emit(
+            "output", kind="pixel_blocks", blocks=lattice.blocks, bands=len(bands), map_reads=len(groups),
+            block_mb=round(room / 2**20), kept_pixels=int(rows.size) * k * k, strip_pixels=round(float(strip_pixels.sum())),
+        )  # fmt: skip
+        watch.check()
         tally = Tally()
         if xp is not np:
             pool = xp.get_default_memory_pool()
