@@ -19,7 +19,6 @@ from typing import Protocol
 
 import numpy as np
 import shapely
-from rasterio import features
 from rasterio.transform import Affine
 
 from wadi2d.config.constants import CRITICAL_WEIR_COEFF
@@ -37,6 +36,7 @@ from wadi2d.terrain.earthworks import (
     crest_coefficient,
     notch_shapes,
 )
+from wadi2d.terrain.rasterise import rasterize
 
 PixelEdit = Callable[[np.ndarray, int, int], None]
 
@@ -188,7 +188,7 @@ class BurnLine:
             if xmax < west or xmin > west + nx * pixel or ymin > north or ymax < north - ny * pixel:
                 return
             transform = Affine(pixel, 0.0, west, 0.0, -pixel, north)
-            hit = features.rasterize(
+            hit = rasterize(  # one at a time: this runs on the table threads (W85)
                 [(strip, 1)], out_shape=z.shape, transform=transform, all_touched=True, dtype="uint8"
             ).astype(bool)
             if not hit.any():
