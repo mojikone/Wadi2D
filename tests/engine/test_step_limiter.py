@@ -44,7 +44,7 @@ def test_the_pit_is_named_in_the_progress_and_in_the_layer(pit_dem, tmp_path):
     summary = run_job(asking(pit_dem, "layer"), out)
     assert summary.exit_code == 0, summary.message
     named = events(out, "limiter")
-    assert named and len(named) <= len(events(out, "step"))
+    assert named and len(named) <= len(events(out, "step")) + 1  # one per progress event, one at the end
     late = [e for e in named if e["t"] > 1200.0]
     assert late and all(abs(e["x"] - PIT_X) <= 8.0 and abs(e["y"] - PIT_Y) <= 8.0 for e in late)
     assert all(e["dt_without_tile"] >= e["dt_tile"] for e in named)

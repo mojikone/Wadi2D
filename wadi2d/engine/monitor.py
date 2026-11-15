@@ -298,5 +298,7 @@ class Monitor:
     def finish(self, t: float) -> None:
         """Final samples at time t."""
         self.maxima.update(t)
+        if self.limiter is not None:  # a run shorter than a progress interval still names its limiter
+            self.limiter.tick(t)
         self.record(t)
         self._accounts(t)

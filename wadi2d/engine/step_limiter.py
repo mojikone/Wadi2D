@@ -97,7 +97,7 @@ class LimiterLog:
 
     def write(self, out: Path, crs: str) -> Path | None:
         """The cells into ``step_limiter.gpkg``; None when no tick named one."""
-        from wadi2d.io.geopackage import POINTS, VectorLayer, write_geopackage
+        from wadi2d.io.geopackage import POINTS, VectorLayer, add_layer, write_geopackage
 
         if not self.cells:
             return None
@@ -108,5 +108,7 @@ class LimiterLog:
         ]
         points = [shapely.Point(c["x"], c["y"]) for c in held]
         path = out / FILE
-        path.unlink(missing_ok=True)
-        return write_geopackage(path, [VectorLayer(LAYER, COLUMNS, rows, points, POINTS)], crs)
+        layer = VectorLayer(LAYER, COLUMNS, rows, points, POINTS)
+        if path.is_file():  # in place: QGIS may hold the last run's file open
+            return add_layer(path, layer, crs)
+        return write_geopackage(path, [layer], crs)
