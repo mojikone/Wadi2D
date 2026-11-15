@@ -87,7 +87,9 @@ def test_the_run_equals_the_same_inflow_given_by_hand_and_the_exclude_tick_is_re
     subs = {"subbasins": [{"name": "Up", "mode": "lumped"}, {"name": "Low", "mode": "2d"}]}
     by_hand = run_job(net_job(tmp_path, entry="outlet", hydrology={**hand, **subs}), tmp_path / "hand")
     assert by_rule.exit_code == 0 and by_hand.exit_code == 0, (by_rule.message, by_hand.message)
-    assert by_rule.balance.inflow == by_hand.balance.inflow and by_rule.balance.outflow == by_hand.balance.outflow
+    # equal to rounding: the two float sums are taken in a run-to-run order and once differed in the 16th digit
+    assert by_rule.balance.inflow == pytest.approx(by_hand.balance.inflow, rel=1e-12)
+    assert by_rule.balance.outflow == pytest.approx(by_hand.balance.outflow, rel=1e-12)
     assert left_out_of(net_job(tmp_path, exclude=True)).names == ("Up",)
     cut = run_job(net_job(tmp_path, exclude=True), tmp_path / "cut")
     assert cut.exit_code == 0 and cut.balance.outflow == pytest.approx(by_rule.balance.outflow, rel=1e-5)
