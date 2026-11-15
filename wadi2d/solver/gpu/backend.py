@@ -68,6 +68,7 @@ class GpuBackend:
         self._update = self.module.get_function("update")
         self._exchange = self.module.get_function("exchange")
         self._boundary = self.module.get_function("boundary")
+        self._plan = self.module.get_function("plan")
 
         n = self.grid.ntiles * layout.STRIDE2
         for a in layout.STATE_ARRAYS + layout.WORK_ARRAYS:
@@ -134,6 +135,18 @@ class GpuBackend:
         self._exchange(
             (self.nact,), EXCHANGE_BLOCK, (self.active, self.slot, self.src_map, self.nhalo, a, b, c, e)
         )
+
+    def refresh_plan(self, tiles: np.ndarray) -> None:
+        """The wet share of these tiles' cells by the kernel's own arithmetic (W90: tiles that wake)."""
+        if tiles.size:
+            listed = self.cp.asarray(tiles.astype(np.int32))
+            self._plan((int(tiles.size), 1), BLOCK, (listed, self.om, self.Hc, self.dtab, self.h))
+
+    def refresh_halos(self) -> None:
+        """Every halo of the active tiles, as the end of a uniform step leaves them (W90: after tiles woke)."""
+        if self.nact:
+            self._exch(self.h, self.d, self.qx, self.qy)
+            self._exch(self.u, self.v, self.om)
 
     def step(self, dt: float, want_wave: bool, want_wet: bool) -> None:
         cp = self.cp

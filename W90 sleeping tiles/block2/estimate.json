@@ -1,0 +1,53 @@
+{
+ "from": "W90 sleeping tiles/block2/run3_step_time_gpu.json",
+ "tiles": 3604,
+ "old_rule_ms_per_step": 2.5595,
+ "saved_ms_per_sleeping_tile": 0.000373,
+ "strip_ms_per_step": 1.0907,
+ "squares_ms_per_awake_tile": 0.00044,
+ "strip_share_of_old_step": 0.426,
+ "runs": {
+  "run3": {
+   "steps": 383904,
+   "loop_s_of_the_saved_run": 1648.12,
+   "tiles_ever_wet": 1473,
+   "tiles_ever_needed": 2133,
+   "wet_squares_share_of_cell_steps": 0.116,
+   "needed_tile_steps_share_by_frames": 0.562,
+   "rule_as_built_over_frames_count": 0.964,
+   "mean_awake_tiles": 1953.0,
+   "tile_steps_saved_share": 0.458,
+   "step_ms_old": 2.559,
+   "step_ms_new": 1.943,
+   "stepping_time_saved_share": 0.241,
+   "seconds_saved": 237.0,
+   "share_of_the_saved_loop": 0.143,
+   "strip_cell_steps_needed_share": 0.582,
+   "step_ms_if_the_strip_slept_too": 1.488,
+   "stepping_time_saved_share_if_the_strip_slept_too": 0.419,
+   "band_rule_tile_steps_share": 0.496,
+   "wet_tile_steps_share": 0.379
+  },
+  "run4": {
+   "steps": 424627,
+   "loop_s_of_the_saved_run": 1842.94,
+   "tiles_ever_wet": 1861,
+   "tiles_ever_needed": 2885,
+   "wet_squares_share_of_cell_steps": 0.115,
+   "needed_tile_steps_share_by_frames": 0.772,
+   "rule_as_built_over_frames_count": 0.964,
+   "mean_awake_tiles": 2682.0,
+   "tile_steps_saved_share": 0.256,
+   "step_ms_old": 2.559,
+   "step_ms_new": 2.215,
+   "stepping_time_saved_share": 0.134,
+   "seconds_saved": 146.0,
+   "share_of_the_saved_loop": 0.079,
+   "strip_cell_steps_needed_share": 0.829,
+   "step_ms_if_the_strip_slept_too": 2.029,
+   "stepping_time_saved_share_if_the_strip_slept_too": 0.207,
+   "band_rule_tile_steps_share": 0.67,
+   "wet_tile_steps_share": 0.485
+  }
+ }
+}

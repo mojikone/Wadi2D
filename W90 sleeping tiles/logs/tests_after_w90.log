@@ -1,0 +1,31 @@
+tests/solver/test_sleeping.py :: exit 0 :: 6 passed, 1 warning in 32.11s
+tests/strips/test_sleeping.py :: exit 0 :: 9 passed, 1 warning in 50.71s
+tests/solver/test_levels.py :: exit 0 :: 29 passed, 1 warning in 33.63s
+tests/solver/test_quad.py :: exit 0 :: 28 passed, 1 warning in 45.91s
+tests/solver/test_analytic.py :: exit 0 :: 14 passed, 1 warning in 50.56s
+tests/solver/test_steady.py :: exit 0 :: 3 passed, 1 warning in 34.65s
+tests/solver/test_subgrid.py :: exit 0 :: 9 passed, 1 warning in 31.77s
+tests/solver/test_dry_faces.py :: exit 0 :: 2 passed, 1 warning in 27.76s
+tests/solver/test_face_level.py :: exit 0 :: 2 passed, 1 warning in 20.51s
+tests/solver/test_limiter.py :: exit 0 :: 10 passed, 1 warning in 19.74s
+tests/solver/test_poly.py :: exit 0 :: 5 passed, 1 warning in 22.10s
+tests/solver/test_review_regressions.py :: exit 0 :: 18 passed, 1 warning in 30.40s
+tests/strips/test_hybrid.py :: exit 0 :: 4 passed, 1 warning in 26.79s
+tests/strips/test_hybrid_gpu.py :: exit 0 :: 4 passed, 1 warning in 25.36s
+tests/engine/test_strips_run.py :: exit 0 :: 15 passed, 1 warning in 91.33s (0:01:31)
+tests/engine/test_resume_exact.py :: exit 0 :: 2 passed, 1 warning in 24.81s
+tests/engine/test_strip_cache.py :: exit 0 :: 2 passed, 1 warning in 3.85s
+tests/engine/test_breach_strips.py :: exit 0 :: 7 passed, 1 warning in 32.52s
+tests/engine/test_levels_run.py :: exit 0 :: 3 passed, 1 warning in 24.43s
+tests/engine/test_run.py :: exit 0 :: 15 passed, 1 warning in 30.59s
+tests/engine/test_rain_run.py :: exit 0 :: 15 passed, 1 warning in 53.02s
+tests/engine/test_handback.py :: exit 0 :: 28 passed, 1 warning in 154.92s (0:02:34)
+tests/engine/test_inflow_lines.py :: exit 0 :: 15 passed, 1 warning in 39.35s
+tests/engine/test_transmission.py :: exit 0 :: 9 passed, 1 warning in 40.86s
+tests/engine/test_breach.py :: exit 0 :: 15 passed, 1 warning in 19.91s
+tests/engine/test_breach_quad.py :: exit 0 :: 6 passed, 1 warning in 35.31s
+tests/engine/test_mesh.py :: exit 0 :: 24 passed, 1 warning in 29.54s
+tests/engine/test_review.py :: exit 0 :: 48 passed, 1 warning in 40.31s
+tests/engine/test_basin_run.py :: exit 0 :: 10 passed, 1 warning in 82.94s (0:01:22)
+tests/engine/test_edge_valleys.py :: exit 0 :: 15 passed, 1 warning in 29.57s
+done

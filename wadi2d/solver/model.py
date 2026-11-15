@@ -106,7 +106,6 @@ class Model:
             tj, ti = grid.tiles[t]
             keep[t] = bool(np.any(rate[tj * TILE : (tj + 1) * TILE, ti * TILE : (ti + 1) * TILE] != 0.0))
         keep[self.boundary_tiles] = True
-        keep |= self.stepper.pinned
         self.stepper.rebuild_active(retain=True)
         self.stepper.refresh_due = True
 
@@ -119,7 +118,6 @@ class Model:
         keep[:] = False
         keep[cells[rate != 0.0] // STRIDE2] = True
         keep[self.boundary_tiles] = True
-        keep |= self.stepper.pinned
         self.stepper.rebuild_active(retain=True)
         self.stepper.refresh_due = True
 

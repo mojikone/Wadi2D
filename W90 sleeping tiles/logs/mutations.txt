@@ -1,0 +1,6 @@
+the rule as built              : equal to the last bit through t = 3600 s; awake at the end 16 of 16; in the squares 21863 m3
+reach  6 cells (16 steps a check): equal to the last bit through t = 3600 s; awake at the end 16 of 16; in the squares 21863 m3
+reach  2 cells (16 steps a check): equal to the last bit through t = 3600 s; awake at the end 16 of 16; in the squares 21863 m3
+reach -1 cells (16 steps a check): DIFFERS at t = 1800 s: steps (708, 707), entries {'h': 15, 'd': 15, 'u': 15, 'v': 6, 'mx': 12, 'my': 6, 'qx': 15, 'qy': 6, 'res': 11, 'strip_h': 187, 'strip_d': 158, 'strip_u': 557, 'strip_m': 540, 'strip_q': 550, 'strip_res': 357}; awake 4; water short 403.9 m3
+no halo and wet-share pass at a wake: equal to the last bit through t = 3600 s; awake at the end 16 of 16; in the squares 21863 m3
+no wake rule for the strip at all   : DIFFERS at t = 1800 s: steps (708, 707), entries {'h': 15, 'd': 15, 'u': 15, 'v': 6, 'mx': 12, 'my': 6, 'qx': 15, 'qy': 6, 'res': 11, 'strip_h': 187, 'strip_d': 158, 'strip_u': 557, 'strip_m': 540, 'strip_q': 550, 'strip_res': 357}; awake 4; water short 403.9 m3

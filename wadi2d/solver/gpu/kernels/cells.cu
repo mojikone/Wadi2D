@@ -62,6 +62,20 @@ extern "C" __global__ void update(const int* __restrict__ active, const float dt
     if (want_wet && any) wet[t] = 1;
 }
 
+// The wet share of every own cell of the listed tiles from its depth, as update writes it (W90: a tile that wakes).
+extern "C" __global__ void plan(const int* __restrict__ active, float* __restrict__ om,
+                                const float* __restrict__ Hc, const float* __restrict__ dtab,
+                                const float* __restrict__ h) {
+    const int t = active[blockIdx.x];
+    const int i = threadIdx.x;
+    for (int c = 0; c < CELLS_PER_THREAD; ++c) {
+        const int j = threadIdx.y * CELLS_PER_THREAD + c;
+        const int k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO;
+        const int id = t * TILE2 + j * TILE + i;
+        om[k] = cell_plan(h[k], Hc[id], dtab + P.rows * id);
+    }
+}
+
 // Fill the halos of the active tiles from the owning tiles. dst offsets are fixed; src holds one entry per halo slot.
 extern "C" __global__ void exchange(const int* __restrict__ active, const int* __restrict__ slot,
                                     const int* __restrict__ src, const int nhalo, float* a, float* b, float* c,

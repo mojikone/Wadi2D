@@ -11,6 +11,10 @@ from wadi2d.config.schema import Numerics
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.solver.layout import STRIDE2
 
+SLEEP_CHECKS = 2
+"""Checks in a row that must find a tile and its surroundings dry before it leaves the active list (W90): by then
+both of its face buffers and its wave speed have been rewritten as a dry tile's, so asleep it is what it would be awake."""
+
 
 class NumericalFailure(RuntimeError):
     """The time step collapsed or a NaN appeared."""
@@ -36,24 +40,63 @@ class Stepper:
         self.kick = None
         """A momentum source on faces (W70, ``solver.momentum.FaceKick``), applied before every step; the uniform
         step only."""
+        self.wake_rules: list[Callable[[np.ndarray], np.ndarray]] = []
+        """What else wakes a tile (W90): each takes the tiles that hold water or a source and returns the tiles that
+        water beside the lattice (an aligned strip's) can reach before the next check."""
+        self.idle = np.zeros(self.grid.ntiles, np.int32)
+        """Checks in a row at which a tile was not wanted; it sleeps at ``SLEEP_CHECKS``."""
 
     def pin(self, tiles: np.ndarray) -> None:
         """Tiles that must see every smallest step; the uniform step has no other kind."""
 
-    def rebuild_active(self, retain: bool = False) -> None:
+    def check_period(self) -> int:
+        """The most steps between two checks of the active list: how far water can move unseen, in cells."""
+        return int(self.num.active_every)
+
+    def rebuild_active(self, retain: bool = False, check: bool = False) -> None:
         """Active: a wet tile, a tile with a source, and all their neighbours; water moves under a cell per step.
+        A wake rule adds the tiles that water outside the lattice can reach (a strip's ghosts).
 
         ``retain`` keeps the tiles already active: the wet flags may be old, and only a step that has just written
-        them may drop a tile. Without this a tile can leave the list with water in it.
+        them may drop a tile. Without this a tile can leave the list with water in it. ``check`` is the time
+        loop's own call: a tile then leaves only after ``SLEEP_CHECKS`` checks in a row that did not want it.
+        With neither, the host has just written the state (a start, a checkpoint): the list is made afresh and no
+        tile is touched. With ``adaptive_active`` off every tile is always stepped: the reference a sleeping run
+        must equal.
         """
+        ntiles = self.grid.ntiles
+        if not self.adaptive_active:
+            if int(self.backend.nact) != ntiles - 1:
+                self.backend.set_active(np.arange(1, ntiles, dtype=np.int32))
+            return
         wet = self.backend.wet_flags().astype(bool) | self.keep_active
         wet[0] = False
         act = wet.copy()
         act[self.grid.nbr[wet].ravel()] = True
+        for rule in self.wake_rules:
+            act |= rule(wet)
+        current = np.zeros(ntiles, bool)
+        current[self.backend.active_tiles] = True
         if retain:
-            act[self.backend.active_tiles] = True
+            act |= current
+        elif check:
+            self.idle[act] = 0
+            self.idle[~act] += 1
+            act |= current & (self.idle < SLEEP_CHECKS)
+        else:
+            self.idle[:] = 0
         act[0] = False
+        woken = act & ~current
         self.backend.set_active(np.nonzero(act)[0].astype(np.int32))
+        if (retain or check) and woken.any():  # a tile that slept is dry; one the host has just filled is not
+            self._wake(np.nonzero(woken)[0].astype(np.int32))
+
+    def _wake(self, tiles: np.ndarray) -> None:
+        """A tile that joins the list is made what it would be had it never slept: its wet share written by the
+        kernel's own arithmetic (asleep it kept the host's), and every halo of the list filled, its own from its
+        neighbours and its neighbours' from it."""
+        self.backend.refresh_plan(tiles)
+        self.backend.refresh_halos()
 
     def advance(self, t_end: float, on_step: Callable[[Stepper], None] | None = None) -> float:
         """Run to ``t_end`` exactly."""
@@ -80,7 +123,7 @@ class Stepper:
                         f"time step {self.dt:.2e} s below the minimum at t = {self.t:.3f} s"
                     )
             if activate and self.adaptive_active:
-                self.rebuild_active()
+                self.rebuild_active(check=True)
             if on_step is not None:
                 on_step(self)
         return self.t
