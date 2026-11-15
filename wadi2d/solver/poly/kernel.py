@@ -33,10 +33,25 @@ F = np.float32
 ZERO, ONE, HALF, TWO = F(0.0), F(1.0), F(0.5), F(2.0)
 
 
+@njit(inline="always")
+def bounded(ux, uy, u_max):
+    """A cell vector no longer than the velocity cap (W87). The vector is a discharge over a volume, and where the
+    volume vanishes (a cell that has just drained, a ghost a front has not reached) it is the velocity of no water:
+    the lattice caps every face velocity at ``u_max``, and what the strip advects, rubs against and adds as head is
+    held to the same."""
+    m = max(abs(ux), abs(uy))
+    if m > u_max:
+        ux = ux / m
+        uy = uy / m
+        f = u_max / F(np.sqrt(ux * ux + uy * uy))
+        return ux * f, uy * f
+    return ux, uy
+
+
 @njit(cache=True)
-def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy) -> None:
+def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, u_max, Ux, Uy) -> None:
     """[3a] Perot cell momentum vectors from the face discharges, added to what the arrays hold (zero, or a
-    ghost's lattice sums), then divided by the cell volume."""
+    ghost's lattice sums), then divided by the cell volume and held to the velocity cap."""
     for f in range(nf):
         qf = q[f]
         if qf != ZERO:
@@ -48,8 +63,7 @@ def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy) -> None:
     for c in range(nc):
         vol = h[c] * area[c]
         if vol > F(1e-9):
-            Ux[c] /= vol
-            Uy[c] /= vol
+            Ux[c], Uy[c] = bounded(Ux[c] / vol, Uy[c] / vol, u_max)
         else:
             Ux[c] = ZERO
             Uy[c] = ZERO
@@ -191,6 +205,7 @@ def faces(
                 if vup > F(1e-9):
                     ux -= sign * (xf[f] - cx[up]) * q[f] / vup
                     uy -= sign * (yf[f] - cy[up]) * q[f] / vup
+                    ux, uy = bounded(ux, uy, u_max)
                 Ac, _tc, Wc = face_lookup(eup + HALF * (ux * ux + uy * uy) / g, ef[f], ftab[start : start + 2 * rows], rows)
             qc = c * Ac * F(np.sqrt(Ac / max(Wc, F(1e-9))))
             if abs(qn) > qc:

@@ -82,7 +82,7 @@ class PolyState:
         nc, nf = self.ncells, self.mesh.nfaces
         L, R, ln, nfx, nfy, xf, yf, dn, sx, sy, fl, fr, gl, gr, ef, cw, ftab = self.static
         rows, g, dx, e_wet, h_cfl, u_max, lead, a_min, sheet, skew, carry = self.nums
-        kernel.perot_velocity(nf, nc, L, R, xf, yf, self.cx, self.cy, self.q, self.h, self.area, self.Ux, self.Uy)
+        kernel.perot_velocity(nf, nc, L, R, xf, yf, self.cx, self.cy, self.q, self.h, self.area, u_max, self.Ux, self.Uy)
         if ghost_rates is not None:
             ghost_rates()
         kernel.advection_rate(nf, L, R, self.q, self.Ux, self.Uy, self.Rx, self.Ry)

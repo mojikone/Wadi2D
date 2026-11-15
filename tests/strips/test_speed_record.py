@@ -183,16 +183,54 @@ def test_the_same_front_on_the_gpu_records_no_speed_above_what_a_square_can_read
     check_record(tmp_path, "gpu")
 
 
-@pytest.mark.xfail(reason="W87, a fault in the step, not in the record, and his decision: the velocity written into the squares' face on the join divides the discharge by the ghost's depth floored at 1e-6 m, and the Perot cell vector by a volume floored at 1e-9 m3; on a front over a dry join each feeds the other, faces are kicked to u_max, and the line across the corridor peaks 22 % over the inflow", strict=False)  # fmt: skip
-def test_a_flood_front_over_a_dry_join_carries_the_inflow_and_runs_at_the_squares_speed(tmp_path) -> None:
-    """With either velocity bounded at ``u_max`` (``W87 strip max speed/kernel_probe.py``, in memory) the line reads
-    3.000 m3/s, the squares alone 3.000, and the strip's fastest cell 3.0 m/s against the squares' 3.4; as the step
-    stands, 3.655 m3/s and 39 cells over 10 m/s."""
-    strip, squares = run_front(tmp_path, "cpu")
+@pytest.mark.parametrize("backend", ["cpu", pytest.param("gpu", marks=pytest.mark.gpu)])
+def test_a_flood_front_over_a_dry_join_carries_the_inflow_and_runs_at_the_squares_speed(
+    tmp_path, backend
+) -> None:
+    """The step's own velocities are bounded (W87). The Perot cell vector and the velocity written on the join each
+    divided a discharge by a vanishing volume, and on a front over a dry join each fed the other, kicking faces to
+    ``u_max``: the line across the corridor peaked at 3.655 m3/s on a steady inflow of 3.000, 39 aligned cells read
+    over 10 m/s and a square on the join 33,971 m/s, where the squares alone read 3.000 m3/s and 3.4 m/s."""
+    strip, squares = run_front(tmp_path, backend)
     rows = (tmp_path / "strips" / "series" / "line_across.csv").read_text(encoding="utf-8").splitlines()[1:]
     peak = max(abs(float(r.split(",")[1])) for r in rows)
-    assert peak == pytest.approx(3.0, rel=0.02), peak
-    assert float(strip["strip_speed"].max()) < 2.0 * float(squares["speed"].max())
+    assert peak == pytest.approx(3.0, rel=0.005), peak
+    square_top = float(squares["speed"].max())
+    assert float(strip["strip_speed"].max()) < 1.5 * square_top, (
+        float(strip["strip_speed"].max()),
+        square_top,
+    )
+    assert (
+        float(strip["speed"].max()) <= U_MAX
+    )  # the squares beside the join: no face of theirs is over the cap
+    assert float(strip["strip_depth"].max()) < 1.2 * float(
+        squares["depth"].max()
+    )  # 1.04 m against 0.99; before, 1.35
+
+
+def test_a_cell_vector_is_held_to_the_velocity_cap_and_keeps_its_direction() -> None:
+    """A cell that has just given its water away: its faces' discharge over the little it holds would be 1e6 m/s."""
+    mesh = one_cell(np.array([[0.0, 0.0], [20.0, 0.0], [20.0, 20.0], [0.0, 20.0]]) + [X0, Y0])
+    left, right = mesh.left.astype(np.int64), mesh.right.astype(np.int64)
+    q = (2.0 * mesh.nx + 1.0 * mesh.ny).astype(F)  # 2 m3/s through eastward, 1 m3/s northward
+    lever = (mesh.xf.astype(F), mesh.yf.astype(F), mesh.cx.astype(F), mesh.cy.astype(F))
+    found = {}
+    for name, depth in (("full", 1.0), ("drained", 1e-7)):
+        ux, uy = np.zeros(2, F), np.zeros(2, F)
+        h = np.array([depth, 0.0], F)
+        kernel.perot_velocity(
+            mesh.nfaces, 2, left, right, *lever, q, h, mesh.area.astype(F), F(U_MAX), ux, uy
+        )
+        found[name] = (float(ux[0]), float(uy[0]))
+    assert found["full"] == pytest.approx(
+        (0.1, 0.05), rel=0.05
+    )  # 2 m3/s over 20 m of 1 m: untouched under the cap
+    assert np.hypot(*found["drained"]) == pytest.approx(U_MAX, rel=1e-5)
+    assert found["drained"][0] / found["drained"][1] == pytest.approx(
+        found["full"][0] / found["full"][1], rel=0.05
+    )
+    assert kernel.bounded(F(3.0), F(-4.0), F(U_MAX)) == (3.0, -4.0)
+    assert np.hypot(*kernel.bounded(F(3e30), F(-4e30), F(U_MAX))) == pytest.approx(U_MAX, rel=1e-5)
 
 
 @pytest.mark.gpu
