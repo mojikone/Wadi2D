@@ -91,14 +91,24 @@ class HybridGpu(Hybrid):
         self.left_ghost_dev[: self.ghost.size] = cp.asarray(np.asarray(values, np.float64))
         self.left_dev[0] = float(np.asarray(values, np.float64).sum())
 
+    def strip_flags(self) -> np.ndarray:
+        from wadi2d.strips.watch import home_flags
+
+        s, n, cp = self.state, self.nreal, self.state.cp
+        if getattr(self, "home_d", None) is None:
+            self.home_d = cp.asarray(self.watch.home)
+        return cp.asnumpy(home_flags(cp, s.h[:n], s.src[:n], self.home_d, self.model.grid.ntiles))
+
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         h, d, om = self.strip_start(hbar)
         self.state.set_real("h", h)
         self.state.set_real("d", d)
         self.state.set_real("om", om)
+        self.strip_changed()
 
     def set_strip_source(self, rate: np.ndarray) -> None:
         self.state.set_real("src", rate)
+        self.strip_changed()
 
     def before_update(self, dt: float, want_wave: bool) -> None:
         b, s, g = self.model.backend, self.state, self.ghost_d
