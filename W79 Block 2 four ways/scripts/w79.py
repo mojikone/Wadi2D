@@ -62,6 +62,8 @@ RUN_TITLES = {
     3: "Hybrid, lumped reaches and reservoirs, 2D below the dams",
     4: "Hybrid, lumped subbasins, all routing and the dams on the grid",
 }
+RUN_SHORT = {1: "2D", 2: "Lumped", 3: "Hybrid Lumped", 4: "Hybrid 2D"}
+"""His names of 2026-11-15, used in the project groups, the dam table, the README and the charts."""
 if SET != "rerun":  # his names and definitions of 2026-11-15
     RUN_TITLES.update({
         1: "2D: rain on the grid everywhere, dams as 2D pools",

@@ -152,7 +152,10 @@ def grid_run(number: int) -> bool:
     model = lg.model_of_run(folder)
     group = lg.model_group(model)
     pixels = rl.has_products(folder)
-    group.setName(f"{lg.model_title(model)}  ({RUN_TITLES[number]}; {'pixel rasters' if pixels else INTERIM})")
+    if FINAL:
+        group.setName(f"Run {number}: {RUN_TITLES[number]}  ({lg.model_title(model)})")
+    else:
+        group.setName(f"{lg.model_title(model)}  ({RUN_TITLES[number]}; {'pixel rasters' if pixels else INTERIM})")
     if pixels:
         found = rl.load_products(folder)
         if FINAL and found is not None:
@@ -172,6 +175,14 @@ def grid_run(number: int) -> bool:
     if edges.is_file():
         add_all(setup, [vec(f"{edges}|layername=edge_streams", "Edge check: streams across the domain edge"),
                         vec(f"{edges}|layername=edge_pools", "Edge check: water against the domain edge")], shown=False)
+    extra = []
+    if (folder / "step_limiter.gpkg").is_file():  # W85: the cells that set the time step, how often and when
+        limiter = vec(f"{folder / 'step_limiter.gpkg'}|layername=step_limiter", "Step limiter: cells that set the time step")
+        style._labels(limiter, "ticks", 7.0, "#a00000", Qgis.LabelPlacement.OrderedPositionsAroundPoint)
+        extra.append(limiter)
+    if (folder / "terrain_checks.gpkg").is_file():
+        extra.append(vec(f"{folder / 'terrain_checks.gpkg'}|layername=pits", "Pits in the ground, filled (terrain.fill_pits)"))
+    add_all(setup, extra, shown=False)
     slider(folder, number)
     cells = lg.subgroup(results, f"{lg.CELLS} (interim: the pixel rasters are not made yet)" if not pixels else lg.CELLS)
     strip = folder / "maps" / "strip_maxima.gpkg"
@@ -187,7 +198,7 @@ def grid_run(number: int) -> bool:
             aligned.append((layer, field == "max_depth_m" and not pixels))
         for layer, shown in aligned:
             add_all(cells, [layer], shown=shown)
-    else:
+    elif not FINAL:  # since W86 the cell maps hold the aligned cells
         notes.append(f"run {number}: no aligned-cell maxima yet")
     for name, title, styler in (("max_depth.tif", "Maximum depth, cells, m", style.style_depth),
                                 ("max_speed.tif", "Maximum speed, cells, m/s", None),
@@ -220,7 +231,10 @@ def lumped_run() -> None:
     folder = RUNS / RUN_NAMES[2]
     model = lg.model_of_run(folder)
     group = lg.model_group(model)
-    group.setName(f"{lg.model_title(model)}  ({RUN_TITLES[2]}; each element at its own ARF area)")
+    if FINAL:
+        group.setName(f"Run 2: {RUN_TITLES[2]}  ({lg.model_title(model)})")
+    else:
+        group.setName(f"{lg.model_title(model)}  ({RUN_TITLES[2]}; each element at its own ARF area)")
     results = lg.run_results(folder)
     net = folder / "network.gpkg"
     subs = vec(f"{net}|layername=subbasins", "Subbasins: peak outflow, time to peak, ARF")

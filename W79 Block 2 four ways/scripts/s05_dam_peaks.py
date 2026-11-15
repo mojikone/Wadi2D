@@ -12,13 +12,13 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from w79 import DAMS, HERE, JOBS, RESERVOIR, RUN_NAMES, RUN_TITLES, RUNS, SET, load_json  # noqa: E402
+from w79 import DAMS, HERE, JOBS, RESERVOIR, RUN_NAMES, RUN_SHORT, RUN_TITLES, RUNS, SET, load_json  # noqa: E402
 
 from wadi2d.config.schema import RunConfig  # noqa: E402
 from wadi2d.forcing import arf_table  # noqa: E402
 
 FIELDS = [
-    "run", "method", "dam", "arf_area_km2", "arf_factor",
+    "run", "name", "method", "dam", "arf_area_km2", "arf_factor",
     "inflow_peak_m3s", "inflow_time_to_peak_h", "inflow_volume_Mm3",
     "outflow_peak_m3s", "outflow_time_to_peak_h", "outflow_volume_Mm3",
     "inflow_source", "outflow_source", "ring_inflow_peak_m3s", "ring_inflow_volume_Mm3",
@@ -57,7 +57,7 @@ def main() -> None:
         for dam in DAMS:
             d = check["dams"][dam]
             rows.append({
-                "run": number, "method": RUN_TITLES[number], "dam": dam,
+                "run": number, "name": RUN_SHORT[number], "method": RUN_TITLES[number], "dam": dam,
                 "arf_area_km2": round(areas[dam], 3), "arf_factor": round(table.factor(areas[dam]), 4),
                 "inflow_peak_m3s": round(d["inflow"]["peak_m3s"], 1),
                 "inflow_time_to_peak_h": round(d["inflow"]["time_to_peak_h"], 2),

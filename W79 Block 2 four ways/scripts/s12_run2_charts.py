@@ -60,7 +60,7 @@ def main() -> None:
         area, arf = float(row["storm_area_km2"]), float(row["arf"])
         record["element"] = {"kind": row["kind"].lower(), "drainage_area_km2": area, "tc_minutes": None,
                              "lag_minutes": None}
-        entry = Entry(LUMPED, f"{name} (run 2, ARF {arf:.4f} at its own {area:,.2f} km2)", record=record)
+        entry = Entry(LUMPED, f"{name} (run 2, Lumped: ARF {arf:.4f} at its own {area:,.2f} km2)", record=record)
         plot.show_view(element_view(entry, []), 0)
         picture = plot.grab()
         assert not picture.isNull(), name

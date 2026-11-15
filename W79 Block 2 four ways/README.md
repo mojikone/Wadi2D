@@ -1,16 +1,105 @@
 # W79 Block 2 four ways
 
-**Live: the rerun of 2026-11-15 (`jobs/rerun_*.json`, `runs/rerun_*`). The first attempt (jobs without the `rerun_`
-prefix, `runs/run1_*`, `runs/run2_hms_lumped`) is superseded: it read the ARF at 1,370.77 km2 and ran at 1 m pixels.**
-All four runs are done. Runs 3 and 4 rained on a 40 m rim round the outline (6.2 km2, 0.6 % of the water: Findings);
-the jobs without it are written (`jobs/rerun2_*`, `inputs/domain_no_rim.geojson`) and not run. The pixel rasters of the three aligned 2D runs are not made: the products
-step fails in the strip's pixel stage at 0.5 m (below), an engine fault the pixel-maps work is fixing; the cell maps,
-the series and the time-slider files are made. `Block2_four_ways_interim_cells.qgz` holds what exists ("interim, cell
-maps"); `Block2_four_ways.qgz` waits for the pixel rasters. `Block2_four_ways_interim.qgz` is not ours: written at
-05:36 by someone else, it holds his Block 06 project, and is left as it is. Nothing below is a design figure: no gauge
-says which method is right.
+**Live: the final runs of 2026-11-15 (`W79_SET=rerun2`: `jobs/rerun2_*.json`, `runs/rerun2_*`, `dam_peaks.csv`,
+`Block2_four_ways.qgz`), on `feature/fast-products` at `0a87ffe` and later. Superseded and kept as the record: the
+rerun (`jobs/rerun_*`, `runs/rerun_*`, `dam_peaks_rerun.csv`, `Block2_four_ways_interim_cells.qgz`) and the first
+attempt (jobs and runs without a prefix).** `Block2_four_ways_interim.qgz` is not ours: written at 05:36 by someone else,
+it holds his Block 06 project, and is left as it is. Nothing below is a design figure: no gauge says which method is
+right.
 
-## The rerun (2026-11-15)
+## The final runs (2026-11-15), his names and definitions
+
+| Run | Name | What it is | ARF |
+|---|---|---|---|
+| 1 | 2D | rain on every cell, the five dams as 2D pools | 100 km2 everywhere (0.913) |
+| 2 | Lumped | Basin 3 on the lumped engine, HMS's way | every element at its own total upstream area (HMS depth-area) |
+| 3 | Hybrid Lumped | HMS's subbasins and reaches above the five dams (S1 to S18, 599.33 km2) and above junction HAT-J4 (HAT-S1 to HAT-S8, 260.97 km2), left out of the mesh (`grid.exclude_lumped`, W88) and entering at the dams (200 m below each) and at HAT-J4; rain on the grid on the other 78 subbasins (510.48 km2) and the coast strip | the 26 lumped at their dam's area or HAT-J4's; the grid at 100 km2 |
+| 4 | Hybrid 2D | the same 26 catchments lumped, each entering at its own wadi outlet and routed in 2D, the dams as 2D pools, nothing left out of the mesh; rain on the grid on the other 78 and the coast strip | as run 3 |
+
+Common: FM_200yr.met (251 mm, 24 h, FM 10-1000yr pattern), his ARF FM table, 48 h, the 5-min lumped step, dams empty
+at the start; the domain to the sea without the 40 m rim (`inputs/domain_no_rim.geojson`, 1,398.9 km2); outlets: the
+sea (normal 0.003), Wadi HAT's north line (0.0057), Wadi Fizh's branch and the 1 km2 north stream (0.005); CN raster
+with CN 88 where it has none; the aligned centre mesh at 20 m read at the 0.5 m pixel; `terrain.fill_pits` and
+`outputs.step_limiter: layer` (W85); pixel products on (W86); maps every 15 min; GPU.
+
+### Dam peaks (`dam_peaks.csv`; m3/s, h from the storm's start, Mm3)
+
+| Dam | ARF 2D / own | 2D in / out | Lumped in / out | Hybrid Lumped in / out | Hybrid 2D in / out | Inflow peak time, 2D / Lumped / Hybrid 2D, h | Inflow volume, 2D / Lumped / Hybrid 2D, Mm3 |
+|---|---|---|---|---|---|---|---|
+| Bidah 03 | 0.913 / 0.975 | 581 / 0 | 455 / 0 | 455 / 0 | 444 / 0 | 12.5 / 12.8 / 13.3 | 3.8 / 4.3 / 4.3 |
+| Faydh 01 | 0.913 / 0.931 | 2,314 / 0 | 1,240 / 0 | 1,240 / 0 | 1,221 / 0 | 12.3 / 13.2 / 13.8 | 14.9 / 15.2 / 15.3 |
+| R5A | 0.913 / 0.905 | 2,071 / 608 | 1,144 / 754 | 1,144 / 754 | 1,115 / 671 | 12.8 / 14.7 / 15.0 | 22.8 / 22.9 / 22.8 |
+| R2A | 0.913 / 0.876 | 3,958 / 1,151 | 1,736 / 818 | 1,736 / 818 | 1,516 / 857 | 12.8 / 14.2 / 14.0 | 34.3 / 32.9 / 32.8 |
+| Z4C | 0.913 / 0.861 | 3,240 / 3,455 | 2,101 / 2,025 | 2,101 / 2,025 | 1,941 / 2,018 | 13.8 / 15.4 / 16.0 | 41.6 / 39.2 / 39.1 |
+
+How each is read: runs 2 and 3, the lumped reservoir's inflow and outflow (Hybrid Lumped's dams are its lumped
+reservoirs, so it equals Lumped there by construction; its HAT-J4 enters with 2,472 m3/s at 15.75 h, 47.07 Mm3, also
+Lumped's). Runs 1 and 4: outflow on the dam line; inflow by the pool's balance (water in the pool polygon between two
+maps plus the dam-line outflow between them), a 15-min mean, so a little under the instantaneous peak.
+
+Findings:
+- [Certain] 2D against Lumped: inflow peaks 1.3 to 2.3 times, 0.2 to 1.9 h earlier, volumes 0.88 to 1.06 times;
+  2D reads the ARF at 0.913 where Lumped reads 0.861 to 0.975.
+- [Certain] Hybrid 2D against Lumped (the same lumped hydrographs, routed in 2D and through 2D pools instead of
+  Muskingum-Cunge and Modified Puls): inflow volumes within 0.3 % at every dam; inflow peaks Bidah 03 -2 %, Faydh 01 -2 %, R5A -2 %, R2A -13 %, Z4C -8 %; outflow
+  peaks R5A -11 %, R2A +5 %, Z4C -0 %. So the 2D channel routing and the 2D pools do not make 2D's excess: the hills' rain-on-grid
+  response does, as found in the rerun.
+- Bidah 03 and Faydh 01 spill in no run.
+
+### Times and memory (each run cold: every grid and strip cache rebuilt once; run 4 reused run 1's)
+
+| Stage, s | 2D (run 1) | Hybrid Lumped (run 3) | Hybrid 2D (run 4) |
+|---|---|---|---|
+| DEM store (23 GB, made once by run 3, read after) and mask | within the tables | within the tables (mask 29 s) | cache |
+| Grid tables and the aligned strip, first build | 811 | 563 | - |
+| The same again with the pit fills (`fill_pits`) | 821 (31 pits, 33,030 m3) | 507 (16 pits, 6,224 m3) | - |
+| Tables from the cache | - | - | 14 |
+| Terrain survey (cut and fill of every object) | 440 | 288 | 491 |
+| Entries and the rest before the solver | 24 | 16 | 68 |
+| Solver loop, 48 h | 2,143 (414,879 steps) | 789 (376,556 steps) | 1,762 (391,717 steps) |
+| Products: ground | 209 | 124 | 192 |
+| Products: pixel maps, 193 frames | 1,624 (8.4 s a frame) | 855 (4.4 s) | 1,319 (6.8 s) |
+| Products: rasters | under 1 | 5 | 5 |
+| Wall, pressing Run to products done | 6,093 (101.6 min) | 3,151 (52.5 min) | 3,867 (64.4 min) |
+| Peak memory: process commit / card | 31.7 / 13.8 GB | 27.0 / 14.5 GB | 30.7 / 14.7 GB |
+| Cells / tiles in the mesh | 2,927,615 / 3,588 | 1,090,811 / 1,464 | 2,927,615 / 3,588 |
+| Time slider, light (hourly, 0.1 m mean depth, aligned cells): size, load, a frame | 255 MB, 2.1 s, 0.38 s | 160 MB, 2.1 s, 0.24 s | 187 MB, 2.3 s, 0.30 s |
+
+Lumped (run 2): 281 elements, each rerun at its own area, 1.4 s; the same numbers as the rerun's to the digit.
+
+[Certain] Two costs before the solver, both engine work (reported to the coordinator): `fill_pits` checks the pits only
+after the tables and strip are built, then builds both again with the fills (run 1: 811 s, then 821 s); and
+`survey_terrain` (`wadi2d/run.py`) spends 288 to 491 s reporting cut and fill whenever the job holds pixel-kind objects,
+pit fills included, [Likely] reading the raw DEM rather than the W84 store. Active tiles: all tiles active from about
+6 h in every run (run 1 3,588 of 3,588, run 3 1,464 of 1,464, run 4 3,536 of 3,588); the step settles at 0.36 to 0.42 s
+with the pits filled (0.20 s in the first rerun, a pit's), the cell setting it named in each run's `step_limiter.gpkg`.
+
+### Checks
+
+| Run | Finished | Mass error | Water, Mm3 | Streams of 1 km2 or more leaving a closed edge | Streams under 1 km2 leaving |
+|---|---|---|---|---|---|
+| 1 | yes, products done | 2.3e-09 | rain 271.8, inflow 0.0, out 215.6, left 56.2 | none | 5 |
+| 3 | yes, products done | -1.3e-08 | rain 102.0, inflow 113.0, out 209.2, left 5.9 | none | 4 |
+| 4 | yes, products done | 6.0e-08 | rain 102.0, inflow 161.6, out 207.9, left 55.7 | none | 5 |
+
+No cell under a lumped subbasin rains in runs 3 and 4 (the engine's one-rainfall check; the domain has no rim, 13 cells
+outside every polygon away from the coast). Hybrid Lumped: the 26 left-out catchments (860.30 km2, 2,149,911 cells)
+hold no active cell; the five dam outflows enter 200 m below the dams unmoved, HAT-J4's moved 34 m to the lowest edge
+cell of its 8 catchments; its north line at Wadi HAT opens 0.4 of its 0.8 km (half lies on HAT-S8, now left out).
+
+### What there is to look at
+
+- `Block2_four_ways.qgz` (`scripts/s11_interim_qgis.py` with `W79_SET=rerun2`), in the plugin's group pattern: run 2
+  (Lumped) on top with its network labelled (peak, time to peak, ARF area and factor) and its series; then runs 1, 4 and
+  3, each with its pixel rasters of record, cell maps (which hold the aligned cells since W86), the cell grid and the
+  aligned cells (off), the edge checks, the step limiter, the dam lines' series, and the light time slider only (off;
+  hourly, cells whose max mean depth reached 0.1 m, aligned cells included, cells under 0.05 m empty); run 3's group
+  shows its catchments (HMS above the dams orange, above HAT-J4 red, rain on the grid blue, `scripts/s17_run3_catchments.py`).
+  Depth layers are drawn from 0.05 m. A common group: hillshade, domain, outlets, dams, HMS subbasins, the dam table.
+- `run2_dam_workbook.xlsx` and `run2_charts/`: Lumped the plugin's way without the plugin (the workbook from
+  `wadi2d workbook`; the element chart drawn headless).
+
+## The rerun (2026-11-15, superseded)
 
 Common to all four: FM_200yr.met (251 mm, 24 h, FM 10-1000yr pattern), his ARF FM table, 48 h, 5-min lumped step,
 dams empty at the start, the W79 domain to the sea (1,406 km2) with the sea, four side outlets and the north line at
@@ -33,7 +122,7 @@ Runs 3 and 4 needed an engine option: `hydrology.subbasins[].storm_area_km2`, a 
 `storm.arf_factor`, and by a depth-area study; a job without it keeps its hash). Check: run 3's five reservoirs equal
 run 2's to 0.1 m3/s.
 
-### Dam peaks (`dam_peaks.csv`, m3/s; times from the storm's start, h)
+### Dam peaks (`dam_peaks_rerun.csv`, m3/s; times from the storm's start, h)
 
 | Dam | ARF run 1 / 2-4 | Run 1 in / out | Run 2 in / out | Run 3 in / out | Run 4 in / out | Inflow time to peak, runs 1 / 2 / 4 |
 |---|---|---|---|---|---|---|
@@ -133,7 +222,7 @@ of runs 1, 3 and 4 is `scripts/s10_products.py <n> products`, which times each s
 GPU: one job at a time (`scripts/s09_run.py` waits for any other engine run and for W82's driver). The wait for W82's
 three jobs was 59 min (03:09 to 04:08).
 
-### What there is to look at
+### What there was to look at (the rerun)
 
 - `Block2_four_ways_interim_cells.qgz` (`scripts/s11_interim_qgis.py`), in the plugin's group pattern:
   - a common group: the 5 m hillshade, the domain, the outflow lines, the dams, the HMS subbasins, the aligned cells,
@@ -269,4 +358,6 @@ builds a job's grid tables into the cache on the CPU, timed. `s09_run.py <n>` ru
 engine run holds it, then checks it. `s10_products.py <n> [products|frames|both]` remakes products or the time-slider
 file, timing each stage and sampling memory. `s12` to `s15` are the run 2 charts, the aligned-cell maxima, the light
 slider and its timing test. `s16_domain_no_rim.py` writes the domain without the rim; every script works on the set
-named by `W79_SET` (`rerun`, the default, or `rerun2`). Run outputs are in `runs/` (out of git).
+named by `W79_SET` (`rerun`, the default, or `rerun2`). `s17_run3_catchments.py` writes Hybrid Lumped's catchment layer; `s11_interim_qgis.py`
+with `W79_SET=rerun2` builds the final `Block2_four_ways.qgz`. The interim project reads `dam_peaks.csv`, which now holds
+the final runs; the rerun's table is `dam_peaks_rerun.csv`. Run outputs are in `runs/` (out of git).
