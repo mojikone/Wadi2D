@@ -21,6 +21,7 @@ from .protocol import default_engine
 ENGINE_KEY = "wadi2d/engine"
 LAST_RUN_KEY = "wadi2d/last_run"
 LAST_FOLDER_KEY = "wadi2d/last_folder"
+DEPTH_CUTOFF_KEY = "wadi2d/depth_cutoff_m"
 
 
 def engine_text() -> str:
@@ -37,6 +38,17 @@ def last_run() -> str:
 
 def set_last_run(folder: str) -> None:
     QgsSettings().setValue(LAST_RUN_KEY, folder)
+
+
+def depth_cutoff() -> float:
+    """The depth below which the depth layers draw nothing, m (W88); the default lives in :mod:`style`."""
+    from .style import DEPTH_CUTOFF_M
+
+    return float(QgsSettings().value(DEPTH_CUTOFF_KEY, DEPTH_CUTOFF_M, type=float))
+
+
+def set_depth_cutoff(value: float) -> None:
+    QgsSettings().setValue(DEPTH_CUTOFF_KEY, float(value))
 
 
 def last_folder() -> str:
