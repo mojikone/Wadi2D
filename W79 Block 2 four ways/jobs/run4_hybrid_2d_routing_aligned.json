@@ -1,0 +1,4615 @@
+{
+ "project": {
+  "name": "run4_hybrid_2d_routing_aligned",
+  "description": "W79 Block 2 four ways: Hybrid, lumped subbasins, all routing and the dams on the grid"
+ },
+ "grid": {
+  "dx": 20.0,
+  "domain": "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\inputs\\domain.geojson",
+  "cache_dir": "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\runs\\cache"
+ },
+ "mesh": {
+  "enabled": false,
+  "coarse_dx": 40.0,
+  "min_dx": 5.0,
+  "analysis_pixel": 5.0,
+  "stream_area_fine_km2": 10.0,
+  "stream_area_mid_km2": 1.0,
+  "stream_pixels": 3,
+  "incision_depth": 0.5,
+  "incision_width": 200.0,
+  "break_depth": 0.0,
+  "break_share": 0.4,
+  "refine_lines": true,
+  "zones": [],
+  "lines": []
+ },
+ "strips": {
+  "enabled": true,
+  "generator": "centres",
+  "banks": "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\runs\\inputs\\suggest\\suggested_breaklines.gpkg"
+ },
+ "breaklines": {
+  "bank_rise_m": 2.0,
+  "bank_method": "rise",
+  "bank_slope": 0.05,
+  "bank_run_m": 40.0,
+  "bank_reach_m": 300.0,
+  "bank_scarp_m": 1.0,
+  "bank_scarp_run_m": 10.0,
+  "bank_slope_cap": true,
+  "bank_depth_map": null,
+  "bank_depth_m": 0.2,
+  "bank_dry_m": 10.0,
+  "bank_offset_cells": 1.0,
+  "section_step_m": 10.0,
+  "bank_jump_steps": 3.0,
+  "disc_radius_m": 40.0,
+  "crest_height_m": 0.5,
+  "ground_slope_max": 0.15,
+  "min_length_m": 100.0,
+  "road_length_m": 1000.0,
+  "road_straightness": 0.9,
+  "smooth_vertices": 5,
+  "simplify_pixels": 0.5
+ },
+ "terrain": {
+  "dem": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\Terrain\\GGC_2_MERGE_HDSM.tif",
+  "pixel_stride": 2,
+  "join_cells": 2.0,
+  "spillway_snap_cells": 1.0,
+  "burn_pixels": 2,
+  "spillway_stretch": 1.5,
+  "dyke_min_height": 0.05,
+  "crest_thin_ratio": 0.4,
+  "crest_eased_ratio": 1.5,
+  "crest_resolved_ratio": 2.0,
+  "crest_eased_coefficient": 2.0,
+  "crest_accurate_ratio": 0.5,
+  "volume_step": 50.0,
+  "preview_sections": 11,
+  "preview_points": 101,
+  "check_bed_length": 50.0,
+  "check_rise": 0.05,
+  "check_grade": 0.5,
+  "check_cells": 3.0,
+  "check_pixels": 2.0,
+  "check_tie_height": 0.3,
+  "objects": [
+   {
+    "kind": "crest_line",
+    "name": "Bidah 03",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ],
+     [
+      438800.2,
+      2726723.6
+     ],
+     [
+      438804.0,
+      2726713.5
+     ],
+     [
+      438814.8,
+      2726694.0
+     ],
+     [
+      438828.7,
+      2726674.3
+     ],
+     [
+      438854.3,
+      2726650.3
+     ],
+     [
+      438864.9,
+      2726625.5
+     ],
+     [
+      438859.8,
+      2726618.6
+     ],
+     [
+      438851.2,
+      2726603.5
+     ],
+     [
+      438843.2,
+      2726583.8
+     ],
+     [
+      438837.1,
+      2726568.1
+     ],
+     [
+      438823.4,
+      2726554.4
+     ],
+     [
+      438804.7,
+      2726543.3
+     ],
+     [
+      438734.6,
+      2726533.6
+     ],
+     [
+      438724.6943832304,
+      2726532.229322644
+     ]
+    ],
+    "z_constant": 107.39
+   },
+   {
+    "kind": "crest_line",
+    "name": "Bidah 03 part 2",
+    "coordinates": [
+     [
+      437652.7219230027,
+      2726911.019844357
+     ],
+     [
+      437647.8,
+      2726911.9
+     ],
+     [
+      437562.8,
+      2726927.1
+     ],
+     [
+      437552.9561539946,
+      2726928.8603112856
+     ]
+    ],
+    "z_constant": 107.39
+   },
+   {
+    "kind": "crest_line",
+    "name": "Bidah 03 part 3",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438147.3,
+      2727215.7
+     ],
+     [
+      438114.4,
+      2727197.5
+     ],
+     [
+      438029.0,
+      2727157.6
+     ],
+     [
+      438004.2,
+      2727143.4
+     ],
+     [
+      437921.6,
+      2727135.2
+     ],
+     [
+      437896.72228747344,
+      2727132.730299725
+     ]
+    ],
+    "z_constant": 107.39
+   },
+   {
+    "kind": "spillway",
+    "name": "Bidah 03 spillway",
+    "coordinates": [
+     [
+      438572.04178283754,
+      2726972.8066110923
+     ],
+     [
+      438624.6702294905,
+      2726923.671627599
+     ]
+    ],
+    "z_constant": 102.39,
+    "coefficient": 2.1,
+    "length": 72.0
+   },
+   {
+    "kind": "crest_line",
+    "name": "Faydh 01",
+    "coordinates": [
+     [
+      431003.28,
+      2734233.93
+     ],
+     [
+      431235.24,
+      2733997.1
+     ],
+     [
+      431244.34,
+      2733873.98
+     ],
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431054.16,
+      2733225.76
+     ],
+     [
+      431069.8,
+      2733186.8
+     ],
+     [
+      431061.7,
+      2733137.8
+     ]
+    ],
+    "z_constant": 237.39
+   },
+   {
+    "kind": "crest_line",
+    "name": "Faydh 01 part 2",
+    "coordinates": [
+     [
+      430983.8,
+      2733612.6
+     ],
+     [
+      430983.6,
+      2733580.1
+     ]
+    ],
+    "z_constant": 237.39
+   },
+   {
+    "kind": "spillway",
+    "name": "Faydh 01 spillway",
+    "coordinates": [
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431043.4275548163,
+      2733318.7037866996
+     ]
+    ],
+    "z_constant": 232.39,
+    "coefficient": 2.1,
+    "length": 207.0
+   },
+   {
+    "kind": "crest_line",
+    "name": "R5A",
+    "coordinates": [
+     [
+      438960.0,
+      2721850.0
+     ],
+     [
+      438975.1,
+      2721721.4
+     ],
+     [
+      439107.5,
+      2720389.9
+     ],
+     [
+      439154.4,
+      2719918.2
+     ],
+     [
+      439118.8,
+      2719462.1
+     ],
+     [
+      439110.0,
+      2719330.0
+     ]
+    ],
+    "z_constant": 146.0
+   },
+   {
+    "kind": "spillway",
+    "name": "R5A spillway 1",
+    "coordinates": [
+     [
+      439033.45618962834,
+      2721134.532428322
+     ],
+     [
+      439047.45837022754,
+      2720993.717447447
+     ]
+    ],
+    "z_constant": 143.0,
+    "coefficient": 2.05,
+    "length": 141.51
+   },
+   {
+    "kind": "spillway",
+    "name": "R5A spillway 2",
+    "coordinates": [
+     [
+      439117.21635115525,
+      2720292.177124948
+     ],
+     [
+      439127.9503809986,
+      2720184.2188759693
+     ]
+    ],
+    "z_constant": 143.0,
+    "coefficient": 2.05,
+    "length": 108.49
+   },
+   {
+    "kind": "crest_line",
+    "name": "R2A",
+    "coordinates": [
+     [
+      438465.6475775489,
+      2716856.4787089373
+     ],
+     [
+      438485.6,
+      2716855.1
+     ],
+     [
+      439178.8,
+      2716807.2
+     ],
+     [
+      440331.5,
+      2715435.3
+     ],
+     [
+      440420.0,
+      2715330.0
+     ],
+     [
+      440458.6037996368,
+      2715284.0680214493
+     ]
+    ],
+    "z_constant": 165.0
+   },
+   {
+    "kind": "spillway",
+    "name": "R2A spillway 1",
+    "coordinates": [
+     [
+      439399.31654070626,
+      2716544.7495426433
+     ],
+     [
+      439453.80711906275,
+      2716479.896914512
+     ]
+    ],
+    "z_constant": 162.0,
+    "coefficient": 2.05,
+    "length": 84.71
+   },
+   {
+    "kind": "spillway",
+    "name": "R2A spillway 2",
+    "coordinates": [
+     [
+      439894.46183084114,
+      2715955.4463210455
+     ],
+     [
+      439942.8979004913,
+      2715897.799540484
+     ]
+    ],
+    "z_constant": 162.0,
+    "coefficient": 2.05,
+    "length": 75.29
+   },
+   {
+    "kind": "crest_line",
+    "name": "Z4C",
+    "coordinates": [
+     [
+      440030.0,
+      2711065.0
+     ],
+     [
+      440139.9,
+      2711053.6
+     ],
+     [
+      440335.3,
+      2711037.5
+     ],
+     [
+      440485.5,
+      2711023.1
+     ],
+     [
+      440996.7,
+      2710733.6
+     ],
+     [
+      440967.1,
+      2710405.7
+     ],
+     [
+      440773.7,
+      2710135.6
+     ],
+     [
+      440700.0,
+      2710030.0
+     ]
+    ],
+    "z_constant": 170.0
+   },
+   {
+    "kind": "spillway",
+    "name": "Z4C spillway",
+    "coordinates": [
+     [
+      440984.1062623008,
+      2710594.090317853
+     ],
+     [
+      440949.143521543,
+      2710380.622208732
+     ]
+    ],
+    "z_constant": 167.0,
+    "coefficient": 2.05,
+    "length": 220.0
+   }
+  ],
+  "manning": 0.04,
+  "manning_raster": "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\runs\\inputs\\manning_hills_100.tif",
+  "cn_raster": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Hydrology Data\\CN_Include_Hill_Area.tif"
+ },
+ "tables": {
+  "rows": 16,
+  "face_depth_max": 16.0,
+  "face_depth_min": 8.0,
+  "face_conveyance": "local_radius",
+  "local_radius_beta": 9.0,
+  "crest_tolerance": 0.05
+ },
+ "numerics": {
+  "cfl": 0.45,
+  "limiter": "minmod",
+  "sheet_flow": true,
+  "mirror_dry_faces": true,
+  "face_depth_carry": true,
+  "e_wet": 0.0001,
+  "h_cfl": 0.01,
+  "u_max": 25.0,
+  "dt_max": 5.0,
+  "dt_min": 0.001,
+  "dt_every": 8,
+  "wave_floor": 3.0,
+  "plan_min": 0.02,
+  "active_every": 16,
+  "local_time_stepping": false,
+  "lts_levels": 3,
+  "lts_wave_floor": 1.0,
+  "lts_buffer": 1.0
+ },
+ "storm": {
+  "kind": "hypothetical",
+  "depth_mm": 251.0,
+  "depth_grid": null,
+  "duration_min": 1440.0,
+  "time_percent": [
+   0.0,
+   0.69,
+   1.39,
+   2.08,
+   2.78,
+   3.47,
+   4.17,
+   4.86,
+   5.56,
+   6.25,
+   6.94,
+   7.64,
+   8.33,
+   9.03,
+   9.72,
+   10.42,
+   11.11,
+   11.81,
+   12.5,
+   13.19,
+   13.89,
+   14.58,
+   15.28,
+   15.97,
+   16.67,
+   17.36,
+   18.06,
+   18.75,
+   19.44,
+   20.14,
+   20.83,
+   21.53,
+   22.22,
+   22.92,
+   23.61,
+   24.31,
+   25.0,
+   25.69,
+   26.39,
+   27.08,
+   27.78,
+   28.47,
+   29.17,
+   29.86,
+   30.56,
+   31.25,
+   31.94,
+   32.64,
+   33.33,
+   34.03,
+   34.72,
+   35.42,
+   36.11,
+   36.81,
+   37.5,
+   38.19,
+   38.89,
+   39.58,
+   40.28,
+   40.97,
+   41.67,
+   42.36,
+   43.06,
+   43.75,
+   44.44,
+   45.14,
+   45.83,
+   46.53,
+   47.22,
+   47.92,
+   48.61,
+   49.31,
+   50.0,
+   50.69,
+   51.39,
+   52.08,
+   52.78,
+   53.47,
+   54.17,
+   54.86,
+   55.56,
+   56.25,
+   56.94,
+   57.64,
+   58.33,
+   59.03,
+   59.72,
+   60.42,
+   61.11,
+   61.81,
+   62.5,
+   63.19,
+   63.89,
+   64.58,
+   65.28,
+   65.97,
+   66.67,
+   67.36,
+   68.06,
+   68.75,
+   69.44,
+   70.14,
+   70.83,
+   71.53,
+   72.22,
+   72.92,
+   73.61,
+   74.31,
+   75.0,
+   75.69,
+   76.39,
+   77.08,
+   77.78,
+   78.47,
+   79.17,
+   79.86,
+   80.56,
+   81.25,
+   81.94,
+   82.64,
+   83.33,
+   84.03,
+   84.72,
+   85.42,
+   86.11,
+   86.81,
+   87.5,
+   88.19,
+   88.89,
+   89.58,
+   90.28,
+   90.97,
+   91.67,
+   92.36,
+   93.06,
+   93.75,
+   94.44,
+   95.14,
+   95.83,
+   96.53,
+   97.22,
+   97.92,
+   98.61,
+   99.31,
+   100.0
+  ],
+  "depth_percent": [
+   0.0,
+   0.16,
+   0.33,
+   0.49,
+   0.66,
+   0.83,
+   1.0,
+   1.18,
+   1.35,
+   1.53,
+   1.71,
+   1.9,
+   2.08,
+   2.27,
+   2.46,
+   2.66,
+   2.85,
+   3.05,
+   3.25,
+   3.46,
+   3.67,
+   3.88,
+   4.1,
+   4.32,
+   4.54,
+   4.77,
+   5.0,
+   5.24,
+   5.48,
+   5.72,
+   5.97,
+   6.23,
+   6.49,
+   6.75,
+   7.02,
+   7.3,
+   7.58,
+   7.88,
+   8.17,
+   8.48,
+   8.79,
+   9.12,
+   9.45,
+   9.79,
+   10.14,
+   10.51,
+   10.88,
+   11.27,
+   11.67,
+   12.09,
+   12.52,
+   12.98,
+   13.45,
+   13.94,
+   14.46,
+   15.01,
+   15.59,
+   16.2,
+   16.86,
+   17.56,
+   18.31,
+   19.13,
+   20.04,
+   21.04,
+   22.17,
+   23.46,
+   24.99,
+   26.86,
+   29.27,
+   32.7,
+   38.58,
+   55.55,
+   64.45,
+   68.79,
+   71.63,
+   73.73,
+   75.41,
+   76.81,
+   78.02,
+   79.08,
+   80.03,
+   80.89,
+   81.68,
+   82.4,
+   83.08,
+   83.71,
+   84.31,
+   84.87,
+   85.4,
+   85.91,
+   86.39,
+   86.86,
+   87.3,
+   87.72,
+   88.13,
+   88.53,
+   88.91,
+   89.28,
+   89.64,
+   89.99,
+   90.32,
+   90.65,
+   90.97,
+   91.28,
+   91.58,
+   91.87,
+   92.16,
+   92.44,
+   92.72,
+   92.99,
+   93.25,
+   93.51,
+   93.76,
+   94.0,
+   94.25,
+   94.49,
+   94.72,
+   94.95,
+   95.17,
+   95.4,
+   95.61,
+   95.83,
+   96.04,
+   96.25,
+   96.45,
+   96.65,
+   96.85,
+   97.04,
+   97.24,
+   97.43,
+   97.61,
+   97.8,
+   97.98,
+   98.16,
+   98.34,
+   98.51,
+   98.69,
+   98.86,
+   99.03,
+   99.19,
+   99.36,
+   99.52,
+   99.68,
+   99.84,
+   100.0
+  ],
+  "storm_area_km2": 1370.7741,
+  "arf": {
+   "areas_km2": [
+    1.0,
+    5.0,
+    10.0,
+    20.0,
+    30.0,
+    40.0,
+    50.0,
+    100.0,
+    200.0,
+    500.0,
+    1000.0,
+    2000.0
+   ],
+   "factors": [
+    0.999,
+    0.994,
+    0.987,
+    0.976,
+    0.965,
+    0.956,
+    0.948,
+    0.913,
+    0.864,
+    0.776,
+    0.694,
+    0.606
+   ],
+   "table_type": "ARF FM of his HMS project, read here at the whole block's area (Basin 3, 1,370.77 km2); his met file names 300 km2",
+   "reduces_below_table": false
+  },
+  "hyetograph_min": null,
+  "hyetograph_mm": null,
+  "rain_file": null,
+  "rain_variable": null,
+  "rain_units": "auto",
+  "rain_interval_min": null,
+  "rain_stamp": "end",
+  "rain_start": null,
+  "gauges": null
+ },
+ "hydrology": {
+  "hms_basin": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Basin_3.basin",
+  "reach_routing": "hms",
+  "hms_project": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\HEC_HMS_Block_02.hms",
+  "hms_sqlite": "D:\\Mojtaba\\Renardet\\2224 WS11\\Batinah\\Block 2\\Hydrology\\HEC_HMS_Block_02\\Basin_3.sqlite",
+  "basin_json": null,
+  "polygons": null,
+  "time_step_min": 5.0,
+  "curve_number": 88.0,
+  "subbasins": [
+   {
+    "name": "S1",
+    "mode": "lumped",
+    "outlet": [
+     424978.48973783385,
+     2705532.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S2",
+    "mode": "lumped",
+    "outlet": [
+     424978.48973783385,
+     2705532.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S3",
+    "mode": "lumped",
+    "outlet": [
+     434685.98973783385,
+     2707602.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S4",
+    "mode": "lumped",
+    "outlet": [
+     440980.7975906776,
+     2710482.8704297966
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S5",
+    "mode": "lumped",
+    "outlet": [
+     429890.98973783385,
+     2713480.393463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S6",
+    "mode": "lumped",
+    "outlet": [
+     432065.98973783385,
+     2719027.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S7",
+    "mode": "lumped",
+    "outlet": [
+     438933.48973783385,
+     2716112.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S8",
+    "mode": "lumped",
+    "outlet": [
+     438933.48973783385,
+     2716112.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S9",
+    "mode": "lumped",
+    "outlet": [
+     439959.5340407492,
+     2715889.829699119
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S10",
+    "mode": "lumped",
+    "outlet": [
+     439959.5340407492,
+     2715889.829699119
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S11",
+    "mode": "lumped",
+    "outlet": [
+     428615.98973783385,
+     2731952.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S12",
+    "mode": "lumped",
+    "outlet": [
+     431033.05835721164,
+     2733411.86977666
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S13",
+    "mode": "lumped",
+    "outlet": [
+     438602.1048061085,
+     2727064.1474835714
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S14",
+    "mode": "lumped",
+    "outlet": [
+     425995.98973783385,
+     2724320.393463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S15",
+    "mode": "lumped",
+    "outlet": [
+     433255.98973783385,
+     2723570.393463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S16",
+    "mode": "lumped",
+    "outlet": [
+     439053.72236598,
+     2721052.7148760734
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S17",
+    "mode": "lumped",
+    "outlet": [
+     439053.72236598,
+     2721052.7148760734
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "S18",
+    "mode": "lumped",
+    "outlet": [
+     439053.72236598,
+     2721052.7148760734
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S35",
+    "mode": "lumped",
+    "outlet": [
+     454333.38,
+     2720055.84
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S28",
+    "mode": "lumped",
+    "outlet": [
+     451789.422,
+     2723210.449
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S26",
+    "mode": "lumped",
+    "outlet": [
+     452245.42323789856,
+     2721283.4396769404
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S24",
+    "mode": "lumped",
+    "outlet": [
+     451413.38514515274,
+     2723508.036206247
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S33",
+    "mode": "lumped",
+    "outlet": [
+     452287.4969517383,
+     2723953.36478782
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S22",
+    "mode": "lumped",
+    "outlet": [
+     450366.1,
+     2725346.592
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S21",
+    "mode": "lumped",
+    "outlet": [
+     450533.65347095346,
+     2724932.6094301087
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S30",
+    "mode": "lumped",
+    "outlet": [
+     451238.8715625525,
+     2725042.052096467
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S19",
+    "mode": "lumped",
+    "outlet": [
+     453533.9020605549,
+     2718267.307424826
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S18",
+    "mode": "lumped",
+    "outlet": [
+     450052.609102277,
+     2721607.38273139
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S27",
+    "mode": "lumped",
+    "outlet": [
+     452235.8190790462,
+     2721322.2695640475
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S31",
+    "mode": "lumped",
+    "outlet": [
+     453504.76783100725,
+     2721557.642835603
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S15",
+    "mode": "lumped",
+    "outlet": [
+     448986.179047082,
+     2717234.88324389
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S11",
+    "mode": "lumped",
+    "outlet": [
+     445263.48973783385,
+     2717402.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S16",
+    "mode": "lumped",
+    "outlet": [
+     449227.908,
+     2718797.14
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S17",
+    "mode": "lumped",
+    "outlet": [
+     450339.09783594654,
+     2718285.40444919
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S25",
+    "mode": "lumped",
+    "outlet": [
+     452942.9444809072,
+     2718793.9923885176
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S32",
+    "mode": "lumped",
+    "outlet": [
+     454733.9255580022,
+     2719402.066312854
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S12",
+    "mode": "lumped",
+    "outlet": [
+     444349.643,
+     2720687.017
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S13",
+    "mode": "lumped",
+    "outlet": [
+     444349.643,
+     2720687.017
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S23",
+    "mode": "lumped",
+    "outlet": [
+     450805.0754034025,
+     2724385.184066567
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S34",
+    "mode": "lumped",
+    "outlet": [
+     451688.0476235789,
+     2724928.198650874
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S1",
+    "mode": "lumped",
+    "outlet": [
+     411198.48973783385,
+     2727527.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S2",
+    "mode": "lumped",
+    "outlet": [
+     411198.48973783385,
+     2727527.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S3",
+    "mode": "lumped",
+    "outlet": [
+     414128.48973783385,
+     2729837.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S4",
+    "mode": "lumped",
+    "outlet": [
+     414128.48973783385,
+     2729837.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S5",
+    "mode": "lumped",
+    "outlet": [
+     418253.48973783385,
+     2737577.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S6",
+    "mode": "lumped",
+    "outlet": [
+     418253.48973783385,
+     2737577.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S7",
+    "mode": "lumped",
+    "outlet": [
+     427883.48973783385,
+     2740317.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S8",
+    "mode": "lumped",
+    "outlet": [
+     427883.48973783385,
+     2740317.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S9",
+    "mode": "lumped",
+    "outlet": [
+     434753.48973783385,
+     2738867.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S10",
+    "mode": "lumped",
+    "outlet": [
+     434753.48973783385,
+     2738867.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "HAT-S11",
+    "mode": "lumped",
+    "outlet": [
+     442128.48973783385,
+     2740137.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S6",
+    "mode": "lumped",
+    "outlet": [
+     454484.423,
+     2717077.743
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "RIJ-S20",
+    "mode": "lumped",
+    "outlet": [
+     454269.48597774375,
+     2717616.5369588938
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S9",
+    "mode": "lumped",
+    "outlet": [
+     455001.5781605642,
+     2717857.570467271
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S10",
+    "mode": "lumped",
+    "outlet": [
+     455407.41941289295,
+     2718331.6234644125
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S5",
+    "mode": "lumped",
+    "outlet": [
+     449333.48973783385,
+     2713572.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S7",
+    "mode": "lumped",
+    "outlet": [
+     454778.689,
+     2716323.021
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S8",
+    "mode": "lumped",
+    "outlet": [
+     454778.689,
+     2716323.021
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FIZ-S11",
+    "mode": "lumped",
+    "outlet": [
+     456051.51862589933,
+     2717307.738935071
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FAY-S4",
+    "mode": "lumped",
+    "outlet": [
+     444713.49219496717,
+     2738212.889480425
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FAY-S6",
+    "mode": "lumped",
+    "outlet": [
+     445660.4448673525,
+     2738254.094534369
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FAY-S3",
+    "mode": "lumped",
+    "outlet": [
+     442259.0104448171,
+     2738606.7269883333
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FAY-S5",
+    "mode": "lumped",
+    "outlet": [
+     444772.5268599177,
+     2739469.0283856206
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "FAY-S7",
+    "mode": "lumped",
+    "outlet": [
+     445415.8199360605,
+     2739288.2965706284
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S32",
+    "mode": "lumped",
+    "outlet": [
+     447192.07309167087,
+     2730102.3181962874
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S22",
+    "mode": "lumped",
+    "outlet": [
+     449003.2937949376,
+     2727190.7427562242
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S20",
+    "mode": "lumped",
+    "outlet": [
+     448966.57384713803,
+     2727203.5080958353
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S42",
+    "mode": "lumped",
+    "outlet": [
+     449887.3510011802,
+     2727877.764817428
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S25",
+    "mode": "lumped",
+    "outlet": [
+     446319.2159468622,
+     2729637.741156264
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S27",
+    "mode": "lumped",
+    "outlet": [
+     444348.8612190189,
+     2736893.9766309643
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S28",
+    "mode": "lumped",
+    "outlet": [
+     445229.58501880796,
+     2736440.682350824
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S26",
+    "mode": "lumped",
+    "outlet": [
+     446266.97075228434,
+     2729688.72103181
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S24",
+    "mode": "lumped",
+    "outlet": [
+     444753.44714549236,
+     2733952.529630565
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S38",
+    "mode": "lumped",
+    "outlet": [
+     445589.99735121836,
+     2734117.7326872237
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S23",
+    "mode": "lumped",
+    "outlet": [
+     444893.9123758838,
+     2733286.2757373243
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S41",
+    "mode": "lumped",
+    "outlet": [
+     445725.6968238715,
+     2733861.08955842
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S21",
+    "mode": "lumped",
+    "outlet": [
+     444648.6695035129,
+     2734456.670625889
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S34",
+    "mode": "lumped",
+    "outlet": [
+     445413.7638276047,
+     2734795.683509446
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S19",
+    "mode": "lumped",
+    "outlet": [
+     446205.40101798053,
+     2729680.180288864
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S18",
+    "mode": "lumped",
+    "outlet": [
+     446851.42645463423,
+     2729034.5238237465
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S16",
+    "mode": "lumped",
+    "outlet": [
+     446203.2990812114,
+     2729873.958292756
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S31",
+    "mode": "lumped",
+    "outlet": [
+     447119.4197226277,
+     2729794.573404731
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S35",
+    "mode": "lumped",
+    "outlet": [
+     447317.8438813723,
+     2729923.553971879
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S15",
+    "mode": "lumped",
+    "outlet": [
+     444358.5835863723,
+     2735839.398590664
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S29",
+    "mode": "lumped",
+    "outlet": [
+     445007.8919643409,
+     2735940.596390342
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S13",
+    "mode": "lumped",
+    "outlet": [
+     444473.7128031466,
+     2735297.415830356
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S17",
+    "mode": "lumped",
+    "outlet": [
+     444994.0194318349,
+     2735553.897308938
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S36",
+    "mode": "lumped",
+    "outlet": [
+     445483.5733261742,
+     2735644.8915857933
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S40",
+    "mode": "lumped",
+    "outlet": [
+     446089.94,
+     2734629.547
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S12",
+    "mode": "lumped",
+    "outlet": [
+     445129.69358632795,
+     2732271.53205656
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S39",
+    "mode": "lumped",
+    "outlet": [
+     446165.0809020649,
+     2732736.3742719977
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S10",
+    "mode": "lumped",
+    "outlet": [
+     447438.55728078645,
+     2728442.8258503424
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S33",
+    "mode": "lumped",
+    "outlet": [
+     448081.6786662525,
+     2729259.915723599
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S8",
+    "mode": "lumped",
+    "outlet": [
+     444079.2294927919,
+     2732697.1436947654
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S6",
+    "mode": "lumped",
+    "outlet": [
+     443516.6648831633,
+     2732353.0971574583
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S7",
+    "mode": "lumped",
+    "outlet": [
+     443513.3787192919,
+     2732387.657769986
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S14",
+    "mode": "lumped",
+    "outlet": [
+     444953.313271702,
+     2733008.5432485645
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S37",
+    "mode": "lumped",
+    "outlet": [
+     446012.9229844847,
+     2733101.8596342257
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S3",
+    "mode": "lumped",
+    "outlet": [
+     441493.48973783385,
+     2730432.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S4",
+    "mode": "lumped",
+    "outlet": [
+     441493.48973783385,
+     2730432.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S5",
+    "mode": "lumped",
+    "outlet": [
+     444033.48973783385,
+     2730162.893463373
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S9",
+    "mode": "lumped",
+    "outlet": [
+     445052.663,
+     2730425.741
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S11",
+    "mode": "lumped",
+    "outlet": [
+     445705.41311653616,
+     2730750.7626709808
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   },
+   {
+    "name": "BID-S30",
+    "mode": "lumped",
+    "outlet": [
+     446711.33354550035,
+     2731399.6347555574
+    ],
+    "entry": "wadi",
+    "curve_number": null,
+    "parameters": null
+   }
+  ],
+  "inflows": [],
+  "handbacks": [],
+  "inject_radius": 30.0,
+  "inject_min_depth": 0.1,
+  "inject_max_offset": 200.0,
+  "entry_erode_m": 80.0,
+  "overlap_share": 0.01
+ },
+ "transmission": {
+  "enabled": false,
+  "rate_mm_h": 25.0,
+  "max_depth_mm": null,
+  "min_depth_m": 0.1,
+  "water_share": 0.5,
+  "area": null
+ },
+ "boundaries": [
+  {
+   "kind": "normal",
+   "slope": 0.003,
+   "coordinates": [
+    [
+     445417.56817671977,
+     2741264.7748065526
+    ],
+    [
+     446070.5,
+     2739151.25
+    ],
+    [
+     446238.02,
+     2738579.13
+    ],
+    [
+     447351.3,
+     2734409.25
+    ],
+    [
+     448548.36,
+     2731659.79
+    ],
+    [
+     451924.99,
+     2725156.51
+    ],
+    [
+     451972.99,
+     2725112.74
+    ],
+    [
+     452124.82,
+     2724824.72
+    ],
+    [
+     452242.44,
+     2724503.81
+    ],
+    [
+     452423.42,
+     2724110.11
+    ],
+    [
+     452517.27,
+     2723942.96
+    ],
+    [
+     452858.28,
+     2723151.5
+    ],
+    [
+     453125.1,
+     2722597.2
+    ],
+    [
+     453300.17,
+     2722199.42
+    ],
+    [
+     453520.17,
+     2721785.0
+    ],
+    [
+     454175.35,
+     2720685.95
+    ],
+    [
+     454981.27,
+     2719247.59
+    ],
+    [
+     456478.0010504824,
+     2716971.012594789
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.0057,
+   "coordinates": [
+    [
+     432196.5467618186,
+     2740900.19853457
+    ],
+    [
+     432350.4292655763,
+     2740930.4892031183
+    ],
+    [
+     432394.6802716341,
+     2740929.5398766273
+    ],
+    [
+     432434.00965416664,
+     2740913.227110556
+    ],
+    [
+     432457.6193611484,
+     2740886.710237554
+    ],
+    [
+     432465.85920290527,
+     2740845.356572857
+    ],
+    [
+     432483.3738000076,
+     2740834.8032979844
+    ],
+    [
+     432538.5216307451,
+     2740838.4844759437
+    ],
+    [
+     432570.27505143266,
+     2740806.440137429
+    ],
+    [
+     432617.9777592658,
+     2740820.379556681
+    ],
+    [
+     432658.63832698064,
+     2740811.5786055587
+    ],
+    [
+     432685.54087381205,
+     2740826.093561667
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.005,
+   "coordinates": [
+    [
+     455021.66781673604,
+     2715987.818593838
+    ],
+    [
+     455010.9991869125,
+     2715985.293460013
+    ],
+    [
+     454988.29706544103,
+     2715991.6098275757
+    ],
+    [
+     454592.95197565155,
+     2715731.691025698
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.005,
+   "coordinates": [
+    [
+     454255.25147079624,
+     2715474.160606724
+    ],
+    [
+     454229.1900782357,
+     2715442.2318775347
+    ],
+    [
+     453809.8093393168,
+     2715248.7299037464
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.005,
+   "coordinates": [
+    [
+     453938.5876848148,
+     2715308.1481405003
+    ],
+    [
+     453603.83668125235,
+     2715153.6942662382
+    ],
+    [
+     453481.1215214851,
+     2715107.3477856326
+    ]
+   ]
+  },
+  {
+   "kind": "normal",
+   "slope": 0.005,
+   "coordinates": [
+    [
+     438825.9377813717,
+     2740561.2459151447
+    ],
+    [
+     438895.24371667573,
+     2740594.026309454
+    ],
+    [
+     438947.9640026208,
+     2740605.3787284605
+    ],
+    [
+     438984.4389983016,
+     2740600.4623289555
+    ],
+    [
+     439020.9774355597,
+     2740620.178437809
+    ],
+    [
+     439050.9954424969,
+     2740615.2922521997
+    ],
+    [
+     439086.5634107066,
+     2740620.512871025
+    ],
+    [
+     439116.47828373,
+     2740637.775161554
+    ],
+    [
+     439164.1042208106,
+     2740649.8974294243
+    ],
+    [
+     439188.5216307451,
+     2740648.4844759437
+    ],
+    [
+     439214.41612831084,
+     2740633.896785927
+    ],
+    [
+     439248.51426930516,
+     2740633.486794333
+    ],
+    [
+     439290.42056254356,
+     2740610.5125140157
+    ],
+    [
+     439318.90793542046,
+     2740613.114967894
+    ]
+   ]
+  }
+ ],
+ "initial_levels": [],
+ "dam_levels": [],
+ "breaches": [],
+ "outputs": {
+  "map_every_s": 900.0,
+  "series_every_s": 60.0,
+  "live_every_s": 0.0,
+  "live_stride": 2,
+  "hazard": "dv",
+  "maxima_every": 4,
+  "arrival_depth": 0.1,
+  "speed_depth": 0.05,
+  "wet_depth": 0.1,
+  "edge_depth": 3.0,
+  "edge_check": {
+   "enabled": true,
+   "stream_km2": 0.25,
+   "pixel_m": 10.0,
+   "beyond_m": 1000.0,
+   "max_pixels": 6000000,
+   "line_reach_m": 150.0,
+   "cluster_m": 200.0,
+   "flat_m": 0.3,
+   "pool_cells": 5,
+   "max_listed": 10
+  },
+  "progress_every_s": 2.0,
+  "frame_bytes_per_cell": 10.0,
+  "face_discharge": true,
+  "pixels": {
+   "enabled": true,
+   "pixel_m": 0.0,
+   "cell_depth": 0.05,
+   "depth_floor": 0.05,
+   "hazard_limits": [
+    [
+     0.3,
+     0.3,
+     2.0
+    ],
+    [
+     0.6,
+     0.5,
+     2.0
+    ],
+    [
+     0.6,
+     1.2,
+     2.0
+    ],
+    [
+     1.0,
+     2.0,
+     2.0
+    ],
+    [
+     4.0,
+     4.0,
+     4.0
+    ]
+   ],
+   "link_margin": 0.01,
+   "link_ratio": 0.5,
+   "edge_band": 0.3,
+   "edge_passes": 3,
+   "peak_lift": 3.0,
+   "batch_pixels": 50000000
+  },
+  "smooth": {
+   "enabled": false,
+   "sigma_px": 1.0,
+   "speckle_m2": 500.0,
+   "simplify_px": 0.1,
+   "block_px": 4096,
+   "workers": 0,
+   "domain_sigma_cells": 0.8,
+   "depth_scale": 2,
+   "depth_sigma_px": 0.7,
+   "wet_edge_px": 1.0
+  },
+  "slider": {
+   "cell_pixels": 4.0,
+   "ground_wait_s": 0.4,
+   "ground_cache_mb": 2048.0,
+   "ground_workers": 0,
+   "frames_held": 3,
+   "max_pixels": 16000000
+  },
+  "terrain_map": false,
+  "points": [],
+  "lines": [
+   {
+    "name": "Bidah 03",
+    "coordinates": [
+     [
+      438259.32,
+      2727264.77
+     ],
+     [
+      438807.68,
+      2726752.81
+     ]
+    ]
+   },
+   {
+    "name": "Faydh 01",
+    "coordinates": [
+     [
+      431003.28,
+      2734233.93
+     ],
+     [
+      431235.24,
+      2733997.1
+     ],
+     [
+      431244.34,
+      2733873.98
+     ],
+     [
+      431019.77,
+      2733523.58
+     ],
+     [
+      431054.16,
+      2733225.76
+     ]
+    ]
+   },
+   {
+    "name": "R5A",
+    "coordinates": [
+     [
+      438960.0,
+      2721850.0
+     ],
+     [
+      438975.1,
+      2721721.4
+     ],
+     [
+      439107.5,
+      2720389.9
+     ],
+     [
+      439154.4,
+      2719918.2
+     ],
+     [
+      439118.8,
+      2719462.1
+     ],
+     [
+      439110.0,
+      2719330.0
+     ]
+    ]
+   },
+   {
+    "name": "R2A",
+    "coordinates": [
+     [
+      438485.6,
+      2716855.1
+     ],
+     [
+      439178.8,
+      2716807.2
+     ],
+     [
+      440331.5,
+      2715435.3
+     ],
+     [
+      440420.0,
+      2715330.0
+     ]
+    ]
+   },
+   {
+    "name": "Z4C",
+    "coordinates": [
+     [
+      440030.0,
+      2711065.0
+     ],
+     [
+      440139.9,
+      2711053.6
+     ],
+     [
+      440335.3,
+      2711037.5
+     ],
+     [
+      440485.5,
+      2711023.1
+     ],
+     [
+      440996.7,
+      2710733.6
+     ],
+     [
+      440967.1,
+      2710405.7
+     ],
+     [
+      440773.7,
+      2710135.6
+     ],
+     [
+      440700.0,
+      2710030.0
+     ]
+    ]
+   },
+   {
+    "name": "Bidah 03 inflow",
+    "coordinates": [
+     [
+      438624.7802902198,
+      2726529.17780124
+     ],
+     [
+      438598.434,
+      2726517.98677
+     ],
+     [
+      438513.41614,
+      2726412.96706
+     ],
+     [
+      438418.434,
+      2726367.98677
+     ],
+     [
+      438325.28661,
+      2726265.0308
+     ],
+     [
+      438285.87791,
+      2726157.05925
+     ],
+     [
+      438170.79336,
+      2726070.58991
+     ],
+     [
+      438093.41614,
+      2725947.96706
+     ],
+     [
+      437980.87577,
+      2725901.27647
+     ],
+     [
+      437911.87077,
+      2725845.68238
+     ],
+     [
+      437868.02873,
+      2725849.96069
+     ],
+     [
+      437777.92614,
+      2725899.01284
+     ],
+     [
+      437723.07446,
+      2725957.10966
+     ],
+     [
+      437717.14262,
+      2726002.09888
+     ],
+     [
+      437838.56333,
+      2726137.81987
+     ],
+     [
+      437913.54545,
+      2726167.80014
+     ],
+     [
+      437971.9984,
+      2726236.40213
+     ],
+     [
+      437903.02873,
+      2726229.96069
+     ],
+     [
+      437869.60911,
+      2726252.32987
+     ],
+     [
+      437856.23537,
+      2726285.39346
+     ],
+     [
+      437790.442,
+      2726285.66601
+     ],
+     [
+      437726.35239,
+      2726251.09659
+     ],
+     [
+      437670.77725,
+      2726136.06817
+     ],
+     [
+      437660.70082,
+      2725974.51243
+     ],
+     [
+      437642.37037,
+      2725922.32987
+     ],
+     [
+      437591.87077,
+      2725890.68238
+     ],
+     [
+      437526.00899,
+      2725910.78534
+     ],
+     [
+      437454.28432,
+      2725896.54635
+     ],
+     [
+      437378.57332,
+      2725962.97638
+     ],
+     [
+      437391.39207,
+      2726087.03911
+     ],
+     [
+      437339.27354,
+      2726042.47819
+     ],
+     [
+      437294.28432,
+      2726036.54635
+     ],
+     [
+      437198.07446,
+      2726122.10966
+     ],
+     [
+      437181.27865,
+      2726226.27449
+     ],
+     [
+      437223.77757,
+      2726282.40555
+     ],
+     [
+      437215.98974,
+      2726360.39346
+     ],
+     [
+      437110.98974,
+      2726372.3716
+     ],
+     [
+      437010.10871,
+      2726350.68238
+     ],
+     [
+      436933.02873,
+      2726374.96069
+     ],
+     [
+      436897.14262,
+      2726418.68804
+     ],
+     [
+      436962.92614,
+      2726566.77409
+     ],
+     [
+      437085.48,
+      2726604.41794
+     ],
+     [
+      437118.96458,
+      2726633.90404
+     ],
+     [
+      437139.96409,
+      2726669.08944
+     ],
+     [
+      437142.70375,
+      2726722.89347
+     ],
+     [
+      437121.27865,
+      2726791.27449
+     ],
+     [
+      437147.65552,
+      2726835.28164
+     ],
+     [
+      437215.98974,
+      2726865.39346
+     ],
+     [
+      437333.54545,
+      2726842.80014
+     ],
+     [
+      437454.724543293,
+      2726947.3628838127
+     ]
+    ]
+   },
+   {
+    "name": "Faydh 01 inflow",
+    "coordinates": [
+     [
+      431049.4308164611,
+      2733038.6733322768
+     ],
+     [
+      431051.27077,
+      2733007.11164
+     ],
+     [
+      431094.83685,
+      2732947.09888
+     ],
+     [
+      431084.83685,
+      2732853.68804
+     ],
+     [
+      431054.27354,
+      2732812.47819
+     ],
+     [
+      430980.42031,
+      2732798.16554
+     ],
+     [
+      430958.81142,
+      2732716.95351
+     ],
+     [
+      430988.90501,
+      2732683.67727
+     ],
+     [
+      431096.42251,
+      2732468.35447
+     ],
+     [
+      431130.70082,
+      2732296.27449
+     ],
+     [
+      431120.87791,
+      2732252.05925
+     ],
+     [
+      431047.37037,
+      2732147.32987
+     ],
+     [
+      431005.98974,
+      2732117.3716
+     ],
+     [
+      431089.83685,
+      2731962.09888
+     ],
+     [
+      431090.70082,
+      2731779.51243
+     ],
+     [
+      431064.05333,
+      2731734.01284
+     ],
+     [
+      431015.98974,
+      2731720.39346
+     ],
+     [
+      430930.47021,
+      2731740.41898
+     ],
+     [
+      430823.95074,
+      2731649.96069
+     ],
+     [
+      430750.98974,
+      2731640.39346
+     ],
+     [
+      430712.35767,
+      2731654.52807
+     ],
+     [
+      430648.95074,
+      2731579.96069
+     ],
+     [
+      430604.28432,
+      2731576.54635
+     ],
+     [
+      430569.60911,
+      2731597.32987
+     ],
+     [
+      430555.98974,
+      2731655.39346
+     ],
+     [
+      430574.4975,
+      2731755.39346
+     ],
+     [
+      430523.02873,
+      2731764.96069
+     ],
+     [
+      430491.10156,
+      2731792.05925
+     ],
+     [
+      430481.27865,
+      2731836.27449
+     ],
+     [
+      430500.98974,
+      2731875.76789
+     ],
+     [
+      430411.10156,
+      2731927.05925
+     ],
+     [
+      430400.98974,
+      2731960.39346
+     ],
+     [
+      430411.10156,
+      2732003.72768
+     ],
+     [
+      430449.28432,
+      2732029.24058
+     ],
+     [
+      430547.69516,
+      2732024.24058
+     ],
+     [
+      430619.27354,
+      2731998.30874
+     ],
+     [
+      430693.46131,
+      2731947.77004
+     ],
+     [
+      430754.42969,
+      2731943.21515
+     ],
+     [
+      430806.81574,
+      2731985.8917
+     ],
+     [
+      430765.55697,
+      2732032.43246
+     ],
+     [
+      430750.98974,
+      2732130.39346
+     ],
+     [
+      430687.92614,
+      2732144.01284
+     ],
+     [
+      430618.08797,
+      2732232.08711
+     ],
+     [
+      430544.32395,
+      2732140.50529
+     ],
+     [
+      430415.98974,
+      2732105.39346
+     ],
+     [
+      430322.70593,
+      2732137.47819
+     ],
+     [
+      430292.11372,
+      2732165.39346
+     ],
+     [
+      430228.02873,
+      2732164.96069
+     ],
+     [
+      430160.98974,
+      2732210.6391
+     ],
+     [
+      430125.87791,
+      2732117.05925
+     ],
+     [
+      430075.98974,
+      2732090.39346
+     ],
+     [
+      430037.65552,
+      2732100.50529
+     ],
+     [
+      430003.08096,
+      2732144.942
+     ],
+     [
+      429942.65552,
+      2732170.50529
+     ],
+     [
+      429917.04802,
+      2732199.27989
+     ],
+     [
+      429873.57266,
+      2732197.97704
+     ],
+     [
+      429827.29376,
+      2732224.36781
+     ],
+     [
+      429794.27354,
+      2732187.47819
+     ],
+     [
+      429738.00182,
+      2732183.18129
+     ],
+     [
+      429543.40682,
+      2732077.97704
+     ],
+     [
+      429151.87077,
+      2732010.68238
+     ],
+     [
+      429084.86575,
+      2732015.39346
+     ],
+     [
+      428896.87077,
+      2731965.68238
+     ],
+     [
+      428838.02873,
+      2731969.96069
+     ],
+     [
+      428805.55697,
+      2732002.43246
+     ],
+     [
+      428805.55697,
+      2732058.35447
+     ],
+     [
+      428839.35713,
+      2732091.30155
+     ],
+     [
+      429218.57266,
+      2732222.80988
+     ],
+     [
+      429316.13998,
+      2732235.15521
+     ],
+     [
+      429512.30152,
+      2732328.74391
+     ],
+     [
+      429500.98974,
+      2732380.39346
+     ],
+     [
+      429511.10156,
+      2732418.72768
+     ],
+     [
+      429562.65552,
+      2732470.28164
+     ],
+     [
+      429615.58753,
+      2732483.74791
+     ],
+     [
+      429499.86575,
+      2732475.39346
+     ],
+     [
+      429379.28432,
+      2732441.54635
+     ],
+     [
+      429324.60911,
+      2732477.32987
+     ],
+     [
+      429301.27865,
+      2732546.27449
+     ],
+     [
+      429318.56333,
+      2732582.81987
+     ],
+     [
+      429372.70593,
+      2732618.30874
+     ],
+     [
+      429533.57266,
+      2732682.80988
+     ],
+     [
+      429661.87077,
+      2732690.10455
+     ],
+     [
+      429843.95074,
+      2732650.82624
+     ],
+     [
+      429947.37037,
+      2732563.45706
+     ],
+     [
+      429972.62233,
+      2732506.30155
+     ],
+     [
+      430124.86578,
+      2732460.39346
+     ],
+     [
+      430248.40682,
+      2732442.80988
+     ],
+     [
+      430384.86578,
+      2732370.39346
+     ],
+     [
+      430434.60911,
+      2732468.45706
+     ],
+     [
+      430537.65552,
+      2732565.28164
+     ],
+     [
+      430590.98974,
+      2732580.39346
+     ],
+     [
+      430667.36464,
+      2732564.28961
+     ],
+     [
+      430645.98974,
+      2732616.29337
+     ],
+     [
+      430613.56333,
+      2732632.96706
+     ],
+     [
+      430597.14262,
+      2732663.68804
+     ],
+     [
+      430618.57743,
+      2732802.066
+     ],
+     [
+      430583.57332,
+      2732842.97638
+     ],
+     [
+      430588.31374,
+      2732944.07648
+     ],
+     [
+      430570.98974,
+      2732990.39346
+     ],
+     [
+      430578.07446,
+      2733038.67727
+     ],
+     [
+      430630.98974,
+      2733104.26949
+     ],
+     [
+      430632.14262,
+      2733162.09888
+     ],
+     [
+      430653.58305,
+      2733217.94919
+     ],
+     [
+      430633.48974,
+      2733248.00671
+     ],
+     [
+      430585.98974,
+      2733235.39346
+     ],
+     [
+      430537.46635,
+      2733249.42957
+     ],
+     [
+      430427.70593,
+      2733242.47819
+     ],
+     [
+      430359.81013,
+      2733344.21386
+     ],
+     [
+      430298.56333,
+      2733387.96706
+     ],
+     [
+      430257.3997,
+      2733452.66174
+     ],
+     [
+      430173.57266,
+      2733462.97704
+     ],
+     [
+      430128.56333,
+      2733492.96706
+     ],
+     [
+      430110.98974,
+      2733550.39346
+     ],
+     [
+      430129.00046,
+      2733593.21607
+     ],
+     [
+      430028.57332,
+      2733697.97638
+     ],
+     [
+      430031.46745,
+      2733760.27951
+     ],
+     [
+      430006.27865,
+      2733809.51243
+     ],
+     [
+      430010.55697,
+      2733863.35447
+     ],
+     [
+      430042.70593,
+      2733898.30874
+     ],
+     [
+      430092.69516,
+      2733904.24058
+     ],
+     [
+      430169.05333,
+      2733851.77409
+     ],
+     [
+      430220.61532,
+      2733790.39346
+     ],
+     [
+      430374.27354,
+      2733773.30874
+     ],
+     [
+      430406.42251,
+      2733738.35447
+     ],
+     [
+      430410.36924,
+      2733685.58142
+     ],
+     [
+      430469.05333,
+      2733656.77409
+     ],
+     [
+      430498.39643,
+      2733597.83773
+     ],
+     [
+      430550.3182,
+      2733559.54425
+     ],
+     [
+      430623.58306,
+      2733582.83775
+     ],
+     [
+      430667.34165,
+      2733702.89346
+     ],
+     [
+      430544.60911,
+      2733747.32987
+     ],
+     [
+      430536.46745,
+      2733815.27951
+     ],
+     [
+      430507.14262,
+      2733858.68804
+     ],
+     [
+      430508.57332,
+      2733902.81054
+     ],
+     [
+      430572.70593,
+      2733958.30874
+     ],
+     [
+      430622.96787,
+      2733965.39346
+     ],
+     [
+      430712.65552,
+      2734065.28164
+     ],
+     [
+      430764.56027,
+      2734075.21806
+     ],
+     [
+      430730.98974,
+      2734160.39346
+     ],
+     [
+      430733.57332,
+      2734247.81054
+     ],
+     [
+      430762.65552,
+      2734285.28164
+     ],
+     [
+      430897.69516,
+      2734294.24058
+     ],
+     [
+      430915.25793450256,
+      2734281.3154558567
+     ]
+    ]
+   },
+   {
+    "name": "R5A inflow",
+    "coordinates": [
+     [
+      439031.0066357458,
+      2719268.8672163934
+     ],
+     [
+      438975.08983,
+      2719250.39346
+     ],
+     [
+      438951.42251,
+      2719162.43246
+     ],
+     [
+      438924.27354,
+      2719132.47819
+     ],
+     [
+      438874.28432,
+      2719126.54635
+     ],
+     [
+      438810.87579,
+      2719165.87117
+     ],
+     [
+      438742.70593,
+      2719172.47819
+     ],
+     [
+      438718.07446,
+      2719197.10966
+     ],
+     [
+      438706.13266,
+      2719242.48427
+     ],
+     [
+      438667.69516,
+      2719216.54635
+     ],
+     [
+      438628.57266,
+      2719217.97704
+     ],
+     [
+      438594.0504,
+      2719239.59513
+     ],
+     [
+      438498.40682,
+      2719192.97704
+     ],
+     [
+      438448.02873,
+      2719194.96069
+     ],
+     [
+      438415.55697,
+      2719227.43246
+     ],
+     [
+      438412.67831,
+      2719284.23746
+     ],
+     [
+      438363.97068,
+      2719336.86585
+     ],
+     [
+      438335.96422,
+      2719330.91299
+     ],
+     [
+      438328.90501,
+      2719277.10966
+     ],
+     [
+      438279.27354,
+      2719217.47819
+     ],
+     [
+      438234.28432,
+      2719211.54635
+     ],
+     [
+      438176.66262,
+      2719238.10353
+     ],
+     [
+      438144.05333,
+      2719189.01284
+     ],
+     [
+      438084.12069,
+      2719175.82894
+     ],
+     [
+      438048.95074,
+      2719134.96069
+     ],
+     [
+      437949.28432,
+      2719136.54635
+     ],
+     [
+      437903.07446,
+      2719172.10966
+     ],
+     [
+      437873.57332,
+      2719227.97638
+     ],
+     [
+      437867.38484,
+      2719277.72105
+     ],
+     [
+      437808.57266,
+      2719272.97704
+     ],
+     [
+      437762.8421,
+      2719310.39346
+     ],
+     [
+      437722.70593,
+      2719317.47819
+     ],
+     [
+      437691.19264,
+      2719366.26328
+     ],
+     [
+      437643.07446,
+      2719402.10966
+     ],
+     [
+      437640.55697,
+      2719458.35447
+     ],
+     [
+      437696.17597,
+      2719514.18433
+     ],
+     [
+      437711.46745,
+      2719550.50742
+     ],
+     [
+      437683.57332,
+      2719592.97638
+     ],
+     [
+      437647.14262,
+      2719797.09888
+     ],
+     [
+      437663.07446,
+      2719848.67727
+     ],
+     [
+      437706.99248,
+      2719901.0867
+     ],
+     [
+      437716.10156,
+      2719963.72768
+     ],
+     [
+      437794.83341,
+      2720009.31496
+     ],
+     [
+      437717.70593,
+      2720012.47819
+     ],
+     [
+      437674.47081,
+      2720065.46808
+     ],
+     [
+      437568.07446,
+      2720137.10966
+     ],
+     [
+      437562.14262,
+      2720197.09888
+     ],
+     [
+      437608.07446,
+      2720353.67727
+     ],
+     [
+      437652.70593,
+      2720403.30874
+     ],
+     [
+      437763.57266,
+      2720452.80988
+     ],
+     [
+      437871.75361,
+      2720469.60687
+     ],
+     [
+      437928.02873,
+      2720505.82624
+     ],
+     [
+      437992.11369,
+      2720515.39346
+     ],
+     [
+      438038.57266,
+      2720557.80988
+     ],
+     [
+      438099.16129,
+      2720548.36183
+     ],
+     [
+      438168.02873,
+      2720585.82624
+     ],
+     [
+      438250.10871,
+      2720605.10455
+     ],
+     [
+      438288.95074,
+      2720600.82624
+     ],
+     [
+      438320.61532,
+      2720575.39346
+     ],
+     [
+      438380.98974,
+      2720595.39346
+     ],
+     [
+      438513.67219,
+      2720583.59316
+     ],
+     [
+      438433.07446,
+      2720647.10966
+     ],
+     [
+      438435.38026,
+      2720717.52426
+     ],
+     [
+      438382.65552,
+      2720740.50529
+     ],
+     [
+      438324.06537,
+      2720811.60119
+     ],
+     [
+      438269.60911,
+      2720837.32987
+     ],
+     [
+      438257.14262,
+      2720892.09888
+     ],
+     [
+      438297.65552,
+      2720940.28164
+     ],
+     [
+      438377.38484,
+      2720948.06587
+     ],
+     [
+      438413.02873,
+      2720990.82624
+     ],
+     [
+      438488.42958,
+      2720982.2367
+     ],
+     [
+      438517.70593,
+      2721018.30874
+     ],
+     [
+      438570.98974,
+      2721025.39346
+     ],
+     [
+      438588.56333,
+      2721077.81987
+     ],
+     [
+      438634.49751,
+      2721095.39346
+     ],
+     [
+      438621.24199,
+      2721180.52826
+     ],
+     [
+      438571.36417,
+      2721225.39346
+     ],
+     [
+      438390.10871,
+      2721215.68238
+     ],
+     [
+      438199.28432,
+      2721246.54635
+     ],
+     [
+      438112.65552,
+      2721275.50529
+     ],
+     [
+      438078.07446,
+      2721312.10966
+     ],
+     [
+      438071.27865,
+      2721351.27449
+     ],
+     [
+      438084.60911,
+      2721383.45706
+     ],
+     [
+      438120.98974,
+      2721410.39346
+     ],
+     [
+      437989.28432,
+      2721416.54635
+     ],
+     [
+      437942.11372,
+      2721460.39346
+     ],
+     [
+      437843.48974,
+      2721474.79574
+     ],
+     [
+      437559.28432,
+      2721431.54635
+     ],
+     [
+      437478.07446,
+      2721477.10966
+     ],
+     [
+      437472.14262,
+      2721527.09888
+     ],
+     [
+      437491.18615,
+      2721560.19705
+     ],
+     [
+      437773.57266,
+      2721727.80988
+     ],
+     [
+      437972.11369,
+      2721705.39346
+     ],
+     [
+      438101.71308,
+      2721765.67463
+     ],
+     [
+      438063.02873,
+      2721769.96069
+     ],
+     [
+      438036.10156,
+      2721792.05925
+     ],
+     [
+      438026.00899,
+      2721855.78534
+     ],
+     [
+      437976.10156,
+      2721917.05925
+     ],
+     [
+      437960.98974,
+      2721960.39346
+     ],
+     [
+      437977.14262,
+      2722112.09888
+     ],
+     [
+      438013.9714,
+      2722203.18972
+     ],
+     [
+      438003.57332,
+      2722267.81054
+     ],
+     [
+      438052.99009,
+      2722315.48218
+     ],
+     [
+      438063.57332,
+      2722417.81054
+     ],
+     [
+      438092.70593,
+      2722453.30874
+     ],
+     [
+      438180.4915,
+      2722459.56746
+     ],
+     [
+      438307.69516,
+      2722504.24058
+     ],
+     [
+      438374.05333,
+      2722461.77409
+     ],
+     [
+      438441.35239,
+      2722384.69034
+     ],
+     [
+      438517.12429,
+      2722354.32526
+     ],
+     [
+      438541.13998,
+      2722350.15521
+     ],
+     [
+      438603.57266,
+      2722397.80988
+     ],
+     [
+      438721.87077,
+      2722415.10455
+     ],
+     [
+      438769.05333,
+      2722396.77409
+     ],
+     [
+      438823.90501,
+      2722333.67727
+     ],
+     [
+      438823.40616,
+      2722127.97638
+     ],
+     [
+      438789.10208,
+      2722090.03227
+     ],
+     [
+      438780.87791,
+      2722027.05925
+     ],
+     [
+      438700.98974,
+      2721945.7679
+     ],
+     [
+      438669.63782,
+      2721832.89346
+     ],
+     [
+      438715.39943,
+      2721789.48401
+     ],
+     [
+      438755.98974,
+      2721805.39346
+     ],
+     [
+      438865.3692700179,
+      2721798.4214894576
+     ]
+    ]
+   },
+   {
+    "name": "R2A inflow",
+    "coordinates": [
+     [
+      440299.5338844846,
+      2715317.9091444253
+     ],
+     [
+      440164.05333,
+      2715179.01284
+     ],
+     [
+      440088.434,
+      2715157.98677
+     ],
+     [
+      439974.27354,
+      2715062.47819
+     ],
+     [
+      439766.35239,
+      2714966.09659
+     ],
+     [
+      439669.57978,
+      2714877.66174
+     ],
+     [
+      439618.41614,
+      2714792.96706
+     ],
+     [
+      439583.16456,
+      2714775.8743
+     ],
+     [
+      439545.45814,
+      2714655.39347
+     ],
+     [
+      439623.40616,
+      2714562.81054
+     ],
+     [
+      439613.40616,
+      2714447.97638
+     ],
+     [
+      439564.27354,
+      2714392.47819
+     ],
+     [
+      439509.29981,
+      2714386.54405
+     ],
+     [
+      439388.41614,
+      2714182.96706
+     ],
+     [
+      439348.40682,
+      2714157.97704
+     ],
+     [
+      439180.31503,
+      2714115.60595
+     ],
+     [
+      439106.35239,
+      2714081.09659
+     ],
+     [
+      439043.95074,
+      2714029.96069
+     ],
+     [
+      438960.10871,
+      2714015.68238
+     ],
+     [
+      438909.10311,
+      2714050.39346
+     ],
+     [
+      438827.92614,
+      2714069.01284
+     ],
+     [
+      438807.14262,
+      2714103.68804
+     ],
+     [
+      438813.07446,
+      2714148.67727
+     ],
+     [
+      438851.00735,
+      2714180.035
+     ],
+     [
+      438878.07446,
+      2714258.67727
+     ],
+     [
+      438902.70593,
+      2714283.30874
+     ],
+     [
+      439026.87077,
+      2714295.10455
+     ],
+     [
+      439086.0649,
+      2714259.89742
+     ],
+     [
+      439152.11369,
+      2714275.39346
+     ],
+     [
+      439227.95613,
+      2714318.42707
+     ],
+     [
+      439326.69287,
+      2714425.75613
+     ],
+     [
+      439336.20222,
+      2714451.06818
+     ],
+     [
+      439293.07446,
+      2714497.10966
+     ],
+     [
+      439287.14262,
+      2714542.09888
+     ],
+     [
+      439320.98974,
+      2714598.54112
+     ],
+     [
+      439348.57332,
+      2714847.81054
+     ],
+     [
+      439376.10156,
+      2714913.72768
+     ],
+     [
+      439413.81449,
+      2714954.91194
+     ],
+     [
+      439342.65552,
+      2714960.50529
+     ],
+     [
+      439315.48862,
+      2715023.08188
+     ],
+     [
+      439279.27354,
+      2714967.47819
+     ],
+     [
+      439208.40682,
+      2714932.97704
+     ],
+     [
+      439155.98974,
+      2714933.90122
+     ],
+     [
+      439145.87791,
+      2714892.05925
+     ],
+     [
+      439113.40682,
+      2714867.97704
+     ],
+     [
+      439073.57266,
+      2714867.97704
+     ],
+     [
+      438992.65552,
+      2714910.50529
+     ],
+     [
+      438955.98974,
+      2714985.39346
+     ],
+     [
+      438962.14262,
+      2715137.09888
+     ],
+     [
+      438993.31374,
+      2715219.07648
+     ],
+     [
+      438981.23537,
+      2715250.39346
+     ],
+     [
+      438962.14574,
+      2715252.08203
+     ],
+     [
+      438870.98974,
+      2715146.74073
+     ],
+     [
+      438858.90501,
+      2715092.10966
+     ],
+     [
+      438819.32395,
+      2715040.50529
+     ],
+     [
+      438736.87077,
+      2715005.68238
+     ],
+     [
+      438668.56333,
+      2715022.96706
+     ],
+     [
+      438652.14262,
+      2715053.68804
+     ],
+     [
+      438655.55697,
+      2715093.35447
+     ],
+     [
+      438746.10156,
+      2715283.72768
+     ],
+     [
+      438843.58306,
+      2715392.83775
+     ],
+     [
+      438854.62648,
+      2715480.75391
+     ],
+     [
+      438814.83374,
+      2715502.08203
+     ],
+     [
+      438758.02873,
+      2715504.96069
+     ],
+     [
+      438721.10156,
+      2715537.05925
+     ],
+     [
+      438713.57332,
+      2715592.81054
+     ],
+     [
+      438751.94388,
+      2715641.03308
+     ],
+     [
+      438724.43691,
+      2715690.56281
+     ],
+     [
+      438696.35239,
+      2715686.09659
+     ],
+     [
+      438554.27354,
+      2715582.47819
+     ],
+     [
+      438517.87636,
+      2715575.39346
+     ],
+     [
+      438483.95074,
+      2715539.96069
+     ],
+     [
+      438438.57266,
+      2715537.97704
+     ],
+     [
+      438404.86575,
+      2715560.39346
+     ],
+     [
+      438274.68071,
+      2715527.72224
+     ],
+     [
+      438276.42251,
+      2715447.43246
+     ],
+     [
+      438232.37037,
+      2715377.32987
+     ],
+     [
+      438198.40682,
+      2715352.97704
+     ],
+     [
+      438104.86575,
+      2715340.39346
+     ],
+     [
+      438068.95074,
+      2715309.96069
+     ],
+     [
+      438029.28432,
+      2715306.54635
+     ],
+     [
+      437983.07446,
+      2715342.10966
+     ],
+     [
+      437978.38478,
+      2715402.05784
+     ],
+     [
+      437935.10871,
+      2715395.68238
+     ],
+     [
+      437890.55426,
+      2715412.26251
+     ],
+     [
+      437883.90501,
+      2715327.10966
+     ],
+     [
+      437779.05333,
+      2715219.01284
+     ],
+     [
+      437682.96541,
+      2715205.54204
+     ],
+     [
+      437639.32395,
+      2715160.50529
+     ],
+     [
+      437570.98974,
+      2715125.39346
+     ],
+     [
+      437502.65552,
+      2715150.50529
+     ],
+     [
+      437465.55697,
+      2715202.43246
+     ],
+     [
+      437462.14262,
+      2715252.09888
+     ],
+     [
+      437483.07446,
+      2715313.67727
+     ],
+     [
+      437542.198,
+      2715356.11414
+     ],
+     [
+      437463.02873,
+      2715364.96069
+     ],
+     [
+      437406.10156,
+      2715412.05925
+     ],
+     [
+      437332.14262,
+      2715593.68804
+     ],
+     [
+      437351.18615,
+      2715655.19705
+     ],
+     [
+      437400.98974,
+      2715680.39346
+     ],
+     [
+      437655.442,
+      2715645.12092
+     ],
+     [
+      437738.0395,
+      2715668.92877
+     ],
+     [
+      437679.60911,
+      2715727.32987
+     ],
+     [
+      437661.27865,
+      2715769.51243
+     ],
+     [
+      437671.10156,
+      2715818.72768
+     ],
+     [
+      437714.28432,
+      2715849.24058
+     ],
+     [
+      437830.5777,
+      2715832.03313
+     ],
+     [
+      437921.87077,
+      2715840.10455
+     ],
+     [
+      438005.98974,
+      2715806.8857
+     ],
+     [
+      438073.16196,
+      2715814.91302
+     ],
+     [
+      437994.60911,
+      2715857.32987
+     ],
+     [
+      437985.55697,
+      2715923.35447
+     ],
+     [
+      438028.57266,
+      2715962.80988
+     ],
+     [
+      438130.98974,
+      2715971.8857
+     ],
+     [
+      438143.07446,
+      2716028.67727
+     ],
+     [
+      438182.93022,
+      2716070.54377
+     ],
+     [
+      438154.6391,
+      2716079.31638
+     ],
+     [
+      438119.16938,
+      2716061.02335
+     ],
+     [
+      438098.41614,
+      2716022.96706
+     ],
+     [
+      438061.87077,
+      2716005.68238
+     ],
+     [
+      437994.86575,
+      2716025.39346
+     ],
+     [
+      437894.28432,
+      2715996.54635
+     ],
+     [
+      437863.56333,
+      2716012.96706
+     ],
+     [
+      437847.14262,
+      2716043.68804
+     ],
+     [
+      437847.14262,
+      2716122.09888
+     ],
+     [
+      437889.60911,
+      2716268.45706
+     ],
+     [
+      437950.98974,
+      2716295.39346
+     ],
+     [
+      438006.36416,
+      2716265.39346
+     ],
+     [
+      438045.98974,
+      2716291.8857
+     ],
+     [
+      438049.4975,
+      2716315.39346
+     ],
+     [
+      438035.98974,
+      2716380.39346
+     ],
+     [
+      438044.1031,
+      2716430.39346
+     ],
+     [
+      437942.70593,
+      2716457.47819
+     ],
+     [
+      437913.57332,
+      2716492.97638
+     ],
+     [
+      437911.27865,
+      2716631.27449
+     ],
+     [
+      437941.46745,
+      2716695.27951
+     ],
+     [
+      437905.55697,
+      2716742.43246
+     ],
+     [
+      437902.14262,
+      2716787.09888
+     ],
+     [
+      437932.70593,
+      2716828.30874
+     ],
+     [
+      438032.96787,
+      2716850.39346
+     ],
+     [
+      438045.55697,
+      2716923.35447
+     ],
+     [
+      438092.70593,
+      2716983.30874
+     ],
+     [
+      438176.87077,
+      2716985.10455
+     ],
+     [
+      438221.73404,
+      2716964.34444
+     ],
+     [
+      438272.70593,
+      2717028.30874
+     ],
+     [
+      438351.87077,
+      2717040.10455
+     ],
+     [
+      438394.05333,
+      2717021.77409
+     ],
+     [
+      438458.41614,
+      2716957.81987
+     ],
+     [
+      438459.0724194286,
+      2716956.149289474
+     ]
+    ]
+   },
+   {
+    "name": "Z4C inflow",
+    "coordinates": [
+     [
+      440600.2372599706,
+      2710024.507881194
+     ],
+     [
+      440499.05333,
+      2709919.01284
+     ],
+     [
+      440369.27354,
+      2709842.47819
+     ],
+     [
+      440243.57266,
+      2709827.97704
+     ],
+     [
+      440211.10156,
+      2709852.05925
+     ],
+     [
+      440200.98974,
+      2709885.39346
+     ],
+     [
+      440222.92614,
+      2709936.77409
+     ],
+     [
+      440358.00746,
+      2710015.49259
+     ],
+     [
+      440252.70593,
+      2710027.47819
+     ],
+     [
+      440215.98974,
+      2710085.39346
+     ],
+     [
+      440233.56333,
+      2710132.81987
+     ],
+     [
+      440330.98974,
+      2710205.01904
+     ],
+     [
+      440376.40285,
+      2710280.39346
+     ],
+     [
+      440348.48974,
+      2710283.00671
+     ],
+     [
+      439980.61531,
+      2710185.39346
+     ],
+     [
+      439614.27354,
+      2709972.47819
+     ],
+     [
+      439404.13737,
+      2709905.39346
+     ],
+     [
+      439324.27354,
+      2709827.47819
+     ],
+     [
+      439235.61531,
+      2709810.39346
+     ],
+     [
+      438913.95074,
+      2709539.96069
+     ],
+     [
+      438858.02873,
+      2709539.96069
+     ],
+     [
+      438799.60911,
+      2709582.32987
+     ],
+     [
+      438786.27865,
+      2709646.27449
+     ],
+     [
+      439078.56333,
+      2710047.81987
+     ],
+     [
+      439187.70593,
+      2710113.30874
+     ],
+     [
+      439299.72612,
+      2710154.26422
+     ],
+     [
+      439234.60345,
+      2710177.02435
+     ],
+     [
+      439131.87077,
+      2710145.68238
+     ],
+     [
+      439082.70593,
+      2710157.47819
+     ],
+     [
+      439051.27865,
+      2710204.51243
+     ],
+     [
+      439074.60911,
+      2710283.45706
+     ],
+     [
+      439165.10871,
+      2710355.10455
+     ],
+     [
+      439332.69516,
+      2710339.24058
+     ],
+     [
+      439425.98974,
+      2710301.8857
+     ],
+     [
+      439421.27865,
+      2710411.27449
+     ],
+     [
+      439439.60911,
+      2710453.45706
+     ],
+     [
+      439497.70593,
+      2710508.30874
+     ],
+     [
+      439556.74371,
+      2710514.6054
+     ],
+     [
+      439638.57743,
+      2710558.72093
+     ],
+     [
+      439626.27865,
+      2710611.27449
+     ],
+     [
+      439659.35007,
+      2710690.8055
+     ],
+     [
+      439671.10156,
+      2710778.72768
+     ],
+     [
+      439738.96458,
+      2710838.90404
+     ],
+     [
+      439802.92614,
+      2710941.77409
+     ],
+     [
+      439925.98974,
+      2710974.49356
+     ],
+     [
+      439939.4586254391,
+      2711022.831427257
+     ]
+    ]
+   }
+  ],
+  "observed": []
+ },
+ "run": {
+  "duration_s": 172800.0,
+  "backend": "gpu",
+  "source_every_s": 30.0,
+  "checkpoint_every_s": 0.0,
+  "balance_every": 8,
+  "estimate_depth": 7.5,
+  "estimate_speed": 8.0,
+  "estimate_wave": 1.3,
+  "estimate_overhead": 1.5
+ },
+ "arf": {
+  "areas_km2": [],
+  "n_areas": 6,
+  "area_min_km2": 10.0,
+  "area_max_km2": 600.0,
+  "exact_points": false,
+  "bracket": false,
+  "bracket_ratio": 2.0,
+  "bracket_max": 6,
+  "by_arf_step": false,
+  "arf_step_max": 0.05,
+  "accumulation": null,
+  "accumulation_units": "cells",
+  "composite": true
+ },
+ "basin": {
+  "lag_method": "kirpich",
+  "stream_threshold_km2": 10.0,
+  "analysis_pixel": null,
+  "max_pixels": 400000000,
+  "snap_m": 100.0,
+  "min_reach_m": 100.0,
+  "min_subbasin_km2": 0.05,
+  "min_slope": 0.0001,
+  "min_raster_share": 0.9,
+  "section_spacing_m": 100.0,
+  "section_half_width_m": 500.0,
+  "section_depth_m": 4.0,
+  "section_depths": 9,
+  "section_search_m": 30.0,
+  "reservoir_step_m": 0.5,
+  "reservoir_top_m": 10.0,
+  "dam_min_km2": 1.0,
+  "wall_raise_m": 100.0,
+  "dam_join_m": 50.0,
+  "handback_span": 1.5,
+  "handback_min_cells": 4
+ }
+}

@@ -65,6 +65,30 @@ def test_a_cell_holds_its_water_exactly_under_a_surface_that_follows_the_ground(
     assert np.ptp(surface) < 2e-3, np.ptp(surface)
 
 
+def test_a_cell_of_more_than_four_sides_takes_its_pixels_and_holds_its_water() -> None:
+    """The centre mesh (W46) has cells of 5 to 9 sides; the pixel maps once refused them (W79, Block 2 at 20 m)."""
+    x = np.array([0.0, 20.0, 40.0, 0.0, 20.0, 40.0, 30.0])
+    y = np.array([0.0, 0.0, 0.0, 10.0, 10.0, 10.0, 0.0])
+    rings = [np.array([0, 1, 4, 3]), np.array([1, 6, 2, 5, 4])]  # a quad and a pentagon, counter-clockwise
+    geo = MeshGeometry.from_rings(x, y, rings)
+    xs = -4.0 + (np.arange(48) + 0.5) * P
+    pix = Pixels(np.tile(100.0 - 0.05 * xs, (16, 1)), -4.0, 14.0, P)
+    from wadi2d.config.schema import Tables
+
+    mesh, kept = build_poly_tables(geo, pix, Tables(), 20.0, 0.03)
+    ground = ground_from_pixels(geo, mesh, kept, pix, 0.0, 0.0, datum=99.0)
+    assert ground.weights.shape[1] == 5 and ground.count == 2 * 200
+    assert np.allclose(ground.weights.sum(axis=1), 1.0, atol=1e-5)
+    maxima = StripMaxima(np, ground, mesh, PixelRule())
+    level = 99.3 + 0.0 * mesh.zmin[:2]
+    hb = hbar_at_level(level, mesh.zmin[:2], mesh.hc[:2], mesh.dtab[:2])
+    maxima.add(level - mesh.zmin[:2], hb, np.zeros(2))
+    depth, _speed, _dv = maxima.result()
+    for c in range(2):
+        on = ground.cell == c
+        assert depth[on].sum() * P * P == pytest.approx(hb[c] * mesh.area[c], rel=1e-3)
+
+
 def test_a_dry_neighbour_keeps_its_own_surface_and_a_wet_one_its_water() -> None:
     geo, mesh, kept, pix = two_quads()
     ground = ground_from_pixels(geo, mesh, kept, pix, 0.0, 0.0, datum=99.0)

@@ -1,0 +1,136 @@
+{
+ "Bidah 03": {
+  "fsl_ggc": 102.39,
+  "crest_ggc": 107.39,
+  "shift_m": 2.39,
+  "pool_volume_at_fsl_dem_Mm3": 5.528072287582398,
+  "pool_volume_at_fsl_table_Mm3": 5.5854178,
+  "dem_over_table": 0.9897329950111159,
+  "pool_area_crest_plus_3_km2": 1.1349,
+  "ring_m": 4452.998342496828,
+  "entry": [
+   438748.48973783385,
+   2727147.893463373
+  ],
+  "spillways": [
+   {
+    "length": 72.0,
+    "centre": [
+     438598.356006164,
+     2726948.2391193453
+    ]
+   }
+  ],
+  "source": "W1 dams.py from the dam team's Dams.shp and Dikes.shp; levels NSA + 2.39 m"
+ },
+ "Faydh 01": {
+  "fsl_ggc": 232.39,
+  "crest_ggc": 237.39,
+  "shift_m": 2.39,
+  "pool_volume_at_fsl_dem_Mm3": 16.86696202073668,
+  "pool_volume_at_fsl_table_Mm3": 16.673477599999988,
+  "dem_over_table": 1.011604323067954,
+  "pool_area_crest_plus_3_km2": 1.1815,
+  "ring_m": 12234.441767517925,
+  "entry": [
+   431278.48973783385,
+   2733422.893463373
+  ],
+  "spillways": [
+   {
+    "length": 207.0,
+    "centre": [
+     431031.59877740813,
+     2733421.1418933496
+    ]
+   }
+  ],
+  "source": "W1 dams.py from the dam team's Dams.shp and Dikes.shp; levels NSA + 2.39 m"
+ },
+ "R5A": {
+  "fsl_ggc": 143.0,
+  "crest_ggc": 146.0,
+  "shift_m": 0.0,
+  "pool_volume_at_fsl_dem_Mm3": 9.321322260475158,
+  "pool_volume_at_fsl_table_Mm3": 9.398435,
+  "dem_over_table": 0.9917951510517612,
+  "pool_area_crest_plus_3_km2": 2.63755,
+  "ring_m": 9665.486419960627,
+  "entry": [
+   439243.48973783385,
+   2721077.893463373
+  ],
+  "spillways": [
+   {
+    "length": 141.50943396226415,
+    "centre": [
+     439040.4572799279,
+     2721064.1249378845
+    ]
+   },
+   {
+    "length": 108.49056603773585,
+    "centre": [
+     439122.5833660769,
+     2720238.1980004585
+    ]
+   }
+  ],
+  "source": "Det_Design_DAMS.shp axis as W1 extended it; levels of Basin 3's tables (GGC)"
+ },
+ "R2A": {
+  "fsl_ggc": 162.0,
+  "crest_ggc": 165.0,
+  "shift_m": 0.0,
+  "pool_volume_at_fsl_dem_Mm3": 14.898585289764405,
+  "pool_volume_at_fsl_table_Mm3": 15.053021,
+  "dem_over_table": 0.9897405504027667,
+  "pool_area_crest_plus_3_km2": 2.83245,
+  "ring_m": 11678.795886238853,
+  "entry": [
+   439633.48973783385,
+   2716632.893463373
+  ],
+  "spillways": [
+   {
+    "length": 84.70588235294117,
+    "centre": [
+     439426.56182988454,
+     2716512.3232285776
+    ]
+   },
+   {
+    "length": 75.29411764705883,
+    "centre": [
+     439918.6798656662,
+     2715926.6229307647
+    ]
+   }
+  ],
+  "source": "Det_Design_DAMS.shp axis as W1 extended it; levels of Basin 3's tables (GGC)"
+ },
+ "Z4C": {
+  "fsl_ggc": 167.0,
+  "crest_ggc": 170.0,
+  "shift_m": 0.0,
+  "pool_volume_at_fsl_dem_Mm3": 4.531532525253296,
+  "pool_volume_at_fsl_table_Mm3": 4.569277,
+  "dem_over_table": 0.9917395082971104,
+  "pool_area_crest_plus_3_km2": 1.095475,
+  "ring_m": 5512.89760589842,
+  "entry": [
+   441223.48973783385,
+   2710462.893463373
+  ],
+  "spillways": [
+   {
+    "length": 220.0,
+    "centre": [
+     440966.6248919219,
+     2710487.3562632925
+    ]
+   }
+  ],
+  "source": "Det_Design_DAMS.shp axis as W1 extended it; levels of Basin 3's tables (GGC)"
+ }
+}
