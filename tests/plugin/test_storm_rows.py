@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 from wadi2d_qgis.job_builder import build_job, merge_hms, merge_notes, notes, preview_job, problems
 from wadi2d_qgis.storm_rows import (
+    GIVEN_WORDS,
     pasted_rows,
     preview_args,
     preview_text,
@@ -240,5 +241,36 @@ def test_the_preview_is_asked_of_the_engine_and_said_in_one_line() -> None:
     assert preview_text({"step_min": 2.0, "storm_area_km2": None, "area_factor": 1.0, "areas": []}) == (
         "Depths with no area reduction, on the hydrology step of 2 min."
     )
+
+
+# W83: a given factor, the third choice of the Area reduction block; the job's ``arf_factor`` alone.
+
+
+def test_a_given_factor_writes_only_the_factor(tmp_path) -> None:
+    design = storm_job({**DESIGN, "arf": [], "arf_mode": "given", "arf_factor": 0.7})
+    assert "arf" not in design and "storm_area_km2" not in design and design["arf_factor"] == 0.7
+    assert Storm(**design).arf_factor == 0.7
+    reduced = grid(tmp_path, arf_on=False, area_km2=50.0, arf=[], arf_mode="given", arf_factor=0.7)
+    job = storm_job(reduced)
+    assert set(job) == {"kind", "rain_file", "rain_units", "rain_stamp", "arf_factor"} and job["arf_factor"] == 0.7
+    assert Storm(**job).arf_factor == 0.7
+
+
+def test_a_given_factor_out_of_range_is_refused_before_the_run(tmp_path) -> None:
+    for factor, words in ((0.7, []), (1.0, []), (0.0, [GIVEN_WORDS]), (1.5, [GIVEN_WORDS])):
+        assert storm_problems({**DESIGN, "arf": [], "arf_mode": "given", "arf_factor": factor}) == words
+        assert storm_problems(grid(tmp_path, arf_mode="given", arf_factor=factor, arf_on=False)) == words
+
+
+def test_the_preview_says_a_given_factor() -> None:
+    said = preview_text({"step_min": 5.0, "storm_area_km2": None, "area_factor": 0.7, "arf_factor": 0.7, "areas": []})
+    assert said == "Depths after an area reduction of 0.7000 (given), on the hydrology step of 5 min."
+
+
+def test_a_study_refuses_a_given_factor_in_words() -> None:
+    from wadi2d_qgis.study_rows import GIVEN_FACTOR_WORDS, study_problems
+
+    storm = {**DESIGN, "arf": [], "arf_mode": "given", "arf_factor": 0.7}
+    assert GIVEN_FACTOR_WORDS in study_problems({"storm": storm, "design": []})
 
 

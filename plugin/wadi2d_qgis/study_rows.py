@@ -18,7 +18,7 @@ import re
 from pathlib import Path
 
 from .protocol import STUDY_FILE
-from .storm_rows import KIND_DESIGN, KIND_GRID
+from .storm_rows import ARF_GIVEN, KIND_DESIGN, KIND_GRID
 
 AREA_KEY = "drainage_area_km2"
 AREA_DECIMALS = 4
@@ -47,6 +47,10 @@ STORM_WORDS = (
 TABLE_WORDS = "Fill the area reduction table of the design storm in Storm: without it every run is the same run."
 GRID_WORDS = (
     "Choose an Area reduction for the gridded file in Storm: without an area reduction table every run is the same run."
+)
+GIVEN_FACTOR_WORDS = (
+    "A given reduction factor is one factor at every storm area, so every run of a study would be the same run: in "
+    "Storm, choose At one storm area or By the depth-area study with its table."
 )
 STUDY_KINDS = (KIND_DESIGN, KIND_GRID)
 LINE_WORDS = (
@@ -158,6 +162,8 @@ def study_problems(values: dict) -> list[str]:
     storm = values.get("storm")
     if (storm is None and not values.get("hms")) or (storm is not None and storm.get("kind") not in STUDY_KINDS):
         found.append(STORM_WORDS)
+    elif storm is not None and storm.get("arf_mode") == ARF_GIVEN:
+        found.append(GIVEN_FACTOR_WORDS)
     elif storm is not None and storm.get("kind") == KIND_GRID and not storm.get("arf_on"):
         found.append(GRID_WORDS)
     elif storm is not None and storm.get("kind") == KIND_DESIGN and not storm.get("arf"):

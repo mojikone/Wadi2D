@@ -31,6 +31,7 @@ from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
 from ..rain_chart import HyetographChart, PreviewTable
 from ..storm_rows import (
     ARF_AREA,
+    ARF_GIVEN,
     ARF_NONE,
     ARF_STUDY,
     KIND_DESIGN,
@@ -63,8 +64,11 @@ REDUCED = (KIND_DESIGN, KIND_GRID)
 ARF_CHOICES = (
     (ARF_NONE, "None"),
     (ARF_AREA, "At one storm area"),
+    (ARF_GIVEN, "A given factor"),
     (ARF_STUDY, "By the depth-area study (section 9)"),
 )
+GIVEN_DECIMALS = 4
+GIVEN_TIP = "Every depth is multiplied by this factor, with no table and no storm area: 0.7 is a 30 % reduction"
 SINGLE_CHOICES = ((KIND_STEADY, "Constant rain"), (KIND_TABLE, "A table of periods"))
 GAUGES_NOTE = (
     "Each gauge's record spread over the cells and the lumped subbasins by the method below, as received: gauged rain "
@@ -310,9 +314,19 @@ class StormSection(Section):
         inner.addRow(self.hms_note)
         inner.addRow(self.study_label)
         self.grid_note = _words(GRID_ARF_NOTE)
+        self.given_box = QWidget()
+        given = QFormLayout(self.given_box)
+        given.setContentsMargins(0, 0, 0, 0)
+        self.arf_factor = number_box(GIVEN_DECIMALS)
+        self.arf_factor.setRange(0.0, 1.0)
+        self.arf_factor.setSingleStep(0.05)
+        self.arf_factor.setValue(1.0)
+        self.arf_factor.setToolTip(GIVEN_TIP)
+        given.addRow("Reduction factor", self.arf_factor)
         form.addRow("Area reduction", self.arf_mode)
         form.addRow(self.grid_note)
         form.addRow(self.arf_detail)
+        form.addRow(self.given_box)
         self.arf_mode.currentIndexChanged.connect(self._reduction_shown)
         return block
 
@@ -391,7 +405,8 @@ class StormSection(Section):
     def _reduction_shown(self) -> None:
         mode = self.arf_mode.currentData()
         grid = self.kind.currentData() == KIND_GRID
-        self.arf_detail.setVisible(mode != ARF_NONE)
+        self.arf_detail.setVisible(mode not in (ARF_NONE, ARF_GIVEN))
+        self.given_box.setVisible(mode == ARF_GIVEN)
         self.grid_note.setVisible(grid and mode == ARF_NONE)
         self.hms_note.setVisible(grid and self._hms_in_use)
         self.study_label.setVisible(mode == ARF_STUDY)
@@ -460,8 +475,11 @@ class StormSection(Section):
 
     def _reduction(self) -> dict:
         mode = self.arf_mode.currentData()
-        rows = self.arf.rows() if mode != ARF_NONE else []
-        return {"arf_mode": mode, "area_km2": self.storm_area.value(), "arf": rows}
+        rows = self.arf.rows() if mode not in (ARF_NONE, ARF_GIVEN) else []
+        found = {"arf_mode": mode, "area_km2": self.storm_area.value(), "arf": rows}
+        if mode == ARF_GIVEN:
+            found["arf_factor"] = self.arf_factor.value()
+        return found
 
     def grid_values(self) -> dict:
         count = self.variable.count()
@@ -475,11 +493,12 @@ class StormSection(Section):
             "interval_min": self.period.value(),
             "stamp": self.stamp.currentData(),
             "start": self.start.text().strip(),
-            "arf_on": reduction["arf_mode"] != ARF_NONE,
+            "arf_on": reduction["arf_mode"] not in (ARF_NONE, ARF_GIVEN),
             "area_km2": reduction["area_km2"],
             "arf": reduction["arf"],
             "arf_from_hms": self._hms_in_use,
             "arf_mode": reduction["arf_mode"],
+            **({"arf_factor": reduction["arf_factor"]} if "arf_factor" in reduction else {}),
         }
 
     def values(self, crs) -> dict:
