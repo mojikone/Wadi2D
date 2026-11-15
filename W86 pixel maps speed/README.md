@@ -1,6 +1,7 @@
 # W86 pixel maps speed
 
-**Live (2026-11-15). Branch `perf/pixel-maps` off `feature/fast-products` (`5d902eb`); not merged, nothing pushed.**
+**Live (2026-11-15). Branch `perf/pixel-maps` off `feature/fast-products` (`5d902eb`), with `feature/fast-products`
+at `d2ee888` (W84's stored DEM, W85's step limiter) merged into it; not merged back, nothing pushed.**
 His order: the fastest stable engine end to end, press Run to maps ready in QGIS; after the solver, the products are
 the largest stage. On the night's Block 2 runs (aligned centre mesh, 20 m cells, 0.5 m pixel, 193 saved maps) the
 pixel maps did not finish at all.
@@ -53,8 +54,10 @@ written. Memory follows the block, not the run.
   about 80 bytes where it took 124 on the host and 96 on the card for weights and indices alone.
 - **The strip's sums are loops in one order on both backends** (`products/strip_kernels.py`): a cell's pixels from
   first to last, a node's cells by rising number, a pixel's node slots as NumPy sums a row. Numba on the host, CUDA on
-  the card, statement for statement, no multiply fused into an add. A cell whose offset has stopped moving takes no
-  further Newton step, since the step would be the one it just took, to the bit.
+  the card, statement for statement, no multiply fused into an add.
+- **A strip cell's Newton fill stops on the cell's own step**, as a square cell's does (the coordinator's order after
+  the first report). The old fill went on until every cell of the strip had settled, so a pixel depended on the
+  company its cell kept, and on how the strip was cut. Now it does not: any blocks, one answer, to the digit.
 - **The exact size of the rasters is found without reading the strip** (the cells that could reach each edge decide),
   so the files have the old origin and shape.
 - **Progress:** the strip's part reports with the maps, block by block; one `pixel_blocks` event says how many
@@ -80,6 +83,8 @@ nodes), the dam's crest, dikes and spillway, and its pool. "Old" is the engine a
 `git archive`. The rasters are 6,440 x 6,840 pixels, 7,646,164 of them wet. `s03_compare.py` compares the four
 rasters pixel for pixel; `s05_split.py` says whether a difference is on the strip or on the squares.
 
+First, with the old fill kept (commits up to `a74c21e`):
+
 | Compared (Bidah window) | Squares, 41.3 M pixels | Strip, 2.74 M pixels |
 |---|---|---|
 | Old CPU against new CPU | identical, all four rasters | identical, all four rasters |
@@ -88,23 +93,35 @@ rasters pixel for pixel; `s05_split.py` says whether a difference is on the stri
 | New GPU against new CPU | 4.7 M depth pixels differ, at most 8e-6 m, as old GPU against old CPU | identical, all four rasters |
 | New GPU in one block against several blocks | identical | 495,490 depth pixels differ, at most 9.5e-7 m; classes and speed identical |
 
-Read: [Certain] on the CPU the new rasters are the old ones to the digit. On the card the squares are the old
-card's to the digit. The strip on the card cannot be compared to the digit with the old card, because the old card
-did not agree with itself; it is now the CPU's strip to the digit, and the same twice.
+Read: [Certain] with the old fill, on the CPU the new rasters were the old ones to the digit. On the card the squares
+are the old card's to the digit. The strip on the card cannot be compared to the digit with the old card, because the
+old card did not agree with itself; it is the CPU's strip to the digit, and the same twice.
 
-**One thing left that depends on the blocks** [Certain, measured, last row]: the strip's Newton fill, as the old code
-wrote it, goes on until every cell of the lot has settled, so a cell that still moves by less than the tolerance can
-take one more step in one lot than in another. Cut into several blocks, a strip pixel can differ from the one-block
-answer by a step under the fill's tolerance, 0.1 mm: 9.5e-7 m at most on the window, and on Block 2's run 3 cut in 8
-blocks against 23 (`s03_compare.py`, 93,080 x 97,560 pixels, 502 M wet) 13,056 depth pixels and 8,032 depth x speed
-pixels differ, by 0.12 mm and 1.8e-4 m2/s at most, with the hazard and speed rasters identical and `pixels.json`
-equal. The cure is to stop each cell on its own step, as the squares' fill does. It was not taken, because it moves
-the same last digits against the old CPU code. His call.
+The last row was the one thing that depended on the blocks: the old fill's stop. On Block 2's run 3, 8 blocks
+against 23 differed on 13,056 depth pixels of 502 M wet, by 0.12 mm at most, with the hazard and speed rasters
+identical.
 
-Tests (`tests/products/`): `test_blocks.py` (one block and many blocks against the step as it was before W86, built
-in the test from `PixelMaxima` and the old `strip_pixel_maxima`; the plan of blocks; the retry in smaller blocks),
-`test_strip_kernels.py` (the row sum against NumPy's for rings of 4 to 19 nodes, the fill against the old scatter-add
-fill, the card's four kernels against the host's to the digit), `test_ground_read.py` (any run of kept cells against
+**Then, on the coordinator's order: each cell stops on its own step, and the branch takes W84 and W85.** The same
+window, the CPU, the merged code against the old code (`runs/merged_cpu` against `runs/base_cpu`):
+
+| Old CPU against the merged branch's CPU | Squares, 41.3 M pixels | Strip, 2.74 M pixels |
+|---|---|---|
+| Depth | identical | 805,535 pixels differ, **4.8e-6 m at most** |
+| Speed | identical | identical |
+| Depth x speed | identical | 767,882 pixels differ, 0.0137 m2/s at most |
+| Hazard class | identical | 1 pixel, by one class |
+
+Read: [Certain] the squares, whose ground now comes through W84's stored DEM, are the old code's to the digit. The
+strip moves by 4.8e-6 m of depth at the worst pixel, the price of a fill that does not depend on the blocks. The
+0.0137 m2/s is not a larger error: depth x speed is taken map by map, and a pixel that crosses the 5 cm floor in one
+map by a few micrometres counts or does not count that map's speed. One pixel of 2.74 M changes class.
+
+Tests (`tests/products/`): `test_blocks.py` (the squares in one block and in many against the step as it was before
+W86, to the digit; the strip in many blocks against one, to the digit, and against the old whole strip within the
+fill's tolerance; the plan of blocks; the retry in smaller blocks),
+`test_strip_kernels.py` (the row sum against NumPy's for rings of 4 to 19 nodes; the fill within its tolerance of
+the old scatter-add fill, holding each cell's water, and the same for a cell whatever cells are worked with it; the
+card's four kernels against the host's to the digit), `test_ground_read.py` (any run of kept cells against
 the whole read, holes filled), `test_cell_maps.py`. One existing test was changed, on purpose:
 `tests/engine/test_strips_run.py::test_an_inflow_on_the_corridor_enters_the_strip` read "the squares only" off
 `max_depth.tif` being blank on the strip; it now reads the squares from the results and checks that the map holds the
@@ -144,6 +161,22 @@ minutes longer than the 8, part of it this session's own tests on the cores. Tha
 ran out of memory three times that night, and a PC with 32 GB must be able to make these maps. A larger figure buys
 back time on his machine; it was not measured. His call.
 
+**The same remake on the merged branch** (W84's stored DEM, W85, each strip cell stopping on its own step; the same
+23 blocks; `runs/block2_run3_merged.json`), with the caches in a folder of this iteration so the run's own stay as
+they are:
+
+| Run 3, Block 2, merged branch | |
+|---|---|
+| Products, whole step | **18.2 min**: saved maps read 23 s, blocks 17.7 min, layers 4 s (26.5 min before the merge, the same 23 blocks) |
+| Peak host memory | **17.3 GB** (20.8 GB before the merge) |
+| Peak on the card | 12.8 GB |
+| Before the products could start, once | 14.4 min: the merge moves every cache key (W85's note), so the domain mask, the centre mesh (12 of the minutes, one core), the tables and the strip were built again, and the DEM's 23 GB chunk store was made |
+| Result | the same class areas to four decimals as before the merge |
+
+Both remakes shared the cores with other work for part of their time (this session's tests in each case), so the 8
+minutes between them are not all the stored DEM's. [Likely] most of it is: the strip's ground is read a block at a
+time through the same bed, and that read was on the cores the tests took.
+
 [Certain] The cell maps of the same remake: 563,991 squares the strip replaced now hold their strip cell's value
 (`max_depth.tif` has 3,509,086 cells with a value where it had 2,945,095), and every lattice cell holds what it held.
 
@@ -177,12 +210,13 @@ cure is in the solver's record of the peak, not here.
 Of the coordinator's later orders of the night: the time-slider file (`frames.nc`) still leaves the strip's cells
 out; the on-demand pixel layer (`W51`) still draws a strip run as cell values with the strip blank, and the dock
 still loads the mesh file by default; progress in the products' other stages (the layers, the drawing) is as it
-was. The full suite was not run: the targeted files only, one at a time, by the session's memory rule.
+was. The full suite was not run: after the merge every file of `tests/products`, `tests/render`, `tests/strips` and
+`tests/demstore` and `tests/engine/test_strips_run.py` passed, one file at a time.
 
 ## Files
 
 - `s01_window_job.py` writes `jobs/window_bidah.json`.
-- `s02_remake.py RUN TAG [--engine FOLDER] [--backend] [--memory-mb]` remakes a run's products in `runs/TAG`, timed,
+- `s02_remake.py RUN TAG [--engine FOLDER] [--backend] [--memory-mb] [--cache FOLDER]` remakes a run's products in `runs/TAG`, timed,
   with the process's own peak memory. `runs/*.json` are its reports.
 - `s03_compare.py A B`, `s05_split.py A B` compare rasters. `s04_probe.py RUN` times one map a pixel.
 - `s06_plan.py RUN` says how a run would be cut into blocks, without making anything.

@@ -61,12 +61,17 @@ def card_used_mb() -> float | None:
         return None
 
 
-def place(run: Path, tag: str) -> Path:
+def place(run: Path, tag: str, cache: Path | None = None) -> Path:
     out = HERE / "runs" / tag
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
-    shutil.copy2(run / "config.resolved.json", out / "config.resolved.json")
+    if cache is None:
+        shutil.copy2(run / "config.resolved.json", out / "config.resolved.json")
+    else:  # the copy keeps its tables, strip and DEM chunks in a folder of this iteration, not in the run's own
+        config = json.loads((run / "config.resolved.json").read_text(encoding="utf-8"))
+        config["grid"]["cache_dir"] = str(cache.resolve())
+        (out / "config.resolved.json").write_text(json.dumps(config), encoding="utf-8")
     try:
         os.link(run / "results.h5", out / "results.h5")  # the same volume: no copy of a file of gigabytes
     except OSError:
@@ -81,8 +86,9 @@ def main() -> None:
     parser.add_argument("--engine", type=Path, default=REPO)
     parser.add_argument("--backend", default="cpu")
     parser.add_argument("--memory-mb", type=int, default=0)
+    parser.add_argument("--cache", type=Path, default=None, help="a cache folder to use in place of the run's own")
     args = parser.parse_args()
-    out = place(args.run, args.tag)
+    out = place(args.run, args.tag, args.cache)
     env = dict(os.environ)
     if args.memory_mb:
         env["WADI2D_PIXEL_MEMORY_MB"] = str(args.memory_mb)
