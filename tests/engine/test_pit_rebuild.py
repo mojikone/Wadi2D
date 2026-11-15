@@ -188,3 +188,16 @@ def test_the_strip_pieces_the_fills_reach_built_again_are_the_whole_build_to_the
         assert np.array_equal(a[name], b[name], equal_nan=True), name
     assert not np.array_equal(part.strip.mesh.ftab, before.strip.mesh.ftab)  # the fills did reach the strip
     same(part, whole)
+
+
+def test_the_geometry_measures_its_rings_once_and_again_when_they_move():
+    import pickle
+
+    geo = strip_of([square(0.0, 0.0, 10.0), square(10.0, 0.0, 10.0)]).geometry
+    area, cx, _cy = geo.areas_centroids()
+    assert area.tolist() == [100.0, 100.0] and cx.tolist() == [5.0, 15.0]
+    cx[0] = -1.0  # the caller's copy: the kept answer is not touched
+    assert geo.areas_centroids()[1].tolist() == [5.0, 15.0]
+    geo.x[1] += 10.0  # a node moved in place: measured again
+    assert geo.areas_centroids()[0][0] == pytest.approx(150.0)
+    assert "_areas" not in pickle.loads(pickle.dumps(geo)).__dict__
