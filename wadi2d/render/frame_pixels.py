@@ -19,15 +19,8 @@ from wadi2d.render.ground_store import GroundStore
 from wadi2d.render.run_source import PixelTables
 from wadi2d.render.view import View
 
-CORNER_REACH = 2
-"""Cells a corner's links read past the cell itself."""
 DEPTH, SPEED, HAZARD = "depth", "speed", "hazard"
 FIELDS = (DEPTH, SPEED, HAZARD)
-
-
-def halo(rule: Pixels) -> int:
-    """Cells a window must hold round a view for the view's own cells to equal the whole-domain answer."""
-    return rule.edge_passes + CORNER_REACH
 
 
 class PixelFrame(PixelMaxima):

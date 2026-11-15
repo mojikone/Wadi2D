@@ -39,6 +39,14 @@ WORK_SCALE = 5
 BYTES = 4
 TINY = 1e-6
 """Depth x speed below this reads as none, m2/s."""
+CORNER_REACH = 2
+"""Cells a corner's links read past the cell itself."""
+
+
+def halo(rule: Pixels) -> int:
+    """Cells a window must hold round its own for those to equal the whole-domain answer: a cell reads its
+    neighbours' levels and, through the refills that ease joined edges, their fill offsets, which read theirs."""
+    return rule.edge_passes + CORNER_REACH
 
 
 def array_module(backend: str):
@@ -86,6 +94,9 @@ class PixelMaxima:
     ) -> None:
         """``ghosts`` are (rows, columns) of cells that shape the surface and take no pixels: another size on a mesh."""
         self.xp, self.rule, self.k, self.flat = xp, rule, cells.k, flat
+        self.tidy = True
+        """Hand the device's unused memory back after every map. A block of a large run sets this off: its pool is
+        capped by the block's own budget, and giving it back 193 times a block costs more than the maps (W86)."""
         self.rows, self.cols = cells.rows, cells.cols
         order = None
         if ghosts is not None:
@@ -160,10 +171,28 @@ class PixelMaxima:
 
         ``offsets`` holds the fill offsets of cells that take no pixels here, NaN where none is known yet.
         """
+        self._add(
+            self._cells(depth),
+            self._cells(mean_depth),
+            self._cells(speed),
+            moment,
+            None if level is None else self._cells(level),
+            None if offsets is None else self._cells(offsets, np.nan),
+        )
+
+    def _listed(self, values, left_out: float = 0.0):
+        """Values that already stand per kept cell, in the cells' order, moved to the device with the last entry."""
+        return self.xp.asarray(np.append(values, left_out).astype(np.float32))
+
+    def add_listed(self, depth, mean_depth, speed, moment: bool = True) -> None:
+        """:meth:`add` for a map already reduced to the kept cells, in their order (W86): a block of a large run
+        takes its cells from the maps held once, not from grids."""
+        self._add(self._listed(depth), self._listed(mean_depth), self._listed(speed), moment, None, None)
+
+    def _add(self, d, h, s, moment: bool, level, given) -> None:
         xp, rule, near = self.xp, self.rule, self.near
-        d, h, s = self._cells(depth), self._cells(mean_depth), self._cells(speed)
         wet = d > 0.0
-        level = self.zmin + d if level is None else self._cells(level)
+        level = self.zmin + d if level is None else level
         if self.flat:
             nothing = xp.zeros_like(wet)
             groups = corner_groups(near, nothing, nothing)
@@ -176,8 +205,7 @@ class PixelMaxima:
         speeds = corner_means(near, s, s > 0.0, groups)
         self.corners = (levels, speeds)
         seed, known = xp.zeros_like(h), None
-        if offsets is not None:
-            given = self._cells(offsets, np.nan)
+        if given is not None:
             known = ~xp.isnan(given)
             known[: self.pixels_of] = True
             seed = xp.where(known, xp.nan_to_num(given), 0.0)
@@ -196,13 +224,19 @@ class PixelMaxima:
             batch.maxima = [self._rest(a) for a in store]
         if moment:
             self.cell_dv = xp.maximum(self.cell_dv, d * s)
-        if xp is not np:  # the wet set changes with every map: left alone, the pool fills the card, and Windows pages it
-            xp.get_default_memory_pool().free_all_blocks()
+        if xp is not np and self.tidy:  # the wet set changes with every map: left alone, the pool fills the card
+            xp.get_default_memory_pool().free_all_blocks()  # and Windows pages it
 
     def lift_dv(self, run_hazard) -> None:
         """Depth x speed peaks between saved maps. The run watched every cell's peak: scale each cell up to it."""
+        self._lift(self._cells(run_hazard))
+
+    def lift_listed(self, run_hazard) -> None:
+        """:meth:`lift_dv` for peaks already reduced to the kept cells."""
+        self._lift(self._listed(run_hazard))
+
+    def _lift(self, run) -> None:
         xp = self.xp
-        run = self._cells(run_hazard)
         missed = xp.clip(run / xp.maximum(self.cell_dv, TINY), 1.0, self.rule.peak_lift)
         for batch in self.batches:
             held = xp.asarray(batch.maxima[2])

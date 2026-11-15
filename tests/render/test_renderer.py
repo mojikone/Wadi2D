@@ -10,9 +10,8 @@ import pytest
 
 from tests.render.conftest import CELL, PIXEL, Finished, read_record, whole_domain
 from wadi2d.products import step
-from wadi2d.products.pixels import array_module, to_host
+from wadi2d.products.pixels import array_module, halo, to_host
 from wadi2d.products.time_slider import cell_frame, run_mesh
-from wadi2d.render.frame_pixels import halo
 from wadi2d.render.renderer import FrameRenderer
 from wadi2d.render.run_source import CELLS, open_run
 from wadi2d.render.run_source import PIXEL as AT_PIXEL

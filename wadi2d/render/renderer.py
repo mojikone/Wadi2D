@@ -13,9 +13,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from wadi2d.products.pixels import array_module
+from wadi2d.products.pixels import array_module, halo
 from wadi2d.render.cells import draw_cells
-from wadi2d.render.frame_pixels import FIELDS, WindowPixels, halo
+from wadi2d.render.frame_pixels import FIELDS, WindowPixels
 from wadi2d.render.ground_store import GroundStore
 from wadi2d.render.run_source import CELLS, PIXEL, RunSource
 from wadi2d.render.view import View
