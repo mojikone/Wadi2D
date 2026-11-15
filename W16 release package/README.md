@@ -100,3 +100,7 @@ Driven by that PC's own Claude session from the published zip (its report; nothi
 ## 0.3.1
 
 The two findings of the office PC on 0.3.0: the installer's engine choice from the driver (`tools/release/gpu_check.ps1`, dot-sourced by the installer, in the package; driver 527.41 and compute capability 5.0 at least; 9 tests with fake cards, this PC reads "RTX 5080, driver 581.42: GPU engine"), and the Preview rain sentence. The office PC's second finding, an empty preview table, was its own inference from the label and is withdrawn by that session; the engine and the dock show the 2D row (a guard test added). Built from `e50603e`; plugin tests 576 passed; install test 35 of 35 in three throwaway profiles. Published as pre-release `v0.3.1` on his word.
+
+### 0.3.1 on the office PC, 2026-11-14
+
+Its own session, from the published zip (its report): installed over 0.3.0 in 5.7 s; the installer found `nvidia-smi` under `NVSMI` (not on the PATH) and said "GeForce GT 730, driver 391.35: older than 527.41, which the GPU engine needs. CPU engine; ..."; `Read-NvidiaCard` gave no compute capability (driver 391 cannot report it), so the driver alone decided, as designed; no CUDA package installed. Through the dock: 0.3.1, the valley run finished with mass error -1.5e-08 (balance identical to 0.3.0), Preview rain showed one 2D row of 30 mm with the new sentence, the group pattern, Make map and the right-click chart.
