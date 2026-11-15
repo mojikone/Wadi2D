@@ -35,6 +35,9 @@ LEAD_SHARE = 0.5
 """A cell that led this share of the events is named in a warning, when its depth is one no ground has."""
 DEPTH_RATIO = 3.0
 """The hydraulic depth the rule read, over the water's own depth in the cell, above which the cell looks like a hole."""
+STEP_GAIN = 1.5
+"""The step without the cell's tile, over the step it gave, under which it is not worth a warning: on the Block 2
+window with its hole mended, an edge cell led 27 of 47 events at 0.80 s where the next tile asked for 0.89 s."""
 
 
 class LimiterLog:
@@ -80,6 +83,10 @@ class LimiterLog:
         c = max(self.cells.values(), key=lambda held: held["ticks"])
         if c["ticks"] < LEAD_SHARE * ticks or c["hydraulic_depth"] < DEPTH_RATIO * max(c["depth"], 1e-6):
             return []
+        if c["dt_without_tile"] < STEP_GAIN * c["dt_min_s"]:
+            return (
+                []
+            )  # it led, and the next tile asks for nearly the same step: nothing to gain by mending it
         return [
             f"one cell set the time step at {c['ticks']} of {ticks} progress events: ({c['x']:.0f}, {c['y']:.0f}), water "
             f"{c['depth']:.1f} m deep over {100.0 * c['plan']:.1f} % of the cell beside a face with {c['face_area']:.0f} m2 "

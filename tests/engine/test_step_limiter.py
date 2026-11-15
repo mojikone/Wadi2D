@@ -13,7 +13,7 @@ import rasterio
 from tests.engine.conftest import X0, Y0, write_dem
 from tests.engine.test_run import full_job, valley
 from tests.solver.test_limiter import DX, GROUND, PI, PJ, pit_model
-from wadi2d.engine.step_limiter import FILE, LAYER, MIN_TICKS, LimiterLog
+from wadi2d.engine.step_limiter import FILE, LAYER, MIN_TICKS, STEP_GAIN, LimiterLog
 from wadi2d.run import job_hash, run_job
 
 PIT_X, PIT_Y = X0 + 256.0, Y0 - 188.0
@@ -114,3 +114,16 @@ def test_water_that_fills_its_cells_is_not_called_a_hole():
         m.advance(5.0 * (n + 1))
         log.tick(m.stepper.t)
     assert log.cells and log.notes() == []
+
+
+def test_a_sliver_that_costs_no_steps_is_not_warned_of():
+    """A cell may lead with a depth no ground has and still cost nothing: the next tile asks for nearly its step."""
+    m, _z = pit_model("cpu")
+    log = LimiterLog(m, m.tables, Lines())
+    for n in range(MIN_TICKS):
+        m.advance(5.0 * (n + 1))
+        log.tick(m.stepper.t)
+    assert log.notes()
+    for held in log.cells.values():
+        held["dt_without_tile"] = (STEP_GAIN - 0.01) * held["dt_min_s"]
+    assert log.notes() == []
