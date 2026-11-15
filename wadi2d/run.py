@@ -60,6 +60,7 @@ from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kic
 from wadi2d.engine.left_out import LeftOut, cells_key, choose, snap_entries
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.pit_rebuild import fill_tiles, fills_follow, strip_untouched
 from wadi2d.engine.pit_step import resolve_pits
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
@@ -426,10 +427,18 @@ class NothingOnTheGrid(InvalidJob):
 
 
 def prepare_grid(
-    cfg: RunConfig, cache_dir: Path, progress: Progress | None = None, left_out: LeftOut | str | None = FIND
+    cfg: RunConfig,
+    cache_dir: Path,
+    progress: Progress | None = None,
+    left_out: LeftOut | str | None = FIND,
+    base: GridTables | None = None,
 ) -> tuple[GridTables, str]:
     """The tables and the CRS as WKT, from the cache when nothing changed. The tables carry ``left_out``, the
-    catchments the job leaves out of the mesh (None for none)."""
+    catchments the job leaves out of the mesh (None for none).
+
+    ``base`` is the tables of this same job before its pit fills (``resolve_pits``, W85): the strip's mesh is taken
+    from it, only the tiles the fills reach are built again, and the strip's tables are its own when no fill lies near
+    the strip (W91), each the whole build's to the digit."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
     cfg = with_tables(cfg)
     with open_bed(cfg, cache_dir) as bed:  # the DEM decoded once into the cache folder, then read raw (W84)
@@ -465,6 +474,9 @@ def prepare_grid(
                 emit("output", kind="strip_cache_hit", path=str(spath))
                 mask, made = held
                 strip = made.strip
+        held_mesh = getattr(base, "strip_mesh", None)
+        if cfg.strips.enabled and strip is None and held_mesh is not None:
+            mask, strip = held_mesh  # a pit fill shapes no strip mesh: its lines, banks and floors are the job's (W91)
         if cfg.strips.enabled and strip is None:
             from wadi2d.strips.build import mask_for_strips
 
@@ -493,20 +505,29 @@ def prepare_grid(
             ground = Ground(bed, grid.x0, grid.y0)
             edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
             n = manning_grid(cfg, grid, crs)
-            tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
+            only = fill_tiles(cfg, base, grid, bed)
+            tables = build_tables(
+                grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining, base=base if only is not None else None,
+                only=only, keep_raw=fills_follow(cfg),
+            )  # fmt: skip
             save_tables(path, tables, key)
             emit("output", kind="grid_cache_saved", path=str(path))
+        if cfg.strips.enabled:
+            tables.strip_mesh = (mask, strip)  # for the build with the pit fills, if one follows (W91)
         if made is not None:
             tables.strip = made
         elif strip is not None:  # cached with its key since W81: minutes on Block 2, on every start and products remake
             from wadi2d.io.cache import save_strip
             from wadi2d.strips.build import strip_squares, strip_tables
 
-            bed.bind(tables.grid.x0, tables.grid.y0)
-            jj, ii = np.nonzero(tables.grid.mask)
-            sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
-            cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
-            tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
+            if strip_untouched(cfg, base, strip):
+                tables.strip = base.strip
+            else:
+                bed.bind(tables.grid.x0, tables.grid.y0)
+                jj, ii = np.nonzero(tables.grid.mask)
+                sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
+                cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
+                tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
             save_strip(spath, spath.stem.removeprefix("strip_"), mask, tables.strip)
             emit("output", kind="strip_cache_saved", path=str(spath))
     tables.left_out = left
@@ -1254,8 +1275,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
         tables, crs = prepare_grid(cfg, cache, progress, left)
 
-        def rebuild(job: RunConfig) -> GridTables:
-            return prepare_grid(job, cache, progress, left)[0]
+        def rebuild(job: RunConfig, before: GridTables) -> GridTables:
+            return prepare_grid(job, cache, progress, left, base=before)[0]
 
     plain = cfg
     cfg, tables, _pits = resolve_pits(cfg, tables, crs, out, progress, rebuild)
