@@ -136,6 +136,12 @@ class Monitor:
         self.live = None
         if o.live_every_s > 0.0:
             self.live = LiveRaster(out / "live" / "depth.tif", grid, crs, o.live_stride)
+        self.limiter = None
+        """What names the cell that sets the step at every tick (W85), when the job asks."""
+        if o.step_limiter != "off":
+            from wadi2d.engine.step_limiter import LimiterLog
+
+            self.limiter = LimiterLog(model, tables, progress)
 
         inner = grid.mask & ~boundary.mask
         self.storage_index = np.asarray(state_index(grid, *np.nonzero(inner)), np.int64)
@@ -255,6 +261,8 @@ class Monitor:
             mass_error=float(f"{self.balance.relative:.3e}"),
             wall=round(now - self.started, 2),
         )
+        if self.limiter is not None:
+            self.limiter.tick(st.t)
         if self.stop_requested():
             self.stop_due = True
         if self.live is not None and now >= self.next_live:
@@ -290,5 +298,7 @@ class Monitor:
     def finish(self, t: float) -> None:
         """Final samples at time t."""
         self.maxima.update(t)
+        if self.limiter is not None:  # a run shorter than a progress interval still names its limiter
+            self.limiter.tick(t)
         self.record(t)
         self._accounts(t)

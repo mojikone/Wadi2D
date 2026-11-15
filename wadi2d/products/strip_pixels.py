@@ -83,7 +83,9 @@ class StripBlock:
 class StripReader:
     """A strip's pixels on demand: the ground, the node weights and the neighbours of any set of its cells."""
 
-    def __init__(self, cfg: RunConfig, tables, strip, datum: float) -> None:
+    def __init__(self, cfg: RunConfig, tables, strip, datum: float, cache=None) -> None:
+        """``cache`` is the run's cache folder: the bed reads the DEM's chunk store there when it holds one (W84)."""
+        from wadi2d.demstore import cache_folder, open_bed
         from wadi2d.terrain import Ground, RasterBed, apply_objects
         from wadi2d.terrain.sections import with_tables
 
@@ -92,7 +94,7 @@ class StripReader:
         self.n = mesh.real
         with RasterBed(cfg.terrain.dem) as probe:
             native = probe.native
-        self.bed = bed = RasterBed(cfg.terrain.dem, bed_stride(cfg, native))
+        self.bed = bed = open_bed(cfg, cache if cache is not None else cache_folder(cfg), bed_stride(cfg, native))
         self.beds = ThreadBeds(bed)
         try:
             p = self.pixel = bed.pixel

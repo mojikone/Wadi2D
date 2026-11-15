@@ -20,6 +20,7 @@ import rasterio
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import cache_folder
 from wadi2d.io.geopackage import write_geopackage
 from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, raster_profile
 from wadi2d.products.blocks import (
@@ -378,13 +379,14 @@ def lattice_pixels(
     names = frame_names(results)
     watch.tick("ground", 0, 1)
     with ExitStack() as held:
-        reader = held.enter_context(CellReader(cfg, tables, keep))
+        cache = cache_folder(cfg, out)  # where the DEM's chunk store lies (W84)
+        reader = held.enter_context(CellReader(cfg, tables, keep, cache=cache))
         rows, cols, k = reader.rows, reader.cols, reader.k
         strips, strip_peak, extent = None, None, None
         if getattr(tables, "strip", None) is not None:
             strip_peak = strip_run_maxima(results)
         if strip_peak is not None:
-            strips = StripReader(cfg, tables, tables.strip, reader.datum)
+            strips = StripReader(cfg, tables, tables.strip, reader.datum, cache)
             held.callback(strips.close)
             extent = strips.extent()
             strips = None if extent is None else strips
@@ -486,7 +488,7 @@ def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp)
     results = out / "results.h5"
     peak = run_maxima(results)
     keep = peak["mean_depth"] > rule.cell_depth
-    parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b))
+    parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b), cache_folder(cfg, out))
     if not parts:
         return MeshResult({}, {}, {}, {}, {}, 0)
     datum = next(iter(parts.values())).datum

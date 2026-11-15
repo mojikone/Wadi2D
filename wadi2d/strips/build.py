@@ -204,7 +204,12 @@ def strip_tables(cfg: RunConfig, tables: GridTables, bed, strip: StripMesh, mann
     geo = strip.geometry
     pad = 2.0 * grid.dx
     if cfg.tables.face_conveyance == "local_radius":  # the window reaches past every face's ends (W49)
-        pad += cfg.tables.local_radius_beta * cfg.tables.face_depth_max
+        reach = cfg.tables.local_radius_beta * cfg.tables.face_depth_max
+        span = getattr(bed, "span", None)
+        # W85: no further than a bed in memory is long. The pieces clip their windows to this one and a face's line
+        # clips its samples to it, so past the bed's edge they read the same repeats of it as before; a raster bed
+        # has no span and is read as before
+        pad += reach if span is None else min(reach, span * bed.pixel)
     x_lo, x_hi = float(geo.x.min()) - pad, float(geo.x.max()) + pad
     y_lo, y_hi = float(geo.y.min()) - pad, float(geo.y.max()) + pad
     k = round(grid.dx / bed.pixel)

@@ -14,13 +14,16 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import rasterio
+from numba import njit
 from rasterio.windows import Window
 from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import GridTables
 from wadi2d.terrain import Ground, RasterBed, apply_objects
@@ -29,6 +32,9 @@ from wadi2d.terrain.sections import with_tables
 
 READ_WORKERS = max(1, (os.cpu_count() or 2) // 2)
 """Threads that read the kept cells' ground, each on its own handle of the DEM (W50)."""
+STRIPS_AHEAD = 4
+"""Strips of tiles whose kept cells are with the reading threads at once. One strip has some forty tiles with cells
+kept, of uneven work, and its slowest (a hole to fill) held the other threads idle for half the stage (W84)."""
 READ_CACHE_MB = 256
 """GDAL's block cache while they read. Each block is read about once, so a large cache holds nothing worth keeping,
 and closing the handles freed it at 1.2 s a handle: 21 s of Block 2's 32 s (W50)."""
@@ -75,17 +81,16 @@ def read_cells(
     tick: Callable[[int, int], None] = lambda _a, _b: None,
     scale: int = 1,
     datum: float | None = None,
+    cache: str | Path | None = None,
 ) -> CellPixels:
     """The pixels of the cells in ``keep``, a strip of tiles at a time. ``tick`` may raise to stop the read.
 
     On a mesh ``keep`` is on a lattice of cells ``scale`` finest cells wide, and ``datum`` is shared by every size.
+    ``cache`` is the run's cache folder, where the DEM's chunk store lies (W84); None takes the job's own.
     """
-    with CellReader(cfg, tables, keep, scale, datum) as reader:
+    with CellReader(cfg, tables, keep, scale, datum, cache) as reader:
         ground = np.empty((reader.rows.size, reader.k**2), np.float32)
-        for strip in range(reader.strips):
-            tick(strip, reader.strips)
-            a, b = reader.strip_range(strip)
-            reader.read_strip(strip, a, b, ground[a:b])
+        reader.read_into(0, reader.rows.size, ground, tick)
         return CellPixels(reader.rows, reader.cols, reader.k, reader.pixel, reader.datum, ground)
 
 
@@ -95,15 +100,25 @@ class CellReader:
     The kept cells stand row by row, so the cells of a band of rows are a run ``[a, b)`` of the list. A strip of tiles
     is read as the whole read reads it: where a hole is filled or a terrain object edits the ground the answer depends
     on the window, so that window stays the strip from its first to its last kept column, whatever part is asked for.
-    One thread reads at a time; the tiles of a strip go to this reader's own pool.
+    The bed is the DEM's chunk store where the run's cache folder holds one (W84). One thread asks at a time; the
+    tiles of the strips in hand go to this reader's own threads.
     """
 
-    def __init__(self, cfg: RunConfig, tables: GridTables, keep: np.ndarray, scale: int = 1, datum: float | None = None) -> None:
+    def __init__(
+        self,
+        cfg: RunConfig,
+        tables: GridTables,
+        keep: np.ndarray,
+        scale: int = 1,
+        datum: float | None = None,
+        cache: str | Path | None = None,
+    ) -> None:
         grid = tables.grid
         self._stack = ExitStack()
         with RasterBed(cfg.terrain.dem) as probe:
             native = probe.native
-        self.bed = bed = self._stack.enter_context(RasterBed(cfg.terrain.dem, bed_stride(cfg, native)))
+        folder = cache if cache is not None else cache_folder(cfg)
+        self.bed = bed = self._stack.enter_context(open_bed(cfg, folder, bed_stride(cfg, native)))
         try:
             self.k = bed.pixels_per_cell(grid.dx * scale)
             self.pixel = bed.pixel
@@ -123,33 +138,43 @@ class CellReader:
                 for a, b in zip(self.first[:-1], self.first[1:], strict=True)
             ]
             self._stack.enter_context(rasterio.Env(GDAL_CACHEMAX=READ_CACHE_MB))
-            self.beds = self._stack.enter_context(_ThreadBeds(cfg.terrain.dem, bed.stride, grid.x0, grid.y0))
+            self.beds = self._stack.enter_context(_ThreadBeds(bed, grid.x0, grid.y0))
         except BaseException:
             self._stack.close()
             raise
 
-    def strip_range(self, strip: int) -> tuple[int, int]:
-        """The run of kept cells in one strip of tiles."""
-        return int(self.first[strip]), int(self.first[strip + 1])
-
-    def read_strip(self, strip: int, a: int, b: int, out: np.ndarray) -> None:
-        """The ground of kept cells ``[a, b)``, all in ``strip``, into ``out``."""
-        if a >= b:
+    def read_into(self, a: int, b: int, out: np.ndarray, tick: Callable[[int, int], None] | None = None) -> None:
+        """The ground of kept cells ``[a, b)`` into ``out``, a strip of tiles at a time, some strips ahead with the
+        reading threads. ``tick`` is told each strip of the run before it is waited for, and may raise to stop."""
+        if b <= a:
             return
-        rows, cols, k, span = self.rows[a:b], self.cols[a:b], self.k, self.spans[strip]
-        if self.edit is None and self.beds.pick(rows, cols, k, self.datum, out, span):
-            return
-        _whole_strip(self.bed, self.edit, rows, cols, k, strip * TILE * k, self.datum, out, span)
+        rows, cols, k, datum = self.rows, self.cols, self.k, self.datum
+        strips = range(int(rows[a]) // TILE, int(rows[b - 1]) // TILE + 1) if tick is None else range(self.strips)
+        runs = {s: (max(int(self.first[s]), a), min(int(self.first[s + 1]), b)) for s in strips}
+        # these only hand a strip's tiles to the readers and wait; with one reader, one strip at a time
+        ahead = ThreadPoolExecutor(STRIPS_AHEAD if self.beds.workers > 1 else 1)
+        try:
+            picked = {
+                s: ahead.submit(self.beds.pick, rows[lo:hi], cols[lo:hi], k, datum, out[lo - a : hi - a], self.spans[s])
+                for s, (lo, hi) in runs.items()
+                if self.edit is None and lo < hi
+            }
+            for s, (lo, hi) in runs.items():
+                if tick is not None:
+                    tick(s, self.strips)
+                if lo >= hi:
+                    continue
+                if s in picked and picked[s].result():
+                    continue
+                part = out[lo - a : hi - a]
+                _whole_strip(self.bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
+        finally:
+            ahead.shutdown(wait=True, cancel_futures=True)  # a stop waits for the strips in hand, not for all
 
     def read(self, a: int, b: int) -> np.ndarray:
         """The ground of kept cells ``[a, b)``, (cells, k * k), float32 over the datum."""
         out = np.empty((max(b - a, 0), self.k**2), np.float32)
-        if b <= a:
-            return out
-        for strip in range(int(self.rows[a]) // TILE, int(self.rows[b - 1]) // TILE + 1):
-            lo, hi = self.strip_range(strip)
-            lo, hi = max(lo, a), min(hi, b)
-            self.read_strip(strip, lo, hi, out[lo - a : hi - a])
+        self.read_into(a, b, out)
         return out
 
     def close(self) -> None:
@@ -162,11 +187,30 @@ class CellReader:
         self.close()
 
 
-def _picked(z: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int, col0: int) -> np.ndarray:
-    """The k x k pixels of each cell from a window read at bed pixel (row0, col0), (cells, k * k)."""
-    top = (rows.astype(np.int64) * k - row0)[:, None, None] + np.arange(k)[None, :, None]
-    left = (cols.astype(np.int64) * k - col0)[:, None, None] + np.arange(k)[None, None, :]
-    return z[top, left].reshape(rows.size, -1)
+@njit(cache=True, nogil=True)
+def _any_picked(bad: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int, col0: int) -> bool:
+    """Whether any of the k x k pixels of a cell is marked in ``bad``, a window read at bed pixel (row0, col0)."""
+    for n in range(rows.size):
+        top, left = rows[n] * k - row0, cols[n] * k - col0
+        for a in range(k):
+            for b in range(k):
+                if bad[top + a, left + b]:
+                    return True
+    return False
+
+
+@njit(cache=True, nogil=True)
+def _pick_into(z, rows, cols, k, row0, col0, datum, out, where) -> None:
+    """The k x k pixels of each cell from ``z``, a window read at bed pixel (row0, col0), over ``datum``, into
+    ``out[where[n]]`` as float32. Free of the interpreter lock and written where it belongs, so the reading threads
+    pick as well as read: picked with index arrays and placed by the calling thread, 16 threads waited on one (W84:
+    Block 2's ground 23 s with the read itself down to a few)."""
+    for n in range(rows.size):
+        top, left = rows[n] * k - row0, cols[n] * k - col0
+        line = out[where[n]]
+        for a in range(k):
+            for b in range(k):
+                line[a * k + b] = np.float32(z[top + a, left + b] - datum)
 
 
 def _whole_strip(bed: RasterBed, edit, rows, cols, k: int, row0: int, datum: float, out: np.ndarray, span=None) -> None:
@@ -201,8 +245,10 @@ def _raw(bed: RasterBed, row0: int, col0: int, nrows: int, ncols: int) -> tuple[
     Through the bed's own window reader, or at a stride through :func:`_strided_window`, which picks the same
     pixels: ``read(fill=False)`` gives a window that is all holes as zeros, not NaN, so a hole could not be told
     from ground there. ``terrain/dem.py`` is left as it is: it is hashed into every grid cache key, and editing it
-    would rebuild every user's tables once for nothing."""
-    read = bed._window if bed.stride == 1 else partial(_strided_window, bed)
+    would rebuild every user's tables once for nothing. A bed on the chunk store picks those pixels itself, at any
+    stride, with no decoding (W84)."""
+    stored = getattr(bed, "store", None) is not None and bed.whole_pixels
+    read = bed._window if bed.stride == 1 or stored else partial(_strided_window, bed)
     return read(bed.row_origin + row0 * bed.stride, bed.col_origin + col0 * bed.stride, nrows, ncols)
 
 
@@ -284,8 +330,8 @@ class _ThreadBeds:
     read is the file's own value whatever window holds it, and a hole is filled from the pixel the strip's own fill
     would take (W50)."""
 
-    def __init__(self, path, stride: int, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
-        self.path, self.stride, self.origin = path, stride, (x0, y0)
+    def __init__(self, source: RasterBed, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
+        self.source, self.origin = source, (x0, y0)
         self.workers = workers
         self._local = threading.local()
         self._lock = threading.Lock()
@@ -295,23 +341,26 @@ class _ThreadBeds:
     def _bed(self) -> RasterBed:
         bed = getattr(self._local, "bed", None)
         if bed is None:
-            bed = RasterBed(self.path, self.stride)
+            bed = self.source.reopen()  # a handle of this thread's own, on the source's chunk store if it has one
             bed.bind(*self.origin)
             self._local.bed = bed
             with self._lock:
                 self._stack.enter_context(bed)
         return bed
 
-    def _tile(self, rows, cols, k: int, bounds: tuple[int, int, int, int]) -> np.ndarray | None:
+    def _tile(self, rows, cols, k: int, bounds: tuple[int, int, int, int], datum: float, out, where) -> bool:
+        """One tile column's kept cells into their rows ``where`` of ``out``; False when a hole's fill needs the
+        strip."""
         bed = self._bed()
         row0, col0 = int(rows.min()) * k, int(cols.min()) * k
         box = (row0, col0, (int(rows.max()) + 1) * k - row0, (int(cols.max()) + 1) * k - col0)
         z, bad = _raw(bed, *box)
-        if _picked(bad, rows, cols, k, row0, col0).any():
+        if _any_picked(bad, rows, cols, k, row0, col0):
             z = _filled_near(bed, box, bounds)
             if z is None:
-                return None
-        return _picked(z, rows, cols, k, row0, col0)
+                return False
+        _pick_into(z, rows, cols, k, row0, col0, datum, out, where)
+        return True
 
     def pick(self, rows, cols, k: int, datum: float, out: np.ndarray, span=None) -> bool:
         """The ground of one strip's kept cells into ``out``, tile column by tile column over the box of the cells
@@ -326,13 +375,11 @@ class _ThreadBeds:
         cuts = np.flatnonzero(np.diff(tiles[order])) + 1
         groups = np.split(order, cuts)
         mapper = self._pool.map if self._pool is not None and len(groups) > 1 else map
-        for group, picked in zip(
-            groups, mapper(lambda g: self._tile(rows[g], cols[g], k, bounds), groups), strict=True
-        ):
-            if picked is None:
-                return False
-            out[group] = (picked - datum).astype(np.float32)
-        return True
+        rows, cols = np.asarray(rows, np.int64), np.asarray(cols, np.int64)
+        # every tile is seen to its end, also after one has failed: none is left writing into ``out`` when the
+        # caller reads the strip whole over it
+        done = list(mapper(lambda g: self._tile(rows[g], cols[g], k, bounds, float(datum), out, g), groups))
+        return all(done)
 
     def __enter__(self) -> _ThreadBeds:
         return self

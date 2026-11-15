@@ -55,6 +55,15 @@ def test_the_engine_choice_reaches_the_job_only_when_one_was_made(tmp_path: Path
     assert build_job(values(tmp_path), tmp_path / "out")["run"] == {"duration_s": 43200.0}
 
 
+def test_fill_pits_and_the_step_limiter_reach_the_job_only_when_ticked(tmp_path: Path) -> None:
+    """An unticked box leaves the job as it was before W85, byte for byte, and its hash with it."""
+    plain = build_job(values(tmp_path), tmp_path / "out")
+    assert "fill_pits" not in plain["terrain"] and "step_limiter" not in plain["outputs"]
+    assert build_job(values(tmp_path, fill_pits=False, step_limiter=False), tmp_path / "out") == plain
+    job = build_job(values(tmp_path, fill_pits=True, step_limiter=True), tmp_path / "out")
+    assert job["terrain"]["fill_pits"] is True and job["outputs"]["step_limiter"] == "layer"
+
+
 def test_the_engine_choice_survives_the_hms_merge(tmp_path: Path) -> None:
     job = build_job(values(tmp_path, hms={"folder": "x"}, backend="cpu"), tmp_path / "out")
     merged = merge_hms(job, {"run": {"duration_s": 7200.0}, "hydrology": {}}, {"modes": {}})

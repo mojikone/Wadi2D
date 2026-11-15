@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from wadi2d.demstore import cache_folder
 from wadi2d.products.pixels import array_module, halo
 from wadi2d.render.cells import draw_cells
 from wadi2d.render.frame_pixels import FIELDS, WindowPixels
@@ -47,7 +48,8 @@ class FrameRenderer:
         self.slider = source.cfg.outputs.slider
         self.store = None
         if source.detail == PIXEL:
-            self.store = GroundStore(source.cfg, source.tables.grid, source.tables.datum)
+            cache = cache_folder(source.cfg, source.run)
+            self.store = GroundStore(source.cfg, source.tables.grid, source.tables.datum, cache)
         self.windows: dict[tuple, WindowPixels] = {}
         self.note = ""
 

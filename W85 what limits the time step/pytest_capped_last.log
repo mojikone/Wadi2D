@@ -1,0 +1,8 @@
+tests/engine/test_strip_cache.py: 2 passed, 1 warning in 2.64s [4 s]
+tests/engine/test_strips_run.py: 13 passed, 2 deselected, 1 warning in 59.34s [61 s]
+tests/engine/test_fill_pits.py: 4 passed, 1 warning in 28.96s [30 s]
+tests/engine/test_step_limiter.py: 5 passed, 1 warning in 35.02s [36 s]
+tests/engine/test_run.py: 13 passed, 2 deselected, 1 warning in 28.02s [29 s]
+tests/engine/test_resume_exact.py: 1 passed, 1 deselected, 1 warning in 21.72s [23 s]
+tests/terrain/test_pits.py: 7 passed, 1 warning in 1.11s [2 s]
+tests/plugin: 582 passed, 1 warning in 194.38s (0:03:14) [196 s]

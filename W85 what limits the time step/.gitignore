@@ -1,0 +1,10 @@
+# the per-face wave maps of s01_frame_waves.py: 70 MB a frame, remade by the script
+frames_run1/*.npz
+# run folders: the progress files, the limiter layers and the summaries stay; grids, the Faydh run and most series go
+**/cell_grid.gpkg
+**/edge_checks.gpkg
+window/cache_after/
+faydh/plan_min_*/
+window/*/series/
+!window/base/series/
+!window/plan10/series/
