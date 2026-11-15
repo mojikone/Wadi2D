@@ -1,0 +1,79 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a36df683cde0629b4\plugin\wadi2d_qgis\__init__.py
+    4.7 PASS engine found Engine ready.
+    4.8 PASS the engine choice is CPU only 
+    4.8 === 1 the choice, and the basin
+    4.8 PASS the choices are the engine's three, HMS-faithful first ['hms', 'conserving', 'muskingum']
+    4.8 PASS Muskingum has words of its own Muskingum: K and X per reach, as HEC-HMS routes them
+    4.8 PASS the tooltip says what fixed K and X cost d X stops an HMS run by name, and on a generated basin leaves the reach out, its water running on the 2D grid. A reach the HMS file already routes by Muskingum keeps that method under any of the three
+    4.8 PASS no reach table under the default 
+    7.7 PASS a basin was generated 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    7.7 PASS with reaches to route ['R1', 'R2', 'R3', 'R4']
+    7.7 === 2 the reference run: Muskingum-Cunge on the sections
+    7.7 dock says: Starting...
+   10.8 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   11.8 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   53.5 PASS the Muskingum-Cunge run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   53.5 reach inflow peaks, m3/s: {'R1': 0.0, 'R2': 142.7, 'R3': 70.4, 'R4': 48.2}
+   53.5 === 3 Muskingum: the reach table and the proposal
+   53.5 PASS the reach table shows 
+   53.5 PASS with the generated reaches ['R1', 'R2', 'R3', 'R4']
+   53.5 PASS nothing proposed by itself 
+   53.5 PASS the note says what a run would do 0 of 4 reaches have K and X. Without them a reach is left out and its water runs on the 2D grid from the junction above: R1, R2, R3, R4.
+   53.5 reaches that carry the flood: ['R2', 'R3', 'R4']; below a dam that does not spill: ['R1']; the largest: R2
+   53.5 PASS at least two reaches carry the flood ['R2', 'R3', 'R4']
+   53.5 PASS each reach's peak of the reference run typed as its reference flow 
+   53.5 PASS a flow of zero is named and not used [['R1', '', '', '', '', 'Ref. flow: above zero, so none is used.']]
+   53.5 PASS the button is busy while the engine answers 
+   53.5 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   55.3 note: 4 proposed for a 5 min step. A proposal is a start, not a result: read how each was derived, and change what you know better. 4 of 4 reaches have K and X.
+   55.3 row ['R1', '', '0.0948', '0.439', '1', "Ref. flow: above zero, so none is used. No reference flow given, so the flow whose wave speed is the reach's index celerity, 8.102 m/s, stands in; if that flow is far from the flood to be routed, give a reference flow (EM 1110-2-1417: midway between base flow and peak suits best in general). Cunge (1969) at 9,487 m3/s: normal depth 5.75 m, top width 498.2 m, mean velocity 6.06 m/s, wave speed 8.10 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0948 h. 1 subreach of 2,764 m. X = 1/2 (1 - Q / (B S c dx)) = 0.457; no count of subreaches is stable with it at this step, so X is lowered to 0.439, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.99 to 6.38 min (2KX to 2K(1-X))."]
+   55.3 row ['R2', '142.7', '0.2036', '0.409', '2', "Cunge (1969) at 142.7 m3/s: normal depth 1.01 m, top width 146.8 m, mean velocity 1.87 m/s, wave speed 2.49 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2036 h. 2 subreaches of 914 m. X = 1/2 (1 - Q / (B S c dx)) = 0.479; no count of subreaches is stable with it at this step, so X is lowered to 0.409, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 5 to 7.22 min (2KX to 2K(1-X))."]
+   55.3 row ['R3', '70.4', '0.1086', '0.383', '1', "Cunge (1969) at 70.4 m3/s: normal depth 0.48 m, top width 101.0 m, mean velocity 1.61 m/s, wave speed 2.49 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1086 h. 1 subreach of 974 m. X = 1/2 (1 - Q / (B S c dx)) = 0.485; no count of subreaches is stable with it at this step, so X is lowered to 0.383, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.99 to 8.04 min (2KX to 2K(1-X))."]
+   55.3 row ['R4', '48.2', '0.0517', '0.194', '1', "Cunge (1969) at 48.2 m3/s: normal depth 0.46 m, top width 66.9 m, mean velocity 1.79 m/s, wave speed 2.72 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0517 h. 1 subreach of 506 m. X = 1/2 (1 - Q / (B S c dx)) = 0.480; no count of subreaches is stable with it at this step, so X is lowered to 0.194, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 1.2 to 5 min (2KX to 2K(1-X))."]
+   55.3 PASS every reach got K, X and subreaches [['R1', '', '0.0948', '0.439', '1'], ['R2', '142.7', '0.2036', '0.409', '2'], ['R3', '70.4', '0.1086', '0.383', '1'], ['R4', '48.2', '0.0517', '0.194', '1']]
+   55.3 PASS the reaches with a flow by Cunge at that flow, on their sections Cunge (1969) at 142.7 m3/s: normal depth 1.01 m, top width 146.8 m, mean velocity 1.87 m/s, wave speed 2.49 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2036 h. 2 subreaches of 914 m. X = 1/2 (1 - Q / (
+   55.3 PASS the dry reaches at the flow of their index celerity, and told to give a flow ["No reference flow given, so the flow whose wave speed is the reach's index celerity, 8.102 m/s, stands in; if that flow "]
+   55.3 PASS proposals in italics, the derivation in the last column 
+   55.3 PASS the note counts them and calls them a start 4 proposed for a 5 min step. A proposal is a start, not a result: read how each was derived, and change what you know better. 4 of 4 reaches have K and X.
+   55.3 PASS every row in 0 to 0.5 and K above zero 
+   55.3 proposals the helper calls not stable at the step: []
+   55.3 PASS the note counts the reaches no K and X route at this step 4 proposed for a 5 min step. A proposal is a start, not a result: read how each was derived, and change what you know better. 4 of 4 reaches have K and X.
+   55.8 PASS an edit makes the row the user's ['R3', '70.4', '0.1086', '0.192', '1', 'Typed here.']
+   55.8 === 4 the Muskingum run
+   55.9 dock says: Starting...
+   57.4 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   57.9 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   96.2 PASS the Muskingum run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   96.2 PASS job.json holds the choice and the table's rows, the dry reaches' too [{'reach': 'R1', 'k_hours': 0.0948, 'x': 0.439, 'subreaches': 1}, {'reach': 'R2', 'k_hours': 0.2036, 'x': 0.409, 'subreaches': 2}, {'reach': 'R3', 'k_hours': 0.1086, 'x': 0.192, 'subreaches': 1}, {'reach': 'R4', 'k_hours': 0.0517, 'x': 0.194, 'subreaches': 1}]
+   96.2 PASS and so does the job as it ran 
+   96.2 PASS mass closes 2.071521727243199e-09
+   96.2 PASS no reach is left out ['a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line', 'a stream draining 2.48 km2 beyond the edge e
+   96.2 PASS the run warns of exactly the reaches the helper called not stable ([], [])
+   96.2 PASS R1: the outflow is the Muskingum route of its inflow by hand, to the series file's six figures (0.0, 0.0)
+   96.2 PASS R2: the outflow is the Muskingum route of its inflow by hand, to the series file's six figures (0.00043585607315321795, 142.266)
+   96.2 PASS R3: the outflow is the Muskingum route of its inflow by hand, to the series file's six figures (6.859030256833876e-05, 70.917)
+   96.2 PASS R4: the outflow is the Muskingum route of its inflow by hand, to the series file's six figures (4.1962178023879915e-05, 48.2165)
+   96.2 reaches: {"R1": {"reach": "R1", "k_hours": 0.0948, "x": 0.439, "subreaches": 1, "peak_in": 0.0, "muskingum_peak": 0.0, "cunge_peak_in": 0.0, "cunge_peak": 0.0, "lowest_out": 0.0, "by_hand_worst": 0.0}, "R2": {"reach": "R2", "k_hours": 0.2036, "x": 0.409, "subreaches": 2, "peak_in": 142.27, "muskingum_peak": 140.25, "cunge_peak_in": 142.66, "cunge_peak": 141.3, "lowest_out": 0.0, "by_hand_worst": 0.00043585607315321795}, "R3": {"reach": "R3", "k_hours": 0.1086, "x": 0.192, "subreaches": 1, "peak_in": 70.92, "muskingum_peak": 69.19, "cunge_peak_in": 70.4, "cunge_peak": 70.27, "lowest_out": 0.0, "by_hand_worst": 6.859030256833876e-05}, "R4": {"reach": "R4", "k_hours": 0.0517, "x": 0.194, "subreaches": 1, "peak_in": 48.22, "muskingum_peak": 47.69, "cunge_peak_in": 48.22, "cunge_peak": 47.76, "lowest_out": 0.0, "by_hand_worst": 4.1962178023879915e-05}}
+   96.2 PASS R2, proposed at its own peak: the outflow peak within 5 % of Muskingum-Cunge's 0.9925690021231421
+   96.2 === 5 a reach with no K and X is left out, by name
+   96.3 PASS the row is empty and the note names it 4 proposed for a 5 min step. A proposal is a start, not a result: read how each was derived, and change what you know better. 3 of 4 reaches have K and X. Without them a reach is left out and its water runs on the 2D grid from the junction above: R2.
+   96.3 dock says: Starting...
+   97.8 dock says: reach R2 lacks muskingum_k_hours, muskingum_x: the water of J2 enters the 2D grid there and runs over the ground instead
+   98.4 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+  134.5 PASS the run finished Finished. reach R2 lacks muskingum_k_hours, muskingum_x: the water of J2 enters the 2D grid there and runs over the ground instead. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water 
+  134.5 PASS the run says which reach lacks K and X and where its water goes ['reach R2 lacks muskingum_k_hours, muskingum_x: the water of J2 enters the 2D grid there and runs over the ground instead', 'a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never 
+  134.5 PASS the reach has no series: it did not run 
+  134.5 PASS mass closes 
+  134.5 === 6 a second proposal fills the empty row and leaves the typed one; a count outside the range is warned of
+  134.5 dock says: Finished. reach R2 lacks muskingum_k_hours, muskingum_x: the water of J2 enters the 2D grid there and runs over the ground instead. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain
+  136.0 PASS the empty row is proposed again, the typed row kept 3 proposed for a 5 min step; 1 kept as typed (clear a row's K and X to have it proposed). A proposal is a start, not a result: read how each was derived, and change what you know better. 4 of 4 reaches have K and X.
+  136.1 dock says: Starting...
+  138.1 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+  176.7 dock says: water stood 3.0 m deep against the domain edge at (431816, 2725010), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment
+  177.2 PASS the run finished Finished. reach R2: Muskingum routing is unstable with K 0.2036 h, X 0.409 and 400 subreaches: the step of 5 min is over 2K(1-X) = 0.0361 min of a subreach, so the old outflow's weight is negative and the outflow overshoots. HEC-HMS warns the same (41169) and 
+  177.2 PASS the run warns as HMS does, and names the stable counts ["reach R2: Muskingum routing is unstable with K 0.2036 h, X 0.409 and 400 subreaches: the step of 5 min is over 2K(1-X) = 0.0361 min of a subreach, so the old outflow's weight is negative and the outflow overshoots. HEC-HMS warns the same (41169) and routes i
+  177.2 === 7 back to the default
+  177.2 PASS the table hides and the rows stay out of the job 
+  177.3 SUMMARY 46 passed, 0 failed 
+  177.3 DONE
