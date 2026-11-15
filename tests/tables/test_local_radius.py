@@ -170,3 +170,67 @@ def test_on_the_quadtree_the_fine_faces_and_the_interface_faces_are_the_uniform_
         np.testing.assert_allclose(side_q, side_u, rtol=1e-5, atol=1e-6)
         moved += not np.allclose(side_q, tq_s.ftabx[pt, rw, jq], rtol=1e-4)
     assert moved > 0, "the interface faces should see the trench's walls"
+
+
+class Watched(ArrayBed):
+    """An array bed that remembers the largest window it was asked for, in pixels a side."""
+
+    largest = 0
+
+    def read(self, row0: int, col0: int, nrows: int, ncols: int) -> np.ndarray:
+        type(self).largest = max(type(self).largest, nrows, ncols)
+        return super().read(row0, col0, nrows, ncols)
+
+
+def test_a_bed_of_fine_pixels_is_read_no_further_than_it_is_long() -> None:
+    """The reach is 144 m whatever the pixel (W85): on 5 mm pixels a tile's window was 57,729 px a side, 24.8 GiB,
+    for a bed 1.28 m long. No face's line now reaches further past its ends than the bed is long."""
+    from wadi2d.solver.layout import TILE
+
+    k, dx = 4, 0.02
+    grid = TileGrid.from_mask(np.ones((30, 62), bool), 0.0, 0.0, dx)
+    ny, nx = grid.shape
+    y, x = np.mgrid[0 : ny * k, 0 : nx * k] * (dx / k)
+    Watched.largest = 0
+    bed = Watched(0.05 * x + 0.5 * np.abs(y - 0.5 * ny * dx), dx / k)
+    asked = int(np.ceil(BETA * Tables().face_depth_max / bed.pixel))
+    tables = build_tables(grid, bed, Tables(), 0.03, workers=1)
+    assert bed.span == nx * k < asked
+    assert Watched.largest == TILE * k + 1 + 2 * bed.span
+    assert np.isfinite(tables.ftabx).all() and np.isfinite(tables.ftaby).all()
+
+
+def test_a_bed_longer_than_the_reach_is_read_as_before() -> None:
+    from wadi2d.solver.layout import TILE
+
+    grid = TileGrid.from_mask(np.ones((30, 30), bool), 0.0, 0.0, 10.0)
+    ny, nx = grid.shape
+    Watched.largest = 0
+    bed = Watched(np.zeros((ny * 10, nx * 10)), 1.0)
+    build_tables(grid, bed, Tables(), 0.03, workers=1)
+    asked = int(np.ceil(BETA * Tables().face_depth_max / bed.pixel))
+    assert asked < bed.span and Watched.largest == TILE * 10 + 1 + 2 * asked
+
+
+def test_the_quadtree_reads_a_fine_bed_no_further_than_it_is_long() -> None:
+    from wadi2d.grid.quad import QuadGrid
+    from wadi2d.solver.layout import TILE
+    from wadi2d.tables.quad import build_quad_tables
+
+    k, dx = 4, 0.02
+    mask = np.zeros((64, 64), bool)
+    mask[2:-2, 2:-2] = True
+    grid = QuadGrid.from_levels(mask, 0.0, 0.0, dx, np.zeros((2, 2), np.int32))
+    y, x = np.mgrid[0 : 64 * k, 0 : 64 * k] * (dx / k)
+    Watched.largest = 0
+    bed = Watched(0.05 * x + 0.5 * np.abs(y - 32 * dx), dx / k)
+    tables = build_quad_tables(grid, bed, Tables(), 0.03, workers=1)
+    assert Watched.largest == TILE * k + 2 + 2 * bed.span
+    assert np.isfinite(tables.ftabx).all() and np.isfinite(tables.ftaby).all()
+
+
+def test_a_raster_bed_has_no_span_so_a_real_dem_is_read_as_before() -> None:
+    """The cap reads ``span`` off the bed: only a bed in memory has one."""
+    from wadi2d.terrain.dem import RasterBed
+
+    assert not hasattr(RasterBed, "span")

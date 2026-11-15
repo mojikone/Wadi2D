@@ -1,0 +1,9 @@
+object,kind,station_from,station_to,cut_m3,fill_m3
+pit fill 1.1,fill,0.0,50.0,0.000,1632.857
+pit fill 1.1,fill,50.0,60.0,0.000,0.000
+pit fill 1.2,fill,0.0,50.0,0.000,1079.779
+pit fill 1.2,fill,50.0,60.0,0.000,1952.294
+pit fill 1.3,fill,0.0,50.0,0.000,3037.137
+pit fill 1.3,fill,50.0,60.0,0.000,0.000
+pit fill 1.4,fill,0.0,50.0,0.000,3162.931
+pit fill 1.4,fill,50.0,60.0,0.000,210.850

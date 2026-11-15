@@ -25,7 +25,15 @@ from scipy import ndimage
 
 from wadi2d.breach import build_breaches
 from wadi2d.config.constants import M2_PER_KM2, G
-from wadi2d.config.schema import ENTRY_POINT, REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
+from wadi2d.config.schema import (
+    ENTRY_POINT,
+    FILL_KIND,
+    REACH_HMS,
+    SHAPED_KINDS,
+    RunConfig,
+    Terrain,
+    TerrainObject,
+)
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
 from wadi2d.demstore import open_bed
 from wadi2d.edge_valleys import (
@@ -51,6 +59,7 @@ from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kick, momentum_lines, open_lines
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
+from wadi2d.engine.pit_step import resolve_pits
 from wadi2d.engine.rain_once import check_rain_once
 from wadi2d.engine.transmission import BedLoss
 from wadi2d.forcing import (
@@ -91,6 +100,7 @@ from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
 from wadi2d.terrain.checks import terrain_notes
 from wadi2d.terrain.crest import line_lengths
+from wadi2d.terrain.pits import is_pit_fill
 from wadi2d.terrain.report import TerrainReport, survey
 from wadi2d.terrain.sections import with_tables
 from wadi2d.terrain.vector import read_features
@@ -103,7 +113,7 @@ TERRAIN_DIR = "terrain"
 """Folder of a run that holds what the terrain objects did."""
 ENTRIES_FILE = "entries.json"
 """Where each 'wadi' entry of a run was asked for, where it entered, and why (W41)."""
-PIXEL_KINDS = (*SHAPED_KINDS, "burn_line")
+PIXEL_KINDS = (*SHAPED_KINDS, "burn_line", FILL_KIND)
 """Terrain objects that change the ground, not only faces."""
 
 
@@ -154,6 +164,8 @@ NOT_WATER = (
     ("outputs", "face_discharge"),
     ("outputs", "observed"),
     ("outputs", "edge_check"),
+    ("outputs", "step_limiter"),  # a reading of the step, not the water: an old job's checkpoint keeps its hash (W85)
+    ("terrain", "pit_check"),  # the same: it names pits and changes nothing
     ("hydrology", "overlap_share"),
     ("arf", "bracket"),
     ("arf", "bracket_ratio"),
@@ -341,6 +353,14 @@ def job_hash(cfg: RunConfig) -> str:
         data[part].pop(name)
     data.pop("project")
     data.pop("basin")  # how basin.json was made; the file's own bytes are hashed below
+    # the pit fills are made from the three settings below and the ground, all hashed: the job as given and the job
+    # as it runs (with its fills) are one job, and one without the fill keeps the hash it had before it (W85)
+    data["terrain"]["objects"] = [
+        obj for obj, kept in zip(data["terrain"]["objects"], cfg.terrain.objects, strict=True) if not is_pit_fill(kept)
+    ]
+    if not cfg.terrain.fill_pits:
+        for name in ("fill_pits", "pit_max_cells", "pit_min_depth"):
+            data["terrain"].pop(name)
     for obj in data["terrain"]["objects"]:
         obj.pop("delineate", None)  # the same: it shapes basin.json only (W73)
     if not cfg.hydrology.handbacks:
@@ -466,6 +486,9 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
 
     terrain = cfg.terrain.model_dump(mode="json")
     terrain["objects"] = [_object_key(o) for o in cfg.terrain.objects]
+    # the pit settings shape no strip: the check changes nothing, and a fill reaches the strip as its objects (W85)
+    for name in ("pit_check", "fill_pits", "pit_max_cells", "pit_min_depth"):
+        terrain.pop(name, None)
     grid = cfg.grid.model_dump(mode="json")
     grid.pop("cache_dir", None)  # where the cache lies is not what is in it
     return cache_key(
@@ -766,6 +789,8 @@ class RunSummary:
     balance: Balance = field(default_factory=Balance)
     peaks: dict[str, tuple[float, float]] = field(default_factory=dict)
     backend: str = ""
+    terrain: Terrain | None = None
+    """The terrain as the run took it: the job's, with the pit fills when ``terrain.fill_pits`` made any (W85)."""
     cells: int = 0
     products: str = PRODUCTS_NONE
     done: dict = field(default_factory=dict)
@@ -906,6 +931,12 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
         columns = {k: np.asarray(v) for k, v in s.columns.items()}
         results.series(s.kind, s.name, t, columns)
         write_series_csv(out / "series" / f"{s.kind[:-1]}_{safe_name(s.name)}.csv", t, columns)
+    if monitor.limiter is not None:
+        for note in monitor.limiter.notes():
+            progress.emit("warn", message=note)
+        path = monitor.limiter.write(out, crs) if cfg.outputs.step_limiter == "layer" else None
+        if path is not None:
+            progress.emit("output", kind="step_limiter", path=str(path), cells=len(monitor.limiter.cells))
     progress.emit("output", kind="maps", path=str(out / "maps"))
 
 
@@ -1084,9 +1115,19 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
 
         for note in rounding_notes(cfg):
             progress.emit("warn", message=note)
+    rebuild = None
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
         tables, crs = prepare_grid(cfg, cache, progress)
+
+        def rebuild(job: RunConfig) -> GridTables:
+            return prepare_grid(job, cache, progress)[0]
+
+    plain = cfg
+    cfg, tables, _pits = resolve_pits(cfg, tables, crs, out, progress, rebuild)
+    if cfg is not plain:  # the pit fills are terrain objects of the job as it runs: the saved job and the maps take them
+        (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
+    summary.terrain = cfg.terrain
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = grid.cell_count if getattr(grid, "quad", False) else int(grid.mask.sum())
@@ -1338,7 +1379,8 @@ def run_job(
             made = _run(cfg, folder, backend, tables, resume, progress, summary, tuple(stop_files))
             if summary.status == "finished":
                 tags = {**arf_tags(cfg), **status_tags(summary, summary.t_end, cfg)}
-                summary.products = make_after_run(cfg, *made, folder, backend, progress, stop_files, tags)
+                ran = cfg if summary.terrain is None else cfg.model_copy(update={"terrain": summary.terrain})
+                summary.products = make_after_run(ran, *made, folder, backend, progress, stop_files, tags)
             progress.emit("done", **summary.done, products=summary.products)
         except JobError as error:
             summary.exit_code, summary.message = error.code, str(error)

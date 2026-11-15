@@ -28,6 +28,7 @@ from ..job_builder import (
     SECONDS_PER_HOUR,
     SMOOTH_ON,
     SMOOTH_TIP,
+    STEP_LIMITER,
 )
 from .common import Section, bind, number_box
 
@@ -60,6 +61,9 @@ class RunSection(Section):
         self.smooth.setToolTip(SMOOTH_TIP)
         self._smooth_default = False
         self.pixels.toggled.connect(self._pixels_toggled)
+        self.limiter = QCheckBox("Name the cell that sets the time step")
+        self.limiter.setChecked(False)
+        self._has_limiter = True
         self.backend = QComboBox()
         self.backend.setToolTip(BACKEND_TIP)
         self._backend_default: str | None = None
@@ -114,6 +118,7 @@ class RunSection(Section):
         self.form.addRow(self.maps_note)
         self.form.addRow(self.pixels)
         self.form.addRow(self.smooth)
+        self.form.addRow(self.limiter)
         self.form.addRow("Engine", self.backend)
         self.form.addRow(buttons)
         self.form.addRow(self.estimate_label)
@@ -145,6 +150,9 @@ class RunSection(Section):
         self.maps.setToolTip(schema.tip(MAP_EVERY))
         self.pixels.setChecked(bool(schema.default(PIXELS_ON, True)))
         self.pixels.setToolTip(schema.tip(PIXELS_ON))
+        self.limiter.setToolTip(schema.tip(STEP_LIMITER))
+        self._has_limiter = schema.has(STEP_LIMITER)  # an engine from before W85 would refuse the field
+        self.limiter.setEnabled(self._has_limiter)
         self._smooth_default = bool(schema.default(SMOOTH_ON, False))
         self.smooth.setChecked(self._smooth_default)
         self._backend_default = schema.default(BACKEND)
@@ -176,6 +184,7 @@ class RunSection(Section):
             "map_every_s": self.maps.currentData(),
             "pixels": self.pixels.isChecked(),
             "smooth": self.chosen_smooth(),
+            "step_limiter": self.limiter.isChecked() and self._has_limiter,
             "backend": self.chosen_backend(),
         }
 
@@ -192,6 +201,7 @@ class RunSection(Section):
         self.pixels.setEnabled(not running)
         self.smooth.setEnabled(not running and self.pixels.isChecked())
         self.backend.setEnabled(not running)
+        self.limiter.setEnabled(not running and self._has_limiter)
         if running:
             self.map_button.setEnabled(False)
             self.bar.setValue(0)

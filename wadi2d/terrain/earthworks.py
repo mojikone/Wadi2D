@@ -22,13 +22,13 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
 import numpy as np
-from rasterio import features
 from rasterio.transform import Affine
 
 from wadi2d.config.constants import CRITICAL_WEIR_COEFF
 from wadi2d.config.schema import Terrain, TerrainObject
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.terrain.alignment import Alignment, Located
+from wadi2d.terrain.rasterise import rasterize
 from wadi2d.terrain.sections import Profile, SectionAt, build_profile, lowered
 from wadi2d.terrain.template import clamp, crest_edge, cut_surface, fill_surface, nose_surface
 
@@ -320,7 +320,7 @@ class ShapeEdit:
         if xmax < west or xmin > west + nx * self.pixel or ymin > north or ymax < north - ny * self.pixel:
             return None
         transform = Affine(self.pixel, 0.0, west, 0.0, -self.pixel, north)
-        hit = features.rasterize(
+        hit = rasterize(  # one at a time: this runs on the table threads (W85)
             [(strip, 1)], out_shape=z.shape, transform=transform, all_touched=True, dtype="uint8"
         )
         r, c = np.nonzero(hit)

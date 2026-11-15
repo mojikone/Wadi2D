@@ -1,0 +1,1 @@
+fillpits {"exit": 0, "status": "finished", "steps": 101741, "loop_s": 65.34, "dt_min": 0.50794919336851, "tile_steps": null, "pit_cells_end": {"pit_east": {"t_s": 108000.0, "depth_m": 0.000435516, "mean_depth_m": 2.57531e-08, "level_m": 1181.6}, "pit_west": {"t_s": 108000.0, "depth_m": 0.00043543, "mean_depth_m": 1.07876e-07, "level_m": 1181.6}}}

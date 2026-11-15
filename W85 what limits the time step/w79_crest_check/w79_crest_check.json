@@ -1,0 +1,36 @@
+{
+ "cells": 6499,
+ "kinds_edit_pixels": {
+  "crest_line": false,
+  "spillway": false
+ },
+ "objects": [
+  "Bidah 03",
+  "Bidah 03 part 2",
+  "Bidah 03 part 3",
+  "Bidah 03 spillway"
+ ],
+ "arrays": {
+  "zmin": 0,
+  "zbar": 0,
+  "hc": 0,
+  "dtab": 0,
+  "flx": 0,
+  "frx": 0,
+  "glx": 0,
+  "grx": 0,
+  "efx": 0,
+  "cwx": 0,
+  "ftabx": 0,
+  "fly": 0,
+  "fry": 0,
+  "gly": 0,
+  "gry": 0,
+  "efy": 0,
+  "cwy": 0,
+  "ftaby": 0,
+  "zcx": 0,
+  "zcy": 0
+ },
+ "crest_faces": 176
+}

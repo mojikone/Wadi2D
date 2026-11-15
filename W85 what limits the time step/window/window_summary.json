@@ -1,0 +1,219 @@
+{
+ "base": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 332919,
+  "loop_s": 298.38,
+  "dt_min": 0.13701396054585924,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.57238678707,
+   "inflow_m3": 0.0,
+   "outflow_m3": 194968.07637009877,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3842.495938396979,
+   "error_m3": 7.829131664038869e-05,
+   "relative_error": 3.937985575941731e-10
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 40.5199,
+    "mean_depth_m": 1.10801,
+    "level_m": 1105.04
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 25.7604,
+    "mean_depth_m": 0.304384,
+    "level_m": 1105.04
+   }
+  }
+ },
+ "filled": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 101749,
+  "loop_s": 95.64,
+  "dt_min": 0.5215132020894162,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.57238678707,
+   "inflow_m3": 0.0,
+   "outflow_m3": 195662.5188926737,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3148.053525348385,
+   "error_m3": -3.123500391666312e-05,
+   "relative_error": -1.5710937070235502e-10
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 0.00232276,
+    "mean_depth_m": 8.52435e-07,
+    "level_m": 1187.85
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 0.00401308,
+    "mean_depth_m": 3.15944e-07,
+    "level_m": 1181.6
+   }
+  }
+ },
+ "bank": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 101804,
+  "loop_s": 141.84,
+  "dt_min": 0.5044715179875844,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.5723867873,
+   "inflow_m3": 0.0,
+   "outflow_m3": 195662.50434442554,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3148.0677298061187,
+   "error_m3": 0.000312555640903156,
+   "relative_error": 1.5721278659923422e-09
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 0.0022421,
+    "mean_depth_m": 7.94191e-07,
+    "level_m": 1187.84
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 0.00393062,
+    "mean_depth_m": 3.031e-07,
+    "level_m": 1181.6
+   }
+  }
+ },
+ "plan10": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 206991,
+  "loop_s": 322.02,
+  "dt_min": 0.1730435114257466,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.572386787,
+   "inflow_m3": 0.0,
+   "outflow_m3": 194971.7226254341,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3838.8413181452333,
+   "error_m3": 0.008443207670097763,
+   "relative_error": 4.246860500794424e-08
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 44.2496,
+    "mean_depth_m": 1.31341,
+    "level_m": 1108.77
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 19.3266,
+    "mean_depth_m": 0.153424,
+    "level_m": 1098.61
+   }
+  }
+ },
+ "plan25": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 170649,
+  "loop_s": 161.7,
+  "dt_min": 0.1813196554974502,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.5723867869,
+   "inflow_m3": 0.0,
+   "outflow_m3": 194974.39254372366,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3836.178019008734,
+   "error_m3": 0.0018240544995933305,
+   "relative_error": 9.174836517469625e-09
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 32.6962,
+    "mean_depth_m": 0.731613,
+    "level_m": 1097.22
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 34.4311,
+    "mean_depth_m": 0.605577,
+    "level_m": 1113.71
+   }
+  }
+ },
+ "plan100": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 100989,
+  "loop_s": 75.38,
+  "dt_min": 0.24137111877590783,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.5723867872,
+   "inflow_m3": 0.0,
+   "outflow_m3": 194984.02791067748,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3826.6010331670755,
+   "error_m3": -0.05655705737308381,
+   "relative_error": -2.844771115242891e-07
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 41.1893,
+    "mean_depth_m": 1.14358,
+    "level_m": 1105.71
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 10.0028,
+    "mean_depth_m": 0.0372973,
+    "level_m": 1089.28
+   }
+  }
+ },
+ "lts": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 340249,
+  "loop_s": 266.84,
+  "dt_min": 0.12876676022871433,
+  "tile_steps": 1360996,
+  "balance": {
+   "rain_m3": 198810.5723867872,
+   "inflow_m3": 0.0,
+   "outflow_m3": 194968.08920698456,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3842.4832368137954,
+   "error_m3": -5.7011167427845066e-05,
+   "relative_error": -2.867612458603534e-10
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 40.5204,
+    "mean_depth_m": 1.10804,
+    "level_m": 1105.04
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 25.7613,
+    "mean_depth_m": 0.304409,
+    "level_m": 1105.04
+   }
+  }
+ }
+}

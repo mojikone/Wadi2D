@@ -47,7 +47,13 @@ class ArrayBed:
     def read(self, row0: int, col0: int, nrows: int, ncols: int) -> np.ndarray:
         r = np.clip(np.arange(row0, row0 + nrows) + self.row_offset, 0, self.z.shape[0] - 1)
         c = np.clip(np.arange(col0, col0 + ncols) + self.col_offset, 0, self.z.shape[1] - 1)
-        return self.z[np.ix_(r, c)].astype(np.float64)
+        return np.asarray(self.z[np.ix_(r, c)], dtype=np.float64)  # the indexed block is already its own copy
+
+    @property
+    def span(self) -> int:
+        """Pixels along the bed's longer side. A face's line that reaches this far past its ends has passed every
+        pixel the bed holds; whatever lies further is a repeat of its edge pixel."""
+        return int(max(self.z.shape))
 
     def levels(self) -> tuple[float, float]:
         return float(self.z.min()), float(self.z.max())
@@ -148,6 +154,9 @@ def build_tables(
     local = cfg.face_conveyance == "local_radius"
     margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
     """W49: a face's line reaches this many pixels past its ends, for the local hydraulic radius's window."""
+    margin = min(margin, getattr(bed, "span", margin))
+    """W85: and no further than a bed in memory is long. The reach is 144 m whatever the pixel: on a bed of 5 mm pixels
+    that was 28,800 px a side, a window of 24.8 GiB per tile for every thread, all but 4 m of it repeats of the edge."""
     zcx_g = np.zeros((ny, nx))
     zcy_g = np.zeros((ny, nx))
     threads = table_workers(workers)

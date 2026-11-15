@@ -1,0 +1,33 @@
+{
+ "fillpits": {
+  "exit": 0,
+  "status": "finished",
+  "steps": 101741,
+  "loop_s": 65.34,
+  "dt_min": 0.50794919336851,
+  "tile_steps": null,
+  "balance": {
+   "rain_m3": 198810.57238678707,
+   "inflow_m3": 0.0,
+   "outflow_m3": 195662.52707469,
+   "storage_start_m3": 0.0,
+   "storage_end_m3": 3148.0455353573134,
+   "error_m3": -0.00022326025009533623,
+   "relative_error": -1.1229797661916197e-09
+  },
+  "pit_cells_end": {
+   "pit_east": {
+    "t_s": 108000.0,
+    "depth_m": 0.000435516,
+    "mean_depth_m": 2.57531e-08,
+    "level_m": 1181.6
+   },
+   "pit_west": {
+    "t_s": 108000.0,
+    "depth_m": 0.00043543,
+    "mean_depth_m": 1.07876e-07,
+    "level_m": 1181.6
+   }
+  }
+ }
+}

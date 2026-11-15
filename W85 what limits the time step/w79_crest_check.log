@@ -1,0 +1,24 @@
+object kinds of the job, and whether each edits pixels (only those rasterise on the table threads): {'crest_line': False, 'spillway': False}
+objects wholly in the window: ['Bidah 03', 'Bidah 03 part 2', 'Bidah 03 part 3', 'Bidah 03 spillway']
+window (96, 128) cells, 6499 compared; lattice offset 0.000000 m, 0.000000 m
+   zmin   equal to the digit
+   zbar   equal to the digit
+   hc     equal to the digit
+   dtab   equal to the digit
+   flx    equal to the digit
+   frx    equal to the digit
+   glx    equal to the digit
+   grx    equal to the digit
+   efx    equal to the digit
+   cwx    equal to the digit
+   ftabx  equal to the digit
+   fly    equal to the digit
+   fry    equal to the digit
+   gly    equal to the digit
+   gry    equal to the digit
+   efy    equal to the digit
+   cwy    equal to the digit
+   ftaby  equal to the digit
+   zcx    equal to the digit
+   zcy    equal to the digit
+faces with a crest coefficient among them (dam, spillway and natural crests): 176; cells that differ in any array: 0

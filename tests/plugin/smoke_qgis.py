@@ -319,6 +319,73 @@ def gauge_preview(dock) -> None:
     table._show()
 
 
+def real_pits(dock, plane, raster_of) -> None:
+    """W85 through the real dock and the real engine: a hole in the DEM is named, and with the two ticks it is filled
+    and the cell that sets the step is named; the checks land in Inputs > Terrain."""
+    import numpy as np
+    from osgeo import gdal
+    from wadi2d_qgis import layer_groups as g
+    from wadi2d_qgis.check_layers import SLOT_CHECKS
+
+    size, pixel, west, north, srs = raster_of
+    check(dock.schema.has("terrain.fill_pits") and dock.schema.has("outputs.step_limiter"), "real: the engine has W85's fields")
+    z = 120.0 - 0.01 * pixel * np.tile(np.arange(size), (size, 1))
+    z[200:202, 199:201] -= 12.0  # 10 m by 10 m and 12 m deep, across the face between two 20 m cells
+    path = WORK / "plane_with_a_hole.tif"
+    raster = gdal.GetDriverByName("GTiff").Create(str(path), size, size, 1, gdal.GDT_Float32)
+    raster.SetGeoTransform((west, pixel, 0.0, north, 0.0, -pixel))
+    raster.SetProjection(srs.ExportToWkt())
+    raster.GetRasterBand(1).WriteArray(z)
+    raster = None
+    holed = QgsRasterLayer(str(path), "plane with a hole")
+    PROJECT.addMapLayer(holed)
+    dock.terrain.dem.setLayer(holed)
+    hole_x, hole_y = west + 200 * pixel, north - 201 * pixel
+
+    def run_to(folder: str) -> tuple[Path, str]:
+        dock.panel.folder.setFilePath(str(WORK / "real" / folder))
+        start(dock)
+        out = dock.run.out_dir
+        pump(lambda: dock.run is None and dock.panel.run_button.isEnabled(), 180.0, f"the real run {folder}")
+        return out, dock.panel.message.text()
+
+    def checks(model: str) -> dict:
+        nodes = g.input_group(model, g.TERRAIN).findLayers()
+        return {n.layer().name(): n.layer() for n in nodes if n.customProperty(g.SLOT) == SLOT_CHECKS}
+
+    out, said = run_to("hole")
+    check("a pit in the ground" in said and "11.8 m deep" in said, f"real: the hole is named, to its rim: {said}")
+    check("tick Fill pits" in said, "real: and the dock is told what to tick")
+    shown = checks(out.name)
+    check(list(shown) == ["Pits in the ground: small and deep"], f"real: the pit in Inputs > Terrain {list(shown)}")
+    point = next(shown["Pits in the ground: small and deep"].getFeatures())
+    at = point.geometry().asPoint()
+    check(abs(at.x() - hole_x) <= 20.0 and abs(at.y() - hole_y) <= 20.0, f"real: at the hole ({at.x():.0f}, {at.y():.0f})")
+    check(abs(point["depth_m"] - 11.8) < 0.1 and point["filled"] == 0, f"real: 11.8 m to its rim, not filled {point['depth_m']}")
+
+    dock.terrain.fill_pits.setChecked(True)
+    dock.panel.limiter.setChecked(True)
+    out, said = run_to("hole_filled")
+    check("filled to its spill level" in said and "1 pits filled" in said, f"real: the hole is filled: {said}")
+    job = json.loads((out / "job.json").read_text(encoding="utf-8"))
+    check(job["terrain"]["fill_pits"] is True and job["outputs"]["step_limiter"] == "layer", "real: both ticks in the job")
+    ran = json.loads((out / "config.resolved.json").read_text(encoding="utf-8"))
+    fills = [o for o in ran["terrain"]["objects"] if o["kind"] == "fill" and o["name"].startswith("pit fill")]
+    check(len(fills) == 2, f"real: the two cells of the hole are fill objects of the job as it ran, {len(fills)}")
+    lines = (out / PROGRESS_FILE).read_text(encoding="utf-8").splitlines()
+    named = [json.loads(line) for line in lines if '"ev": "limiter"' in line]
+    check(len(named) >= 1 and all("dt_without_tile" in e for e in named), f"real: the step limiter spoke {len(named)} times")
+    shown = checks(out.name)
+    check("Pits in the ground: small and deep" in shown, f"real: the filled pit stays on the map {list(shown)}")
+    check(next(shown["Pits in the ground: small and deep"].getFeatures())["filled"] == 1, "real: marked as filled")
+    depth = next(n.layer() for n in group(out.name).findLayers() if n.layer().name() == "max_depth")
+    peak = depth.dataProvider().bandStatistics(1).maximumValue
+    check(0.0 < peak < 5.0, f"real: no water 12 m deep left in the run with the fill, {peak:.3f} m")
+    dock.terrain.fill_pits.setChecked(False)
+    dock.panel.limiter.setChecked(False)
+    dock.terrain.dem.setLayer(plane)
+
+
 def real_preview(dock) -> None:
     """Preview rain through the real engine: the 2D area's depth after the reduction, before any run (W65)."""
     storm = dock.storm
@@ -549,6 +616,16 @@ def smoke() -> None:
     engines = [dock.panel.backend.itemData(i) for i in range(dock.panel.backend.count())]
     check(engines == dock.schema.enum("run.backend"), "the engine choices are the schema's")
     check("backend" not in job["run"], "the automatic engine leaves the job as it was")
+    check(
+        "fill_pits" not in job["terrain"] and "step_limiter" not in job["outputs"],
+        "Fill pits and the step limiter left unticked leave the job as it was",
+    )
+    check(
+        not dock.terrain.fill_pits.isChecked() and dock.terrain.fill_pits.isEnabled(),
+        "Fill pits starts unticked, as the schema has it",
+    )
+    check("spill level" in dock.terrain.fill_pits.toolTip(), "Fill pits carries the schema's words")
+    check("time step" in dock.panel.limiter.toolTip(), "the step limiter tick carries the schema's words")
 
     check(added.count("Wadi2D live depth") == 1, "live layer added exactly once")
     check(len(live_values) >= 3, f"live layer showed the rewrites in place: {sorted(live_values)}")
@@ -576,8 +653,11 @@ def smoke() -> None:
     check(dock.panel.open_button.isVisibleTo(dock.panel), "Open results folder offered")
 
     dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("cpu"))
+    dock.terrain.fill_pits.setChecked(True)
+    dock.panel.limiter.setChecked(True)
     start(dock)
     check(not dock.panel.backend.isEnabled(), "the engine choice is held while it runs")
+    check(not dock.panel.limiter.isEnabled(), "the step limiter tick is held while it runs")
     finished_run(dock)
     check(
         (WORK / "study" / "run_2" / PROGRESS_FILE).is_file() and group("run_2"),
@@ -585,6 +665,10 @@ def smoke() -> None:
     )
     second_job = json.loads((WORK / "study" / "run_2" / "job.json").read_text(encoding="utf-8"))
     check(second_job["run"].get("backend") == "cpu", "a CPU choice reaches the job")
+    check(second_job["terrain"].get("fill_pits") is True, "Fill pits ticked reaches the job")
+    check(second_job["outputs"].get("step_limiter") == "layer", "the step limiter ticked reaches the job")
+    dock.terrain.fill_pits.setChecked(False)
+    dock.panel.limiter.setChecked(False)
     dock.panel.backend.setCurrentIndex(dock.panel.backend.findData("auto"))
 
     mode("error")
@@ -820,6 +904,7 @@ def real_engine() -> None:
     peak = depth.dataProvider().bandStatistics(1).maximumValue
     check(0.0 < peak < 5.0, f"real: a believable peak depth, {peak:.3f} m")
     real_preview(dock)
+    real_pits(dock, dem, raster_of=(size, pixel, west, north, srs))
 
     dock.panel.folder.setFilePath(str(WORK / "real" / "stopped"))
     dock.panel.duration.setValue(dock.panel.duration.maximum())

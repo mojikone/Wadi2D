@@ -94,6 +94,10 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+FILL_PITS = "terrain.fill_pits"
+STEP_LIMITER = "outputs.step_limiter"
+STEP_LIMITER_ON = "layer"
+"""What the dock's tick asks for: the limiter in the progress and as a layer (W85)."""
 SMOOTH_ON = "outputs.smooth.enabled"
 SMOOTH_TIP = (
     "Smooth polygons of the hazard classes and a depth picture with a soft wet edge, for map sheets. They take "
@@ -519,6 +523,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     for key in ("manning_raster", "cn_raster"):
         if values.get(key):
             job["terrain"][key] = str(Path(values[key]).resolve())
+    if values.get("fill_pits"):  # only a tick away from the engine's default: an old job stays the job it was
+        job["terrain"]["fill_pits"] = True
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("reach_routing"):
@@ -581,6 +587,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["smooth"] = {"enabled": bool(values["smooth"])}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
+    if values.get("step_limiter"):
+        job["outputs"]["step_limiter"] = STEP_LIMITER_ON
     if values.get("local_steps"):
         job["numerics"] = {"local_time_stepping": True}
     if values.get("study"):  # the depth-area study's job only: a run never carries one
