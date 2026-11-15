@@ -14,13 +14,16 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import rasterio
+from numba import njit
 from rasterio.windows import Window
 from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import GridTables
 from wadi2d.terrain import Ground, RasterBed, apply_objects
@@ -29,6 +32,9 @@ from wadi2d.terrain.sections import with_tables
 
 READ_WORKERS = max(1, (os.cpu_count() or 2) // 2)
 """Threads that read the kept cells' ground, each on its own handle of the DEM (W50)."""
+STRIPS_AHEAD = 4
+"""Strips of tiles whose kept cells are with the reading threads at once. One strip has some forty tiles with cells
+kept, of uneven work, and its slowest (a hole to fill) held the other threads idle for half the stage (W84)."""
 READ_CACHE_MB = 256
 """GDAL's block cache while they read. Each block is read about once, so a large cache holds nothing worth keeping,
 and closing the handles freed it at 1.2 s a handle: 21 s of Block 2's 32 s (W50)."""
@@ -75,15 +81,17 @@ def read_cells(
     tick: Callable[[int, int], None] = lambda _a, _b: None,
     scale: int = 1,
     datum: float | None = None,
+    cache: str | Path | None = None,
 ) -> CellPixels:
     """The pixels of the cells in ``keep``, a strip of tiles at a time. ``tick`` may raise to stop the read.
 
     On a mesh ``keep`` is on a lattice of cells ``scale`` finest cells wide, and ``datum`` is shared by every size.
+    ``cache`` is the run's cache folder, where the DEM's chunk store lies (W84); None takes the job's own.
     """
     grid = tables.grid
     with RasterBed(cfg.terrain.dem) as probe:
         native = probe.native
-    with RasterBed(cfg.terrain.dem, bed_stride(cfg, native)) as bed:
+    with open_bed(cfg, cache if cache is not None else cache_folder(cfg), bed_stride(cfg, native)) as bed:
         k = bed.pixels_per_cell(grid.dx * scale)
         bed.bind(grid.x0, grid.y0)
         objects = with_tables(cfg).terrain.objects
@@ -95,26 +103,55 @@ def read_cells(
         strips = rows // TILE
         first = np.searchsorted(strips, np.arange(strips.max() + 2 if rows.size else 1))
         count = len(first) - 1
+        spans = [(int(first[strip]), int(first[strip + 1])) for strip in range(count)]
         with (
             rasterio.Env(GDAL_CACHEMAX=READ_CACHE_MB),
-            _ThreadBeds(cfg.terrain.dem, bed.stride, grid.x0, grid.y0) as beds,
+            _ThreadBeds(bed, grid.x0, grid.y0) as beds,
         ):
-            for strip in range(count):
-                a, b = int(first[strip]), int(first[strip + 1])
-                tick(strip, count)
-                if a == b:
-                    continue
-                if edit is None and beds.pick(rows[a:b], cols[a:b], k, datum, ground[a:b]):
-                    continue
-                _whole_strip(bed, edit, rows[a:b], cols[a:b], k, strip * TILE * k, datum, ground[a:b])
+            # these only hand a strip's tiles to the readers and wait; with one reader, one strip at a time
+            ahead = ThreadPoolExecutor(STRIPS_AHEAD if beds.workers > 1 else 1)
+            try:
+                picked = {
+                    strip: ahead.submit(beds.pick, rows[a:b], cols[a:b], k, datum, ground[a:b])
+                    for strip, (a, b) in enumerate(spans)
+                    if edit is None and a < b
+                }
+                for strip, (a, b) in enumerate(spans):
+                    tick(strip, count)
+                    if a == b:
+                        continue
+                    if strip in picked and picked[strip].result():
+                        continue
+                    _whole_strip(bed, edit, rows[a:b], cols[a:b], k, strip * TILE * k, datum, ground[a:b])
+            finally:
+                ahead.shutdown(wait=True, cancel_futures=True)  # a stop waits for the strips in hand, not for all
     return CellPixels(rows, cols, k, bed.pixel, datum, ground)
 
 
-def _picked(z: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int, col0: int) -> np.ndarray:
-    """The k x k pixels of each cell from a window read at bed pixel (row0, col0), (cells, k * k)."""
-    top = (rows.astype(np.int64) * k - row0)[:, None, None] + np.arange(k)[None, :, None]
-    left = (cols.astype(np.int64) * k - col0)[:, None, None] + np.arange(k)[None, None, :]
-    return z[top, left].reshape(rows.size, -1)
+@njit(cache=True, nogil=True)
+def _any_picked(bad: np.ndarray, rows: np.ndarray, cols: np.ndarray, k: int, row0: int, col0: int) -> bool:
+    """Whether any of the k x k pixels of a cell is marked in ``bad``, a window read at bed pixel (row0, col0)."""
+    for n in range(rows.size):
+        top, left = rows[n] * k - row0, cols[n] * k - col0
+        for a in range(k):
+            for b in range(k):
+                if bad[top + a, left + b]:
+                    return True
+    return False
+
+
+@njit(cache=True, nogil=True)
+def _pick_into(z, rows, cols, k, row0, col0, datum, out, where) -> None:
+    """The k x k pixels of each cell from ``z``, a window read at bed pixel (row0, col0), over ``datum``, into
+    ``out[where[n]]`` as float32. Free of the interpreter lock and written where it belongs, so the reading threads
+    pick as well as read: picked with index arrays and placed by the calling thread, 16 threads waited on one (W84:
+    Block 2's ground 23 s with the read itself down to a few)."""
+    for n in range(rows.size):
+        top, left = rows[n] * k - row0, cols[n] * k - col0
+        line = out[where[n]]
+        for a in range(k):
+            for b in range(k):
+                line[a * k + b] = np.float32(z[top + a, left + b] - datum)
 
 
 def _whole_strip(bed: RasterBed, edit, rows, cols, k: int, row0: int, datum: float, out: np.ndarray) -> None:
@@ -147,8 +184,10 @@ def _raw(bed: RasterBed, row0: int, col0: int, nrows: int, ncols: int) -> tuple[
     Through the bed's own window reader, or at a stride through :func:`_strided_window`, which picks the same
     pixels: ``read(fill=False)`` gives a window that is all holes as zeros, not NaN, so a hole could not be told
     from ground there. ``terrain/dem.py`` is left as it is: it is hashed into every grid cache key, and editing it
-    would rebuild every user's tables once for nothing."""
-    read = bed._window if bed.stride == 1 else partial(_strided_window, bed)
+    would rebuild every user's tables once for nothing. A bed on the chunk store picks those pixels itself, at any
+    stride, with no decoding (W84)."""
+    stored = getattr(bed, "store", None) is not None and bed.whole_pixels
+    read = bed._window if bed.stride == 1 or stored else partial(_strided_window, bed)
     return read(bed.row_origin + row0 * bed.stride, bed.col_origin + col0 * bed.stride, nrows, ncols)
 
 
@@ -230,8 +269,8 @@ class _ThreadBeds:
     read is the file's own value whatever window holds it, and a hole is filled from the pixel the strip's own fill
     would take (W50)."""
 
-    def __init__(self, path, stride: int, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
-        self.path, self.stride, self.origin = path, stride, (x0, y0)
+    def __init__(self, source: RasterBed, x0: float, y0: float, workers: int = READ_WORKERS) -> None:
+        self.source, self.origin = source, (x0, y0)
         self.workers = workers
         self._local = threading.local()
         self._lock = threading.Lock()
@@ -241,23 +280,26 @@ class _ThreadBeds:
     def _bed(self) -> RasterBed:
         bed = getattr(self._local, "bed", None)
         if bed is None:
-            bed = RasterBed(self.path, self.stride)
+            bed = self.source.reopen()  # a handle of this thread's own, on the source's chunk store if it has one
             bed.bind(*self.origin)
             self._local.bed = bed
             with self._lock:
                 self._stack.enter_context(bed)
         return bed
 
-    def _tile(self, rows, cols, k: int, bounds: tuple[int, int, int, int]) -> np.ndarray | None:
+    def _tile(self, rows, cols, k: int, bounds: tuple[int, int, int, int], datum: float, out, where) -> bool:
+        """One tile column's kept cells into their rows ``where`` of ``out``; False when a hole's fill needs the
+        strip."""
         bed = self._bed()
         row0, col0 = int(rows.min()) * k, int(cols.min()) * k
         box = (row0, col0, (int(rows.max()) + 1) * k - row0, (int(cols.max()) + 1) * k - col0)
         z, bad = _raw(bed, *box)
-        if _picked(bad, rows, cols, k, row0, col0).any():
+        if _any_picked(bad, rows, cols, k, row0, col0):
             z = _filled_near(bed, box, bounds)
             if z is None:
-                return None
-        return _picked(z, rows, cols, k, row0, col0)
+                return False
+        _pick_into(z, rows, cols, k, row0, col0, datum, out, where)
+        return True
 
     def pick(self, rows, cols, k: int, datum: float, out: np.ndarray) -> bool:
         """The ground of one strip's kept cells into ``out``, tile column by tile column over the box of the cells
@@ -270,13 +312,11 @@ class _ThreadBeds:
         cuts = np.flatnonzero(np.diff(tiles[order])) + 1
         groups = np.split(order, cuts)
         mapper = self._pool.map if self._pool is not None and len(groups) > 1 else map
-        for group, picked in zip(
-            groups, mapper(lambda g: self._tile(rows[g], cols[g], k, bounds), groups), strict=True
-        ):
-            if picked is None:
-                return False
-            out[group] = (picked - datum).astype(np.float32)
-        return True
+        rows, cols = np.asarray(rows, np.int64), np.asarray(cols, np.int64)
+        # every tile is seen to its end, also after one has failed: none is left writing into ``out`` when the
+        # caller reads the strip whole over it
+        done = list(mapper(lambda g: self._tile(rows[g], cols[g], k, bounds, float(datum), out, g), groups))
+        return all(done)
 
     def __enter__(self) -> _ThreadBeds:
         return self

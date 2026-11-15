@@ -20,6 +20,7 @@ import rasterio
 
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import cache_folder
 from wadi2d.io.geopackage import write_geopackage
 from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, raster_profile
 from wadi2d.products.frames import frame_names, read_frames, run_maxima
@@ -91,7 +92,7 @@ def pixel_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp
     results = out / "results.h5"
     peak = run_maxima(results)
     keep = peak["mean_depth"] > rule.cell_depth
-    cells = read_cells(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b))
+    cells = read_cells(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b), cache=cache_folder(cfg, out))
     if cells.rows.size == 0:
         return PixelResult(cells, np.zeros((0, cells.k**2), np.uint8), *(np.zeros((0, cells.k**2)),) * 3, 0)
     zmin = (tables.zmin - cells.datum).astype(np.float32)
@@ -266,7 +267,7 @@ def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp)
     results = out / "results.h5"
     peak = run_maxima(results)
     keep = peak["mean_depth"] > rule.cell_depth
-    parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b))
+    parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b), cache_folder(cfg, out))
     if not parts:
         return MeshResult({}, {}, {}, {}, {}, 0)
     datum = next(iter(parts.values())).datum

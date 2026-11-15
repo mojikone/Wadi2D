@@ -27,6 +27,7 @@ from wadi2d.breach import build_breaches
 from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import ENTRY_POINT, REACH_HMS, SHAPED_KINDS, RunConfig, TerrainObject
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
+from wadi2d.demstore import open_bed
 from wadi2d.edge_valleys import (
     crossing_notes,
     edge_pools,
@@ -233,12 +234,14 @@ def _wkt(bed: RasterBed) -> str:
 
 def domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow) -> np.ndarray:
     """Active cells: data under the centre pixel, inside the domain polygon if there is one."""
-    mask = bed.active_mask(window, cfg.grid.dx)
     polygon = _domain_polygon(cfg.grid.domain, _wkt(bed))
-    if polygon is not None:
-        transform = Affine(cfg.grid.dx, 0.0, window.x0, 0.0, -cfg.grid.dx, window.y0)
-        mask &= features.geometry_mask([polygon], out_shape=mask.shape, transform=transform, invert=True)
-    return mask
+    if polygon is None:
+        return bed.active_mask(window, cfg.grid.dx)
+    transform = Affine(cfg.grid.dx, 0.0, window.x0, 0.0, -cfg.grid.dx, window.y0)
+    inside = features.geometry_mask([polygon], out_shape=(window.ny, window.nx), transform=transform, invert=True)
+    if hasattr(bed, "active_cells"):  # a bed on the chunk store reads the ground of the outline's cells alone (W84)
+        return bed.active_cells(window, cfg.grid.dx, inside)
+    return bed.active_mask(window, cfg.grid.dx) & inside
 
 
 def kept_domain_mask(cfg: RunConfig, bed: RasterBed, window: GridWindow, cache_dir: Path) -> np.ndarray:
@@ -386,7 +389,7 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
     """The tables and the CRS as WKT, from the cache when nothing changed."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
     cfg = with_tables(cfg)
-    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+    with open_bed(cfg, cache_dir) as bed:  # the DEM decoded once into the cache folder, then read raw (W84)
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
         if cfg.mesh.enabled:

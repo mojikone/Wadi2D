@@ -1,0 +1,66 @@
+## tables old w=16 (196 s)
+squares full stride 1 total s 194.5 {'kept_domain_mask': 41.9, 'build_tables': 128.8} cells 3509086 tiles 3605 strip cells 0 peak working set GB 9.25 peak commit GB 11.07 store GB 0.0
+## tables new warm w=16 (82 s)
+squares full stride 1 total s 80.0 {'kept_domain_mask': 1.3, 'build_tables': 54.6} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.97 peak commit GB 4.45 store GB 23.33
+## tables old w=8 (253 s)
+squares full stride 1 total s 251.8 {'kept_domain_mask': 52.0, 'build_tables': 174.9} cells 3509086 tiles 3605 strip cells 0 peak working set GB 8.79 peak commit GB 10.45 store GB 0.0
+## tables new warm w=8 (131 s)
+squares full stride 1 total s 128.1 {'kept_domain_mask': 1.9, 'build_tables': 101.9} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.82 peak commit GB 3.99 store GB 23.33
+## tables old w=4 (438 s)
+squares full stride 1 total s 436.1 {'kept_domain_mask': 88.5, 'build_tables': 321.0} cells 3509086 tiles 3605 strip cells 0 peak working set GB 8.51 peak commit GB 10.12 store GB 0.0
+## tables new warm w=4 (234 s)
+squares full stride 1 total s 231.3 {'kept_domain_mask': 1.8, 'build_tables': 203.4} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.82 peak commit GB 3.99 store GB 23.33
+## tables old w=1 (662 s)
+squares full stride 1 total s 659.2 {'kept_domain_mask': 192.4, 'build_tables': 440.0} cells 3509086 tiles 3605 strip cells 0 peak working set GB 8.91 peak commit GB 10.31 store GB 0.0
+## tables new warm w=1 (196 s)
+squares full stride 1 total s 194.4 {'kept_domain_mask': 1.4, 'build_tables': 168.3} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.85 peak commit GB 4.02 store GB 23.33
+## tables new warm w=32 (66 s)
+squares full stride 1 total s 64.7 {'kept_domain_mask': 1.4, 'build_tables': 39.0} cells 3509086 tiles 3605 strip cells 0 peak working set GB 4.68 peak commit GB 5.34 store GB 23.33
+## tables new cold w=16 (114 s)
+squares full stride 1 total s 110.9 {'kept_domain_mask': 28.6, 'build_tables': 58.5} cells 3509086 tiles 3605 strip cells 0 peak working set GB 4.01 peak commit GB 4.49 store GB 23.33
+hashed 21 arrays, 1.4 GB, to <scratch>/sqfull_cold.json
+## tables new cold w=8 (186 s)
+squares full stride 1 total s 183.4 {'kept_domain_mask': 30.6, 'build_tables': 129.0} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.29 peak commit GB 4.0 store GB 23.33
+## tables new cold w=4 (252 s)
+squares full stride 1 total s 250.0 {'kept_domain_mask': 38.1, 'build_tables': 189.0} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.82 peak commit GB 3.99 store GB 23.33
+## tables new cold w=1 (296 s)
+squares full stride 1 total s 294.6 {'kept_domain_mask': 122.9, 'build_tables': 148.7} cells 3509086 tiles 3605 strip cells 0 peak working set GB 3.85 peak commit GB 4.02 store GB 23.33
+## ground old w=16 (52 s)
+tables in 6.2 s (built the first time, loaded after)
+ground in 41.8 s
+{"store": "None", "workers": 16, "ground_s": 41.8, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground new warm w=16 (25 s)
+tables in 5.7 s (built the first time, loaded after)
+ground in 14.8 s
+{"store": "<scratch>/cground", "workers": 16, "ground_s": 14.8, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground old w=8 (55 s)
+tables in 5.9 s (built the first time, loaded after)
+ground in 45.6 s
+{"store": "None", "workers": 8, "ground_s": 45.6, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground new warm w=8 (21 s)
+tables in 5.6 s (built the first time, loaded after)
+ground in 11.5 s
+{"store": "<scratch>/cground", "workers": 8, "ground_s": 11.5, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground old w=4 (70 s)
+tables in 5.6 s (built the first time, loaded after)
+ground in 61.0 s
+{"store": "None", "workers": 4, "ground_s": 61.0, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground new warm w=4 (25 s)
+tables in 5.8 s (built the first time, loaded after)
+ground in 15.0 s
+{"store": "<scratch>/cground", "workers": 4, "ground_s": 15.0, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground old w=1 (215 s)
+tables in 5.6 s (built the first time, loaded after)
+ground in 205.0 s
+{"store": "None", "workers": 1, "ground_s": 205.0, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground new warm w=1 (48 s)
+tables in 5.4 s (built the first time, loaded after)
+ground in 39.1 s
+{"store": "<scratch>/cground", "workers": 1, "ground_s": 39.1, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## ground new cold w=16 (44 s)
+tables in 5.6 s (built the first time, loaded after)
+ground in 34.5 s
+{"store": "<scratch>/cground_cold", "workers": 16, "ground_s": 34.5, "cells": 821602, "pixels": 1314563200, "k": 40, "datum": -0.1986265480518341, "sha256": "329c8ed67481b51d4d504b1aebf1086646973819cf0f8ff676566f612b6c9eaa"}
+## strips new warm w=16 (259 s)
+strips full stride 1 total s 256.5 {'kept_domain_mask': 25.8, 'mask_for_strips': 0.1, 'build_tables': 60.2, 'strip_tables': 135.7} cells 2941116 tiles 3605 strip cells 647042 peak working set GB 6.06 peak commit GB 6.58 store GB 23.33
+hashed 52 arrays, 2.01 GB, to <scratch>/stfull_new.json
