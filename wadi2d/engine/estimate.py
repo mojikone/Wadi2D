@@ -80,14 +80,17 @@ def measure_cost(backend: str, num: Numerics, cfg: Tables) -> tuple[float, str]:
 
 def estimate(cfg: RunConfig, backend: str | None = None) -> Estimate:
     """What the job will cost; the cell count comes from the DEM, the cost from a short probe."""
-    from wadi2d.run import domain_mask, grid_window, mesh_grid, preflight
+    from wadi2d.run import domain_mask, grid_window, left_out_of, mesh_grid, preflight
 
     with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
         crs = bed.crs.to_wkt() if bed.crs is not None else ""
         preflight(cfg, crs)
         window = grid_window(cfg, bed)
         mask = domain_mask(cfg, bed, window)
-        quad = mesh_grid(cfg, bed, window, crs) if cfg.mesh.enabled else None
+        left = left_out_of(cfg, crs)
+        if left is not None and left.names:  # the cells under catchments left out of the mesh cost nothing (W88)
+            mask = mask & ~left.cells(window.x0, window.y0, cfg.grid.dx, mask.shape)
+        quad = mesh_grid(cfg, bed, window, crs, left) if cfg.mesh.enabled else None
     grid = quad or TileGrid.from_mask(mask, window.x0, window.y0, cfg.grid.dx)
     raster_cells = int(mask.sum())
     cells = raster_cells if quad is None else quad.cell_count

@@ -151,10 +151,14 @@ def _candidates(cfg: RunConfig, polygon: shapely.Geometry, crs: str) -> dict[str
     }
 
 
-def stream_crossings(cfg: RunConfig, crs: str, cache_dir: Path | None = None) -> list[Crossing]:
+def stream_crossings(
+    cfg: RunConfig, crs: str, cache_dir: Path | None = None, left_out: shapely.Geometry | None = None
+) -> list[Crossing]:
     """Streams above the threshold crossing the domain outline where no boundary line or inflow point is.
 
     The D8 part waits in ``cache_dir`` for the next run on the same ground and outline (an ARF study runs many).
+    ``left_out`` is the area of the catchments the run leaves out of its mesh (W88): the outline along them is no
+    edge of the model, the lumped network carries their water, and a stream across it there is not named.
     """
     check: EdgeCheck = cfg.outputs.edge_check
     polygon = _outline(cfg, crs)
@@ -181,6 +185,8 @@ def stream_crossings(cfg: RunConfig, crs: str, cache_dir: Path | None = None) ->
         kind, lines = (LEAVES, outs) if out_ else (ENTERS, ins)
         on = edge.interpolate(edge.project(shapely.Point(float(px), float(py))))
         if _handled(on, lines, check.line_reach_m):
+            continue
+        if left_out is not None and left_out.distance(on) <= cfg.grid.dx:
             continue
         if any(c.kind == kind and np.hypot(c.x - on.x, c.y - on.y) < check.cluster_m for c in found):
             continue
