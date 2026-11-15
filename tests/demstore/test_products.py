@@ -37,3 +37,20 @@ def test_the_products_ground_is_the_plain_ground(tmp_path, monkeypatch, pixel_m)
     np.testing.assert_array_equal(stored.rows, plain.rows)
     np.testing.assert_array_equal(stored.cols, plain.cols)
     np.testing.assert_array_equal(stored.ground, plain.ground)
+
+
+def test_a_stop_from_the_tick_ends_the_read(tmp_path) -> None:
+    """Strips are handed to the readers ahead of the tick: a tick that raises still ends the read at once."""
+    dem = write_dem(tmp_path / "dem.tif", ground(), DX / K)
+    cfg = job(dem, NX, NY, DX)
+    tables, _crs = prepare_grid(cfg, tmp_path / "tables")
+    seen = []
+
+    def tick(strip: int, count: int) -> None:
+        seen.append((strip, count))
+        if strip == 1:
+            raise RuntimeError("stop")
+
+    with pytest.raises(RuntimeError, match="stop"):
+        read_cells(cfg, tables, tables.grid.mask, tick, cache=tmp_path / "store")
+    assert seen == [(0, 3), (1, 3)]
