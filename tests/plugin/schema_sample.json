@@ -2621,6 +2621,17 @@
           "title": "Progress Every S",
           "type": "number"
         },
+        "step_limiter": {
+          "default": "off",
+          "description": "Name the cell that sets the time step at every progress event (W85): where it is, its depth, speed and bed level, the parts of its wave speed and the step without its tile. 'progress' writes a 'limiter' line beside each 'step' line; 'layer' also writes step_limiter.gpkg, one point per cell named. A cell that leads for hours with a hydraulic depth no ground has is a terrain error to mend",
+          "enum": [
+            "off",
+            "progress",
+            "layer"
+          ],
+          "title": "Step Limiter",
+          "type": "string"
+        },
         "frame_bytes_per_cell": {
           "default": 10.0,
           "description": "Disk per cell per saved map, for the estimate, B; the full extent at 30 m gave 10",
@@ -5018,6 +5029,7 @@
           "stream_km2": 0.25
         },
         "progress_every_s": 2.0,
+        "step_limiter": "off",
         "frame_bytes_per_cell": 10.0,
         "face_discharge": true,
         "pixels": {

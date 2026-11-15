@@ -847,6 +847,13 @@ class Outputs(_Part):
     progress_every_s: float = Field(
         2.0, ge=0.05, le=600.0, description="Wall seconds between progress events and stop checks"
     )
+    step_limiter: Literal["off", "progress", "layer"] = Field(
+        "off",
+        description="Name the cell that sets the time step at every progress event (W85): where it is, its depth, "
+        "speed and bed level, the parts of its wave speed and the step without its tile. 'progress' writes a 'limiter' "
+        "line beside each 'step' line; 'layer' also writes step_limiter.gpkg, one point per cell named. A cell that "
+        "leads for hours with a hydraulic depth no ground has is a terrain error to mend",
+    )
     frame_bytes_per_cell: float = Field(
         10.0,
         gt=0.0,
