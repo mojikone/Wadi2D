@@ -1,0 +1,4 @@
+tests/solver/test_sleeping.py :: exit 0 :: 6 passed, 1 warning in 23.23s
+tests/strips/test_sleeping.py :: exit 0 :: 9 passed, 1 warning in 35.69s
+tests/engine/test_sleeping_run.py :: exit 0 :: 1 passed, 1 warning in 25.74s
+done

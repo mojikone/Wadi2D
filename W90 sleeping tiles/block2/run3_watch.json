@@ -1,0 +1,15 @@
+{
+ "tiles": 3604,
+ "strip_cells": 539195,
+ "reach_cells": 18,
+ "build_s_first_call": 0.45,
+ "build_s": 0.32,
+ "entries_squares": 27684,
+ "entries_strip": 15249,
+ "tiles_whose_squares_reach_beyond_their_neighbours": 0,
+ "pairs_of_squares_beyond_the_neighbours": 0,
+ "tiles_reached_by_a_strip_home_beyond_their_neighbours": 0,
+ "pairs_of_strip_homes_beyond_the_neighbours": 0,
+ "largest_cell_area_m2": 808.1777725523975,
+ "lattice_cell_area_m2": 400.0
+}
