@@ -209,6 +209,14 @@ def storm_sources(dock) -> None:
     pick(storm.arf_mode, "study")
     check(not storm.study_label.isHidden() and "storm areas" in storm.study_label.text(), "storm: the study's areas")
     check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: the study reads the same table")
+    pick(storm.arf_mode, "given")
+    check(storm.arf_detail.isHidden() and not storm.given_box.isHidden(), "storm: a given factor shows its one number")
+    storm.arf_factor.setValue(0.7)
+    given = storm_job(storm.values(crs)["storm"])
+    check(given.get("arf_factor") == 0.7 and "arf" not in given and "storm_area_km2" not in given,
+          f"storm: a given factor writes the factor alone {given}")  # fmt: skip
+    pick(storm.arf_mode, "study")
+    check(storm.given_box.isHidden(), "storm: the given factor hidden under the study")
     storm.arf.set_rows([])
     check(any("reduction table" in p for p in problems({**dock._collect(), "output": str(WORK)})),
           "storm: a reduction with no table is refused before the run")  # fmt: skip
@@ -226,6 +234,11 @@ def storm_sources(dock) -> None:
     storm.arf.set_rows([(10.0, 0.9), (1000.0, 0.6)])
     old = {**old, "arf_on": True, "arf": [(10.0, 0.9), (1000.0, 0.6)]}
     check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a grid of point depths as before")
+    pick(storm.arf_mode, "given")
+    given = storm_job(storm.values(crs)["storm"])
+    check(given.get("arf_factor") == 0.7 and "arf" not in given and "storm_area_km2" not in given,
+          f"storm: a grid with a given factor {given}")  # fmt: skip
+    pick(storm.arf_mode, "area")
 
     storm_gauges(dock, crs)
 
@@ -338,6 +351,12 @@ def real_preview(dock) -> None:
     said = previewed()
     depth = storm.preview_table.rows[0]["depth_mm"]
     check(abs(depth - 80.0 * 0.75) < 1e-4 and "0.7500 at 505" in said, f"real: the design storm reduced, {said} {depth}")
+    pick(storm.arf_mode, "given")
+    storm.arf_factor.setValue(0.7)
+    said = previewed()
+    depth = storm.preview_table.rows[0]["depth_mm"]
+    check(abs(depth - 80.0 * 0.7) < 1e-4 and "0.7000 (given)" in said, f"real: a given factor, {said} {depth}")
+    pick(storm.arf_mode, "area")
     storm.arf.set_rows([])
     previewed()
     check("reduction table" in storm.preview_label.text(), f"real: refused in words, {storm.preview_label.text()}")

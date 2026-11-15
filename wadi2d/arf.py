@@ -48,6 +48,11 @@ RUNS_DIR = "runs"
 READ_LINE = "design line, 2D runs either side"
 READ_ELEMENT = "lumped element with 2D water, 2D runs either side"
 READ_EXACT = "lumped element, rerun lumped at its own area"
+GIVEN_WORDS = (
+    "a depth-area study reads the area-reduction table at each storm area; storm.arf_factor gives one factor at every "
+    "area, so every run would be the same run: choose the study or the given factor"
+)
+"""Why a study refuses a given factor (W83)."""
 
 
 @dataclass
@@ -77,6 +82,8 @@ def bracket_areas(wanted: list[float], ratio: float, most: int) -> list[float]:
 def arf_step_areas(cfg: RunConfig, low: float, high: float) -> list[float]:
     """Storm areas from ``low`` to ``high`` with the storm's own table changing by at most ``arf.arf_step_max``
     between neighbours. One table serves the whole event (W53), so there is no duration to choose."""
+    if cfg.storm.arf_factor is not None:
+        raise InvalidJob(GIVEN_WORDS)
     table = arf_table(cfg.storm)
     if table is None:
         raise InvalidJob("arf.by_arf_step needs storm.arf: the areas are placed by its factors")
@@ -256,6 +263,8 @@ def check_storm(cfg: RunConfig) -> None:
     """A study needs rain and an area table, which can be said before anything is read."""
     if cfg.storm.kind == "none":
         raise InvalidJob("a depth-area study needs a storm")
+    if cfg.storm.arf_factor is not None:
+        raise InvalidJob(GIVEN_WORDS)
     if cfg.storm.arf is None:
         raise InvalidJob("a depth-area study needs storm.arf: without a table every run is the same run")
 

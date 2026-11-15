@@ -3762,6 +3762,21 @@
           "default": null,
           "description": "Area-reduction table. The depth of a uniform or hypothetical storm is multiplied by its factor at storm_area_km2. So is every frame of a gridded storm, for grids of point depths: on 2D cells and under lumped subbasins alike. None, or no storm area, leaves the rain whole"
         },
+        "arf_factor": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A given area-reduction factor, in place of a table and a storm area: every depth of a uniform, hypothetical or gridded storm is multiplied by it, on 2D cells and under lumped subbasins alike; 0.7 is a 30 % reduction. A depth-area study refuses it (W83)",
+          "title": "Arf Factor"
+        },
         "hyetograph_min": {
           "anyOf": [
             {
@@ -4887,6 +4902,7 @@
         "depth_percent": null,
         "storm_area_km2": null,
         "arf": null,
+        "arf_factor": null,
         "hyetograph_min": null,
         "hyetograph_mm": null,
         "rain_file": null,

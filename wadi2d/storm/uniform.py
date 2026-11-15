@@ -8,7 +8,7 @@ from typing import Self
 import numpy as np
 from numpy.typing import ArrayLike
 
-from wadi2d.storm.arf import ArfTable
+from wadi2d.storm.arf import ArfTable, GivenFactor, factor_at
 from wadi2d.storm.base import STORM_METHODS, CumulativeStorm, FloatArray
 
 UNIFORM_STORM = "Uniform"
@@ -22,14 +22,12 @@ class UniformStorm(CumulativeStorm):
     depth_mm: float
     duration_minutes: float
     storm_area_km2: float | None = None
-    arf: ArfTable | None = None
+    arf: ArfTable | GivenFactor | None = None
 
     @property
     def total_depth(self) -> float:
         """The area-reduced depth, mm."""
-        if self.arf is None or self.storm_area_km2 is None:
-            return self.depth_mm
-        return self.depth_mm * self.arf.factor(self.storm_area_km2)
+        return self.depth_mm * factor_at(self.arf, self.storm_area_km2)
 
     def cumulative_depth(self, minutes: ArrayLike) -> FloatArray:
         """Depth fallen by each time, mm."""

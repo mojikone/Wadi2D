@@ -34,6 +34,7 @@ from wadi2d.solver.layout import STRIDE2
 from wadi2d.solver.model import Model
 from wadi2d.solver.state import state_index
 from wadi2d.storm import STORM_METHODS, ArfTable, HypotheticalStorm, PercentPattern, Storm, UniformStorm
+from wadi2d.storm.arf import GivenFactor
 from wadi2d.storm.gauge_build import build_gauge_storm
 from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
@@ -55,8 +56,10 @@ SNAP_DEPTH = 1.5
 KIND_FIXED, KIND_FREE, KIND_FOLLOW = 0, 1, 2
 
 
-def arf_table(s) -> ArfTable | None:
-    """The job's area-reduction table, for whichever storm takes one."""
+def arf_table(s) -> ArfTable | GivenFactor | None:
+    """The job's area reduction, for whichever storm takes one: its table, or the factor it gives (W83)."""
+    if s.arf_factor is not None:
+        return GivenFactor(s.arf_factor)
     if s.arf is None:
         return None
     return ArfTable(

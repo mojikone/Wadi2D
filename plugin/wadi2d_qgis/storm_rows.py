@@ -21,6 +21,9 @@ SOURCE_SINGLE = "single"
 ARF_NONE, ARF_AREA, ARF_STUDY = "none", "area", "study"
 """The area reduction of a design storm or a grid of point depths: none, read at one storm area, or read at each storm
 area of the depth-area study, which replaces the one area run by run (W65)."""
+ARF_GIVEN = "given"
+"""A factor the user gives, 0.7 for a 30 % reduction, with no table and no area (W83); the job's ``arf_factor``."""
+GIVEN_WORDS = "A given reduction factor lies above 0 and at most 1: 0.7 is a 30 % reduction."
 
 
 def pasted_rows(text: str, columns: int = 2) -> list[tuple[float, ...]]:
@@ -65,6 +68,8 @@ def _design_problems(storm: dict) -> list[str]:
         found.append("The design pattern must run from 0 to 100 % of the duration and end at 100 % of the depth.")
     elif any(b < a for a, b in itertools.pairwise(depths)):
         found.append("The design pattern's depth cannot fall.")
+    if storm.get("arf_mode") == ARF_GIVEN:
+        return found + _given_problems(storm)
     arf = storm["arf"]
     if storm.get("arf_mode") in (ARF_AREA, ARF_STUDY) and not arf:  # a dict of the old section has no mode
         found.append("Fill the area reduction table, or choose no area reduction.")
@@ -85,6 +90,8 @@ def _grid_problems(storm: dict) -> list[str]:
         return ["A folder of GeoTIFFs needs the length of each period."]
     if storm.get("choices") and not storm.get("variable"):
         return ["Choose which series in the rain file is the rain."]
+    if storm.get("arf_mode") == ARF_GIVEN:
+        return _given_problems(storm)
     if storm.get("arf_on"):
         return _grid_arf_problems(storm)
     return []
@@ -101,6 +108,10 @@ def _grid_arf_problems(storm: dict) -> list[str]:
     if rows and not _rising([r[0] for r in rows]):
         found.append("The areas of the reduction table must rise.")
     return found
+
+
+def _given_problems(storm: dict) -> list[str]:
+    return [] if 0.0 < storm.get("arf_factor", 0.0) <= 1.0 else [GIVEN_WORDS]
 
 
 def _steady_problems(storm: dict) -> list[str]:
@@ -128,6 +139,8 @@ def storm_notes(storm: dict, duration_h: float) -> list[str]:
 
 
 def _arf(storm: dict) -> dict:
+    if storm.get("arf_mode") == ARF_GIVEN:
+        return {"arf_factor": storm["arf_factor"]}
     arf = storm["arf"]
     if not arf:
         return {}
@@ -166,7 +179,9 @@ def storm_job(storm: dict) -> dict:
         job["rain_interval_min"] = storm["interval_min"]
     if storm.get("start"):
         job["rain_start"] = storm["start"]
-    if storm.get("arf_on"):  # a grid of point depths, reduced as a design storm is; an empty table is the HMS one's
+    if storm.get("arf_mode") == ARF_GIVEN:
+        job.update(_arf(storm))
+    elif storm.get("arf_on"):  # a grid of point depths, reduced as a design storm is; an empty table is the HMS one's
         job["storm_area_km2"] = storm["area_km2"]
         if storm.get("arf"):
             job.update(_arf(storm))
@@ -207,7 +222,9 @@ def preview_text(preview: dict) -> str:
     """One line over the preview table: the area reduction it read and the step, said once and never contradicted."""
     factor = preview.get("area_factor")
     area = preview.get("storm_area_km2")
-    if factor is not None and factor != 1.0 and area:
+    if preview.get("arf_factor") is not None:
+        reduction = f"Depths after an area reduction of {preview['arf_factor']:.4f} (given)"
+    elif factor is not None and factor != 1.0 and area:
         reduction = f"Depths after an area reduction of {factor:.4f} at {area:g} km2"
     elif factor is not None and factor != 1.0:
         reduction = f"Depths after an area reduction of {factor:.4f}"

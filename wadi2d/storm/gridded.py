@@ -21,7 +21,7 @@ import pyproj
 import shapely
 from numpy.typing import ArrayLike
 
-from wadi2d.storm.arf import ArfTable
+from wadi2d.storm.arf import ArfTable, GivenFactor, factor_at
 from wadi2d.storm.base import CumulativeStorm, FloatArray, Storm
 from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.rain_frames import PixelSeries, RainFrames
@@ -77,7 +77,7 @@ class GriddedStorm(CumulativeStorm):
     frames: RainFrames
     polygons: Mapping[str, Any] = field(default_factory=dict)
     polygon_crs: str = ""
-    arf: ArfTable | None = None
+    arf: ArfTable | GivenFactor | None = None
     storm_area_km2: float | None = None
     _storms: dict[str, HyetographStorm] = field(default_factory=dict, init=False, repr=False)
     _covered: dict[str, float] = field(default_factory=dict, init=False, repr=False)
@@ -91,10 +91,9 @@ class GriddedStorm(CumulativeStorm):
 
     @property
     def area_factor(self) -> float:
-        """What every frame is multiplied by: the table's factor at the storm area, 1 without a table or an area."""
-        if self.arf is None or self.storm_area_km2 is None:
-            return 1.0
-        return self.arf.factor(self.storm_area_km2)
+        """What every frame is multiplied by: the table's factor at the storm area, 1 without a table or an area, or
+        the given factor."""
+        return factor_at(self.arf, self.storm_area_km2)
 
     def reduced(self, depth_mm: Any) -> Any:
         """Depths after the area reduction; untouched when there is none, so such a run keeps its numbers to the digit."""

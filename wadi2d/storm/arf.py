@@ -1,4 +1,4 @@
-"""Area-reduction factors. Interface: :class:`ArfTable`."""
+"""Area-reduction factors. Interface: :class:`ArfTable`, :class:`GivenFactor`, :func:`factor_at`."""
 
 from __future__ import annotations
 
@@ -65,3 +65,34 @@ class ArfTable:
             found.append(float(knots[k - 1] + share * (knots[k] - knots[k - 1])))
         found.append(float(high_km2))
         return sorted(set(found))
+
+
+@dataclass(frozen=True)
+class GivenFactor:
+    """One factor the user gives, at every storm area (W83, his word of 2026-11-15: 0.7 is a 30 % reduction).
+
+    It answers :meth:`ArfTable.factor` at any area, so a storm takes it where it would take a table; it needs no storm
+    area, and a depth-area study refuses it, since every run would be the same run.
+    """
+
+    value: float
+
+    def __post_init__(self) -> None:
+        if not 0.0 < self.value <= 1.0:
+            raise ValueError("a given area-reduction factor lies above 0 and at most 1")
+
+    def factor(self, _area_km2: float | None = None) -> float:
+        """The factor, whatever the area."""
+        return self.value
+
+
+def factor_at(arf: ArfTable | GivenFactor | None, area_km2: float | None) -> float:
+    """What a storm's depths are multiplied by: 1 with no reduction, or a table with no storm area; the given factor
+    always; else the table at the area."""
+    if arf is None:
+        return 1.0
+    if isinstance(arf, GivenFactor):
+        return arf.value
+    if area_km2 is None:
+        return 1.0
+    return arf.factor(area_km2)

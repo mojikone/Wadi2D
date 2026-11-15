@@ -162,6 +162,8 @@ NOT_WATER = (
     ("arf", "composite"),
 )
 """Settings a checkpoint need not match: none of them changes the water."""
+GIVEN_FACTOR = "given"
+"""What a run with ``storm.arf_factor`` says its area reduction is: a factor given, read from no table (W83)."""
 
 
 def load_job(path: str | Path) -> RunConfig:
@@ -357,6 +359,8 @@ def job_hash(cfg: RunConfig) -> str:
         data.pop("strips")  # a job without strips keeps the hash it had before strips existed
     if cfg.storm.gauges is None:
         data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
+    if cfg.storm.arf_factor is None:
+        data["storm"].pop("arf_factor")  # and a job with no given factor the one it had before it (W83)
     _drop_point_entries(data["hydrology"])
     for line in data["boundaries"]:  # a job without flow lines keeps the hash it had before them (W61)
         for key in ("name", "flow"):
@@ -721,6 +725,8 @@ def _failed_cell(model: Model) -> dict[str, float]:
 
 def arf_tags(cfg: RunConfig) -> dict[str, str]:
     """What every output of an area-reduced run says about its rain."""
+    if cfg.storm.arf_factor is not None:
+        return {"arf_table_type": GIVEN_FACTOR, "arf_factor": f"{cfg.storm.arf_factor:g}"}
     arf = cfg.storm.arf
     if arf is None or cfg.storm.storm_area_km2 is None:
         return {}
@@ -971,10 +977,20 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             message="depth grid: 2D cells take the raster's own depth, lumped subbasins their polygon mean; "
             "HMS with Uniform Depth: Yes uses the mean above each analysis point instead",
         )
+    if cfg.storm.arf_factor is not None:  # a given factor, on the record of the run whatever the storm (W83)
+        progress.emit(
+            "output", kind="area_reduction", factor=cfg.storm.arf_factor, storm_area_km2=None,
+            arf_table_type=GIVEN_FACTOR,
+        )  # fmt: skip
+        progress.emit(
+            "warn",
+            message=f"rain: every depth is multiplied by {cfg.storm.arf_factor:.4f}, the given area-reduction factor, "
+            "over the whole event",
+        )
     if isinstance(storm, GriddedStorm):
         for note in storm.notes(cfg.run.duration_s / SECONDS_PER_MINUTE):
             progress.emit("warn", message=f"rain: {note}")
-        if storm.arf is not None:  # which factor the rain was multiplied by, on the record of the run
+        if storm.arf is not None and cfg.storm.arf_factor is None:  # which factor the rain was multiplied by, on the record of the run
             progress.emit(
                 "output", kind="area_reduction", factor=storm.area_factor, storm_area_km2=storm.storm_area_km2,
                 arf_table_type=cfg.storm.arf.table_type,
