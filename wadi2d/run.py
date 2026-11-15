@@ -483,6 +483,9 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
 
     terrain = cfg.terrain.model_dump(mode="json")
     terrain["objects"] = [_object_key(o) for o in cfg.terrain.objects]
+    # the pit settings shape no strip: the check changes nothing, and a fill reaches the strip as its objects (W85)
+    for name in ("pit_check", "fill_pits", "pit_max_cells", "pit_min_depth"):
+        terrain.pop(name, None)
     grid = cfg.grid.model_dump(mode="json")
     grid.pop("cache_dir", None)  # where the cache lies is not what is in it
     return cache_key(
