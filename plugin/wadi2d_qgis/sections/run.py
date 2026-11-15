@@ -9,6 +9,7 @@ from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -17,6 +18,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from .. import settings, style
 from ..job_builder import (
     ANIMATION_MAP_S,
     BACKEND,
@@ -81,6 +83,17 @@ class RunSection(Section):
         self.background = QComboBox()
         for label, value in BACKGROUNDS:
             self.background.addItem(label, value)
+        self.cutoff = QDoubleSpinBox()
+        self.cutoff.setDecimals(3)
+        self.cutoff.setSingleStep(0.01)
+        self.cutoff.setRange(0.0, style.DEPTH_CUTOFF_MAX_M)
+        self.cutoff.setSuffix(" m")
+        self.cutoff.setValue(settings.depth_cutoff())
+        self.cutoff.setToolTip(
+            "Depth layers, cell maps, the aligned cells, the time slider and Make map draw nothing shallower than this. "
+            "A display choice: the rasters keep their numbers. 0 draws every wet cell"
+        )
+        self.cutoff.valueChanged.connect(self._cutoff_changed)
         self.map_title = QLineEdit()
         self.map_title.setPlaceholderText("The name of the run")
         self.map_button = QPushButton("Make map")
@@ -126,6 +139,7 @@ class RunSection(Section):
         self.form.addRow(self.status)
         self.form.addRow(self.message)
         self.form.addRow(self.open_button)
+        self.form.addRow("Draw depth from", self.cutoff)
         self.form.addRow("Map title", self.map_title)
         self.form.addRow("Map background", self.background)
         self.form.addRow(self.map_button)
@@ -171,6 +185,10 @@ class RunSection(Section):
     def _pixels_toggled(self, on: bool) -> None:
         """The polygons and the picture are drawn from the pixel maps: none without them."""
         self.smooth.setEnabled(on and self.pixels.isEnabled())
+
+    def _cutoff_changed(self, value: float) -> None:
+        settings.set_depth_cutoff(value)
+        style.restyle_depth_layers()
 
     def chosen_smooth(self) -> bool | None:
         """Whether the run draws its polygons and depth picture, or None for the engine's own default."""

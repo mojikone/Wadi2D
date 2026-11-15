@@ -1,8 +1,7 @@
 # W88 HMS areas out of the 2D mesh
 
-**Live.** Branch `feature/hms-areas-out-of-mesh` off `feature/fast-products` (`8bf9fd7`), not merged, not pushed.
-Item 1 below is built and tested in the engine; items 2 and 3 of the order (a lumped-only run as a first-class run,
-the display cutoff for depth layers) and the run group's HMS catchments layer are not built yet.
+**Live.** Item 1 on `feature/hms-areas-out-of-mesh` (off `8bf9fd7`), merged into `feature/fast-products` at
+`0a87ffe` by the coordinator. Items 2 to 6 on `feature/hms-dock-and-lumped` off `0a87ffe`, not merged. Nothing pushed.
 
 ## What was asked
 
@@ -92,11 +91,9 @@ whole 584 of 584. The full suite was not run (his rule: at the merge).
 ### Dock
 
 Hydrology has a tick, "Leave the catchments the lumped network carries out of the 2D mesh" (`grid.exclude_lumped`),
-written into the job only when ticked. **Through the dock's HMS route it leaves nothing out today**: the HMS import
-gives every subbasin its own outlet (run 4's way), so no subbasin is carried, and the run says "no cell is left out".
-Run 3's way (subbasins kept in the HMS reaches down to a dam or a junction) is written by script so far
-(`W79 .../scripts/s02_jobs.py`: `inflows` from elements, subbasins without outlets); a choice for it in the dock is
-the next piece.
+written into the job only when ticked. On the HMS route it leaves something out once the lumped water is kept on
+the network (item 2); with each subbasin entering at its own outlet nothing is carried and the run says "no cell is
+left out".
 
 ### Not done, not tested
 
@@ -107,4 +104,98 @@ the next piece.
 - A dam's crest line or pool polygon inside a left-out catchment is simply on no cell; not looked at.
 - The edge check after the run names a pool against the wall in the words it uses for the outline ("the domain
   polygon likely cuts a valley there"); there the cause is a catchment polygon off the divide. Wording not changed.
-- The real-QGIS dock check waits for items 2 and 3.
+
+## 2. Lumped water down the HMS reaches, in the dock (`hydrology.lumped_entry`)
+
+`wadi2d/engine/network_entries.py`. `outlet` (the default, the HMS import as before): each lumped subbasin enters at
+its own outlet and the grid routes it (run 4). `network`: an element is *lumped all the way* when every subbasin
+above it is lumped; a lumped subbasin's water goes down its links while the next element is lumped all the way, and
+enters at the last one, the element where rain-on-grid water first joins (run 3: the dams and HAT-J4). That element
+gets one inflow of its outflow at its HMS icon (a reach: its downstream end), `entry: point`, unless the job already
+gives an inflow from it (W79's points 200 m below the dams), and the subbasins it carries lose their outlets. Where
+the walk ends at an outlet of the network (an HMS sink, or Basin 1's dam junctions, which drain nowhere) the water
+leaves the model, as in HMS: the inflow is written with `enters: false`, nothing enters the grid, the series is kept,
+and the subbasins above count as carried, so the mesh can leave them out. Refused in words: an element with no icon,
+a second outlet (diversion, auxiliary spillway) feeding rain-on-grid water, `network` on a generated basin. The
+resolution runs where a generated basin's does (`_resolved`), so `config.resolved.json` holds the inflows.
+
+Dock, Hydrology > HMS: "Lumped water enters the 2D model": "At each subbasin's outlet" or "Down the HMS reaches and
+dams, entering where rain-on-grid joins"; only the second is written into the job.
+
+## 3. The lumped-only run (`run.lumped_only`)
+
+`wadi2d/engine/lumped_run.py`. Asked for, or taken when every cell of the domain is under a left-out catchment (the
+run says so). No grid, no tables, no DEM needed. The folder: `config.resolved.json`, `progress.jsonl` (start, and
+done with `lumped_only`), `results.h5` with every element's series under `series/network` and the attribute
+`lumped_only` (no mask, no maps), `series/network_<element>.csv`, `network.gpkg` and `network_peaks.csv`, and the
+marker `lumped_run.json`. Every element is written, the network computed whole as HMS does. Refused: a rain-on-grid
+subbasin, a hand-back, no rain.
+
+Dock: "The HMS way only" in Hydrology > HMS. The run's group gets "Lumped network, the HMS way": catchments hatched
+and labelled with name, area, peak and time; reaches, junctions, reservoirs and outlets labelled with peak and time
+(highest pool on a reservoir). The time-slider buttons stay off; Result lines lists every element (the engine's
+listing reads the file unchanged), and a right-click on any of these features opens its chart, since each carries the
+element's `name`. Choosing the folder again brings its network back.
+
+## 4. Each element at its own area (`hydrology.arf_by_element`)
+
+In a lumped-only run every element is read as HMS's depth-area analysis reads it: its sub-network run again at the
+storm area of its own drainage area (`wadi2d.hydrology.depth_area.analyse_point`), its series of record from that run;
+`network_peaks.csv` and the marker give each element's area and factor. What `W79 .../scripts/s03_lumped.py` did by
+script. Needs `storm.arf`; refused beside a given factor, beside subbasins with storm areas of their own, and on a run
+with a 2D part. Dock: "Each element at its own drainage area's area reduction", offered with the HMS way only.
+
+## 5. The depth display cutoff
+
+`plugin/wadi2d_qgis/style.py` `DEPTH_CUTOFF_M` = 0.05 m; the user's value is saved in QGIS settings
+(`wadi2d/depth_cutoff_m`) and set in Run > "Draw depth from" (0 to 1 m; 0 draws every wet cell). Every depth style
+(cell maps and the live layer, pixel depth, the depth picture, the time slider's mesh, the pixel slider) starts its
+ramp at the cutoff with the colour the ramp had there and clips below it; the values are not touched. A new value
+restyles the project's depth layers at once. The aligned cells get a layer of their own, "Aligned cells: maximum
+depth, m", in Model setup, off. Make map's depth sheet says "Depth under X m is not drawn; the rasters of record keep
+it."
+
+## 6. The HMS catchments in a run's group
+
+A run with a 2D part writes `network.gpkg` too (the elements whose series it wrote), its subbasins with `left_out` and
+`enters_at`; the dock puts it in the run's group, the left-out catchments in grey with "left out of the 2D mesh" in
+their label.
+
+## Tests of items 2 to 6
+
+- `tests/engine/test_lumped_network.py` (8), on the valley of item 1 with an HMS basin of its own (Up, J1, reach R1,
+  Low, J2, sink Out): the rule enters Up's water at R1's icon and the run equals the same inflow given by hand to the
+  digit; with the tick Up is left out and the outflow holds to 1e-5; resolving twice adds nothing; a missing icon and
+  `network` on a generated basin are refused; all lumped leaves at the sink, and the domain wholly left out runs
+  lumped only (six elements, no mask, no maps); a lumped-only run writes every element, the junction sums its
+  inflows, the engine's listing reads it, the layers carry the peaks; refusals; each element at its own area equals a
+  plain run at that area to 1e-12 for Up, Low and J2; old jobs keep their hash with the new fields at their defaults.
+- `tests/plugin/test_network_qgis.py` on QGIS 3.44.8's Python: the layers land in the run's group, labelled and
+  categorised, with the left-out mark; a cell under 0.05 m draws transparent and one over it does not; 0 draws them;
+  the restyle; the cut colour read off the ramp.
+- `tests/plugin` whole; the QGIS smoke and sheets tests now accept a cut ramp in place of a transparent first stop.
+- Real dock (`dock_hms_way.py`, QGIS 3.44.8, throwaway profile, CPU engine; `log_dock_hms_way.txt`): **30 of 30**.
+  Block 2 Basin_1 under FM_100yr the HMS way with each element at its own area: 40 elements in about 3 s, the
+  network group with 18 catchments labelled, time-slider buttons off, Result lines listing 40 elements, a right-click
+  name at Bidah 03's junction matching its chart, which holds the record's peak (362.4 m3/s; Faydh 01 993.5, R5A
+  887.1, R2A 1,356.1, Z4C 1,666.4, each at its own drainage area); the folder chosen again brings the network back.
+  Bidah at 20 m, S13 rain-on-grid and the other 17 down the reaches with the tick: Bidah 03 takes S13's grid water so
+  it gets no inflow, the other four dams' water leaves at the network's outlets, 17 subbasins and 1,106 cells of the
+  domain left out and marked in the layer, the depth layers cut at 0.05 m and restyled at 0.1 m, Make map wrote the
+  sheets with the cutoff in the depth sheet's notes. The first attempt failed one check, the scenario's: it expected
+  Bidah 03 among the outlets, where S13's water joins on the grid.
+- Suites on the branch: `tests/engine`, `strips`, `basin`, `hydrology`, `storm`, `products`, `render`, `workbook`,
+  `tables`, `terrain` 1,322 passed, 9 skipped; `tests/plugin` 590 passed. Full suite not run (his rule: at the merge).
+
+### Not done, not tested (items 2 to 6)
+
+- No Block 2 run 3 through the dock (Wadi HAT's HAT-J4 and the 200 m dam points are the W79 job's own inflows,
+  which the rule keeps); no GPU run.
+- `arf_by_element` runs every element's sub-network again: Basin_1's 40 elements took 3 s, Basin_3's 281 about 1 s
+  by W79's script; not timed on a larger basin.
+- A generated basin as a lumped-only run is coded (its network run whole) and not tested.
+- The time slider and Make map ignore the network layers; the right-click chart works only while they are shown.
+- The QGIS-side cutoff test writes and then removes the user's `wadi2d/depth_cutoff_m` setting in the default profile
+  of QGIS's Python; a value set by hand before would be lost.
+- Commits: the engine's three pieces (network entry, lumped-only run, per-element ARF) are one commit and the dock's
+  one, because they share `run.py`, the schema and the Hydrology section; the cutoff is its own.

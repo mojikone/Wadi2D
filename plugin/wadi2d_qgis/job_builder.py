@@ -97,6 +97,13 @@ PIXELS_ON = "outputs.pixels.enabled"
 FILL_PITS = "terrain.fill_pits"
 EXCLUDE_LUMPED = "grid.exclude_lumped"
 """The 2D mesh leaves out the catchments the lumped network carries (W88)."""
+LUMPED_ENTRY = "hydrology.lumped_entry"
+LUMPED_ENTRY_WORDS = {
+    "outlet": "At each subbasin's outlet: the 2D model routes it from there",
+    "network": "Down the HMS reaches and dams, entering where rain-on-grid joins",
+}
+LUMPED_ONLY = "run.lumped_only"
+ARF_BY_ELEMENT = "hydrology.arf_by_element"
 STEP_LIMITER = "outputs.step_limiter"
 STEP_LIMITER_ON = "layer"
 """What the dock's tick asks for: the limiter in the progress and as a layer (W85)."""
@@ -529,10 +536,18 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["terrain"]["fill_pits"] = True
     if values.get("exclude_lumped"):  # the same
         job["grid"]["exclude_lumped"] = True
+    if values.get("lumped_entry") == "network":  # the same: the outlets are the engine's default
+        job["hydrology"]["lumped_entry"] = "network"
+    if values.get("lumped_only"):
+        job["run"]["lumped_only"] = True
+        if values.get("arf_by_element"):
+            job["hydrology"]["arf_by_element"] = True
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
+    if values.get("reach_routing") == "muskingum" and values.get("muskingum"):  # the reach table's rows (W89)
+        job["hydrology"]["muskingum"] = [dict(row) for row in values["muskingum"]]
     gauges = values.get("gauges") or {}
     if _uses_gauges(values):
         job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})

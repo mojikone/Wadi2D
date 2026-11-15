@@ -21,13 +21,18 @@ from qgis.PyQt.QtWidgets import QDockWidget
 
 from . import style
 from .layer_groups import MAPS, TIME, add_layer, run_results, subgroup
-from .protocol import FRAMES_FILE, RUN_FILE
+from .protocol import FRAMES_FILE, RUN_FILE, is_lumped_run
 
 LAYER_TITLE = "Flood over time, cells"
 
 
 def has_results(run: Path | str) -> bool:
     return (Path(run) / "results.h5").is_file()
+
+
+def has_frames(run: Path | str) -> bool:
+    """A run with a grid, whose saved maps the time slider can draw; a lumped-only run has series alone (W88)."""
+    return has_results(run) and not is_lumped_run(run)
 
 
 def _run_crs(run: Path) -> QgsCoordinateReferenceSystem:

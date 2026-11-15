@@ -8,7 +8,7 @@ A user edits the file by hand. :func:`refresh` runs on every read: it fills a la
 a filled-in parameter as the user's, and rebuilds ``missing``, so that list is never out of step with the values. It never
 overwrites a number that is there: to recompute a lag after changing a curve number, set the lag to null.
 
-Interface: :func:`parameter`, :func:`value_of`, :func:`missing_of`, :func:`refresh`, :func:`read_model`, :func:`write_model`,
+Interface: :func:`parameter`, :func:`value_of`, :func:`missing_of`, :func:`required_of`, :func:`refresh`, :func:`read_model`, :func:`write_model`,
 :func:`check_model`.
 """
 
@@ -41,6 +41,14 @@ REQUIRED = {
     SOURCE: ("hydrograph",),
 }
 """What an element needs to run lumped; the owner's rule reads ``missing``, built from this."""
+ROUTING_KEY = "routing"
+ROUTING_MUSKINGUM = "muskingum"
+ROUTINGS = (None, "muskingum_cunge", ROUTING_MUSKINGUM)
+"""A reach's own method (W89), a key of the element: absent or ``muskingum_cunge`` routes it on its section;
+``muskingum`` routes it by the parameters ``muskingum_k_hours`` and ``muskingum_x`` (and ``muskingum_subreaches``,
+1 when absent), and its section is then not needed."""
+MUSKINGUM_REQUIRED = ("muskingum_k_hours", "muskingum_x")
+MUSKINGUM_SUBREACHES = "muskingum_subreaches"
 
 Element = dict[str, Any]
 Model = dict[str, Any]
@@ -59,7 +67,14 @@ def value_of(element: Element, key: str) -> Any:
 
 def missing_of(element: Element) -> list[str]:
     """The parameters an element still lacks, by name."""
-    return [key for key in REQUIRED[element["kind"]] if value_of(element, key) is None]
+    return [key for key in required_of(element) if value_of(element, key) is None]
+
+
+def required_of(element: Element) -> tuple[str, ...]:
+    """What this element needs: a reach routed by Muskingum needs K and X, not a section."""
+    if element["kind"] == REACH and element.get(ROUTING_KEY) == ROUTING_MUSKINGUM:
+        return MUSKINGUM_REQUIRED
+    return REQUIRED[element["kind"]]
 
 
 def _fill(element: Element, key: str, value: float) -> None:
@@ -136,6 +151,10 @@ def check_model(model: Model) -> Model:
     for element in model["elements"]:
         if element["kind"] not in KINDS:
             raise ValueError(f"{element['name']}: unknown kind {element['kind']!r}")
+        if element.get(ROUTING_KEY) not in ROUTINGS or (ROUTING_KEY in element and element["kind"] != REACH):
+            raise ValueError(
+                f"{element['name']}: routing {element.get(ROUTING_KEY)!r}; a reach takes {ROUTING_MUSKINGUM!r} or none"
+            )
         target = element["downstream"]
         if target is not None and target not in known:
             raise ValueError(f"{element['name']} drains to unknown element {target}")

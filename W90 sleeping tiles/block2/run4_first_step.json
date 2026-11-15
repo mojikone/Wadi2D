@@ -1,0 +1,48 @@
+{
+ "tiles": 3604,
+ "first_step_of_the_run": {
+  "ev": "step",
+  "t": 3.0,
+  "dt": 3.0,
+  "steps": 1,
+  "active_tiles": 3487,
+  "volume": 0.0,
+  "mass_error": 0.0,
+  "wall": 15.41
+ },
+ "ghost_cells": 104062,
+ "strip_ghost": {
+  "tiles": 2276,
+  "with_neighbours": 3479
+ },
+ "boundary_lines": 6,
+ "boundary": {
+  "tiles": 64,
+  "with_neighbours": 139
+ },
+ "ghost_or_boundary": {
+  "tiles": 2311,
+  "with_neighbours": 3487
+ },
+ "rained_squares": {
+  "rim": 14250,
+  "coast": 55379,
+  "all": 69632
+ },
+ "rim_rain": {
+  "tiles": 358,
+  "with_neighbours": 722
+ },
+ "coast_rain": {
+  "tiles": 132,
+  "with_neighbours": 199
+ },
+ "rim_and_coast_rain": {
+  "tiles": 417,
+  "with_neighbours": 757
+ },
+ "rain_tiles_that_hold_no_ghost_and_no_boundary": 251,
+ "rain_ring_outside_the_static_list": 76,
+ "static_list_outside_the_rain_ring": 2806,
+ "static_and_rain_ring_together": 3563
+}

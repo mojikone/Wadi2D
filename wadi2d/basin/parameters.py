@@ -1,7 +1,7 @@
 """What the terrain and the job's rasters say about an element.
 
-Interface: :func:`kirpich_lag_minutes`, :func:`kirpich_tc_minutes`, :func:`nrcs_lag_minutes`, :func:`index_celerity`, :func:`land_slope`,
-:func:`zonal_mean`, :func:`read_on_surface`.
+Interface: :func:`kirpich_lag_minutes`, :func:`kirpich_tc_minutes`, :func:`kirpich_travel_minutes`, :func:`nrcs_lag_minutes`,
+:func:`index_celerity`, :func:`land_slope`, :func:`zonal_mean`, :func:`read_on_surface`.
 Pure functions; which of them an element gets, and from what source, is decided in :mod:`wadi2d.basin.elements`.
 """
 
@@ -61,6 +61,13 @@ def kirpich_tc_minutes(flow_length_m: float, slope_10_85: float) -> float:
     """
     length = TEN_TO_85_SHARE * flow_length_m
     return length**KIRPICH_LENGTH_POWER / (KIRPICH_DIVISOR * slope_10_85**KIRPICH_SLOPE_POWER)
+
+
+def kirpich_travel_minutes(length_m: float, slope: float) -> float:
+    """Kirpich's expression on a reach's own length and slope, L^0.77 / (52 S^0.385), minutes: a travel time for a
+    reach that has no section to read a wave speed from (W89). The same caution as :func:`kirpich_tc_minutes`, more
+    so: the formula was fitted to the time of concentration of small basins, not to a flood wave in a channel."""
+    return length_m**KIRPICH_LENGTH_POWER / (KIRPICH_DIVISOR * slope**KIRPICH_SLOPE_POWER)
 
 
 def nrcs_lag_minutes(flow_length_m: float, curve_number: float, slope: float) -> float:

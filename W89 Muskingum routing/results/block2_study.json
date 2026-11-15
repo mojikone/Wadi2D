@@ -1,0 +1,4585 @@
+{
+ "project": "HEC_HMS_Block_02.hms",
+ "basin": "Basin 3",
+ "step_minutes": 5.0,
+ "points": [
+  "Z4C",
+  "R2A",
+  "Faydh 01",
+  "Bidah 03",
+  "R5A",
+  "J2",
+  "J13",
+  "RIJ-J2",
+  "FIZ-J1",
+  "FAY-J3"
+ ],
+ "reach_peaks_200yr": {
+  "BID-R16": {
+   "inflow_peak_m3s": 39.78793908481421,
+   "point": "BID-J45",
+   "outflow_peak_m3s": 39.0688795046433,
+   "inflow_peak_h": 12.333333333333334,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "RIJ-R12": {
+   "inflow_peak_m3s": 24.49545377365971,
+   "point": "RIJ-J18",
+   "outflow_peak_m3s": 23.511954904570636,
+   "inflow_peak_h": 12.333333333333334,
+   "outflow_peak_h": 12.5
+  },
+  "RIJ-R10": {
+   "inflow_peak_m3s": 28.04818656348736,
+   "point": "RIJ-J18",
+   "outflow_peak_m3s": 27.85270805171146,
+   "inflow_peak_h": 12.5,
+   "outflow_peak_h": 12.666666666666666
+  },
+  "BID-R15": {
+   "inflow_peak_m3s": 55.0865494273532,
+   "point": "BID-J40",
+   "outflow_peak_m3s": 54.3431176193896,
+   "inflow_peak_h": 12.416666666666666,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "BID-R12": {
+   "inflow_peak_m3s": 80.53171229500066,
+   "point": "BID-J27",
+   "outflow_peak_m3s": 78.9492367689499,
+   "inflow_peak_h": 12.416666666666666,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "BID-R9": {
+   "inflow_peak_m3s": 85.67497496880934,
+   "point": "BID-J31",
+   "outflow_peak_m3s": 82.83523245708659,
+   "inflow_peak_h": 12.416666666666666,
+   "outflow_peak_h": 12.666666666666666
+  },
+  "BID-R17": {
+   "inflow_peak_m3s": 94.27344093069665,
+   "point": "BID-J42",
+   "outflow_peak_m3s": 93.52622743088587,
+   "inflow_peak_h": 12.833333333333334,
+   "outflow_peak_h": 13.0
+  },
+  "BID-R19": {
+   "inflow_peak_m3s": 96.59306240623744,
+   "point": "BID-J28",
+   "outflow_peak_m3s": 90.86059506467925,
+   "inflow_peak_h": 12.333333333333334,
+   "outflow_peak_h": 12.5
+  },
+  "BID-R13": {
+   "inflow_peak_m3s": 64.8190182993594,
+   "point": "BID-J28",
+   "outflow_peak_m3s": 63.95479684886637,
+   "inflow_peak_h": 12.5,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "BID-R10": {
+   "inflow_peak_m3s": 118.36752971183424,
+   "point": "BID-J26",
+   "outflow_peak_m3s": 118.03420251107663,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.25
+  },
+  "BID-R18": {
+   "inflow_peak_m3s": 139.0731710084051,
+   "point": "BID-J34",
+   "outflow_peak_m3s": 135.30481495074196,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak_h": 13.083333333333334
+  },
+  "RIJ-R17": {
+   "inflow_peak_m3s": 101.65704799186894,
+   "point": "RIJ-J17",
+   "outflow_peak_m3s": 100.87586029872705,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.25
+  },
+  "RIJ-R14": {
+   "inflow_peak_m3s": 44.048993661141225,
+   "point": "RIJ-J17",
+   "outflow_peak_m3s": 43.90470357757488,
+   "inflow_peak_h": 12.583333333333334,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "FIZ-R5": {
+   "inflow_peak_m3s": 38.798495375103876,
+   "point": "FIZ-J5",
+   "outflow_peak_m3s": 38.74520666239032,
+   "inflow_peak_h": 14.083333333333334,
+   "outflow_peak_h": 14.25
+  },
+  "FIZ-R4": {
+   "inflow_peak_m3s": 75.62434958055962,
+   "point": "FIZ-J5",
+   "outflow_peak_m3s": 75.47904227349298,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.25
+  },
+  "RIJ-R18": {
+   "inflow_peak_m3s": 130.64238798259294,
+   "point": "RIJ-J20",
+   "outflow_peak_m3s": 129.7911296309044,
+   "inflow_peak_h": 13.0,
+   "outflow_peak_h": 13.166666666666666
+  },
+  "BID-R4": {
+   "inflow_peak_m3s": 159.01250860818027,
+   "point": "BID-J6",
+   "outflow_peak_m3s": 158.62394272792238,
+   "inflow_peak_h": 12.75,
+   "outflow_peak_h": 12.833333333333334
+  },
+  "FIZ-R6": {
+   "inflow_peak_m3s": 108.85413979906653,
+   "point": "FIZ-J9",
+   "outflow_peak_m3s": 108.21739867726066,
+   "inflow_peak_h": 13.416666666666666,
+   "outflow_peak_h": 13.583333333333334
+  },
+  "BID-R5": {
+   "inflow_peak_m3s": 196.4145020413911,
+   "point": "BID-J13",
+   "outflow_peak_m3s": 194.31789787039747,
+   "inflow_peak_h": 12.75,
+   "outflow_peak_h": 12.916666666666666
+  },
+  "BID-R11": {
+   "inflow_peak_m3s": 198.1413288958273,
+   "point": "BID-J41",
+   "outflow_peak_m3s": 197.00304475541924,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak_h": 13.083333333333334
+  },
+  "BID-R7": {
+   "inflow_peak_m3s": 167.38741757971377,
+   "point": "BID-J36",
+   "outflow_peak_m3s": 167.0229077186053,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.333333333333334
+  },
+  "BID-R25": {
+   "inflow_peak_m3s": 140.50515338917924,
+   "point": "BID-J38",
+   "outflow_peak_m3s": 136.96222132079194,
+   "inflow_peak_h": 13.083333333333334,
+   "outflow_peak_h": 13.25
+  },
+  "BID-R21": {
+   "inflow_peak_m3s": 88.55991367078967,
+   "point": "BID-J38",
+   "outflow_peak_m3s": 88.0651161132768,
+   "inflow_peak_h": 12.5,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "FAY-R3": {
+   "inflow_peak_m3s": 157.81644598116378,
+   "point": "FAY-J4",
+   "outflow_peak_m3s": 156.82044604854485,
+   "inflow_peak_h": 13.25,
+   "outflow_peak_h": 13.5
+  },
+  "BID-R14": {
+   "inflow_peak_m3s": 156.31705433218494,
+   "point": "BID-J32",
+   "outflow_peak_m3s": 154.02258184620285,
+   "inflow_peak_h": 12.666666666666666,
+   "outflow_peak_h": 12.833333333333334
+  },
+  "BID-R22": {
+   "inflow_peak_m3s": 151.3857201364659,
+   "point": "BID-J32",
+   "outflow_peak_m3s": 144.54990901722772,
+   "inflow_peak_h": 12.5,
+   "outflow_peak_h": 12.666666666666666
+  },
+  "BID-R24": {
+   "inflow_peak_m3s": 299.34174507168234,
+   "point": "BID-J37",
+   "outflow_peak_m3s": 299.10236137919634,
+   "inflow_peak_h": 12.75,
+   "outflow_peak_h": 12.75
+  },
+  "BID-R26": {
+   "inflow_peak_m3s": 190.66503887378258,
+   "point": "BID-J39",
+   "outflow_peak_m3s": 186.5718131484348,
+   "inflow_peak_h": 13.0,
+   "outflow_peak_h": 13.083333333333334
+  },
+  "BID-R20": {
+   "inflow_peak_m3s": 117.4176182737447,
+   "point": "BID-J39",
+   "outflow_peak_m3s": 117.16450972741903,
+   "inflow_peak_h": 13.25,
+   "outflow_peak_h": 13.333333333333334
+  },
+  "BID-R27": {
+   "inflow_peak_m3s": 303.771540607594,
+   "point": "BID-J44",
+   "outflow_peak_m3s": 282.885906679335,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.583333333333334
+  },
+  "RIJ-R8": {
+   "inflow_peak_m3s": 172.50807791728604,
+   "point": "RIJ-J15",
+   "outflow_peak_m3s": 171.44660144832855,
+   "inflow_peak_h": 13.0,
+   "outflow_peak_h": 13.333333333333334
+  },
+  "BID-R23": {
+   "inflow_peak_m3s": 327.9323720778365,
+   "point": "BID-J43",
+   "outflow_peak_m3s": 319.8649934369738,
+   "inflow_peak_h": 13.0,
+   "outflow_peak_h": 13.333333333333334
+  },
+  "RIJ-R16": {
+   "inflow_peak_m3s": 360.1827115337047,
+   "point": "RIJ-J22",
+   "outflow_peak_m3s": 353.6835761290425,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak_h": 13.25
+  },
+  "RIJ-R3": {
+   "inflow_peak_m3s": 273.29026716458134,
+   "point": "RIJ-J4",
+   "outflow_peak_m3s": 271.53102267492346,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak_h": 14.0
+  },
+  "RIJ-R5": {
+   "inflow_peak_m3s": 453.1228587380099,
+   "point": "RIJ-J5",
+   "outflow_peak_m3s": 451.6760822920805,
+   "inflow_peak_h": 13.333333333333334,
+   "outflow_peak_h": 13.583333333333334
+  },
+  "RIJ-R6": {
+   "inflow_peak_m3s": 296.5269246371672,
+   "point": "RIJ-J5",
+   "outflow_peak_m3s": 295.74979027284576,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak_h": 14.083333333333334
+  },
+  "RIJ-R7": {
+   "inflow_peak_m3s": 773.2691018576468,
+   "point": "RIJ-J13",
+   "outflow_peak_m3s": 769.3937000652119,
+   "inflow_peak_h": 13.75,
+   "outflow_peak_h": 14.166666666666666
+  },
+  "RIJ-R9": {
+   "inflow_peak_m3s": 23.996911953265457,
+   "point": "RIJ-J19",
+   "outflow_peak_m3s": 23.989258139880548,
+   "inflow_peak_h": 12.333333333333334,
+   "outflow_peak_h": 12.416666666666666
+  },
+  "RIJ-R15": {
+   "inflow_peak_m3s": 824.3936360384597,
+   "point": "RIJ-J19",
+   "outflow_peak_m3s": 821.7590852274246,
+   "inflow_peak_h": 14.083333333333334,
+   "outflow_peak_h": 14.25
+  },
+  "RIJ-R20": {
+   "inflow_peak_m3s": 823.4076603486615,
+   "point": "FIZ-J6",
+   "outflow_peak_m3s": 780.4324295084398,
+   "inflow_peak_h": 14.25,
+   "outflow_peak_h": 14.583333333333334
+  },
+  "R6": {
+   "inflow_peak_m3s": 692.4941316954983,
+   "point": "Faydh 01",
+   "outflow_peak_m3s": 691.116117562671,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.416666666666666
+  },
+  "BID-R2": {
+   "inflow_peak_m3s": 821.462650708596,
+   "point": "BID-J2",
+   "outflow_peak_m3s": 813.3392236852835,
+   "inflow_peak_h": 13.166666666666666,
+   "outflow_peak_h": 13.666666666666666
+  },
+  "BID-R1": {
+   "inflow_peak_m3s": 0.0,
+   "point": "BID-J2",
+   "outflow_peak_m3s": 0.0,
+   "inflow_peak_h": 0.0,
+   "outflow_peak_h": 0.0
+  },
+  "HAT-R1": {
+   "inflow_peak_m3s": 912.0515303500799,
+   "point": "HAT-J2",
+   "outflow_peak_m3s": 911.2141411996877,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak_h": 13.25
+  },
+  "FAY-R1": {
+   "inflow_peak_m3s": 0.0,
+   "point": "FAY-J1",
+   "outflow_peak_m3s": 0.0,
+   "inflow_peak_h": 0.0,
+   "outflow_peak_h": 0.0
+  },
+  "BID-R3": {
+   "inflow_peak_m3s": 1014.1238846175387,
+   "point": "BID-J8",
+   "outflow_peak_m3s": 1006.4919547742123,
+   "inflow_peak_h": 13.583333333333334,
+   "outflow_peak_h": 13.833333333333334
+  },
+  "BID-R6": {
+   "inflow_peak_m3s": 1342.473630080683,
+   "point": "BID-J10",
+   "outflow_peak_m3s": 1335.873579160622,
+   "inflow_peak_h": 13.75,
+   "outflow_peak_h": 13.916666666666666
+  },
+  "R7": {
+   "inflow_peak_m3s": 609.8293775955999,
+   "point": "R5A",
+   "outflow_peak_m3s": 606.7141760187048,
+   "inflow_peak_h": 13.416666666666666,
+   "outflow_peak_h": 14.5
+  },
+  "R8": {
+   "inflow_peak_m3s": 972.3427471178375,
+   "point": "R5A",
+   "outflow_peak_m3s": 967.4950722315936,
+   "inflow_peak_h": 14.166666666666666,
+   "outflow_peak_h": 14.75
+  },
+  "BID-R8": {
+   "inflow_peak_m3s": 1341.9955728631942,
+   "point": "BID-J33",
+   "outflow_peak_m3s": 1331.9661894433302,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak_h": 14.166666666666666
+  },
+  "HAT-R2": {
+   "inflow_peak_m3s": 1647.0867593007454,
+   "point": "HAT-J3",
+   "outflow_peak_m3s": 1637.7503161216796,
+   "inflow_peak_h": 13.0,
+   "outflow_peak_h": 14.0
+  },
+  "R3": {
+   "inflow_peak_m3s": 829.6564611812038,
+   "point": "R2A",
+   "outflow_peak_m3s": 825.8008153308973,
+   "inflow_peak_h": 14.0,
+   "outflow_peak_h": 15.0
+  },
+  "R4": {
+   "inflow_peak_m3s": 430.54270436845815,
+   "point": "R2A",
+   "outflow_peak_m3s": 428.1216969231092,
+   "inflow_peak_h": 12.916666666666666,
+   "outflow_peak_h": 13.75
+  },
+  "R5": {
+   "inflow_peak_m3s": 968.8224234208412,
+   "point": "R2A",
+   "outflow_peak_m3s": 968.5132018747272,
+   "inflow_peak_h": 13.5,
+   "outflow_peak_h": 13.583333333333334
+  },
+  "R1": {
+   "inflow_peak_m3s": 1276.298058009313,
+   "point": "Z4C",
+   "outflow_peak_m3s": 1266.061706335854,
+   "inflow_peak_h": 13.666666666666666,
+   "outflow_peak_h": 15.083333333333334
+  },
+  "R2": {
+   "inflow_peak_m3s": 2050.0337789475498,
+   "point": "Z4C",
+   "outflow_peak_m3s": 2042.6285712796982,
+   "inflow_peak_h": 14.916666666666666,
+   "outflow_peak_h": 15.5
+  },
+  "HAT-R3": {
+   "inflow_peak_m3s": 2122.1469754203945,
+   "point": "HAT-J4",
+   "outflow_peak_m3s": 2089.05946789508,
+   "inflow_peak_h": 13.916666666666666,
+   "outflow_peak_h": 15.75
+  },
+  "FIZ-R1": {
+   "inflow_peak_m3s": 1979.8284823328484,
+   "point": "FIZ-J1",
+   "outflow_peak_m3s": 1961.7754003259538,
+   "inflow_peak_h": 15.833333333333334,
+   "outflow_peak_h": 17.333333333333332
+  },
+  "FIZ-R2": {
+   "inflow_peak_m3s": 2137.357954844217,
+   "point": "FIZ-J2",
+   "outflow_peak_m3s": 2084.6899937839135,
+   "inflow_peak_h": 17.333333333333332,
+   "outflow_peak_h": 18.583333333333332
+  },
+  "FIZ-R3": {
+   "inflow_peak_m3s": 2089.4068264267385,
+   "point": "FIZ-J8",
+   "outflow_peak_m3s": 2064.0737680718726,
+   "inflow_peak_h": 18.583333333333332,
+   "outflow_peak_h": 19.0
+  },
+  "HAT-R4": {
+   "inflow_peak_m3s": 2432.4066908918767,
+   "point": "HAT-J5",
+   "outflow_peak_m3s": 2267.898110744444,
+   "inflow_peak_h": 15.75,
+   "outflow_peak_h": 17.166666666666668
+  },
+  "HAT-R5": {
+   "inflow_peak_m3s": 2291.815310588833,
+   "point": "HAT-J6",
+   "outflow_peak_m3s": 2205.8033062223735,
+   "inflow_peak_h": 17.166666666666668,
+   "outflow_peak_h": 18.583333333333332
+  },
+  "RIJ-R2": {
+   "inflow_peak_m3s": 600.2538467173717,
+   "point": "RIJ-J2",
+   "outflow_peak_m3s": 597.0138207271659,
+   "inflow_peak_h": 16.25,
+   "outflow_peak_h": 17.333333333333332
+  },
+  "RIJ-R1": {
+   "inflow_peak_m3s": 697.3143295060373,
+   "point": "RIJ-J2",
+   "outflow_peak_m3s": 694.9562007768895,
+   "inflow_peak_h": 16.75,
+   "outflow_peak_h": 18.166666666666668
+  },
+  "RIJ-R4": {
+   "inflow_peak_m3s": 1268.6263797688746,
+   "point": "RIJ-J11",
+   "outflow_peak_m3s": 1263.779903276112,
+   "inflow_peak_h": 17.916666666666668,
+   "outflow_peak_h": 19.083333333333332
+  },
+  "RIJ-R19": {
+   "inflow_peak_m3s": 50.060155991464654,
+   "point": "RIJ-J9",
+   "outflow_peak_m3s": 45.83962391230878,
+   "inflow_peak_h": 12.5,
+   "outflow_peak_h": 12.583333333333334
+  },
+  "RIJ-R13": {
+   "inflow_peak_m3s": 1266.644889223532,
+   "point": "RIJ-J9",
+   "outflow_peak_m3s": 1176.7838280818182,
+   "inflow_peak_h": 19.083333333333332,
+   "outflow_peak_h": 19.916666666666668
+  },
+  "RIJ-R11": {
+   "inflow_peak_m3s": 1177.296993132636,
+   "point": "RIJ-J21",
+   "outflow_peak_m3s": 1176.8014286241864,
+   "inflow_peak_h": 19.916666666666668,
+   "outflow_peak_h": 19.916666666666668
+  },
+  "HAT-R6": {
+   "inflow_peak_m3s": 2107.415830140788,
+   "point": "FAY-J3",
+   "outflow_peak_m3s": 2077.9342195223862,
+   "inflow_peak_h": 18.75,
+   "outflow_peak_h": 19.333333333333332
+  },
+  "FAY-R2": {
+   "inflow_peak_m3s": 181.02955975040203,
+   "point": "FAY-J3",
+   "outflow_peak_m3s": 180.7408236555037,
+   "inflow_peak_h": 16.5,
+   "outflow_peak_h": 17.166666666666668
+  },
+  "FAY-R4": {
+   "inflow_peak_m3s": 2217.007922654863,
+   "point": "FAY-J5",
+   "outflow_peak_m3s": 2210.2954568111577,
+   "inflow_peak_h": 19.333333333333332,
+   "outflow_peak_h": 19.416666666666668
+  }
+ },
+ "proposals_at_peak": {
+  "R1": {
+   "k_hours": 1.4085,
+   "x": 0.404,
+   "subreaches": 17,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,276 m3/s: normal depth 5.99 m, top width 68.4 m, mean velocity 3.32 m/s, wave speed 5.13 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.4085 h. 17 subreaches of 1,530 m. X = 1/2 (1 - Q / (B S c dx)) = 0.404; a subreach is stable at steps of 4.02 to 5.93 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 5.129376348041647,
+   "reference_flow_m3s": 1276.298058009313,
+   "x_cunge": 0.40417375138505196
+  },
+  "R2": {
+   "k_hours": 0.4937,
+   "x": 0.358,
+   "subreaches": 6,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,050 m3/s: normal depth 6.21 m, top width 118.6 m, mean velocity 3.02 m/s, wave speed 4.70 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.4937 h. 6 subreaches of 1,391 m. X = 1/2 (1 - Q / (B S c dx)) = 0.358; a subreach is stable at steps of 3.53 to 6.34 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 4.697400934891428,
+   "reference_flow_m3s": 2050.0337789475498,
+   "x_cunge": 0.3579812570248503
+  },
+  "R3": {
+   "k_hours": 0.9693,
+   "x": 0.404,
+   "subreaches": 12,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 829.7 m3/s: normal depth 4.57 m, top width 73.7 m, mean velocity 2.71 m/s, wave speed 4.17 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.9693 h. 12 subreaches of 1,213 m. X = 1/2 (1 - Q / (B S c dx)) = 0.404; a subreach is stable at steps of 3.92 to 5.78 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 4.170508169403996,
+   "reference_flow_m3s": 829.6564611812038,
+   "x_cunge": 0.40424269298218674
+  },
+  "R4": {
+   "k_hours": 0.8348,
+   "x": 0.455,
+   "subreaches": 10,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 430.5 m3/s: normal depth 2.12 m, top width 108.5 m, mean velocity 1.95 m/s, wave speed 3.14 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.8348 h. 10 subreaches of 943 m. X = 1/2 (1 - Q / (B S c dx)) = 0.455; a subreach is stable at steps of 4.56 to 5.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.1370352693648833,
+   "reference_flow_m3s": 430.54270436845815,
+   "x_cunge": 0.45481747355928803
+  },
+  "R5": {
+   "k_hours": 0.0569,
+   "x": 0.267,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 968.8 m3/s: normal depth 3.81 m, top width 138.1 m, mean velocity 2.14 m/s, wave speed 3.22 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0569 h. 1 subreach of 660 m. X = 1/2 (1 - Q / (B S c dx)) = 0.325; no count of subreaches is stable with it at this step, so X is lowered to 0.267, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 1.82 to 5 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.2208600710365594,
+   "reference_flow_m3s": 968.8224234208412,
+   "x_cunge": 0.32523353003214167
+  },
+  "R6": {
+   "k_hours": 0.26,
+   "x": 0.438,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 692.5 m3/s: normal depth 4.33 m, top width 58.7 m, mean velocity 2.94 m/s, wave speed 4.55 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.26 h. 3 subreaches of 1,420 m. X = 1/2 (1 - Q / (B S c dx)) = 0.438; a subreach is stable at steps of 4.56 to 5.84 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 4.5506379814564255,
+   "reference_flow_m3s": 692.4941316954983,
+   "x_cunge": 0.438017732281034
+  },
+  "R7": {
+   "k_hours": 1.0693,
+   "x": 0.44,
+   "subreaches": 13,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 609.8 m3/s: normal depth 3.97 m, top width 57.9 m, mean velocity 2.85 m/s, wave speed 4.42 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.0693 h. 13 subreaches of 1,308 m. X = 1/2 (1 - Q / (B S c dx)) = 0.440; a subreach is stable at steps of 4.34 to 5.53 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 4.417755751996873,
+   "reference_flow_m3s": 609.8293775955999,
+   "x_cunge": 0.4402144069403939
+  },
+  "R8": {
+   "k_hours": 0.5595,
+   "x": 0.394,
+   "subreaches": 7,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 972.3 m3/s: normal depth 4.53 m, top width 97.2 m, mean velocity 2.57 m/s, wave speed 3.86 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.5595 h. 7 subreaches of 1,109 m. X = 1/2 (1 - Q / (B S c dx)) = 0.394; a subreach is stable at steps of 3.78 to 5.81 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.8556136288108114,
+   "reference_flow_m3s": 972.3427471178375,
+   "x_cunge": 0.393645681778112
+  },
+  "RIJ-R17": {
+   "k_hours": 0.0925,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 101.7 m3/s: normal depth 2.00 m, top width 71.3 m, mean velocity 0.76 m/s, wave speed 1.20 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0925 h. 1 subreach of 400 m. X = 1/2 (1 - Q / (B S c dx)) = -0.093, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 11.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.201792017345685,
+   "reference_flow_m3s": 101.65704799186894,
+   "x_cunge": -0.09312917709036717
+  },
+  "RIJ-R14": {
+   "k_hours": 0.0697,
+   "x": 0.375,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 44.05 m3/s: normal depth 1.99 m, top width 21.1 m, mean velocity 1.30 m/s, wave speed 1.88 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0697 h. 1 subreach of 471 m. X = 1/2 (1 - Q / (B S c dx)) = 0.375; a subreach is stable at steps of 3.14 to 5.23 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8776959136149571,
+   "reference_flow_m3s": 44.048993661141225,
+   "x_cunge": 0.37455229797111766
+  },
+  "RIJ-R18": {
+   "k_hours": 0.1083,
+   "x": 0.208,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 130.6 m3/s: normal depth 2.00 m, top width 75.7 m, mean velocity 0.91 m/s, wave speed 1.45 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1083 h. 1 subreach of 566 m. X = 1/2 (1 - Q / (B S c dx)) = 0.208; a subreach is stable at steps of 2.7 to 10.3 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4512500288106516,
+   "reference_flow_m3s": 130.64238798259294,
+   "x_cunge": 0.2081922610225595
+  },
+  "RIJ-R12": {
+   "k_hours": 0.2218,
+   "x": 0.173,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 24.5 m3/s: normal depth 2.00 m, top width 17.6 m, mean velocity 0.90 m/s, wave speed 1.28 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2218 h. 3 subreaches of 341 m. X = 1/2 (1 - Q / (B S c dx)) = 0.173; a subreach is stable at steps of 1.53 to 7.34 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2794560705274851,
+   "reference_flow_m3s": 24.49545377365971,
+   "x_cunge": 0.17321289042776228
+  },
+  "RIJ-R10": {
+   "k_hours": 0.1221,
+   "x": 0.341,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 28.05 m3/s: normal depth 2.00 m, top width 15.8 m, mean velocity 1.19 m/s, wave speed 1.67 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1221 h. 1 subreach of 734 m. X = 1/2 (1 - Q / (B S c dx)) = 0.419; no count of subreaches is stable with it at this step, so X is lowered to 0.341, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 5 to 9.66 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6689801779292437,
+   "reference_flow_m3s": 28.04818656348736,
+   "x_cunge": 0.41937542804088707
+  },
+  "RIJ-R19": {
+   "k_hours": 0.1051,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 50.06 m3/s: normal depth 1.76 m, top width 68.0 m, mean velocity 0.44 m/s, wave speed 0.70 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1051 h. 1 subreach of 266 m. X = 1/2 (1 - Q / (B S c dx)) = -1.465, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 12.6 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.7034111183098217,
+   "reference_flow_m3s": 50.060155991464654,
+   "x_cunge": -1.4647671846207968
+  },
+  "RIJ-R9": {
+   "k_hours": 0.1147,
+   "x": 0.363,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 24 m3/s: normal depth 1.93 m, top width 13.5 m, mean velocity 1.29 m/s, wave speed 1.78 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1147 h. 1 subreach of 737 m. X = 1/2 (1 - Q / (B S c dx)) = 0.443; no count of subreaches is stable with it at this step, so X is lowered to 0.363, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 5 to 8.77 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.783916305600893,
+   "reference_flow_m3s": 23.996911953265457,
+   "x_cunge": 0.4430346391112497
+  },
+  "RIJ-R8": {
+   "k_hours": 0.3116,
+   "x": 0.348,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 172.5 m3/s: normal depth 1.98 m, top width 73.3 m, mean velocity 1.25 m/s, wave speed 2.00 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3116 h. 4 subreaches of 560 m. X = 1/2 (1 - Q / (B S c dx)) = 0.348; a subreach is stable at steps of 3.25 to 6.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.9952990463253089,
+   "reference_flow_m3s": 172.50807791728604,
+   "x_cunge": 0.3475622002770401
+  },
+  "RIJ-R16": {
+   "k_hours": 0.2602,
+   "x": 0.079,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 360.2 m3/s: normal depth 2.00 m, top width 209.5 m, mean velocity 0.88 m/s, wave speed 1.44 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2602 h. 3 subreaches of 449 m. X = 1/2 (1 - Q / (B S c dx)) = 0.079; a subreach is stable at steps of 0.822 to 9.59 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4382181544849342,
+   "reference_flow_m3s": 360.1827115337047,
+   "x_cunge": 0.07878073331409957
+  },
+  "RIJ-R5": {
+   "k_hours": 0.2386,
+   "x": 0.363,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 453.1 m3/s: normal depth 1.97 m, top width 181.7 m, mean velocity 1.30 m/s, wave speed 2.12 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2386 h. 3 subreaches of 607 m. X = 1/2 (1 - Q / (B S c dx)) = 0.363; a subreach is stable at steps of 3.46 to 6.08 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.1198281643062518,
+   "reference_flow_m3s": 453.1228587380099,
+   "x_cunge": 0.36288861264419026
+  },
+  "RIJ-R3": {
+   "k_hours": 0.6394,
+   "x": 0.393,
+   "subreaches": 8,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 273.3 m3/s: normal depth 1.99 m, top width 101.4 m, mean velocity 1.41 m/s, wave speed 2.27 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.6394 h. 8 subreaches of 653 m. X = 1/2 (1 - Q / (B S c dx)) = 0.393; a subreach is stable at steps of 3.77 to 5.82 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.2696943551259685,
+   "reference_flow_m3s": 273.29026716458134,
+   "x_cunge": 0.39250095083667735
+  },
+  "RIJ-R6": {
+   "k_hours": 0.1881,
+   "x": 0.32,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 296.5 m3/s: normal depth 1.95 m, top width 140.5 m, mean velocity 1.11 m/s, wave speed 1.81 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1881 h. 2 subreaches of 612 m. X = 1/2 (1 - Q / (B S c dx)) = 0.320; a subreach is stable at steps of 3.61 to 7.67 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8068449657154486,
+   "reference_flow_m3s": 296.5269246371672,
+   "x_cunge": 0.3195355119864922
+  },
+  "RIJ-R7": {
+   "k_hours": 0.3796,
+   "x": 0.351,
+   "subreaches": 5,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 773.3 m3/s: normal depth 1.99 m, top width 303.8 m, mean velocity 1.30 m/s, wave speed 2.14 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3796 h. 5 subreaches of 584 m. X = 1/2 (1 - Q / (B S c dx)) = 0.351; a subreach is stable at steps of 3.2 to 5.91 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.135468451109493,
+   "reference_flow_m3s": 773.2691018576468,
+   "x_cunge": 0.3511297539732583
+  },
+  "RIJ-R15": {
+   "k_hours": 0.1673,
+   "x": 0.285,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 824.4 m3/s: normal depth 2.00 m, top width 373.5 m, mean velocity 1.12 m/s, wave speed 1.84 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1673 h. 2 subreaches of 555 m. X = 1/2 (1 - Q / (B S c dx)) = 0.285; a subreach is stable at steps of 2.86 to 7.18 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8420226213160689,
+   "reference_flow_m3s": 824.3936360384597,
+   "x_cunge": 0.28523034834055727
+  },
+  "RIJ-R20": {
+   "k_hours": 0.3537,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 823.4 m3/s: normal depth 2.00 m, top width 828.7 m, mean velocity 0.50 m/s, wave speed 0.83 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3537 h. 1 subreach of 1,056 m (K over the 5 min step is 4; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = -0.067, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 42.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.8292272542453861,
+   "reference_flow_m3s": 823.4076603486615,
+   "x_cunge": -0.06740749913523136
+  },
+  "RIJ-R2": {
+   "k_hours": 1.0338,
+   "x": 0.411,
+   "subreaches": 12,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 600.3 m3/s: normal depth 1.36 m, top width 405.1 m, mean velocity 1.10 m/s, wave speed 1.82 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.0338 h. 12 subreaches of 564 m. X = 1/2 (1 - Q / (B S c dx)) = 0.411; a subreach is stable at steps of 4.25 to 6.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8182745836449212,
+   "reference_flow_m3s": 600.2538467173717,
+   "x_cunge": 0.4106966196839921
+  },
+  "RIJ-R1": {
+   "k_hours": 1.375,
+   "x": 0.416,
+   "subreaches": 17,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 697.3 m3/s: normal depth 1.16 m, top width 599.6 m, mean velocity 1.01 m/s, wave speed 1.68 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.375 h. 17 subreaches of 488 m. X = 1/2 (1 - Q / (B S c dx)) = 0.416; a subreach is stable at steps of 4.04 to 5.67 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6755696355961966,
+   "reference_flow_m3s": 697.3143295060373,
+   "x_cunge": 0.415628616766923
+  },
+  "RIJ-R4": {
+   "k_hours": 1.1808,
+   "x": 0.416,
+   "subreaches": 14,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,269 m3/s: normal depth 1.28 m, top width 925.3 m, mean velocity 1.08 m/s, wave speed 1.79 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.1808 h. 14 subreaches of 543 m. X = 1/2 (1 - Q / (B S c dx)) = 0.416; a subreach is stable at steps of 4.21 to 5.91 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.7890077693462754,
+   "reference_flow_m3s": 1268.6263797688746,
+   "x_cunge": 0.41592534067849357
+  },
+  "RIJ-R13": {
+   "k_hours": 0.3948,
+   "x": 0.064,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,267 m3/s: normal depth 1.28 m, top width 2656.2 m, mean velocity 0.37 m/s, wave speed 0.62 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3948 h. 1 subreach of 882 m (K over the 5 min step is 5; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.064; a subreach is stable at steps of 3.03 to 44.3 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.62057030169388,
+   "reference_flow_m3s": 1266.644889223532,
+   "x_cunge": 0.06433771871652999
+  },
+  "RIJ-R11": {
+   "k_hours": 0.0179,
+   "x": 0.452,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,177 m3/s: normal depth 1.24 m, top width 448.5 m, mean velocity 2.13 m/s, wave speed 3.53 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0179 h. 1 subreach of 228 m. X = 1/2 (1 - Q / (B S c dx)) = 0.452; NOT stable at the 5 min step: the wave crosses the reach in 1.07 min, under half a step, so no X routes it without a negative coefficient: a shorter step, or no routing on this reach.",
+   "stable": false,
+   "celerity_ms": 3.530615265595648,
+   "reference_flow_m3s": 1177.296993132636,
+   "x_cunge": 0.4524813921140285
+  },
+  "HAT-R1": {
+   "k_hours": 0.3909,
+   "x": 0.462,
+   "subreaches": 5,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 912.1 m3/s: normal depth 1.95 m, top width 239.0 m, mean velocity 1.99 m/s, wave speed 3.26 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3909 h. 5 subreaches of 918 m. X = 1/2 (1 - Q / (B S c dx)) = 0.462; a subreach is stable at steps of 4.33 to 5.05 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.2621557770748413,
+   "reference_flow_m3s": 912.0515303500799,
+   "x_cunge": 0.4616047843351544
+  },
+  "HAT-R2": {
+   "k_hours": 0.9859,
+   "x": 0.455,
+   "subreaches": 12,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,647 m3/s: normal depth 1.95 m, top width 459.0 m, mean velocity 1.86 m/s, wave speed 3.07 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.9859 h. 12 subreaches of 908 m. X = 1/2 (1 - Q / (B S c dx)) = 0.455; a subreach is stable at steps of 4.49 to 5.37 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.071376116284206,
+   "reference_flow_m3s": 1647.0867593007454,
+   "x_cunge": 0.4552179063481699
+  },
+  "HAT-R3": {
+   "k_hours": 1.701,
+   "x": 0.416,
+   "subreaches": 20,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,122 m3/s: normal depth 1.94 m, top width 741.7 m, mean velocity 1.48 m/s, wave speed 2.46 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.701 h. 20 subreaches of 753 m. X = 1/2 (1 - Q / (B S c dx)) = 0.416; a subreach is stable at steps of 4.25 to 5.96 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.458460651631794,
+   "reference_flow_m3s": 2122.1469754203945,
+   "x_cunge": 0.4155081413688876
+  },
+  "HAT-R4": {
+   "k_hours": 1.2357,
+   "x": 0.345,
+   "subreaches": 15,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,432 m3/s: normal depth 1.98 m, top width 991.7 m, mean velocity 1.24 m/s, wave speed 2.06 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.2357 h. 15 subreaches of 612 m. X = 1/2 (1 - Q / (B S c dx)) = 0.345; a subreach is stable at steps of 3.41 to 6.48 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.064238606161487,
+   "reference_flow_m3s": 2432.4066908918767,
+   "x_cunge": 0.34473374616515595
+  },
+  "HAT-R5": {
+   "k_hours": 1.3305,
+   "x": 0.342,
+   "subreaches": 16,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,292 m3/s: normal depth 1.99 m, top width 938.1 m, mean velocity 1.23 m/s, wave speed 2.05 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.3305 h. 16 subreaches of 614 m. X = 1/2 (1 - Q / (B S c dx)) = 0.342; a subreach is stable at steps of 3.41 to 6.57 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.0505093690320595,
+   "reference_flow_m3s": 2291.815310588833,
+   "x_cunge": 0.3422033971319389
+  },
+  "HAT-R6": {
+   "k_hours": 0.5122,
+   "x": 0.301,
+   "subreaches": 6,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,107 m3/s: normal depth 1.93 m, top width 987.9 m, mean velocity 1.11 m/s, wave speed 1.84 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.5122 h. 6 subreaches of 566 m. X = 1/2 (1 - Q / (B S c dx)) = 0.301; a subreach is stable at steps of 3.08 to 7.16 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8421622163837956,
+   "reference_flow_m3s": 2107.415830140788,
+   "x_cunge": 0.3014339969474173
+  },
+  "FIZ-R5": {
+   "k_hours": 0.1702,
+   "x": 0.334,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 38.8 m3/s: normal depth 1.99 m, top width 21.6 m, mean velocity 1.11 m/s, wave speed 1.61 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1702 h. 2 subreaches of 493 m. X = 1/2 (1 - Q / (B S c dx)) = 0.334; a subreach is stable at steps of 3.41 to 6.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6109567306974526,
+   "reference_flow_m3s": 38.798495375103876,
+   "x_cunge": 0.3344868158078032
+  },
+  "FIZ-R4": {
+   "k_hours": 0.1047,
+   "x": 0.397,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 75.62 m3/s: normal depth 1.99 m, top width 31.2 m, mean velocity 1.39 m/s, wave speed 2.10 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1047 h. 1 subreach of 792 m. X = 1/2 (1 - Q / (B S c dx)) = 0.425; no count of subreaches is stable with it at this step, so X is lowered to 0.397, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.99 to 7.58 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.099582459204504,
+   "reference_flow_m3s": 75.62434958055962,
+   "x_cunge": 0.42461408926167343
+  },
+  "FIZ-R6": {
+   "k_hours": 0.1394,
+   "x": 0.161,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 108.9 m3/s: normal depth 2.00 m, top width 72.6 m, mean velocity 0.80 m/s, wave speed 1.26 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1394 h. 1 subreach of 634 m (K over the 5 min step is 2; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.161; a subreach is stable at steps of 2.69 to 14 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2643935099115065,
+   "reference_flow_m3s": 108.85413979906653,
+   "x_cunge": 0.16124130288102673
+  },
+  "FIZ-R1": {
+   "k_hours": 1.4905,
+   "x": 0.39,
+   "subreaches": 18,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,980 m3/s: normal depth 1.93 m, top width 755.8 m, mean velocity 1.36 m/s, wave speed 2.26 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.4905 h. 18 subreaches of 675 m. X = 1/2 (1 - Q / (B S c dx)) = 0.390; a subreach is stable at steps of 3.88 to 6.06 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.2633024403939883,
+   "reference_flow_m3s": 1979.8284823328484,
+   "x_cunge": 0.39018348811506437
+  },
+  "FIZ-R2": {
+   "k_hours": 1.1008,
+   "x": 0.328,
+   "subreaches": 13,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,137 m3/s: normal depth 1.94 m, top width 946.1 m, mean velocity 1.17 m/s, wave speed 1.94 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.1008 h. 13 subreaches of 592 m. X = 1/2 (1 - Q / (B S c dx)) = 0.328; a subreach is stable at steps of 3.33 to 6.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.9428546955253962,
+   "reference_flow_m3s": 2137.357954844217,
+   "x_cunge": 0.3277727712068246
+  },
+  "FIZ-R3": {
+   "k_hours": 0.2679,
+   "x": 0.32,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,089 m3/s: normal depth 1.94 m, top width 956.1 m, mean velocity 1.13 m/s, wave speed 1.88 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2679 h. 3 subreaches of 605 m. X = 1/2 (1 - Q / (B S c dx)) = 0.320; a subreach is stable at steps of 3.43 to 7.29 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.8811317411214965,
+   "reference_flow_m3s": 2089.4068264267385,
+   "x_cunge": 0.3204922599041383
+  },
+  "FAY-R3": {
+   "k_hours": 0.1885,
+   "x": 0.178,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 157.8 m3/s: normal depth 2.00 m, top width 89.5 m, mean velocity 0.93 m/s, wave speed 1.48 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1885 h. 2 subreaches of 503 m. X = 1/2 (1 - Q / (B S c dx)) = 0.178; a subreach is stable at steps of 2.01 to 9.3 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4835305872981281,
+   "reference_flow_m3s": 157.81644598116378,
+   "x_cunge": 0.1781939957444274
+  },
+  "FAY-R1": {
+   "k_hours": 2.9092,
+   "x": 0.443,
+   "subreaches": 35,
+   "basis": "index celerity",
+   "words": "No reference flow given, so the flow whose wave speed is the reach's index celerity, 1.524 m/s, stands in; if that flow is far from the flood to be routed, give a reference flow (EM 1110-2-1417: midway between base flow and peak suits best in general). Cunge (1969) at 313.7 m3/s: normal depth 0.88 m, top width 391.2 m, mean velocity 0.92 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 2.9092 h. 35 subreaches of 456 m. X = 1/2 (1 - Q / (B S c dx)) = 0.443; a subreach is stable at steps of 4.42 to 5.56 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5239999999999998,
+   "reference_flow_m3s": 313.6794267170607,
+   "x_cunge": 0.4429417134100707
+  },
+  "FAY-R2": {
+   "k_hours": 0.9245,
+   "x": 0.361,
+   "subreaches": 11,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 181 m3/s: normal depth 0.57 m, top width 647.7 m, mean velocity 0.49 m/s, wave speed 0.81 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.9245 h. 11 subreaches of 246 m. X = 1/2 (1 - Q / (B S c dx)) = 0.361; a subreach is stable at steps of 3.64 to 6.44 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.8125543248048669,
+   "reference_flow_m3s": 181.02955975040203,
+   "x_cunge": 0.36064725639532935
+  },
+  "FAY-R4": {
+   "k_hours": 0.1139,
+   "x": 0.3,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 2,217 m3/s: normal depth 1.87 m, top width 1215.0 m, mean velocity 0.98 m/s, wave speed 1.63 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1139 h. 1 subreach of 668 m. X = 1/2 (1 - Q / (B S c dx)) = 0.300; a subreach is stable at steps of 4.1 to 9.57 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6292481428291534,
+   "reference_flow_m3s": 2217.007922654863,
+   "x_cunge": 0.3004604385356601
+  },
+  "BID-R23": {
+   "k_hours": 0.2886,
+   "x": 0.082,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 327.9 m3/s: normal depth 2.00 m, top width 224.9 m, mean velocity 0.74 m/s, wave speed 1.22 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2886 h. 2 subreaches of 633 m (K over the 5 min step is 3; 2 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.082; a subreach is stable at steps of 1.42 to 15.9 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2192000232409432,
+   "reference_flow_m3s": 327.9323720778365,
+   "x_cunge": 0.08227972221611257
+  },
+  "BID-R18": {
+   "k_hours": 0.2254,
+   "x": 0.026,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 139.1 m3/s: normal depth 2.00 m, top width 94.6 m, mean velocity 0.77 m/s, wave speed 1.23 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2254 h. 2 subreaches of 500 m (K over the 5 min step is 3; 2 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.026; a subreach is stable at steps of 0.352 to 13.2 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2334106209232008,
+   "reference_flow_m3s": 139.0731710084051,
+   "x_cunge": 0.025605699829648887
+  },
+  "BID-R25": {
+   "k_hours": 0.1666,
+   "x": 0.062,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 140.5 m3/s: normal depth 2.00 m, top width 105.8 m, mean velocity 0.69 m/s, wave speed 1.12 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1666 h. 1 subreach of 669 m (K over the 5 min step is 2; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.062; a subreach is stable at steps of 1.24 to 18.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1160073219828814,
+   "reference_flow_m3s": 140.50515338917924,
+   "x_cunge": 0.06193537563959112
+  },
+  "BID-R17": {
+   "k_hours": 0.1537,
+   "x": 0.248,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 94.27 m3/s: normal depth 2.00 m, top width 48.6 m, mean velocity 1.06 m/s, wave speed 1.65 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1537 h. 2 subreaches of 456 m. X = 1/2 (1 - Q / (B S c dx)) = 0.248; a subreach is stable at steps of 2.29 to 6.93 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6469224633779116,
+   "reference_flow_m3s": 94.27344093069665,
+   "x_cunge": 0.24757256397446464
+  },
+  "BID-R16": {
+   "k_hours": 0.1986,
+   "x": 0.322,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 39.79 m3/s: normal depth 2.00 m, top width 23.2 m, mean velocity 1.04 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1986 h. 2 subreaches of 543 m. X = 1/2 (1 - Q / (B S c dx)) = 0.322; a subreach is stable at steps of 3.84 to 8.08 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5195745358829533,
+   "reference_flow_m3s": 39.78793908481421,
+   "x_cunge": 0.32165286835282925
+  },
+  "BID-R15": {
+   "k_hours": 0.1493,
+   "x": 0.253,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 55.09 m3/s: normal depth 2.00 m, top width 30.2 m, mean velocity 1.05 m/s, wave speed 1.58 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1493 h. 2 subreaches of 424 m. X = 1/2 (1 - Q / (B S c dx)) = 0.253; a subreach is stable at steps of 2.27 to 6.69 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5772207374629448,
+   "reference_flow_m3s": 55.0865494273532,
+   "x_cunge": 0.2528570988557179
+  },
+  "BID-R19": {
+   "k_hours": 0.1301,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 96.59 m3/s: normal depth 2.00 m, top width 71.8 m, mean velocity 0.71 m/s, wave speed 1.14 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1301 h. 1 subreach of 532 m (K over the 5 min step is 2; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = -0.000, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 15.6 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.135115898530041,
+   "reference_flow_m3s": 96.59306240623744,
+   "x_cunge": -0.00010412739316045805
+  },
+  "BID-R14": {
+   "k_hours": 0.1573,
+   "x": 0.141,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 156.3 m3/s: normal depth 1.99 m, top width 87.2 m, mean velocity 0.94 m/s, wave speed 1.51 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1573 h. 2 subreaches of 429 m. X = 1/2 (1 - Q / (B S c dx)) = 0.141; a subreach is stable at steps of 1.33 to 8.11 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5136662575422535,
+   "reference_flow_m3s": 156.31705433218494,
+   "x_cunge": 0.1409314367355861
+  },
+  "BID-R13": {
+   "k_hours": 0.1158,
+   "x": 0.308,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 64.82 m3/s: normal depth 1.99 m, top width 36.6 m, mean velocity 1.00 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1158 h. 1 subreach of 634 m. X = 1/2 (1 - Q / (B S c dx)) = 0.308; a subreach is stable at steps of 4.28 to 9.62 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.521277072435837,
+   "reference_flow_m3s": 64.8190182993594,
+   "x_cunge": 0.30793205967608167
+  },
+  "BID-R22": {
+   "k_hours": 0.0863,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 151.4 m3/s: normal depth 1.99 m, top width 125.1 m, mean velocity 0.63 m/s, wave speed 1.02 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0863 h. 1 subreach of 317 m. X = 1/2 (1 - Q / (B S c dx)) = -0.622, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 10.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.0195703502301703,
+   "reference_flow_m3s": 151.3857201364659,
+   "x_cunge": -0.6220004224094502
+  },
+  "BID-R24": {
+   "k_hours": 0.0337,
+   "x": 0.086,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 299.3 m3/s: normal depth 2.00 m, top width 128.3 m, mean velocity 1.20 m/s, wave speed 1.95 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0337 h. 1 subreach of 237 m. X = 1/2 (1 - Q / (B S c dx)) = 0.086; NOT stable at the 5 min step: the wave crosses the reach in 2.02 min, under half a step, so no X routes it without a negative coefficient: a shorter step, or no routing on this reach.",
+   "stable": false,
+   "celerity_ms": 1.95394155802985,
+   "reference_flow_m3s": 299.34174507168234,
+   "x_cunge": 0.08567453506540035
+  },
+  "BID-R12": {
+   "k_hours": 0.1347,
+   "x": 0.118,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 80.53 m3/s: normal depth 2.00 m, top width 45.9 m, mean velocity 0.96 m/s, wave speed 1.49 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1347 h. 2 subreaches of 362 m. X = 1/2 (1 - Q / (B S c dx)) = 0.118; a subreach is stable at steps of 0.954 to 7.13 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4908669432427508,
+   "reference_flow_m3s": 80.53171229500066,
+   "x_cunge": 0.11787470021245211
+  },
+  "BID-R21": {
+   "k_hours": 0.0734,
+   "x": 0.267,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 88.56 m3/s: normal depth 1.99 m, top width 44.6 m, mean velocity 1.10 m/s, wave speed 1.70 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0734 h. 1 subreach of 448 m. X = 1/2 (1 - Q / (B S c dx)) = 0.267; a subreach is stable at steps of 2.35 to 6.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6969933192251172,
+   "reference_flow_m3s": 88.55991367078967,
+   "x_cunge": 0.2671989186013286
+  },
+  "BID-R26": {
+   "k_hours": 0.0622,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 190.7 m3/s: normal depth 1.99 m, top width 199.0 m, mean velocity 0.49 m/s, wave speed 0.81 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0622 h. 1 subreach of 180 m. X = 1/2 (1 - Q / (B S c dx)) = -2.798, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 7.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.8053756987957522,
+   "reference_flow_m3s": 190.66503887378258,
+   "x_cunge": -2.7980287360623475
+  },
+  "BID-R10": {
+   "k_hours": 0.0927,
+   "x": 0.321,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 118.4 m3/s: normal depth 2.00 m, top width 56.8 m, mean velocity 1.12 m/s, wave speed 1.76 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0927 h. 1 subreach of 588 m. X = 1/2 (1 - Q / (B S c dx)) = 0.321; a subreach is stable at steps of 3.57 to 7.55 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.7618058980037303,
+   "reference_flow_m3s": 118.36752971183424,
+   "x_cunge": 0.32133131769645623
+  },
+  "BID-R20": {
+   "k_hours": 0.0737,
+   "x": 0.337,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 117.4 m3/s: normal depth 1.98 m, top width 51.9 m, mean velocity 1.24 m/s, wave speed 1.93 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0737 h. 1 subreach of 513 m. X = 1/2 (1 - Q / (B S c dx)) = 0.337; a subreach is stable at steps of 2.98 to 5.86 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.932316806058929,
+   "reference_flow_m3s": 117.4176182737447,
+   "x_cunge": 0.3367878854828664
+  },
+  "BID-R27": {
+   "k_hours": 0.3614,
+   "x": 0.115,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 303.8 m3/s: normal depth 2.00 m, top width 272.9 m, mean velocity 0.57 m/s, wave speed 0.93 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3614 h. 1 subreach of 1,210 m (K over the 5 min step is 4; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.119; no count of subreaches is stable with it at this step, so X is lowered to 0.115, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.99 to 38.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.9298845084212104,
+   "reference_flow_m3s": 303.771540607594,
+   "x_cunge": 0.11942905796449915
+  },
+  "BID-R9": {
+   "k_hours": 0.2151,
+   "x": 0.129,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 85.67 m3/s: normal depth 2.00 m, top width 48.9 m, mean velocity 0.95 m/s, wave speed 1.49 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2151 h. 3 subreaches of 383 m. X = 1/2 (1 - Q / (B S c dx)) = 0.129; a subreach is stable at steps of 1.11 to 7.49 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4850490907689882,
+   "reference_flow_m3s": 85.67497496880934,
+   "x_cunge": 0.12926531156096316
+  },
+  "BID-R7": {
+   "k_hours": 0.1518,
+   "x": 0.335,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 167.4 m3/s: normal depth 2.00 m, top width 71.6 m, mean velocity 1.24 m/s, wave speed 1.97 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1518 h. 2 subreaches of 538 m. X = 1/2 (1 - Q / (B S c dx)) = 0.335; a subreach is stable at steps of 3.05 to 6.06 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.9689744257112285,
+   "reference_flow_m3s": 167.38741757971377,
+   "x_cunge": 0.3352905581223473
+  },
+  "BID-R4": {
+   "k_hours": 0.0914,
+   "x": 0.376,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 159 m3/s: normal depth 2.00 m, top width 66.4 m, mean velocity 1.28 m/s, wave speed 2.02 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0914 h. 1 subreach of 666 m. X = 1/2 (1 - Q / (B S c dx)) = 0.376; a subreach is stable at steps of 4.12 to 6.84 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.0219884597051605,
+   "reference_flow_m3s": 159.01250860818027,
+   "x_cunge": 0.3760573667029259
+  },
+  "BID-R5": {
+   "k_hours": 0.1621,
+   "x": 0.22,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 196.4 m3/s: normal depth 2.00 m, top width 100.2 m, mean velocity 1.02 m/s, wave speed 1.64 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1621 h. 2 subreaches of 480 m. X = 1/2 (1 - Q / (B S c dx)) = 0.220; a subreach is stable at steps of 2.14 to 7.59 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6446514838167317,
+   "reference_flow_m3s": 196.4145020413911,
+   "x_cunge": 0.21961326726237435
+  },
+  "BID-R11": {
+   "k_hours": 0.1606,
+   "x": 0.327,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 198.1 m3/s: normal depth 2.00 m, top width 86.5 m, mean velocity 1.20 m/s, wave speed 1.92 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1606 h. 2 subreaches of 556 m. X = 1/2 (1 - Q / (B S c dx)) = 0.327; a subreach is stable at steps of 3.15 to 6.49 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.9238681726972713,
+   "reference_flow_m3s": 198.1413288958273,
+   "x_cunge": 0.32709665038157615
+  },
+  "BID-R2": {
+   "k_hours": 0.47,
+   "x": 0.313,
+   "subreaches": 6,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 821.5 m3/s: normal depth 1.96 m, top width 359.5 m, mean velocity 1.18 m/s, wave speed 1.94 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.47 h. 6 subreaches of 548 m. X = 1/2 (1 - Q / (B S c dx)) = 0.313; a subreach is stable at steps of 2.94 to 6.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.9428894352575925,
+   "reference_flow_m3s": 821.462650708596,
+   "x_cunge": 0.31297680583462695
+  },
+  "BID-R1": {
+   "k_hours": 1.5675,
+   "x": 0.411,
+   "subreaches": 19,
+   "basis": "index celerity",
+   "words": "No reference flow given, so the flow whose wave speed is the reach's index celerity, 1.524 m/s, stands in; if that flow is far from the flood to be routed, give a reference flow (EM 1110-2-1417: midway between base flow and peak suits best in general). Cunge (1969) at 160.9 m3/s: normal depth 1.07 m, top width 164.1 m, mean velocity 0.93 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.5675 h. 19 subreaches of 453 m. X = 1/2 (1 - Q / (B S c dx)) = 0.411; a subreach is stable at steps of 4.07 to 5.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5240000000000002,
+   "reference_flow_m3s": 160.91053852970666,
+   "x_cunge": 0.4105935781001461
+  },
+  "BID-R3": {
+   "k_hours": 0.2441,
+   "x": 0.242,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,014 m3/s: normal depth 1.64 m, top width 685.5 m, mean velocity 0.91 m/s, wave speed 1.51 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2441 h. 3 subreaches of 442 m. X = 1/2 (1 - Q / (B S c dx)) = 0.242; a subreach is stable at steps of 2.36 to 7.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.507197168962872,
+   "reference_flow_m3s": 1014.1238846175387,
+   "x_cunge": 0.24212269385393476
+  },
+  "BID-R6": {
+   "k_hours": 0.1373,
+   "x": 0.138,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,342 m3/s: normal depth 1.75 m, top width 855.3 m, mean velocity 0.90 m/s, wave speed 1.50 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1373 h. 2 subreaches of 370 m. X = 1/2 (1 - Q / (B S c dx)) = 0.138; a subreach is stable at steps of 1.14 to 7.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4987792941542695,
+   "reference_flow_m3s": 1342.473630080683,
+   "x_cunge": 0.13756255679334817
+  },
+  "BID-R8": {
+   "k_hours": 0.2124,
+   "x": 0.196,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,342 m3/s: normal depth 1.75 m, top width 810.8 m, mean velocity 0.95 m/s, wave speed 1.58 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2124 h. 3 subreaches of 402 m. X = 1/2 (1 - Q / (B S c dx)) = 0.196; a subreach is stable at steps of 1.67 to 6.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5760647859806,
+   "reference_flow_m3s": 1341.9955728631942,
+   "x_cunge": 0.1959838737681553
+  }
+ },
+ "notes": [
+  "reach RIJ-R11: Muskingum routing is unstable with K 0.0179 h, X 0.452 and 1 subreach: the step of 5 min is over 2K(1-X) = 1.18 min of a subreach, so the old outflow's weight is negative and the outflow overshoots. HEC-HMS warns the same (41169) and routes it as given, and so does this run; no number of subreaches is stable: the wave crosses the reach in under half a step",
+  "reach BID-R24: Muskingum routing is unstable with K 0.0337 h, X 0.086 and 1 subreach: the step of 5 min is over 2K(1-X) = 3.7 min of a subreach, so the old outflow's weight is negative and the outflow overshoots. HEC-HMS warns the same (41169) and routes it as given, and so does this run; no number of subreaches is stable: the wave crosses the reach in under half a step"
+ ],
+ "unstable": [
+  "BID-R24",
+  "RIJ-R11"
+ ],
+ "hms_own_200yr": {
+  "Z4C": {
+   "peak_m3s": 2101.1214499,
+   "peak_h": 15.416666666666666
+  },
+  "R2A": {
+   "peak_m3s": 1735.9486259,
+   "peak_h": 14.166666666666666
+  },
+  "Faydh 01": {
+   "peak_m3s": 1240.1490654,
+   "peak_h": 13.25
+  },
+  "Bidah 03": {
+   "peak_m3s": 454.6347808,
+   "peak_h": 12.75
+  },
+  "R5A": {
+   "peak_m3s": 1143.5112927,
+   "peak_h": 14.666666666666666
+  },
+  "RIJ-J2": {
+   "peak_m3s": 1277.1034931,
+   "peak_h": 17.833333333333332
+  },
+  "FIZ-J1": {
+   "peak_m3s": 2142.1806237,
+   "peak_h": 17.333333333333332
+  },
+  "FAY-J3": {
+   "peak_m3s": 2217.9171176,
+   "peak_h": 19.333333333333332
+  }
+ },
+ "muskingum_cunge": {
+  "2": {
+   "Z4C": {
+    "peak_m3s": 71.19191892589342,
+    "peak_h": 19.916666666666668,
+    "volume_m3": 1549960.9774508658,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 54.675673908186184,
+    "peak_h": 16.75,
+    "volume_m3": 1222807.7463237615,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 58.54951310182221,
+    "peak_h": 13.75,
+    "volume_m3": 669976.7473339273,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 18.95958356759252,
+    "peak_h": 12.833333333333334,
+    "volume_m3": 146334.64977084653,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 38.92806765385847,
+    "peak_h": 18.166666666666668,
+    "volume_m3": 905766.6053929541,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 77.10453454859326,
+    "peak_h": 17.916666666666668,
+    "volume_m3": 1476109.7429587361,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 39.92223351959928,
+    "peak_h": 16.5,
+    "volume_m3": 734566.2707687521,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 10.967766896534986,
+    "peak_h": 13.25,
+    "volume_m3": 125331.85789092325,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 14.995370250873837,
+    "peak_h": 14.5,
+    "volume_m3": 260066.43154542113,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 53.217885557850934,
+    "peak_h": 26.25,
+    "volume_m3": 1883655.810458995,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "100": {
+   "Z4C": {
+    "peak_m3s": 1666.3976650650322,
+    "peak_h": 15.583333333333334,
+    "volume_m3": 31036335.078462355,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 1356.1082389012427,
+    "peak_h": 14.25,
+    "volume_m3": 26036909.113458883,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 993.4747657928015,
+    "peak_h": 13.25,
+    "volume_m3": 12116887.62779826,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 362.371236974486,
+    "peak_h": 12.75,
+    "volume_m3": 3412853.7493801876,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 887.0947663853581,
+    "peak_h": 14.75,
+    "volume_m3": 18104528.894403998,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 1646.1455490905882,
+    "peak_h": 15.083333333333334,
+    "volume_m3": 28591745.4174683,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 784.7217207029131,
+    "peak_h": 14.25,
+    "volume_m3": 13170831.756658643,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 639.5952855879627,
+    "peak_h": 19.583333333333332,
+    "volume_m3": 20356126.877753694,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 1654.8291047290702,
+    "peak_h": 17.583333333333332,
+    "volume_m3": 33411096.2844534,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 1627.7661297312775,
+    "peak_h": 20.083333333333332,
+    "volume_m3": 46278380.575603016,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "200": {
+   "Z4C": {
+    "peak_m3s": 2101.1216566251096,
+    "peak_h": 15.416666666666666,
+    "volume_m3": 39177560.49033488,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 1735.9486512399278,
+    "peak_h": 14.166666666666666,
+    "volume_m3": 32926470.942157168,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 1240.1490655258353,
+    "peak_h": 13.25,
+    "volume_m3": 15231175.344238454,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 454.63478080435556,
+    "peak_h": 12.75,
+    "volume_m3": 4325914.289697278,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 1143.5112910288894,
+    "peak_h": 14.666666666666666,
+    "volume_m3": 22851875.269074313,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 2070.7715541812513,
+    "peak_h": 14.916666666666666,
+    "volume_m3": 36039420.629165016,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 999.7378421094535,
+    "peak_h": 14.166666666666666,
+    "volume_m3": 16555701.582049768,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 1277.1033727138886,
+    "peak_h": 17.833333333333332,
+    "volume_m3": 32377264.10561079,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 2142.181691693584,
+    "peak_h": 17.333333333333332,
+    "volume_m3": 43553034.56842293,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 2217.917242855251,
+    "peak_h": 19.333333333333332,
+    "volume_m3": 58747551.64178963,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "10000": {
+   "Z4C": {
+    "peak_m3s": 5668.035319048374,
+    "peak_h": 15.166666666666666,
+    "volume_m3": 117587829.61286268,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 4977.151750582883,
+    "peak_h": 13.916666666666666,
+    "volume_m3": 99368641.50477634,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 3212.247471668562,
+    "peak_h": 13.333333333333334,
+    "volume_m3": 45136592.92553812,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 1175.5750498098462,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 13140995.691918517,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 3406.708509240082,
+    "peak_h": 14.25,
+    "volume_m3": 68574717.69047303,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 5522.326390762929,
+    "peak_h": 14.833333333333334,
+    "volume_m3": 107692079.37508431,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 2811.9383365508893,
+    "peak_h": 14.0,
+    "volume_m3": 49062385.445117146,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 7943.809241660284,
+    "peak_h": 15.0,
+    "volume_m3": 148206099.33633006,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 6346.172813902666,
+    "peak_h": 16.166666666666668,
+    "volume_m3": 140668893.64759436,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 9542.201521237987,
+    "peak_h": 16.75,
+    "volume_m3": 202124103.64165407,
+    "lowest_outflow_m3s": 0.0
+   }
+  }
+ },
+ "muskingum_fixed": {
+  "2": {
+   "Z4C": {
+    "peak_m3s": 96.95358141264938,
+    "peak_h": 15.583333333333334,
+    "volume_m3": 1519682.1832962036,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 74.54272398747979,
+    "peak_h": 14.25,
+    "volume_m3": 1212734.4728644057,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 68.38590932580765,
+    "peak_h": 13.333333333333334,
+    "volume_m3": 668141.4974247898,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 18.95958356759252,
+    "peak_h": 12.833333333333334,
+    "volume_m3": 146334.64977084653,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 56.468669404029676,
+    "peak_h": 14.666666666666666,
+    "volume_m3": 892694.8335934872,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 97.32918671774591,
+    "peak_h": 15.083333333333334,
+    "volume_m3": 1452680.3201495833,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 52.85822418997187,
+    "peak_h": 14.25,
+    "volume_m3": 726347.5183957387,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 10.967766896534986,
+    "peak_h": 13.25,
+    "volume_m3": 125331.85789092325,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 14.995370250873837,
+    "peak_h": 14.5,
+    "volume_m3": 260066.43154542113,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 103.21081920236217,
+    "peak_h": 18.666666666666668,
+    "volume_m3": 1844561.164841784,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "100": {
+   "Z4C": {
+    "peak_m3s": 1681.7294666345588,
+    "peak_h": 15.416666666666666,
+    "volume_m3": 31060247.93297564,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 1445.223647046552,
+    "peak_h": 13.833333333333334,
+    "volume_m3": 26039981.34190629,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 996.5007953538737,
+    "peak_h": 13.166666666666666,
+    "volume_m3": 12117459.082117574,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 362.371236974486,
+    "peak_h": 12.75,
+    "volume_m3": 3412853.7493801876,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 947.8397175710795,
+    "peak_h": 14.333333333333334,
+    "volume_m3": 18109051.41310617,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 1656.730959097149,
+    "peak_h": 14.916666666666666,
+    "volume_m3": 28604438.499123186,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 810.0789352392769,
+    "peak_h": 14.0,
+    "volume_m3": 13172187.241778463,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 723.0779367116745,
+    "peak_h": 18.25,
+    "volume_m3": 20302827.184679057,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 1749.4261086505046,
+    "peak_h": 17.166666666666668,
+    "volume_m3": 33358394.16374832,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 2115.746607590613,
+    "peak_h": 18.333333333333332,
+    "volume_m3": 46252227.82238389,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "200": {
+   "Z4C": {
+    "peak_m3s": 2102.520136753898,
+    "peak_h": 15.416666666666666,
+    "volume_m3": 39206830.622828,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 1814.7460433010242,
+    "peak_h": 13.833333333333334,
+    "volume_m3": 32931425.790428363,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 1241.137173114978,
+    "peak_h": 13.166666666666666,
+    "volume_m3": 15231957.163795004,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 454.63478080435556,
+    "peak_h": 12.75,
+    "volume_m3": 4325914.289697278,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 1183.3188632679723,
+    "peak_h": 14.333333333333334,
+    "volume_m3": 22857852.1064873,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 2070.9908763193635,
+    "peak_h": 14.916666666666666,
+    "volume_m3": 36055788.00846907,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 1009.2076855282362,
+    "peak_h": 14.0,
+    "volume_m3": 16557750.635061292,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 1432.849903918493,
+    "peak_h": 17.333333333333332,
+    "volume_m3": 32291452.64842121,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 2196.0222005002033,
+    "peak_h": 17.083333333333332,
+    "volume_m3": 43436416.77417873,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 2655.0670797694515,
+    "peak_h": 18.333333333333332,
+    "volume_m3": 58793901.14933756,
+    "lowest_outflow_m3s": 0.0
+   }
+  },
+  "10000": {
+   "Z4C": {
+    "peak_m3s": 5544.181375810384,
+    "peak_h": 15.583333333333334,
+    "volume_m3": 117648615.11848025,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R2A": {
+    "peak_m3s": 4833.459906044839,
+    "peak_h": 13.916666666666666,
+    "volume_m3": 99381712.47816117,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Faydh 01": {
+    "peak_m3s": 3180.7518548517282,
+    "peak_h": 13.333333333333334,
+    "volume_m3": 45138865.00916673,
+    "lowest_outflow_m3s": 0.0
+   },
+   "Bidah 03": {
+    "peak_m3s": 1175.5750498098462,
+    "peak_h": 12.916666666666666,
+    "volume_m3": 13140995.691918517,
+    "lowest_outflow_m3s": 0.0
+   },
+   "R5A": {
+    "peak_m3s": 3120.6064541823816,
+    "peak_h": 14.5,
+    "volume_m3": 68589491.66171518,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J2": {
+    "peak_m3s": 5440.643495753383,
+    "peak_h": 15.083333333333334,
+    "volume_m3": 107727288.63678521,
+    "lowest_outflow_m3s": 0.0
+   },
+   "J13": {
+    "peak_m3s": 2622.76026160707,
+    "peak_h": 14.166666666666666,
+    "volume_m3": 49067695.81164234,
+    "lowest_outflow_m3s": 0.0
+   },
+   "RIJ-J2": {
+    "peak_m3s": 7617.734127962773,
+    "peak_h": 15.583333333333334,
+    "volume_m3": 148117542.14568555,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FIZ-J1": {
+    "peak_m3s": 5977.919545966431,
+    "peak_h": 17.083333333333332,
+    "volume_m3": 140669966.51069754,
+    "lowest_outflow_m3s": 0.0
+   },
+   "FAY-J3": {
+    "peak_m3s": 8879.373716987571,
+    "peak_h": 18.25,
+    "volume_m3": 202031974.8236615,
+    "lowest_outflow_m3s": 0.0
+   }
+  }
+ },
+ "difference_fixed": {
+  "2": {
+   "Z4C": {
+    "peak_percent": 36.1862173058888,
+    "time_min": -260.00000000000006
+   },
+   "R2A": {
+    "peak_percent": 36.33617779024587,
+    "time_min": -150.0
+   },
+   "Faydh 01": {
+    "peak_percent": 16.800133259655237,
+    "time_min": -24.999999999999964
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 45.05900962292593,
+    "time_min": -210.0000000000001
+   },
+   "J2": {
+    "peak_percent": 26.230172178014442,
+    "time_min": -170.00000000000003
+   },
+   "J13": {
+    "peak_percent": 32.402973305643926,
+    "time_min": -135.0
+   },
+   "RIJ-J2": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "FIZ-J1": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "FAY-J3": {
+    "peak_percent": 93.94009762031229,
+    "time_min": -454.99999999999994
+   }
+  },
+  "100": {
+   "Z4C": {
+    "peak_percent": 0.9200565921897219,
+    "time_min": -10.000000000000071
+   },
+   "R2A": {
+    "peak_percent": 6.571408209827934,
+    "time_min": -24.999999999999964
+   },
+   "Faydh 01": {
+    "peak_percent": 0.3045904803286481,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 6.8476281776792325,
+    "time_min": -24.999999999999964
+   },
+   "J2": {
+    "peak_percent": 0.6430421667396713,
+    "time_min": -10.000000000000071
+   },
+   "J13": {
+    "peak_percent": 3.231363917599994,
+    "time_min": -15.0
+   },
+   "RIJ-J2": {
+    "peak_percent": 13.052418147042545,
+    "time_min": -79.99999999999993
+   },
+   "FIZ-J1": {
+    "peak_percent": 5.716421330220789,
+    "time_min": -24.999999999999858
+   },
+   "FAY-J3": {
+    "peak_percent": 29.978537392217074,
+    "time_min": -105.0
+   }
+  },
+  "200": {
+   "Z4C": {
+    "peak_percent": 0.06655874134555706,
+    "time_min": 0.0
+   },
+   "R2A": {
+    "peak_percent": 4.5391545426654245,
+    "time_min": -19.99999999999993
+   },
+   "Faydh 01": {
+    "peak_percent": 0.07967651765505845,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 3.4811700200411133,
+    "time_min": -19.99999999999993
+   },
+   "J2": {
+    "peak_percent": 0.010591324652353684,
+    "time_min": 0.0
+   },
+   "J13": {
+    "peak_percent": 0.9472326663959585,
+    "time_min": -9.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": 12.195295583131838,
+    "time_min": -30.0
+   },
+   "FIZ-J1": {
+    "peak_percent": 2.513349311843549,
+    "time_min": -15.0
+   },
+   "FAY-J3": {
+    "peak_percent": 19.709925531370722,
+    "time_min": -60.0
+   }
+  },
+  "10000": {
+   "Z4C": {
+    "peak_percent": -2.1851300541786967,
+    "time_min": 25.00000000000007
+   },
+   "R2A": {
+    "peak_percent": -2.8870296052600053,
+    "time_min": 0.0
+   },
+   "Faydh 01": {
+    "peak_percent": -0.980485379617213,
+    "time_min": 0.0
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": -8.398195920833862,
+    "time_min": 15.0
+   },
+   "J2": {
+    "peak_percent": -1.479139211079139,
+    "time_min": 15.0
+   },
+   "J13": {
+    "peak_percent": -6.7276750874937115,
+    "time_min": 9.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": -4.1047701899417754,
+    "time_min": 35.000000000000036
+   },
+   "FIZ-J1": {
+    "peak_percent": -5.8027614238537195,
+    "time_min": 54.99999999999986
+   },
+   "FAY-J3": {
+    "peak_percent": -6.946277573106851,
+    "time_min": 90.0
+   }
+  }
+ },
+ "limbs_200yr": {
+  "R3": {
+   "-90": {
+    "cunge_m3s": 163.17885770553085,
+    "muskingum_m3s": 356.81377882211393
+   },
+   "-60": {
+    "cunge_m3s": 500.92395189721265,
+    "muskingum_m3s": 586.9396681984144
+   },
+   "-30": {
+    "cunge_m3s": 765.7596735190419,
+    "muskingum_m3s": 772.5247002241512
+   },
+   "-15": {
+    "cunge_m3s": 814.6643750100598,
+    "muskingum_m3s": 815.1050025015792
+   },
+   "0": {
+    "cunge_m3s": 825.8008153308973,
+    "muskingum_m3s": 825.7259584743714
+   },
+   "15": {
+    "cunge_m3s": 808.5927252234577,
+    "muskingum_m3s": 807.1769466811486
+   },
+   "30": {
+    "cunge_m3s": 770.8629481993913,
+    "muskingum_m3s": 766.3454319358852
+   },
+   "60": {
+    "cunge_m3s": 661.2668754850713,
+    "muskingum_m3s": 639.6613887847053
+   },
+   "90": {
+    "cunge_m3s": 534.8237400575472,
+    "muskingum_m3s": 496.8583156077599
+   }
+  },
+  "R7": {
+   "-90": {
+    "cunge_m3s": 63.33673039658949,
+    "muskingum_m3s": 155.63466551781278
+   },
+   "-60": {
+    "cunge_m3s": 105.14343550555823,
+    "muskingum_m3s": 317.0293935214717
+   },
+   "-30": {
+    "cunge_m3s": 501.6790630693265,
+    "muskingum_m3s": 529.1549639720535
+   },
+   "-15": {
+    "cunge_m3s": 587.2477866559137,
+    "muskingum_m3s": 589.2837369303296
+   },
+   "0": {
+    "cunge_m3s": 606.7141760187048,
+    "muskingum_m3s": 606.387352305217
+   },
+   "15": {
+    "cunge_m3s": 588.4561182392936,
+    "muskingum_m3s": 586.0025852536496
+   },
+   "30": {
+    "cunge_m3s": 547.7751046511867,
+    "muskingum_m3s": 539.1790275264821
+   },
+   "60": {
+    "cunge_m3s": 437.3912764805925,
+    "muskingum_m3s": 402.5701367713476
+   },
+   "90": {
+    "cunge_m3s": 337.30766183392024,
+    "muskingum_m3s": 291.60131016181475
+   }
+  },
+  "HAT-R3": {
+   "-90": {
+    "cunge_m3s": 198.4658649172202,
+    "muskingum_m3s": 1103.5426028764869
+   },
+   "-60": {
+    "cunge_m3s": 310.8899651404624,
+    "muskingum_m3s": 1199.6311472073808
+   },
+   "-30": {
+    "cunge_m3s": 1195.4111807336546,
+    "muskingum_m3s": 1454.0194907882485
+   },
+   "-15": {
+    "cunge_m3s": 1403.1304639273071,
+    "muskingum_m3s": 1953.139708512982
+   },
+   "0": {
+    "cunge_m3s": 2089.05946789508,
+    "muskingum_m3s": 2035.2348131454862
+   },
+   "15": {
+    "cunge_m3s": 1936.164318068279,
+    "muskingum_m3s": 1883.945282718463
+   },
+   "30": {
+    "cunge_m3s": 1778.8845530806639,
+    "muskingum_m3s": 1672.6635555910975
+   },
+   "60": {
+    "cunge_m3s": 1472.4218910517968,
+    "muskingum_m3s": 1271.2783811462755
+   },
+   "90": {
+    "cunge_m3s": 1213.5634179733001,
+    "muskingum_m3s": 960.9262260339557
+   }
+  }
+ },
+ "reaches_alone": {
+  "2": {
+   "R1": {
+    "inflow_peak_m3s": 62.54107614477029,
+    "cunge_peak_m3s": 62.265944590025086,
+    "muskingum_peak_m3s": 61.903223409362646,
+    "peak_percent": -0.5825354181177023,
+    "cunge_lag_min": 250.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 1.0274395863056724,
+    "muskingum_out_over_in": 1.0000000000000004,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 806139.7341255783
+   },
+   "R2": {
+    "inflow_peak_m3s": 74.75946900557639,
+    "cunge_peak_m3s": 70.5456733445652,
+    "muskingum_peak_m3s": 71.87124383392032,
+    "peak_percent": 1.8790245049907561,
+    "cunge_lag_min": 120.0,
+    "muskingum_lag_min": 40.0,
+    "cunge_out_over_in": 1.0056317070969518,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 1448699.8711469928
+   },
+   "R3": {
+    "inflow_peak_m3s": 40.859606513076564,
+    "cunge_peak_m3s": 40.50313938900769,
+    "muskingum_peak_m3s": 40.599511787075784,
+    "peak_percent": 0.23793809448322545,
+    "cunge_lag_min": 170.0,
+    "muskingum_lag_min": 55.0,
+    "cunge_out_over_in": 1.0096534918119147,
+    "muskingum_out_over_in": 0.9999999999999999,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 598704.9104698732
+   },
+   "R4": {
+    "inflow_peak_m3s": 22.32171639924901,
+    "cunge_peak_m3s": 21.636353637136192,
+    "muskingum_peak_m3s": 22.13995284249169,
+    "peak_percent": 2.327560428163511,
+    "cunge_lag_min": 125.0,
+    "muskingum_lag_min": 50.0,
+    "cunge_out_over_in": 1.0205631979929006,
+    "muskingum_out_over_in": 1.000000000000001,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 192518.0799789859
+   },
+   "R5": {
+    "inflow_peak_m3s": 28.840017090018794,
+    "cunge_peak_m3s": 28.81509241462442,
+    "muskingum_peak_m3s": 28.837177059431212,
+    "peak_percent": 0.07664263049729225,
+    "cunge_lag_min": 15.0,
+    "muskingum_lag_min": 5.0,
+    "cunge_out_over_in": 1.0007883908464723,
+    "muskingum_out_over_in": 0.9999999999999999,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 424780.56925654673
+   },
+   "R6": {
+    "inflow_peak_m3s": 38.79184468549395,
+    "cunge_peak_m3s": 38.63785377873007,
+    "muskingum_peak_m3s": 38.693046745047944,
+    "peak_percent": 0.1428468740369393,
+    "cunge_lag_min": 45.0,
+    "muskingum_lag_min": 15.0,
+    "cunge_out_over_in": 1.0048454643582572,
+    "muskingum_out_over_in": 0.9999999999999998,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 378756.24985457293
+   },
+   "R7": {
+    "inflow_peak_m3s": 33.400632892331146,
+    "cunge_peak_m3s": 33.08607798364422,
+    "muskingum_peak_m3s": 33.16390960381008,
+    "peak_percent": 0.23523978938917445,
+    "cunge_lag_min": 185.0,
+    "muskingum_lag_min": 65.0,
+    "cunge_out_over_in": 1.0211375463911667,
+    "muskingum_out_over_in": 1.0000000000000009,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 376878.18032066314
+   },
+   "R8": {
+    "inflow_peak_m3s": 37.87658189569923,
+    "cunge_peak_m3s": 37.228320133750614,
+    "muskingum_peak_m3s": 37.580766190209445,
+    "peak_percent": 0.9467149073409509,
+    "cunge_lag_min": 100.0,
+    "muskingum_lag_min": 40.0,
+    "cunge_out_over_in": 1.0072788892171547,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 701410.8371217103
+   },
+   "RIJ-R1": null,
+   "FIZ-R1": null,
+   "FAY-R1": null,
+   "HAT-R3": {
+    "inflow_peak_m3s": 63.150552967359474,
+    "cunge_peak_m3s": 59.42934686873754,
+    "muskingum_peak_m3s": 62.047394195197754,
+    "peak_percent": 4.405310615717739,
+    "cunge_lag_min": 220.0,
+    "muskingum_lag_min": 100.0,
+    "cunge_out_over_in": 1.0130588516988481,
+    "muskingum_out_over_in": 0.999999999999997,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 1174598.6273838615
+   },
+   "HAT-R5": {
+    "inflow_peak_m3s": 59.39508869004384,
+    "cunge_peak_m3s": 57.73452533284171,
+    "muskingum_peak_m3s": 58.76231238942472,
+    "peak_percent": 1.7801948672094836,
+    "cunge_lag_min": 160.0,
+    "muskingum_lag_min": 80.0,
+    "cunge_out_over_in": 1.0034389648988526,
+    "muskingum_out_over_in": 1.0000000000000016,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 1816043.197963451
+   }
+  },
+  "100": {
+   "R1": {
+    "inflow_peak_m3s": 1022.3094608052324,
+    "cunge_peak_m3s": 1014.0849323650083,
+    "muskingum_peak_m3s": 1013.3653147366178,
+    "peak_percent": -0.07096226414805562,
+    "cunge_lag_min": 90.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 0.9991889350126458,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 15439860.098031886
+   },
+   "R2": {
+    "inflow_peak_m3s": 1629.41938816692,
+    "cunge_peak_m3s": 1623.283756129768,
+    "muskingum_peak_m3s": 1622.66926646864,
+    "peak_percent": -0.03785472865157624,
+    "cunge_lag_min": 30.0,
+    "muskingum_lag_min": 30.0,
+    "cunge_out_over_in": 0.9995974935905847,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 28297995.53915552
+   },
+   "R3": {
+    "inflow_peak_m3s": 664.5964901258518,
+    "cunge_peak_m3s": 661.4162328336654,
+    "muskingum_peak_m3s": 661.5370057535223,
+    "peak_percent": 0.01825974535574204,
+    "cunge_lag_min": 65.0,
+    "muskingum_lag_min": 60.0,
+    "cunge_out_over_in": 0.9996765403127593,
+    "muskingum_out_over_in": 0.9999999999999998,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 11253355.440180955
+   },
+   "R4": {
+    "inflow_peak_m3s": 345.066064251946,
+    "cunge_peak_m3s": 343.15320952996933,
+    "muskingum_peak_m3s": 342.8405305149619,
+    "peak_percent": -0.09111936194206027,
+    "cunge_lag_min": 55.0,
+    "muskingum_lag_min": 50.0,
+    "cunge_out_over_in": 1.0002804460638186,
+    "muskingum_out_over_in": 1.0000000000000009,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 3730768.73722386
+   },
+   "R5": {
+    "inflow_peak_m3s": 752.9176671518534,
+    "cunge_peak_m3s": 753.2117567841476,
+    "muskingum_peak_m3s": 751.5614592568367,
+    "peak_percent": -0.21910140308443182,
+    "cunge_lag_min": 5.0,
+    "muskingum_lag_min": 5.0,
+    "cunge_out_over_in": 0.9999512710406427,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 9819643.80109371
+   },
+   "R6": {
+    "inflow_peak_m3s": 556.4468140074371,
+    "cunge_peak_m3s": 555.1925191856412,
+    "muskingum_peak_m3s": 555.3476246722796,
+    "peak_percent": 0.027937243618825214,
+    "cunge_lag_min": 15.0,
+    "muskingum_lag_min": 15.0,
+    "cunge_out_over_in": 0.9999157014884484,
+    "muskingum_out_over_in": 0.9999999999999999,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 6778937.240936842
+   },
+   "R7": {
+    "inflow_peak_m3s": 489.85531085890113,
+    "cunge_peak_m3s": 487.3296254787711,
+    "muskingum_peak_m3s": 487.11758416217015,
+    "peak_percent": -0.043510861132778356,
+    "cunge_lag_min": 70.0,
+    "muskingum_lag_min": 65.0,
+    "cunge_out_over_in": 0.99981122240027,
+    "muskingum_out_over_in": 1.000000000000001,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 6725325.060814555
+   },
+   "R8": {
+    "inflow_peak_m3s": 762.4593530944804,
+    "cunge_peak_m3s": 759.5153889876775,
+    "muskingum_peak_m3s": 757.6331184367351,
+    "peak_percent": -0.24782520252172313,
+    "cunge_lag_min": 35.0,
+    "muskingum_lag_min": 35.0,
+    "cunge_out_over_in": 0.9997462053037911,
+    "muskingum_out_over_in": 0.9999999999999998,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 12817162.96033994
+   },
+   "RIJ-R1": {
+    "inflow_peak_m3s": 343.55841460232915,
+    "cunge_peak_m3s": 342.5017649539244,
+    "muskingum_peak_m3s": 342.7255219885686,
+    "peak_percent": 0.06533018440773031,
+    "cunge_lag_min": 110.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 1.0034513620783552,
+    "muskingum_out_over_in": 0.9999467961654754,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 9279415.676636579
+   },
+   "FIZ-R1": {
+    "inflow_peak_m3s": 1543.6862171850355,
+    "cunge_peak_m3s": 1528.1312251676861,
+    "muskingum_peak_m3s": 1527.509327912259,
+    "peak_percent": -0.040696587124500194,
+    "cunge_lag_min": 105.0,
+    "muskingum_lag_min": 95.0,
+    "cunge_out_over_in": 1.0029527689179978,
+    "muskingum_out_over_in": 0.9999997691232052,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 25772775.500946447
+   },
+   "FAY-R1": null,
+   "HAT-R3": {
+    "inflow_peak_m3s": 1628.9500724453042,
+    "cunge_peak_m3s": 1592.4511038237627,
+    "muskingum_peak_m3s": 1570.969523372682,
+    "peak_percent": -1.3489632679772323,
+    "cunge_lag_min": 120.0,
+    "muskingum_lag_min": 105.0,
+    "cunge_out_over_in": 1.0004855973262143,
+    "muskingum_out_over_in": 0.9999999999999969,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 23987430.581054095
+   },
+   "HAT-R5": {
+    "inflow_peak_m3s": 1703.3216242781684,
+    "cunge_peak_m3s": 1638.3713662519847,
+    "muskingum_peak_m3s": 1641.6821888826921,
+    "peak_percent": 0.20208010826516798,
+    "cunge_lag_min": 95.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 1.000042304203413,
+    "muskingum_out_over_in": 1.0000000000000016,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 40880950.75537334
+   }
+  },
+  "200": {
+   "R1": {
+    "inflow_peak_m3s": 1276.298058009313,
+    "cunge_peak_m3s": 1266.061706335854,
+    "muskingum_peak_m3s": 1265.1390092062968,
+    "peak_percent": -0.0728793174092357,
+    "cunge_lag_min": 85.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 0.999166197219298,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 19443295.06856968
+   },
+   "R2": {
+    "inflow_peak_m3s": 2050.0337789475498,
+    "cunge_peak_m3s": 2042.6285712796982,
+    "muskingum_peak_m3s": 2041.7282548127862,
+    "peak_percent": -0.04407636706794671,
+    "cunge_lag_min": 35.0,
+    "muskingum_lag_min": 35.0,
+    "cunge_out_over_in": 0.9996340007531477,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 35678376.694024235
+   },
+   "R3": {
+    "inflow_peak_m3s": 829.6564611812038,
+    "cunge_peak_m3s": 825.8008153308973,
+    "muskingum_peak_m3s": 825.7259584743714,
+    "peak_percent": -0.009064759338595074,
+    "cunge_lag_min": 60.0,
+    "muskingum_lag_min": 60.0,
+    "cunge_out_over_in": 0.9996723020235436,
+    "muskingum_out_over_in": 0.9999999999999997,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 14162980.574011557
+   },
+   "R4": {
+    "inflow_peak_m3s": 430.54270436845815,
+    "cunge_peak_m3s": 428.1216969231092,
+    "muskingum_peak_m3s": 427.7845919224719,
+    "peak_percent": -0.07874046166312931,
+    "cunge_lag_min": 50.0,
+    "muskingum_lag_min": 50.0,
+    "cunge_out_over_in": 1.0000611851310395,
+    "muskingum_out_over_in": 1.0000000000000009,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 4700143.523682725
+   },
+   "R5": {
+    "inflow_peak_m3s": 968.8224234208412,
+    "cunge_peak_m3s": 968.5132018747272,
+    "muskingum_peak_m3s": 967.8888503932753,
+    "peak_percent": -0.0644649427848143,
+    "cunge_lag_min": 5.0,
+    "muskingum_lag_min": 5.0,
+    "cunge_out_over_in": 0.9999517120995755,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 12451299.15801108
+   },
+   "R6": {
+    "inflow_peak_m3s": 692.4941316954983,
+    "cunge_peak_m3s": 691.116117562671,
+    "muskingum_peak_m3s": 691.1795668487042,
+    "peak_percent": 0.00918069835456059,
+    "cunge_lag_min": 15.0,
+    "muskingum_lag_min": 15.0,
+    "cunge_out_over_in": 0.9999082113573399,
+    "muskingum_out_over_in": 0.9999999999999998,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 8517606.687372934
+   },
+   "R7": {
+    "inflow_peak_m3s": 609.8293775955999,
+    "cunge_peak_m3s": 606.7141760187048,
+    "muskingum_peak_m3s": 606.387352305217,
+    "peak_percent": -0.0538678221815303,
+    "cunge_lag_min": 65.0,
+    "muskingum_lag_min": 65.0,
+    "cunge_out_over_in": 0.9997674953060928,
+    "muskingum_out_over_in": 1.0000000000000007,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 8448980.66658511
+   },
+   "R8": {
+    "inflow_peak_m3s": 972.3427471178375,
+    "cunge_peak_m3s": 967.4950722315936,
+    "muskingum_peak_m3s": 966.6747902408752,
+    "peak_percent": -0.08478410012222604,
+    "cunge_lag_min": 35.0,
+    "muskingum_lag_min": 35.0,
+    "cunge_out_over_in": 0.9997511130425066,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 16121414.27446369
+   },
+   "RIJ-R1": {
+    "inflow_peak_m3s": 697.3143295060373,
+    "cunge_peak_m3s": 694.9562007768895,
+    "muskingum_peak_m3s": 694.9119131420578,
+    "peak_percent": -0.006372723170511296,
+    "cunge_lag_min": 85.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 1.0035445209914684,
+    "muskingum_out_over_in": 0.9999634279196007,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 15774500.323292322
+   },
+   "FIZ-R1": {
+    "inflow_peak_m3s": 1979.8284823328484,
+    "cunge_peak_m3s": 1961.7754003259538,
+    "muskingum_peak_m3s": 1960.339194173465,
+    "peak_percent": -0.073209509725225,
+    "cunge_lag_min": 90.0,
+    "muskingum_lag_min": 90.0,
+    "cunge_out_over_in": 1.004306048167575,
+    "muskingum_out_over_in": 0.9999997878984018,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 33754006.99703816
+   },
+   "FAY-R1": null,
+   "HAT-R3": {
+    "inflow_peak_m3s": 2122.1469754203945,
+    "cunge_peak_m3s": 2089.05946789508,
+    "muskingum_peak_m3s": 2046.1851581394876,
+    "peak_percent": -2.052325958858048,
+    "cunge_lag_min": 110.0,
+    "muskingum_lag_min": 105.0,
+    "cunge_out_over_in": 0.9995905154702601,
+    "muskingum_out_over_in": 0.999999999999997,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 30282731.985306386
+   },
+   "HAT-R5": {
+    "inflow_peak_m3s": 2291.815310588833,
+    "cunge_peak_m3s": 2205.8033062223735,
+    "muskingum_peak_m3s": 2208.938600067588,
+    "peak_percent": 0.14213841444385977,
+    "cunge_lag_min": 85.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 0.9997423027524425,
+    "muskingum_out_over_in": 1.0000000000000018,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 51786264.2801534
+   }
+  },
+  "10000": {
+   "R1": {
+    "inflow_peak_m3s": 3321.0683276155055,
+    "cunge_peak_m3s": 3294.941602675376,
+    "muskingum_peak_m3s": 3293.468510498964,
+    "peak_percent": -0.04470768693490834,
+    "cunge_lag_min": 60.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 0.9994262443684213,
+    "muskingum_out_over_in": 1.0000000000000002,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 57927041.70741353
+   },
+   "R2": {
+    "inflow_peak_m3s": 5472.677144153269,
+    "cunge_peak_m3s": 5453.873022593076,
+    "muskingum_peak_m3s": 5452.434529653351,
+    "peak_percent": -0.026375622126983966,
+    "cunge_lag_min": 20.0,
+    "muskingum_lag_min": 30.0,
+    "cunge_out_over_in": 0.9997417973868481,
+    "muskingum_out_over_in": 0.9999999999999999,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 106697367.93493614
+   },
+   "R3": {
+    "inflow_peak_m3s": 2170.1233008459885,
+    "cunge_peak_m3s": 2161.2758045274245,
+    "muskingum_peak_m3s": 2161.1640975449063,
+    "peak_percent": -0.005168566745816783,
+    "cunge_lag_min": 40.0,
+    "muskingum_lag_min": 55.0,
+    "cunge_out_over_in": 0.999743026392816,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 42123019.248029664
+   },
+   "R4": {
+    "inflow_peak_m3s": 1103.333704975644,
+    "cunge_peak_m3s": 1097.6961125489704,
+    "muskingum_peak_m3s": 1096.658008273762,
+    "peak_percent": -0.09457118990771063,
+    "cunge_lag_min": 35.0,
+    "muskingum_lag_min": 50.0,
+    "cunge_out_over_in": 0.9999506703685072,
+    "muskingum_out_over_in": 1.0000000000000009,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 14021081.348059203
+   },
+   "R5": {
+    "inflow_peak_m3s": 2710.7565872939294,
+    "cunge_peak_m3s": 2711.6004663547697,
+    "muskingum_peak_m3s": 2709.239634679648,
+    "peak_percent": -0.08706414180166266,
+    "cunge_lag_min": 0.0,
+    "muskingum_lag_min": 0.0,
+    "cunge_out_over_in": 0.9999589556314995,
+    "muskingum_out_over_in": 0.9999999999999999,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 37881309.03120187
+   },
+   "R6": {
+    "inflow_peak_m3s": 1771.449259160757,
+    "cunge_peak_m3s": 1768.812350670146,
+    "muskingum_peak_m3s": 1768.5219681545764,
+    "peak_percent": -0.016416807326091742,
+    "cunge_lag_min": 10.0,
+    "muskingum_lag_min": 15.0,
+    "cunge_out_over_in": 0.9999098702965039,
+    "muskingum_out_over_in": 0.9999999999999997,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 25209043.639214944
+   },
+   "R7": {
+    "inflow_peak_m3s": 1568.9345193907268,
+    "cunge_peak_m3s": 1560.866147709361,
+    "muskingum_peak_m3s": 1560.2809517237984,
+    "peak_percent": -0.037491746901008316,
+    "cunge_lag_min": 45.0,
+    "muskingum_lag_min": 65.0,
+    "cunge_out_over_in": 0.9997951320118259,
+    "muskingum_out_over_in": 1.0000000000000007,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 24994419.894670513
+   },
+   "R8": {
+    "inflow_peak_m3s": 2741.3679172405978,
+    "cunge_peak_m3s": 2726.4113318628474,
+    "muskingum_peak_m3s": 2726.163843512705,
+    "peak_percent": -0.009077439902405171,
+    "cunge_lag_min": 25.0,
+    "muskingum_lag_min": 35.0,
+    "cunge_out_over_in": 0.9997983240676954,
+    "muskingum_out_over_in": 1.0,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 47865972.961687915
+   },
+   "RIJ-R1": {
+    "inflow_peak_m3s": 4640.519009288272,
+    "cunge_peak_m3s": 4619.816124360761,
+    "muskingum_peak_m3s": 4608.787738590462,
+    "peak_percent": -0.23871914971128616,
+    "cunge_lag_min": 40.0,
+    "muskingum_lag_min": 85.0,
+    "cunge_out_over_in": 1.0012819164597946,
+    "muskingum_out_over_in": 0.9999844130890607,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 78497370.82100944
+   },
+   "FIZ-R1": {
+    "inflow_peak_m3s": 5538.807126719179,
+    "cunge_peak_m3s": 5501.854053085378,
+    "muskingum_peak_m3s": 5491.181247948633,
+    "peak_percent": -0.1939856098283732,
+    "cunge_lag_min": 60.0,
+    "muskingum_lag_min": 90.0,
+    "cunge_out_over_in": 1.000548140663056,
+    "muskingum_out_over_in": 0.9999998290303435,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 110652307.1561387
+   },
+   "FAY-R1": {
+    "inflow_peak_m3s": 2530.9408981058477,
+    "cunge_peak_m3s": 2759.820573757783,
+    "muskingum_peak_m3s": 2448.3151824485867,
+    "peak_percent": -11.287160994131206,
+    "cunge_lag_min": 90.0,
+    "muskingum_lag_min": 180.0,
+    "cunge_out_over_in": 1.0184269064329567,
+    "muskingum_out_over_in": 0.9999991773488252,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 27562985.398886543
+   },
+   "HAT-R3": {
+    "inflow_peak_m3s": 6291.622513633808,
+    "cunge_peak_m3s": 6184.252129224745,
+    "muskingum_peak_m3s": 6122.847027225111,
+    "peak_percent": -0.9929268845533246,
+    "cunge_lag_min": 65.0,
+    "muskingum_lag_min": 100.0,
+    "cunge_out_over_in": 0.9994393931603152,
+    "muskingum_out_over_in": 0.9999999999999971,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 90921313.3567329
+   },
+   "HAT-R5": {
+    "inflow_peak_m3s": 8061.2482063043235,
+    "cunge_peak_m3s": 7865.882989143391,
+    "muskingum_peak_m3s": 7820.063928247756,
+    "peak_percent": -0.582503718385774,
+    "cunge_lag_min": 50.0,
+    "muskingum_lag_min": 80.0,
+    "cunge_out_over_in": 0.9994896615706843,
+    "muskingum_out_over_in": 1.0000000000000016,
+    "muskingum_lowest_m3s": 0.0,
+    "inflow_volume_m3": 157141484.72546926
+   }
+  }
+ },
+ "x_cut_at_k_0.7": [
+  "BID-R20",
+  "BID-R21",
+  "BID-R4",
+  "HAT-R1",
+  "RIJ-R14"
+ ],
+ "x_cut_at_k_1.3": [
+  "BID-R24",
+  "BID-R4",
+  "FIZ-R4"
+ ],
+ "proposals_at_half_peak": {
+  "R1": {
+   "k_hours": 1.7679,
+   "x": 0.422,
+   "subreaches": 21,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 638.1 m3/s: normal depth 3.93 m, top width 65.5 m, mean velocity 2.59 m/s, wave speed 4.09 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.7679 h. 21 subreaches of 1,239 m. X = 1/2 (1 - Q / (B S c dx)) = 0.422; a subreach is stable at steps of 4.26 to 5.84 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 4.086624285246301,
+   "reference_flow_m3s": 638.1490290046565,
+   "x_cunge": 0.4224448241317875
+  },
+  "R2": {
+   "k_hours": 0.6226,
+   "x": 0.39,
+   "subreaches": 7,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,025 m3/s: normal depth 4.11 m, top width 112.3 m, mean velocity 2.35 m/s, wave speed 3.72 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.6226 h. 7 subreaches of 1,193 m. X = 1/2 (1 - Q / (B S c dx)) = 0.390; a subreach is stable at steps of 4.16 to 6.51 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.7247955724186363,
+   "reference_flow_m3s": 1025.0168894737749,
+   "x_cunge": 0.3896742748458844
+  },
+  "R3": {
+   "k_hours": 1.2138,
+   "x": 0.42,
+   "subreaches": 15,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 414.8 m3/s: normal depth 3.03 m, top width 69.1 m, mean velocity 2.12 m/s, wave speed 3.33 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.2138 h. 15 subreaches of 970 m. X = 1/2 (1 - Q / (B S c dx)) = 0.420; a subreach is stable at steps of 4.08 to 5.63 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.330223240784678,
+   "reference_flow_m3s": 414.8282305906019,
+   "x_cunge": 0.42003832916002415
+  },
+  "R4": {
+   "k_hours": 1.077,
+   "x": 0.461,
+   "subreaches": 13,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 215.3 m3/s: normal depth 1.40 m, top width 105.6 m, mean velocity 1.49 m/s, wave speed 2.43 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.077 h. 13 subreaches of 725 m. X = 1/2 (1 - Q / (B S c dx)) = 0.461; a subreach is stable at steps of 4.58 to 5.36 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.431642903855819,
+   "reference_flow_m3s": 215.27135218422907,
+   "x_cunge": 0.46108006827652354
+  },
+  "R5": {
+   "k_hours": 0.0705,
+   "x": 0.381,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 484.4 m3/s: normal depth 2.55 m, top width 125.5 m, mean velocity 1.68 m/s, wave speed 2.60 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0705 h. 1 subreach of 660 m. X = 1/2 (1 - Q / (B S c dx)) = 0.381; a subreach is stable at steps of 3.22 to 5.24 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.5998157867312726,
+   "reference_flow_m3s": 484.4112117104206,
+   "x_cunge": 0.38091068772723924
+  },
+  "R6": {
+   "k_hours": 0.3266,
+   "x": 0.445,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 346.2 m3/s: normal depth 2.85 m, top width 55.7 m, mean velocity 2.29 m/s, wave speed 3.62 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3266 h. 4 subreaches of 1,065 m. X = 1/2 (1 - Q / (B S c dx)) = 0.445; a subreach is stable at steps of 4.36 to 5.44 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.622545440609098,
+   "reference_flow_m3s": 346.2470658477491,
+   "x_cunge": 0.44534643868911256
+  },
+  "R7": {
+   "k_hours": 1.3473,
+   "x": 0.451,
+   "subreaches": 16,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 304.9 m3/s: normal depth 2.62 m, top width 55.2 m, mean velocity 2.21 m/s, wave speed 3.51 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.3473 h. 16 subreaches of 1,063 m. X = 1/2 (1 - Q / (B S c dx)) = 0.451; a subreach is stable at steps of 4.56 to 5.55 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.5062724765669833,
+   "reference_flow_m3s": 304.91468879779995,
+   "x_cunge": 0.4513749244707259
+  },
+  "R8": {
+   "k_hours": 0.6915,
+   "x": 0.417,
+   "subreaches": 8,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 486.2 m3/s: normal depth 3.03 m, top width 88.2 m, mean velocity 2.03 m/s, wave speed 3.12 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.6915 h. 8 subreaches of 971 m. X = 1/2 (1 - Q / (B S c dx)) = 0.417; a subreach is stable at steps of 4.33 to 6.05 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 3.1191441009371657,
+   "reference_flow_m3s": 486.17137355891873,
+   "x_cunge": 0.4172328656045904
+  },
+  "RIJ-R17": {
+   "k_hours": 0.1182,
+   "x": 0.106,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 50.83 m3/s: normal depth 1.32 m, top width 68.6 m, mean velocity 0.58 m/s, wave speed 0.94 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1182 h. 1 subreach of 400 m. X = 1/2 (1 - Q / (B S c dx)) = 0.106; a subreach is stable at steps of 1.5 to 12.7 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.9399339614377912,
+   "reference_flow_m3s": 50.82852399593447,
+   "x_cunge": 0.10588098241609162
+  },
+  "RIJ-R14": {
+   "k_hours": 0.0847,
+   "x": 0.413,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 22.02 m3/s: normal depth 1.34 m, top width 18.5 m, mean velocity 1.04 m/s, wave speed 1.55 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0847 h. 1 subreach of 471 m. X = 1/2 (1 - Q / (B S c dx)) = 0.413; a subreach is stable at steps of 4.2 to 5.97 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.546862567833682,
+   "reference_flow_m3s": 22.024496830570612,
+   "x_cunge": 0.41319042591348865
+  },
+  "RIJ-R18": {
+   "k_hours": 0.1387,
+   "x": 0.112,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 65.32 m3/s: normal depth 1.32 m, top width 73.0 m, mean velocity 0.70 m/s, wave speed 1.13 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1387 h. 2 subreaches of 283 m. X = 1/2 (1 - Q / (B S c dx)) = 0.112; a subreach is stable at steps of 0.932 to 7.39 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1331676898748848,
+   "reference_flow_m3s": 65.32119399129647,
+   "x_cunge": 0.11242464365082161
+  },
+  "RIJ-R12": {
+   "k_hours": 0.2669,
+   "x": 0.27,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 12.25 m3/s: normal depth 1.36 m, top width 15.0 m, mean velocity 0.73 m/s, wave speed 1.06 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2669 h. 3 subreaches of 341 m. X = 1/2 (1 - Q / (B S c dx)) = 0.270; a subreach is stable at steps of 2.88 to 7.79 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.0633247586682548,
+   "reference_flow_m3s": 12.247726886829856,
+   "x_cunge": 0.2700767827694662
+  },
+  "RIJ-R10": {
+   "k_hours": 0.1463,
+   "x": 0.385,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 14.02 m3/s: normal depth 1.37 m, top width 13.3 m, mean velocity 0.97 m/s, wave speed 1.39 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1463 h. 2 subreaches of 367 m. X = 1/2 (1 - Q / (B S c dx)) = 0.385; a subreach is stable at steps of 3.38 to 5.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3932722228873817,
+   "reference_flow_m3s": 14.02409328174368,
+   "x_cunge": 0.3851838639538794
+  },
+  "RIJ-R19": {
+   "k_hours": 0.1347,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 25.03 m3/s: normal depth 1.16 m, top width 65.7 m, mean velocity 0.34 m/s, wave speed 0.55 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1347 h. 1 subreach of 266 m (K over the 5 min step is 2; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = -0.805, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 16.2 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.5489134874748416,
+   "reference_flow_m3s": 25.030077995732327,
+   "x_cunge": -0.8045293307812467
+  },
+  "RIJ-R9": {
+   "k_hours": 0.1368,
+   "x": 0.39,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 12 m3/s: normal depth 1.34 m, top width 11.1 m, mean velocity 1.06 m/s, wave speed 1.50 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1368 h. 2 subreaches of 368 m. X = 1/2 (1 - Q / (B S c dx)) = 0.418; no count of subreaches is stable with it at this step, so X is lowered to 0.39, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 3.2 to 5.01 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4953130421162617,
+   "reference_flow_m3s": 11.998455976632728,
+   "x_cunge": 0.4176266601412611
+  },
+  "RIJ-R8": {
+   "k_hours": 0.3989,
+   "x": 0.373,
+   "subreaches": 5,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 86.25 m3/s: normal depth 1.31 m, top width 70.7 m, mean velocity 0.97 m/s, wave speed 1.56 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3989 h. 5 subreaches of 448 m. X = 1/2 (1 - Q / (B S c dx)) = 0.373; a subreach is stable at steps of 3.57 to 6 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.558985568949524,
+   "reference_flow_m3s": 86.25403895864302,
+   "x_cunge": 0.3734306093849883
+  },
+  "RIJ-R16": {
+   "k_hours": 0.3395,
+   "x": 0.129,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 180.1 m3/s: normal depth 1.32 m, top width 206.8 m, mean velocity 0.67 m/s, wave speed 1.10 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3395 h. 4 subreaches of 337 m. X = 1/2 (1 - Q / (B S c dx)) = 0.129; a subreach is stable at steps of 1.31 to 8.87 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1023650990019558,
+   "reference_flow_m3s": 180.09135576685236,
+   "x_cunge": 0.12882427660867257
+  },
+  "RIJ-R5": {
+   "k_hours": 0.3108,
+   "x": 0.379,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 226.6 m3/s: normal depth 1.30 m, top width 179.0 m, mean velocity 0.99 m/s, wave speed 1.63 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3108 h. 4 subreaches of 455 m. X = 1/2 (1 - Q / (B S c dx)) = 0.379; a subreach is stable at steps of 3.53 to 5.79 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.627221927183015,
+   "reference_flow_m3s": 226.56142936900494,
+   "x_cunge": 0.3791433562513259
+  },
+  "RIJ-R3": {
+   "k_hours": 0.8248,
+   "x": 0.411,
+   "subreaches": 10,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 136.6 m3/s: normal depth 1.32 m, top width 98.7 m, mean velocity 1.08 m/s, wave speed 1.76 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.8248 h. 10 subreaches of 522 m. X = 1/2 (1 - Q / (B S c dx)) = 0.411; a subreach is stable at steps of 4.07 to 5.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.7595150588294142,
+   "reference_flow_m3s": 136.64513358229067,
+   "x_cunge": 0.41095997541320195
+  },
+  "RIJ-R6": {
+   "k_hours": 0.2442,
+   "x": 0.321,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 148.3 m3/s: normal depth 1.29 m, top width 137.9 m, mean velocity 0.85 m/s, wave speed 1.39 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2442 h. 3 subreaches of 408 m. X = 1/2 (1 - Q / (B S c dx)) = 0.321; a subreach is stable at steps of 3.14 to 6.63 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3918338813275921,
+   "reference_flow_m3s": 148.2634623185836,
+   "x_cunge": 0.32091289910763166
+  },
+  "RIJ-R7": {
+   "k_hours": 0.497,
+   "x": 0.382,
+   "subreaches": 6,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 386.6 m3/s: normal depth 1.31 m, top width 301.1 m, mean velocity 0.99 m/s, wave speed 1.63 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.497 h. 6 subreaches of 486 m. X = 1/2 (1 - Q / (B S c dx)) = 0.382; a subreach is stable at steps of 3.8 to 6.14 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.6311144931201125,
+   "reference_flow_m3s": 386.6345509288234,
+   "x_cunge": 0.3820077800906936
+  },
+  "RIJ-R15": {
+   "k_hours": 0.2193,
+   "x": 0.287,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 412.2 m3/s: normal depth 1.32 m, top width 370.8 m, mean velocity 0.85 m/s, wave speed 1.40 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2193 h. 3 subreaches of 370 m. X = 1/2 (1 - Q / (B S c dx)) = 0.287; a subreach is stable at steps of 2.52 to 6.25 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4049901380340615,
+   "reference_flow_m3s": 412.19681801922985,
+   "x_cunge": 0.28726973901876907
+  },
+  "RIJ-R20": {
+   "k_hours": 0.4654,
+   "x": 0.089,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 411.7 m3/s: normal depth 1.32 m, top width 826.0 m, mean velocity 0.38 m/s, wave speed 0.63 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.4654 h. 1 subreach of 1,056 m (K over the 5 min step is 6; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.126; no count of subreaches is stable with it at this step, so X is lowered to 0.089, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.97 to 50.9 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.6302722827270434,
+   "reference_flow_m3s": 411.70383017433073,
+   "x_cunge": 0.12551237703927076
+  },
+  "RIJ-R2": {
+   "k_hours": 1.3586,
+   "x": 0.421,
+   "subreaches": 16,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 300.1 m3/s: normal depth 0.90 m, top width 403.3 m, mean velocity 0.83 m/s, wave speed 1.38 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.3586 h. 16 subreaches of 423 m. X = 1/2 (1 - Q / (B S c dx)) = 0.421; a subreach is stable at steps of 4.29 to 5.9 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3835832674420576,
+   "reference_flow_m3s": 300.1269233586859,
+   "x_cunge": 0.42140096648771286
+  },
+  "RIJ-R1": {
+   "k_hours": 1.8101,
+   "x": 0.428,
+   "subreaches": 22,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 348.7 m3/s: normal depth 0.76 m, top width 598.1 m, mean velocity 0.77 m/s, wave speed 1.27 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.8101 h. 22 subreaches of 377 m. X = 1/2 (1 - Q / (B S c dx)) = 0.428; a subreach is stable at steps of 4.23 to 5.65 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2728158562390954,
+   "reference_flow_m3s": 348.65716475301866,
+   "x_cunge": 0.42794274389523196
+  },
+  "RIJ-R4": {
+   "k_hours": 1.5555,
+   "x": 0.425,
+   "subreaches": 19,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 634.3 m3/s: normal depth 0.84 m, top width 923.6 m, mean velocity 0.82 m/s, wave speed 1.36 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.5555 h. 19 subreaches of 400 m. X = 1/2 (1 - Q / (B S c dx)) = 0.425; a subreach is stable at steps of 4.18 to 5.65 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3580868804933948,
+   "reference_flow_m3s": 634.3131898844373,
+   "x_cunge": 0.42470569965355154
+  },
+  "RIJ-R13": {
+   "k_hours": 0.5206,
+   "x": 0.08,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 633.3 m3/s: normal depth 0.85 m, top width 2654.5 m, mean velocity 0.28 m/s, wave speed 0.47 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.5206 h. 1 subreach of 882 m (K over the 5 min step is 6; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.213; no count of subreaches is stable with it at this step, so X is lowered to 0.08, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 5 to 57.5 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.47058013590944947,
+   "reference_flow_m3s": 633.322444611766,
+   "x_cunge": 0.21254990896081105
+  },
+  "RIJ-R11": {
+   "k_hours": 0.0236,
+   "x": 0.469,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 588.6 m3/s: normal depth 0.82 m, top width 446.8 m, mean velocity 1.62 m/s, wave speed 2.68 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0236 h. 1 subreach of 228 m. X = 1/2 (1 - Q / (B S c dx)) = 0.469; NOT stable at the 5 min step: the wave crosses the reach in 1.42 min, under half a step, so no X routes it without a negative coefficient: a shorter step, or no routing on this reach.",
+   "stable": false,
+   "celerity_ms": 2.684661605859017,
+   "reference_flow_m3s": 588.648496566318,
+   "x_cunge": 0.46863600919573345
+  },
+  "HAT-R1": {
+   "k_hours": 0.5108,
+   "x": 0.47,
+   "subreaches": 6,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 456 m3/s: normal depth 1.29 m, top width 236.4 m, mean velocity 1.51 m/s, wave speed 2.50 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.5108 h. 6 subreaches of 765 m. X = 1/2 (1 - Q / (B S c dx)) = 0.470; a subreach is stable at steps of 4.8 to 5.41 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.4964334934112244,
+   "reference_flow_m3s": 456.02576517503996,
+   "x_cunge": 0.4695585921362049
+  },
+  "HAT-R2": {
+   "k_hours": 1.2943,
+   "x": 0.461,
+   "subreaches": 16,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 823.5 m3/s: normal depth 1.29 m, top width 456.3 m, mean velocity 1.41 m/s, wave speed 2.34 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.2943 h. 16 subreaches of 681 m. X = 1/2 (1 - Q / (B S c dx)) = 0.461; a subreach is stable at steps of 4.48 to 5.23 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 2.3395960098060327,
+   "reference_flow_m3s": 823.5433796503727,
+   "x_cunge": 0.460579606780162
+  },
+  "HAT-R3": {
+   "k_hours": 2.2374,
+   "x": 0.425,
+   "subreaches": 27,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,061 m3/s: normal depth 1.28 m, top width 739.0 m, mean velocity 1.12 m/s, wave speed 1.87 m/s (Seddon, c = dQ/dy / B). K = L / c = 2.2374 h. 27 subreaches of 558 m. X = 1/2 (1 - Q / (B S c dx)) = 0.425; a subreach is stable at steps of 4.23 to 5.72 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.869068603708204,
+   "reference_flow_m3s": 1061.0734877101972,
+   "x_cunge": 0.4247154882876574
+  },
+  "HAT-R4": {
+   "k_hours": 1.6266,
+   "x": 0.363,
+   "subreaches": 20,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,216 m3/s: normal depth 1.31 m, top width 989.0 m, mean velocity 0.94 m/s, wave speed 1.57 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.6266 h. 20 subreaches of 459 m. X = 1/2 (1 - Q / (B S c dx)) = 0.363; a subreach is stable at steps of 3.54 to 6.22 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5681892576901537,
+   "reference_flow_m3s": 1216.2033454459383,
+   "x_cunge": 0.3633752783101828
+  },
+  "HAT-R5": {
+   "k_hours": 1.7511,
+   "x": 0.363,
+   "subreaches": 21,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,146 m3/s: normal depth 1.31 m, top width 935.4 m, mean velocity 0.94 m/s, wave speed 1.56 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.7511 h. 21 subreaches of 468 m. X = 1/2 (1 - Q / (B S c dx)) = 0.363; a subreach is stable at steps of 3.63 to 6.37 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.557983983688351,
+   "reference_flow_m3s": 1145.9076552944166,
+   "x_cunge": 0.363315660339241
+  },
+  "HAT-R6": {
+   "k_hours": 0.6743,
+   "x": 0.325,
+   "subreaches": 8,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,054 m3/s: normal depth 1.27 m, top width 985.3 m, mean velocity 0.84 m/s, wave speed 1.40 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.6743 h. 8 subreaches of 425 m. X = 1/2 (1 - Q / (B S c dx)) = 0.325; a subreach is stable at steps of 3.29 to 6.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3994061651437348,
+   "reference_flow_m3s": 1053.707915070394,
+   "x_cunge": 0.3252753764742516
+  },
+  "FIZ-R5": {
+   "k_hours": 0.2068,
+   "x": 0.386,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 19.4 m3/s: normal depth 1.34 m, top width 19.0 m, mean velocity 0.89 m/s, wave speed 1.33 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2068 h. 2 subreaches of 493 m. X = 1/2 (1 - Q / (B S c dx)) = 0.386; a subreach is stable at steps of 4.79 to 7.62 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3255552731501041,
+   "reference_flow_m3s": 19.399247687551938,
+   "x_cunge": 0.3856709884710891
+  },
+  "FIZ-R4": {
+   "k_hours": 0.1297,
+   "x": 0.357,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 37.81 m3/s: normal depth 1.33 m, top width 28.5 m, mean velocity 1.10 m/s, wave speed 1.70 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1297 h. 2 subreaches of 396 m. X = 1/2 (1 - Q / (B S c dx)) = 0.398; no count of subreaches is stable with it at this step, so X is lowered to 0.357, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 2.78 to 5 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.695907800902779,
+   "reference_flow_m3s": 37.81217479027981,
+   "x_cunge": 0.39798454162109087
+  },
+  "FIZ-R6": {
+   "k_hours": 0.1783,
+   "x": 0.05,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 54.43 m3/s: normal depth 1.32 m, top width 69.9 m, mean velocity 0.61 m/s, wave speed 0.99 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1783 h. 2 subreaches of 317 m. X = 1/2 (1 - Q / (B S c dx)) = 0.050; a subreach is stable at steps of 0.535 to 10.2 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.9883685664498781,
+   "reference_flow_m3s": 54.427069899533265,
+   "x_cunge": 0.049891793339712665
+  },
+  "FIZ-R1": {
+   "k_hours": 1.9607,
+   "x": 0.403,
+   "subreaches": 24,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 989.9 m3/s: normal depth 1.27 m, top width 753.2 m, mean velocity 1.04 m/s, wave speed 1.72 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.9607 h. 24 subreaches of 506 m. X = 1/2 (1 - Q / (B S c dx)) = 0.403; a subreach is stable at steps of 3.95 to 5.85 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.7205666266672128,
+   "reference_flow_m3s": 989.9142411664242,
+   "x_cunge": 0.4033595667030776
+  },
+  "FIZ-R2": {
+   "k_hours": 1.4489,
+   "x": 0.351,
+   "subreaches": 17,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,069 m3/s: normal depth 1.28 m, top width 943.4 m, mean velocity 0.89 m/s, wave speed 1.48 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.4489 h. 17 subreaches of 453 m. X = 1/2 (1 - Q / (B S c dx)) = 0.351; a subreach is stable at steps of 3.59 to 6.64 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.476066709409456,
+   "reference_flow_m3s": 1068.6789774221086,
+   "x_cunge": 0.3513638487343329
+  },
+  "FIZ-R3": {
+   "k_hours": 0.3527,
+   "x": 0.342,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,045 m3/s: normal depth 1.28 m, top width 953.5 m, mean velocity 0.86 m/s, wave speed 1.43 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3527 h. 4 subreaches of 454 m. X = 1/2 (1 - Q / (B S c dx)) = 0.342; a subreach is stable at steps of 3.62 to 6.96 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4291324447507583,
+   "reference_flow_m3s": 1044.7034132133692,
+   "x_cunge": 0.34204355879892057
+  },
+  "FAY-R3": {
+   "k_hours": 0.2424,
+   "x": 0.18,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 78.91 m3/s: normal depth 1.32 m, top width 86.8 m, mean velocity 0.71 m/s, wave speed 1.15 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2424 h. 3 subreaches of 336 m. X = 1/2 (1 - Q / (B S c dx)) = 0.180; a subreach is stable at steps of 1.75 to 7.95 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.153356521780214,
+   "reference_flow_m3s": 78.90822299058189,
+   "x_cunge": 0.17987994795756784
+  },
+  "FAY-R1": {
+   "k_hours": 2.9092,
+   "x": 0.443,
+   "subreaches": 35,
+   "basis": "index celerity",
+   "words": "No reference flow given, so the flow whose wave speed is the reach's index celerity, 1.524 m/s, stands in; if that flow is far from the flood to be routed, give a reference flow (EM 1110-2-1417: midway between base flow and peak suits best in general). Cunge (1969) at 313.7 m3/s: normal depth 0.88 m, top width 391.2 m, mean velocity 0.92 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 2.9092 h. 35 subreaches of 456 m. X = 1/2 (1 - Q / (B S c dx)) = 0.443; a subreach is stable at steps of 4.42 to 5.56 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5239999999999998,
+   "reference_flow_m3s": 313.6794267170607,
+   "x_cunge": 0.4429417134100707
+  },
+  "FAY-R2": {
+   "k_hours": 1.2186,
+   "x": 0.375,
+   "subreaches": 15,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 90.51 m3/s: normal depth 0.38 m, top width 646.9 m, mean velocity 0.37 m/s, wave speed 0.62 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.2186 h. 15 subreaches of 180 m. X = 1/2 (1 - Q / (B S c dx)) = 0.375; a subreach is stable at steps of 3.66 to 6.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.6164634711583223,
+   "reference_flow_m3s": 90.51477987520101,
+   "x_cunge": 0.37461295091871316
+  },
+  "FAY-R4": {
+   "k_hours": 0.15,
+   "x": 0.237,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 1,109 m3/s: normal depth 1.23 m, top width 1212.4 m, mean velocity 0.74 m/s, wave speed 1.24 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.15 h. 2 subreaches of 334 m. X = 1/2 (1 - Q / (B S c dx)) = 0.237; a subreach is stable at steps of 2.13 to 6.87 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2370420388533394,
+   "reference_flow_m3s": 1108.5039613274314,
+   "x_cunge": 0.23664537533674684
+  },
+  "BID-R23": {
+   "k_hours": 0.3769,
+   "x": 0.086,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 164 m3/s: normal depth 1.32 m, top width 222.2 m, mean velocity 0.57 m/s, wave speed 0.93 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3769 h. 3 subreaches of 422 m (K over the 5 min step is 5; 3 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.086; a subreach is stable at steps of 1.3 to 13.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.9337887418134317,
+   "reference_flow_m3s": 163.96618603891824,
+   "x_cunge": 0.08595430379095936
+  },
+  "BID-R18": {
+   "k_hours": 0.2903,
+   "x": 0.028,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 69.54 m3/s: normal depth 1.32 m, top width 91.9 m, mean velocity 0.59 m/s, wave speed 0.96 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2903 h. 3 subreaches of 334 m. X = 1/2 (1 - Q / (B S c dx)) = 0.028; a subreach is stable at steps of 0.325 to 11.3 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.957709174095393,
+   "reference_flow_m3s": 69.53658550420255,
+   "x_cunge": 0.028264095656049593
+  },
+  "BID-R25": {
+   "k_hours": 0.215,
+   "x": 0.193,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 70.25 m3/s: normal depth 1.32 m, top width 103.1 m, mean velocity 0.53 m/s, wave speed 0.86 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.215 h. 1 subreach of 669 m (K over the 5 min step is 3; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.210; no count of subreaches is stable with it at this step, so X is lowered to 0.193, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.98 to 20.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.864409687948246,
+   "reference_flow_m3s": 70.25257669458962,
+   "x_cunge": 0.20979329672543506
+  },
+  "BID-R17": {
+   "k_hours": 0.1941,
+   "x": 0.331,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 47.14 m3/s: normal depth 1.33 m, top width 45.9 m, mean velocity 0.82 m/s, wave speed 1.30 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1941 h. 2 subreaches of 456 m. X = 1/2 (1 - Q / (B S c dx)) = 0.331; a subreach is stable at steps of 3.85 to 7.79 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3047345243519106,
+   "reference_flow_m3s": 47.136720465348326,
+   "x_cunge": 0.33135037119098265
+  },
+  "BID-R16": {
+   "k_hours": 0.2422,
+   "x": 0.316,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 19.89 m3/s: normal depth 1.34 m, top width 20.6 m, mean velocity 0.83 m/s, wave speed 1.25 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2422 h. 3 subreaches of 362 m. X = 1/2 (1 - Q / (B S c dx)) = 0.316; a subreach is stable at steps of 3.06 to 6.63 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2459547438133347,
+   "reference_flow_m3s": 19.893969542407106,
+   "x_cunge": 0.31611994916226493
+  },
+  "BID-R15": {
+   "k_hours": 0.1845,
+   "x": 0.333,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 27.54 m3/s: normal depth 1.34 m, top width 27.5 m, mean velocity 0.83 m/s, wave speed 1.28 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1845 h. 2 subreaches of 424 m. X = 1/2 (1 - Q / (B S c dx)) = 0.333; a subreach is stable at steps of 3.69 to 7.38 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2761588039237615,
+   "reference_flow_m3s": 27.5432747136766,
+   "x_cunge": 0.3325326454650449
+  },
+  "BID-R19": {
+   "k_hours": 0.1663,
+   "x": 0.168,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 48.3 m3/s: normal depth 1.32 m, top width 69.1 m, mean velocity 0.55 m/s, wave speed 0.89 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1663 h. 1 subreach of 532 m (K over the 5 min step is 2; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.168; a subreach is stable at steps of 3.35 to 16.6 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.8875849610158362,
+   "reference_flow_m3s": 48.29653120311872,
+   "x_cunge": 0.16772037172409499
+  },
+  "BID-R14": {
+   "k_hours": 0.2022,
+   "x": 0.262,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 78.16 m3/s: normal depth 1.32 m, top width 84.5 m, mean velocity 0.73 m/s, wave speed 1.18 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2022 h. 2 subreaches of 429 m. X = 1/2 (1 - Q / (B S c dx)) = 0.262; a subreach is stable at steps of 3.18 to 8.95 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1774429097064851,
+   "reference_flow_m3s": 78.15852716609247,
+   "x_cunge": 0.26183485925398364
+  },
+  "BID-R13": {
+   "k_hours": 0.1445,
+   "x": 0.242,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 32.41 m3/s: normal depth 1.33 m, top width 33.9 m, mean velocity 0.78 m/s, wave speed 1.22 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1445 h. 2 subreaches of 317 m. X = 1/2 (1 - Q / (B S c dx)) = 0.242; a subreach is stable at steps of 2.1 to 6.57 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2195705197641578,
+   "reference_flow_m3s": 32.4095091496797,
+   "x_cunge": 0.24156169167791064
+  },
+  "BID-R22": {
+   "k_hours": 0.1117,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 75.69 m3/s: normal depth 1.31 m, top width 122.5 m, mean velocity 0.48 m/s, wave speed 0.79 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1117 h. 1 subreach of 317 m. X = 1/2 (1 - Q / (B S c dx)) = -0.243, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 13.4 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.7871178494844105,
+   "reference_flow_m3s": 75.69286006823295,
+   "x_cunge": -0.24267299589670566
+  },
+  "BID-R24": {
+   "k_hours": 0.0437,
+   "x": 0.046,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 149.7 m3/s: normal depth 1.32 m, top width 125.6 m, mean velocity 0.92 m/s, wave speed 1.51 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0437 h. 1 subreach of 237 m. X = 1/2 (1 - Q / (B S c dx)) = 0.226; no count of subreaches is stable with it at this step, so X is lowered to 0.046, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 0.241 to 5 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.507971371543786,
+   "reference_flow_m3s": 149.67087253584117,
+   "x_cunge": 0.22577169159338556
+  },
+  "BID-R12": {
+   "k_hours": 0.1697,
+   "x": 0.244,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 40.27 m3/s: normal depth 1.33 m, top width 43.2 m, mean velocity 0.75 m/s, wave speed 1.18 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1697 h. 2 subreaches of 362 m. X = 1/2 (1 - Q / (B S c dx)) = 0.244; a subreach is stable at steps of 2.48 to 7.7 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1837738672454328,
+   "reference_flow_m3s": 40.26585614750033,
+   "x_cunge": 0.24440000332790757
+  },
+  "BID-R21": {
+   "k_hours": 0.0923,
+   "x": 0.344,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 44.28 m3/s: normal depth 1.32 m, top width 42.0 m, mean velocity 0.85 m/s, wave speed 1.35 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0923 h. 1 subreach of 448 m. X = 1/2 (1 - Q / (B S c dx)) = 0.344; a subreach is stable at steps of 3.81 to 7.27 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.348598831161674,
+   "reference_flow_m3s": 44.279956835394835,
+   "x_cunge": 0.34420971265190914
+  },
+  "BID-R26": {
+   "k_hours": 0.0811,
+   "x": 0.0,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 95.33 m3/s: normal depth 1.31 m, top width 196.3 m, mean velocity 0.37 m/s, wave speed 0.62 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0811 h. 1 subreach of 180 m. X = 1/2 (1 - Q / (B S c dx)) = -1.680, below what HMS takes: set to 0, and the reach attenuates more than Muskingum can show; a subreach is stable at steps of 0 to 9.73 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.617631728723101,
+   "reference_flow_m3s": 95.33251943689129,
+   "x_cunge": -1.6798726678997222
+  },
+  "BID-R10": {
+   "k_hours": 0.1177,
+   "x": 0.262,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 59.18 m3/s: normal depth 1.32 m, top width 54.1 m, mean velocity 0.87 m/s, wave speed 1.39 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1177 h. 2 subreaches of 294 m (K over the 5 min step is 1; 2 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.262; a subreach is stable at steps of 1.85 to 5.21 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.3878776105817687,
+   "reference_flow_m3s": 59.18376485591712,
+   "x_cunge": 0.26188673177108035
+  },
+  "BID-R20": {
+   "k_hours": 0.0933,
+   "x": 0.391,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 58.71 m3/s: normal depth 1.31 m, top width 49.3 m, mean velocity 0.96 m/s, wave speed 1.53 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.0933 h. 1 subreach of 513 m. X = 1/2 (1 - Q / (B S c dx)) = 0.391; a subreach is stable at steps of 4.38 to 6.82 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5265532575617902,
+   "reference_flow_m3s": 58.70880913687235,
+   "x_cunge": 0.39110347850229
+  },
+  "BID-R27": {
+   "k_hours": 0.4727,
+   "x": 0.088,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 151.9 m3/s: normal depth 1.32 m, top width 270.2 m, mean velocity 0.43 m/s, wave speed 0.71 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.4727 h. 1 subreach of 1,210 m (K over the 5 min step is 6; 1 keeps X at or above 0 and the step stable). X = 1/2 (1 - Q / (B S c dx)) = 0.249; no count of subreaches is stable with it at this step, so X is lowered to 0.088, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 4.99 to 51.7 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 0.7109088137094219,
+   "reference_flow_m3s": 151.885770303797,
+   "x_cunge": 0.24859931453532186
+  },
+  "BID-R9": {
+   "k_hours": 0.2716,
+   "x": 0.252,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 42.84 m3/s: normal depth 1.33 m, top width 46.2 m, mean velocity 0.74 m/s, wave speed 1.18 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2716 h. 3 subreaches of 383 m. X = 1/2 (1 - Q / (B S c dx)) = 0.252; a subreach is stable at steps of 2.74 to 8.13 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1762665180086074,
+   "reference_flow_m3s": 42.83748748440467,
+   "x_cunge": 0.25233192034607826
+  },
+  "BID-R7": {
+   "k_hours": 0.1941,
+   "x": 0.391,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 83.69 m3/s: normal depth 1.32 m, top width 68.9 m, mean velocity 0.96 m/s, wave speed 1.54 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1941 h. 2 subreaches of 538 m. X = 1/2 (1 - Q / (B S c dx)) = 0.391; a subreach is stable at steps of 4.55 to 7.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5397960807712314,
+   "reference_flow_m3s": 83.69370878985688,
+   "x_cunge": 0.39055884523301665
+  },
+  "BID-R4": {
+   "k_hours": 0.1167,
+   "x": 0.357,
+   "subreaches": 1,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 79.51 m3/s: normal depth 1.32 m, top width 63.7 m, mean velocity 0.99 m/s, wave speed 1.58 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1167 h. 1 subreach of 666 m. X = 1/2 (1 - Q / (B S c dx)) = 0.418; no count of subreaches is stable with it at this step, so X is lowered to 0.357, the highest that is: a little more attenuation than Cunge's; a subreach is stable at steps of 5 to 9 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5847355761190056,
+   "reference_flow_m3s": 79.50625430409013,
+   "x_cunge": 0.4175801533042052
+  },
+  "BID-R5": {
+   "k_hours": 0.209,
+   "x": 0.221,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 98.21 m3/s: normal depth 1.32 m, top width 97.5 m, mean velocity 0.78 m/s, wave speed 1.28 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.209 h. 3 subreaches of 320 m. X = 1/2 (1 - Q / (B S c dx)) = 0.221; a subreach is stable at steps of 1.85 to 6.51 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.2753847736231123,
+   "reference_flow_m3s": 98.20725102069555,
+   "x_cunge": 0.22128613652635343
+  },
+  "BID-R11": {
+   "k_hours": 0.2064,
+   "x": 0.385,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 99.07 m3/s: normal depth 1.32 m, top width 83.8 m, mean velocity 0.92 m/s, wave speed 1.50 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2064 h. 2 subreaches of 556 m. X = 1/2 (1 - Q / (B S c dx)) = 0.385; a subreach is stable at steps of 4.77 to 7.62 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4969902041348138,
+   "reference_flow_m3s": 99.07066444791364,
+   "x_cunge": 0.3853048100190236
+  },
+  "BID-R2": {
+   "k_hours": 0.6161,
+   "x": 0.356,
+   "subreaches": 7,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 410.7 m3/s: normal depth 1.30 m, top width 356.8 m, mean velocity 0.90 m/s, wave speed 1.48 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.6161 h. 7 subreaches of 470 m. X = 1/2 (1 - Q / (B S c dx)) = 0.356; a subreach is stable at steps of 3.76 to 6.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.4821134257221609,
+   "reference_flow_m3s": 410.731325354298,
+   "x_cunge": 0.35591590827416486
+  },
+  "BID-R1": {
+   "k_hours": 1.5675,
+   "x": 0.411,
+   "subreaches": 19,
+   "basis": "index celerity",
+   "words": "No reference flow given, so the flow whose wave speed is the reach's index celerity, 1.524 m/s, stands in; if that flow is far from the flood to be routed, give a reference flow (EM 1110-2-1417: midway between base flow and peak suits best in general). Cunge (1969) at 160.9 m3/s: normal depth 1.07 m, top width 164.1 m, mean velocity 0.93 m/s, wave speed 1.52 m/s (Seddon, c = dQ/dy / B). K = L / c = 1.5675 h. 19 subreaches of 453 m. X = 1/2 (1 - Q / (B S c dx)) = 0.411; a subreach is stable at steps of 4.07 to 5.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.5240000000000002,
+   "reference_flow_m3s": 160.91053852970666,
+   "x_cunge": 0.4105935781001461
+  },
+  "BID-R3": {
+   "k_hours": 0.3212,
+   "x": 0.273,
+   "subreaches": 4,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 507.1 m3/s: normal depth 1.08 m, top width 683.3 m, mean velocity 0.69 m/s, wave speed 1.15 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.3212 h. 4 subreaches of 331 m. X = 1/2 (1 - Q / (B S c dx)) = 0.273; a subreach is stable at steps of 2.63 to 7.01 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1455453377399603,
+   "reference_flow_m3s": 507.06194230876935,
+   "x_cunge": 0.27306965282063067
+  },
+  "BID-R6": {
+   "k_hours": 0.1807,
+   "x": 0.261,
+   "subreaches": 2,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 671.2 m3/s: normal depth 1.15 m, top width 852.9 m, mean velocity 0.68 m/s, wave speed 1.14 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.1807 h. 2 subreaches of 370 m. X = 1/2 (1 - Q / (B S c dx)) = 0.261; a subreach is stable at steps of 2.83 to 8.01 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.138673635388619,
+   "reference_flow_m3s": 671.2368150403415,
+   "x_cunge": 0.2608063837338418
+  },
+  "BID-R8": {
+   "k_hours": 0.2795,
+   "x": 0.299,
+   "subreaches": 3,
+   "basis": "reference flow",
+   "words": "Cunge (1969) at 671 m3/s: normal depth 1.16 m, top width 808.4 m, mean velocity 0.72 m/s, wave speed 1.20 m/s (Seddon, c = dQ/dy / B). K = L / c = 0.2795 h. 3 subreaches of 402 m. X = 1/2 (1 - Q / (B S c dx)) = 0.299; a subreach is stable at steps of 3.34 to 7.84 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": 1.1975602177672258,
+   "reference_flow_m3s": 670.9977864315971,
+   "x_cunge": 0.29935822502247833
+  }
+ },
+ "proposals_by_kirpich": {
+  "R1": {
+   "k_hours": 4.359,
+   "x": 0.2,
+   "subreaches": 52,
+   "basis": "travel time",
+   "words": "Kirpich: K = 4.359 h. 52 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.01 to 8.05 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R2": {
+   "k_hours": 2.0296,
+   "x": 0.2,
+   "subreaches": 24,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.0296 h. 24 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.12 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R3": {
+   "k_hours": 2.8589,
+   "x": 0.2,
+   "subreaches": 34,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.8589 h. 34 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.02 to 8.07 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R4": {
+   "k_hours": 1.8622,
+   "x": 0.2,
+   "subreaches": 22,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.8622 h. 22 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.13 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R5": {
+   "k_hours": 0.2859,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.2859 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.29 to 9.15 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R6": {
+   "k_hours": 1.0129,
+   "x": 0.2,
+   "subreaches": 12,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.0129 h. 12 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R7": {
+   "k_hours": 2.9046,
+   "x": 0.2,
+   "subreaches": 35,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.9046 h. 35 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.99 to 7.97 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "R8": {
+   "k_hours": 1.8002,
+   "x": 0.2,
+   "subreaches": 22,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.8002 h. 22 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.96 to 7.86 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R17": {
+   "k_hours": 0.3246,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3246 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.95 to 7.79 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R14": {
+   "k_hours": 0.221,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.221 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.77 to 7.07 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R18": {
+   "k_hours": 0.3684,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3684 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.21 to 8.84 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R12": {
+   "k_hours": 0.516,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.516 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.06 to 8.26 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R10": {
+   "k_hours": 0.3161,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3161 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.9 to 7.59 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R19": {
+   "k_hours": 0.3375,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3375 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.02 to 8.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R9": {
+   "k_hours": 0.2851,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.2851 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.28 to 9.12 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R8": {
+   "k_hours": 0.8263,
+   "x": 0.2,
+   "subreaches": 10,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.8263 h. 10 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.98 to 7.93 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R16": {
+   "k_hours": 0.7553,
+   "x": 0.2,
+   "subreaches": 9,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.7553 h. 9 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.01 to 8.06 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R5": {
+   "k_hours": 0.6986,
+   "x": 0.2,
+   "subreaches": 8,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.6986 h. 8 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.1 to 8.38 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R3": {
+   "k_hours": 1.4679,
+   "x": 0.2,
+   "subreaches": 18,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.4679 h. 18 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.96 to 7.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R6": {
+   "k_hours": 0.5751,
+   "x": 0.2,
+   "subreaches": 7,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5751 h. 7 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.89 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R7": {
+   "k_hours": 1.0162,
+   "x": 0.2,
+   "subreaches": 12,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.0162 h. 12 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.13 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R15": {
+   "k_hours": 0.5438,
+   "x": 0.2,
+   "subreaches": 7,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5438 h. 7 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.86 to 7.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R20": {
+   "k_hours": 0.9751,
+   "x": 0.2,
+   "subreaches": 12,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.9751 h. 12 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.95 to 7.8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R2": {
+   "k_hours": 1.8226,
+   "x": 0.2,
+   "subreaches": 22,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.8226 h. 22 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.99 to 7.95 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R1": {
+   "k_hours": 2.0983,
+   "x": 0.2,
+   "subreaches": 25,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.0983 h. 25 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.01 to 8.06 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R4": {
+   "k_hours": 1.9663,
+   "x": 0.2,
+   "subreaches": 24,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.9663 h. 24 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.87 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R13": {
+   "k_hours": 0.8488,
+   "x": 0.2,
+   "subreaches": 10,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.8488 h. 10 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.04 to 8.15 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "RIJ-R11": {
+   "k_hours": 0.0767,
+   "x": 0.2,
+   "subreaches": 1,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.0767 h. 1 subreach (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.84 to 7.36 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R1": {
+   "k_hours": 1.0254,
+   "x": 0.2,
+   "subreaches": 12,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.0254 h. 12 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.05 to 8.2 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R2": {
+   "k_hours": 2.1096,
+   "x": 0.2,
+   "subreaches": 25,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.1096 h. 25 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R3": {
+   "k_hours": 3.2174,
+   "x": 0.2,
+   "subreaches": 39,
+   "basis": "travel time",
+   "words": "Kirpich: K = 3.2174 h. 39 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.98 to 7.92 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R4": {
+   "k_hours": 2.5464,
+   "x": 0.2,
+   "subreaches": 31,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.5464 h. 31 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.89 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R5": {
+   "k_hours": 2.6983,
+   "x": 0.2,
+   "subreaches": 32,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.6983 h. 32 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.02 to 8.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "HAT-R6": {
+   "k_hours": 1.2757,
+   "x": 0.2,
+   "subreaches": 15,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.2757 h. 15 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.04 to 8.16 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R5": {
+   "k_hours": 0.4415,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4415 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.12 to 8.48 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R4": {
+   "k_hours": 0.3259,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3259 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.96 to 7.82 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R6": {
+   "k_hours": 0.4455,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4455 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.14 to 8.55 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R1": {
+   "k_hours": 2.8984,
+   "x": 0.2,
+   "subreaches": 35,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.8984 h. 35 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.99 to 7.95 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R2": {
+   "k_hours": 2.3036,
+   "x": 0.2,
+   "subreaches": 28,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.3036 h. 28 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.9 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FIZ-R3": {
+   "k_hours": 0.7756,
+   "x": 0.2,
+   "subreaches": 9,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.7756 h. 9 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.07 to 8.27 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FAY-R3": {
+   "k_hours": 0.5697,
+   "x": 0.2,
+   "subreaches": 7,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5697 h. 7 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.95 to 7.81 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FAY-R1": {
+   "k_hours": 3.2387,
+   "x": 0.2,
+   "subreaches": 39,
+   "basis": "travel time",
+   "words": "Kirpich: K = 3.2387 h. 39 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.99 to 7.97 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FAY-R2": {
+   "k_hours": 1.0809,
+   "x": 0.2,
+   "subreaches": 13,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.0809 h. 13 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2 to 7.98 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "FAY-R4": {
+   "k_hours": 0.3945,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3945 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.89 to 7.57 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R23": {
+   "k_hours": 0.8196,
+   "x": 0.2,
+   "subreaches": 10,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.8196 h. 10 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.87 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R18": {
+   "k_hours": 0.6566,
+   "x": 0.2,
+   "subreaches": 8,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.6566 h. 8 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.97 to 7.88 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R25": {
+   "k_hours": 0.5226,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5226 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.09 to 8.36 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R17": {
+   "k_hours": 0.4643,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4643 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.86 to 7.43 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R16": {
+   "k_hours": 0.5055,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5055 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.02 to 8.09 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R15": {
+   "k_hours": 0.4265,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4265 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.05 to 8.19 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R19": {
+   "k_hours": 0.4221,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4221 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.03 to 8.1 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R14": {
+   "k_hours": 0.4942,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4942 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.98 to 7.91 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R13": {
+   "k_hours": 0.3606,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3606 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.16 to 8.65 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R22": {
+   "k_hours": 0.3166,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3166 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.9 to 7.6 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R24": {
+   "k_hours": 0.1543,
+   "x": 0.2,
+   "subreaches": 2,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.1543 h. 2 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.85 to 7.41 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R12": {
+   "k_hours": 0.4169,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4169 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2 to 8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R21": {
+   "k_hours": 0.2597,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.2597 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.08 to 8.31 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R26": {
+   "k_hours": 0.2501,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.2501 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2 to 8 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R10": {
+   "k_hours": 0.3194,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.3194 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.92 to 7.67 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R20": {
+   "k_hours": 0.2645,
+   "x": 0.2,
+   "subreaches": 3,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.2645 h. 3 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.12 to 8.46 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R27": {
+   "k_hours": 0.9787,
+   "x": 0.2,
+   "subreaches": 12,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.9787 h. 12 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.96 to 7.83 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R9": {
+   "k_hours": 0.6021,
+   "x": 0.2,
+   "subreaches": 7,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.6021 h. 7 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.06 to 8.26 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R7": {
+   "k_hours": 0.4757,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4757 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.9 to 7.61 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R4": {
+   "k_hours": 0.32,
+   "x": 0.2,
+   "subreaches": 4,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.32 h. 4 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.92 to 7.68 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R5": {
+   "k_hours": 0.5107,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5107 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.04 to 8.17 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R11": {
+   "k_hours": 0.5031,
+   "x": 0.2,
+   "subreaches": 6,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.5031 h. 6 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.01 to 8.05 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R2": {
+   "k_hours": 1.1929,
+   "x": 0.2,
+   "subreaches": 14,
+   "basis": "travel time",
+   "words": "Kirpich: K = 1.1929 h. 14 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.04 to 8.18 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R1": {
+   "k_hours": 2.2068,
+   "x": 0.2,
+   "subreaches": 26,
+   "basis": "travel time",
+   "words": "Kirpich: K = 2.2068 h. 26 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.04 to 8.15 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R3": {
+   "k_hours": 0.6616,
+   "x": 0.2,
+   "subreaches": 8,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.6616 h. 8 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 1.98 to 7.94 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R6": {
+   "k_hours": 0.4395,
+   "x": 0.2,
+   "subreaches": 5,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.4395 h. 5 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.11 to 8.44 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  },
+  "BID-R8": {
+   "k_hours": 0.6156,
+   "x": 0.2,
+   "subreaches": 7,
+   "basis": "travel time",
+   "words": "Kirpich: K = 0.6156 h. 7 subreaches (K over the 5 min step). X = 0.2, a default and not a property of this reach: 0.0 (most attenuation) to 0.5 (none) is the range (EM 1110-2-1417, 9-3c), mild slopes with overbank flow nearer 0.0, steep well defined channels nearer 0.5; a subreach is stable at steps of 2.11 to 8.44 min (2KX to 2K(1-X)).",
+   "stable": true,
+   "celerity_ms": null,
+   "reference_flow_m3s": null,
+   "x_cunge": null
+  }
+ },
+ "sensitivity_200yr": {
+  "X = 0.1": {
+   "Z4C": {
+    "peak_percent": -2.2595264133833726,
+    "time_min": 0.0
+   },
+   "R2A": {
+    "peak_percent": 3.5203042523871186,
+    "time_min": -19.99999999999993
+   },
+   "Faydh 01": {
+    "peak_percent": -0.5937401836923595,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 2.8143570272622265,
+    "time_min": -30.0
+   },
+   "J2": {
+    "peak_percent": -1.7933636044914714,
+    "time_min": 0.0
+   },
+   "J13": {
+    "peak_percent": -0.7054060347820079,
+    "time_min": -9.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": 9.686615843245727,
+    "time_min": -30.0
+   },
+   "FIZ-J1": {
+    "peak_percent": -1.1101266814287025,
+    "time_min": -15.0
+   },
+   "FAY-J3": {
+    "peak_percent": 14.24460262504521,
+    "time_min": -75.0
+   }
+  },
+  "X = 0.2": {
+   "Z4C": {
+    "peak_percent": -1.4882694613659542,
+    "time_min": 0.0
+   },
+   "R2A": {
+    "peak_percent": 3.7968337191864654,
+    "time_min": -19.99999999999993
+   },
+   "Faydh 01": {
+    "peak_percent": -0.4025764077351668,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 2.909671091213273,
+    "time_min": -30.0
+   },
+   "J2": {
+    "peak_percent": -1.2168510067835259,
+    "time_min": 0.0
+   },
+   "J13": {
+    "peak_percent": -0.28151042592222675,
+    "time_min": -9.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": 10.49437732112497,
+    "time_min": -30.0
+   },
+   "FIZ-J1": {
+    "peak_percent": 0.051095497038677884,
+    "time_min": -15.0
+   },
+   "FAY-J3": {
+    "peak_percent": 15.81691945594821,
+    "time_min": -69.99999999999986
+   }
+  },
+  "X = 0.3": {
+   "Z4C": {
+    "peak_percent": -0.6836622239721257,
+    "time_min": 0.0
+   },
+   "R2A": {
+    "peak_percent": 4.084333598701173,
+    "time_min": -19.99999999999993
+   },
+   "Faydh 01": {
+    "peak_percent": -0.20443201930142596,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 3.1002642625571175,
+    "time_min": -24.999999999999964
+   },
+   "J2": {
+    "peak_percent": -0.6215910583193485,
+    "time_min": 0.0
+   },
+   "J13": {
+    "peak_percent": 0.18977758732801053,
+    "time_min": -9.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": 11.293637039201855,
+    "time_min": -30.0
+   },
+   "FIZ-J1": {
+    "peak_percent": 1.3031874746644023,
+    "time_min": -15.0
+   },
+   "FAY-J3": {
+    "peak_percent": 17.68588092727135,
+    "time_min": -64.99999999999993
+   }
+  },
+  "K x 0.7": {
+   "Z4C": {
+    "peak_percent": 2.887660961464378,
+    "time_min": -30.0
+   },
+   "R2A": {
+    "peak_percent": 11.889979605428858,
+    "time_min": -30.0
+   },
+   "Faydh 01": {
+    "peak_percent": 1.40691816431191,
+    "time_min": -5.0000000000000355
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": 18.74161313577083,
+    "time_min": -45.0
+   },
+   "J2": {
+    "peak_percent": 1.8327003496026117,
+    "time_min": -19.99999999999993
+   },
+   "J13": {
+    "peak_percent": 10.486639057414425,
+    "time_min": -24.999999999999964
+   },
+   "RIJ-J2": {
+    "peak_percent": 13.657098301788807,
+    "time_min": -69.99999999999986
+   },
+   "FIZ-J1": {
+    "peak_percent": 9.715184701726166,
+    "time_min": -69.99999999999986
+   },
+   "FAY-J3": {
+    "peak_percent": 47.61410247545284,
+    "time_min": -165.0
+   }
+  },
+  "K x 1.3": {
+   "Z4C": {
+    "peak_percent": -3.897590511263882,
+    "time_min": 30.0
+   },
+   "R2A": {
+    "peak_percent": -3.1890102278989696,
+    "time_min": -4.999999999999929
+   },
+   "Faydh 01": {
+    "peak_percent": -1.293393197767323,
+    "time_min": 0.0
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": -8.507841630008139,
+    "time_min": -60.0
+   },
+   "J2": {
+    "peak_percent": -3.289945712007969,
+    "time_min": 25.00000000000007
+   },
+   "J13": {
+    "peak_percent": -8.25064419877889,
+    "time_min": 20.000000000000036
+   },
+   "RIJ-J2": {
+    "peak_percent": 11.12182494911027,
+    "time_min": 10.000000000000071
+   },
+   "FIZ-J1": {
+    "peak_percent": -4.0994518211670545,
+    "time_min": 45.0
+   },
+   "FAY-J3": {
+    "peak_percent": -0.9610195212236161,
+    "time_min": 50.00000000000014
+   }
+  },
+  "K, X at half the peak": {
+   "Z4C": {
+    "peak_percent": -3.0790374603299697,
+    "time_min": 25.00000000000007
+   },
+   "R2A": {
+    "peak_percent": -1.9382146461283556,
+    "time_min": -4.999999999999929
+   },
+   "Faydh 01": {
+    "peak_percent": -1.0455778657992187,
+    "time_min": 0.0
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": -7.047420267730242,
+    "time_min": -64.99999999999993
+   },
+   "J2": {
+    "peak_percent": -2.578971718118994,
+    "time_min": 20.000000000000036
+   },
+   "J13": {
+    "peak_percent": -7.104276889464256,
+    "time_min": 15.0
+   },
+   "RIJ-J2": {
+    "peak_percent": 10.911362572676309,
+    "time_min": 5.000000000000142
+   },
+   "FIZ-J1": {
+    "peak_percent": -3.1282448485199454,
+    "time_min": 45.0
+   },
+   "FAY-J3": {
+    "peak_percent": -1.3029265653026423,
+    "time_min": 55.00000000000007
+   }
+  },
+  "K by Kirpich, X 0.2": {
+   "Z4C": {
+    "peak_percent": -32.22423251079244,
+    "time_min": 275.00000000000006
+   },
+   "R2A": {
+    "peak_percent": -29.533268777651344,
+    "time_min": -45.0
+   },
+   "Faydh 01": {
+    "peak_percent": -21.349773044905252,
+    "time_min": 35.000000000000036
+   },
+   "Bidah 03": {
+    "peak_percent": 0.0,
+    "time_min": 0.0
+   },
+   "R5A": {
+    "peak_percent": -33.953384965153056,
+    "time_min": 20.000000000000036
+   },
+   "J2": {
+    "peak_percent": -29.62476113752539,
+    "time_min": 180.0000000000001
+   },
+   "J13": {
+    "peak_percent": -30.432689955046477,
+    "time_min": 125.00000000000003
+   },
+   "RIJ-J2": {
+    "peak_percent": 2.8909246126507027,
+    "time_min": 150.0
+   },
+   "FIZ-J1": {
+    "peak_percent": -35.83516280168087,
+    "time_min": 350.0000000000001
+   },
+   "FAY-J3": {
+    "peak_percent": -36.782758373561684,
+    "time_min": 320.0000000000001
+   }
+  }
+ },
+ "seconds": 1.062000000034459,
+ "microseconds_per_route_R1": {
+  "muskingum_cunge": 4550.240500248037,
+  "muskingum": 11.985500459559262
+ }
+}

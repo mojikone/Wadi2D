@@ -638,9 +638,11 @@ def smoke() -> None:
     layers = {child.name(): child.layer() for child in node.children()}
     depth_renderer = layers["max_depth"].renderer()
     check(depth_renderer.type() == "singlebandpseudocolor", "depth styled")
-    items = depth_renderer.shader().rasterShaderFunction().colorRampItemList()
-    check(
-        items[0].color.alpha() == 0 and items[-1].color.blue() > items[-1].color.red(),
+    shader = depth_renderer.shader().rasterShaderFunction()
+    items = shader.colorRampItemList()
+    check(  # W88: under the display cutoff nothing is drawn; with none the ramp fades from transparent
+        ((shader.clip() and items[0].value > 0.0) or items[0].color.alpha() == 0)
+        and items[-1].color.blue() > items[-1].color.red(),
         "ramp is transparent blue",
     )
     ramp = layers["hazard"].renderer().shader().rasterShaderFunction()
@@ -778,6 +780,7 @@ def smoke() -> None:
     check(job["hydrology"]["reach_routing"] == "conserving", "the conserving reach routing survives the HMS merge")
     routing.setCurrentIndex(routing.findData("hms"))
     check(job["run"]["duration_s"] == 7200.0, "the HMS control file sets the simulated time")
+    muskingum_smoke(dock, hms)
 
     study_smoke(dock)
 
@@ -788,6 +791,56 @@ def smoke() -> None:
     check(not dock.panel.run_button.isEnabled(), "no engine, no Run")
 
     second.unload()
+
+
+def muskingum_smoke(dock, hms: Path) -> None:
+    """W89: the reach table under the Muskingum choice, the proposal button through the process wrapper, the job."""
+    section, routing = dock.hydrology, dock.hydrology.routing
+    box = section.muskingum
+    check(box.isHidden(), "no reach table under another reach routing")
+    basin = "Basin: B\n\nSubbasin: S1\nEnd:\n\nSubbasin: S2\nEnd:\n\nReach: R1\nEnd:\n\nReach: R_none\nEnd:\n"
+    (hms / "B2.basin").write_text(basin, "utf-8")
+    section.folder.setFilePath("")
+    section.folder.setFilePath(str(hms))
+    section.files["basin"].setCurrentText("B2.basin")
+    routing.setCurrentIndex(routing.findData("muskingum"))
+    check(not box.isHidden(), "the reach table shows under Muskingum")
+    check([row.name for row in box.rows] == ["R1", "R_none"], "with the reaches of the HMS basin file")
+    check(dock._collect()["muskingum"] == [], "no K and X in the job until one is typed or proposed")
+    check("0 of 2 reaches have K and X" in box.note.text() and "A run stops" in box.note.text(), "and the note says so")
+    box.table.item(0, 1).setText("800")
+    check(box.rows[0].flow == 800.0, "a reference flow typed into the table")
+    box.velocity.setValue(2.0)
+    box.button.click()
+    pump(lambda: box.button.isEnabled() and box.rows[0].proposed, what="the proposal")
+    first, second = box.rows
+    check((first.k_hours, first.x, first.subreaches) == (1.5, 0.25, 18), "the proposal fills K, X and subreaches")
+    check("at 800.0 m3/s" in first.words and "--velocity 2.0" in first.words, "asked at the user's flow and velocity")
+    check(f"--control {hms / 'C.control'}" in first.words, "and at the step of the HMS control file")
+    check(box.table.item(0, 2).font().italic() and box.table.item(0, 5).text() == first.words, "shown as a proposal, with its derivation")
+    check(second.empty() and second.words.startswith("No proposal"), "a reach with nothing to propose from stays empty")
+    check("1 proposed" in box.note.text() and "A proposal is a start" in box.note.text(), "the note says what was done")
+    box.table.item(1, 2).setText("0.4")
+    box.table.item(1, 3).setText("0.6")
+    check("X: between 0 and 0.5" in box.table.item(1, 5).text(), "a number HMS does not take is named in the row")
+    box.table.item(1, 3).setText("0.1")
+    box.table.item(0, 3).setText("0.3")
+    check(not box.table.item(0, 2).font().italic() and first.words == "Typed here.", "an edit makes a proposal the user's")
+    box.button.click()
+    pump(lambda: box.button.isEnabled() and "kept as typed" in box.note.text(), what="the second proposal")
+    check(first.x == 0.3 and second.k_hours == 0.4, "a second proposal overwrites nothing typed")
+    start(dock)
+    run_dir = dock.run.out_dir
+    finished_run(dock)
+    hydrology = json.loads((run_dir / "job.json").read_text(encoding="utf-8"))["hydrology"]
+    wanted = [
+        {"reach": "R1", "k_hours": 1.5, "x": 0.3, "subreaches": 18},
+        {"reach": "R_none", "k_hours": 0.4, "x": 0.1, "subreaches": 1},
+    ]
+    check(hydrology["reach_routing"] == "muskingum" and hydrology["muskingum"] == wanted, "the table's rows are the job's")
+    routing.setCurrentIndex(routing.findData("hms"))
+    check(box.isHidden() and "muskingum" not in dock._collect(), "another choice hides the table and leaves the rows out")
+    section.files["basin"].setCurrentText("B.basin")
 
 
 def study_smoke(dock) -> None:

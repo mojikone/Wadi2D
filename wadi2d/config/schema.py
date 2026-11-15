@@ -1097,6 +1097,12 @@ class Inflow(_Part):
     )
     times_s: list[float] | None = Field(None, description="Table times, s")
     flows: list[float] | None = Field(None, description="Table discharges, m3/s")
+    enters: bool = Field(
+        True,
+        description="False: the element's water leaves the model there, as at an HMS sink, and nothing enters the grid; "
+        "its series is written and the lumped subbasins above it count as carried (hydrology.lumped_entry 'network' "
+        "writes it at an outlet of the network, W88)",
+    )
 
     @model_validator(mode="after")
     def _source(self) -> Inflow:
@@ -1105,6 +1111,8 @@ class Inflow(_Part):
             raise ValueError(f"inflow {self.name} needs either element or times_s and flows")
         if table and len(self.times_s) != len(self.flows):
             raise ValueError(f"inflow {self.name}: one flow per time")
+        if not self.enters and self.element is None:
+            raise ValueError(f"inflow {self.name}: only an element's water can leave the model instead of entering")
         return self
 
 
@@ -1129,8 +1137,31 @@ class Handback(_Part):
     )
 
 
-REACH_HMS, REACH_CONSERVING = "hms", "conserving"
-ReachRouting = Literal["hms", "conserving"]
+REACH_HMS, REACH_CONSERVING, REACH_MUSKINGUM = "hms", "conserving", "muskingum"
+ReachRouting = Literal["hms", "conserving", "muskingum"]
+
+
+class MuskingumReach(_Part):
+    """K, X and the number of subreaches of one reach routed by Muskingum (W89)."""
+
+    reach: str = Field(description="The reach's name in the HMS basin file or in basin.json")
+    k_hours: float = Field(gt=0.0, le=1000.0, description="Muskingum K, the travel time of the flood wave, hours")
+    x: float = Field(
+        ge=0.0,
+        le=0.5,
+        description="Muskingum X: 0 is the most attenuation, 0.5 none. HEC-HMS takes 0 to 0.5",
+    )
+    subreaches: int = Field(
+        1,
+        ge=1,
+        le=10000,
+        description="Equal parts the reach is routed in, each with K / subreaches and the same X; about K over the "
+        "lumped step. A part is stable while 2KX <= step <= 2K(1-X); outside it the run warns and routes as given, "
+        "as HEC-HMS does",
+    )
+
+
+LUMPED_AT_OUTLETS, LUMPED_ON_NETWORK = "outlet", "network"
 
 
 class Hydrology(_Part):
@@ -1143,7 +1174,31 @@ class Hydrology(_Part):
         "4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to "
         "1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter "
         "scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and "
-        "sub-steps",
+        "sub-steps. 'muskingum' routes every such reach by Muskingum, as HEC-HMS 4.12 computes it, with the K, X and "
+        "subreaches of hydrology.muskingum: constant numbers, right at the flood they were set for and drifting from "
+        "Muskingum-Cunge as the flood grows or shrinks (W89). A reach with no K and X stops an HMS run by name, and "
+        "on a generated basin leaves the reach out, its water running on the 2D grid. A reach the HMS file already "
+        "routes by Muskingum keeps that method under any of the three",
+    )
+    muskingum: list[MuskingumReach] = Field(
+        [],
+        description="K, X and subreaches by reach, for reach_routing 'muskingum'. 'wadi2d muskingum' proposes them "
+        "from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written "
+        "here",
+    )
+    lumped_entry: Literal["outlet", "network"] = Field(
+        LUMPED_AT_OUTLETS,
+        description="Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, "
+        "the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only "
+        "lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that "
+        "element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in "
+        "HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88)",
+    )
+    arf_by_element: bool = Field(
+        False,
+        description="A lumped-only run (run.lumped_only): every element of the network read at the area-reduction "
+        "table of its own drainage area, HMS's depth-area analysis: its sub-network run again with the storm area "
+        "set to that area. Needs storm.arf; refused on a run with a 2D part, where one rain falls on the grid (W88)",
     )
     hms_project: str | None = Field(
         None, description="The .hms file, for paired tables; None takes the one beside the basin file"
@@ -1205,6 +1260,19 @@ class Hydrology(_Part):
             raise ValueError("hand-back names must differ: results are kept by name")
         if self.basin_json is not None and self.hms_basin is not None:
             raise ValueError("one lumped network per job: hydrology.basin_json or hydrology.hms_basin, not both")
+        reaches = [m.reach for m in self.muskingum]
+        if len(set(reaches)) != len(reaches):
+            raise ValueError("hydrology.muskingum names a reach twice")
+        if reaches and self.reach_routing != REACH_MUSKINGUM:
+            raise ValueError(
+                f"hydrology.muskingum gives K and X for {reaches} but hydrology.reach_routing is "
+                f"{self.reach_routing!r}: set it to {REACH_MUSKINGUM!r}, or the numbers would be ignored"
+            )
+        if self.basin_json is not None and self.lumped_entry == LUMPED_ON_NETWORK:
+            raise ValueError(
+                "hydrology.lumped_entry 'network' is for an HMS basin: a generated basin's lumped water already follows "
+                "its reaches where they are defined and enters at the junctions where they are not"
+            )
         return self
 
 
@@ -1302,6 +1370,12 @@ class Run(_Part):
     )
     estimate_overhead: float = Field(
         1.5, ge=1.0, le=10.0, description="Real step cost over the flat-bed probe; Block 2 at 20 m gave 1.5"
+    )
+    lumped_only: bool = Field(
+        False,
+        description="Run the lumped network alone, the HMS way: no grid, no tables, no 2D solver; every element's "
+        "inflow and outflow written as a series, the network as map layers. A run whose domain lies wholly under "
+        "catchments left out of the mesh runs this way too (W88)",
     )
 
 
@@ -1628,6 +1702,15 @@ class RunConfig(_Part):
     run: Run = Run()
     arf: ArfStudy = ArfStudy()
     basin: BasinSettings = BasinSettings()
+
+    @model_validator(mode="after")
+    def _by_element(self) -> RunConfig:
+        if self.hydrology.arf_by_element and (self.storm.arf is None or self.storm.arf_factor is not None):
+            raise ValueError(
+                "hydrology.arf_by_element reads the area-reduction table at each element's own area: that needs "
+                "storm.arf, and no storm.arf_factor"
+            )
+        return self
 
     @model_validator(mode="after")
     def _own_storm_areas(self) -> RunConfig:

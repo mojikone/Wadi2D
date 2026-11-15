@@ -195,6 +195,7 @@ def open_strip_mesh(run: Path | str) -> list:
     for name, title, styler in (
         (STRIP_FACES_LAYER, "Corridor faces: on a bank (red), the join (orange)", style.style_strip_faces),
         (STRIP_CELLS_LAYER, "Corridor cells, aligned with the banks", style.style_strip_cells),
+        (STRIP_CELLS_LAYER, STRIP_DEPTH_TITLE, style.style_strip_depth),
     ):
         layer = QgsVectorLayer(f"{path}|layername={name}", title, "ogr", options)
         if layer.isValid() and layer.featureCount() > 0:
@@ -203,13 +204,19 @@ def open_strip_mesh(run: Path | str) -> list:
     return out
 
 
+STRIP_DEPTH_TITLE = "Aligned cells: maximum depth, m"
+"""The aligned cells filled by their own maximum depth, the cutoff applied (W88); off, since the pixel depth covers
+them where the pixel maps were made."""
+
+
 def load_strip_mesh(run: Path | str, group_name: str = "") -> list:
-    """Under Model setup beside the cell grid: the corridors a run stepped, their cells and faces."""
+    """Under Model setup beside the cell grid: the corridors a run stepped, their cells and faces, and the cells by
+    their maximum depth, off."""
     layers = open_strip_mesh(run)
     if not layers:
         return []
     setup = subgroup(run_results(run, group_name), GROUP_SETUP, 0)
-    _add(setup, layers, tuple(layers))
+    _add(setup, layers, tuple(layer for layer in layers if layer.name() != STRIP_DEPTH_TITLE))
     return layers
 
 

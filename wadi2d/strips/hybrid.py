@@ -8,8 +8,9 @@ and Green-Gauss sums, steps its own faces, limits its outflows (a real cell give
 lattice faces left it, so the books close), updates its real cells, and hands each ghost's net outflow to the tile
 update as a source term; ``after_update`` restores the sources and writes each interface's discharge and velocity
 into the tile's closed face on that edge, own slot and halo copies, so the next tile step's momentum stencil sees
-the flow the strip carries across. One global time step: the smaller of the tile rule and the strip's. Tiles that
-hold a ghost are always stepped.
+the flow the strip carries across. One global time step: the smaller of the tile rule and the strip's. A tile that
+holds a ghost is stepped while water, the strip's or the squares', can reach it before the next check of the active
+list (W90, :mod:`wadi2d.strips.watch`); the strip itself is stepped whole.
 
 What a ghost's lattice faces add [Likely the right form; measured by the stage gate]: the Perot sum of a square from its
 four face discharges, the Green-Gauss gradient from its open wet faces' level differences, and the advection rate from its four lattice
@@ -147,12 +148,43 @@ class Hybrid:
         b = model.backend
         b.hooks = self
         tiles = np.unique(self.ghost // STRIDE2)
-        model.stepper.keep_active[tiles] = True
-        model.stepper.pinned[tiles] = True  # a ghost's tile steps whatever the water does, or the join would leak
+        model.stepper.pinned[tiles] = True  # a ghost's tile takes every smallest step while it is awake
+        self.watch = None
+        """Which tiles the strip's water can reach between two checks (W90); None on a quadtree, whose ghost tiles
+        stay awake."""
+        if getattr(grid, "quad", False):
+            model.stepper.keep_active[tiles] = True
+            self.always = tiles
+            model.stepper.wake_rules.append(self._ghost_tiles)
+        else:
+            from wadi2d.strips.watch import build_watch
+
+            self.watch = build_watch(mesh, grid, *self.cells_of(self.ghost), model.stepper.check_period())
+            model.stepper.wake_rules.append(self.tiles_to_wake)
         model.stepper.rebuild_active(retain=True)
 
     def make_state(self):
         raise NotImplementedError
+
+    def _ghost_tiles(self, wet: np.ndarray) -> np.ndarray:
+        """The wake rule of a quadtree: every tile that holds a ghost and its neighbours, as before W90."""
+        out = np.zeros(wet.size, bool)
+        out[self.always] = True
+        out[self.model.grid.nbr[self.always].ravel()] = True
+        return out
+
+    def tiles_to_wake(self, wet: np.ndarray) -> np.ndarray:
+        """The stepper's wake rule: the tiles water can reach through the strip before the next check, from the
+        tiles whose squares hold water or a source (``wet``) and from the strip's own wet cells."""
+        return self.watch.tiles_to_wake(wet, self.strip_flags())
+
+    def strip_flags(self) -> np.ndarray:
+        """Per tile whether a strip cell with its centre there holds water or a source, on the host."""
+        raise NotImplementedError
+
+    def strip_changed(self) -> None:
+        """The strip's water or sources were set from outside the step: wake what they can reach."""
+        self.model.stepper.rebuild_active(retain=True)
 
     def _edges(self, mesh: PolyMesh, grid) -> None:
         """Each interface face's closed tile face: its state slot, the sign between the strip's normal and the
@@ -380,7 +412,7 @@ class Hybrid:
             self.put(name, group[name][()])
         self.put_maxima({name: group[name][()] for name in ("max_d", "max_h", "max_q", "max_s", "max_dv")})
         self.put_ghost_outflow(group["ghost_outflow"][()])
-        self.model.stepper.refresh_due = True
+        self.model.stepper.refresh_due = True  # the loader makes the active list afresh once every part is back
 
     def put(self, name: str, values: np.ndarray) -> None:
         raise NotImplementedError
@@ -460,12 +492,20 @@ class HybridCpu(Hybrid):
         self.left_ghost[:] = np.asarray(values, np.float64)
         self.left_m3 = float(self.left_ghost.sum())
 
+    def strip_flags(self) -> np.ndarray:
+        from wadi2d.strips.watch import home_flags
+
+        s, n = self.state, self.nreal
+        return home_flags(np, s.h[:n], s.src[:n], self.watch.home, self.model.grid.ntiles)
+
     def set_strip_depth(self, hbar: np.ndarray) -> None:
         s, n = self.state, self.nreal
         s.h[:n], s.d[:n], s.om[:n] = self.strip_start(hbar)
+        self.strip_changed()
 
     def set_strip_source(self, rate: np.ndarray) -> None:
         self.state.src[: self.nreal] = np.asarray(rate, F)
+        self.strip_changed()
 
     def before_update(self, dt: float, want_wave: bool) -> None:
         b, s, n, g = self.model.backend, self.state, self.nreal, self.ghost

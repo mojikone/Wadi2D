@@ -1854,13 +1854,39 @@
         },
         "reach_routing": {
           "default": "hms",
-          "description": "Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS 4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to 1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and sub-steps",
+          "description": "Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS 4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to 1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and sub-steps. 'muskingum' routes every such reach by Muskingum, as HEC-HMS 4.12 computes it, with the K, X and subreaches of hydrology.muskingum: constant numbers, right at the flood they were set for and drifting from Muskingum-Cunge as the flood grows or shrinks (W89). A reach with no K and X stops an HMS run by name, and on a generated basin leaves the reach out, its water running on the 2D grid. A reach the HMS file already routes by Muskingum keeps that method under any of the three",
           "enum": [
             "hms",
-            "conserving"
+            "conserving",
+            "muskingum"
           ],
           "title": "Reach Routing",
           "type": "string"
+        },
+        "muskingum": {
+          "default": [],
+          "description": "K, X and subreaches by reach, for reach_routing 'muskingum'. 'wadi2d muskingum' proposes them from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written here",
+          "items": {
+            "$ref": "#/$defs/MuskingumReach"
+          },
+          "title": "Muskingum",
+          "type": "array"
+        },
+        "lumped_entry": {
+          "default": "outlet",
+          "description": "Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88)",
+          "enum": [
+            "outlet",
+            "network"
+          ],
+          "title": "Lumped Entry",
+          "type": "string"
+        },
+        "arf_by_element": {
+          "default": false,
+          "description": "A lumped-only run (run.lumped_only): every element of the network read at the area-reduction table of its own drainage area, HMS's depth-area analysis: its sub-network run again with the storm area set to that area. Needs storm.arf; refused on a run with a 2D part, where one rain falls on the grid (W88)",
+          "title": "Arf By Element",
+          "type": "boolean"
         },
         "hms_project": {
           "anyOf": [
@@ -2085,6 +2111,12 @@
           "default": null,
           "description": "Table discharges, m3/s",
           "title": "Flows"
+        },
+        "enters": {
+          "default": true,
+          "description": "False: the element's water leaves the model there, as at an HMS sink, and nothing enters the grid; its series is written and the lumped subbasins above it count as carried (hydrology.lumped_entry 'network' writes it at an outlet of the network, W88)",
+          "title": "Enters",
+          "type": "boolean"
         }
       },
       "required": [
@@ -2242,6 +2274,46 @@
         }
       },
       "title": "Mesh",
+      "type": "object"
+    },
+    "MuskingumReach": {
+      "additionalProperties": false,
+      "description": "K, X and the number of subreaches of one reach routed by Muskingum (W89).",
+      "properties": {
+        "reach": {
+          "description": "The reach's name in the HMS basin file or in basin.json",
+          "title": "Reach",
+          "type": "string"
+        },
+        "k_hours": {
+          "description": "Muskingum K, the travel time of the flood wave, hours",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "K Hours",
+          "type": "number"
+        },
+        "x": {
+          "description": "Muskingum X: 0 is the most attenuation, 0.5 none. HEC-HMS takes 0 to 0.5",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "subreaches": {
+          "default": 1,
+          "description": "Equal parts the reach is routed in, each with K / subreaches and the same X; about K over the lumped step. A part is stable while 2KX <= step <= 2K(1-X); outside it the run warns and routes as given, as HEC-HMS does",
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Subreaches",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "reach",
+        "k_hours",
+        "x"
+      ],
+      "title": "MuskingumReach",
       "type": "object"
     },
     "Numerics": {
@@ -3103,6 +3175,12 @@
           "minimum": 1.0,
           "title": "Estimate Overhead",
           "type": "number"
+        },
+        "lumped_only": {
+          "default": false,
+          "description": "Run the lumped network alone, the HMS way: no grid, no tables, no 2D solver; every element's inflow and outflow written as a series, the network as map layers. A run whose domain lies wholly under catchments left out of the mesh runs this way too (W88)",
+          "title": "Lumped Only",
+          "type": "boolean"
         }
       },
       "title": "Run",
@@ -5002,6 +5080,9 @@
       "default": {
         "hms_basin": null,
         "reach_routing": "hms",
+        "muskingum": [],
+        "lumped_entry": "outlet",
+        "arf_by_element": false,
         "hms_project": null,
         "hms_sqlite": null,
         "basin_json": null,
@@ -5167,7 +5248,8 @@
         "estimate_depth": 7.5,
         "estimate_speed": 8.0,
         "estimate_wave": 1.3,
-        "estimate_overhead": 1.5
+        "estimate_overhead": 1.5,
+        "lumped_only": false
       }
     },
     "arf": {

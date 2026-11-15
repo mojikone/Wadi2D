@@ -17,6 +17,7 @@ import pytest
 
 from tests.engine.conftest import X0, Y0, job, write_dem
 from wadi2d.hydrology.from_hms import PairedColumns, ProjectTables
+from wadi2d.hydrology.muskingum import Muskingum
 from wadi2d.hydrology.routing import MuskingumCunge
 from wadi2d.run import job_hash, load_job, prepare_grid, run_job
 
@@ -233,6 +234,75 @@ def test_the_conserving_variant_closes_through_the_hand_back_with_no_defect(tmp_
     np.testing.assert_allclose(outflow, by_hand, atol=1e-9)
     resolved = json.loads((out / "config.resolved.json").read_text(encoding="utf-8"))
     assert resolved["hydrology"]["reach_routing"] == "conserving"
+
+
+MUSKINGUM_ROW = {"reach": "R1", "k_hours": 0.25, "x": 0.2, "subreaches": 15}
+MUSKINGUM_REACH = """Reach: R1
+     Downstream: Out
+
+     Route: Muskingum
+     Initial Variable: Combined Inflow
+     Muskingum K: 0.25
+     Muskingum x: 0.2
+     Muskingum Steps: 15
+     Channel Loss: None
+End:
+
+"""
+
+
+@pytest.mark.parametrize("source", ["file", "job"])
+def test_a_muskingum_reach_carries_the_hand_back_and_the_books_close(tmp_path, source):
+    """W89. K 0.25 h in 15 subreaches at the 1 min step, as the HMS file's own reach and as the job's numbers on a
+    Muskingum-Cunge reach: the outflow is the coefficient form of the line's inflow by hand, the whole closes, and a
+    reach inside its stable range says nothing."""
+    out = tmp_path / "run"
+    own = {} if source == "file" else {"reach_routing": "muskingum", "muskingum": [MUSKINGUM_ROW]}
+    element = MUSKINGUM_REACH if source == "file" else MC_REACH
+    run = run_job(box(tmp_path, write_basin(tmp_path, element, SINK), duration=7200.0, hydrology=own), out)
+    books(run)
+    b = run.balance
+    assert b.handback > 0.9 * VOLUME
+    assert abs(b.routing_defect) < 1e-6 * VOLUME
+    line = series(out, "handbacks", "Line", "inflow_m3s")
+    outflow = series(out, "network", "R1", "outflow_m3s")
+    np.testing.assert_allclose(outflow, Muskingum(0.25, 0.2, 15).route(line, STEP_MIN), atol=1e-9)
+    assert outflow.min() >= 0.0 and 0.0 < outflow.max() < line.max()
+    events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert not [e for e in events if e["ev"] == "warn" and "Muskingum" in e["message"]]
+
+
+def test_a_muskingum_reach_outside_its_range_runs_as_hms_would_and_says_so(tmp_path):
+    """One subreach of K 0.25 h at a 1 min step is under 2KX = 6 min: HMS warns (41169) and routes it; so does a run."""
+    out = tmp_path / "run"
+    rows = [MUSKINGUM_ROW | {"subreaches": 1}]
+    cfg = box(
+        tmp_path, write_basin(tmp_path, MC_REACH, SINK), duration=60.0,
+        hydrology={"reach_routing": "muskingum", "muskingum": rows},
+    )
+    assert run_job(cfg, out).exit_code == 0
+    events = [json.loads(s) for s in (out / "progress.jsonl").read_text(encoding="utf-8").splitlines()]
+    (note,) = [e["message"] for e in events if e["ev"] == "warn" and "Muskingum" in e["message"]]
+    assert note.startswith("reach R1: Muskingum routing is unstable") and "6 to 24 subreaches are stable" in note
+
+
+def test_muskingum_with_no_k_and_x_stops_the_run_by_name(tmp_path):
+    cfg = box(tmp_path, write_basin(tmp_path, MC_REACH, SINK), duration=60.0, hydrology={"reach_routing": "muskingum"})
+    run = run_job(cfg, tmp_path / "run")
+    assert run.exit_code != 0 and "no K and X for ['R1']" in run.message
+
+
+def test_a_job_without_muskingum_keeps_the_hash_it_had_before_it(tmp_path):
+    dem = plane(tmp_path)
+    path = tmp_path / "old.json"
+    plain = job(dem, NX, NY, DX, run={"duration_s": 60.0, "backend": "cpu"})
+    path.write_text(plain.model_dump_json(exclude={"hydrology": {"muskingum"}}), encoding="utf-8")
+    assert "muskingum" not in json.loads(path.read_text(encoding="utf-8"))["hydrology"]
+    assert job_hash(load_job(path)) == job_hash(plain)
+    asked = plain.hydrology.model_copy(update={"reach_routing": "muskingum"})
+    rows = asked.model_validate({**asked.model_dump(), "muskingum": [MUSKINGUM_ROW]})
+    hashes = {job_hash(plain.model_copy(update={"hydrology": h})) for h in (plain.hydrology, asked, rows)}
+    assert len(hashes) == 3
 
 
 def test_a_reservoir_in_the_network_below(tmp_path, monkeypatch):

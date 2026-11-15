@@ -82,7 +82,19 @@ class CpuBackend:
         for a in arrays:
             kernels.exchange(self.active, self.slot, self.src_map, self.nhalo, a)
 
+    def refresh_plan(self, tiles: np.ndarray) -> None:
+        """The wet share of these tiles' cells by the kernel's own arithmetic (W90: tiles that wake)."""
+        if tiles.size:
+            kernels.plan(tiles.astype(np.int32), self.om, self.Hc, self.dtab, self.h, self.rows)
+
+    def refresh_halos(self) -> None:
+        """Every halo of the active tiles, as the end of a uniform step leaves them (W90: after tiles woke)."""
+        if self.nact:
+            self._exch(self.h, self.d, self.qx, self.qy, self.u, self.v, self.om)
+
     def step(self, dt: float, want_wave: bool, want_wet: bool) -> None:
+        if want_wave:
+            self.wave[:] = 0.0  # as the GPU: a tile off the list has no wave
         if self.nact == 0:
             return
         dtf = np.float32(dt)

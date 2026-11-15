@@ -138,8 +138,15 @@ def setup_notes(facts: RunFacts) -> str:
     return "\n\n".join(parts)
 
 
-def depth_notes(facts: RunFacts) -> str:
-    parts = []
+def cutoff_note(cutoff: float) -> str:
+    """What the depth sheet leaves undrawn (W88); nothing when it draws every wet pixel."""
+    if cutoff <= 0.0:
+        return ""
+    return f"Depth under {cutoff:g} m is not drawn; the rasters of record keep it."
+
+
+def depth_notes(facts: RunFacts, cutoff: float = 0.0) -> str:
+    parts = [cutoff_note(cutoff)] if cutoff > 0.0 else []
     if facts.peaks:
         lines = "\n".join(f"{name}: {flow:,.0f} m3/s at hour {hour:.1f}" for name, flow, hour in facts.peaks)
         parts.append(f"Peak flow at the design lines\n\n{lines}")

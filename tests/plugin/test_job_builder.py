@@ -72,6 +72,19 @@ def test_leaving_the_carried_catchments_out_reaches_the_job_only_when_ticked(tmp
     assert build_job(values(tmp_path, exclude_lumped=True), tmp_path / "out")["grid"]["exclude_lumped"] is True
 
 
+def test_the_hms_way_choices_reach_the_job_only_when_made(tmp_path: Path) -> None:
+    """W88: the outlets are the engine's default, so only the network choice is written; per-element ARF only on a
+    lumped-only run; and the dock's choices win over the HMS import's job."""
+    plain = build_job(values(tmp_path, lumped_entry="outlet", lumped_only=False, arf_by_element=True), tmp_path / "o")
+    assert "lumped_entry" not in plain["hydrology"] and "lumped_only" not in plain["run"]
+    assert "arf_by_element" not in plain["hydrology"]
+    job = build_job(values(tmp_path, lumped_entry="network", lumped_only=True, arf_by_element=True), tmp_path / "o")
+    assert job["hydrology"]["lumped_entry"] == "network" and job["hydrology"]["arf_by_element"] is True
+    assert job["run"]["lumped_only"] is True
+    merged = merge_hms(job, {"run": {"duration_s": 7200.0}, "hydrology": {"lumped_entry": "outlet"}}, {"modes": {}})
+    assert merged["hydrology"]["lumped_entry"] == "network" and merged["run"]["lumped_only"] is True
+
+
 def test_the_engine_choice_survives_the_hms_merge(tmp_path: Path) -> None:
     job = build_job(values(tmp_path, hms={"folder": "x"}, backend="cpu"), tmp_path / "out")
     merged = merge_hms(job, {"run": {"duration_s": 7200.0}, "hydrology": {}}, {"modes": {}})

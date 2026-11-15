@@ -1,0 +1,6 @@
+tests/strips/test_hybrid.py :: exit 0 :: 4 passed, 1 warning in 47.79s
+tests/strips/test_hybrid_gpu.py :: exit 0 :: 4 passed, 1 warning in 28.02s
+tests/engine/test_strips_run.py :: exit 0 :: 15 passed, 1 warning in 85.65s (0:01:25)
+tests/engine/test_breach_strips.py :: exit 0 :: 7 passed, 1 warning in 29.52s
+tests/engine/test_resume_exact.py :: exit 0 :: 2 passed, 1 warning in 23.38s
+done

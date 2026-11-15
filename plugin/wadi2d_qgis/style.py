@@ -14,6 +14,7 @@ from qgis.core import (
     QgsColorRampShader,
     QgsFillSymbol,
     QgsGraduatedSymbolRenderer,
+    QgsLinePatternFillSymbolLayer,
     QgsLineSymbol,
     QgsMarkerSymbol,
     QgsMeshDatasetIndex,
@@ -66,8 +67,78 @@ CHANGE_STOPS = (  # change in the ground m, then red, green, blue, alpha; untouc
     (0.01, (240, 205, 150, 170)),
     (5.0, (150, 75, 20, 235)),
 )
+DEPTH_CUTOFF_M = 0.05
+"""Depth below which no depth layer draws a cell or a pixel (W88: a rain-on-grid map painted every cell wet). A
+display choice: the rasters keep their values; the dock's Run section sets it, saved per user."""
+DEPTH_CUTOFF_MAX_M = 1.0
 MAP_ORDER = ("max_depth", "hazard", "max_speed", "max_level", "arrival", "max_mean_depth")
 """Layer order inside a run's group, top first; only the first is switched on."""
+
+
+def depth_cutoff() -> float:
+    """The cutoff in force: the user's, else :data:`DEPTH_CUTOFF_M`."""
+    from .settings import depth_cutoff as saved
+
+    return saved()
+
+
+def cut_items(items: list, cutoff: float) -> list:
+    """A depth ramp that starts at ``cutoff``: the colour there read off the ramp, nothing below it. 0 is the ramp."""
+    if cutoff <= 0.0 or cutoff <= items[0].value:
+        return items
+    above = [item for item in items if item.value > cutoff]
+    below = [item for item in items if item.value <= cutoff][-1]
+    if not above:
+        return [QgsColorRampShader.ColorRampItem(cutoff, below.color, f"{cutoff:g} m")]
+    nxt = above[0]
+    share = (cutoff - below.value) / (nxt.value - below.value)
+    mixed = QColor(
+        *(round(a + share * (b - a)) for a, b in zip(below.color.getRgb(), nxt.color.getRgb(), strict=True))
+    )
+    return [QgsColorRampShader.ColorRampItem(cutoff, mixed, f"{cutoff:g} m"), *above]
+
+
+def _depth_shader(items: list, cutoff: float | None = None) -> QgsColorRampShader:
+    """An interpolated depth shader cut at the cutoff: a value below it is not drawn (the shader clips)."""
+    cutoff = depth_cutoff() if cutoff is None else cutoff
+    cut = cut_items(items, cutoff)
+    shader = QgsColorRampShader(cut[0].value, cut[-1].value)
+    shader.setColorRampType(QgsColorRampShader.Interpolated)
+    shader.setColorRampItemList(cut)
+    shader.setClip(cut is not items)
+    return shader
+
+
+DEPTH_STYLE = "wadi2d/depth_style"
+"""On a layer styled by one of the depth styles: which, so a new cutoff restyles it (:func:`restyle_depth_layers`)."""
+
+
+def _depth_pseudocolor(layer, items: list) -> None:
+    shader = QgsRasterShader()
+    shader.setRasterShaderFunction(_depth_shader(items))
+    layer.setRenderer(QgsSingleBandPseudoColorRenderer(layer.dataProvider(), 1, shader))
+
+
+def _tag(layer, name: str) -> None:
+    layer.setCustomProperty(DEPTH_STYLE, name)
+
+
+def restyle_depth_layers() -> int:
+    """Every depth layer of the project styled again at the cutoff in force; how many."""
+    from qgis.core import QgsProject
+
+    styles = {
+        "depth": style_depth, "pixel_depth": style_pixel_depth, "depth_drawing": style_depth_drawing,
+        "frames": style_frames, "strip_depth": style_strip_depth,
+    }  # fmt: skip
+    count = 0
+    for layer in QgsProject.instance().mapLayers().values():
+        make = styles.get(layer.customProperty(DEPTH_STYLE) or "")
+        if make is not None:
+            make(layer)
+            layer.triggerRepaint()
+            count += 1
+    return count
 
 
 def _pseudocolor(layer, ramp_type, items) -> None:
@@ -84,7 +155,8 @@ def style_depth(layer) -> None:
     items = [
         QgsColorRampShader.ColorRampItem(depth, QColor(*rgba), f"{depth:g} m") for depth, rgba in DEPTH_STOPS
     ]
-    _pseudocolor(layer, QgsColorRampShader.Interpolated, items)
+    _depth_pseudocolor(layer, items)
+    _tag(layer, "depth")
 
 
 def style_change(layer) -> None:
@@ -142,7 +214,7 @@ def _ramp_items(fade_to: float) -> list:
 
 
 def _depth_renderer(layer) -> None:
-    _pseudocolor(layer, QgsColorRampShader.Interpolated, _ramp_items(WET_EDGE_M))
+    _depth_pseudocolor(layer, _ramp_items(WET_EDGE_M))
     settings = QgsColorRampLegendNodeSettings()
     settings.setSuffix(" m")
     layer.renderer().shader().rasterShaderFunction().setLegendSettings(settings)
@@ -152,11 +224,13 @@ def style_depth_drawing(layer) -> None:
     """The final depth map: Blues from 0 to 3 m, the shallow end fading out, smooth at any zoom."""
     _depth_renderer(layer)
     _smooth_raster(layer)
+    _tag(layer, "depth_drawing")
 
 
 def style_pixel_depth(layer) -> None:
     """The same colours on the numbers of record, pixel by pixel."""
     _depth_renderer(layer)
+    _tag(layer, "pixel_depth")
 
 
 def style_pixel_hazard(layer) -> None:
@@ -219,6 +293,20 @@ def style_strip_cells(layer) -> None:
     layer.setRenderer(QgsSingleSymbolRenderer(symbol))
 
 
+def style_strip_depth(layer) -> None:
+    """The aligned cells filled by their maximum depth in the cell maps' blues, a cell under the cutoff left empty."""
+    cutoff = depth_cutoff()
+    stops = [(depth, rgba) for depth, rgba in DEPTH_STOPS if depth > cutoff]
+    edges = [cutoff, *(depth for depth, _rgba in stops)]
+    ranges = []
+    for low, high, (_depth, rgba) in zip(edges, edges[1:] + [float("inf")], [*stops, stops[-1]], strict=False):
+        symbol = QgsFillSymbol.createSimple({"color": ",".join(str(v) for v in rgba), "outline_style": "no"})
+        top = f"{high:g}" if high != float("inf") else "deeper"
+        ranges.append(QgsRendererRange(low, high if high != float("inf") else 1e9, symbol, f"{low:g} to {top} m"))
+    layer.setRenderer(QgsGraduatedSymbolRenderer("max_depth_m", ranges))
+    _tag(layer, "strip_depth")
+
+
 def style_strip_faces(layer) -> None:
     """A corridor's faces by kind: on a bank line red, the join to the squares orange, the inner ones hidden."""
     categories = [
@@ -239,7 +327,7 @@ def _frame_shader(kind, items) -> QgsColorRampShader:
 
 def _depth_frames() -> QgsColorRampShader:
     items = [QgsColorRampShader.ColorRampItem(depth, QColor(*colour), f"{depth:g} m") for depth, colour in DEPTH_STOPS]
-    return _frame_shader(QgsColorRampShader.Interpolated, items)
+    return _depth_shader(items)
 
 
 def _speed_frames() -> QgsColorRampShader:
@@ -275,6 +363,7 @@ def style_frames(layer) -> None:
             active = group
     settings.setActiveScalarDatasetGroup(active if active is not None else 0)
     layer.setRendererSettings(settings)
+    _tag(layer, "frames")
 
 
 def style_boundaries(layer) -> None:
@@ -329,6 +418,44 @@ def style_subbasins(layer) -> None:
     ]
     layer.setRenderer(QgsCategorizedSymbolRenderer("mode", categories))
     _labels(layer, "label", 8.5, "#5a2d00", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+HMS_HATCH = "#8a4b08"
+"""The catchments that ran the HMS way (W88): hatched, so the 2D results under and beside them still read."""
+HMS_LEFT_OUT = "#5a5a5a"
+"""The same, left out of the 2D mesh: grey, the grid has no cell there."""
+
+
+def _hatched(colour: str, angle: float) -> QgsFillSymbol:
+    symbol = QgsFillSymbol.createSimple({"color": "0,0,0,0", "outline_color": colour, "outline_width": "0.6"})
+    hatch = QgsLinePatternFillSymbolLayer()
+    hatch.setLineAngle(angle)
+    hatch.setDistance(2.5)
+    hatch.setColor(QColor(colour))
+    hatch.setLineWidth(0.2)
+    symbol.appendSymbolLayer(hatch)
+    return symbol
+
+
+def style_network_subbasins(layer) -> None:
+    """The lumped subbasins of a run, hatched; those the 2D mesh left out in grey; labelled with area and peak."""
+    categories = [
+        QgsRendererCategory(0, _hatched(HMS_HATCH, 45.0), "Ran the HMS way, its water routed by the lumped network"),
+        QgsRendererCategory(1, _hatched(HMS_LEFT_OUT, -45.0), "Ran the HMS way, left out of the 2D mesh"),
+    ]
+    layer.setRenderer(QgsCategorizedSymbolRenderer("left_out", categories))
+    _labels(layer, "label", 8.0, "#5a2d00", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+def style_network_reaches(layer) -> None:
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#0060c0", "width": "1.0"})))
+    _labels(layer, "label", 7.5, "#003c80", Qgis.LabelPlacement.Line)
+
+
+def style_network_points(layer) -> None:
+    marker = {"name": "diamond", "color": "#ffffff", "outline_color": "#003c80", "outline_width": "0.6", "size": "3.2"}
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol.createSimple(marker)))
+    _labels(layer, "label", 7.5, "#003c80", Qgis.LabelPlacement.OrderedPositionsAroundPoint, bold=True)
 
 
 RAIN_BLUES = ("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c")

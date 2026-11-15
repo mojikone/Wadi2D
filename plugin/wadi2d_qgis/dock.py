@@ -44,9 +44,11 @@ from .job_builder import (
     write_geojson,
     write_job,
 )
-from .layer_groups import SLOT_BASIN, clear_slot, model_name
+from .layer_groups import SLOT_BASIN, clear_slot, find_run_results, model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
+from .muskingum_query import MuskingumLinks
+from .network_layers import load_network
 from .preview import TerrainPreview, zoom_to
 from .profile_editor import ProfileEditor
 from .profile_view import ProfileDialog
@@ -63,6 +65,7 @@ from .protocol import (
     estimate_text,
     exit_message,
     has_drawings,
+    is_lumped_run,
     mesh_args,
     mesh_text,
     next_run_dir,
@@ -99,9 +102,13 @@ from .study_rows import (
     study_notes,
     study_problems,
 )
-from .time_layer import has_results, load_frames
+from .time_layer import has_frames, has_results, load_frames
 
 LOG_TAG = "Wadi2D"
+LUMPED_RUN_NOTE = (
+    "A run of the lumped network alone, the HMS way: no grid, so no maps and no time slider. Its catchments, reaches "
+    "and junctions are on the map with their peaks; Result lines, or a right-click on one, shows its hydrograph."
+)
 HMS_JOB = "hms_import.json"
 
 FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
@@ -204,6 +211,7 @@ class Wadi2DDock(QgsDockWidget):
         self.storm.rain_file_changed.connect(self.read_rain_file)
         self.storm_links = StormLinks(self)  # Preview rain and the Storm section's summaries (W65)
         self.structures_links = StructuresLinks(self)  # an HMS basin's reservoirs, read only (W75)
+        self.muskingum_links = MuskingumLinks(self)  # the reach table's Propose K and X (W89)
         self.panel.estimate_button.clicked.connect(self.estimate)
         self.mesh.preview_button.clicked.connect(self.preview_mesh)
         self.terrain.dx.valueChanged.connect(self._finest_changed)
@@ -493,9 +501,12 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.map_button.setEnabled(True)
         if folder and has_results(folder):
             self.results_dir = Path(folder)
-            self.panel.frames_button.setEnabled(True)
-            self.panel.pixel_frames_button.setEnabled(True)
+            self.panel.frames_button.setEnabled(has_frames(folder))
+            self.panel.pixel_frames_button.setEnabled(has_frames(folder))
             self.panel.lines_button.setEnabled(True)
+        if folder and is_lumped_run(folder) and find_run_results(folder) is None:  # the HMS way: its network is the map
+            load_network(folder, Path(folder).name)
+            self.panel.say(LUMPED_RUN_NOTE, "note")
 
     def _updated(self, state) -> None:
         self.panel.show_state(state)
@@ -751,12 +762,13 @@ class Wadi2DDock(QgsDockWidget):
             load_products(run.out_dir, run.out_dir.name)
         load_cell_grid(run.out_dir, run.out_dir.name)
         load_strip_mesh(run.out_dir, run.out_dir.name)
+        load_network(run.out_dir, run.out_dir.name)
         load_edge_checks(run.out_dir)
         load_terrain_checks(run.out_dir)
         self.panel.open_button.setVisible(bool(loaded))
         self.panel.map_button.setEnabled(products)
-        self.panel.frames_button.setEnabled(has_results(run.out_dir))
-        self.panel.pixel_frames_button.setEnabled(has_results(run.out_dir))
+        self.panel.frames_button.setEnabled(has_frames(run.out_dir))
+        self.panel.pixel_frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.lines_button.setEnabled(has_results(run.out_dir))
         if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
             self.line_panel.open_run(run.out_dir)
@@ -814,7 +826,7 @@ class Wadi2DDock(QgsDockWidget):
         self._set_ready(self.schema is not None)
         self.panel.open_button.setVisible(self._open_shown)
         self.panel.map_button.setEnabled(has_products(run))
-        self.panel.frames_button.setEnabled(has_results(run))
+        self.panel.frames_button.setEnabled(has_frames(run))
         self.panel.lines_button.setEnabled(has_results(run))
         if not state.succeeded or not has_drawings(run):
             tone = "note" if state.exit_code == EXIT_STOPPED else "bad"

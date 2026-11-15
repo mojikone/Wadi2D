@@ -6,6 +6,7 @@
         Results - <run>              one per run folder, newest on top, drawn over the inputs
             Lines                    lines drawn after the run (Result lines)
             Time slider              the frames as a mesh layer, the pixel slider layer
+            Lumped network, the HMS way  the catchments, reaches and junctions the lumped network ran, with peaks (W88)
             Model setup              what the run used: domain, boundaries, inflows, design lines, cell grid, corridors
             Flood maps               the smooth hazard polygons and the depth drawing, when made
             Pixel rasters, the numbers of record
@@ -48,6 +49,7 @@ INPUT_GROUPS = (TERRAIN, BOUNDARIES, STRUCTURES, HYDROLOGY, MESH)
 
 LINES = "Lines"
 TIME = "Time slider"
+NETWORK = "Lumped network, the HMS way"
 SETUP = "Model setup"
 MAPS = "Flood maps"
 RECORD = "Pixel rasters, the numbers of record"

@@ -1,0 +1,105 @@
+{
+ "musk_in_range": {
+  "k_hours": 1.0,
+  "x": 0.2,
+  "subreaches": 12,
+  "hms_messages": []
+ },
+ "musk_long": {
+  "k_hours": 3.0,
+  "x": 0.3,
+  "subreaches": 36,
+  "hms_messages": []
+ },
+ "musk_x0": {
+  "k_hours": 1.5,
+  "x": 0.0,
+  "subreaches": 6,
+  "hms_messages": []
+ },
+ "musk_x05": {
+  "k_hours": 1.0,
+  "x": 0.5,
+  "subreaches": 12,
+  "hms_messages": []
+ },
+ "musk_one": {
+  "k_hours": 0.1,
+  "x": 0.25,
+  "subreaches": 1,
+  "hms_messages": []
+ },
+ "musk_low": {
+  "k_hours": 1.0,
+  "x": 0.2,
+  "subreaches": 1,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\"."
+  ]
+ },
+ "musk_low_mild": {
+  "k_hours": 0.5,
+  "x": 0.1,
+  "subreaches": 1,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\"."
+  ]
+ },
+ "musk_high": {
+  "k_hours": 0.05,
+  "x": 0.2,
+  "subreaches": 1,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\"."
+  ]
+ },
+ "musk_high_n": {
+  "k_hours": 1.0,
+  "x": 0.2,
+  "subreaches": 40,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\"."
+  ]
+ },
+ "musk_x05_low": {
+  "k_hours": 1.0,
+  "x": 0.5,
+  "subreaches": 4,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\"."
+  ]
+ },
+ "musk_dry_in": {
+  "k_hours": 1.0,
+  "x": 0.2,
+  "subreaches": 12,
+  "hms_messages": []
+ },
+ "musk_dry_low": {
+  "k_hours": 1.0,
+  "x": 0.2,
+  "subreaches": 1,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\".",
+   "WARNING 41201:  6 negative inflows to element \"Outlet\" set to zero."
+  ]
+ },
+ "musk_dry_high": {
+  "k_hours": 0.05,
+  "x": 0.2,
+  "subreaches": 1,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\".",
+   "WARNING 41201:  96 negative inflows to element \"Outlet\" set to zero."
+  ]
+ },
+ "musk_dry_x05_low": {
+  "k_hours": 1.0,
+  "x": 0.5,
+  "subreaches": 4,
+  "hms_messages": [
+   "WARNING 41169:  Muskingum routing is unstable with the given parameters for reach \"Reach\".",
+   "WARNING 41201:  8 negative inflows to element \"Outlet\" set to zero."
+  ]
+ }
+}
