@@ -55,7 +55,7 @@ equals the one-piece build, both conveyance laws), `tests/tables/test_parallel.p
 ragged mask, and the quadtree with interface faces, 1 against 4 workers; the bed handles),
 `tests/strips/test_pixels.py` (the strip ground in pieces of 2 cells and weight blocks of 1,000 pixels against the old
 whole-window owners and one block), `tests/engine/test_strip_cache.py` (a second `prepare_grid` builds no strip and
-matches every lattice, mesh and geometry array; a changed corridor misses). Targeted suite: see below.
+matches every lattice, mesh and geometry array; a changed corridor misses). Targeted suite after merging `feature/fast-products` (`bdbb7f5`'s wider rings in the strip pixel maps kept): tests/tables, tests/strips, tests/products, the quad, poly and sub-grid solver tests, the strip, breach, mesh-earthworks, terrain and cache engine tests, 374 passed on 8 workers. The full suite was not run.
 
 One limit, as before for the squares: where a window holds nodata pixels, `RasterBed.read` fills them from the nearest
 good pixel inside that window, so a piece's fill can differ from the old whole window's near nodata. The strip lies on
@@ -63,7 +63,29 @@ active cells; the 6 km case had none.
 
 ## Times and memory
 
-RESULTS_PENDING
+CPU only, no solver, a fresh cache folder each time, `prepare_grid` timed by phase (script in the session scratchpad,
+`time_tables.py`); peak is the process's peak working set or commit, whichever is higher.
+
+**The 66.5 GiB case, Block 2's W79 job (`run1_full_2d_aligned`), centre mesh at 20 m, `pixel_stride` 1 (0.5 m), 16
+workers: built, peak 13.4 GB.**
+
+| Phase | Seconds |
+|---|---|
+| domain mask | 37.8 |
+| centre mesh (`mask_for_strips`, one core, not touched here; now cached) | 732.4 |
+| lattice tables, 3,605 tiles, 2,941,116 cells | 129.3 |
+| strip tables, 647,042 cells | 226.5 |
+| total | 1,164.3 |
+
+Before: refused at the strip window (66.5 GiB); W79 ran at 1 m pixels (stride 2) and spent 1,493 s in its tables on a
+machine shared with GPU runs.
+
+**Block 2's squares at 20 m, 0.5 m pixels, the same job without strips (3,605 tiles, 3,509,086 cells), lattice tables:
+old code (`65ef588`, its first Numba compile inside, about 20 s) 325.2 s, peak 10.5 GB; new, 16 workers, 138.9 s, peak
+11.0 GB: 2.3 x.** The machine was otherwise idle. The tables are bounded by the DEM reads (Findings), not the kernels.
+
+A 10 km window round Faydh 01 at 0.5 m (257 tiles), lattice tables alone, while the W79 products process ran: 29.8 s
+on 1 worker, 17.6 s on 16, 20.8 s on 32.
 
 ## Findings
 
