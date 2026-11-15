@@ -48,6 +48,57 @@ def cache_path(folder: str | Path, key: str) -> Path:
     return Path(folder) / f"grid_{key}.h5"
 
 
+STRIP_SOURCES = ("strips/*.py", "breaklines/*.py", "solver/poly/*.py", "tables/*.py", "terrain/*.py", "grid/*.py")
+"""Every file whose code decides a strip's mesh or its tables (W81)."""
+STRIP_FORMAT = "1"
+
+
+def source_identity(patterns: tuple[str, ...], root: Path = PACKAGE) -> str:
+    """Hash of the code in ``patterns`` under the package."""
+    digest = hashlib.sha256()
+    for pattern in patterns:
+        for path in sorted(root.glob(pattern)):
+            digest.update(pattern.encode("utf-8") + path.name.encode("utf-8"))
+            digest.update(path.read_bytes())
+    return digest.hexdigest()[:24]
+
+
+def strip_path(folder: str | Path, key: str) -> Path:
+    return Path(folder) / f"strip_{key}.pkl"
+
+
+def save_strip(path: str | Path, key: str, mask: np.ndarray, strip: Any) -> Path:
+    """A strip's mesh and tables with the domain mask it leaves, beside the grid's tables (W81): the centre mesh and its
+    tables took minutes on Block 2 and were rebuilt on every start and every products remake. A pickle: the file is
+    the cache's own, written here and read back by the same code, keyed by everything that made it."""
+    import pickle
+
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_suffix(".tmp")
+    with open(tmp, "wb") as f:
+        pickle.dump({"key": key, "format": STRIP_FORMAT, "mask": mask, "strip": strip}, f, protocol=pickle.HIGHEST_PROTOCOL)
+    tmp.replace(out)
+    return out
+
+
+def load_strip(path: str | Path, key: str) -> tuple[np.ndarray, Any] | None:
+    """The mask and the strip, or None when the file is missing, unreadable or was made from something else."""
+    import pickle
+
+    source = Path(path)
+    if not source.is_file():
+        return None
+    try:
+        with open(source, "rb") as f:
+            held = pickle.load(f)
+    except (OSError, pickle.UnpicklingError, EOFError, AttributeError, ImportError, ValueError):
+        return None
+    if not isinstance(held, dict) or held.get("key") != key or held.get("format") != STRIP_FORMAT:
+        return None
+    return held["mask"], held["strip"]
+
+
 def mask_path(folder: str | Path, key: str) -> Path:
     return Path(folder) / f"mask_{key}.npz"
 
