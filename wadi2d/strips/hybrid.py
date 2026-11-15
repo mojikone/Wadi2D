@@ -64,9 +64,10 @@ def ghost_sums(ng, nreal, ghost, dx, open_w, open_e, open_n, open_s, zmin, h, d,
 
 
 @njit(cache=True)
-def ghost_rates(ng, nreal, ghost, dx, open_w, open_e, open_n, open_s, h, qx, qy, Ux, Uy, Rx, Ry) -> None:
+def ghost_rates(ng, nreal, ghost, dx, u_max, open_w, open_e, open_n, open_s, h, qx, qy, Ux, Uy, Rx, Ry) -> None:
     """A ghost's lattice part of the advection rate: each lattice face's outflow times the upwind velocity, the
-    ghost's own (complete by now) or the neighbour's Perot velocity from that neighbour's four lattice faces."""
+    ghost's own (complete by now) or the neighbour's Perot velocity from that neighbour's four lattice faces, held
+    to the velocity cap as every cell vector is (W87)."""
     for g in range(ng):
         c = nreal + g
         k = ghost[g]
@@ -87,8 +88,9 @@ def ghost_rates(ng, nreal, ghost, dx, open_w, open_e, open_n, open_s, h, qx, qy,
             else:
                 vol = h[n] * dx * dx
                 if vol > F(1e-9):
-                    ux = HALF * dx * (qx[n] + qx[n + 1]) / vol
-                    uy = -HALF * dx * (qy[n] + qy[n + STRIDE]) / vol
+                    ux, uy = kernel.bounded(
+                        HALF * dx * (qx[n] + qx[n + 1]) / vol, -HALF * dx * (qy[n] + qy[n + STRIDE]) / vol, u_max
+                    )
                 else:
                     ux, uy = ZERO, ZERO
             Rx[c] += q_out * ux
@@ -254,15 +256,18 @@ class Hybrid:
         """The largest cell speed (where the cell is deeper than ``speed_depth``) and depth x speed, on the host."""
         raise NotImplementedError
 
+    def strip_cell_speed(self) -> np.ndarray:
+        """The speed of record at each real cell's centre now, on the host: from the faces' velocities, as the
+        squares read theirs (W87), never the cell's momentum over its volume."""
+        raise NotImplementedError
+
     def strip_frame_fields(self) -> dict[str, np.ndarray]:
         """The strip's cells in a saved map: level above zmin, mean depth and cell speed, each (1, n)."""
         n = self.nreal
-        ux, uy = self.strip_host("Ux")[:n], self.strip_host("Uy")[:n]
-        speed = np.hypot(ux.astype(np.float64), uy.astype(np.float64)).astype(F)
         return {
             "strip_depth": self.strip_host("d")[:n][None, :],
             "strip_mean_depth": self.strip_host("h")[:n][None, :],
-            "strip_speed": speed[None, :],
+            "strip_speed": self.strip_cell_speed()[None, :],
         }
 
     def strip_maxima_fields(self) -> dict[str, np.ndarray]:
@@ -432,6 +437,9 @@ class HybridCpu(Hybrid):
     def strip_speed_maxima(self) -> tuple[np.ndarray, np.ndarray]:
         return self.max_s, self.max_dv
 
+    def strip_cell_speed(self) -> np.ndarray:
+        return self.state.cell_speed().copy()
+
     def watch_boundary(self, faces: np.ndarray) -> None:
         self.b_faces = np.asarray(faces, np.int64)
 
@@ -473,7 +481,7 @@ class HybridCpu(Hybrid):
 
         def rates() -> None:
             ghost_rates(
-                ng, n, g, self.dx, self.open_w, self.open_e, self.open_n, self.open_s, b.h, b.qx, b.qy,
+                ng, n, g, self.dx, s.nums[5], self.open_w, self.open_e, self.open_n, self.open_s, b.h, b.qx, b.qy,
                 s.Ux, s.Uy, s.Rx, s.Ry,
             )  # fmt: skip
 
@@ -515,21 +523,25 @@ class HybridCpu(Hybrid):
         np.maximum(self.max_d, s.d[:n], out=self.max_d)
         np.maximum(self.max_h, s.h[:n], out=self.max_h)
         np.maximum(self.max_q, np.abs(s.q), out=self.max_q)
-        speed = np.hypot(s.Ux[:n], s.Uy[:n]) * (s.d[:n] > self.speed_depth)
+        speed = s.cell_speed() * (s.d[:n] > self.speed_depth)
         np.maximum(self.max_s, speed, out=self.max_s)
         np.maximum(self.max_dv, s.d[:n] * speed, out=self.max_dv)
 
     def after_update(self, dt: float, want_wave: bool) -> None:
+        """The join's discharge and velocity into the squares' closed faces. The velocity is the discharge over the
+        ghost's mean depth, held to ``u_max`` as every lattice face velocity is (W87): on a front entering a dry
+        square the depth is its floor of 1e-6 m, and uncapped the squares' advection stencil read tens of km/s."""
         b, s, n = self.model.backend, self.state, self.nreal
         b.src[self.ghost] = self.saved
         dx = float(self.dx)
+        u_max = float(s.nums[5])
         for axis, (faces, group, signs, unique, all_copies, owner, ghost_of) in self.edge.items():
             if faces.size == 0:
                 continue
             q_edge = np.zeros(unique.size, np.float64)
             np.add.at(q_edge, group, self.q_mean[faces] * signs)
             depth = np.maximum(s.h[n + ghost_of].astype(np.float64), 1e-6)
-            speed = q_edge / (depth * dx)
+            speed = np.clip(q_edge / (depth * dx), -u_max, u_max)
             discharge, velocity = (b.qx, b.u1) if axis == "x" else (b.qy, b.v1)
             discharge[unique] = q_edge.astype(F)
             velocity[all_copies] = speed[owner].astype(F)

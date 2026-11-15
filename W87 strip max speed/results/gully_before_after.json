@@ -1,0 +1,124 @@
+{
+ "before": "front_before/strips",
+ "after": "front_after/strips",
+ "series_files": 1,
+ "series_identical": 1,
+ "maps": 30,
+ "maps_same_times": true,
+ "water_maps_differing": [],
+ "water_maxima_differing": [],
+ "squares_record_differing": [],
+ "steps": [
+  4241.0,
+  4241.0
+ ],
+ "rain_m3": [
+  0.18815999551407003,
+  0.18815999551407003
+ ],
+ "outflow_m3": [
+  1339.2363840820105,
+  1339.2363840820105
+ ],
+ "storage_end_m3": [
+  13.951742855597411,
+  13.951742855597411
+ ],
+ "error_m3": [
+  3.8113125048866436e-05,
+  3.8113125048866436e-05
+ ],
+ "books_identical": true,
+ "rain_relative_difference": 0.0,
+ "before_record": {
+  "strip_cells": 256,
+  "strip_cells_wet": 217,
+  "strip_speed": {
+   "max": 15890051.0,
+   "q99_of_nonzero": 641.7952270507812,
+   "over_5": 53,
+   "over_10": 31,
+   "over_25": 20,
+   "over_35.36": 13,
+   "over_100": 6,
+   "over_10000": 2
+  },
+  "strip_hazard": {
+   "max": 9160034.0,
+   "q99_of_nonzero": 55.11414337158203,
+   "over_5": 28,
+   "over_10": 19,
+   "over_25": 5,
+   "over_35.36": 3,
+   "over_100": 2,
+   "over_10000": 1
+  },
+  "strip_speed_median_wet": 2.7831525802612305,
+  "maps_strip_speed": {
+   "max": 9.908563613891602,
+   "q99_of_nonzero": 3.862023115158081,
+   "over_5": 1,
+   "over_10": 0,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "squares_speed": {
+   "max": 33971.25,
+   "q99_of_nonzero": 10.319629669189453,
+   "over_5": 8,
+   "over_10": 5,
+   "over_25": 2,
+   "over_35.36": 2,
+   "over_100": 2,
+   "over_10000": 1
+  }
+ },
+ "after_record": {
+  "strip_cells": 256,
+  "strip_cells_wet": 217,
+  "strip_speed": {
+   "max": 29.619640350341797,
+   "q99_of_nonzero": 27.950849533081055,
+   "over_5": 44,
+   "over_10": 39,
+   "over_25": 16,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "strip_hazard": {
+   "max": 30.993932723999023,
+   "q99_of_nonzero": 20.631319046020508,
+   "over_5": 39,
+   "over_10": 18,
+   "over_25": 1,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "strip_speed_median_wet": 1.7944432497024536,
+  "maps_strip_speed": {
+   "max": 2.891907215118408,
+   "q99_of_nonzero": 2.7038564682006836,
+   "over_5": 0,
+   "over_10": 0,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "squares_speed": {
+   "max": 33971.25,
+   "q99_of_nonzero": 10.319629669189453,
+   "over_5": 8,
+   "over_10": 5,
+   "over_25": 2,
+   "over_35.36": 2,
+   "over_100": 2,
+   "over_10000": 1
+  }
+ },
+ "water_identical": true
+}

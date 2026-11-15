@@ -1,0 +1,78 @@
+{
+ "run": "rerun_run4_hybrid_2d_routing_aligned",
+ "u_max": 25.0,
+ "speed_depth": 0.05,
+ "dx": 20.0,
+ "mass_error": 6.580418992142912e-08,
+ "maps": 192,
+ "strip": {
+  "cells": 542980,
+  "speed_max": 760109184.0,
+  "hazard_max": 1714427392.0,
+  "over_5": 24467,
+  "over_10": 2626,
+  "over_25": 513,
+  "over_35.36": 323,
+  "over_100": 102,
+  "over_10000": 19,
+  "over_10_mean_depth_over_level_median": 0.17214854061603546,
+  "wet_mean_depth_over_level_median": 0.573125422000885,
+  "by_kind": {
+   "corridor_cells": 189406,
+   "other_cells": 353574,
+   "corridor_over_10": 1274,
+   "other_over_10": 1352,
+   "corridor_over_100": 29,
+   "other_over_100": 73,
+   "area_median_all_m2": 400.0,
+   "area_median_over_10_m2": 410.17301952468665
+  }
+ },
+ "maps_with_strip_over_10": {
+  "maps": 118,
+  "cells_in_the_worst_map": 619,
+  "speed_max": 1019.0632934570312,
+  "median_of_the_maps_median_mean_depth_m": 0.01970947626978159,
+  "median_of_the_maps_median_level_m": 1.4997326135635376
+ },
+ "squares": {
+  "active": 2941116,
+  "beside_a_replaced_or_outside_square": 112860,
+  "speed_max": 25768342.0,
+  "over_5": [
+   240,
+   116
+  ],
+  "over_10": [
+   46,
+   38
+  ],
+  "over_25": [
+   11,
+   11
+  ],
+  "over_35.36": [
+   7,
+   7
+  ],
+  "over_100": [
+   6,
+   6
+  ],
+  "over_10000": [
+   3,
+   3
+  ],
+  "over_10_on_a_join": 38,
+  "over_10_within_two_cells_of_a_join": 7,
+  "over_10_away_from_any_join": [
+   {
+    "x": 433000.98973783385,
+    "y": 2739675.893463373,
+    "speed": 11.835251808166504,
+    "depth_m": 34.929927825927734,
+    "mean_depth_m": 25.435632705688477
+   }
+  ]
+ }
+}

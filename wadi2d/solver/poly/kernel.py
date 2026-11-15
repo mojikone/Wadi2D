@@ -33,10 +33,25 @@ F = np.float32
 ZERO, ONE, HALF, TWO = F(0.0), F(1.0), F(0.5), F(2.0)
 
 
+@njit(inline="always")
+def bounded(ux, uy, u_max):
+    """A cell vector no longer than the velocity cap (W87). The vector is a discharge over a volume, and where the
+    volume vanishes (a cell that has just drained, a ghost a front has not reached) it is the velocity of no water:
+    the lattice caps every face velocity at ``u_max``, and what the strip advects, rubs against and adds as head is
+    held to the same."""
+    m = max(abs(ux), abs(uy))
+    if m > u_max:
+        ux = ux / m
+        uy = uy / m
+        f = u_max / F(np.sqrt(ux * ux + uy * uy))
+        return ux * f, uy * f
+    return ux, uy
+
+
 @njit(cache=True)
-def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy) -> None:
+def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, u_max, Ux, Uy) -> None:
     """[3a] Perot cell momentum vectors from the face discharges, added to what the arrays hold (zero, or a
-    ghost's lattice sums), then divided by the cell volume."""
+    ghost's lattice sums), then divided by the cell volume and held to the velocity cap."""
     for f in range(nf):
         qf = q[f]
         if qf != ZERO:
@@ -48,8 +63,7 @@ def perot_velocity(nf, nc, L, R, xf, yf, cx, cy, q, h, area, Ux, Uy) -> None:
     for c in range(nc):
         vol = h[c] * area[c]
         if vol > F(1e-9):
-            Ux[c] /= vol
-            Uy[c] /= vol
+            Ux[c], Uy[c] = bounded(Ux[c] / vol, Uy[c] / vol, u_max)
         else:
             Ux[c] = ZERO
             Uy[c] = ZERO
@@ -191,6 +205,7 @@ def faces(
                 if vup > F(1e-9):
                     ux -= sign * (xf[f] - cx[up]) * q[f] / vup
                     uy -= sign * (yf[f] - cy[up]) * q[f] / vup
+                    ux, uy = bounded(ux, uy, u_max)
                 Ac, _tc, Wc = face_lookup(eup + HALF * (ux * ux + uy * uy) / g, ef[f], ftab[start : start + 2 * rows], rows)
             qc = c * Ac * F(np.sqrt(Ac / max(Wc, F(1e-9))))
             if abs(qn) > qc:
@@ -260,6 +275,34 @@ def update(nf, nc, nreal, dt, want_wave, L, R, area, hc, dtab, q1, r, src, div, 
         d[c] = cell_level(hn, hc[c], tab, rows)
         if want_wave:
             om[c] = cell_plan(hn, hc[c], tab, rows)
+
+
+SPEED_CAP = float(np.sqrt(2.0))
+"""The speed of record is capped at this many times ``numerics.u_max``: what a square's centre reads when its four
+faces all run at the velocity cap, so no polygon records more than a square can (W87)."""
+
+
+@njit(cache=True)
+def cell_speed(nf, nreal, L, R, wlx, wly, wrx, wry, u, cap, vx, vy, speed) -> None:
+    """The speed of record at each real cell's centre, from its faces' velocities: the lattice's rule on a polygon
+    (W87). ``w`` are the weights of :meth:`wadi2d.solver.poly.mesh.PolyMesh.speed_weights`; a face velocity is the
+    kernel's own, limited by friction and capped at ``u_max``, and zero on a dry face, so the speed never divides a
+    discharge by a vanishing volume as the Perot momentum vector ``U`` does in a cell that has just drained."""
+    for c in range(nreal):
+        vx[c] = ZERO
+        vy[c] = ZERO
+    for f in range(nf):
+        uf = u[f]
+        if uf != ZERO:
+            a, b = L[f], R[f]
+            if a < nreal:
+                vx[a] += wlx[f] * uf
+                vy[a] += wly[f] * uf
+            if b < nreal:
+                vx[b] += wrx[f] * uf
+                vy[b] += wry[f] * uf
+    for c in range(nreal):
+        speed[c] = min(F(np.sqrt(vx[c] * vx[c] + vy[c] * vy[c])), cap)
 
 
 @njit(cache=True)

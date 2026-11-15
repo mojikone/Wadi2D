@@ -4,6 +4,19 @@
 // cells of the list are ghosts, the tile cells the strip touches: they read the lattice arrays through their state
 // index (P.dx, STRIDE from the generated header) exactly as wadi2d/strips/hybrid.py adds them on the CPU.
 
+// A cell vector no longer than the velocity cap (W87, the twin of kernel.py's bounded): a discharge over a volume
+// that vanishes is the velocity of no water, and the lattice caps every face velocity at u_max.
+__device__ __forceinline__ void bounded(float& ux, float& uy) {
+    const float m = fmaxf(fabsf(ux), fabsf(uy));
+    if (m > P.u_max) {
+        ux = ux / m;
+        uy = uy / m;
+        const float f = P.u_max / sqrtf(ux * ux + uy * uy);
+        ux = ux * f;
+        uy = uy * f;
+    }
+}
+
 // [3b] The face level differences, or zero on a closed, dry or thin face.
 extern "C" __global__ void poly_levels(const int nf, const int* __restrict__ L, const int* __restrict__ R,
                                        const float* __restrict__ fl, const float* __restrict__ fr,
@@ -66,8 +79,11 @@ extern "C" __global__ void poly_sums(const int nc, const int nreal, const int* _
     }
     const float vol = h[c] * area[c];
     if (vol > 1e-9f) {
-        Ux[c] = ux / vol;
-        Uy[c] = uy / vol;
+        ux = ux / vol;
+        uy = uy / vol;
+        bounded(ux, uy);
+        Ux[c] = ux;
+        Uy[c] = uy;
     } else {
         Ux[c] = 0.0f;
         Uy[c] = 0.0f;
@@ -112,6 +128,7 @@ extern "C" __global__ void poly_rates(const int nc, const int nreal, const int* 
                 if (vol > 1e-9f) {
                     ux = 0.5f * dx * (qx_t[n] + qx_t[n + 1]) / vol;
                     uy = -0.5f * dx * (qy_t[n] + qy_t[n + STRIDE]) / vol;
+                    bounded(ux, uy);
                 } else {
                     ux = 0.0f;
                     uy = 0.0f;
@@ -246,6 +263,7 @@ extern "C" __global__ void poly_faces(
             if (vup > 1e-9f) {
                 ux -= sign * (xf[f] - cx[up]) * q[f] / vup;
                 uy -= sign * (yf[f] - cy[up]) * q[f] / vup;
+                bounded(ux, uy);
             }
             float Tc;
             face_lookup(eup + 0.5f * (ux * ux + uy * uy) / g, ef[f], tab, Ac, Tc, Wc);
@@ -372,7 +390,9 @@ extern "C" __global__ void poly_accumulate(const int ng, const int nf, const int
 }
 
 // Each interface's discharge and velocity into the tile's closed face on that edge: one thread per unique slot sums
-// its faces (a fixed order, no atomic), writes the discharge, then every copy of the slot gets the velocity.
+// its faces (a fixed order, no atomic), writes the discharge, then every copy of the slot gets the velocity. The
+// velocity is the discharge over the ghost's mean depth, held to u_max as every lattice face velocity is (W87): on a
+// front entering a dry square the depth is its floor of 1e-6 m.
 extern "C" __global__ void poly_edges(const int nslot, const int nreal, const int* __restrict__ slot_ptr,
                                       const int* __restrict__ slot_face, const float* __restrict__ slot_sign,
                                       const int* __restrict__ unique, const int* __restrict__ ghost_of,
@@ -384,7 +404,8 @@ extern "C" __global__ void poly_edges(const int nslot, const int nreal, const in
     double q_edge = 0.0;
     for (int p = slot_ptr[s]; p < slot_ptr[s + 1]; ++p) q_edge += q[slot_face[p]] * (double)slot_sign[p];
     const double depth = fmax((double)h[nreal + ghost_of[s]], 1e-6);
-    const float speed = (float)(q_edge / (depth * (double)P.dx));
+    const double cap = (double)P.u_max;
+    const float speed = (float)fmin(fmax(q_edge / (depth * (double)P.dx), -cap), cap);
     discharge[unique[s]] = (float)q_edge;
     for (int p = copy_ptr[s]; p < copy_ptr[s + 1]; ++p) velocity[copies[p]] = speed;
 }
@@ -410,20 +431,50 @@ extern "C" __global__ void poly_restore(const int ng, const int* __restrict__ gh
     src_t[ghost[g]] = saved[g];
 }
 
+// The speed of record at a cell's centre, from its faces' velocities: the lattice's rule on a polygon (W87, the twin
+// of kernel.py's cell_speed). wx, wy are PolyMesh.speed_weights in the CSR's order; a face velocity is the kernel's
+// own, limited by friction and capped at u_max, and zero on a dry face, so the speed never divides a discharge by a
+// vanishing volume as the Perot momentum vector U does in a cell that has just drained.
+__device__ __forceinline__ float cell_speed(const int c, const int* __restrict__ ptr, const int* __restrict__ cf,
+                                            const float* __restrict__ wx, const float* __restrict__ wy,
+                                            const float* __restrict__ u, const float cap) {
+    float vx = 0.0f, vy = 0.0f;
+    for (int p = ptr[c]; p < ptr[c + 1]; ++p) {
+        const float uf = u[cf[p]];
+        if (uf != 0.0f) {
+            vx += wx[p] * uf;
+            vy += wy[p] * uf;
+        }
+    }
+    return fminf(sqrtf(vx * vx + vy * vy), cap);
+}
+
 // The run's maxima per real cell: depth, mean depth, speed where deeper than speed_depth, and depth x speed.
-extern "C" __global__ void poly_cell_maxima(const int n, const float speed_depth, const float* __restrict__ d,
-                                            const float* __restrict__ h, const float* __restrict__ Ux,
-                                            const float* __restrict__ Uy, float* __restrict__ max_d,
+extern "C" __global__ void poly_cell_maxima(const int n, const float speed_depth, const float cap,
+                                            const int* __restrict__ ptr, const int* __restrict__ cf,
+                                            const float* __restrict__ wx, const float* __restrict__ wy,
+                                            const float* __restrict__ d, const float* __restrict__ h,
+                                            const float* __restrict__ u, float* __restrict__ max_d,
                                             float* __restrict__ max_h, float* __restrict__ max_s,
                                             float* __restrict__ max_dv) {
     const int c = blockIdx.x * blockDim.x + threadIdx.x;
     if (c >= n) return;
     const float dc = d[c];
-    const float s = dc > speed_depth ? hypotf(Ux[c], Uy[c]) : 0.0f;
+    const float s = dc > speed_depth ? cell_speed(c, ptr, cf, wx, wy, u, cap) : 0.0f;
     max_d[c] = fmaxf(max_d[c], dc);
     max_h[c] = fmaxf(max_h[c], h[c]);
     max_s[c] = fmaxf(max_s[c], s);
     max_dv[c] = fmaxf(max_dv[c], dc * s);
+}
+
+// The speed of record of every real cell now, for a saved map.
+extern "C" __global__ void poly_cell_speed(const int n, const float cap, const int* __restrict__ ptr,
+                                           const int* __restrict__ cf, const float* __restrict__ wx,
+                                           const float* __restrict__ wy, const float* __restrict__ u,
+                                           float* __restrict__ speed) {
+    const int c = blockIdx.x * blockDim.x + threadIdx.x;
+    if (c >= n) return;
+    speed[c] = cell_speed(c, ptr, cf, wx, wy, u, cap);
 }
 
 // The largest discharge of every face.

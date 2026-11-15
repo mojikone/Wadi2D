@@ -1,0 +1,286 @@
+{
+ "before_against_after": {
+  "before": "faydh/base_run",
+  "after": "faydh/fix_run",
+  "series_files": 2,
+  "series_identical": 2,
+  "maps": 16,
+  "maps_same_times": true,
+  "water_maps_differing": [],
+  "water_maxima_differing": [],
+  "squares_record_differing": [],
+  "steps": [
+   97032.0,
+   97032.0
+  ],
+  "rain_m3": [
+   10739179.144878449,
+   10739179.144878421
+  ],
+  "outflow_m3": [
+   9886738.338355279,
+   9886738.338355279
+  ],
+  "storage_end_m3": [
+   852440.693685811,
+   852440.693685811
+  ],
+  "error_m3": [
+   0.11283735930919647,
+   0.11283733136951923
+  ],
+  "books_identical": true,
+  "rain_relative_difference": 2.601658549647054e-15,
+  "before_record": {
+   "strip_cells": 25226,
+   "strip_cells_wet": 25226,
+   "strip_speed": {
+    "max": 150874.609375,
+    "q99_of_nonzero": 11.415243148803711,
+    "over_5": 3309,
+    "over_10": 312,
+    "over_25": 107,
+    "over_35.36": 79,
+    "over_100": 42,
+    "over_10000": 11
+   },
+   "strip_hazard": {
+    "max": 20897.86328125,
+    "q99_of_nonzero": 48.485557556152344,
+    "over_5": 7439,
+    "over_10": 5265,
+    "over_25": 2033,
+    "over_35.36": 840,
+    "over_100": 63,
+    "over_10000": 3
+   },
+   "strip_speed_median_wet": 1.7111444473266602,
+   "maps_strip_speed": {
+    "max": 42972.78515625,
+    "q99_of_nonzero": 7.267467498779297,
+    "over_5": 2271,
+    "over_10": 52,
+    "over_25": 6,
+    "over_35.36": 4,
+    "over_100": 2,
+    "over_10000": 1
+   },
+   "squares_speed": {
+    "max": 17.08336067199707,
+    "q99_of_nonzero": 4.091855525970459,
+    "over_5": 324,
+    "over_10": 9,
+    "over_25": 0,
+    "over_35.36": 0,
+    "over_100": 0,
+    "over_10000": 0
+   }
+  },
+  "after_record": {
+   "strip_cells": 25226,
+   "strip_cells_wet": 25226,
+   "strip_speed": {
+    "max": 30.81661605834961,
+    "q99_of_nonzero": 7.662535190582275,
+    "over_5": 2780,
+    "over_10": 110,
+    "over_25": 29,
+    "over_35.36": 0,
+    "over_100": 0,
+    "over_10000": 0
+   },
+   "strip_hazard": {
+    "max": 419.28411865234375,
+    "q99_of_nonzero": 47.25590896606445,
+    "over_5": 7376,
+    "over_10": 5189,
+    "over_25": 1912,
+    "over_35.36": 744,
+    "over_100": 31,
+    "over_10000": 0
+   },
+   "strip_speed_median_wet": 1.8357335329055786,
+   "maps_strip_speed": {
+    "max": 26.735177993774414,
+    "q99_of_nonzero": 6.646457672119141,
+    "over_5": 2040,
+    "over_10": 9,
+    "over_25": 2,
+    "over_35.36": 0,
+    "over_100": 0,
+    "over_10000": 0
+   },
+   "squares_speed": {
+    "max": 17.08336067199707,
+    "q99_of_nonzero": 4.091855525970459,
+    "over_5": 324,
+    "over_10": 9,
+    "over_25": 0,
+    "over_35.36": 0,
+    "over_100": 0,
+    "over_10000": 0
+   }
+  },
+  "water_identical": true
+ },
+ "after": {
+  "steps": 97032,
+  "loop_s": 2400.12,
+  "mass_error": 1.0507072267560788e-08,
+  "lines": {
+   "axis": {
+    "peak_m3s": 1870.13,
+    "at_h": 12.241666666666667,
+    "volume_m3": 9803091.582979549
+   },
+   "box_mid": {
+    "peak_m3s": 1875.24,
+    "at_h": 12.275,
+    "volume_m3": 9835558.302245973
+   }
+  },
+  "strip_cells": 25226,
+  "strip_cells_wet": 25226,
+  "strip_speed": {
+   "max": 30.81661605834961,
+   "q99_of_nonzero": 7.662535190582275,
+   "over_5": 2780,
+   "over_10": 110,
+   "over_25": 29,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "strip_speed_median_wet": 1.8357335329055786,
+  "strip_hazard": {
+   "max": 419.28411865234375,
+   "q99_of_nonzero": 47.25590896606445,
+   "over_5": 7376,
+   "over_10": 5189,
+   "over_25": 1912,
+   "over_35.36": 744,
+   "over_100": 31,
+   "over_10000": 0
+  },
+  "strip_depth_max": 16.55290412902832,
+  "squares_speed": {
+   "max": 17.08336067199707,
+   "q99_of_nonzero": 4.091855525970459,
+   "over_5": 324,
+   "over_10": 9,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "squares_depth_max": 12.312442779541016
+ },
+ "bounded": {
+  "steps": 96801,
+  "loop_s": 2488.3,
+  "mass_error": 1.2086831501910288e-08,
+  "lines": {
+   "axis": {
+    "peak_m3s": 1876.15,
+    "at_h": 12.241666666666667,
+    "volume_m3": 9815922.634579549
+   },
+   "box_mid": {
+    "peak_m3s": 1866.85,
+    "at_h": 12.275,
+    "volume_m3": 9831519.304565974
+   }
+  },
+  "strip_cells": 25226,
+  "strip_cells_wet": 25226,
+  "strip_speed": {
+   "max": 10.310419082641602,
+   "q99_of_nonzero": 7.144539833068848,
+   "over_5": 2625,
+   "over_10": 2,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "strip_speed_median_wet": 1.828707218170166,
+  "strip_hazard": {
+   "max": 69.88495635986328,
+   "q99_of_nonzero": 45.479148864746094,
+   "over_5": 7336,
+   "over_10": 5125,
+   "over_25": 1828,
+   "over_35.36": 670,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "strip_depth_max": 10.998812675476074,
+  "squares_speed": {
+   "max": 17.101024627685547,
+   "q99_of_nonzero": 4.0907301902771,
+   "over_5": 324,
+   "over_10": 9,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  },
+  "squares_depth_max": 12.312442779541016
+ },
+ "bounded_over_after": {
+  "steps": 0.9976193420727183,
+  "lines": {
+   "axis": {
+    "peak": 1.003219027554234,
+    "volume": 1.0013088780709014
+   },
+   "box_mid": {
+    "peak": 0.995525906017363,
+    "volume": 0.9995893473907753
+   }
+  }
+ },
+ "strip_max_depth_bounded_minus_after_m": {
+  "cells_over_0.3_m": 23194,
+  "mean": -0.01937074027955532,
+  "median": -0.00014090538024902344,
+  "q05": -0.005058169364929199,
+  "q95": 0.0007625043508596718,
+  "min": -14.941951751708984,
+  "max": 0.5574010610580444
+ },
+ "strip_max_level_after_over_bounded": {
+  "by_over_0.05_m": [
+   344,
+   20
+  ],
+  "by_over_0.1_m": [
+   260,
+   4
+  ],
+  "by_over_0.5_m": [
+   146,
+   1
+  ],
+  "by_over_1_m": [
+   99,
+   0
+  ],
+  "by_over_5_m": [
+   22,
+   0
+  ]
+ },
+ "strip_worst_cell": {
+  "cell": 19803,
+  "max_level_after_m": 16.462223052978516,
+  "max_level_bounded_m": 1.5202711820602417,
+  "max_mean_depth_after_m": 3.321070671081543,
+  "max_mean_depth_bounded_m": 0.016481593251228333
+ },
+ "strip_max_mean_depth_after_over_bounded_by_over_0.05_m": 237,
+ "squares_max_depth_after_minus_bounded_m": [
+  -0.05232048034667969,
+  0.07540392875671387
+ ]
+}

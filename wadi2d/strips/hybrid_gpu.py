@@ -66,6 +66,9 @@ class HybridGpu(Hybrid):
         cp = self.state.cp
         return cp.asnumpy(self.max_s), cp.asnumpy(self.max_dv)
 
+    def strip_cell_speed(self) -> np.ndarray:
+        return self.state.cp.asnumpy(self.state.cell_speed())
+
     def watch_boundary(self, faces: np.ndarray) -> None:
         cp = self.state.cp
         self.b_faces_d = cp.asarray(np.asarray(faces, np.int32))
