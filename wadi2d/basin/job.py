@@ -28,7 +28,11 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from wadi2d.basin.contract import (
+    MUSKINGUM_SUBREACHES,
+    REACH,
     RESERVOIR,
+    ROUTING_KEY,
+    ROUTING_MUSKINGUM,
     SOURCE_DERIVED,
     SOURCE_JOB,
     SUBBASIN,
@@ -46,9 +50,11 @@ from wadi2d.config.schema import (
     ENTRY_POINT,
     ENTRY_WADI,
     REACH_HMS,
+    REACH_MUSKINGUM,
     Handback,
     Hydrology,
     Inflow,
+    MuskingumReach,
     RunConfig,
     Subbasin,
 )
@@ -132,6 +138,25 @@ def with_overrides(model: Model, subbasins: list[Subbasin]) -> Model:
     return refresh(model)
 
 
+def with_reach_routing(model: Model, reach_routing: str, rows: list[MuskingumReach]) -> Model:
+    """The model as the job routes its reaches (W89). Under 'muskingum' every reach is a Muskingum reach, with the
+    job's K, X and subreaches where it gives them and the file's own where not; one with neither then lacks them,
+    and the rule for an incomplete reach applies: it is left out and named, its water running on the 2D grid."""
+    if reach_routing != REACH_MUSKINGUM:
+        return model
+    reaches = {e["name"]: e for e in model["elements"] if e["kind"] == REACH}
+    strangers = sorted({row.reach for row in rows} - set(reaches))
+    if strangers:
+        raise ValueError(f"hydrology.muskingum names {strangers}, not reaches of basin.json")
+    for element in reaches.values():
+        element[ROUTING_KEY] = ROUTING_MUSKINGUM
+    for row in rows:
+        values = {"muskingum_k_hours": row.k_hours, "muskingum_x": row.x, MUSKINGUM_SUBREACHES: row.subreaches}
+        for key, value in values.items():
+            reaches[row.reach]["parameters"][key] = parameter(value, SOURCE_JOB)
+    return refresh(model)
+
+
 def dry_start(model: Model) -> Model:
     """A reservoir whose start the file only derived starts empty, at the foot of its table, in place.
 
@@ -148,7 +173,8 @@ def dry_start(model: Model) -> Model:
 
 def load_model(h: Hydrology) -> Model:
     """The job's basin model with its overrides; a derived reservoir start is the empty pool."""
-    return with_overrides(dry_start(read_model(h.basin_json)), h.subbasins)
+    model = with_overrides(dry_start(read_model(h.basin_json)), h.subbasins)
+    return with_reach_routing(model, h.reach_routing, h.muskingum)
 
 
 def _modes(model: Model, subbasins: list[Subbasin]) -> tuple[dict[str, str], dict[str, list[str]], list[str]]:

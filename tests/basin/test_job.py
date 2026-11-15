@@ -10,6 +10,7 @@ import pytest
 import shapely
 
 from tests.basin.conftest import NX, NY, PIXEL, X0, Y0, valley_dem, write_job, write_raster
+from wadi2d.basin import load_network
 from wadi2d.basin.build import build_basin
 from wadi2d.basin.contract import SOURCE_DERIVED, SOURCE_JOB, read_model, value_of
 from wadi2d.basin.geometry import SUBBASINS, geometry_file, model_geometry, read_layer
@@ -24,6 +25,8 @@ from wadi2d.basin.job import (
 )
 from wadi2d.config.schema import BasinSettings, RunConfig, Subbasin
 from wadi2d.hydrology.model import Junction, Reach
+from wadi2d.hydrology.muskingum import Muskingum
+from wadi2d.hydrology.routing import MuskingumCunge
 from wadi2d.run import load_job
 
 SETTINGS = BasinSettings(stream_threshold_km2=0.5, snap_m=30.0, section_half_width_m=300.0, section_search_m=20.0)
@@ -230,3 +233,60 @@ def test_the_polygons_mask_exactly_the_cells_of_the_subbasin(generated: dict) ->
         counted += int(burned.sum())
     assert counted == NX * NY
     assert isinstance(shapely.union_all(list(geometry.subbasins.values())), shapely.Polygon | shapely.MultiPolygon)
+
+
+# W89: Muskingum on a generated basin
+
+
+def test_muskingum_routes_a_reach_with_the_jobs_numbers(generated: dict) -> None:
+    rows = [{"reach": "R1", "k_hours": 0.3, "x": 0.25, "subreaches": 4}]
+    cfg = job_on(generated, generated["basin"], reach_routing="muskingum", muskingum=rows)
+    gen = generated_basin(cfg)
+    element = next(e for e in gen.model["elements"] if e["name"] == "R1")
+    assert element["routing"] == "muskingum" and element["missing"] == []
+    assert element["parameters"]["muskingum_k_hours"] == {"value": 0.3, "source": SOURCE_JOB}
+    routing = engine_basin(gen.model, gen.modes, cfg.hydrology.reach_routing).elements["R1"].routing
+    assert isinstance(routing, Muskingum)
+    assert (routing.k_hours, routing.x, routing.subreaches) == (0.3, 0.25, 4)
+    assert "R1" not in gen.missing and gen.notes == []
+    assert [i.name for i in gen.inflows] == ["J1"]
+    assert "routing" not in next(e for e in read_model(generated["basin"])["elements"] if e["name"] == "R1")
+
+
+def test_muskingum_without_k_and_x_leaves_the_reach_out_and_says_so(generated: dict) -> None:
+    """The rule of an incomplete reach: named, cut from the network, its water on the 2D grid."""
+    gen = generated_basin(job_on(generated, generated["basin"], reach_routing="muskingum"))
+    assert gen.missing["R1"] == ["muskingum_k_hours", "muskingum_x"]
+    assert any("reach R1 lacks muskingum_k_hours, muskingum_x" in note for note in gen.notes)
+    assert "R1" not in engine_basin(gen.model, gen.modes, "muskingum").elements
+    assert sorted(i.name for i in gen.inflows) == ["J1", "J2"]
+    routed = generated_basin(job_on(generated, generated["basin"]))
+    assert isinstance(engine_basin(routed.model, routed.modes).elements["R1"].routing, MuskingumCunge)
+
+
+def test_a_reach_of_the_file_is_muskingum_by_its_own_key(generated: dict, tmp_path: Path) -> None:
+    """``routing: muskingum`` on a reach of basin.json, under the job's default scheme; a section is then not needed."""
+    model = json.loads(generated["basin"].read_text(encoding="utf-8"))
+    element = next(e for e in model["elements"] if e["name"] == "R1")
+    element["routing"] = "muskingum"
+    element["parameters"]["muskingum_k_hours"] = {"value": 0.4, "source": "user"}
+    element["parameters"]["muskingum_x"] = {"value": 0.1, "source": "user"}
+    element["parameters"]["bottom_width_m"] = {"value": None, "source": "missing"}
+    edited = tmp_path / "basin.json"
+    edited.write_text(json.dumps(model), encoding="utf-8")
+    assert next(e for e in read_model(edited)["elements"] if e["name"] == "R1")["missing"] == []
+    routing = load_network(edited).elements["R1"].routing
+    assert isinstance(routing, Muskingum) and (routing.k_hours, routing.x, routing.subreaches) == (0.4, 0.1, 1)
+    element["parameters"]["muskingum_x"] = {"value": None, "source": "missing"}
+    edited.write_text(json.dumps(model), encoding="utf-8")
+    assert next(e for e in read_model(edited)["elements"] if e["name"] == "R1")["missing"] == ["muskingum_x"]
+    element["routing"] = "kinematic"
+    edited.write_text(json.dumps(model), encoding="utf-8")
+    with pytest.raises(ValueError, match="routing 'kinematic'"):
+        read_model(edited)
+
+
+def test_muskingum_numbers_for_a_reach_that_is_not_there_are_refused(generated: dict) -> None:
+    rows = [{"reach": "R99", "k_hours": 0.3, "x": 0.25}]
+    with pytest.raises(ValueError, match=r"names \['R99'\]"):
+        generated_basin(job_on(generated, generated["basin"], reach_routing="muskingum", muskingum=rows))
