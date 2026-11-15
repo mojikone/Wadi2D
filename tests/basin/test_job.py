@@ -286,6 +286,25 @@ def test_a_reach_of_the_file_is_muskingum_by_its_own_key(generated: dict, tmp_pa
         read_model(edited)
 
 
+def test_a_generated_reach_gets_a_proposal_from_its_section_and_the_file_stays_as_it_was(generated: dict) -> None:
+    from wadi2d.engine.muskingum_proposals import propose_reaches
+
+    before = generated["basin"].read_bytes()
+    found = propose_reaches(generated["basin"], 5.0)
+    (row,) = found["reaches"]
+    assert found["kind"] == "generated" and row["name"] == "R1" and row["method"] == "Muskingum Cunge"
+    assert row["own"] is None and row["proposal"]["basis"] == "index celerity"
+    reach = next(e for e in read_model(generated["basin"])["elements"] if e["name"] == "R1")
+    travel_h = value_of(reach, "length_m") / value_of(reach, "index_celerity") / 3600.0
+    assert row["proposal"]["k_hours"] == pytest.approx(travel_h, abs=2e-3)
+    at_flow = propose_reaches(generated["basin"], 5.0, {"R1": 50.0})["reaches"][0]["proposal"]
+    assert at_flow["basis"] == "reference flow" and at_flow["reference_flow_m3s"] == 50.0
+    assert generated["basin"].read_bytes() == before
+    rows = [{"reach": "R1", **{key: at_flow[key] for key in ("k_hours", "x", "subreaches")}}]
+    gen = generated_basin(job_on(generated, generated["basin"], reach_routing="muskingum", muskingum=rows))
+    assert gen.notes == [] and "R1" not in gen.missing
+
+
 def test_muskingum_numbers_for_a_reach_that_is_not_there_are_refused(generated: dict) -> None:
     rows = [{"reach": "R99", "k_hours": 0.3, "x": 0.25}]
     with pytest.raises(ValueError, match=r"names \['R99'\]"):
