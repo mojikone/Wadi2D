@@ -1,20 +1,26 @@
-"""The four jobs, from one base: ``wadi2d hms-import`` of Basin 3, FM_200yr.met and Control_1.control.
+"""The four jobs of the rerun (2026-11-15), from one base: ``wadi2d hms-import`` of Basin 3, FM_200yr.met and
+Control_1.control.
 
 Common to all: the 200-yr storm of FM_200yr.met (251 mm, the FM 10-1000yr pattern, 24 h) with its ARF FM table read at
-the whole block's area, Basin 3's 1,370.77 km2 (the met file itself names 300 km2: its depth-area analyses read each
-point's own area); 48 h and the 5-minute lumped step of Control_1; dams start empty (no dam_levels entry; Basin 3's
-reservoirs start at the bottom of their tables, the grid pools dry). 2D runs: the domain to the sea, 20 m squares, GPU,
-GGC 0.5 m terrain, W1's Manning rule, the CN raster of his HMS project, the sea as W12's normal line, maps every 15 min,
-the five dam lines (W1's) and a line round each pool's upstream edge, pixel maps on, polygons and drawing off.
+one storm area of 100 km2 (his choice of 2026-11-15; the first attempt read it at Basin 3's 1,370.77 km2); 48 h and the
+5-minute lumped step of Control_1; dams start empty (no dam_levels entry; Basin 3's reservoirs start at the bottom of
+their tables, the grid pools dry). 2D runs: the domain to the sea, the aligned centre mesh at 20 m, the 0.5 m pixel
+(pixel_stride 1), GPU, GGC 0.5 m terrain, W1's Manning rule, the CN raster of his HMS project with CN 88 where it has
+none, the sea, side and north outlets as normal lines, maps every 15 min, the five dam lines (W1's) and a line round each
+pool's upstream edge, pixel maps on, polygons and drawing off.
 
-1. Full 2D: no lumped element, rain on every cell; the five dams as crest lines and spillways on the grid.
-2. Full HMS way: the hydrology of the base job unchanged, run by the lumped engine alone (s03_lumped.py); the job
-   carries no grid.
-3. Hybrid: the 18 dam catchments (S1 to S18) lumped with their reaches and the five reservoirs; each reservoir's outflow
-   enters the grid 200 m below its dam; the 86 plain subbasins lumped, each entering at its own wadi outlet; the grid
-   from below the dams to the sea, rain on the cells outside every polygon; no dam on the grid.
-4. Hybrid, routing in 2D: every subbasin lumped and entering at its wadi outlet (the import as it is), no reach or
-   reservoir routed; the five dams as crest lines and spillways on the grid, as run 1.
+The ARF, his decisions of 2026-11-15:
+
+1. Full 2D: no lumped element, rain on every cell at 100 km2; the five dams as crest lines and spillways on the grid.
+2. Full HMS way: Basin 3 on the lumped engine alone (s03_lumped.py), every junction and reservoir at its own total
+   upstream area, HMS's depth-area analysis; the job carries the 100 km2 base only.
+3. Hybrid: the 18 dam catchments (S1 to S18) lumped with their reaches and the five reservoirs, each subbasin at its
+   dam's area (``storm_area_km2`` of the subbasin), so each reservoir's outflow is the dam's at its own area; it enters
+   the grid 200 m below its dam; the 86 plain subbasins lumped at 100 km2, each entering at its own wadi outlet; rain on
+   the cells outside every polygon at 100 km2; no dam on the grid.
+4. Hybrid, routing in 2D: every subbasin lumped and entering at its wadi outlet, no reach or reservoir routed; a
+   subbasin draining to a dam at that dam's area, the rest and the rain on the grid at 100 km2; the five dams as crest
+   lines and spillways on the grid, as run 1.
 """
 
 from __future__ import annotations
@@ -30,6 +36,7 @@ from w79 import (  # noqa: E402
     CACHE,
     CN,
     CONTROL,
+    DAM_AREA_KM2,
     DAMS,
     DEM,
     DX,
@@ -42,6 +49,7 @@ from w79 import (  # noqa: E402
     RUN_NAMES,
     RUN_TITLES,
     RUNS,
+    STORM_AREA_KM2,
     load_json,
     write_json,
 )
@@ -101,9 +109,9 @@ def lines(inputs: dict) -> list[dict]:
 def common(job: dict, inputs: dict, number: int) -> dict:
     job = copy.deepcopy(job)
     job["project"] = {"name": RUN_NAMES[number], "description": f"W79 Block 2 four ways: {RUN_TITLES[number]}"}
-    job["storm"]["storm_area_km2"] = round(inputs["hms_area_km2"], 4)
+    job["storm"]["storm_area_km2"] = STORM_AREA_KM2
     job["storm"]["arf"]["table_type"] = (
-        "ARF FM of his HMS project, read here at the whole block's area (Basin 3, 1,370.77 km2); his met file names 300 km2"
+        "ARF FM of his HMS project, read at one storm area of 100 km2 (his choice of 2026-11-15); his met file names 300 km2"
     )
     job["grid"] = {"dx": DX, "domain": inputs["domain"], "cache_dir": str(CACHE)}
     job["terrain"].update({"dem": str(DEM), "pixel_stride": 1, "manning": MANNING_PLAIN,
@@ -135,25 +143,35 @@ def run2(job: dict, inputs: dict) -> dict:
     return job
 
 
-def run3(job: dict, inputs: dict) -> dict:
-    job = common(job, inputs, 3)
-    model = load_basin(HMS_DIR / BASIN)
-    downstream = {e.name: e.downstream for e in model.elements}
+def reaches_dam(name: str) -> str | None:
+    """The dam a subbasin drains to through Basin 3's network, or None for a subbasin below every dam."""
+    downstream = {e.name: e.downstream for e in load_basin(HMS_DIR / BASIN).elements}
+    seen = name
+    while seen in downstream and downstream[seen]:
+        seen = downstream[seen]
+        for dam, res in RESERVOIR.items():
+            if seen == res:
+                return dam
+    return None
 
-    def reaches_dam(name: str) -> str | None:
-        seen = name
-        while seen in downstream and downstream[seen]:
-            seen = downstream[seen]
-            for dam, res in RESERVOIR.items():
-                if seen == res:
-                    return dam
-        return None
 
-    above = {}
+def dam_areas(job: dict) -> dict[str, list[str]]:
+    """Every subbasin draining to a dam reads the ARF at that dam's area (his rule of 2026-11-15, HMS's depth-area way);
+    the rest keep the storm's 100 km2."""
+    above: dict[str, list[str]] = {}
     for s in job["hydrology"]["subbasins"]:
         dam = reaches_dam(s["name"])
         if dam is not None:
             above.setdefault(dam, []).append(s["name"])
+            s["storm_area_km2"] = DAM_AREA_KM2[dam]
+    return above
+
+
+def run3(job: dict, inputs: dict) -> dict:
+    job = common(job, inputs, 3)
+    above = dam_areas(job)
+    for s in job["hydrology"]["subbasins"]:
+        if s.get("storm_area_km2") is not None:
             s["outlet"] = None  # carried by its reservoir's inflow
     job["hydrology"]["inflows"] = [
         {"name": f"{dam} outflow", "x": inputs["dams"][dam]["entry"][0], "y": inputs["dams"][dam]["entry"][1],
@@ -167,14 +185,14 @@ def run3(job: dict, inputs: dict) -> dict:
 def run4(job: dict, inputs: dict) -> dict:
     job = common(job, inputs, 4)
     job["terrain"]["objects"] = objects(inputs)
+    above = dam_areas(job)
+    print("run 4, subbasins at each dam's area:", {k: sorted(v) for k, v in above.items()})
     return job
 
 
-STRIP_STRIDE = 2
-"""The strip's table builder reads the DEM over the bounding box of every aligned cell at once, in float64
-(``wadi2d/strips/build.py``, ``strip_tables``): on this domain at the 0.5 m pixel that is 91,457 x 97,537 pixels, 66.5 GiB,
-and the first aligned run 1 stopped there (exit 7). At every second pixel (1 m) it is 16.6 GiB. The squares' tables
-take the same stride, so the three aligned runs read the ground at 1 m alike; the superseded squares run read 0.5 m."""
+STRIP_STRIDE = 1
+"""The 0.5 m pixel. The first attempt ran at every second pixel (1 m), because the strip's table builder read the DEM
+over the bounding box of every aligned cell at once (66.5 GiB at 0.5 m, exit 7); W81 reads it in pieces (13.4 GB peak)."""
 
 
 def aligned(job: dict) -> dict:

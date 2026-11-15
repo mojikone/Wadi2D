@@ -156,8 +156,16 @@ def common_group() -> None:
     dom = vec(INPUTS / "domain.geojson", "2D domain to the sea (Basin 3 polygons + coast strip)")
     style.style_domain(dom)
     dams = dam_layers(("dam_line", "crest_line", "spillway", "entry", "ring", "pool"))
-    peaks = csv_table(HERE / "dam_peaks.csv", "Dam peaks, all four runs (dam_peaks.csv)")
-    add_all(top, [peaks, *dams, *hms_layers(), dom])
+    peaks = csv_table(HERE / "dam_peaks.csv", "Dam peaks, all four runs, with the ARF of each (dam_peaks.csv)")
+    outflow = rl._vector(run_folder(1), rl.BOUNDARY_LAYER, "Outflow lines: the sea, the side and north outlets (normal depth)")
+    if outflow is None:
+        raise SystemExit("run 1 has no boundary layer")
+    style.style_boundaries(outflow)
+    cells = [lay for lay in rl.open_strip_mesh(run_folder(1))]
+    for lay in cells:
+        lay.setName(f"Aligned cells, 20 m centre mesh (run 1): {lay.name()}")
+    add_all(top, [peaks, *dams, outflow, *hms_layers(), dom])
+    add_all(top, cells, shown=False)
     project.addMapLayer(dem, False)
     project.addMapLayer(hill, False)
     top.addLayer(dem).setItemVisibilityChecked(False)

@@ -63,6 +63,18 @@ def progress(folder: Path) -> tuple[dict, list[str], list[dict]]:
     return done, warns, entries
 
 
+def leaving(warns: list[str], least_km2: float) -> list[str]:
+    """The edge check's streams that leave through a closed edge (W78), of ``least_km2`` or more."""
+    import re
+
+    out = []
+    for w in warns:
+        m = re.search(r"a stream draining ([0-9.]+) km2 leaves the domain at \(([0-9]+), ([0-9]+)\)", w)
+        if m and float(m.group(1)) >= least_km2 and (least_km2 > 0.0 or float(m.group(1)) < 1.0):
+            out.append(f"{m.group(1)} km2 at ({m.group(2)}, {m.group(3)})")
+    return out
+
+
 def pools() -> dict[str, shapely.Geometry]:
     out = {}
     for f in load_json(INPUTS / "dams.geojson")["features"]:
@@ -127,6 +139,8 @@ def setup(number: int, folder: Path) -> dict:
         "crest_lines": sum(1 for o in job["terrain"]["objects"] if o["kind"] == "crest_line"),
         "spillways": sum(1 for o in job["terrain"]["objects"] if o["kind"] == "spillway"),
         "storm_area_km2": job["storm"]["storm_area_km2"], "depth_mm": job["storm"]["depth_mm"],
+        "subbasin_storm_areas_km2": {s["name"]: s["storm_area_km2"] for s in subs if s.get("storm_area_km2")},
+        "pixel_stride": job["terrain"]["pixel_stride"],
     }
 
 
@@ -148,6 +162,8 @@ def main(number: int, name: str | None = None) -> None:
             "loop_s": done.get("loop_s"), "tables_s": done.get("tables_s"), "products": done.get("products"),
             "relative_mass_error": bal.get("relative_error"), "balance": bal, "warnings": warns,
             "entries": entries,
+            "edge_streams_leaving_1km2": leaving(warns, 1.0),
+            "edge_streams_leaving_small": leaving(warns, 0.0),
         })
         report["dams"] = lumped_dams(folder) if number == 3 else grid_dams(number, folder, entries)
     write_json(folder / "w79_check.json", report)
