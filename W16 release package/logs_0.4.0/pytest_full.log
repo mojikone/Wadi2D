@@ -1,0 +1,20 @@
+full suite at 481c736, 2026-11-15T13:45:45-08:00, chunks by folder, 10 GB cap each, GPU visible
+tests/test_gis_env.py: 2 passed in 0.49s [1 s] rc=0
+tests/basin: 117 passed in 8.57s [9 s] rc=0
+tests/breaklines: 25 passed in 7.32s [8 s] rc=0
+tests/demstore: 41 passed in 11.38s [12 s] rc=0
+tests/engine: 534 passed in 1103.91s (0:18:23) [1105 s] rc=0
+tests/hms: 111 passed, 1 skipped in 4.92s [5 s] rc=0
+tests/hydrology: 485 passed, 9 skipped in 59.67s [60 s] rc=0
+tests/plugin: 598 passed in 84.37s (0:01:24) [85 s] rc=0
+tests/products: 204 passed in 80.88s (0:01:20) [82 s] rc=0
+tests/render: 23 passed in 20.28s [22 s] rc=0
+tests/solver: 126 passed in 116.24s (0:01:56) [117 s] rc=0
+tests/storm: 14:10:53.144                         Number denied locks:    0 [2 s] rc=0
+tests/strips: 89 passed in 114.32s (0:01:54) [115 s] rc=0
+tests/tables: 16 passed in 4.89s [5 s] rc=0
+tests/terrain: 102 passed in 4.60s [5 s] rc=0
+tests/validation: 156 passed in 24.76s [25 s] rc=0
+tests/workbook: 11 passed in 32.65s [33 s] rc=0
+ended 2026-11-15T14:13:58-08:00
+total: 2,787 passed, 10 skipped, 0 failed (storm's summary line, 147 passed, is in pytest_full.full.log under HDF5 noise); W1 hms_replication.md rewritten by a test and restored
