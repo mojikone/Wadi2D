@@ -882,6 +882,8 @@ OBSERVED_STORMS = ("hyetograph", "gridded")
 """Rain given as it falls: no depth grid applies. A hyetograph takes no area reduction; a grid of point depths may."""
 GAUGE_STORM = "gauges"
 """Rain from station records (W54): observed too, with its own check so the line above stays as it was."""
+GIVEN_FACTOR_STORMS = ("uniform", "hypothetical", "gridded")
+"""The storms that take an area reduction, so also a given factor (W83)."""
 
 
 class ArfTableConfig(_Part):
@@ -917,6 +919,14 @@ class Storm(_Part):
         description="Area-reduction table. The depth of a uniform or hypothetical storm is multiplied by its factor at "
         "storm_area_km2. So is every frame of a gridded storm, for grids of point depths: on 2D cells and under "
         "lumped subbasins alike. None, or no storm area, leaves the rain whole",
+    )
+    arf_factor: float | None = Field(
+        None,
+        gt=0.0,
+        le=1.0,
+        description="A given area-reduction factor, in place of a table and a storm area: every depth of a uniform, "
+        "hypothetical or gridded storm is multiplied by it, on 2D cells and under lumped subbasins alike; 0.7 is a "
+        "30 % reduction. A depth-area study refuses it (W83)",
     )
     hyetograph_min: list[float] | None = Field(None, description="End of each period, minutes from the start")
     hyetograph_mm: list[float] | None = Field(None, description="Depth in each period, mm")
@@ -959,7 +969,21 @@ class Storm(_Part):
                 raise ValueError("a gauges storm needs storm.gauges")
             if self.arf is not None or self.depth_grid is not None:
                 raise ValueError("a gauges storm takes no area reduction and no depth grid: it is the rain itself")
+        if self.arf_factor is not None:
+            self._check_given_factor()
         return self
+
+    def _check_given_factor(self) -> None:
+        if self.arf is not None or self.storm_area_km2 is not None:
+            raise ValueError(
+                "storm.arf_factor is a given area reduction: leave out storm.arf and storm.storm_area_km2, or the "
+                "factor; not both"
+            )
+        if self.kind not in GIVEN_FACTOR_STORMS:
+            raise ValueError(
+                f"a {self.kind} storm takes no area reduction: storm.arf_factor applies to a uniform, hypothetical or "
+                "gridded storm"
+            )
 
     def _check_hyetograph(self) -> None:
         ends, depths = self.hyetograph_min, self.hyetograph_mm

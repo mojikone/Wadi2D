@@ -13,7 +13,7 @@ from typing import Self
 import numpy as np
 from numpy.typing import ArrayLike
 
-from wadi2d.storm.arf import ArfTable
+from wadi2d.storm.arf import ArfTable, GivenFactor, factor_at
 from wadi2d.storm.base import PERCENT, STORM_METHODS, CumulativeStorm, FloatArray
 
 MINUTES_PER_HOUR = 60.0
@@ -47,14 +47,12 @@ class HypotheticalStorm(CumulativeStorm):
     pattern: PercentPattern
     duration_hours: float
     storm_area_km2: float | None = None
-    arf: ArfTable | None = None
+    arf: ArfTable | GivenFactor | None = None
 
     @property
     def area_factor(self) -> float:
-        """The factor at the storm area."""
-        if self.arf is None or self.storm_area_km2 is None:
-            return 1.0
-        return self.arf.factor(self.storm_area_km2)
+        """The factor at the storm area, or the given factor."""
+        return factor_at(self.arf, self.storm_area_km2)
 
     @property
     def total_depth(self) -> float:

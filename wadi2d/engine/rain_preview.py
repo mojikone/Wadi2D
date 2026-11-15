@@ -138,6 +138,7 @@ def rain_preview(cfg: RunConfig, map_dir=None) -> dict:
         "step_min": dt,
         "storm_area_km2": resolved.storm.storm_area_km2,
         "area_factor": _factor(storm),
+        "arf_factor": resolved.storm.arf_factor,
         "areas": rows,
     }
     if map_dir is not None:
