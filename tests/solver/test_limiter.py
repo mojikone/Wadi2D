@@ -8,9 +8,11 @@ import pytest
 from wadi2d.config.constants import G
 from wadi2d.config.schema import Numerics, Tables
 from wadi2d.grid import TileGrid
+from wadi2d.grid.quad import QuadGrid
 from wadi2d.solver.limiter import step_limiter, tile_waves
 from wadi2d.solver.model import Model
 from wadi2d.tables import ArrayBed, build_tables
+from wadi2d.tables.quad import build_quad_tables
 
 BACKENDS = ["cpu", pytest.param("gpu", marks=pytest.mark.gpu)]
 DX, K = 10.0, 10
@@ -84,3 +86,33 @@ def test_dry_ground_names_nothing():
     m, _z = pit_model("cpu", level=None)
     m.advance(5.0)
     assert step_limiter(m, m.tables) is None
+
+
+def test_a_strip_that_leads_is_named_and_not_located():
+    """A hook that steps cells beside the tiles (W45) gives its own wave; when it leads, the reading says so."""
+    m, _z = pit_model("cpu")
+    m.advance(30.0)
+    tiles = step_limiter(m, m.tables)
+    m.backend.extra_wave = 2.0 * tiles["wave"]
+    info = step_limiter(m, m.tables)
+    assert info["source"] == "strip" and "x" not in info
+    assert info["wave"] == pytest.approx(2.0 * tiles["wave"], rel=1e-3)
+
+
+@pytest.mark.parametrize("local", [False, True])
+def test_the_pit_is_named_on_a_quadtree_and_under_local_time_stepping(local):
+    """The level stepper keeps the same wave per tile, so the reading is the same call."""
+    mask = np.zeros((64, 64), bool)
+    mask[2:-2, 2:-2] = True
+    grid = QuadGrid.from_levels(mask, 0.0, 0.0, DX, np.zeros((2, 2), np.int32))
+    ny, nx = grid.shape
+    z = np.full((ny * K, nx * K), GROUND)
+    z[PJ * K + 2 : PJ * K + 8, PI * K - 1 : PI * K + 1] = PIT
+    tables = build_quad_tables(grid, ArrayBed(z, DX / K), Tables(), 0.03)
+    m = Model(tables, Numerics(local_time_stepping=local), "cpu")
+    m.set_depth(np.maximum(LEVEL - z, 0.0).reshape(ny, K, nx, K).mean(axis=(1, 3)))
+    m.advance(30.0)
+    info = step_limiter(m, m.tables)
+    assert info["source"] == "tiles" and info["axis"] == "x" and info["cell_dx"] == DX
+    assert info["j"] == PJ and info["i"] in (PI - 1, PI)
+    assert info["hydraulic_depth"] > 3.0 * info["depth"]
