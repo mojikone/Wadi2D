@@ -13,15 +13,18 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from dataclasses import dataclass
+from functools import partial
 
 import numpy as np
 import rasterio
+from rasterio.windows import Window
 from scipy import ndimage
 
 from wadi2d.config.schema import RunConfig
 from wadi2d.solver.layout import CLOSED, TILE
 from wadi2d.tables.builder import GridTables
 from wadi2d.terrain import Ground, RasterBed, apply_objects
+from wadi2d.terrain.dem import HUGE_ELEVATION
 from wadi2d.terrain.sections import with_tables
 
 READ_WORKERS = max(1, (os.cpu_count() or 2) // 2)
@@ -124,10 +127,10 @@ def _whole_strip(bed: RasterBed, edit, rows, cols, k: int, row0: int, datum: flo
     # without the fill first: the cells kept are inside the DEM almost always, and the fill is a distance
     # transform of the whole strip. A strip with holes is read again with it when terrain objects edit it
     # (an edit may read the whole window, its lowest and highest ground) or when a kept pixel is a hole (W50)
-    z = bed.read(row0, col0, TILE * k, ncols, fill=False)
+    z = _read(bed, row0, col0, TILE * k, ncols, fill=False)
     holes = np.isnan(z)
     if holes.any() and (edit is not None or holes[top, left].any()):
-        z = bed.read(row0, col0, TILE * k, ncols)
+        z = _read(bed, row0, col0, TILE * k, ncols)
     if edit is not None:
         edit(z, row0, col0)
     out[:] = (z[top, left] - datum).astype(np.float32).reshape(rows.size, -1)
@@ -141,10 +144,49 @@ every hole is provably inside (W50)."""
 def _raw(bed: RasterBed, row0: int, col0: int, nrows: int, ncols: int) -> tuple[np.ndarray, np.ndarray]:
     """Bed pixels counted from the grid origin as :meth:`RasterBed.read` counts them, and which are holes, unfilled.
 
-    Through the bed's own window reader: ``read(fill=False)`` gives a window that is all holes as zeros, not NaN, so
-    a hole could not be told from ground there. ``terrain/dem.py`` is left as it is: it is hashed into every grid
-    cache key, and editing it would rebuild every user's tables once for nothing."""
-    return bed._window(bed.row_origin + row0 * bed.stride, bed.col_origin + col0 * bed.stride, nrows, ncols)
+    Through the bed's own window reader, or at a stride through :func:`_strided_window`, which picks the same
+    pixels: ``read(fill=False)`` gives a window that is all holes as zeros, not NaN, so a hole could not be told
+    from ground there. ``terrain/dem.py`` is left as it is: it is hashed into every grid cache key, and editing it
+    would rebuild every user's tables once for nothing."""
+    read = bed._window if bed.stride == 1 else partial(_strided_window, bed)
+    return read(bed.row_origin + row0 * bed.stride, bed.col_origin + col0 * bed.stride, nrows, ncols)
+
+
+def _strided_window(bed: RasterBed, row: int, col: int, nrows: int, ncols: int) -> tuple[np.ndarray, np.ndarray]:
+    """:meth:`RasterBed._window` at a stride, read whole and sliced. GDAL's nearest decimation of a window
+    ``stride`` times the output takes the pixel at ``stride // 2`` in every block of ``stride``, so the slice is the
+    same pixels, and the decimated read costs about five times the whole read (W80: Block 2 at 20 m and stride 2,
+    the products' ground 40 s a strip of tiles). Same clipping, same holes, same values."""
+    s = bed.stride
+    skip_r = max(-(row // s), 0)
+    skip_c = max(-(col // s), 0)
+    nr = min(nrows - skip_r, (bed.src.height - (row + skip_r * s)) // s)
+    nc = min(ncols - skip_c, (bed.src.width - (col + skip_c * s)) // s)
+    z = np.zeros((nrows, ncols), np.float64)
+    mask = np.ones((nrows, ncols), bool)
+    if nr <= 0 or nc <= 0:
+        return z, mask
+    window = Window(col + skip_c * s, row + skip_r * s, nc * s, nr * s)
+    a = bed.src.read(1, window=window, masked=True)[s // 2 :: s, s // 2 :: s]
+    values = np.asarray(a.filled(np.nan), dtype=np.float64)
+    bad = ~np.isfinite(values) | (values > HUGE_ELEVATION)
+    values[bad] = 0.0
+    z[skip_r : skip_r + nr, skip_c : skip_c + nc] = values
+    mask[skip_r : skip_r + nr, skip_c : skip_c + nc] = bad
+    return z, mask
+
+
+def _read(bed: RasterBed, row0: int, col0: int, nrows: int, ncols: int, fill: bool = True) -> np.ndarray:
+    """:meth:`RasterBed.read` through :func:`_raw`: the same pixels and the same fill, at a stride without GDAL's
+    decimation."""
+    z, mask = _raw(bed, row0, col0, nrows, ncols)
+    if not mask.any() or mask.all():
+        return z
+    if not fill:
+        z[mask] = np.nan
+        return z
+    nearest = ndimage.distance_transform_edt(mask, return_distances=False, return_indices=True)
+    return z[tuple(nearest)]
 
 
 def _filled_near(
