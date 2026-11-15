@@ -12,7 +12,8 @@ import rasterio
 
 from tests.engine.conftest import X0, Y0, write_dem
 from tests.engine.test_run import full_job, valley
-from wadi2d.engine.step_limiter import FILE, LAYER
+from tests.solver.test_limiter import DX, GROUND, PI, PJ, pit_model
+from wadi2d.engine.step_limiter import FILE, LAYER, MIN_TICKS, LimiterLog
 from wadi2d.run import job_hash, run_job
 
 PIT_X, PIT_Y = X0 + 256.0, Y0 - 188.0
@@ -77,3 +78,39 @@ def test_off_writes_nothing_and_on_changes_no_water(pit_dem, tmp_path):
             rasterio.open(on / "maps" / f"{name}.tif") as b,
         ):
             assert np.array_equal(a.read(1), b.read(1)), name
+
+
+class Lines:
+    """A progress that keeps its events."""
+
+    def __init__(self) -> None:
+        self.events: list[dict] = []
+
+    def emit(self, ev: str, **fields) -> None:
+        self.events.append({"ev": ev, **fields})
+
+
+def test_a_cell_that_leads_with_a_depth_no_ground_has_is_warned_of_in_words():
+    """Water standing in a pit across a face, wet over a sliver of each cell: the end of the run says where to look."""
+    m, _z = pit_model("cpu")
+    log = LimiterLog(m, m.tables, Lines())
+    for n in range(MIN_TICKS - 1):
+        m.advance(5.0 * (n + 1))
+        log.tick(m.stepper.t)
+    assert log.notes() == []  # too few events to say who led
+    m.advance(5.0 * MIN_TICKS)
+    log.tick(m.stepper.t)
+    (note,) = log.notes()
+    x, y = m.grid.xy_of(np.array(PJ), np.array(PI))
+    assert f"{MIN_TICKS} of {MIN_TICKS} progress events" in note and "hole in the DEM" in note
+    assert any(f"({x + s * DX:.0f}, {y:.0f})" in note for s in (-1.0, 0.0))
+    assert len(log.progress.events) == MIN_TICKS
+
+
+def test_water_that_fills_its_cells_is_not_called_a_hole():
+    m, _z = pit_model("cpu", level=GROUND + 2.0)  # the pit drowned under 2 m of water on the whole grid
+    log = LimiterLog(m, m.tables, Lines())
+    for n in range(MIN_TICKS):
+        m.advance(5.0 * (n + 1))
+        log.tick(m.stepper.t)
+    assert log.cells and log.notes() == []

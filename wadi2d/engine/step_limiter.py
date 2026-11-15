@@ -29,6 +29,12 @@ COLUMNS = {
     "axis": str,
     "crest": int,
 } | {name: float for name in KEPT}
+MIN_TICKS = 10
+"""Fewer progress events than this say nothing about who led the run."""
+LEAD_SHARE = 0.5
+"""A cell that led this share of the events is named in a warning, when its depth is one no ground has."""
+DEPTH_RATIO = 3.0
+"""The hydraulic depth the rule read, over the water's own depth in the cell, above which the cell looks like a hole."""
 
 
 class LimiterLog:
@@ -65,6 +71,22 @@ class LimiterLog:
             held["axis"], held["crest"] = info["axis"], int(info["crest"])
             held.update({name: info.get(name) for name in KEPT})
         return info
+
+    def notes(self) -> list[str]:
+        """Plain words when one cell led most of the run with a depth no ground has: the mark of a hole in the DEM."""
+        ticks = sum(c["ticks"] for c in self.cells.values()) + self.strip_ticks
+        if not self.cells or ticks < MIN_TICKS:
+            return []
+        c = max(self.cells.values(), key=lambda held: held["ticks"])
+        if c["ticks"] < LEAD_SHARE * ticks or c["hydraulic_depth"] < DEPTH_RATIO * max(c["depth"], 1e-6):
+            return []
+        return [
+            f"one cell set the time step at {c['ticks']} of {ticks} progress events: ({c['x']:.0f}, {c['y']:.0f}), water "
+            f"{c['depth']:.1f} m deep over {100.0 * c['plan']:.1f} % of the cell beside a face with {c['face_area']:.0f} m2 "
+            f"under water, which the step rule reads as {c['hydraulic_depth']:.0f} m of depth: a step of {c['dt_min_s']:.3f} s "
+            f"where the next tile would give {c['dt_without_tile']:.3f} s. A hole in the DEM reads like this: look at the "
+            "ground there, and if it is not real, fill it with a terrain object"
+        ]
 
     def write(self, out: Path, crs: str) -> Path | None:
         """The cells into ``step_limiter.gpkg``; None when no tick named one."""

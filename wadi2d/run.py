@@ -904,8 +904,10 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
         columns = {k: np.asarray(v) for k, v in s.columns.items()}
         results.series(s.kind, s.name, t, columns)
         write_series_csv(out / "series" / f"{s.kind[:-1]}_{safe_name(s.name)}.csv", t, columns)
-    if monitor.limiter is not None and cfg.outputs.step_limiter == "layer":
-        path = monitor.limiter.write(out, crs)
+    if monitor.limiter is not None:
+        for note in monitor.limiter.notes():
+            progress.emit("warn", message=note)
+        path = monitor.limiter.write(out, crs) if cfg.outputs.step_limiter == "layer" else None
         if path is not None:
             progress.emit("output", kind="step_limiter", path=str(path), cells=len(monitor.limiter.cells))
     progress.emit("output", kind="maps", path=str(out / "maps"))
