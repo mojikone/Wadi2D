@@ -71,11 +71,23 @@ class LevelStepper(Stepper):
     def pin(self, tiles: np.ndarray) -> None:
         self.pinned[tiles] = True
 
-    def rebuild_active(self, retain: bool = False) -> None:
+    def check_period(self) -> int:
+        """A check falls at the end of the first cycle at or past ``active_every`` smallest steps, and its wet flags
+        were written at the start of that cycle's last span."""
+        n = self.num
+        span = 1 << (n.lts_levels if n.local_time_stepping else 0)
+        cycle = span * ((max(n.dt_every, span) + span - 1) // span)
+        return int(n.active_every) + cycle + span
+
+    def rebuild_active(self, retain: bool = False, check: bool = False) -> None:
         keep = self.backend.active_tiles
-        super().rebuild_active(retain)
+        super().rebuild_active(retain, check)
         if not np.array_equal(keep, self.backend.active_tiles):
             self.plan = None
+
+    def _wake(self, tiles: np.ndarray) -> None:
+        """The wet share only: this stepper fills the halos of the tiles due at the start of every smallest step."""
+        self.backend.refresh_plan(tiles)
 
     def _set_plan(self) -> None:
         active = np.asarray(self.backend.active_tiles)
@@ -204,7 +216,7 @@ class LevelStepper(Stepper):
             if wet_due:
                 self.since_active = 0
                 if self.adaptive_active:
-                    self.rebuild_active()
+                    self.rebuild_active(check=True)
             if on_step is not None:
                 on_step(self)
         return self.t

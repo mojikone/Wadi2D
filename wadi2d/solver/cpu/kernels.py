@@ -299,6 +299,18 @@ def update(active, dt, want_plan, debt, res, om, qx1, qy1, r, src, hc, dtab, h, 
         wet[t] = any_wet
 
 
+@njit(parallel=True)
+def plan(tiles, om, hc, dtab, h, rows):
+    """The wet share of every own cell of ``tiles`` from its depth, as ``update`` writes it (W90: a tile that wakes)."""
+    for a in prange(tiles.size):
+        t = tiles[a]
+        for j in range(TILE):
+            for i in range(TILE):
+                k = t * STRIDE2 + (j + HALO) * STRIDE + i + HALO
+                fid = t * TILE2 + j * TILE + i
+                om[k] = cell_plan(h[k], hc[fid], dtab[rows * fid : rows * (fid + 1)], rows)
+
+
 @njit
 def exchange(active, slot, src, nhalo, a):
     for n in range(active.size):
