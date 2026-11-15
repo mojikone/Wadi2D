@@ -130,6 +130,8 @@ def build_quad_tables(
     local = cfg.face_conveyance == "local_radius"
     margin = int(np.ceil(cfg.local_radius_beta * cfg.face_depth_max / bed.pixel)) if local else 0
     """W49: every tile is read this many pixels wider on each side, for the local hydraulic radius's window."""
+    margin = min(margin, getattr(bed, "span", margin))
+    """W85: and no wider than a bed in memory is long, as ``build_tables`` has it; a raster bed is read as before."""
     threads = table_workers(workers)
     cells, radius = (tile_tables_serial, tile_local_radius_serial) if threads > 1 else (tile_tables, tile_local_radius)
     beds = ThreadBeds(bed)

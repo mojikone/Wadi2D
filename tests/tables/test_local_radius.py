@@ -210,3 +210,27 @@ def test_a_bed_longer_than_the_reach_is_read_as_before() -> None:
     build_tables(grid, bed, Tables(), 0.03, workers=1)
     asked = int(np.ceil(BETA * Tables().face_depth_max / bed.pixel))
     assert asked < bed.span and Watched.largest == TILE * 10 + 1 + 2 * asked
+
+
+def test_the_quadtree_reads_a_fine_bed_no_further_than_it_is_long() -> None:
+    from wadi2d.grid.quad import QuadGrid
+    from wadi2d.solver.layout import TILE
+    from wadi2d.tables.quad import build_quad_tables
+
+    k, dx = 4, 0.02
+    mask = np.zeros((64, 64), bool)
+    mask[2:-2, 2:-2] = True
+    grid = QuadGrid.from_levels(mask, 0.0, 0.0, dx, np.zeros((2, 2), np.int32))
+    y, x = np.mgrid[0 : 64 * k, 0 : 64 * k] * (dx / k)
+    Watched.largest = 0
+    bed = Watched(0.05 * x + 0.5 * np.abs(y - 32 * dx), dx / k)
+    tables = build_quad_tables(grid, bed, Tables(), 0.03, workers=1)
+    assert Watched.largest == TILE * k + 2 + 2 * bed.span
+    assert np.isfinite(tables.ftabx).all() and np.isfinite(tables.ftaby).all()
+
+
+def test_a_raster_bed_has_no_span_so_a_real_dem_is_read_as_before() -> None:
+    """The cap reads ``span`` off the bed: only a bed in memory has one."""
+    from wadi2d.terrain.dem import RasterBed
+
+    assert not hasattr(RasterBed, "span")

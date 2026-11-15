@@ -1,0 +1,8 @@
+tests/tables/test_local_radius.py: 11 passed, 1 warning in 4.76s [5 s]
+tests/tables/test_parallel.py: 5 passed, 1 warning in 1.42s [2 s]
+tests/solver/test_quad.py: 17 passed, 11 deselected, 1 warning in 56.42s [58 s]
+tests/strips/test_tables.py: 6 passed, 1 warning in 12.30s [14 s]
+tests/strips/test_hybrid.py: 4 passed, 1 warning in 36.57s [37 s]
+tests/products/test_mesh_pixels.py: 13 passed, 1 skipped, 1 warning in 42.83s [45 s]
+tests/engine/test_mesh_earthworks.py: 12 passed, 2 deselected, 5 warnings in 433.80s (0:07:13) [436 s]
+tests/engine/test_strips_run.py: 13 passed, 2 deselected, 1 warning in 61.68s (0:01:01) [64 s]
