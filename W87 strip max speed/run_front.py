@@ -2,7 +2,7 @@
 with whatever ``wadi2d`` is first on the path, so the same job can be run on the code before and after the change:
 
     set PYTHONPATH=<source tree with wadi2d>;<this repository, for tests>
-    .venv\\Scripts\\python "W87 strip max speed\\run_front.py" <out folder> [cpu|gpu]
+    .venv\\Scripts\\python "W87 strip max speed\\run_front.py" <out folder> [cpu|gpu] [strips|plain]
 """
 
 from __future__ import annotations
@@ -23,9 +23,10 @@ from wadi2d.run import run_job
 if __name__ == "__main__":
     out = Path(sys.argv[1])
     backend = sys.argv[2] if len(sys.argv) > 2 else "cpu"
+    what = sys.argv[3] if len(sys.argv) > 3 else "strips"  # or "plain": the same job on squares alone
     out.mkdir(parents=True, exist_ok=True)
     print("wadi2d from", Path(wadi2d.__file__).parent)
-    run = run_job(front_job(gully_dem(out), corridor(), backend), out / "strips")
+    run = run_job(front_job(gully_dem(out), corridor() if what == "strips" else None, backend), out / what)
     print(
         "exit",
         run.exit_code,

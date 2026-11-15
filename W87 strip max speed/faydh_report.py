@@ -95,6 +95,28 @@ if __name__ == "__main__":
         result["strip_max_mean_depth_after_over_bounded_by_over_0.05_m"] = int(((ha - hb) > 0.05).sum())
         qa, qb = fa["maxima"]["depth"][()], fb["maxima"]["depth"][()]
         result["squares_max_depth_after_minus_bounded_m"] = [float((qa - qb).min()), float((qa - qb).max())]
+        # the squares: how many move, and how many of those sit on a join (an active square beside a replaced one)
+        mask = fa["mask"][()].astype(bool)
+        pad = np.pad(mask, 1, constant_values=True)
+        join = mask & (~pad[:-2, 1:-1] | ~pad[2:, 1:-1] | ~pad[1:-1, :-2] | ~pad[1:-1, 2:])
+        moved = np.abs(np.where(mask, qa - qb, 0.0))
+        sa, sb = fa["maxima"]["speed"][()], fb["maxima"]["speed"][()]
+        faster = np.abs(np.where(mask, sa - sb, 0.0))
+        result["squares"] = {
+            "active": int(mask.sum()), "on_a_join": int(join.sum()),
+            "max_depth_moved_by_over_m": {f"{lim:g}": [int((moved > lim).sum()), int(((moved > lim) & join).sum())] for lim in (0.001, 0.01, 0.05)},
+            "max_depth_moved_most_m": float(moved.max()), "max_depth_moved_mean_on_join_m": float(moved[join].mean()),
+            "max_speed_moved_by_over_ms": {f"{lim:g}": [int((faster > lim).sum()), int(((faster > lim) & join).sum())] for lim in (0.1, 1.0, 5.0)},
+            "max_speed_moved_most_ms": float(faster.max()),
+        }  # fmt: skip
+        ea, eb = (
+            m - np.max([g["strip_depth"][0] for g in f["maps"].values()], axis=0)
+            for m, f in ((da, fa), (db, fb))
+        )
+        result["strip_max_level_over_highest_hourly_map"] = {
+            "after": {f"{lim:g}": int((ea > lim).sum()) for lim in (1.0, 2.0, 5.0)} | {"max_m": float(ea.max())},
+            "bounded": {f"{lim:g}": int((eb > lim).sum()) for lim in (1.0, 2.0, 5.0)} | {"max_m": float(eb.max())},
+        }
     text = json.dumps(result, indent=1)
     print(text)
     if len(sys.argv) > 4:

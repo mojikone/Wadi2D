@@ -1,0 +1,58 @@
+{
+ "before": "front_before/plain",
+ "after": "front_step/plain",
+ "series_files": 1,
+ "series_identical": 1,
+ "maps": 30,
+ "maps_same_times": true,
+ "water_maps_differing": [],
+ "water_maxima_differing": [],
+ "squares_record_differing": [],
+ "steps": [
+  4205.0,
+  4205.0
+ ],
+ "rain_m3": [
+  0.18815999551407003,
+  0.18815999551407003
+ ],
+ "outflow_m3": [
+  1339.3096874728576,
+  1339.3096874728576
+ ],
+ "storage_end_m3": [
+  13.878450254318514,
+  13.878450254318514
+ ],
+ "error_m3": [
+  2.5870693670881906e-05,
+  2.5870693670881906e-05
+ ],
+ "books_identical": true,
+ "rain_relative_difference": 0.0,
+ "before_record": {
+  "squares_speed": {
+   "max": 3.437091827392578,
+   "q99_of_nonzero": 2.505021333694458,
+   "over_5": 0,
+   "over_10": 0,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  }
+ },
+ "after_record": {
+  "squares_speed": {
+   "max": 3.437091827392578,
+   "q99_of_nonzero": 2.505021333694458,
+   "over_5": 0,
+   "over_10": 0,
+   "over_25": 0,
+   "over_35.36": 0,
+   "over_100": 0,
+   "over_10000": 0
+  }
+ },
+ "water_identical": true
+}

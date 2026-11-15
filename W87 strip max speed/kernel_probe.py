@@ -10,6 +10,9 @@ the test's gully job on the CPU to see what moves:
   ``q / (max(h, 1e-6) dx)``), which the squares' advection stencil and their speed of record read; bounded at ``u_max``.
 
     .venv\\Scripts\\python "W87 strip max speed\\kernel_probe.py" <work folder>
+
+It belongs to the code as it stood at commit ``88b2d8c``, before the step was bounded in the source: on later code
+there is nothing left to bound and it stops with a line saying so.
 """
 
 from __future__ import annotations
@@ -31,6 +34,11 @@ from wadi2d.run import run_job  # noqa: E402
 from wadi2d.solver.layout import STRIDE  # noqa: E402
 from wadi2d.solver.poly import kernel  # noqa: E402
 from wadi2d.strips import hybrid  # noqa: E402
+
+if hasattr(kernel, "bounded"):
+    raise SystemExit(
+        "the step is bounded in the source now: run this diagnosis on the code at commit 88b2d8c"
+    )
 
 F = np.float32
 ZERO, HALF = F(0.0), F(0.5)

@@ -34,7 +34,10 @@ def counts(a: np.ndarray) -> dict:
 
 
 def compare(before: Path, after: Path) -> dict:
-    found: dict = {"before": f"{before.parent.name}/{before.name}", "after": f"{after.parent.name}/{after.name}"}
+    found: dict = {
+        "before": f"{before.parent.name}/{before.name}",
+        "after": f"{after.parent.name}/{after.name}",
+    }
     names = sorted(p.name for p in (before / "series").glob("*.csv"))
     same = [
         n
@@ -74,19 +77,21 @@ def compare(before: Path, after: Path) -> dict:
         )
         for label, f in (("before", a), ("after", b)):
             mx = f["maxima"]
-            wet = mx["strip_depth"][0] > 0.05
-            rec = {
-                "strip_cells": int(wet.size),
-                "strip_cells_wet": int(wet.sum()),
-                "strip_speed": counts(mx["strip_speed"][0]),
-                "strip_hazard": counts(mx["strip_hazard"][0]),
-            }
-            rec["strip_speed_median_wet"] = float(np.median(mx["strip_speed"][0][wet])) if wet.any() else 0.0
+            rec = {"squares_speed": counts(mx["speed"][()])}
+            if "strip_depth" in mx:  # a job of squares alone has no strip
+                wet = mx["strip_depth"][0] > 0.05
+                rec |= {
+                    "strip_cells": int(wet.size),
+                    "strip_cells_wet": int(wet.sum()),
+                    "strip_speed": counts(mx["strip_speed"][0]),
+                    "strip_hazard": counts(mx["strip_hazard"][0]),
+                    "strip_speed_median_wet": (
+                        float(np.median(mx["strip_speed"][0][wet])) if wet.any() else 0.0
+                    ),
+                }
             in_maps = [f["maps"][m]["strip_speed"][0] for m in maps if "strip_speed" in f["maps"][m]]
             if in_maps:
                 rec["maps_strip_speed"] = counts(np.max(in_maps, axis=0))
-            sq = mx["speed"][()]
-            rec["squares_speed"] = counts(sq)
             found[label + "_record"] = rec
     found["water_identical"] = bool(
         found["series_identical"] == found["series_files"] and found["maps_same_times"] and not differing
