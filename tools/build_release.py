@@ -30,7 +30,7 @@ REPO = Path(__file__).resolve().parent.parent
 PLUGIN = "wadi2d_qgis"
 PACKAGE = "wadi2d"
 TEMPLATES = Path("tools") / "release"
-INSTALLER_FILES = ("install_wadi2d.bat", "install_wadi2d.ps1", "README.txt")
+INSTALLER_FILES = ("install_wadi2d.bat", "install_wadi2d.ps1", "gpu_check.ps1", "README.txt")
 CONSTRAINTS = "constraints.txt"
 EXTRAS = ("gpu", "mesh", "vector")  # what the installer asks for
 PINNED = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)==\S+$")

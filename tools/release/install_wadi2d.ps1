@@ -102,13 +102,15 @@ $Drive = [IO.Path]::GetPathRoot($FullRoot)
 $FreeGB = (New-Object IO.DriveInfo $Drive).AvailableFreeSpace / 1GB
 if ($FreeGB -lt $NeededGB) { Stop-Install ("{0:N1} GB free on {1}, about {2} GB needed." -f $FreeGB, $Drive, $NeededGB) }
 
-$Gpu = $false
-if (-not $CpuOnly) {
-    $smi = Get-Command 'nvidia-smi' -ErrorAction SilentlyContinue
-    $Gpu = [bool]$smi
+. (Join-Path $Here 'gpu_check.ps1')
+if ($CpuOnly) {
+    $Choice = @{ Gpu = $false; Why = 'CPU engine, as asked' }
+} else {
+    $Choice = Select-Engine (Read-NvidiaCard)
 }
+$Gpu = [bool]$Choice.Gpu
 $Extras = if ($Gpu) { 'gpu,mesh,vector' } else { 'mesh,vector' }
-Write-Host ("      {0}" -f $(if ($Gpu) { 'NVIDIA card found: GPU engine' } else { 'No NVIDIA card: CPU engine, tens of times slower' }))
+Write-Host ("      {0}" -f $Choice.Why)
 
 Write-Host "[2/5] Making the engine's environment in $EngineRoot"
 $Venv = Join-Path $EngineRoot 'engine'
