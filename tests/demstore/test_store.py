@@ -225,3 +225,21 @@ def test_a_raster_with_overviews_keeps_gdals_decimated_read(tmp_path) -> None:
         open_bed(cfg, tmp_path / "cache") as stored,
     ):  # the full pixels are the store's
         np.testing.assert_array_equal(plain.read(3, 4, 100, 120), stored.read(3, 4, 100, 120))
+
+
+def test_a_dead_writers_half_chunk_is_cleared_and_a_live_ones_left(tmp_path) -> None:
+    import os
+    import time
+
+    plain, stored = beds(tmp_path)
+    with plain, stored:
+        folder = stored.store.folder
+        old, new = folder / "r00000_c00000.npy.1.2.tmp", folder / "r00000_c00001.npy.3.4.tmp"
+        for left in (old, new):
+            left.write_bytes(b"half")
+        long_ago = time.time() - 2 * chunks_mod.STALE_TMP_S
+        os.utime(old, (long_ago, long_ago))
+        chunks_mod._STORES.clear()  # the next process to open the store
+        with rasterio.open(plain.path) as src:
+            store_for(plain.path, src, tmp_path / "cache", 64.0)
+        assert not old.exists() and new.exists()

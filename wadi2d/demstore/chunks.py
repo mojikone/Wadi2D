@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import threading
+import time
 from collections import OrderedDict
 from collections.abc import Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -44,6 +45,8 @@ AHEAD_CHUNKS = 16
 """A window over this many chunks has its missing ones made ahead on ``FILL_WORKERS`` threads; a smaller one makes
 them as it meets them, on the thread that reads (the tiles of a table build are already on every core)."""
 LOCK_STRIPES = 64
+STALE_TMP_S = 3600.0
+"""A chunk still under its temporary name after this long belongs to a process that died writing it."""
 FLOATS = ("float32", "float64")
 """Types a store holds: the reader marks no-data as NaN, which an integer cannot carry."""
 
@@ -75,7 +78,7 @@ def _copy(src, r0, c0, step, nr, nc, z, mask, zr, zc, huge):
                     z[zr + i, zc + j] = 0.0
 
 
-def _span(first: int, step: int, count: int, lo: int, hi: int) -> tuple[int, int]:
+def span(first: int, step: int, count: int, lo: int, hi: int) -> tuple[int, int]:
     """Which of the samples ``first + i * step``, i < ``count``, lie in [lo, hi): the range of i."""
     a = max(0, -((first - lo) // step))
     b = min(count, -((first - hi) // step))
@@ -220,16 +223,14 @@ class ChunkStore:
             return
         if wanted is None:
             keys = self.keys(row, col, step, nr, nc)
-            if (
-                len(keys) >= AHEAD_CHUNKS
-            ):  # one large window, a strip of tiles read whole: decoded on every core
+            if len(keys) >= AHEAD_CHUNKS:  # one large window (a strip of tiles read whole): on every core
                 self.ensure(keys)
         for cr in range(row // CHUNK, (row + (nr - 1) * step) // CHUNK + 1):
-            i0, i1 = _span(row, step, nr, cr * CHUNK, (cr + 1) * CHUNK)
+            i0, i1 = span(row, step, nr, cr * CHUNK, (cr + 1) * CHUNK)
             if i1 <= i0:
                 continue
             for cc in range(col // CHUNK, (col + (nc - 1) * step) // CHUNK + 1):
-                j0, j1 = _span(col, step, nc, cc * CHUNK, (cc + 1) * CHUNK)
+                j0, j1 = span(col, step, nc, cc * CHUNK, (cc + 1) * CHUNK)
                 if j1 <= j0:
                     continue
                 skipped = wanted is not None and not wanted[i0:i1, j0:j1].any()
@@ -283,10 +284,14 @@ def store_for(
 
 
 def _describe(store: ChunkStore) -> None:
-    """A note in the folder saying what it is, for whoever finds 16 MB files in a cache."""
+    """A note in the folder saying what it is, for whoever finds 16 MB files in a cache; and the half-written
+    chunks of a process that was stopped are cleared away."""
     note = store.folder / "source.json"
     try:
         store.folder.mkdir(parents=True, exist_ok=True)
+        for left in store.folder.glob("*.tmp"):
+            if time.time() - left.stat().st_mtime > STALE_TMP_S:
+                left.unlink(missing_ok=True)
         if not note.is_file():
             stat = store.source.stat()
             note.write_text(

@@ -14,6 +14,7 @@ import numpy as np
 from rasterio.windows import Window
 
 from wadi2d.config.schema import RunConfig
+from wadi2d.demstore import chunks
 from wadi2d.demstore.chunks import ChunkStore, store_for
 from wadi2d.demstore.scratch import Scratch
 from wadi2d.terrain.dem import HUGE_ELEVATION, GridWindow, RasterBed
@@ -55,10 +56,8 @@ class StoredBed(RasterBed):
         nc = min(ncols - skip_c, (self.src.width - (col + skip_c * s)) // s)
         # the thread's last window again when its reader has let go of it, else fresh arrays (see ``Scratch``)
         z, mask, used = self._scratch.arrays(nrows, ncols)
-        if used and (nr, nc) != (
-            nrows,
-            ncols,
-        ):  # the part past the raster's edge: what a fresh window holds there
+        clipped = (nr, nc) != (nrows, ncols)
+        if used and clipped:  # past the raster's edge a window holds what a fresh one holds there
             z[...] = 0.0
             mask[...] = True
         if nr <= 0 or nc <= 0:
@@ -99,10 +98,9 @@ class StoredBed(RasterBed):
 
 def _touches(wanted: np.ndarray, key: tuple[int, int], row: int, col: int, step: int) -> bool:
     """Whether a wanted sample of the lattice from (row, col) lies in chunk ``key``."""
-    from wadi2d.demstore.chunks import CHUNK, _span
-
-    i0, i1 = _span(row, step, wanted.shape[0], key[0] * CHUNK, (key[0] + 1) * CHUNK)
-    j0, j1 = _span(col, step, wanted.shape[1], key[1] * CHUNK, (key[1] + 1) * CHUNK)
+    size = chunks.CHUNK
+    i0, i1 = chunks.span(row, step, wanted.shape[0], key[0] * size, (key[0] + 1) * size)
+    j0, j1 = chunks.span(col, step, wanted.shape[1], key[1] * size, (key[1] + 1) * size)
     return i1 > i0 and j1 > j0 and bool(wanted[i0:i1, j0:j1].any())
 
 
