@@ -35,7 +35,7 @@ from wadi2d.config.schema import (
     TerrainObject,
 )
 from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
-from wadi2d.demstore import open_bed
+from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.edge_valleys import (
     crossing_notes,
     edge_pools,
@@ -664,9 +664,13 @@ def check_terrain(cfg: RunConfig) -> list[str]:
         return terrain_notes(cfg.terrain.objects, ground, dx, bed.pixel, cfg.terrain, bounds)
 
 
-def survey_terrain(cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool) -> TerrainReport:
-    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it."""
-    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
+def survey_terrain(
+    cfg: RunConfig, grid: TileGrid, folder: Path, maps: bool, whole: bool, cache_dir: Path | None = None
+) -> TerrainReport:
+    """Cut and fill of every object, and the modified terrain if ``maps``; ``whole`` writes every tile of it. The
+    ground is read through the DEM's chunk store under ``cache_dir`` when there is one, as the tables read it (W91:
+    the same pixels, minutes faster on a 0.5 m terrain)."""
+    with open_bed(cfg, cache_dir) as bed:
         bed.bind(grid.x0, grid.y0)
         ground = Ground(bed, grid.x0, grid.y0)
         edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
@@ -1294,7 +1298,7 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         progress.emit("warn", message=f"The cell grid layer could not be written: {error}")
     if any(o.kind in PIXEL_KINDS for o in cfg.terrain.objects):
         wanted = cfg.outputs.terrain_map
-        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted)
+        report = survey_terrain(cfg, grid, out / TERRAIN_DIR, wanted, wanted, cache_folder(cfg, out))
         progress.emit("terrain", volumes=report.volumes, files=report.files)
     flows = _placed_entries(cfg, tables, polygons, flows, crs, out, progress)
     subs = cfg.hydrology.subbasins

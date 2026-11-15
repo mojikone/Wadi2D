@@ -83,19 +83,41 @@ def _rasters(folder: Path, grid: TileGrid, pixel: float, k: int, crs):
     )
 
 
-def _near_tiles(grid: TileGrid, tallies: list[Tally], shapes: dict, levels: tuple[float, float]) -> set[int]:
-    """Tiles an object can reach, from the level range of the whole raster."""
+def _near_tiles(grid: TileGrid, tallies: list[Tally], shapes: dict, levels) -> list[set[int]]:
+    """Tiles each object can reach, from the level range of the whole raster; ``levels`` is called only when a shaped
+    object needs it (W91: a decimated read of the whole DEM, minutes on a 0.5 m terrain)."""
     size = TILE * grid.dx
     west = grid.x0 + grid.tiles[1:, 1] * size
     north = grid.y0 - grid.tiles[1:, 0] * size
     boxes = shapely.box(west, north - size, west + size, north)
-    found: set[int] = set()
+    found: list[set[int]] = []
+    span = None
     for tally in tallies:
         shape = shapes.get(id(tally.obj))
-        reach = shape.reach(*levels) * REACH_MARGIN if shape else float(tally.obj.width) + size
+        if shape is not None and span is None:
+            span = levels()
+        reach = shape.reach(*span) * REACH_MARGIN if shape else float(tally.obj.width) + size
         near = np.flatnonzero(shapely.distance(tally.line.line, boxes) <= reach)
-        found.update(int(t) + 1 for t in near)
+        found.append({int(t) + 1 for t in near})
     return found
+
+
+BOXED_KINDS = ("fill", "burn_line")
+"""Kinds whose pixel edit changes nothing outside its own outline's box, a few pixels wide (W91): a fill takes pixel
+centres inside its outline, a burn line the pixels its strip touches. Their change is read in that box alone; every
+other kind's on the whole tile, as before."""
+BOX_PIXELS = 2
+
+
+def _box(obj: TerrainObject, cfg: Terrain, pixel: float) -> tuple[float, float, float, float] | None:
+    """The map box outside which the object's edit changes no pixel, or None for a kind not in ``BOXED_KINDS``."""
+    if obj.kind not in BOXED_KINDS:
+        return None
+    pad = BOX_PIXELS * pixel
+    if obj.kind == "burn_line":
+        pad += max(float(obj.width), cfg.burn_pixels * pixel)
+    xmin, ymin, xmax, ymax = shapely.MultiPoint(np.asarray(obj.coordinates, np.float64)[:, :2]).bounds
+    return xmin - pad, ymin - pad, xmax + pad, ymax + pad
 
 
 def survey(
@@ -115,7 +137,9 @@ def survey(
     folder.mkdir(parents=True, exist_ok=True)
     k = round(grid.dx / bed.pixel)
     tallies = [Tally.of(obj, cfg.volume_step) for obj, _edit in edits.steps]
-    near = _near_tiles(grid, tallies, edits.shapes, bed.levels()) if tallies else set()
+    reaches = _near_tiles(grid, tallies, edits.shapes, bed.levels) if tallies else []
+    near = set().union(*reaches)
+    boxes = [_box(tally.obj, cfg, bed.pixel) for tally in tallies]
     report = TerrainReport(tiles=len(near))
     rasters = _rasters(folder, grid, bed.pixel, k, crs) if write_maps else None
     block = TILE * k
@@ -126,7 +150,10 @@ def survey(
             old = bed.read(row0, col0, block, block)
             z = old.copy()
             if t in near:
-                _tile(z, row0, col0, edits, tallies, grid, bed.pixel)
+                # a fill or a burn line that reaches no pixel of this tile changes none of it: it is left out here
+                # (W91); every other kind is walked on every tile as before, since its reach is a margin, not a bound
+                mine = [n for n, reach in enumerate(reaches) if boxes[n] is None or t in reach]
+                _tile(z, row0, col0, edits, tallies, grid, bed.pixel, mine, boxes)
             if rasters is not None:
                 window = rasterio.windows.Window(col0, row0, block, block)
                 rasters[0].write(z.astype(np.float32), 1, window=window)
@@ -142,16 +169,27 @@ def survey(
     return report
 
 
-def _tile(z, row0, col0, edits: TerrainEdits, tallies: list[Tally], grid: TileGrid, pixel: float) -> None:
+def _tile(z, row0, col0, edits: TerrainEdits, tallies: list[Tally], grid: TileGrid, pixel: float, which, boxes) -> None:
+    """The edits of objects ``which`` (indices into ``edits.steps``) on one tile's pixels, in their order; an object's
+    change is read inside its box when it has one (``_box``), else on the whole tile."""
     west = grid.x0 + col0 * pixel
     north = grid.y0 - row0 * pixel
-    for (_obj, edit), tally in zip(edits.steps, tallies, strict=True):
-        before = z.copy()
+    ny, nx = z.shape
+    for n in which:
+        edit, tally, box = edits.steps[n][1], tallies[n], boxes[n]
+        r0, r1, c0, c1 = 0, ny, 0, nx
+        if box is not None:
+            c0 = min(max(int(np.floor((box[0] - west) / pixel)), 0), nx)
+            c1 = min(max(int(np.ceil((box[2] - west) / pixel)), 0), nx)
+            r0 = min(max(int(np.floor((north - box[3]) / pixel)), 0), ny)
+            r1 = min(max(int(np.ceil((north - box[1]) / pixel)), 0), ny)
+        before = z[r0:r1, c0:c1].copy()
         edit(z, row0, col0)
-        r, c = np.nonzero(np.abs(z - before) > EPS_CHANGE)
+        change = z[r0:r1, c0:c1] - before
+        r, c = np.nonzero(np.abs(change) > EPS_CHANGE)
         if r.size:
-            x, y = west + (c + 0.5) * pixel, north - (r + 0.5) * pixel
-            tally.add(x, y, (z - before)[r, c], pixel * pixel)
+            x, y = west + (c + c0 + 0.5) * pixel, north - (r + r0 + 0.5) * pixel
+            tally.add(x, y, change[r, c], pixel * pixel)
 
 
 def _write_tables(tallies: list[Tally], folder: Path) -> list[dict]:
