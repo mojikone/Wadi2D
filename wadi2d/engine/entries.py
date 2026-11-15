@@ -21,7 +21,7 @@ the wadi until the cells the injection reaches are clear of every line.
 Drainage comes from each cell's lowest ground (``tables.zmin``), breached and routed by WhiteboxTools, as the basin
 generator does. Uniform grids only: on a mesh the entries stay at their points, and the note says so.
 
-Interface: :func:`place_entries`, :func:`with_entries`, :class:`Placed`.
+Interface: :func:`place_entries`, :func:`with_entries`, :func:`with_snapped`, :class:`Placed`.
 """
 
 from __future__ import annotations
@@ -68,14 +68,25 @@ class _Want:
     polygon: shapely.Geometry | None
 
 
-def _wanted(cfg: RunConfig, polygons: dict[str, shapely.Geometry]) -> list[_Want]:
+def _wanted(
+    cfg: RunConfig,
+    polygons: dict[str, shapely.Geometry],
+    moved: dict[str, tuple[float, float]] | None = None,
+    entering: set[str] | None = None,
+) -> list[_Want]:
+    """Every 'wadi' entry. ``moved`` gives the points of entries already moved out of a left-out catchment (W88);
+    ``entering`` names the hydrographs of the run: a lumped subbasin with none of its own name is carried by an
+    inflow below it, no water enters at its polygon, and it gets no record (W79's record fault)."""
     h = cfg.hydrology
+    moved = moved or {}
     out = [
-        _Want(s.name, "subbasin", s.outlet, polygons.get(s.name))
+        _Want(s.name, "subbasin", moved.get(s.name, s.outlet), polygons.get(s.name))
         for s in h.subbasins
-        if s.mode == "lumped" and s.entry == ENTRY_WADI
+        if s.mode == "lumped" and s.entry == ENTRY_WADI and (entering is None or s.name in entering)
     ]
-    out += [_Want(i.name, "inflow", (i.x, i.y), None) for i in h.inflows if i.entry == ENTRY_WADI]
+    out += [
+        _Want(i.name, "inflow", moved.get(i.name, (i.x, i.y)), None) for i in h.inflows if i.entry == ENTRY_WADI
+    ]
     return out
 
 
@@ -176,9 +187,17 @@ def _start(grid, drainage: _Drainage, want: _Want, erode_m: float) -> tuple[tupl
     return _cell_of(grid, want.point), None, how
 
 
-def place_entries(cfg: RunConfig, tables, polygons: dict[str, shapely.Geometry], crs: str = "") -> list[Placed]:
-    """Where every ``entry: wadi`` subbasin and inflow enters; an empty list when the job asks for none."""
-    wanted = _wanted(cfg, polygons)
+def place_entries(
+    cfg: RunConfig,
+    tables,
+    polygons: dict[str, shapely.Geometry],
+    crs: str = "",
+    moved: dict[str, tuple[float, float]] | None = None,
+    entering: set[str] | None = None,
+) -> list[Placed]:
+    """Where every ``entry: wadi`` subbasin and inflow enters; an empty list when the job asks for none. ``moved``
+    and ``entering`` as in :func:`_wanted`."""
+    wanted = _wanted(cfg, polygons, moved, entering)
     if not wanted:
         return []
     grid = tables.grid
@@ -207,6 +226,22 @@ def place_entries(cfg: RunConfig, tables, polygons: dict[str, shapely.Geometry],
             words = f"enters at {how}, but no cell up the wadi is clear of the lines: a line there reads part of it"
         placed.append(Placed(want.name, want.kind, asked, (x, y), moved, clear, words))
     return placed
+
+
+def with_snapped(placed: list[Placed], snapped: list) -> list[Placed]:
+    """The records with every entry moved out of a left-out catchment (W88): one a 'wadi' walk also placed keeps the
+    point of the walk and says both; one that enters at its point gets a record of its own."""
+    by_name = {s.name: s for s in snapped}
+    out = []
+    for p in placed:
+        s = by_name.pop(p.name, None)
+        if s is None:
+            out.append(p)
+            continue
+        moved_m = float(np.hypot(p.point[0] - s.asked[0], p.point[1] - s.asked[1]))
+        out.append(Placed(p.name, p.kind, s.asked, p.point, moved_m, p.clear, f"{s.note}; then {p.note}"))
+    out += [Placed(s.name, "inflow", s.asked, s.point, s.moved_m, True, s.note) for s in by_name.values()]
+    return out
 
 
 def with_entries(flows: list, placed: list[Placed]) -> list:

@@ -95,6 +95,7 @@ def _mesh(args: argparse.Namespace) -> int:
         check_inputs,
         domain_mask,
         grid_window,
+        left_out_of,
         with_tables,
     )
     from wadi2d.terrain import RasterBed
@@ -109,6 +110,9 @@ def _mesh(args: argparse.Namespace) -> int:
             window = grid_window(cfg, bed)
             mask = domain_mask(cfg, bed, window)
             crs = bed.crs.to_wkt() if bed.crs is not None else ""
+            left = left_out_of(cfg, crs)
+            if left is not None and left.names:  # the preview shows the mesh the run steps (W88)
+                mask = mask & ~left.cells(window.x0, window.y0, cfg.grid.dx, mask.shape)
             bed.bind(window.x0, window.y0)
             grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
         summary = report(grid, int(mask.sum()), cfg.grid.dx, line_sizes(cfg))

@@ -47,7 +47,7 @@ from wadi2d.edge_valleys import (
 from wadi2d.engine.design_lines import DESIGN_KIND, NETWORK, TOTAL
 from wadi2d.engine.design_lines import plans as design_plans
 from wadi2d.engine.design_lines import records as design_records
-from wadi2d.engine.entries import place_entries, with_entries
+from wadi2d.engine.entries import place_entries, with_entries, with_snapped
 from wadi2d.engine.gauge_job import (
     gauge_identity,
     missing_station_files,
@@ -57,6 +57,7 @@ from wadi2d.engine.gauge_job import (
 )
 from wadi2d.engine.handback import HandBackLink, line_labels, sink_lines
 from wadi2d.engine.inflow_lines import flow_lines, line_injections, momentum_kick, momentum_lines, open_lines
+from wadi2d.engine.left_out import LeftOut, cells_key, choose, snap_entries
 from wadi2d.engine.line_checks import inflow_crossings
 from wadi2d.engine.monitor import Balance, Monitor, StopRequested
 from wadi2d.engine.pit_step import resolve_pits
@@ -281,9 +282,16 @@ def grid_window(cfg: RunConfig, bed: RasterBed) -> GridWindow:
     return bed.snap(extent, cfg.grid.dx)
 
 
-def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, replaced: tuple[np.ndarray, np.ndarray] | None = None) -> str:
+def grid_key(
+    cfg: RunConfig,
+    bed: RasterBed,
+    window: GridWindow,
+    replaced: tuple[np.ndarray, np.ndarray] | None = None,
+    left_out: np.ndarray | None = None,
+) -> str:
     """Hash of everything the tables depend on; ``replaced`` are the (j, i) of the lattice cells a strip takes out,
-    which shape the mask the tables are built on."""
+    and ``left_out`` the cells under the catchments left out of the mesh (W88): both shape the mask the tables are
+    built on. A job that leaves nothing out keeps the key it had."""
     limit = cfg.grid.content_hash_limit_mb
     strip_cells = None
     if replaced is not None and replaced[0].size:
@@ -322,6 +330,7 @@ def grid_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, replaced: tuple
             "extras": extras,
             **({"strips": cfg.strips.model_dump()} if cfg.strips.enabled else {}),
             **({"strip_cells": strip_cells} if strip_cells is not None else {}),
+            **({"left_out": cells_key(left_out)} if left_out is not None else {}),
         }
     )
 
@@ -383,6 +392,10 @@ def job_hash(cfg: RunConfig) -> str:
         data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
     if cfg.storm.arf_factor is None:
         data["storm"].pop("arf_factor")  # and a job with no given factor the one it had before it (W83)
+    if not cfg.grid.exclude_lumped and not cfg.grid.exclude_subbasins:  # and one that leaves no catchment out (W88)
+        for name in ("exclude_lumped", "exclude_subbasins"):
+            data["grid"].pop(name)
+        data["hydrology"].pop("entry_snap_m")
     for sub in data["hydrology"]["subbasins"]:
         if sub.get("storm_area_km2") is None:
             sub.pop("storm_area_km2", None)  # and a subbasin at the storm's own area the one it had before (W79)
@@ -404,20 +417,42 @@ def job_hash(cfg: RunConfig) -> str:
     return cache_key({"job": data, "files": files})
 
 
-def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = None) -> tuple[GridTables, str]:
-    """The tables and the CRS as WKT, from the cache when nothing changed."""
+FIND = "find"
+"""``prepare_grid`` works out what the job leaves out of the mesh itself; a run that already knows passes it."""
+
+
+class NothingOnTheGrid(InvalidJob):
+    """Every cell of the domain lies under a catchment left out of the mesh: the job is a lumped run (W88)."""
+
+
+def prepare_grid(
+    cfg: RunConfig, cache_dir: Path, progress: Progress | None = None, left_out: LeftOut | str | None = FIND
+) -> tuple[GridTables, str]:
+    """The tables and the CRS as WKT, from the cache when nothing changed. The tables carry ``left_out``, the
+    catchments the job leaves out of the mesh (None for none)."""
     emit = progress.emit if progress is not None else (lambda *_a, **_k: None)
     cfg = with_tables(cfg)
     with open_bed(cfg, cache_dir) as bed:  # the DEM decoded once into the cache folder, then read raw (W84)
         crs = _wkt(bed)
         window = grid_window(cfg, bed)
+        left = left_out_of(cfg, crs) if isinstance(left_out, str) else left_out
         if cfg.mesh.enabled:
             if cfg.strips.enabled:
                 raise InvalidJob("corridors run on the uniform grid in this version: untick the mesh refinement or the corridors")
-            return _mesh_tables(cfg, bed, window, crs), crs
+            tables = _mesh_tables(cfg, bed, window, crs, left)
+            tables.left_out = left
+            return tables, crs
         mask = kept_domain_mask(cfg, bed, window, cache_dir)
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
+        gone = None
+        """The domain's cells under the left-out catchments, or None when the job leaves none out."""
+        if left is not None and left.names:
+            gone = left.cells(window.x0, window.y0, cfg.grid.dx, mask.shape) & mask
+            mask = mask & ~gone
+            left.cells_out = int(gone.sum())
+            if not mask.any():
+                raise NothingOnTheGrid(_NOTHING_ON_THE_GRID)
         strip = None
         made = None
         """The strip's mesh and tables from the cache, or None: built below and saved (W81)."""
@@ -436,6 +471,8 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             polygon = _domain_polygon(cfg.grid.domain, crs)
             if polygon is None:
                 polygon = shapely.box(window.x0, window.y0 - mask.shape[0] * cfg.grid.dx, window.x0 + mask.shape[1] * cfg.grid.dx, window.y0)
+            if gone is not None:  # corridors built from a banks file end a cell clear of the left-out catchments
+                polygon = polygon.difference(left.area.buffer(cfg.grid.dx))
             try:
                 mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0, polygon)
             except (ValueError, OSError) as error:
@@ -444,7 +481,7 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
         # draws the strip differently (a code change, with the job unchanged) must not meet the old tables; a cached
         # lattice masked where the new strip is not left a wall between them and ponded 20 m deep at Faydh's outlet
         # across four reruns (2026-11-08)
-        key = grid_key(cfg, bed, window, replaced=strip.masked if strip is not None else None)
+        key = grid_key(cfg, bed, window, replaced=strip.masked if strip is not None else None, left_out=gone)
         path = cache_path(cache_dir, key)
         hit = load_tables(path, key)
         if hit is not None:
@@ -472,7 +509,53 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
             save_strip(spath, spath.stem.removeprefix("strip_"), mask, tables.strip)
             emit("output", kind="strip_cache_saved", path=str(spath))
+    tables.left_out = left
     return tables, crs
+
+
+_NOTHING_ON_THE_GRID = (
+    "every cell of the domain lies under a catchment left out of the mesh: nothing is left for the 2D model"
+)
+
+
+def _entering(h) -> list[tuple[str, tuple[float, float] | None, str]]:
+    """Every (name, point, element) of the lumped network whose outflow enters the grid."""
+    wanted = [(i.name, (i.x, i.y), i.element) for i in h.inflows if i.element is not None]
+    wanted += [(s.name, s.outlet, s.name) for s in h.subbasins if s.mode == "lumped" and s.outlet is not None]
+    return wanted
+
+
+def carried_subbasins(cfg: RunConfig, crs: str = "") -> dict[str, str]:
+    """The carried lumped subbasins of a resolved job, each with the entry that brings its water to the grid (W88):
+    lumped, with no outlet of its own, above an inflow's element or the end of a hand-back's route on links the grid
+    does not carry. Empty for a job with no lumped network; what a run would refuse is refused there, not here."""
+    h = cfg.hydrology
+    wanted = _entering(h)
+    generated = h.basin_json is not None
+    if (not wanted and not h.handbacks and not generated) or (h.hms_basin is None and not generated):
+        return {}
+    basin, _hms_basin, decided = _lumped_basin(cfg, crs)
+    routes = None
+    if h.handbacks or generated:
+        from wadi2d.hydrology.live_network import plan_routes
+
+        entries = [line.element for line in h.handbacks]
+        routes = plan_routes(basin, entries, [e for _n, _p, e in wanted], decided, cut_entries=not generated)
+    alone = {s.name for s in h.subbasins if s.mode == "lumped" and s.outlet is None}
+    return {sub: entry for sub, entry in _carried(h, basin, wanted, routes).items() if sub in alone}
+
+
+def left_out_of(cfg: RunConfig, crs: str = "") -> LeftOut | None:
+    """What a job leaves out of its mesh, or None when it asks for nothing (:mod:`wadi2d.engine.left_out`)."""
+    g = cfg.grid
+    if not g.exclude_lumped and not g.exclude_subbasins:
+        return None
+    cfg = _resolved(cfg, crs)[0]
+    try:
+        carried = carried_subbasins(cfg, crs) if g.exclude_lumped else {}
+        return choose(cfg, carried, load_polygons(cfg.hydrology, crs))
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
 
 
 def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarray) -> str:
@@ -490,6 +573,8 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
         terrain.pop(name, None)
     grid = cfg.grid.model_dump(mode="json")
     grid.pop("cache_dir", None)  # where the cache lies is not what is in it
+    for name in ("exclude_lumped", "exclude_subbasins"):  # what they take out is in the mask below (W88)
+        grid.pop(name, None)
     return cache_key(
         {
             "strip_format": STRIP_FORMAT,
@@ -504,8 +589,9 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
     )
 
 
-def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str):
-    """The quadtree of a job, and every refusal a mesh can give before its tables."""
+def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str, left_out: LeftOut | None = None):
+    """The quadtree of a job, and every refusal a mesh can give before its tables; ``left_out`` takes the cells
+    under its catchments out of the domain first (W88)."""
     from wadi2d.mesh.build import build_grid, lines_on_coarse_tiles
 
     if cfg.grid.dx < cfg.mesh.min_dx:
@@ -513,6 +599,12 @@ def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str):
     mask = domain_mask(cfg, bed, window)
     if not mask.any():
         raise InvalidJob("the domain holds no active cell")
+    if left_out is not None and left_out.names:
+        gone = left_out.cells(window.x0, window.y0, cfg.grid.dx, mask.shape) & mask
+        mask = mask & ~gone
+        left_out.cells_out = int(gone.sum())
+        if not mask.any():
+            raise NothingOnTheGrid(_NOTHING_ON_THE_GRID)
     bed.bind(window.x0, window.y0)
     grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
     bed.bind(grid.x0, grid.y0)
@@ -525,11 +617,13 @@ def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str):
     return grid
 
 
-def _mesh_tables(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str) -> GridTables:
+def _mesh_tables(
+    cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str, left_out: LeftOut | None = None
+) -> GridTables:
     """Tables of a quadtree. Not cached yet: the mesher's rules are the first thing a user changes."""
     from wadi2d.tables.quad import build_quad_tables
 
-    grid = mesh_grid(cfg, bed, window, crs)
+    grid = mesh_grid(cfg, bed, window, crs, left_out)
     ground = Ground(bed, grid.x0, grid.y0)
     edits = apply_objects(grid, cfg.terrain.objects, bed.pixel, cfg.terrain, ground)
     n = manning_grid(cfg, grid, crs)
@@ -626,8 +720,9 @@ def _above(basin, element: str, cut) -> set[str]:
     return basin._walk(links, element)
 
 
-def _check_routes(h, basin, wanted, routes=None) -> None:
-    """Every lumped subbasin's water enters once: dropped water and doubled water both end in exit 0."""
+def _carried(h, basin, wanted, routes=None) -> dict[str, str]:
+    """The subbasins of the basin whose water an entry brings in from above it, each with that entry's name; a
+    subbasin that enters at its own outlet under its own name is not carried."""
     lumped = {s.name: s for s in h.subbasins if s.mode == "lumped"}
     known = set(basin.subbasins) if basin is not None else set()
     carried: dict[str, str] = {}
@@ -640,6 +735,13 @@ def _check_routes(h, basin, wanted, routes=None) -> None:
             continue
         for sub in _above(basin, element, cut) & known:
             carried[sub] = name
+    return carried
+
+
+def _check_routes(h, basin, wanted, routes=None) -> None:
+    """Every lumped subbasin's water enters once: dropped water and doubled water both end in exit 0."""
+    lumped = {s.name: s for s in h.subbasins if s.mode == "lumped"}
+    carried = _carried(h, basin, wanted, routes)
     tabled = {i.name for i in h.inflows if i.element is None}
     for name, sub in lumped.items():
         if name in carried and sub.outlet is not None:
@@ -721,8 +823,7 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
         for i in h.inflows
         if i.element is None
     ]
-    wanted = [(i.name, (i.x, i.y), i.element) for i in h.inflows if i.element is not None]
-    wanted += [(s.name, s.outlet, s.name) for s in h.subbasins if s.mode == "lumped" and s.outlet is not None]
+    wanted = _entering(h)
     generated = h.basin_json is not None
     if not wanted and not h.handbacks and not generated:
         _check_routes(h, None, [])
@@ -859,14 +960,15 @@ def edge_ponding(
     return float(depth[j, i]), float(x), float(y)
 
 
-def _edge_streams(cfg: RunConfig, crs: str, out: Path, progress) -> list[str]:
+def _edge_streams(cfg: RunConfig, crs: str, out: Path, progress, left: LeftOut | None = None) -> list[str]:
     """Streams across closed edges before the run (W78): the warnings, the points in ``edge_checks.gpkg``. A check
-    that fails costs a warning, never the run."""
+    that fails costs a warning, never the run. The outline along a catchment left out of the mesh is no edge of
+    the model: a stream across it there is not named (W88)."""
     if not cfg.outputs.edge_check.enabled:
         return []
     try:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
-        found = stream_crossings(cfg, crs, cache)
+        found = stream_crossings(cfg, crs, cache, left.area if left is not None and left.names else None)
         path = write_crossings(out, found, crs)
     except Exception as error:  # the ground, the DEM or WhiteboxTools: the run goes on without the check
         return [f"the check for streams across the domain edge could not run: {error}"]
@@ -912,8 +1014,12 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     results.maxima(fields_)
     for held in more:
         results.maxima(held)
-    pooled = _edge_pools(cfg, tables, fields_["depth"], monitor.boundary.mask, out, crs, progress)
-    deep, x, y = edge_ponding(grid, fields_["depth"], monitor.boundary.mask, domain_cells(tables))
+    open_cells = monitor.boundary.mask
+    left = getattr(tables, "left_out", None)
+    if left is not None and left.entries:  # water running in beside a left-out catchment is no pool (W88)
+        open_cells = open_cells | left.entry_cells(grid)
+    pooled = _edge_pools(cfg, tables, fields_["depth"], open_cells, out, crs, progress)
+    deep, x, y = edge_ponding(grid, fields_["depth"], open_cells, domain_cells(tables))
     if pooled is not None:
         for note in pooled:
             progress.emit("warn", message=note)
@@ -1024,8 +1130,18 @@ def _check_resume(cfg: RunConfig, checkpoint: Path, resume: bool, progress: Prog
 
 
 def _placed_entries(cfg, tables, polygons, flows, crs, out: Path, progress):
-    """The hydrographs with every 'wadi' entry placed on the grid (W41); entries.json says where and why."""
-    placed = place_entries(cfg, tables, polygons, crs)
+    """The hydrographs with every 'wadi' entry placed on the grid (W41), and every entry that lies in a catchment
+    left out of the mesh moved to the wadi just outside it first (W88); entries.json says where and why."""
+    try:
+        snapped = snap_entries(cfg, tables, flows, getattr(tables, "left_out", None))
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
+    for s in snapped:
+        progress.emit("warn", message=f"inflow {s.name} at ({s.asked[0]:.0f}, {s.asked[1]:.0f}) {s.note}")
+    moved = {s.name: s.point for s in snapped}
+    flows = [(name, moved.get(name, point), times, q) for name, point, times, q in flows]
+    placed = place_entries(cfg, tables, polygons, crs, moved, {name for name, *_rest in flows})
+    placed = with_snapped(placed, snapped)
     if not placed:
         return flows
     records = [p.record() for p in placed]
@@ -1035,6 +1151,26 @@ def _placed_entries(cfg, tables, polygons, flows, crs, out: Path, progress):
         if not p.clear:
             progress.emit("warn", message=f"lumped {p.kind} {p.name} {p.note}")
     return with_entries(flows, placed)
+
+
+def _say_left_out(left: LeftOut, progress) -> None:
+    """What the mesh leaves out, on the record of the run (W88)."""
+    if not left.names:
+        progress.emit(
+            "warn",
+            message="grid.exclude_lumped: the lumped network carries no subbasin to an entry elsewhere, so no cell "
+            "is left out of the mesh",
+        )
+        return
+    progress.emit(
+        "left_out", subbasins=list(left.names), cells=left.cells_out, area_km2=round(left.area_km2, 4),
+        owners=dict(left.owner),
+    )  # fmt: skip
+    progress.emit(
+        "warn",
+        message=f"the 2D mesh leaves out {len(left.names)} lumped subbasins, {left.area_km2:.2f} km2 and "
+        f"{left.cells_out} cells of the domain: the lumped network carries their water, and their edge is a closed wall",
+    )
 
 
 def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary, stop_files):
@@ -1105,7 +1241,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             progress.emit("warn", message=f"rain: {said}")
     for note in spillway_notes(cfg) + check_terrain(cfg):
         progress.emit("warn", message=note)
-    for note in _edge_streams(cfg, crs, out, progress):
+    left = getattr(tables, "left_out", None) if tables is not None else left_out_of(cfg, crs)
+    for note in _edge_streams(cfg, crs, out, progress, left):
         progress.emit("warn", message=note)
     if cfg.mesh.enabled and cfg.mesh.lines:
         from wadi2d.mesh.build import rounding_notes
@@ -1115,10 +1252,10 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     rebuild = None
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
-        tables, crs = prepare_grid(cfg, cache, progress)
+        tables, crs = prepare_grid(cfg, cache, progress, left)
 
         def rebuild(job: RunConfig) -> GridTables:
-            return prepare_grid(job, cache, progress)[0]
+            return prepare_grid(job, cache, progress, left)[0]
 
     plain = cfg
     cfg, tables, _pits = resolve_pits(cfg, tables, crs, out, progress, rebuild)
@@ -1128,6 +1265,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     summary.tables_s = time.monotonic() - t0
     grid = tables.grid
     summary.cells = grid.cell_count if getattr(grid, "quad", False) else int(grid.mask.sum())
+    if left is not None:
+        _say_left_out(left, progress)
     try:
         write_cell_grid(grid, crs, out)
     except Exception as error:  # a drawing of the grid must not cost a run

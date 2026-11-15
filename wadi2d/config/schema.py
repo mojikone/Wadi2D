@@ -49,6 +49,19 @@ class GridConfig(_Part):
         le=4096.0,
         description="Input files up to this size are hashed by content for the cache, MB",
     )
+    exclude_lumped: bool = Field(
+        False,
+        description="Leave out of the mesh every cell whose centre lies in a carried lumped subbasin: one with no "
+        "outlet of its own, whose water the lumped network (reaches, reservoirs) brings to an inflow or a hand-back's "
+        "end elsewhere. No tables, no solver work and no maps there; the edge on the catchment is a closed wall; an "
+        "inflow point inside the left-out area moves to the wadi just outside it (hydrology.entry_snap_m). A lumped "
+        "subbasin that enters at its own outlet stays in the mesh: the grid routes its water through it (W88)",
+    )
+    exclude_subbasins: list[str] = Field(
+        [],
+        description="Lumped subbasins left out of the mesh by name, with or without exclude_lumped: also one that "
+        "enters at its own outlet, when no routed wadi crosses it. A 2D subbasin named here is refused",
+    )
 
 
 class RefineZone(_Part):
@@ -1168,6 +1181,14 @@ class Hydrology(_Part):
         le=2000.0,
         description="A 'wadi' entry looks for its wadi outlet this far inside the subbasin's polygon, m: W1's validated "
         "mode (b) rule, so the entry lies above a dam line drawn on the polygon's edge",
+    )
+    entry_snap_m: float = Field(
+        500.0,
+        ge=0.0,
+        le=5000.0,
+        description="With catchments left out of the mesh (grid.exclude_lumped), an entry whose point lies in them "
+        "moves to the lowest active cell on their edge within this distance, m: the wadi just outside. None within "
+        "it stops the run",
     )
     overlap_share: float = Field(
         0.01,

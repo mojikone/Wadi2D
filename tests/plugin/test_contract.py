@@ -39,6 +39,7 @@ PATHS = (
     job_builder.MAP_EVERY,
     job_builder.PIXELS_ON,
     job_builder.SMOOTH_ON,
+    job_builder.EXCLUDE_LUMPED,
     job_builder.BACKEND,
     job_builder.BREAK_RISE,
     job_builder.BREAK_REACH,
