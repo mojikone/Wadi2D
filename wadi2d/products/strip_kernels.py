@@ -11,8 +11,13 @@ did not give the same last digits.
 Here each sum is a loop over what it sums, in the order ``add.at`` takes it: a cell's pixels from first to last, a
 node's cells by rising number, a pixel's node slots as NumPy's pairwise sum takes them. The Numba kernels are the
 host's, the CUDA kernels the card's, statement for statement, with float32 kept at every step and no multiply fused
-into an add. So the host's maps are what ``add.at`` gave to the digit, the card's are the host's, and a run gives the
+into an add. So the sums are what ``add.at`` gave to the digit, the card's maps are the host's, and a run gives the
 same rasters twice.
+
+One step of the rule itself is changed, on the owner's word (2026-11-15): a cell's Newton fill stops on the cell's
+own step, as a square cell's does, where the old fill went on until every cell of the strip had settled. A cell's
+pixels then do not depend on which other cells are worked with it, so a strip cut into any blocks gives one answer.
+Against the old fill a cell's offset moves by less than the fill's tolerance, 0.1 mm.
 """
 
 from __future__ import annotations
@@ -85,7 +90,7 @@ def _cell_sums(ptr, values, out):
 
 
 @njit(cache=True, nogil=True, parallel=True)
-def _newton(ptr, relief, water, offset, step, moving):
+def _newton(ptr, relief, water, offset, step, moving, tolerance):
     one = np.float32(1.0)
     for c in prange(ptr.size - 1):
         if not moving[c]:
@@ -101,7 +106,7 @@ def _newton(ptr, relief, water, offset, step, moving):
         move = (held - water[c]) / max(count, one)
         moved = at - move
         step[c] = move
-        moving[c] = moved != at
+        moving[c] = abs(move) > tolerance
         offset[c] = moved
 
 
@@ -147,7 +152,7 @@ extern "C" __global__ void cell_sums(const long long* ptr, const float* values, 
 }
 
 extern "C" __global__ void newton(const long long* ptr, const float* relief, const float* water, float* offset,
-                                  float* step, bool* moving, long long n) {
+                                  float* step, bool* moving, long long n, float tolerance) {
     long long c = (long long)blockIdx.x * blockDim.x + threadIdx.x;
     if (c >= n || !moving[c]) return;
     float at = offset[c], held = 0.0f, count = 0.0f;
@@ -158,7 +163,7 @@ extern "C" __global__ void newton(const long long* ptr, const float* relief, con
     float move = (held - water[c]) / fmaxf(count, 1.0f);
     float moved = at - move;
     step[c] = move;
-    moving[c] = moved != at;
+    moving[c] = fabsf(move) > tolerance;
     offset[c] = moved;
 }
 
@@ -215,13 +220,14 @@ class StripKernels:
             self._launch("cell_sums", ptr.size - 1, (ptr, values, out, np.int64(ptr.size - 1)))
         return out
 
-    def newton(self, ptr, relief, water, offset, step, moving) -> None:
-        """One Newton step of the fill for every cell still moving, in place: its offset, its step, whether its
-        offset moved."""
+    def newton(self, ptr, relief, water, offset, step, moving, tolerance: float) -> None:
+        """One Newton step of the fill for every cell still moving, in place: its offset, its step, and whether
+        that step was over ``tolerance``, so the cell goes on."""
+        limit = np.float32(tolerance)
         if self.cuda is None:
-            _newton(ptr, relief, water, offset, step, moving)
+            _newton(ptr, relief, water, offset, step, moving, limit)
         else:
-            self._launch("newton", ptr.size - 1, (ptr, relief, water, offset, step, moving, np.int64(ptr.size - 1)))
+            self._launch("newton", ptr.size - 1, (ptr, relief, water, offset, step, moving, np.int64(ptr.size - 1), limit))
 
     def label_order(self, label):
         """The incidences by label and, in a label, by their own number: what :meth:`label_sums` on the card walks."""

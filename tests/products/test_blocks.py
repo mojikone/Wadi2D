@@ -17,6 +17,7 @@ from tests.engine.test_strips_run import corridor, plane_job
 from tests.products.test_step import wadi_job
 from wadi2d.products import blocks, step
 from wadi2d.products.blocks import plan_bands, plan_blocks
+from wadi2d.products.cell_maps import strip_on_lattice
 from wadi2d.products.frames import frame_names, read_frames, run_maxima
 from wadi2d.products.ground import face_sills, read_cells
 from wadi2d.products.hazard import DRY, classify
@@ -167,28 +168,42 @@ def tilted_dem_module(tmp_path_factory):
     return write_dem(tmp_path_factory.mktemp("tilted") / "tilted.tif", rough, 1.0)
 
 
-def test_a_strip_in_one_block_is_the_whole_strip_to_the_digit(striped) -> None:
+def test_a_strip_keeps_the_old_whole_strips_pixels_within_the_fills_tolerance(striped) -> None:
+    """Against the step before W86 (the whole strip at once, its fill going on until every cell had settled): the
+    squares to the digit, and a strip pixel within the fill's tolerance, 0.1 mm of depth, a cell now stopping on its
+    own step."""
+    from wadi2d.products.surface import FILL_TOLERANCE
+
     cfg, tables, _crs, run = striped
     made, whole = _rasters(run), _whole_rasters(cfg, tables, run)
-    for name in made:
-        np.testing.assert_array_equal(made[name], whole[name], err_msg=name)
+    rows, cols, _cell = strip_on_lattice(tables)
+    k = round(tables.grid.dx / made[step.DEPTH_FILE + ":at"][2])
+    box_top = round((tables.grid.y0 - made[step.DEPTH_FILE + ":at"][1]) / made[step.DEPTH_FILE + ":at"][2])
+    box_left = round((made[step.DEPTH_FILE + ":at"][0] - tables.grid.x0) / made[step.DEPTH_FILE + ":at"][2])
+    on_strip = np.zeros(made[step.DEPTH_FILE].shape, bool)
+    for r, c in zip(rows, cols, strict=True):
+        on_strip[max(r * k - box_top, 0) : (r + 1) * k - box_top, max(c * k - box_left, 0) : (c + 1) * k - box_left] = True
+    assert on_strip.any() and not on_strip.all()
+    for name in FILES:
+        assert made[name + ":at"] == whole[name + ":at"]
+        np.testing.assert_array_equal(made[name][~on_strip], whole[name][~on_strip], err_msg=name)
+    wet = (made[step.DEPTH_FILE] != step.NO_DEPTH) & (whole[step.DEPTH_FILE] != step.NO_DEPTH)
+    assert (wet[on_strip]).mean() > 0.5
+    assert np.abs(made[step.DEPTH_FILE][wet] - whole[step.DEPTH_FILE][wet]).max() < FILL_TOLERANCE
+    assert (made[step.HAZARD_FILE] != whole[step.HAZARD_FILE]).mean() < 1e-3
 
 
-def test_a_strip_in_many_blocks_keeps_its_pixels(striped, tmp_path, monkeypatch) -> None:
-    """A block's strip cells are worked with the rings of cells their surface reads. The Newton fill stops when
-    the cells of the lot have settled, so a pixel may differ from the whole strip's by a step under the fill's
-    tolerance and no more (far less here); the squares beside the strip are the whole run's to the digit."""
+def test_a_strip_in_many_blocks_is_the_strip_in_one_to_the_digit(striped, tmp_path, monkeypatch) -> None:
+    """A block's strip cells are worked with the rings of cells their surface reads, and a cell's fill stops on its
+    own step: however the strip is cut, its pixels are the same, as the squares' beside it are."""
     cfg, tables, crs, run = striped
     (tmp_path / "results.h5").write_bytes((run / "results.h5").read_bytes())
     written = _small_blocks(monkeypatch, 16)
     make_products(cfg, tables, crs, tmp_path, QUIET, "cpu")
     assert len(set(written)) > 8 and len({block.row0 for block in written}) > 1
     made, whole = _rasters(tmp_path), _rasters(run)
-    np.testing.assert_array_equal(made[step.HAZARD_FILE], whole[step.HAZARD_FILE])
-    for name in (step.DEPTH_FILE, step.SPEED_FILE, step.DV_FILE):
-        assert made[name + ":at"] == whole[name + ":at"]
-        np.testing.assert_array_equal(made[name] == step.NO_DEPTH, whole[name] == step.NO_DEPTH)
-        np.testing.assert_allclose(made[name], whole[name], rtol=0.0, atol=2e-5, err_msg=name)
+    for name in made:
+        np.testing.assert_array_equal(made[name], whole[name], err_msg=name)
 
 
 def test_a_try_that_does_not_fit_the_card_is_made_again_in_smaller_blocks(wadi, tmp_path, monkeypatch) -> None:

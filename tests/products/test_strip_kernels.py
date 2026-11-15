@@ -33,8 +33,7 @@ def _newton_case(seed: int = 5):
     return ptr, cell, relief, water
 
 
-def test_the_fill_in_loops_is_the_fill_in_scatter_adds_to_the_digit() -> None:
-    """A cell whose offset has stopped moving is left alone, and gets what going on would give it."""
+def _fills():
     from wadi2d.config.schema import Pixels as PixelRule
     from wadi2d.products.strip_pixels import BlockStripMaxima
     from wadi2d.strips.pixels import StripMaxima
@@ -45,7 +44,32 @@ def test_the_fill_in_loops_is_the_fill_in_scatter_adds_to_the_digit() -> None:
         held.xp, held.rule, held.n, held.cell = np, PixelRule(), ptr.size - 1, cell
         held.npix_cell = np.diff(ptr).astype(np.float32)
     new.ptr, new.kernels = ptr, StripKernels(np)
-    np.testing.assert_array_equal(new._fill_offset(relief, water), old._fill_offset(relief, water))
+    return old, new, ptr, cell, relief, water
+
+
+def test_a_cell_stopping_on_its_own_step_holds_its_water_and_stays_within_the_tolerance_of_the_old_fill() -> None:
+    """The old fill went on until every cell of the strip had settled; a cell now stops on its own step. Both hold
+    the cell's water, and they part by less than the fill's tolerance."""
+    from wadi2d.products.surface import FILL_TOLERANCE
+
+    old, new, ptr, cell, relief, water = _fills()
+    was, now = old._fill_offset(relief, water), new._fill_offset(relief, water)
+    assert np.abs(now - was).max() < FILL_TOLERANCE
+    held = np.zeros(ptr.size - 1)
+    np.add.at(held, cell, np.maximum(now[cell] - relief, 0.0))
+    pixels = np.maximum(np.diff(ptr), 1)
+    assert (np.abs(held - water) / pixels).max() < 2.0 * FILL_TOLERANCE  # a mean depth off by under a step
+
+
+def test_a_cells_fill_does_not_depend_on_the_cells_worked_with_it() -> None:
+    """Half the cells filled alone get what they get among all of them, to the digit: blocks cannot move a pixel."""
+    _old, new, ptr, _cell, relief, water = _fills()
+    whole = new._fill_offset(relief, water)
+    n = ptr.size - 1
+    part = np.arange(n // 2, n)
+    lo = ptr[n // 2]
+    new.ptr, new.n, new.npix_cell = ptr[n // 2 :] - lo, part.size, np.diff(ptr)[part].astype(np.float32)
+    np.testing.assert_array_equal(new._fill_offset(relief[lo:], water[part]), whole[part])
 
 
 def test_the_cards_sums_are_the_hosts_to_the_digit() -> None:
@@ -68,8 +92,8 @@ def test_the_cards_sums_are_the_hosts_to_the_digit() -> None:
     state = [start, np.zeros(n, np.float32), np.ones(n, bool)]
     on_card = [cp.asarray(a) for a in state]
     for _ in range(6):
-        host.newton(ptr, relief, water, *state)
-        card.newton(cp.asarray(ptr), cp.asarray(relief), cp.asarray(water), *on_card)
+        host.newton(ptr, relief, water, *state, 1e-4)
+        card.newton(cp.asarray(ptr), cp.asarray(relief), cp.asarray(water), *on_card, 1e-4)
         for a, b in zip(state, on_card, strict=True):
             np.testing.assert_array_equal(b.get(), a)
     label = rng.integers(0, 200, 1500).astype(np.int64)

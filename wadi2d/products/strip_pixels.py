@@ -10,11 +10,10 @@ device for every saved map.
 
 A cell's pixels read the fill offsets of the cells that share its nodes, which read theirs: ``edge_passes`` rings
 out, and the levels one ring further. Those cells are worked with the block and their pixels thrown away, so the
-block's own pixels read what the whole strip would give them. One thing only depends on the company a cell keeps:
-the Newton fill of :class:`wadi2d.strips.pixels.StripMaxima` goes on until every cell of the lot has settled, so a
-cell that still moves by less than the tolerance can take a step more in one lot than in another, a difference of
-that tolerance at most, a tenth of a millimetre (Block 2 in 8 blocks against 23: 13,056 of 502 million wet pixels,
-0.12 mm at most, no class changed). A strip that fits one block is the whole strip, to the digit.
+block's own pixels read what the whole strip gives them, to the digit, however the strip is cut: a cell's Newton
+fill stops on the cell's own step (see :mod:`wadi2d.products.strip_kernels`), where the fill of
+:class:`wadi2d.strips.pixels.StripMaxima` went on until every cell of the strip had settled and so moved a pixel by
+up to its tolerance, 0.1 mm, with the company its cell kept.
 
 The ground is read through the same pieces as :func:`wadi2d.strips.tables.owned_pixels`, whole, because a hole's
 fill and a terrain object's edit see the window they are read in: each pixel is the pixel of the whole read.
@@ -371,16 +370,17 @@ class BlockStripMaxima(StripMaxima):
         return xp.where(count[label] > 0.0, mean, own)
 
     def _fill_offset(self, relief, water):
-        """The parent's Newton fill, a cell's pixels summed from first to last, and no step taken again by a cell
-        whose offset has stopped moving: its next step would be the step it just took, to the bit."""
+        """The offset per cell that holds the cell's water under a surface of this shape: the parent's Newton, a
+        cell's pixels summed from first to last, and each cell stopping on its own step, so what a cell gets does
+        not depend on the cells worked with it."""
         xp = self.xp
         pixels = xp.maximum(self.npix_cell, 1.0)
         offset = self.kernels.cell_sums(self.ptr, relief) / pixels + water / pixels
         step = xp.zeros(self.n, xp.float32)
         moving = xp.ones(self.n, bool)
         for _ in range(FILL_STEPS):
-            self.kernels.newton(self.ptr, relief, water, offset, step, moving)
-            if not bool((xp.abs(step) > FILL_TOLERANCE).any()):
+            self.kernels.newton(self.ptr, relief, water, offset, step, moving, FILL_TOLERANCE)
+            if not bool(moving.any()):
                 break
         return offset
 
