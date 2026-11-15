@@ -14,6 +14,7 @@ from qgis.core import (
     QgsColorRampShader,
     QgsFillSymbol,
     QgsGraduatedSymbolRenderer,
+    QgsLinePatternFillSymbolLayer,
     QgsLineSymbol,
     QgsMarkerSymbol,
     QgsMeshDatasetIndex,
@@ -329,6 +330,44 @@ def style_subbasins(layer) -> None:
     ]
     layer.setRenderer(QgsCategorizedSymbolRenderer("mode", categories))
     _labels(layer, "label", 8.5, "#5a2d00", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+HMS_HATCH = "#8a4b08"
+"""The catchments that ran the HMS way (W88): hatched, so the 2D results under and beside them still read."""
+HMS_LEFT_OUT = "#5a5a5a"
+"""The same, left out of the 2D mesh: grey, the grid has no cell there."""
+
+
+def _hatched(colour: str, angle: float) -> QgsFillSymbol:
+    symbol = QgsFillSymbol.createSimple({"color": "0,0,0,0", "outline_color": colour, "outline_width": "0.6"})
+    hatch = QgsLinePatternFillSymbolLayer()
+    hatch.setLineAngle(angle)
+    hatch.setDistance(2.5)
+    hatch.setColor(QColor(colour))
+    hatch.setLineWidth(0.2)
+    symbol.appendSymbolLayer(hatch)
+    return symbol
+
+
+def style_network_subbasins(layer) -> None:
+    """The lumped subbasins of a run, hatched; those the 2D mesh left out in grey; labelled with area and peak."""
+    categories = [
+        QgsRendererCategory(0, _hatched(HMS_HATCH, 45.0), "Ran the HMS way, its water routed by the lumped network"),
+        QgsRendererCategory(1, _hatched(HMS_LEFT_OUT, -45.0), "Ran the HMS way, left out of the 2D mesh"),
+    ]
+    layer.setRenderer(QgsCategorizedSymbolRenderer("left_out", categories))
+    _labels(layer, "label", 8.0, "#5a2d00", Qgis.LabelPlacement.OverPoint, bold=True)
+
+
+def style_network_reaches(layer) -> None:
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#0060c0", "width": "1.0"})))
+    _labels(layer, "label", 7.5, "#003c80", Qgis.LabelPlacement.Line)
+
+
+def style_network_points(layer) -> None:
+    marker = {"name": "diamond", "color": "#ffffff", "outline_color": "#003c80", "outline_width": "0.6", "size": "3.2"}
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol.createSimple(marker)))
+    _labels(layer, "label", 7.5, "#003c80", Qgis.LabelPlacement.OrderedPositionsAroundPoint, bold=True)
 
 
 RAIN_BLUES = ("#eff3ff", "#bdd7e7", "#6baed6", "#3182bd", "#08519c")

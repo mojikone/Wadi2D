@@ -40,6 +40,9 @@ PATHS = (
     job_builder.PIXELS_ON,
     job_builder.SMOOTH_ON,
     job_builder.EXCLUDE_LUMPED,
+    job_builder.LUMPED_ENTRY,
+    job_builder.LUMPED_ONLY,
+    job_builder.ARF_BY_ELEMENT,
     job_builder.BACKEND,
     job_builder.BREAK_RISE,
     job_builder.BREAK_REACH,
@@ -189,6 +192,10 @@ def test_the_suggest_settings_from_the_dock_pass_the_engine_validation(tmp_path:
     assert suggest_problems(full_values(tmp_path, breaklines=lines)) == []
     assert real.default(job_builder.BREAK_RISE) == 2.0
     assert "breaklines" not in build_job(full_values(tmp_path), tmp_path / "o3")
+
+
+def test_the_lumped_entry_words_name_every_choice_the_engine_has(real: SchemaView) -> None:
+    assert set(real.enum(job_builder.LUMPED_ENTRY)) == set(job_builder.LUMPED_ENTRY_WORDS)
 
 
 def test_the_frozen_sample_still_matches_the_engine() -> None:
