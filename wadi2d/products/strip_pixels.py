@@ -36,6 +36,9 @@ from wadi2d.tables.parallel import ThreadBeds, run_all, table_workers
 
 RINGS_MORE = 1
 """Rings of neighbours worked beyond those a cell's pixels read, for the links at the outer nodes."""
+STRIP_HOST_BYTES = 72
+"""Host bytes a strip pixel takes besides its weights while its block is gathered and written: its row, column,
+cell and ground twice over as the pieces are joined and put in order, then its three maxima and its class."""
 STRIP_FIXED_BYTES = 48
 """Device bytes a strip pixel takes while its block is worked, besides its weights: ground, cell, three maxima and
 a map's work arrays."""
@@ -158,6 +161,11 @@ class StripReader:
     def pixel_bytes(self) -> int:
         """Device bytes one of the strip's pixels takes while its block is worked."""
         return STRIP_FIXED_BYTES + 4 * self.width
+
+    @property
+    def host_bytes(self) -> int:
+        """Host bytes one of the strip's pixels takes while its block is gathered, worked and written."""
+        return STRIP_HOST_BYTES + 4 * self.width
 
     # ---- where the strip's pixels are
     def _inside(self, c: int) -> np.ndarray:

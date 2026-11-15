@@ -34,6 +34,12 @@ SQUARE_PIXEL_BYTES = 16
 """Ground and the three maxima of a square cell's pixel."""
 WORK_PIXEL_BYTES = 32
 """The work arrays of a batch of pixels while a map is laid over it."""
+HOST_RESULT_BYTES = 6 << 30
+"""What one block's pixels may take on the host while they are gathered and written, whatever the device: Block 2's
+run 3 cut by the card alone held 27 GB at its peak (W86)."""
+SQUARE_HOST_BYTES = 32
+"""Host bytes a square pixel takes while its block is written: three maxima come down, are picked, classed and
+painted."""
 BAND_GROUND_BYTES = 2 << 30
 """Ground of a band of windows read at once on the host, at most (a band is one row of windows at least)."""
 STACK_BYTES = 6 << 30
@@ -155,6 +161,8 @@ def read_strip_stack(results: Path, names: list[str], cells: np.ndarray) -> Stac
 
 
 __all__ = [
+    "HOST_RESULT_BYTES",
+    "SQUARE_HOST_BYTES",
     "Block",
     "Stack",
     "device_budget",

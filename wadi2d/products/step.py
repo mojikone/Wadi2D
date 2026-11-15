@@ -24,6 +24,8 @@ from wadi2d.io.geopackage import write_geopackage
 from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, raster_profile
 from wadi2d.products.blocks import (
     BAND_GROUND_BYTES,
+    HOST_RESULT_BYTES,
+    SQUARE_HOST_BYTES,
     SQUARE_PIXEL_BYTES,
     STACK_BYTES,
     STACK_VALUE_BYTES,
@@ -397,9 +399,14 @@ def lattice_pixels(
         square_pixels = square_window_pixels(rows, cols, k, WINDOW, box[0], box[1], shape)
         strip_pixels = np.zeros(shape) if strips is None else strips.window_pixels(WINDOW, box[0], box[1], shape)
         room, pool_cap = device_budget(xp, rule.batch_pixels, squeeze)
-        costs = [square_pixels * SQUARE_PIXEL_BYTES, strip_pixels * (0 if strips is None else strips.pixel_bytes)]
+        on_card, on_host = (0, 0) if strips is None else (strips.pixel_bytes, strips.host_bytes)
+        costs = [  # a block fits the device with its squares, then with its strip, and the host with both
+            square_pixels * SQUARE_PIXEL_BYTES,
+            strip_pixels * on_card,
+            square_pixels * SQUARE_HOST_BYTES + strip_pixels * on_host,
+        ]
         bands = [
-            (band, plan_blocks(costs, [room, room], band))
+            (band, plan_blocks(costs, [room, room, HOST_RESULT_BYTES], band))
             for band in plan_bands(square_pixels.sum(axis=1) * BYTES, BAND_GROUND_BYTES)
         ]
         lattice = Lattice(
