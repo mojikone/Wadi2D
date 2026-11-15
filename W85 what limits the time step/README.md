@@ -106,7 +106,8 @@ So published practice backs two things, both built or shown here: **a reading of
 
 ## The step through the engine, on a window
 
-`scripts/s05_window.py`: 1.2 km square round the hole on the W79 lattice (60 by 60 cells of 20 m), W79's storm, losses
+`scripts/s05_window.py`: 1.2 km square round the hole, 60 by 60 cells of 20 m, one DEM pixel (0.5 m) north of the
+W79 lattice (the engine snaps a north edge up to a pixel; found later, and it changes no conclusion), W79's storm, losses
 and roughness, every edge a free outfall, 30 h, CPU, `outputs.step_limiter: layer`. The pit is mended in a copy of the
 DEM window (`filled`: the sink filled to its spill level, 305 m2 raised, nothing else touched) and with a tool the dock
 has (`bank`: an embankment object over the sink, top at 1,187.84 m).
@@ -262,10 +263,29 @@ there, and past the bed's edge a face's line reads the same repeats of it as bef
 short flat one and a short sloping one: all arrays equal to the digit before and after
 (`s08_builder_margin.py save_quad / compare_quad`). A raster bed has no span, which a test holds.
 
-**Found on the way, not mine to fix here:** a GDAL rasterise called from several table threads at once now and then
-loses its geotransform (a NotGeoreferencedWarning, the mask right in the calls I saw). Burn lines and shaped objects
-rasterise on those threads since W81. The new `fill` object tests pixel centres against its outline with shapely and
-no GDAL. [Likely] a risk for jobs with burn lines; worth its own look.
+**6. GDAL's rasterise on the table threads** (the coordinator's third go; `wadi2d/terrain/rasterise.py`). Found
+while testing the fill: rasterio warned that its in-memory dataset "has no geotransform" when a pixel edit rasterised
+from a table thread. Only two calls rasterise there, a burn line's edit and a shaped object's (embankment, channel,
+channel with dykes); since W81 they ran several at once.
+
+- **Measured** (`scripts/s10_rasterise_threads.py`, 4,000 buffered lines into tile-sized windows, 16 threads): 1,230 to
+  1,254 calls warned, about a third; **no mask differed from the same call on one thread**, in 16,000 threaded calls
+  over four runs. One thread alone never warned. A rasterio environment held per thread changed nothing.
+- **The fix:** one module-level lock round the call, so the two edits take turns. The mask is the same call's, so the
+  tables are identical: tables with twelve burn lines and two embankments across nine tiles are equal to the digit on
+  1 and on 16 threads (test), and a test holds that no two calls run at once. With the lock 1 to 3 calls in 4,000
+  still warned, with right masks: the warning is tied to calling from a worker thread, not only to two calls at once,
+  and its cause inside rasterio was not found. [Likely] it is harmless; it is not proved harmless.
+- **Could a real build have been wrong?** [Likely] no: no wrong mask in 16,000 tries. **For W79's tables, [Certain]
+  no:** its jobs hold crest lines and spillways only, which set faces and edit no pixel, so nothing rasterised on its
+  threads. Checked all the same (`scripts/s11_w79_crest_check.py`, `w79_crest_check.log`): a window round Bidah 03
+  (its three crest lines and its spillway, 96 by 128 cells on W79's own lattice) built here on one thread against
+  W79's cached tables, built on sixteen: **6,499 cells, all 20 arrays equal to the digit**, the 176 faces with a
+  crest coefficient among them. That also holds this branch's builder against W79's on real ground.
+- A job with burn lines or shaped objects built on threads before this (W81 onwards) was not checked one by one.
+- Tests under the cap, one file at a time (`pytest_capped_rasterise.log`): the terrain, tables, earthworks, mesh
+  earthworks, strip objects, fill, products and render files, **364 passed, none failed**. The earthworks files used
+  to end with five of these warnings each; with the lock they end with none.
 
 **Tests**, each file in its own process under the 8 GB cap, CPU: `tests/terrain/test_pits.py` (7),
 `tests/engine/test_fill_pits.py` (4: the check and the fill through whole runs, the step with and without, the
@@ -327,6 +347,9 @@ kernels are unchanged, and the limiter reading was on for that run.
 - `scripts/capped_pytest.py`, `scripts/capped_files.py`, `pytest_capped*.log`: tests under a hard cap on commit.
 - `scripts/s09_block2_pits.py`, `block2_pits/`: the pit check on the whole of Block 2, the 63 pits as points.
 - `frames_run1/steps_fill_pits.csv`, `.log`: the step per frame with every pit filled.
+- `scripts/s10_rasterise_threads.py`: GDAL's rasterise from 16 threads against one.
+- `scripts/s11_w79_crest_check.py`, `w79_crest_check.log`, `w79_crest_check/`: W79's tables against a one-thread
+  rebuild round Bidah 03.
 - The per-face wave maps (70 MB a frame) and the DEM windows are not in git; the scripts remake them.
 
 ## [PRESERVE-CHECK]
@@ -348,4 +371,5 @@ kernels are unchanged, and the limiter reading was on for that run.
   `wadi2d/terrain/objects.py` (the `fill` kind), new `wadi2d/terrain/pits.py` and `wadi2d/engine/pit_step.py`,
   `wadi2d/arf.py` (one call), `wadi2d/run.py` (the pit step, the job hash, the strip key);
   `plugin/wadi2d_qgis/` (`job_builder.py`, `sections/terrain.py`, `sections/run.py`, `dock.py`, new
-  `check_layers.py`).
+  `check_layers.py`); new `wadi2d/terrain/rasterise.py`, and the one rasterise call each of
+  `wadi2d/terrain/objects.py` (burn line) and `wadi2d/terrain/earthworks.py` (shaped objects) through it.
