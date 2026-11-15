@@ -236,9 +236,9 @@ def test_a_reduction_chosen_without_its_table_is_refused_before_the_run() -> Non
 def test_the_preview_is_asked_of_the_engine_and_said_in_one_line() -> None:
     assert preview_args("job.json", "out.json") == ["rain-preview", "job.json", "--out", "out.json"]
     said = preview_text({"step_min": 5.0, "storm_area_km2": 505.0, "area_factor": 0.75, "areas": []})
-    assert said == "Depths after the area reduction, on the lumped step of 5 min. Area reduction 0.7500 at 505 km2."
-    assert preview_text({"step_min": 2.0, "storm_area_km2": None, "area_factor": 1.0, "areas": []}).endswith(
-        "No area reduction."
+    assert said == "Depths after an area reduction of 0.7500 at 505 km2, on the hydrology step of 5 min."
+    assert preview_text({"step_min": 2.0, "storm_area_km2": None, "area_factor": 1.0, "areas": []}) == (
+        "Depths with no area reduction, on the hydrology step of 2 min."
     )
 
 

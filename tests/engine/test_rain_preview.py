@@ -122,3 +122,16 @@ def test_the_command_writes_the_preview_and_refuses_a_job_without_rain(tmp_path,
     path.write_text(dry.model_dump_json(), encoding="utf-8")
     assert main(["rain-preview", str(path), "--out", str(out)]) != 0
     assert "no rain" in capsys.readouterr().err
+
+
+def test_an_all_2d_job_on_a_domain_polygon_previews_one_2d_row_of_the_whole_rain(tmp_path) -> None:
+    """The office PC's case of 0.3.0 (no lumped subbasin, a domain polygon, uniform rain): one 2D row, the rain's depth."""
+    cfg = job(box(tmp_path), SIDE, SIDE, BOX_DX, storm={"kind": "uniform", "depth_mm": 30.0, "duration_min": 60.0})
+    x0, y0, x1, y1 = cfg.grid.extent
+    outline = {"type": "FeatureCollection", "features": [{"type": "Feature", "properties": {}, "geometry": shapely.geometry.mapping(shapely.box(x0, y0, x1, y1))}]}  # fmt: skip
+    (tmp_path / "domain.geojson").write_text(json.dumps(outline), encoding="utf-8")
+    cfg = cfg.model_copy(update={"grid": cfg.grid.model_copy(update={"domain": str(tmp_path / "domain.geojson"), "extent": None})})  # fmt: skip
+    found = rain_preview(cfg, tmp_path / "map")
+    assert [(row["name"], row["mode"]) for row in found["areas"]] == [(AREA_2D, "2d")]
+    assert found["areas"][0]["depth_mm"] == pytest.approx(30.0)
+    assert found["areas"][0]["area_km2"] == pytest.approx((x1 - x0) * (y1 - y0) / 1e6)

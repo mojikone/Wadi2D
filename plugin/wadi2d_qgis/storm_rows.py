@@ -204,16 +204,16 @@ def preview_args(job: Path | str, out: Path | str, map_dir: Path | str | None = 
 
 
 def preview_text(preview: dict) -> str:
-    """One line over the preview table: the step and the area reduction it read."""
+    """One line over the preview table: the area reduction it read and the step, said once and never contradicted."""
     factor = preview.get("area_factor")
     area = preview.get("storm_area_km2")
     if factor is not None and factor != 1.0 and area:
-        reduction = f"Area reduction {factor:.4f} at {area:g} km2."
+        reduction = f"Depths after an area reduction of {factor:.4f} at {area:g} km2"
     elif factor is not None and factor != 1.0:
-        reduction = f"Area reduction {factor:.4f}."
+        reduction = f"Depths after an area reduction of {factor:.4f}"
     else:
-        reduction = "No area reduction."
-    return f"Depths after the area reduction, on the lumped step of {preview['step_min']:g} min. {reduction}"
+        reduction = "Depths with no area reduction"
+    return f"{reduction}, on the hydrology step of {preview['step_min']:g} min."
 
 
 def rain_text(info: dict) -> str:
