@@ -248,7 +248,31 @@ def run3(job: dict, inputs: dict) -> dict:
     return job
 
 
+def run4_hybrid_2d(job: dict, inputs: dict) -> dict:
+    """Run 4, Hybrid 2D, his correction of 2026-11-15: run 3's split. The same 26 upstream catchments (S1 to S18 above
+    the dams, HAT-S1 to HAT-S8 above HAT-J4) lumped, each at its dam's ARF area (HAT's at HAT-J4's), entering the grid
+    at its own wadi outlet and routed in 2D with the dams as 2D pools; nothing left out of the mesh. The other 78
+    subbasins and the coast strip rain on the grid at 100 km2."""
+    job = common(job, inputs, 4)
+    job["terrain"]["objects"] = objects(inputs)
+    above = dam_areas(job)
+    hat = []
+    for s in job["hydrology"]["subbasins"]:
+        if s.get("storm_area_km2") is not None:
+            continue  # lumped, entering at its outlet (the import's 'wadi' entry)
+        if above_hat(s["name"]):
+            s["storm_area_km2"] = HAT_AREA_KM2
+            hat.append(s["name"])
+        else:
+            s.update({"mode": "2d", "outlet": None, "entry": "point", "storm_area_km2": None})
+    print("run 4, lumped at their outlets:", {k: sorted(v) for k, v in above.items()}, HAT_JUNCTION, sorted(hat),
+          "rain on the grid:", sum(1 for s in job["hydrology"]["subbasins"] if s["mode"] == "2d"))
+    return job
+
+
 def run4(job: dict, inputs: dict) -> dict:
+    if SET != "rerun":
+        return run4_hybrid_2d(job, inputs)
     job = common(job, inputs, 4)
     job["terrain"]["objects"] = objects(inputs)
     above = dam_areas(job)

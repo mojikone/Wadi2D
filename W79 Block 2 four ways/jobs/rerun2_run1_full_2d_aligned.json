@@ -1,7 +1,7 @@
 {
  "project": {
   "name": "rerun2_run1_full_2d_aligned",
-  "description": "W79 Block 2 four ways: Full 2D, rain on the grid, dams as 2D pools"
+  "description": "W79 Block 2 four ways: 2D: rain on the grid everywhere, dams as 2D pools"
  },
  "grid": {
   "dx": 20.0,

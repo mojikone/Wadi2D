@@ -1,7 +1,7 @@
 {
  "project": {
   "name": "rerun2_run4_hybrid_2d_routing_aligned",
-  "description": "W79 Block 2 four ways: Hybrid, lumped subbasins, all routing and the dams on the grid"
+  "description": "W79 Block 2 four ways: Hybrid 2D: the same 26 catchments lumped, routed in 2D from their outlets, dams as 2D pools; rain on the grid below"
  },
  "grid": {
   "dx": 20.0,
@@ -1083,264 +1083,198 @@
    },
    {
     "name": "RIJ-S35",
-    "mode": "lumped",
-    "outlet": [
-     454333.38,
-     2720055.84
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S28",
-    "mode": "lumped",
-    "outlet": [
-     451789.422,
-     2723210.449
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S26",
-    "mode": "lumped",
-    "outlet": [
-     452245.42323789856,
-     2721283.4396769404
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S24",
-    "mode": "lumped",
-    "outlet": [
-     451413.38514515274,
-     2723508.036206247
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S33",
-    "mode": "lumped",
-    "outlet": [
-     452287.4969517383,
-     2723953.36478782
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S22",
-    "mode": "lumped",
-    "outlet": [
-     450366.1,
-     2725346.592
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S21",
-    "mode": "lumped",
-    "outlet": [
-     450533.65347095346,
-     2724932.6094301087
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S30",
-    "mode": "lumped",
-    "outlet": [
-     451238.8715625525,
-     2725042.052096467
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S19",
-    "mode": "lumped",
-    "outlet": [
-     453533.9020605549,
-     2718267.307424826
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S18",
-    "mode": "lumped",
-    "outlet": [
-     450052.609102277,
-     2721607.38273139
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S27",
-    "mode": "lumped",
-    "outlet": [
-     452235.8190790462,
-     2721322.2695640475
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S31",
-    "mode": "lumped",
-    "outlet": [
-     453504.76783100725,
-     2721557.642835603
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S15",
-    "mode": "lumped",
-    "outlet": [
-     448986.179047082,
-     2717234.88324389
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S11",
-    "mode": "lumped",
-    "outlet": [
-     445263.48973783385,
-     2717402.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S16",
-    "mode": "lumped",
-    "outlet": [
-     449227.908,
-     2718797.14
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S17",
-    "mode": "lumped",
-    "outlet": [
-     450339.09783594654,
-     2718285.40444919
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S25",
-    "mode": "lumped",
-    "outlet": [
-     452942.9444809072,
-     2718793.9923885176
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S32",
-    "mode": "lumped",
-    "outlet": [
-     454733.9255580022,
-     2719402.066312854
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S12",
-    "mode": "lumped",
-    "outlet": [
-     444349.643,
-     2720687.017
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S13",
-    "mode": "lumped",
-    "outlet": [
-     444349.643,
-     2720687.017
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S23",
-    "mode": "lumped",
-    "outlet": [
-     450805.0754034025,
-     2724385.184066567
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S34",
-    "mode": "lumped",
-    "outlet": [
-     451688.0476235789,
-     2724928.198650874
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
@@ -1355,7 +1289,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S2",
@@ -1367,7 +1301,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S3",
@@ -1379,7 +1313,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S4",
@@ -1391,7 +1325,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S5",
@@ -1403,7 +1337,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S6",
@@ -1415,7 +1349,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S7",
@@ -1427,7 +1361,7 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S8",
@@ -1439,676 +1373,508 @@
     "entry": "wadi",
     "curve_number": null,
     "parameters": null,
-    "storm_area_km2": null
+    "storm_area_km2": 260.97
    },
    {
     "name": "HAT-S9",
-    "mode": "lumped",
-    "outlet": [
-     434753.48973783385,
-     2738867.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "HAT-S10",
-    "mode": "lumped",
-    "outlet": [
-     434753.48973783385,
-     2738867.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "HAT-S11",
-    "mode": "lumped",
-    "outlet": [
-     442128.48973783385,
-     2740137.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S6",
-    "mode": "lumped",
-    "outlet": [
-     454484.423,
-     2717077.743
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "RIJ-S20",
-    "mode": "lumped",
-    "outlet": [
-     454269.48597774375,
-     2717616.5369588938
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S9",
-    "mode": "lumped",
-    "outlet": [
-     455001.5781605642,
-     2717857.570467271
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S10",
-    "mode": "lumped",
-    "outlet": [
-     455407.41941289295,
-     2718331.6234644125
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S5",
-    "mode": "lumped",
-    "outlet": [
-     449333.48973783385,
-     2713572.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S7",
-    "mode": "lumped",
-    "outlet": [
-     454778.689,
-     2716323.021
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S8",
-    "mode": "lumped",
-    "outlet": [
-     454778.689,
-     2716323.021
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FIZ-S11",
-    "mode": "lumped",
-    "outlet": [
-     456051.51862589933,
-     2717307.738935071
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FAY-S4",
-    "mode": "lumped",
-    "outlet": [
-     444713.49219496717,
-     2738212.889480425
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FAY-S6",
-    "mode": "lumped",
-    "outlet": [
-     445660.4448673525,
-     2738254.094534369
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FAY-S3",
-    "mode": "lumped",
-    "outlet": [
-     442259.0104448171,
-     2738606.7269883333
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FAY-S5",
-    "mode": "lumped",
-    "outlet": [
-     444772.5268599177,
-     2739469.0283856206
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "FAY-S7",
-    "mode": "lumped",
-    "outlet": [
-     445415.8199360605,
-     2739288.2965706284
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S32",
-    "mode": "lumped",
-    "outlet": [
-     447192.07309167087,
-     2730102.3181962874
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S22",
-    "mode": "lumped",
-    "outlet": [
-     449003.2937949376,
-     2727190.7427562242
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S20",
-    "mode": "lumped",
-    "outlet": [
-     448966.57384713803,
-     2727203.5080958353
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S42",
-    "mode": "lumped",
-    "outlet": [
-     449887.3510011802,
-     2727877.764817428
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S25",
-    "mode": "lumped",
-    "outlet": [
-     446319.2159468622,
-     2729637.741156264
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S27",
-    "mode": "lumped",
-    "outlet": [
-     444348.8612190189,
-     2736893.9766309643
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S28",
-    "mode": "lumped",
-    "outlet": [
-     445229.58501880796,
-     2736440.682350824
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S26",
-    "mode": "lumped",
-    "outlet": [
-     446266.97075228434,
-     2729688.72103181
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S24",
-    "mode": "lumped",
-    "outlet": [
-     444753.44714549236,
-     2733952.529630565
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S38",
-    "mode": "lumped",
-    "outlet": [
-     445589.99735121836,
-     2734117.7326872237
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S23",
-    "mode": "lumped",
-    "outlet": [
-     444893.9123758838,
-     2733286.2757373243
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S41",
-    "mode": "lumped",
-    "outlet": [
-     445725.6968238715,
-     2733861.08955842
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S21",
-    "mode": "lumped",
-    "outlet": [
-     444648.6695035129,
-     2734456.670625889
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S34",
-    "mode": "lumped",
-    "outlet": [
-     445413.7638276047,
-     2734795.683509446
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S19",
-    "mode": "lumped",
-    "outlet": [
-     446205.40101798053,
-     2729680.180288864
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S18",
-    "mode": "lumped",
-    "outlet": [
-     446851.42645463423,
-     2729034.5238237465
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S16",
-    "mode": "lumped",
-    "outlet": [
-     446203.2990812114,
-     2729873.958292756
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S31",
-    "mode": "lumped",
-    "outlet": [
-     447119.4197226277,
-     2729794.573404731
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S35",
-    "mode": "lumped",
-    "outlet": [
-     447317.8438813723,
-     2729923.553971879
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S15",
-    "mode": "lumped",
-    "outlet": [
-     444358.5835863723,
-     2735839.398590664
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S29",
-    "mode": "lumped",
-    "outlet": [
-     445007.8919643409,
-     2735940.596390342
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S13",
-    "mode": "lumped",
-    "outlet": [
-     444473.7128031466,
-     2735297.415830356
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S17",
-    "mode": "lumped",
-    "outlet": [
-     444994.0194318349,
-     2735553.897308938
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S36",
-    "mode": "lumped",
-    "outlet": [
-     445483.5733261742,
-     2735644.8915857933
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S40",
-    "mode": "lumped",
-    "outlet": [
-     446089.94,
-     2734629.547
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S12",
-    "mode": "lumped",
-    "outlet": [
-     445129.69358632795,
-     2732271.53205656
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S39",
-    "mode": "lumped",
-    "outlet": [
-     446165.0809020649,
-     2732736.3742719977
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S10",
-    "mode": "lumped",
-    "outlet": [
-     447438.55728078645,
-     2728442.8258503424
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S33",
-    "mode": "lumped",
-    "outlet": [
-     448081.6786662525,
-     2729259.915723599
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S8",
-    "mode": "lumped",
-    "outlet": [
-     444079.2294927919,
-     2732697.1436947654
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S6",
-    "mode": "lumped",
-    "outlet": [
-     443516.6648831633,
-     2732353.0971574583
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S7",
-    "mode": "lumped",
-    "outlet": [
-     443513.3787192919,
-     2732387.657769986
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S14",
-    "mode": "lumped",
-    "outlet": [
-     444953.313271702,
-     2733008.5432485645
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S37",
-    "mode": "lumped",
-    "outlet": [
-     446012.9229844847,
-     2733101.8596342257
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S3",
-    "mode": "lumped",
-    "outlet": [
-     441493.48973783385,
-     2730432.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S4",
-    "mode": "lumped",
-    "outlet": [
-     441493.48973783385,
-     2730432.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S5",
-    "mode": "lumped",
-    "outlet": [
-     444033.48973783385,
-     2730162.893463373
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S9",
-    "mode": "lumped",
-    "outlet": [
-     445052.663,
-     2730425.741
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S11",
-    "mode": "lumped",
-    "outlet": [
-     445705.41311653616,
-     2730750.7626709808
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null
    },
    {
     "name": "BID-S30",
-    "mode": "lumped",
-    "outlet": [
-     446711.33354550035,
-     2731399.6347555574
-    ],
-    "entry": "wadi",
+    "mode": "2d",
+    "outlet": null,
+    "entry": "point",
     "curve_number": null,
     "parameters": null,
     "storm_area_km2": null

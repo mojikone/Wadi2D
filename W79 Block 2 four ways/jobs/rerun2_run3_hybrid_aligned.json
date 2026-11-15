@@ -1,7 +1,7 @@
 {
  "project": {
   "name": "rerun2_run3_hybrid_aligned",
-  "description": "W79 Block 2 four ways: Hybrid, lumped reaches and reservoirs, 2D below the dams"
+  "description": "W79 Block 2 four ways: Hybrid Lumped: HMS above the dams and HAT-J4 (left out of the mesh), rain on the grid below"
  },
  "grid": {
   "dx": 20.0,

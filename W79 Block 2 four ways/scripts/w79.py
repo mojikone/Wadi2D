@@ -62,8 +62,13 @@ RUN_TITLES = {
     3: "Hybrid, lumped reaches and reservoirs, 2D below the dams",
     4: "Hybrid, lumped subbasins, all routing and the dams on the grid",
 }
-if SET != "rerun":  # his definition of run 3, 2026-11-15
-    RUN_TITLES[3] = "HMS in the mountains (above the dams and HAT-J4, left out of the mesh), rain on the grid below"
+if SET != "rerun":  # his names and definitions of 2026-11-15
+    RUN_TITLES.update({
+        1: "2D: rain on the grid everywhere, dams as 2D pools",
+        2: "Lumped: HMS's way, every element at its own ARF area",
+        3: "Hybrid Lumped: HMS above the dams and HAT-J4 (left out of the mesh), rain on the grid below",
+        4: "Hybrid 2D: the same 26 catchments lumped, routed in 2D from their outlets, dams as 2D pools; rain on the grid below",
+    })
 
 
 def load_json(path: Path):

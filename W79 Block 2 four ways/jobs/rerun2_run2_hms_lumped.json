@@ -1,7 +1,7 @@
 {
  "project": {
   "name": "rerun2_run2_hms_lumped",
-  "description": "W79 Block 2 four ways: Full HMS way, all lumped, Basin 3 reservoirs"
+  "description": "W79 Block 2 four ways: Lumped: HMS's way, every element at its own ARF area"
  },
  "grid": {
   "dx": 20.0,
