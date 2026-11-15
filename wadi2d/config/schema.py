@@ -1116,8 +1116,28 @@ class Handback(_Part):
     )
 
 
-REACH_HMS, REACH_CONSERVING = "hms", "conserving"
-ReachRouting = Literal["hms", "conserving"]
+REACH_HMS, REACH_CONSERVING, REACH_MUSKINGUM = "hms", "conserving", "muskingum"
+ReachRouting = Literal["hms", "conserving", "muskingum"]
+
+
+class MuskingumReach(_Part):
+    """K, X and the number of subreaches of one reach routed by Muskingum (W89)."""
+
+    reach: str = Field(description="The reach's name in the HMS basin file or in basin.json")
+    k_hours: float = Field(gt=0.0, le=1000.0, description="Muskingum K, the travel time of the flood wave, hours")
+    x: float = Field(
+        ge=0.0,
+        le=0.5,
+        description="Muskingum X: 0 is the most attenuation, 0.5 none. HEC-HMS takes 0 to 0.5",
+    )
+    subreaches: int = Field(
+        1,
+        ge=1,
+        le=10000,
+        description="Equal parts the reach is routed in, each with K / subreaches and the same X; about K over the "
+        "lumped step. A part is stable while 2KX <= step <= 2K(1-X); outside it the run warns and routes as given, "
+        "as HEC-HMS does",
+    )
 
 
 class Hydrology(_Part):
@@ -1130,7 +1150,17 @@ class Hydrology(_Part):
         "4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to "
         "1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter "
         "scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and "
-        "sub-steps",
+        "sub-steps. 'muskingum' routes every such reach by Muskingum, as HEC-HMS 4.12 computes it, with the K, X and "
+        "subreaches of hydrology.muskingum: constant numbers, right at the flood they were set for and drifting from "
+        "Muskingum-Cunge as the flood grows or shrinks (W89). A reach with no K and X stops an HMS run by name, and "
+        "on a generated basin leaves the reach out, its water running on the 2D grid. A reach the HMS file already "
+        "routes by Muskingum keeps that method under any of the three",
+    )
+    muskingum: list[MuskingumReach] = Field(
+        [],
+        description="K, X and subreaches by reach, for reach_routing 'muskingum'. 'wadi2d muskingum' proposes them "
+        "from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written "
+        "here",
     )
     hms_project: str | None = Field(
         None, description="The .hms file, for paired tables; None takes the one beside the basin file"
@@ -1184,6 +1214,14 @@ class Hydrology(_Part):
             raise ValueError("hand-back names must differ: results are kept by name")
         if self.basin_json is not None and self.hms_basin is not None:
             raise ValueError("one lumped network per job: hydrology.basin_json or hydrology.hms_basin, not both")
+        reaches = [m.reach for m in self.muskingum]
+        if len(set(reaches)) != len(reaches):
+            raise ValueError("hydrology.muskingum names a reach twice")
+        if reaches and self.reach_routing != REACH_MUSKINGUM:
+            raise ValueError(
+                f"hydrology.muskingum gives K and X for {reaches} but hydrology.reach_routing is "
+                f"{self.reach_routing!r}: set it to {REACH_MUSKINGUM!r}, or the numbers would be ignored"
+            )
         return self
 
 

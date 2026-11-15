@@ -1839,13 +1839,23 @@
         },
         "reach_routing": {
           "default": "hms",
-          "description": "Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS 4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to 1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and sub-steps",
+          "description": "Muskingum-Cunge of every reach, from an HMS file or a generated basin. 'hms' replicates HEC-HMS 4.12 to printed precision and does not conserve volume: 0.2 % on a 26 km reach over a 24 h flood, up to 1.9 x on a 20-minute one. 'conserving' is the mass-conservative, storage-consistent variable-parameter scheme of Todini (2007): the routed volume equals the inflow volume to round-off, on the same cells and sub-steps. 'muskingum' routes every such reach by Muskingum, as HEC-HMS 4.12 computes it, with the K, X and subreaches of hydrology.muskingum: constant numbers, right at the flood they were set for and drifting from Muskingum-Cunge as the flood grows or shrinks (W89). A reach with no K and X stops an HMS run by name, and on a generated basin leaves the reach out, its water running on the 2D grid. A reach the HMS file already routes by Muskingum keeps that method under any of the three",
           "enum": [
             "hms",
-            "conserving"
+            "conserving",
+            "muskingum"
           ],
           "title": "Reach Routing",
           "type": "string"
+        },
+        "muskingum": {
+          "default": [],
+          "description": "K, X and subreaches by reach, for reach_routing 'muskingum'. 'wadi2d muskingum' proposes them from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written here",
+          "items": {
+            "$ref": "#/$defs/MuskingumReach"
+          },
+          "title": "Muskingum",
+          "type": "array"
         },
         "hms_project": {
           "anyOf": [
@@ -2219,6 +2229,46 @@
         }
       },
       "title": "Mesh",
+      "type": "object"
+    },
+    "MuskingumReach": {
+      "additionalProperties": false,
+      "description": "K, X and the number of subreaches of one reach routed by Muskingum (W89).",
+      "properties": {
+        "reach": {
+          "description": "The reach's name in the HMS basin file or in basin.json",
+          "title": "Reach",
+          "type": "string"
+        },
+        "k_hours": {
+          "description": "Muskingum K, the travel time of the flood wave, hours",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1000.0,
+          "title": "K Hours",
+          "type": "number"
+        },
+        "x": {
+          "description": "Muskingum X: 0 is the most attenuation, 0.5 none. HEC-HMS takes 0 to 0.5",
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "subreaches": {
+          "default": 1,
+          "description": "Equal parts the reach is routed in, each with K / subreaches and the same X; about K over the lumped step. A part is stable while 2KX <= step <= 2K(1-X); outside it the run warns and routes as given, as HEC-HMS does",
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Subreaches",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "reach",
+        "k_hours",
+        "x"
+      ],
+      "title": "MuskingumReach",
       "type": "object"
     },
     "Numerics": {
@@ -4977,6 +5027,7 @@
       "default": {
         "hms_basin": null,
         "reach_routing": "hms",
+        "muskingum": [],
         "hms_project": null,
         "hms_sqlite": null,
         "basin_json": null,
