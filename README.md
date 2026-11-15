@@ -148,7 +148,7 @@ His decisions of 2026-11-02, in order: D2 see the mesh, D8 boundaries table, D1 
 | `W19 time slider` | 2026-11-02 | D1: the saved frames as a mesh layer on the Temporal Controller | done on QGIS 3.44.8, 31 of 31 through the dock |
 | `W18 boundary table` | 2026-11-02 | D8: a table of kinds and values for one line layer | done, 34 of 34 through the dock |
 | `W17 cell grid layer` | 2026-11-02 | D2: the real cell grid in Model setup after every run | done, 21 of 21 through the dock |
-| `W16 release package` | 2026-11-02 | The Windows package and installer | live; `v0.1.1` published as a pre-release; 0.1.0 passed on a second PC; a PC with no NVIDIA card not yet |
+| `W16 release package` | 2026-11-02 | The Windows package and installer | live; `v0.4.0` released 2026-11-15 (the first normal release, `main` at it); 0.1.0 passed on a second PC, 0.3.x on a PC with no usable NVIDIA card; 0.4.0 on the build PC only |
 
 ## Test case
 

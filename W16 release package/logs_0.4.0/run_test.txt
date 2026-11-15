@@ -1,0 +1,7 @@
+﻿install gpu exit 0, 6 s
+install cpu exit 0, 4 s
+gpu 228 s;   163.5 SUMMARY 17 passed, 0 failed 
+zip 68 s;     9.5 SUMMARY 8 passed, 0 failed 
+cpu 68 s;    26.4 SUMMARY 10 passed, 0 failed 
+install junction exit 0, 4 s
+junction target kept: True; plugin copied: True

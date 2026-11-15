@@ -1,0 +1,17 @@
+    0.0 script loaded
+    5.0 PASS no engine setting in this profile 
+    5.5 PASS QGIS installed the zip ['db_manager', 'grassprovider', 'MetaSearch', 'processing', 'wadi2d_qgis']
+    5.5 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel040\test\zip\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
+    5.5 PASS metadata reads 0.4.0
+    5.7 dock says:  | 
+    6.2 PASS engine found with nothing set by hand Engine ready.
+    6.2 === small rain, zip
+    6.3 dock says: Starting... | 
+    8.3 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line | 
+    8.8 dock says: 4 more places with deep water against the domain edge: see edge_checks.gpkg | 
+    9.3 PASS run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+    9.3 PASS mass -1.6047214743253505e-09
+    9.3 loop 0.16 s on gpu
+    9.3 PASS pixel maps written 
+    9.5 SUMMARY 8 passed, 0 failed 
+    9.5 DONE
