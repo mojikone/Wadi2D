@@ -77,7 +77,9 @@ Findings:
   dry above Bidah 03, Faydh 01 and R5A; above Z4C 2.75 km2 was wet with 0.15 Mm3 at most, and its dam line reads no
   net flow. At the sea it is at most 1.2 Mm3 of 214. Fixed for the next run: `inputs/domain_no_rim.geojson`
   (`scripts/s16_domain_no_rim.py`: 13 cells left outside every polygon away from the coast strip, against 17,420) and
-  the `rerun2_*` jobs on it (`W79_SET=rerun2`). Not run yet.
+  the `rerun2_*` jobs on it (`W79_SET=rerun2`). Not run yet. On that outline the edge check opens three side lines
+  (Wadi HAT's north line, Wadi Fizh's branch, the 1 km2 north stream), not five: the two 2 km2 streams at the south
+  end near the sea no longer leave through it.
 - The wet hill wadis outside the five dam catchments in runs 3 and 4 are the job as written, not the rim: the 86
   subbasins that drain to no dam are lumped and each enters at its own wadi outlet, 147.9 Mm3 in all, and the grid
   routes it from there. Twelve of them enter west of easting 436 km, in the hills (67.9 Mm3; Wadi HAT's eight, up to 835 m3/s), so
