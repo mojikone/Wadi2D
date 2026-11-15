@@ -24,8 +24,10 @@ from wadi2d.config.schema import RunConfig
 from wadi2d.products.ground import bed_stride
 from wadi2d.products.hazard import classify
 from wadi2d.products.surface import FILL_STEPS, FILL_TOLERANCE
-from wadi2d.strips.tables import Pixels, _owners
+from wadi2d.strips.tables import BedPixels, Pixels, owned_pixels
 
+WEIGHT_BLOCK = 1 << 22
+"""Pixels whose node weights are taken at once: the weights' temporaries are some tens of bytes a pixel and node."""
 MAX_NODES = 4
 """Corridor cells are quads, gap cells triangles."""
 LABEL_PASSES = 8
@@ -84,12 +86,8 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
     """The strip's pixel ground from a DEM window, with everything the surface needs, built once per product step."""
     n = mesh.real
     ring_start, ring_node = np.asarray(geo.ring_start[: n + 1]), np.asarray(geo.ring_node)
-    nr, nc = pix.shape
-    owner = _owners(ring_start, ring_node, geo.x, geo.y, pix.x0, pix.y0, pix.pixel, nr, nc)
-    r, c = np.nonzero(owner >= 0)
-    cell = owner[r, c]
-    order = np.argsort(cell, kind="stable")
-    r, c, cell = r[order], c[order], cell[order]
+    # the owners a piece of the window at a time (W81): one window over Block 2's strip at 1 m held tens of GB
+    r, c, cell, zpix = owned_pixels(geo, n, pix, mesh.dx)
     ptr = np.zeros(n + 1, np.int64)
     np.add.at(ptr, cell + 1, 1)
     ptr = np.cumsum(ptr)
@@ -112,19 +110,21 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
     width = max(MAX_NODES, int(length.max()) if length.size else MAX_NODES)
     weights = np.zeros((npix, width), np.float32)
     incidence = np.zeros((npix, width), np.int64)
-    px = pix.x0 + (c + 0.5) * pix.pixel
-    py = pix.y0 - (r + 0.5) * pix.pixel
-    for m in np.unique(length):
-        on = length[cell] == m
-        if not on.any():
-            continue
-        starts = ring_start[cell[on]]
-        nodes = np.stack([ring_node[starts + k] for k in range(m)], axis=1)
-        w = _wachspress(px[on], py[on], geo.x[nodes], geo.y[nodes])
-        weights[on, :m] = w
-        incidence[on, :m] = incidence_of(np.repeat(cell[on], m), nodes.ravel()).reshape(-1, m)
-        if m < width:
-            incidence[on, m:] = incidence[on, :1]
+    # the weights a block of pixels at a time: each pixel's own arithmetic, the temporaries bounded (W81)
+    for lo in range(0, npix, WEIGHT_BLOCK):
+        hi = min(lo + WEIGHT_BLOCK, npix)
+        rb, cb, cellb = r[lo:hi], c[lo:hi], cell[lo:hi]
+        px = pix.x0 + (cb + 0.5) * pix.pixel
+        py = pix.y0 - (rb + 0.5) * pix.pixel
+        for m in np.unique(length[cellb]):
+            on = np.flatnonzero(length[cellb] == m)
+            starts = ring_start[cellb[on]]
+            nodes = np.stack([ring_node[starts + k] for k in range(m)], axis=1)
+            w = _wachspress(px[on], py[on], geo.x[nodes], geo.y[nodes])
+            weights[lo + on, :m] = w
+            incidence[lo + on, :m] = incidence_of(np.repeat(cellb[on], m), nodes.ravel()).reshape(-1, m)
+            if m < width:
+                incidence[lo + on, m:] = incidence[lo + on, :1]
     # pairs across inner faces at both of their nodes
     inner = np.nonzero(mesh.right < n)[0]
     L, R = mesh.left[inner], mesh.right[inner]
@@ -132,12 +132,13 @@ def ground_from_pixels(geo, mesh, kept: np.ndarray, pix: Pixels, grid_x0: float,
     pair_a = np.concatenate((incidence_of(L, u), incidence_of(L, v)))
     pair_b = np.concatenate((incidence_of(R, u), incidence_of(R, v)))
     pair_face = np.concatenate((inner, inner))
-    ground = (pix.z[r, c] - datum).astype(np.float32)
+    ground = (zpix - datum).astype(np.float32)
     return StripGround(r, c, cell, ground, ptr, weights, incidence, inc_cell, inc_node, pair_a, pair_b, pair_face, pix.pixel, datum)
 
 
 def strip_ground(cfg: RunConfig, tables, strip, datum: float) -> StripGround:
     """The strip's pixel ground from the job's DEM at the pixel maps' stride, placed on the grid's pixel frame."""
+    from wadi2d.tables.parallel import ThreadBeds
     from wadi2d.terrain import Ground, RasterBed, apply_objects
     from wadi2d.terrain.sections import with_tables
 
@@ -151,13 +152,15 @@ def strip_ground(cfg: RunConfig, tables, strip, datum: float) -> StripGround:
         row0 = int(np.floor((grid.y0 - float(geo.y.max())) / p)) - 1
         ncols = int(np.ceil((float(geo.x.max()) - grid.x0) / p)) + 2 - col0
         nrows = int(np.ceil((grid.y0 - float(geo.y.min())) / p)) + 2 - row0
-        z = np.asarray(bed.read(row0, col0, nrows, ncols), np.float64)
         objects = with_tables(cfg).terrain.objects
         edits = apply_objects(grid, objects, bed.pixel, cfg.terrain, Ground(bed, grid.x0, grid.y0))
-        if edits.edit is not None:  # the same ground the strip's tables stand on
-            edits.edit(z, row0, col0)
-    pix = Pixels(np.asarray(z, np.float64), grid.x0 + col0 * p, grid.y0 - row0 * p, p)
-    found = ground_from_pixels(geo, strip.mesh, strip.kept, pix, grid.x0, grid.y0, datum)
+        # the window read a piece at a time, the same edit on each: the ground the strip's tables stand on (W81)
+        beds = ThreadBeds(bed)
+        try:
+            pix = BedPixels(bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * p, grid.y0 - row0 * p, p, beds)
+            found = ground_from_pixels(geo, strip.mesh, strip.kept, pix, grid.x0, grid.y0, datum)
+        finally:
+            beds.close()
     found.rows = found.rows + row0
     found.cols = found.cols + col0
     return found

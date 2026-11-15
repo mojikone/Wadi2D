@@ -394,7 +394,18 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
         strip = None
+        made = None
+        """The strip's mesh and tables from the cache, or None: built below and saved (W81)."""
         if cfg.strips.enabled:
+            from wadi2d.io.cache import load_strip, strip_path
+
+            spath = strip_path(cache_dir, strip_key(cfg, bed, window, mask))
+            held = load_strip(spath, spath.stem.removeprefix("strip_"))
+            if held is not None:
+                emit("output", kind="strip_cache_hit", path=str(spath))
+                mask, made = held
+                strip = made.strip
+        if cfg.strips.enabled and strip is None:
             from wadi2d.strips.build import mask_for_strips
 
             polygon = _domain_polygon(cfg.grid.domain, crs)
@@ -423,7 +434,10 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             tables = build_tables(grid, bed, cfg.tables, n, edits.crest, edits.edit, edits.lining)
             save_tables(path, tables, key)
             emit("output", kind="grid_cache_saved", path=str(path))
-        if strip is not None:  # not cached: seconds, and the mesher's rules are what a user changes
+        if made is not None:
+            tables.strip = made
+        elif strip is not None:  # cached with its key since W81: minutes on Block 2, on every start and products remake
+            from wadi2d.io.cache import save_strip
             from wadi2d.strips.build import strip_squares, strip_tables
 
             bed.bind(tables.grid.x0, tables.grid.y0)
@@ -431,7 +445,35 @@ def prepare_grid(cfg: RunConfig, cache_dir: Path, progress: Progress | None = No
             sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
             cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
             tables.strip = strip_tables(cfg, tables, bed, strip, manning_grid(cfg, tables.grid, crs, cells))
+            save_strip(spath, spath.stem.removeprefix("strip_"), mask, tables.strip)
+            emit("output", kind="strip_cache_saved", path=str(spath))
     return tables, crs
+
+
+def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarray) -> str:
+    """Hash of everything a strip's mesh and tables depend on (W81): the grid's own key without the strip's cells,
+    the domain's active cells it is built on, the job's terrain, grid, breakline and boundary settings (the bank
+    rule, the cells kept clear round boundary lines) and the code of the strip builder."""
+    import hashlib
+
+    from wadi2d.io.cache import STRIP_FORMAT, STRIP_SOURCES, source_identity
+
+    terrain = cfg.terrain.model_dump(mode="json")
+    terrain["objects"] = [_object_key(o) for o in cfg.terrain.objects]
+    grid = cfg.grid.model_dump(mode="json")
+    grid.pop("cache_dir", None)  # where the cache lies is not what is in it
+    return cache_key(
+        {
+            "strip_format": STRIP_FORMAT,
+            "grid_key": grid_key(cfg, bed, window),
+            "mask": hashlib.sha1(np.ascontiguousarray(mask, bool).tobytes()).hexdigest() + str(mask.shape),
+            "terrain": terrain,
+            "grid": grid,
+            "breaklines": cfg.breaklines.model_dump(mode="json"),
+            "boundaries": [b.model_dump(mode="json") for b in cfg.boundaries],
+            "code": source_identity(STRIP_SOURCES),
+        }
+    )
 
 
 def mesh_grid(cfg: RunConfig, bed: RasterBed, window: GridWindow, crs: str):

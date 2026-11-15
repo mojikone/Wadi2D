@@ -126,3 +126,37 @@ def test_a_job_with_a_corridor_paints_the_corridor_pixels_into_the_pixel_maps(ti
     patch = depth[j - 6 : j + 6, i - 6 : i + 6]
     assert (patch != nodata).all() and patch.max() > 0.0
     assert np.ptp(patch) > 1e-4
+
+
+def test_strip_ground_in_pieces_is_the_whole_windows_to_the_digit(monkeypatch) -> None:
+    """W81: the strip's pixels are found a piece at a time and their weights a block at a time; on a corridor at 45
+    degrees with its gap triangles, pieces of 2 cells and blocks of 1,000 pixels give what one window gave."""
+    import wadi2d.strips.pixels as sp
+    import wadi2d.strips.tables as st
+    from tests.strips.test_mesher import DX as MDX
+    from tests.strips.test_mesher import K as MK
+    from tests.strips.test_mesher import _bed, strip_case
+    from wadi2d.config.schema import Tables
+    from wadi2d.strips.tables import _owners
+
+    tg, _tables, _sc, _tc, strip = strip_case(45.0)
+    z = _bed(45.0)[4]
+    pix = Pixels(z, tg.x0, tg.y0, MDX / MK)
+    geo = strip.geometry
+    mesh, kept = build_poly_tables(geo, pix, Tables(), MDX, 0.03)
+    monkeypatch.setattr(st, "PIECE_CELLS", 10_000)
+    whole = ground_from_pixels(geo, mesh, kept, pix, tg.x0, tg.y0, datum=90.0)
+    monkeypatch.setattr(st, "PIECE_CELLS", 2)
+    monkeypatch.setattr(sp, "WEIGHT_BLOCK", 1000)
+    pieces = ground_from_pixels(geo, mesh, kept, pix, tg.x0, tg.y0, datum=90.0)
+    # the owners as the code before W81 found them, on the whole window at once
+    n = mesh.real
+    owner = _owners(geo.ring_start[: n + 1], geo.ring_node, geo.x, geo.y, pix.x0, pix.y0, pix.pixel, *z.shape)
+    r, c = np.nonzero(owner >= 0)
+    order = np.argsort(owner[r, c], kind="stable")
+    assert pieces.count > 3000
+    np.testing.assert_array_equal(pieces.rows, r[order])
+    np.testing.assert_array_equal(pieces.cols, c[order])
+    np.testing.assert_array_equal(pieces.cell, owner[r, c][order])
+    for name in ("rows", "cols", "cell", "ground", "ptr", "weights", "incidence", "inc_cell", "inc_node", "pair_a", "pair_b"):
+        np.testing.assert_array_equal(getattr(whole, name), getattr(pieces, name), err_msg=name)

@@ -67,6 +67,13 @@ class RasterBed:
     def close(self) -> None:
         self.src.close()
 
+    def reopen(self) -> RasterBed:
+        """The same bed on a handle of its own, bound to the same origin: a raster handle is not safe across threads
+        (W81, the tables built on every core)."""
+        other = RasterBed(self.path, self.stride)
+        other.row_origin, other.col_origin = self.row_origin, self.col_origin
+        return other
+
     def __enter__(self) -> RasterBed:
         return self
 
