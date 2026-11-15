@@ -1,7 +1,8 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
 """3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin; the reach routing scheme
-and the curve number either way; hand-back lines and the transmission loss. The rain is section 4."""
+(with K, X and subreaches per reach under Muskingum, W89) and the curve number either way; hand-back lines and the
+transmission loss. The rain is section 4."""
 
 from __future__ import annotations
 
@@ -31,9 +32,11 @@ from ..job_builder import (
     hms_files,
     hms_subbasins,
 )
+from ..muskingum_rows import MUSKINGUM, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
 from .basin_rows import REACH_ROUTING, ROUTING_WORDS, SubbasinRow, hms_elements, mode_tip, subbasin_rows
 from .common import Section, ValueOrRaster, bind
+from .muskingum_table import MuskingumBox
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
 REFUSED_COLOUR = "#b00000"
@@ -88,6 +91,9 @@ class HydrologySection(Section):
 
         self.routing = QComboBox()
         self.form.addRow("Reach routing", self.routing)
+        self.muskingum = MuskingumBox()
+        self.form.addRow(self.muskingum)
+        self.muskingum.hide()
         self.exclude = QCheckBox("Leave the catchments the lumped network carries out of the 2D mesh")
         self.form.addRow(self.exclude)
 
@@ -105,6 +111,7 @@ class HydrologySection(Section):
         self.files["basin"].currentTextChanged.connect(self._basin_changed)
         self.basin.toggled.connect(self._generate_toggled)
         self.basin.subbasins_changed.connect(self._fill_table)
+        self.routing.currentIndexChanged.connect(self._routing_changed)
 
     def apply_schema(self, schema) -> None:
         bind(self.cn.box, schema, CURVE_NUMBER)
@@ -123,6 +130,33 @@ class HydrologySection(Section):
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
 
+    def _routing_changed(self, *_) -> None:
+        """The reach table shows under Muskingum, with the reaches of the basin in use."""
+        on = self.routing.currentData() == MUSKINGUM
+        self.muskingum.setVisible(on)
+        if on:
+            self._fill_reaches()
+
+    def reach_source(self) -> tuple[str, str | None] | None:
+        """The basin file the reaches come from and, for an HMS project, its control file; None with no basin."""
+        if self._use_hms():
+            folder = Path(self.folder.filePath())
+            basin, control = (self.files[key].currentText() for key in ("basin", "control"))
+            if basin and (folder / basin).is_file():
+                return str(folder / basin), str(folder / control) if control else None
+        elif self.basin.in_use() and self.basin.json_path:
+            return self.basin.json_path, None
+        return None
+
+    def _fill_reaches(self) -> None:
+        if self._use_hms():
+            source = self.reach_source()
+            self.muskingum.set_reaches(hms_reaches(source[0]) if source else [], False)
+        elif self.basin.in_use() and self.basin.model is not None:
+            self.muskingum.set_reaches(model_reaches(self.basin.model), True)
+        else:
+            self.muskingum.set_reaches([], False)
+
     def _use_hms(self) -> bool:
         path = self.folder.filePath()
         return bool(path) and Path(path).is_dir()
@@ -140,6 +174,7 @@ class HydrologySection(Section):
             combo.addItems(found.get(key, []))
         if not use_hms:
             self.table.setVisible(self.basin.in_use())
+        self._fill_reaches()
 
     def _generate_toggled(self, on: bool) -> None:
         self.folder.setEnabled(not on)
@@ -148,6 +183,7 @@ class HydrologySection(Section):
             asked = self._subbasin_modes()
             self._fill_table(subbasin_rows(self.basin.model, asked))
             self.handbacks.set_choices(self.basin.element_choices())
+        self._fill_reaches()
 
     def _basin_changed(self, name: str) -> None:
         if not name:
@@ -157,6 +193,7 @@ class HydrologySection(Section):
         self._fill_table([SubbasinRow(n, [], "lumped", mode_tip(n, [], "lumped")) for n in names])
         self.handbacks.set_choices(hms_elements(path))
         self.show_structures([], "")
+        self._fill_reaches()
         if path.is_file():
             self.structures_requested.emit(str(path))
 
@@ -192,6 +229,7 @@ class HydrologySection(Section):
         self.table.setVisible(bool(rows))
         if self.basin.in_use():
             self.handbacks.set_choices(self.basin.element_choices())
+            self._fill_reaches()
 
     def _subbasin_modes(self) -> dict[str, str]:
         rows = range(self.table.rowCount())
@@ -206,6 +244,8 @@ class HydrologySection(Section):
             "handbacks": self.handbacks.features(crs),
             "transmission": self.loss.values(),
         }
+        if values["reach_routing"] == MUSKINGUM:
+            values["muskingum"] = self.muskingum.values()
         if self._use_hms():
             hms = {key: combo.currentText() for key, combo in self.files.items()}
             values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}

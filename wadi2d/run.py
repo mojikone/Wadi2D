@@ -377,6 +377,8 @@ def job_hash(cfg: RunConfig) -> str:
         data.pop("transmission")
     if cfg.hydrology.reach_routing == REACH_HMS:  # an old job's checkpoint keeps its hash
         data["hydrology"].pop("reach_routing")
+    if not cfg.hydrology.muskingum:  # and the hash it had before Muskingum reaches existed (W89)
+        data["hydrology"].pop("muskingum")
     if not cfg.dam_levels:
         data.pop("dam_levels")
     if not cfg.breaches:
@@ -788,7 +790,9 @@ def _lumped_basin(cfg: RunConfig, crs: str):
     from wadi2d.hydrology.from_hms import basin_from_hms
 
     hms_basin = load_basin(h.hms_basin)
-    basin = basin_from_hms(hms_basin, _project_tables(h, hms_basin), h.reach_routing, run_calendar(cfg))
+    basin = basin_from_hms(
+        hms_basin, _project_tables(h, hms_basin), h.reach_routing, run_calendar(cfg), {m.reach: m for m in h.muskingum}
+    )
     with_dam_starts(basin, cfg.dam_levels)
     return basin, hms_basin, ()
 
@@ -1195,6 +1199,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         for note in generated.notes:
             progress.emit("warn", message=note)
         progress.emit("basin", path=str(generated.path), **generated.report())
+    if lumped is not None:  # a Muskingum reach outside its stable range routes as given, as in HMS, and says so (W89)
+        from wadi2d.hydrology.muskingum import reach_notes
+
+        for note in reach_notes(lumped.basin, cfg.hydrology.time_step_min):
+            progress.emit("warn", message=note)
     still = storm is None and not flows and not cfg.initial_levels and not cfg.dam_levels and not flow_lines(cfg.boundaries)
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")

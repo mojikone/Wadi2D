@@ -355,6 +355,35 @@ def _pairs(items: list[str] | None, what: str) -> dict[str, str]:
     return found
 
 
+def _muskingum(args: argparse.Namespace) -> int:
+    """K, X and subreaches proposed for every reach of a basin, as JSON or as text; nothing is applied (W89)."""
+    from wadi2d.config.schema import Hydrology
+    from wadi2d.engine.muskingum_proposals import proposal_table, propose_reaches
+
+    try:
+        flows = {name: float(value) for name, value in _pairs(args.flow, "--flow").items()}
+        step = args.dt
+        if step is None and args.control:  # an HMS run steps at its control file's interval (hms-import)
+            from wadi2d.hms import load_control
+
+            step = load_control(args.control).time_interval
+        if step is None:
+            step = Hydrology.model_fields["time_step_min"].default
+        if step <= 0.0:
+            raise ValueError(f"--dt {step!r}: a step above zero, minutes")
+        found = propose_reaches(args.basin, step, flows, args.velocity)
+        if args.out:
+            Path(args.out).write_text(json.dumps(found, indent=2), encoding="utf-8")
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({"ev": "error", "code": EXIT_HMS, "message": str(error)}), file=sys.stderr)
+        return EXIT_HMS
+    if args.out:
+        print(json.dumps({"ev": "done", "path": str(args.out), "reaches": len(found["reaches"])}))
+    else:
+        print(proposal_table(found))
+    return EXIT_OK
+
+
 def _workbook(args: argparse.Namespace) -> int:
     from wadi2d.workbook import make
     from wadi2d.workbook.sources import parse_element
@@ -502,6 +531,22 @@ def parser() -> argparse.ArgumentParser:
     structures.add_argument("--project", default=None, help="the .hms file; default the one beside the basin")
     structures.add_argument("--out", required=True)
     structures.set_defaults(call=_hms_structures)
+
+    muskingum = sub.add_parser(
+        "muskingum",
+        help="Muskingum K, X and subreaches proposed for every reach of an HMS .basin file or a basin.json, from its "
+        "section or its length; shown, never applied: the job takes them only from hydrology.muskingum",
+    )
+    muskingum.add_argument("basin", metavar="BASIN_FILE")
+    muskingum.add_argument("--dt", type=float, default=None,
+                           help="the lumped step the subreaches are counted for, minutes; default the control file's "
+                           "interval, else the job schema's hydrology.time_step_min")
+    muskingum.add_argument("--control", default=None, help="an HMS .control file, whose interval is the step")
+    muskingum.add_argument("--flow", action="append", help="REACH=M3S, a reference flow, once per reach")
+    muskingum.add_argument("--velocity", type=float, default=None,
+                           help="a mean velocity for the reaches with no section, m/s")
+    muskingum.add_argument("--out", default=None, help="write JSON here; without it the proposals print as text")
+    muskingum.set_defaults(call=_muskingum)
 
     book = sub.add_parser(
         "workbook",

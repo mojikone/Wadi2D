@@ -533,6 +533,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
+    if values.get("reach_routing") == "muskingum" and values.get("muskingum"):  # the reach table's rows (W89)
+        job["hydrology"]["muskingum"] = [dict(row) for row in values["muskingum"]]
     gauges = values.get("gauges") or {}
     if _uses_gauges(values):
         job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})

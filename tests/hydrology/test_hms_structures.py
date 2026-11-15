@@ -228,7 +228,7 @@ def test_a_job_dates_monthly_evaporation_from_storm_rain_start(
     basin_file = tmp_path / "evaporation.basin"
     basin_file.write_text(re.sub(r"\nSource: .*?\nEnd:\n", "\n", text, flags=re.S), encoding="utf-8")
     monkeypatch.setattr(run, "_project_tables", lambda _h, _basin: _tables())
-    hydrology = SimpleNamespace(basin_json=None, hms_basin=str(basin_file), reach_routing="hms")
+    hydrology = SimpleNamespace(basin_json=None, hms_basin=str(basin_file), reach_routing="hms", muskingum=[])
     dated = SimpleNamespace(hydrology=hydrology, storm=SimpleNamespace(rain_start="2000-01-31T12:00"), dam_levels=[])
     assert run.run_calendar(dated) == START
     basin, _hms, _cut = run._lumped_basin(dated, "")

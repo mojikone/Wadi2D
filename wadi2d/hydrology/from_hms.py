@@ -1,13 +1,13 @@
 """Adapters from the :mod:`wadi2d.hms` file models to the engine's objects.
 
-Interface: :func:`basin_from_hms`, :func:`grid_from_hms`, :func:`storm_from_hms`, :func:`load_project_tables`,
+Interface: :func:`basin_from_hms`, :func:`reach_from_hms`, :func:`grid_from_hms`, :func:`storm_from_hms`, :func:`load_project_tables`,
 :class:`ProjectTables`, :func:`find_grid_file`, :func:`grid_storm`. The engine never sees an HMS model: this module
 is the whole coupling, and a selector or an option it cannot map raises instead of running something else.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import datetime
 from pathlib import Path, PureWindowsPath
@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy as np
 
-from wadi2d.config.schema import REACH_HMS
+from wadi2d.config.schema import REACH_HMS, REACH_MUSKINGUM
 from wadi2d.hms import PairedDataFile, load_document, open_dss
 from wadi2d.hms.basin import Basin as HmsBasin
 from wadi2d.hms.basin import Diversion as HmsDiversion
@@ -30,6 +30,7 @@ from wadi2d.hms.methods import ClarkTransform as HmsClark
 from wadi2d.hms.methods import (
     LagRoute,
     MuskingumCungeRoute,
+    MuskingumRoute,
     RecessionBaseflow,
     ReservoirRoute,
     ScsLoss,
@@ -61,6 +62,7 @@ from wadi2d.hydrology.model import (
     Subbasin,
     TimeGrid,
 )
+from wadi2d.hydrology.muskingum import MUSKINGUM
 from wadi2d.hydrology.reservoir import (
     AUXILIARY_OUTLET,
     MAIN_OUTLET,
@@ -93,6 +95,8 @@ TRAPEZOID = "Trapezoid"
 AUTOMATIC_DX_DT = "Automatic DX and DT"
 INDEX_CELERITY = "Index Celerity"
 NO_CHANNEL_LOSS = "None"
+COMBINED_INFLOW = "Combined Inflow"
+"""A reach starts with outflow equal to inflow; HMS's other start, a specified discharge, is not read."""
 SPECIFIED_PATTERN = "Specified Pattern"
 PERCENT_GRAPH = "Percent Graph"
 AREA_REDUCTION = "Area-Reduction Factor"
@@ -243,6 +247,23 @@ def _muskingum_cunge(method: MuskingumCungeRoute) -> dict[str, Any]:
     }
 
 
+def _muskingum(method: MuskingumRoute) -> dict[str, Any]:
+    """``Route: Muskingum``; the keys are the ones HEC-HMS 4.12 wrote back on re-saving W89's test basins."""
+    supported = (
+        method.muskingum_k is not None
+        and method.muskingum_x is not None
+        and method.initial_variable in (None, COMBINED_INFLOW)
+        and method.channel_loss in (None, NO_CHANNEL_LOSS)
+    )
+    if not supported:
+        raise ValueError(f"unsupported Muskingum options: {method}")
+    return {
+        "k_hours": method.muskingum_k,
+        "x": method.muskingum_x,
+        "subreaches": 1 if method.muskingum_steps is None else method.muskingum_steps,
+    }
+
+
 def _lag(method: LagRoute) -> dict[str, Any]:
     return {"lag_minutes": method.lag}
 
@@ -257,6 +278,7 @@ TRANSFORM_PARAMETERS: dict[str, Parameters] = {SCS_UH: _scs_transform, CLARK_UH:
 BASEFLOW_PARAMETERS: dict[str, Parameters] = {NO_BASEFLOW: _nothing, RECESSION: _recession}
 ROUTING_PARAMETERS: dict[str, Parameters] = {
     MUSKINGUM_CUNGE: _muskingum_cunge,
+    MUSKINGUM: _muskingum,
     LAG: _lag,
     NO_ROUTING: _nothing,
 }
@@ -283,11 +305,28 @@ def _subbasin(element: HmsSubbasin) -> Subbasin:
     )
 
 
-def _reach(element: HmsReach, reach_routing: str) -> Reach:
+def _reach(element: HmsReach, reach_routing: str, given: Mapping[str, Any]) -> Reach:
+    """A reach by its own method; one named in ``given`` by Muskingum with those numbers, whatever the file says.
+
+    Under ``reach_routing`` 'muskingum' a Muskingum-Cunge reach needs its K and X from ``given``: without them it
+    raises ``LookupError``, which :func:`basin_from_hms` gathers so every such reach is named at once.
+    """
+    name = element.name
+    if name in given:
+        own = given[name]
+        routing = ROUTING_METHODS.build(MUSKINGUM, k_hours=own.k_hours, x=own.x, subreaches=own.subreaches)
+        return Reach(name=name, downstream=element.downstream or None, routing=routing)
+    if reach_routing == REACH_MUSKINGUM and isinstance(element.route, MuskingumCungeRoute):
+        raise LookupError(name)
     routing = _build(ROUTING_METHODS, ROUTING_PARAMETERS, element.route, NO_ROUTING)
     if isinstance(routing, MuskingumCunge):
         routing = replace(routing, scheme=reach_routing)
-    return Reach(name=element.name, downstream=element.downstream or None, routing=routing)
+    return Reach(name=name, downstream=element.downstream or None, routing=routing)
+
+
+def reach_from_hms(element: HmsReach, reach_routing: str = REACH_HMS) -> Reach:
+    """The engine's reach of one HMS reach element, by the file's own method."""
+    return _reach(element, reach_routing, {})
 
 
 def _table(tables: ProjectTables | None, name: str | None, element: str) -> PairedColumns:
@@ -793,21 +832,33 @@ def basin_from_hms(
     tables: ProjectTables | None = None,
     reach_routing: str = REACH_HMS,
     start: datetime | None = None,
+    muskingum: Mapping[str, Any] | None = None,
 ) -> Basin:
     """The engine's basin of an HMS basin model; metric only, as nothing here converts units.
 
     ``tables`` holds the paired data of reservoirs and diversions; a model with neither needs none.
     ``reach_routing`` is the job's ``hydrology.reach_routing``, the scheme of every Muskingum-Cunge reach.
     ``start`` dates the first step; only a reservoir with monthly evaporation needs it, and refuses to route without.
+    ``muskingum`` is the job's ``hydrology.muskingum`` by reach name (anything with ``k_hours``, ``x`` and
+    ``subreaches``): under 'muskingum' every Muskingum-Cunge reach needs an entry, and none is invented.
     """
     if basin.unit_system != METRIC:
         raise ValueError(f"unit system {basin.unit_system!r}: only {METRIC} basin models are read")
+    given = dict(muskingum or {})
+    reaches = {element.name for element in basin.elements if isinstance(element, HmsReach)}
+    strangers = sorted(set(given) - reaches)
+    if strangers:
+        raise ValueError(f"hydrology.muskingum names {strangers}, not reaches of {basin.name}")
+    lacking: list[str] = []
     elements: list[Element] = []
     for element in basin.elements:
         if isinstance(element, HmsSubbasin):
             elements.append(_subbasin(element))
         elif isinstance(element, HmsReach):
-            elements.append(_reach(element, reach_routing))
+            try:
+                elements.append(_reach(element, reach_routing, given))
+            except LookupError:
+                lacking.append(element.name)
         elif isinstance(element, HmsJunction | HmsSink):
             elements.append(Junction(name=element.name, downstream=element.downstream or None))
         elif isinstance(element, HmsReservoir):
@@ -816,6 +867,11 @@ def basin_from_hms(
             elements.append(_diversion(element, tables, start))
         else:
             raise ValueError(f"element {element.name} of type {type(element).__name__} is not supported")
+    if lacking:
+        raise ValueError(
+            f"reach routing 'muskingum': no K and X for {lacking}. Give them in hydrology.muskingum; 'wadi2d "
+            "muskingum' proposes them from each reach's section, and nothing is taken from a proposal unasked"
+        )
     return Basin(basin.name, elements)
 
 

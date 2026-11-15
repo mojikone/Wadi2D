@@ -1,0 +1,50 @@
+{
+ "R1": {
+  "reach": "R1",
+  "k_hours": 0.0948,
+  "x": 0.439,
+  "subreaches": 1,
+  "peak_in": 0.0,
+  "muskingum_peak": 0.0,
+  "cunge_peak_in": 0.0,
+  "cunge_peak": 0.0,
+  "lowest_out": 0.0,
+  "by_hand_worst": 0.0
+ },
+ "R2": {
+  "reach": "R2",
+  "k_hours": 0.2036,
+  "x": 0.409,
+  "subreaches": 2,
+  "peak_in": 142.27,
+  "muskingum_peak": 140.25,
+  "cunge_peak_in": 142.66,
+  "cunge_peak": 141.3,
+  "lowest_out": 0.0,
+  "by_hand_worst": 0.00043585607315321795
+ },
+ "R3": {
+  "reach": "R3",
+  "k_hours": 0.1086,
+  "x": 0.192,
+  "subreaches": 1,
+  "peak_in": 70.92,
+  "muskingum_peak": 69.19,
+  "cunge_peak_in": 70.4,
+  "cunge_peak": 70.27,
+  "lowest_out": 0.0,
+  "by_hand_worst": 6.859030256833876e-05
+ },
+ "R4": {
+  "reach": "R4",
+  "k_hours": 0.0517,
+  "x": 0.194,
+  "subreaches": 1,
+  "peak_in": 48.22,
+  "muskingum_peak": 47.69,
+  "cunge_peak_in": 48.22,
+  "cunge_peak": 47.76,
+  "lowest_out": 0.0,
+  "by_hand_worst": 4.1962178023879915e-05
+ }
+}

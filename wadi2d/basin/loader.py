@@ -14,8 +14,11 @@ from typing import Any
 import numpy as np
 
 from wadi2d.basin.contract import (
+    MUSKINGUM_SUBREACHES,
     REACH,
     RESERVOIR,
+    ROUTING_KEY,
+    ROUTING_MUSKINGUM,
     SOURCE,
     SUBBASIN,
     Element,
@@ -27,10 +30,11 @@ from wadi2d.basin.contract import (
 )
 from wadi2d.basin.diversion import diversion_routing, resolve_block
 from wadi2d.basin.source import SOURCE_HYDROGRAPH
-from wadi2d.config.schema import REACH_HMS
+from wadi2d.config.schema import REACH_HMS, REACH_MUSKINGUM
 from wadi2d.hydrology.diversion import CONSTANT_DIVERSION
 from wadi2d.hydrology.losses import LOSS_METHODS, SCS_CN
 from wadi2d.hydrology.model import Basin, Diversion, Junction, Reach, Reservoir, Source, Subbasin
+from wadi2d.hydrology.muskingum import MUSKINGUM
 from wadi2d.hydrology.reservoir import RESERVOIR_OUTFLOW_STRUCTURES, Spillway
 from wadi2d.hydrology.routing import MUSKINGUM_CUNGE, ROUTING_METHODS
 from wadi2d.hydrology.transforms import SCS_UH, TRANSFORM_METHODS
@@ -47,6 +51,19 @@ def _subbasin(element: Element, downstream: str | None) -> Subbasin:
 
 
 def _reach(element: Element, downstream: str | None, reach_routing: str) -> Reach:
+    """A reach by its own method: Muskingum where the element says so (W89), or where the job routes every reach
+    so; else Muskingum-Cunge on its section, by the job's scheme."""
+    if element.get(ROUTING_KEY) == ROUTING_MUSKINGUM or reach_routing == REACH_MUSKINGUM:
+        k_hours, x = value_of(element, "muskingum_k_hours"), value_of(element, "muskingum_x")
+        if k_hours is None or x is None:
+            raise ValueError(f"reach {element['name']}: routed by Muskingum, and it has no K and X")
+        try:
+            routing = ROUTING_METHODS.build(
+                MUSKINGUM, k_hours=k_hours, x=x, subreaches=int(value_of(element, MUSKINGUM_SUBREACHES) or 1)
+            )
+        except ValueError as error:
+            raise ValueError(f"reach {element['name']}: {error}") from error
+        return Reach(name=element["name"], downstream=downstream, routing=routing)
     routing = ROUTING_METHODS.build(
         MUSKINGUM_CUNGE,
         length_m=value_of(element, "length_m"),

@@ -31,6 +31,7 @@ LAG_WORDS = {
 ROUTING_WORDS = {
     "hms": "HMS-faithful: replicates HEC-HMS 4.12, does not conserve volume",
     "conserving": "Conserving (Todini 2007): the routed volume closes to round-off",
+    "muskingum": "Muskingum: K and X per reach, as HEC-HMS routes them",
 }
 """What the dock calls each reach routing scheme; the keys are the engine's."""
 JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction", "Tc, min"]
