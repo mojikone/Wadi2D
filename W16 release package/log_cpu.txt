@@ -1,19 +1,19 @@
     0.0 script loaded
     5.0 PASS no engine setting in this profile 
-    5.2 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel020\\run3\\cpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
+    5.2 PASS QGIS sees the plugin ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\rel020\\run31\\cpu\\profiles\\profiles\\default/python/plugins', 'C:/PROGRA~1/QGIS34~1.8/apps/qgis-ltr/./python/plugins']
     5.3 PASS QGIS loads it 
-    5.3 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run3\cpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
-    5.3 PASS metadata reads 0.3.0
-    5.6 dock says:  | 
+    5.3 PASS the plugin is the installed copy, not the repository C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\rel020\run31\cpu\profiles\profiles\default\python\plugins\wadi2d_qgis\__init__.py
+    5.3 PASS metadata reads 0.3.1
+    5.5 dock says:  | 
     6.1 PASS engine found with nothing set by hand Engine ready.
     6.1 === small rain, cpu
-    6.2 dock says: Starting... | 
+    6.1 dock says: Starting... | 
     7.7 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line | 
-   23.8 dock says: 4 more places with deep water against the domain edge: see edge_checks.gpkg | 
-   24.1 PASS run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
-   24.1 PASS on the CPU cpu
-   24.1 PASS mass 2.6610704870352566e-09
-   24.1 loop 15.14 s on cpu
-   24.1 PASS pixel maps written 
-   24.2 SUMMARY 10 passed, 0 failed 
-   24.2 DONE
+   22.3 dock says: 4 more places with deep water against the domain edge: see edge_checks.gpkg | 
+   22.8 PASS run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   22.8 PASS on the CPU cpu
+   22.8 PASS mass 2.6610704870352566e-09
+   22.8 loop 13.91 s on cpu
+   22.8 PASS pixel maps written 
+   22.9 SUMMARY 10 passed, 0 failed 
+   22.9 DONE
