@@ -7,7 +7,8 @@ network only the elements whose water reached the grid are written (``keep``); t
 
 Each element's series carries ``rain_mm`` and ``excess_mm`` per step beside its flows (W64): the chart's rain bar.
 
-Interface: :class:`NetworkSeries`, :func:`reservoir_columns`, :func:`rain_columns`.
+Interface: :class:`NetworkSeries`, :func:`element_columns`, :func:`write_element`, :func:`reservoir_columns`,
+:func:`rain_columns`.
 """
 
 from __future__ import annotations
@@ -76,6 +77,24 @@ def rain_columns(basin: Basin, water: Mapping[str, SubbasinWater], name: str, n_
     }
 
 
+def element_columns(basin: Basin, run: Run, name: str) -> dict:
+    """Every column an element's series carries, as :class:`NetworkSeries` writes it."""
+    n = run.grid.minutes.size
+    columns = {"inflow_m3s": run.inflow[name], "outflow_m3s": run.outflow[name]}
+    if name in run.branched:
+        columns["branched_m3s"] = run.branched[name]
+    columns |= reservoir_columns(basin.elements[name], run.inflow[name], run.outflow[name], run.grid.dt_minutes)
+    columns |= diversion_columns(basin.elements[name], run.outflow[name], run.branched.get(name))
+    columns |= rain_columns(basin, run.water, name, n)
+    return columns
+
+
+def write_element(results: Results, out, name: str, t: FloatArray, columns: dict) -> None:
+    """One element's series into ``results.h5`` and ``series/network_<element>.csv``."""
+    results.series(NETWORK_KIND, name, t, columns)
+    write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
+
+
 class NetworkSeries:
     """The base lumped run, written once the 2D run ends."""
 
@@ -95,20 +114,18 @@ class NetworkSeries:
     def figures(self, balance: Balance) -> dict[str, float]:
         return {}
 
-    def write(self, results: Results, out) -> None:
+    def written(self) -> list[str]:
+        """The elements :meth:`write` writes, in file order."""
         run = self.run
-        t = run.grid.minutes * SECONDS_PER_MINUTE
-        for name in self.basin.elements:
-            if name in self.live or name not in run.outflow or (self.keep is not None and name not in self.keep):
-                continue
-            columns = {"inflow_m3s": run.inflow[name], "outflow_m3s": run.outflow[name]}
-            if name in run.branched:
-                columns["branched_m3s"] = run.branched[name]
-            columns |= reservoir_columns(self.basin.elements[name], run.inflow[name], run.outflow[name], run.grid.dt_minutes)
-            columns |= diversion_columns(self.basin.elements[name], run.outflow[name], run.branched.get(name))
-            columns |= rain_columns(self.basin, run.water, name, t.size)
-            results.series(NETWORK_KIND, name, t, columns)
-            write_series_csv(out / "series" / f"network_{safe_name(name)}.csv", t, columns)
+        return [
+            name for name in self.basin.elements
+            if name not in self.live and name in run.outflow and (self.keep is None or name in self.keep)
+        ]  # fmt: skip
+
+    def write(self, results: Results, out) -> None:
+        t = self.run.grid.minutes * SECONDS_PER_MINUTE
+        for name in self.written():
+            write_element(results, out, name, t, element_columns(self.basin, self.run, name))
 
     def save(self, f: h5py.File) -> None:
         """Nothing: the base run is rerun from the job on a resume."""

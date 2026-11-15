@@ -28,6 +28,7 @@ from wadi2d.config.constants import M2_PER_KM2, G
 from wadi2d.config.schema import (
     ENTRY_POINT,
     FILL_KIND,
+    LUMPED_AT_OUTLETS,
     REACH_HMS,
     SHAPED_KINDS,
     RunConfig,
@@ -217,10 +218,10 @@ def _absolute_table(obj: TerrainObject, base: Path) -> TerrainObject:
 
 
 def check_inputs(cfg: RunConfig) -> None:
-    """Every input file must exist before anything expensive starts."""
-    if cfg.terrain.dem is None:
+    """Every input file must exist before anything expensive starts; a lumped-only run needs no ground (W88)."""
+    if cfg.terrain.dem is None and not cfg.run.lumped_only:
         raise InvalidJob("terrain.dem is required")
-    if cfg.grid.extent is None and cfg.grid.domain is None:
+    if cfg.grid.extent is None and cfg.grid.domain is None and not cfg.run.lumped_only:
         raise InvalidJob("grid.extent or grid.domain is required")
     for part, name in PATH_FIELDS:
         value = getattr(getattr(cfg, part), name)
@@ -396,6 +397,15 @@ def job_hash(cfg: RunConfig) -> str:
         for name in ("exclude_lumped", "exclude_subbasins"):
             data["grid"].pop(name)
         data["hydrology"].pop("entry_snap_m")
+    if cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS:  # and the lumped water at the outlets, as always (W88)
+        data["hydrology"].pop("lumped_entry")
+    if not cfg.hydrology.arf_by_element:
+        data["hydrology"].pop("arf_by_element")
+    if not cfg.run.lumped_only:
+        data["run"].pop("lumped_only")
+    for inflow in data["hydrology"]["inflows"]:
+        if inflow.get("enters", True):
+            inflow.pop("enters", None)
     for sub in data["hydrology"]["subbasins"]:
         if sub.get("storm_area_km2") is None:
             sub.pop("storm_area_km2", None)  # and a subbasin at the storm's own area the one it had before (W79)
@@ -849,8 +859,10 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
     rain = NoRain() if storm is None else _lumped_rain(cfg, storm, basin, hms_basin, crs)
     run = LumpedEngine(basin).run(rain, grid, cut=routes.cut if routes is not None else ())
     times = grid.minutes * SECONDS_PER_MINUTE
+    leaving = {i.name for i in h.inflows if not i.enters}  # water that leaves the model there, as at an HMS sink (W88)
     for name, point, element in wanted:
-        table.append((name, point, times, run.outflow[element]))
+        if name not in leaving:
+            table.append((name, point, times, run.outflow[element]))
     keep = None if generated else _ran(basin, wanted, routes)
     if routes is None or not routes.live:
         return table, None, NetworkSeries(basin, run, keep=keep)
@@ -1050,9 +1062,18 @@ def _preflight(cfg: RunConfig, crs: str):
 
 
 def _resolved(cfg: RunConfig, crs: str):
-    """A job on a generated basin as the engine runs it, and the basin; any other job as it is."""
+    """A job on a generated basin as the engine runs it, and the basin; an HMS job with its lumped water kept on the
+    network down to the grid when it asks for that (W88); any other job as it is."""
     if cfg.hydrology.basin_json is None:
-        return cfg, None
+        if cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS or cfg.hydrology.hms_basin is None:
+            return cfg, None
+        from wadi2d.engine.network_entries import hms_icons, route_on_network
+
+        basin, hms_basin, _cut = _lumped_basin(cfg, crs)
+        try:
+            return route_on_network(cfg, basin, hms_icons(hms_basin)), None
+        except ValueError as error:
+            raise InvalidJob(str(error)) from error
     from wadi2d.basin.job import resolve
 
     return resolve(cfg, crs)
@@ -1153,6 +1174,17 @@ def _placed_entries(cfg, tables, polygons, flows, crs, out: Path, progress):
     return with_entries(flows, placed)
 
 
+def _lumped(cfg: RunConfig, out: Path, crs: str, progress, summary: RunSummary, left=None, why: str = "") -> None:
+    """A lumped-only run into ``out`` (:mod:`wadi2d.engine.lumped_run`); None: there are no tables for a step after it."""
+    from wadi2d.engine.lumped_run import run_lumped
+
+    (out / "config.resolved.json").write_text(cfg.model_dump_json(indent=2), encoding="utf-8")
+    try:
+        run_lumped(cfg, out, crs, progress, summary, left, why)
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
+
+
 def _say_left_out(left: LeftOut, progress) -> None:
     """What the mesh leaves out, on the record of the run (W88)."""
     if not left.names:
@@ -1179,10 +1211,14 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     cfg = with_tables(cfg)
     if tables is not None:
         tables, crs = tables
-    else:
+    elif cfg.terrain.dem is not None:
         with rasterio.open(cfg.terrain.dem) as dem:
             crs = dem.crs.to_wkt() if dem.crs is not None else ""
+    else:
+        crs = ""
     cfg, generated = _resolved(cfg, crs)
+    if cfg.run.lumped_only:
+        return _lumped(cfg, out, crs, progress, summary)
     design = design_plans(cfg, generated)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
@@ -1252,10 +1288,21 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     rebuild = None
     if tables is None:
         cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else out / "cache"
-        tables, crs = prepare_grid(cfg, cache, progress, left)
+        try:
+            tables, crs = prepare_grid(cfg, cache, progress, left)
+        except NothingOnTheGrid as error:  # every cell is left out: the job is the lumped network alone (W88)
+            cfg = cfg.model_copy(update={"run": cfg.run.model_copy(update={"lumped_only": True})})
+            why = f"{error}: the run is the lumped network alone, the HMS way"
+            return _lumped(cfg, out, crs, progress, summary, left, why)
 
         def rebuild(job: RunConfig) -> GridTables:
             return prepare_grid(job, cache, progress, left)[0]
+
+    if cfg.hydrology.arf_by_element:
+        raise InvalidJob(
+            "hydrology.arf_by_element is for a lumped-only run: with a 2D part one rain falls on the grid, and the "
+            "elements that feed it cannot each read their own area; give lumped subbasins storm_area_km2 instead"
+        )
 
     plain = cfg
     cfg, tables, _pits = resolve_pits(cfg, tables, crs, out, progress, rebuild)
@@ -1434,6 +1481,31 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     return tables, crs
 
 
+def _network_layers(cfg: RunConfig, tables, monitor, out: Path, crs: str, progress) -> None:
+    """The lumped network of a run with a 2D part as map layers (W88): the catchments that ran the HMS way, with
+    their peaks and whether the mesh left them out. A failure costs a warning, never the run."""
+    from wadi2d.engine.network_layers import element_rows, write_network
+    from wadi2d.engine.network_series import NetworkSeries, element_columns
+
+    found = [part for part in monitor.parts if isinstance(part, NetworkSeries)]
+    if not found:
+        return
+    part = found[0]
+    left = getattr(tables, "left_out", None)
+    own = {s.name: "its own outlet" for s in cfg.hydrology.subbasins if s.mode == "lumped" and s.outlet is not None}
+    try:
+        enters = {**own, **carried_subbasins(cfg, crs)}
+        t = part.run.grid.minutes * SECONDS_PER_MINUTE
+        series = {name: element_columns(part.basin, part.run, name) for name in part.written()}
+        rows = element_rows(part.basin, series, t)
+        path = write_network(out, cfg, part.basin, rows, crs, set(left.names) if left is not None else set(), enters)
+    except Exception as error:
+        progress.emit("warn", message=f"the lumped network's map layers could not be written: {error}")
+        return
+    if path is not None:
+        progress.emit("output", kind="network_layers", path=str(path))
+
+
 def _design_records(design, monitor, results, out: Path, progress) -> dict:
     """The record of every design line a reach carries lumped water past (W41), written beside its line series."""
     if not design:
@@ -1462,6 +1534,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
     for part in monitor.parts:
         part.finish(st.t, monitor.balance)
         part.write(results, out)
+    _network_layers(cfg, tables, monitor, out, crs, progress)
     tags = {**arf_tags(cfg), **status_tags(summary, st.t, cfg)}
     _write_outputs(cfg, tables, monitor, results, out, crs, progress, tags)
     made = _design_records(design, monitor, results, out, progress)
@@ -1513,7 +1586,7 @@ def run_job(
     with Progress(folder / "progress.jsonl", echo=echo, append=resume) as progress:
         try:
             made = _run(cfg, folder, backend, tables, resume, progress, summary, tuple(stop_files))
-            if summary.status == "finished":
+            if summary.status == "finished" and made is not None:
                 tags = {**arf_tags(cfg), **status_tags(summary, summary.t_end, cfg)}
                 ran = cfg if summary.terrain is None else cfg.model_copy(update={"terrain": summary.terrain})
                 summary.products = make_after_run(ran, *made, folder, backend, progress, stop_files, tags)

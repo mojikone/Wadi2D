@@ -87,11 +87,11 @@ def valley_job(tmp_path, exclude: bool, entry=BELOW, skew: float = 0.0, **parts)
         valley(tmp_path), NX, NY, DX,
         grid=grid,
         terrain={"manning": 0.03, **parts.pop("terrain", {})},
-        storm={"kind": "uniform", "depth_mm": 20.0, "duration_min": 20.0},
+        storm=parts.pop("storm", {"kind": "uniform", "depth_mm": 20.0, "duration_min": 20.0}),
         hydrology=hydrology,
         boundaries=[{"kind": "free", "coordinates": [(X0 + NX * DX + 1.0, Y0 + 2.0), (X0 + NX * DX + 1.0, SOUTH - 2.0)]}],
         outputs=outputs,
-        run={"duration_s": 3600.0, "backend": "cpu", "source_every_s": 10.0},
+        run={"duration_s": 3600.0, "backend": "cpu", "source_every_s": 10.0, **parts.pop("run", {})},
         **parts,
     )  # fmt: skip
 
