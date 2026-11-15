@@ -361,6 +361,9 @@ def job_hash(cfg: RunConfig) -> str:
         data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
     if cfg.storm.arf_factor is None:
         data["storm"].pop("arf_factor")  # and a job with no given factor the one it had before it (W83)
+    for sub in data["hydrology"]["subbasins"]:
+        if sub.get("storm_area_km2") is None:
+            sub.pop("storm_area_km2", None)  # and a subbasin at the storm's own area the one it had before (W79)
     _drop_point_entries(data["hydrology"])
     for line in data["boundaries"]:  # a job without flow lines keeps the hash it had before them (W61)
         for key in ("name", "flow"):
@@ -550,7 +553,22 @@ def _project_tables(h, hms_basin):
 
 
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
-    """What falls on the lumped network: the storm, or a grid averaged over each subbasin."""
+    """What falls on the lumped network: the storm, or a grid averaged over each subbasin; a subbasin with a storm area
+    of its own reads the area reduction there."""
+    rain = _network_rain(cfg, storm, basin, hms_basin, crs)
+    own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
+    if not own:
+        return rain
+    from wadi2d.storm.own_area import OwnAreas
+
+    missing = sorted(set(own) - set(basin.subbasins))
+    if missing:
+        raise InvalidJob(f"subbasins {', '.join(missing)} have a storm area of their own but are not in the basin")
+    return OwnAreas(rain, own)
+
+
+def _network_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
+    """The storm, or a grid averaged over each subbasin, as the job's storm area gives it."""
     h = cfg.hydrology
     spatial = hms_basin.spatial if hms_basin is not None else None
     system = spatial.coordinate_system if spatial is not None else None
@@ -1028,6 +1046,15 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             "warn",
             message=f"rain: every depth is multiplied by {cfg.storm.arf_factor:.4f}, the given area-reduction factor, "
             "over the whole event",
+        )
+    own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
+    if own and cfg.storm.arf is not None:  # the subbasins that read the table at an area of their own (W79)
+        progress.emit("output", kind="subbasin_storm_areas", areas_km2=own, arf_table_type=cfg.storm.arf.table_type)
+        said = ", ".join(f"{name} {area:g}" for name, area in own.items())
+        progress.emit(
+            "warn",
+            message=f"rain: {len(own)} lumped subbasins read the area-reduction table at their own storm area, km2: "
+            f"{said}; the rest of the model at the storm's own area",
         )
     if isinstance(storm, GriddedStorm):
         for note in storm.notes(cfg.run.duration_s / SECONDS_PER_MINUTE):

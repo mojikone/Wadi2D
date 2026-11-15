@@ -267,6 +267,12 @@ def check_storm(cfg: RunConfig) -> None:
         raise InvalidJob(GIVEN_WORDS)
     if cfg.storm.arf is None:
         raise InvalidJob("a depth-area study needs storm.arf: without a table every run is the same run")
+    own = [s.name for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None]
+    if own:
+        raise InvalidJob(
+            f"a depth-area study sets the storm area of every run; subbasins {', '.join(own)} give one of their own: "
+            "choose the study or their areas"
+        )
 
 
 def check_study(cfg: RunConfig, areas: list[float]) -> None:

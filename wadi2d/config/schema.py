@@ -1019,6 +1019,22 @@ class Subbasin(_Part):
         description="Values that stand in for a generated subbasin's, by name (lag_minutes, curve_number, area_km2): "
         "a scenario on basin.json without editing it; the run folder's config holds them",
     )
+    storm_area_km2: float | None = Field(
+        None,
+        gt=0.0,
+        description="Area at which storm.arf is read for this lumped subbasin's rain, in place of storm.storm_area_km2: "
+        "a subbasin above a dam at the dam's drainage area, as HMS's depth-area analysis at the dam reads it. The 2D "
+        "cells and the other subbasins keep the storm's own area. Needs storm.arf; a depth-area study refuses it",
+    )
+
+    @model_validator(mode="after")
+    def _own_area(self) -> Subbasin:
+        if self.storm_area_km2 is not None and self.mode != "lumped":
+            raise ValueError(
+                f"subbasin {self.name}: storm_area_km2 sets a lumped subbasin's own storm area; a 2D subbasin's rain "
+                "falls on the cells, at the storm's area"
+            )
+        return self
 
 
 class Inflow(_Part):
@@ -1558,6 +1574,16 @@ class RunConfig(_Part):
     run: Run = Run()
     arf: ArfStudy = ArfStudy()
     basin: BasinSettings = BasinSettings()
+
+    @model_validator(mode="after")
+    def _own_storm_areas(self) -> RunConfig:
+        own = [s.name for s in self.hydrology.subbasins if s.storm_area_km2 is not None]
+        if own and (self.storm.arf is None or self.storm.arf_factor is not None):
+            raise ValueError(
+                f"subbasins {', '.join(own)} read the area-reduction table at an area of their own: that needs "
+                "storm.arf, and no storm.arf_factor"
+            )
+        return self
 
 
 def json_schema() -> dict:

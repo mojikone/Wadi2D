@@ -4183,6 +4183,20 @@
           "default": null,
           "description": "Values that stand in for a generated subbasin's, by name (lag_minutes, curve_number, area_km2): a scenario on basin.json without editing it; the run folder's config holds them",
           "title": "Parameters"
+        },
+        "storm_area_km2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Area at which storm.arf is read for this lumped subbasin's rain, in place of storm.storm_area_km2: a subbasin above a dam at the dam's drainage area, as HMS's depth-area analysis at the dam reads it. The 2D cells and the other subbasins keep the storm's own area. Needs storm.arf; a depth-area study refuses it",
+          "title": "Storm Area Km2"
         }
       },
       "required": [
