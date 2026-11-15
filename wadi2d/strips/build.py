@@ -239,8 +239,11 @@ def strip_tables(
         bed, edits.edit, row0, col0, nrows, ncols, grid.x0 + col0 * bed.pixel, grid.y0 - row0 * bed.pixel, grid.dx / k, beds
     )  # fmt: skip
     ghosts = ghosts_for(geo, grid, tables)
-    lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
-    crest, cw, wall = faces_from_objects(geo, ghosts, lines)
+    if base is not None and changed is not None and base.faces is not None:
+        crest, cw, wall = base.faces  # a pit fill is no line (W91); the build before it measured these
+    else:
+        lines = crest_polylines(cfg.terrain.objects, grid.dx, cfg.terrain, ground, edits.shapes)
+        crest, cw, wall = faces_from_objects(geo, ghosts, lines)
     n = strip_manning(geo, grid, manning, cfg.terrain.manning)
     dn_floor = None
     if strip.gorge is not None and (strip.gorge != 0).any():
@@ -264,6 +267,8 @@ def strip_tables(
         )  # fmt: skip
     finally:
         beds.close()
+    if keep_raw:
+        mesh.raw.faces = (crest, cw, wall)
     return StripTables(strip, mesh, kept)
 
 

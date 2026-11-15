@@ -158,7 +158,8 @@ def test_the_strip_pieces_the_fills_reach_built_again_are_the_whole_build_to_the
     strips = {"enabled": True, "corridors": [
         {"name": "mid", "centre": [(X0 + 40.0, mid), (X0 + 760.0, mid)], "offsets": [-12.0, -8.0, -4.0, 0.0, 4.0, 8.0, 12.0]}
     ]}  # fmt: skip
-    asked = base_job(dem, 200, 24, 4.0, terrain={"manning": 0.04, "fill_pits": True}, strips=strips)
+    dam = {"kind": "crest_line", "name": "Dam", "coordinates": [(X0 + 500.0, Y0 - 4.0), (X0 + 500.0, Y0 - 92.0)], "z_constant": 97.0}
+    asked = base_job(dem, 200, 24, 4.0, terrain={"manning": 0.04, "fill_pits": True, "objects": [dam]}, strips=strips)
     before, _crs = prepare_grid(asked, tmp_path / "a")
     assert before.strip_raw is not None and not hasattr(before.strip.mesh, "raw")  # kept off the cached strip
     # two cells beside the corridor's west end, raised: the strip reads them through its faces' local radius
@@ -166,7 +167,10 @@ def test_the_strip_pieces_the_fills_reach_built_again_are_the_whole_build_to_the
         TerrainObject(kind="fill", name=f"pit fill 1.{m}", coordinates=square(X0 + x, mid + 16.0, 4.0).tolist(), z_constant=100.5)
         for m, x in ((1, 60.0), (2, 64.0))
     ]  # fmt: skip
-    filled = asked.model_copy(update={"terrain": asked.terrain.model_copy(update={"objects": fills})})
+    filled = asked.model_copy(
+        update={"terrain": asked.terrain.model_copy(update={"objects": [*asked.terrain.objects, *fills]})}
+    )
+    assert before.strip_raw.faces is not None and np.isfinite(before.strip_raw.faces[0]).any()  # the dam's faces
     assert not strip_untouched(filled, before, before.strip_mesh[1])  # near: the strip's tables must change
     sizes = []
     real = st.run_all

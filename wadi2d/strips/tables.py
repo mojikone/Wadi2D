@@ -58,6 +58,9 @@ class PieceTables:
     zf: np.ndarray
     ef: np.ndarray
     ftab: np.ndarray
+    faces: tuple | None = None
+    """What the job's crests, spillways and walls give the geometry's faces (``faces_from_objects``): a pit fill
+    changes none of it, and it is a minute of Block 2's strip build."""
 
 
 PIECE_CELLS = 32
