@@ -1,0 +1,590 @@
+== Hybrid Lumped: {"lumped_subbasins": 26, "factor_difference": {"min": -3e-06, "max": 2e-06}, "entries_W79": 6, "entries_dock_way": 6, "entries_dams_only": ["Bidah 03 Reservoir", "Faydh 01 Reservoir", "HAT-R4", "R2A Reservoir", "R5A Reservoir", "Z4C Reservoir"], "network_seconds": {"W79": 0.31, "dock way": 0.17}}
+   {"entry": "Bidah 03 outflow", "element": "Bidah 03 Reservoir", "peak_W79": 0.0, "peak_dock_way": 0.0, "volume_W79_Mm3": 0.0, "volume_dock_way_Mm3": 0.0, "time_of_peak_W79_h": 0.0, "time_of_peak_dock_way_h": 0.0, "peak_difference_m3s": 0.0, "volume_ratio": null, "x_W79": 438748.49, "y_W79": 2727147.89, "x_dock_way": 438685.56, "y_dock_way": 2726997.5, "distance_m": 163.0, "distance_cells": 8.15, "W79_from_left_out_m": 166.2, "dock_way_from_left_out_m": 15.4, "icon_to_dock_way_m": 159.9, "W79_to_dam_axis_m": 248.4, "dock_way_to_dam_axis_m": 95.5, "dock_way_to_chutes_m": [95.5], "W79_to_chutes_m": [248.4]}
+   {"entry": "Faydh 01 outflow", "element": "Faydh 01 Reservoir", "peak_W79": 0.0, "peak_dock_way": 0.0, "volume_W79_Mm3": 0.0, "volume_dock_way_Mm3": 0.0, "time_of_peak_W79_h": 0.0, "time_of_peak_dock_way_h": 0.0, "peak_difference_m3s": 0.0, "volume_ratio": null, "x_W79": 431278.49, "y_W79": 2733422.89, "x_dock_way": 431045.0, "y_dock_way": 2733414.76, "distance_m": 233.6, "distance_cells": 11.68, "W79_from_left_out_m": 251.1, "dock_way_from_left_out_m": 24.0, "icon_to_dock_way_m": 129.0, "W79_to_dam_axis_m": 245.5, "dock_way_to_dam_axis_m": 12.6, "dock_way_to_chutes_m": [12.6], "W79_to_chutes_m": [245.5]}
+   {"entry": "R5A outflow", "element": "R5A Reservoir", "peak_W79": 753.761, "peak_dock_way": 753.756, "volume_W79_Mm3": 13.45795, "volume_dock_way_Mm3": 13.45788, "time_of_peak_W79_h": 15.917, "time_of_peak_dock_way_h": 15.917, "peak_difference_m3s": -0.004491, "volume_ratio": 0.999995, "x_W79": 439243.49, "y_W79": 2721077.89, "x_dock_way": 439066.06, "y_dock_way": 2721044.52, "distance_m": 180.5, "distance_cells": 9.03, "W79_from_left_out_m": 197.5, "dock_way_from_left_out_m": 20.1, "icon_to_dock_way_m": 124.5, "W79_to_dam_axis_m": 203.4, "dock_way_to_dam_axis_m": 23.5, "dock_way_to_chutes_m": [23.5, 754.1], "W79_to_chutes_m": [203.4, 795.8]}
+   {"entry": "R2A outflow", "element": "R2A Reservoir", "peak_W79": 818.424, "peak_dock_way": 818.428, "volume_W79_Mm3": 17.87668, "volume_dock_way_Mm3": 17.87675, "time_of_peak_W79_h": 16.5, "time_of_peak_dock_way_h": 16.5, "peak_difference_m3s": 0.004318, "volume_ratio": 1.000004, "x_W79": 439633.49, "y_W79": 2716632.89, "x_dock_way": 439445.97, "y_dock_way": 2716543.65, "distance_m": 207.7, "distance_cells": 10.38, "W79_from_left_out_m": 234.0, "dock_way_from_left_out_m": 34.1, "icon_to_dock_way_m": 884.0, "W79_to_dam_axis_m": 236.0, "dock_way_to_dam_axis_m": 35.0, "dock_way_to_chutes_m": [35.0, 739.7], "W79_to_chutes_m": [236.0, 726.0]}
+   {"entry": "Z4C outflow", "element": "Z4C Reservoir", "peak_W79": 2024.975, "peak_dock_way": 2024.979, "volume_W79_Mm3": 34.61023, "volume_dock_way_Mm3": 34.61031, "time_of_peak_W79_h": 15.833, "time_of_peak_dock_way_h": 15.833, "peak_difference_m3s": 0.004012, "volume_ratio": 1.000002, "x_W79": 441223.49, "y_W79": 2710462.89, "x_dock_way": 440983.72, "y_dock_way": 2710473.73, "distance_m": 240.0, "distance_cells": 12.0, "W79_from_left_out_m": 242.5, "dock_way_from_left_out_m": 2.7, "icon_to_dock_way_m": 141.8, "W79_to_dam_axis_m": 250.2, "dock_way_to_dam_axis_m": 10.4, "dock_way_to_chutes_m": [19.1], "W79_to_chutes_m": [257.4]}
+   {"entry": "HAT-J4 outflow", "element": "HAT-J4", "peak_W79": 2471.988, "peak_dock_way": 2471.992, "volume_W79_Mm3": 47.07086, "volume_dock_way_Mm3": 47.07093, "time_of_peak_W79_h": 15.75, "time_of_peak_dock_way_h": 15.75, "peak_difference_m3s": 0.004156, "volume_ratio": 1.000002, "x_W79": 427909.5, "y_W79": 2740295.69, "x_dock_way": 427909.5, "y_dock_way": 2740295.69, "distance_m": 0.0, "distance_cells": 0.0, "W79_from_left_out_m": 27.7, "dock_way_from_left_out_m": 27.7, "icon_to_dock_way_m": 34.2}
+== Hybrid 2D: {"lumped_subbasins": 26, "factor_difference": {"min": -3e-06, "max": 2e-06}, "entries_W79": 26, "entries_dock_way": 26, "entries_dams_only": ["HAT-S1", "HAT-S2", "HAT-S3", "HAT-S4", "HAT-S5", "HAT-S6", "HAT-S7", "HAT-S8", "S1", "S10", "S11", "S12", "S13", "S14", "S15", "S16", "S17", "S18", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"], "network_seconds": {"W79": 0.11, "dock way": 0.11}}
+   {"entry": "S1", "element": "S1", "peak_W79": 710.067, "peak_dock_way": 710.068, "volume_W79_Mm3": 11.08581, "volume_dock_way_Mm3": 11.08583, "time_of_peak_W79_h": 13.75, "time_of_peak_dock_way_h": 13.75, "peak_difference_m3s": 0.001324, "volume_ratio": 1.000002}
+   {"entry": "S2", "element": "S2", "peak_W79": 570.301, "peak_dock_way": 570.302, "volume_W79_Mm3": 8.35745, "volume_dock_way_Mm3": 8.35747, "time_of_peak_W79_h": 13.583, "time_of_peak_dock_way_h": 13.583, "peak_difference_m3s": 0.001059, "volume_ratio": 1.000002}
+   {"entry": "S3", "element": "S3", "peak_W79": 821.468, "peak_dock_way": 821.469, "volume_W79_Mm3": 16.25126, "volume_dock_way_Mm3": 16.25129, "time_of_peak_W79_h": 14.5, "time_of_peak_dock_way_h": 14.5, "peak_difference_m3s": 0.001556, "volume_ratio": 1.000002}
+   {"entry": "S4", "element": "S4", "peak_W79": 331.566, "peak_dock_way": 331.566, "volume_W79_Mm3": 3.51223, "volume_dock_way_Mm3": 3.51224, "time_of_peak_W79_h": 12.917, "time_of_peak_dock_way_h": 12.917, "peak_difference_m3s": 0.000653, "volume_ratio": 1.000002}
+   {"entry": "S5", "element": "S5", "peak_W79": 829.655, "peak_dock_way": 829.656, "volume_W79_Mm3": 14.16295, "volume_dock_way_Mm3": 14.16298, "time_of_peak_W79_h": 14.0, "time_of_peak_dock_way_h": 14.0, "peak_difference_m3s": 0.001774, "volume_ratio": 1.000002}
+   {"entry": "S6", "element": "S6", "peak_W79": 430.542, "peak_dock_way": 430.543, "volume_W79_Mm3": 4.70013, "volume_dock_way_Mm3": 4.70014, "time_of_peak_W79_h": 12.917, "time_of_peak_dock_way_h": 12.917, "peak_difference_m3s": 0.000918, "volume_ratio": 1.000002}
+   {"entry": "S7", "element": "S7", "peak_W79": 581.799, "peak_dock_way": 581.8, "volume_W79_Mm3": 6.83893, "volume_dock_way_Mm3": 6.83895, "time_of_peak_W79_h": 13.083, "time_of_peak_dock_way_h": 13.083, "peak_difference_m3s": 0.001299, "volume_ratio": 1.000002}
+   {"entry": "S8", "element": "S8", "peak_W79": 93.93, "peak_dock_way": 93.93, "volume_W79_Mm3": 0.91192, "volume_dock_way_Mm3": 0.91192, "time_of_peak_W79_h": 12.75, "time_of_peak_dock_way_h": 12.75, "peak_difference_m3s": 0.000211, "volume_ratio": 1.000002}
+   {"entry": "S9", "element": "S9", "peak_W79": 392.097, "peak_dock_way": 392.098, "volume_W79_Mm3": 5.63576, "volume_dock_way_Mm3": 5.63577, "time_of_peak_W79_h": 13.583, "time_of_peak_dock_way_h": 13.583, "peak_difference_m3s": 0.000871, "volume_ratio": 1.000002}
+   {"entry": "S10", "element": "S10", "peak_W79": 89.207, "peak_dock_way": 89.207, "volume_W79_Mm3": 0.68166, "volume_dock_way_Mm3": 0.68166, "time_of_peak_W79_h": 12.417, "time_of_peak_dock_way_h": 12.417, "peak_difference_m3s": 0.000203, "volume_ratio": 1.000002}
+   {"entry": "S11", "element": "S11", "peak_W79": 692.496, "peak_dock_way": 692.494, "volume_W79_Mm3": 8.51764, "volume_dock_way_Mm3": 8.51761, "time_of_peak_W79_h": 13.167, "time_of_peak_dock_way_h": 13.167, "peak_difference_m3s": -0.002245, "volume_ratio": 0.999997}
+   {"entry": "S12", "element": "S12", "peak_W79": 599.492, "peak_dock_way": 599.49, "volume_W79_Mm3": 6.71437, "volume_dock_way_Mm3": 6.71435, "time_of_peak_W79_h": 13.0, "time_of_peak_dock_way_h": 13.0, "peak_difference_m3s": -0.001948, "volume_ratio": 0.999997}
+   {"entry": "S13", "element": "S13", "peak_W79": 454.635, "peak_dock_way": 454.635, "volume_W79_Mm3": 4.32592, "volume_dock_way_Mm3": 4.32591, "time_of_peak_W79_h": 12.75, "time_of_peak_dock_way_h": 12.75, "peak_difference_m3s": -0.000571, "volume_ratio": 0.999999}
+   {"entry": "S14", "element": "S14", "peak_W79": 609.831, "peak_dock_way": 609.829, "volume_W79_Mm3": 8.449, "volume_dock_way_Mm3": 8.44898, "time_of_peak_W79_h": 13.417, "time_of_peak_dock_way_h": 13.417, "peak_difference_m3s": -0.001641, "volume_ratio": 0.999997}
+   {"entry": "S15", "element": "S15", "peak_W79": 590.401, "peak_dock_way": 590.4, "volume_W79_Mm3": 7.67442, "volume_dock_way_Mm3": 7.6744, "time_of_peak_W79_h": 13.25, "time_of_peak_dock_way_h": 13.25, "peak_difference_m3s": -0.001605, "volume_ratio": 0.999997}
+   {"entry": "S16", "element": "S16", "peak_W79": 372.873, "peak_dock_way": 372.871, "volume_W79_Mm3": 4.18266, "volume_dock_way_Mm3": 4.18265, "time_of_peak_W79_h": 13.0, "time_of_peak_dock_way_h": 13.0, "peak_difference_m3s": -0.001061, "volume_ratio": 0.999997}
+   {"entry": "S17", "element": "S17", "peak_W79": 237.427, "peak_dock_way": 237.427, "volume_W79_Mm3": 2.2425, "volume_dock_way_Mm3": 2.2425, "time_of_peak_W79_h": 12.75, "time_of_peak_dock_way_h": 12.75, "peak_difference_m3s": -0.000667, "volume_ratio": 0.999997}
+   {"entry": "S18", "element": "S18", "peak_W79": 44.31, "peak_dock_way": 44.309, "volume_W79_Mm3": 0.30932, "volume_dock_way_Mm3": 0.30932, "time_of_peak_W79_h": 12.333, "time_of_peak_dock_way_h": 12.333, "peak_difference_m3s": -0.000126, "volume_ratio": 0.999997}
+   {"entry": "HAT-S1", "element": "HAT-S1", "peak_W79": 479.382, "peak_dock_way": 479.383, "volume_W79_Mm3": 5.57704, "volume_dock_way_Mm3": 5.57705, "time_of_peak_W79_h": 13.0, "time_of_peak_dock_way_h": 13.0, "peak_difference_m3s": 0.000719, "volume_ratio": 1.000002}
+   {"entry": "HAT-S2", "element": "HAT-S2", "peak_W79": 379.238, "peak_dock_way": 379.238, "volume_W79_Mm3": 3.71077, "volume_dock_way_Mm3": 3.71077, "time_of_peak_W79_h": 12.75, "time_of_peak_dock_way_h": 12.75, "peak_difference_m3s": 0.00057, "volume_ratio": 1.000002}
+   {"entry": "HAT-S3", "element": "HAT-S3", "peak_W79": 419.907, "peak_dock_way": 419.908, "volume_W79_Mm3": 3.67705, "volume_dock_way_Mm3": 3.67705, "time_of_peak_W79_h": 12.583, "time_of_peak_dock_way_h": 12.583, "peak_difference_m3s": 0.000636, "volume_ratio": 1.000002}
+   {"entry": "HAT-S4", "element": "HAT-S4", "peak_W79": 533.905, "peak_dock_way": 533.906, "volume_W79_Mm3": 5.13695, "volume_dock_way_Mm3": 5.13695, "time_of_peak_W79_h": 12.75, "time_of_peak_dock_way_h": 12.75, "peak_difference_m3s": 0.000826, "volume_ratio": 1.000002}
+   {"entry": "HAT-S5", "element": "HAT-S5", "peak_W79": 446.523, "peak_dock_way": 446.524, "volume_W79_Mm3": 3.88662, "volume_dock_way_Mm3": 3.88663, "time_of_peak_W79_h": 12.583, "time_of_peak_dock_way_h": 12.583, "peak_difference_m3s": 0.000693, "volume_ratio": 1.000002}
+   {"entry": "HAT-S6", "element": "HAT-S6", "peak_W79": 716.402, "peak_dock_way": 716.403, "volume_W79_Mm3": 8.285, "volume_dock_way_Mm3": 8.28501, "time_of_peak_W79_h": 13.083, "time_of_peak_dock_way_h": 13.083, "peak_difference_m3s": 0.001091, "volume_ratio": 1.000002}
+   {"entry": "HAT-S7", "element": "HAT-S7", "peak_W79": 445.291, "peak_dock_way": 445.292, "volume_W79_Mm3": 5.9197, "volume_dock_way_Mm3": 5.91971, "time_of_peak_W79_h": 13.333, "time_of_peak_dock_way_h": 13.333, "peak_difference_m3s": 0.000688, "volume_ratio": 1.000002}
+   {"entry": "HAT-S8", "element": "HAT-S8", "peak_W79": 765.801, "peak_dock_way": 765.803, "volume_W79_Mm3": 10.88087, "volume_dock_way_Mm3": 10.88089, "time_of_peak_W79_h": 13.5, "time_of_peak_dock_way_h": 13.5, "peak_difference_m3s": 0.001217, "volume_ratio": 1.000002}
+{
+ "last_points": [
+  "Bidah 03 Reservoir",
+  "Faydh 01 Reservoir",
+  "R5A Reservoir",
+  "R2A Reservoir",
+  "Z4C Reservoir",
+  "HAT-J4"
+ ],
+ "jobs": {
+  "Hybrid Lumped": [
+   "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\jobs\\rerun2_run3_hybrid_aligned.json",
+   "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\rebuilt\\hybrid_lumped_last_points\\job.json"
+  ],
+  "Hybrid 2D": [
+   "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\jobs\\rerun2_run4_hybrid_2d_routing_aligned.json",
+   "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\rebuilt\\hybrid_2d_last_points\\job.json"
+  ]
+ },
+ "run3_mesh_loaded": true,
+ "run3_mesh_load_s": 2.5,
+ "left_out_same": true,
+ "run3_recorded_point_reproduced": {
+  "HAT-J4 outflow": 0.0
+ },
+ "own_and_dam_factors": [
+  {
+   "element": "S1",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 59.078,
+   "own_factor": 0.941645,
+   "own_area_peak_m3s": 782.98,
+   "hybrid_2d_area_km2": 211.085,
+   "hybrid_2d_factor": 0.860748,
+   "hybrid_2d_peak_m3s": 710.07,
+   "hybrid_2d_read_at": "the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S2",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 44.392,
+   "own_factor": 0.952486,
+   "own_area_peak_m3s": 636.42,
+   "hybrid_2d_area_km2": 211.085,
+   "hybrid_2d_factor": 0.860748,
+   "hybrid_2d_peak_m3s": 570.3,
+   "hybrid_2d_read_at": "the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J1",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 103.47,
+   "own_factor": 0.9113,
+   "own_area_peak_m3s": 1358.1,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R1",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 103.47,
+   "own_factor": 0.9113,
+   "own_area_peak_m3s": 1346.48,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S3",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 87.597,
+   "own_factor": 0.921682,
+   "own_area_peak_m3s": 886.06,
+   "hybrid_2d_area_km2": 211.085,
+   "hybrid_2d_factor": 0.860748,
+   "hybrid_2d_peak_m3s": 821.47,
+   "hybrid_2d_read_at": "the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J2",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 191.067,
+   "own_factor": 0.868377,
+   "own_area_peak_m3s": 2070.77,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R2",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 191.067,
+   "own_factor": 0.868377,
+   "own_area_peak_m3s": 2063.29,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S4",
+   "enters_at": "Z4C Reservoir",
+   "own_area_km2": 20.018,
+   "own_factor": 0.97598,
+   "own_area_peak_m3s": 382.76,
+   "hybrid_2d_area_km2": 211.085,
+   "hybrid_2d_factor": 0.860748,
+   "hybrid_2d_peak_m3s": 331.57,
+   "hybrid_2d_read_at": "the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S5",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 73.869,
+   "own_factor": 0.931292,
+   "own_area_peak_m3s": 886.99,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 829.66,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J4",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 73.869,
+   "own_factor": 0.931292,
+   "own_area_peak_m3s": 886.99,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R3",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 73.869,
+   "own_factor": 0.931292,
+   "own_area_peak_m3s": 883.03,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S6",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 24.633,
+   "own_factor": 0.970904,
+   "own_area_peak_m3s": 481.38,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 430.54,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J5",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 24.633,
+   "own_factor": 0.970904,
+   "own_area_peak_m3s": 481.38,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R4",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 24.633,
+   "own_factor": 0.970904,
+   "own_area_peak_m3s": 478.92,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S7",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 37.656,
+   "own_factor": 0.95811,
+   "own_area_peak_m3s": 644.06,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 581.8,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S8",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 5.0816,
+   "own_factor": 0.993886,
+   "own_area_peak_m3s": 108.46,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 93.93,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J6",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 67.3706,
+   "own_factor": 0.935841,
+   "own_area_peak_m3s": 1051.19,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R5",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 67.3706,
+   "own_factor": 0.935841,
+   "own_area_peak_m3s": 1048.95,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "J7",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 67.3706,
+   "own_factor": 0.935841,
+   "own_area_peak_m3s": 1048.95,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S9",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 30.781,
+   "own_factor": 0.964297,
+   "own_area_peak_m3s": 436.95,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 392.1,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S10",
+   "enters_at": "R2A Reservoir",
+   "own_area_km2": 3.8459,
+   "own_factor": 0.995443,
+   "own_area_peak_m3s": 103.31,
+   "hybrid_2d_area_km2": 175.8665,
+   "hybrid_2d_factor": 0.875825,
+   "hybrid_2d_peak_m3s": 89.21,
+   "hybrid_2d_read_at": "the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S11",
+   "enters_at": "Faydh 01 Reservoir",
+   "own_area_km2": 41.465,
+   "own_factor": 0.954828,
+   "own_area_peak_m3s": 711.61,
+   "hybrid_2d_area_km2": 74.304,
+   "hybrid_2d_factor": 0.930987,
+   "hybrid_2d_peak_m3s": 692.49,
+   "hybrid_2d_read_at": "the drainage area of its last point Faydh 01 Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J9",
+   "enters_at": "Faydh 01 Reservoir",
+   "own_area_km2": 41.465,
+   "own_factor": 0.954828,
+   "own_area_peak_m3s": 711.61,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R6",
+   "enters_at": "Faydh 01 Reservoir",
+   "own_area_km2": 41.465,
+   "own_factor": 0.954828,
+   "own_area_peak_m3s": 710.18,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S12",
+   "enters_at": "Faydh 01 Reservoir",
+   "own_area_km2": 32.839,
+   "own_factor": 0.962445,
+   "own_area_peak_m3s": 621.37,
+   "hybrid_2d_area_km2": 74.304,
+   "hybrid_2d_factor": 0.930987,
+   "hybrid_2d_peak_m3s": 599.49,
+   "hybrid_2d_read_at": "the drainage area of its last point Faydh 01 Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S14",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 42.298,
+   "own_factor": 0.954162,
+   "own_area_peak_m3s": 645.86,
+   "hybrid_2d_area_km2": 117.1046,
+   "hybrid_2d_factor": 0.904619,
+   "hybrid_2d_peak_m3s": 609.83,
+   "hybrid_2d_read_at": "the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J12",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 42.298,
+   "own_factor": 0.954162,
+   "own_area_peak_m3s": 645.86,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R7",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 42.298,
+   "own_factor": 0.954162,
+   "own_area_peak_m3s": 642.23,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S15",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 38.894,
+   "own_factor": 0.956995,
+   "own_area_peak_m3s": 627.67,
+   "hybrid_2d_area_km2": 117.1046,
+   "hybrid_2d_factor": 0.904619,
+   "hybrid_2d_peak_m3s": 590.4,
+   "hybrid_2d_read_at": "the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "J13",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 81.192,
+   "own_factor": 0.926166,
+   "own_area_peak_m3s": 999.74,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "R8",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 81.192,
+   "own_factor": 0.926166,
+   "own_area_peak_m3s": 995.38,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "S16",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 22.355,
+   "own_factor": 0.973409,
+   "own_area_peak_m3s": 405.22,
+   "hybrid_2d_area_km2": 117.1046,
+   "hybrid_2d_factor": 0.904619,
+   "hybrid_2d_peak_m3s": 372.87,
+   "hybrid_2d_read_at": "the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S17",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 11.888,
+   "own_factor": 0.984923,
+   "own_area_peak_m3s": 261.16,
+   "hybrid_2d_area_km2": 117.1046,
+   "hybrid_2d_factor": 0.904619,
+   "hybrid_2d_peak_m3s": 237.43,
+   "hybrid_2d_read_at": "the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "S18",
+   "enters_at": "R5A Reservoir",
+   "own_area_km2": 1.6696,
+   "own_factor": 0.998163,
+   "own_area_peak_m3s": 49.54,
+   "hybrid_2d_area_km2": 117.1046,
+   "hybrid_2d_factor": 0.904619,
+   "hybrid_2d_peak_m3s": 44.31,
+   "hybrid_2d_read_at": "the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-S1",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 29.961,
+   "own_factor": 0.965043,
+   "own_area_peak_m3s": 552.12,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 479.38,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-S2",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 20.067,
+   "own_factor": 0.975926,
+   "own_area_peak_m3s": 442.16,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 379.24,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-J1",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 50.028,
+   "own_factor": 0.94798,
+   "own_area_peak_m3s": 948.61,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-R1",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 50.028,
+   "own_factor": 0.94798,
+   "own_area_peak_m3s": 948.08,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-S3",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 20.082,
+   "own_factor": 0.97591,
+   "own_area_peak_m3s": 490.1,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 419.91,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-S4",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 28.725,
+   "own_factor": 0.966402,
+   "own_area_peak_m3s": 618.41,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 533.91,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-J2",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 98.835,
+   "own_factor": 0.913816,
+   "own_area_peak_m3s": 1718.94,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-R2",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 98.835,
+   "own_factor": 0.913816,
+   "own_area_peak_m3s": 1709.04,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-S5",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 21.803,
+   "own_factor": 0.974017,
+   "own_area_peak_m3s": 521.87,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 446.52,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-S6",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 45.398,
+   "own_factor": 0.951682,
+   "own_area_peak_m3s": 814.39,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 716.4,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-J3",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 166.036,
+   "own_factor": 0.880642,
+   "own_area_peak_m3s": 2230.72,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-R3",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 166.036,
+   "own_factor": 0.880642,
+   "own_area_peak_m3s": 2198.94,
+   "hybrid_2d_area_km2": null,
+   "hybrid_2d_factor": null,
+   "hybrid_2d_peak_m3s": null,
+   "hybrid_2d_read_at": null
+  },
+  {
+   "element": "HAT-S7",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 32.817,
+   "own_factor": 0.962465,
+   "own_area_peak_m3s": 513.37,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 445.29,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  },
+  {
+   "element": "HAT-S8",
+   "enters_at": "HAT-J4",
+   "own_area_km2": 62.113,
+   "own_factor": 0.939521,
+   "own_area_peak_m3s": 862.57,
+   "hybrid_2d_area_km2": 260.966,
+   "hybrid_2d_factor": 0.846117,
+   "hybrid_2d_peak_m3s": 765.8,
+   "hybrid_2d_read_at": "the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there"
+  }
+ ]
+}

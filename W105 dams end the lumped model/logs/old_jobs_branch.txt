@@ -1,0 +1,90 @@
+W1 research and design note\validation\block2_first_run\job_hybrid.json ok 0.2
+W1 research and design note\validation\block2_full\jobs\arf_b20_n040.json ok 0.05
+W1 research and design note\validation\block2_full\jobs\arf_b20_n100.json ok 0.05
+W1 research and design note\validation\block2_full\jobs\arf_c20_h050.json ok 0.05
+W1 research and design note\validation\block2_full\jobs\arf_c20_h100.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c10_A74_h050.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c10_A74_h100.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c20_A74_h050.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c20_A74_h100.json ok 0.08
+W1 research and design note\validation\block2_full\jobs\c20_A74_h200.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c20_A74_n040.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\c20_A74_probe.json ok 0.05
+W1 research and design note\validation\block2_full\jobs\c20_A74_u100.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\head_c20_A74_h100.json ok 0.05
+W1 research and design note\validation\block2_full\jobs\speed_c20_h100_48h.json ok 0.03
+W1 research and design note\validation\block2_full\jobs\speed_c20_h100_plan05.json ok 0.05
+W11 validation round two\t4_extent\jobs\b_t0_base.json ok 0.02
+W11 validation round two\t4_extent\jobs\b_t1_rain228.json ok 0.03
+W11 validation round two\t4_extent\jobs\b_t2_n060.json ok 0.03
+W11 validation round two\t4_extent\jobs\b_t3_ggc.json ok 0.03
+W11 validation round two\t4_extent\jobs\b_t4_dx15.json ok 0.02
+W11 validation round two\t4_extent\jobs\b_t5_all.json ok 0.03
+W11 validation round two\t4_extent\jobs\c_t0_base.json ok 0.03
+W11 validation round two\t4_extent\jobs\c_t1_rain228.json ok 0.03
+W11 validation round two\t4_extent\jobs\c_t2_n060.json ok 0.02
+W11 validation round two\t4_extent\jobs\c_t3_ggc.json ok 0.03
+W11 validation round two\t4_extent\jobs\c_t4_dx15.json ok 0.03
+W11 validation round two\t4_extent\jobs\c_t5_all.json ok 0.03
+W11 validation round two\t4_extent\jobs\t0_base.json ok 0.03
+W11 validation round two\t4_extent\jobs\t1_rain228.json ok 0.02
+W11 validation round two\t4_extent\jobs\t2_n060.json ok 0.03
+W11 validation round two\t4_extent\jobs\t3_ggc.json ok 0.03
+W11 validation round two\t4_extent\jobs\t4_dx15.json ok 0.02
+W11 validation round two\t4_extent\jobs\t5_all.json ok 0.03
+W12 full extent rerun\jobs\full_30m_200yr.json ok 0.03
+W2 full extent run\jobs\full_30m_200yr.json ok 0.03
+W2 full extent run\jobs\full_30m_200yr_5min.json ok 0.03
+W32 combinations test\jobs\item2\frames_arm2d.json error 0.0
+W32 combinations test\jobs\item2\frames_lumped.json error 0.0
+W32 combinations test\jobs\item2\storm_arm2d.json error 0.0
+W32 combinations test\jobs\item2\storm_lumped.json error 0.0
+W32 combinations test\jobs\item3\mesh10_40.json error 0.0
+W32 combinations test\jobs\item3\mesh10_40_lts.json error 0.0
+W32 combinations test\jobs\item3\uniform10.json error 0.0
+W32 combinations test\jobs\item4\job.json error 0.02
+W32 combinations test\jobs\item5\run.json error 0.02
+W32 combinations test\jobs\item6\grid.json error 0.02
+W32 combinations test\jobs\item6\grid_embankment.json error 0.0
+W32 combinations test\jobs\item6\handback.json error 0.0
+W32 combinations test\jobs\item6\handback_below.json error 0.02
+W32 combinations test\jobs\item6b\grid.json error 0.0
+W32 combinations test\jobs\item6b\grid_embankment.json error 0.0
+W32 combinations test\jobs\item6b\handback.json error 0.02
+W33 backend parity\dock_hms_job.json error 0.0
+W35 hand-back resume rerun\jobs\item2\frames_arm2d.json error 0.03
+W35 hand-back resume rerun\jobs\item2\frames_lumped.json error 0.02
+W35 hand-back resume rerun\jobs\item2\storm_arm2d.json error 0.02
+W35 hand-back resume rerun\jobs\item2\storm_lumped.json error 0.03
+W35 hand-back resume rerun\jobs\item4\job.json error 0.02
+W39 gridded 200-yr rain test\results\hybrid_dss\job.json ok 6.84
+W39 gridded 200-yr rain test\results\hybrid_nc\job.json ok 1.12
+W39 gridded 200-yr rain test\results\pmp_full\job.json ok 0.05
+W39 gridded 200-yr rain test\results\pmp_gross\job.json ok 0.03
+W39 gridded 200-yr rain test\results\pmp_hybrid\job.json ok 0.08
+W41 hybrid design lines\jobs\dock_icons.json ok 0.08
+W41 hybrid design lines\jobs\pmp_hybrid_s13_above.json ok 0.08
+W41 hybrid design lines\jobs\w1_outlets.json ok 0.11
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_corridors.json error 0.0
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_corridors_coarse.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_corridors_fine.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_corridors_w2.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_corridors_w2_sub8.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\bidah_pmp_squares.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\corridors_coarse\config.resolved.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\corridors_fine\config.resolved.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\corridors_w2\config.resolved.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\corridors_w2_sub8\config.resolved.json ok 0.08
+W45 aligned mesh engine\race_bidah_hybrid\squares_retime\config.resolved.json ok 0.08
+W45 aligned mesh engine\suggested\bidah\suggest_job.json ok 0.08
+W49 local hydraulic radius face table\validation_reruns\block2_b20_local_radius.json ok 0.06
+W49 local hydraulic radius face table\validation_reruns\block2_b20_strips.json ok 0.06
+W79 Block 2 four ways\jobs\rerun2_run2_hms_lumped.json ok 0.2
+W79 Block 2 four ways\jobs\rerun2_run3_hybrid_aligned.json ok 0.2
+W79 Block 2 four ways\jobs\rerun2_run4_hybrid_2d_routing_aligned.json ok 0.23
+W79 Block 2 four ways\jobs\rerun_run2_hms_lumped.json ok 0.19
+W79 Block 2 four ways\jobs\rerun_run3_hybrid_aligned.json ok 0.2
+W79 Block 2 four ways\jobs\rerun_run4_hybrid_2d_routing_aligned.json ok 0.25
+W79 Block 2 four ways\jobs\run2_hms_lumped.json ok 0.19
+W79 Block 2 four ways\jobs\run3_hybrid_aligned.json ok 0.2
+W79 Block 2 four ways\jobs\run4_hybrid_2d_routing_aligned.json ok 0.19

@@ -1,0 +1,12 @@
+{
+ "Hybrid Lumped, dock way": {
+  "scenario": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\scenarios\\Hybrid Lumped, dock way.wadi2d.json",
+  "job": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\rebuilt\\hybrid_lumped_last_points\\job.json",
+  "status": "HMS project HEC_HMS_Block_02 \u00b7 104 subbasins, 26 lumped \u00b7 curve number from CN_Include_Hill_Area \u00b7 the lumped model ends at 5 dams + HAT-J4"
+ },
+ "Hybrid 2D, dock way": {
+  "scenario": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\scenarios\\Hybrid 2D, dock way.wadi2d.json",
+  "job": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-aa8a2bda888bc27c9\\W105 dams end the lumped model\\dock_data\\rebuilt\\hybrid_2d_last_points\\job.json",
+  "status": "HMS project HEC_HMS_Block_02 \u00b7 104 subbasins, 26 lumped \u00b7 curve number from CN_Include_Hill_Area \u00b7 the lumped model ends at 5 dams + HAT-J4"
+ }
+}
