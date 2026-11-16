@@ -47,6 +47,8 @@ from .job_builder import (
 from .layer_groups import SLOT_BASIN, clear_slot, find_run_results, model_name
 from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
+from .model_bar import ModelBar
+from .model_store import ModelLinks
 from .muskingum_query import MuskingumLinks
 from .network_layers import load_network
 from .preview import TerrainPreview, zoom_to
@@ -191,9 +193,11 @@ class Wadi2DDock(QgsDockWidget):
         top = QHBoxLayout()
         top.addWidget(self.engine_label, 1)
         top.addWidget(self.engine_button)
+        self.model_bar = ModelBar()
         body = QWidget()
         column = QVBoxLayout(body)
         column.addLayout(top)
+        column.addWidget(self.model_bar)
         for section in self.sections:
             column.addWidget(section)
         column.addStretch(1)
@@ -241,6 +245,7 @@ class Wadi2DDock(QgsDockWidget):
         self.structures.profile_button.clicked.connect(self.show_profile)
         self.editor: ProfileEditor | None = None
         self.structures.edit_requested.connect(self.edit_profile)
+        self.model = ModelLinks(self)  # the model saved with the project, in each run folder, as scenarios (W99)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -263,12 +268,32 @@ class Wadi2DDock(QgsDockWidget):
             self.engine_label.setText("Engine not found. Run install_wadi2d.bat from the release, or press Engine... to set its path.")
             QgsMessageLog.logMessage(f"wadi2d schema: exit {code}. {err}", LOG_TAG, Qgis.Warning)
             return
+        held = self.model.collect() if self.model.ready else None  # a second answer (Engine...) resets every field
         self.schema = schema
         for section in self.sections:
             section.apply_schema(schema)
         self._finest_changed()
         self.engine_label.setText("Engine ready.")
         self._set_ready(True)
+        if held is None:
+            self.model.start()
+        else:
+            self.model.apply(held)
+
+    # The saved model (W99): what the dock itself adds to the sections' states, and what follows a refill.
+
+    def model_parts(self) -> dict:
+        return {}
+
+    def set_model_parts(self, doc: dict) -> None:
+        pass
+
+    def model_applied(self) -> None:
+        self._finest_changed()
+
+    def show_run(self, folder: str) -> None:
+        """A finished run opened into the dock: its results are the ones Make map and the sliders work on."""
+        self._folder_chosen(folder)
 
     def _finest_changed(self, *_) -> None:
         """The mesh's finest cell is the Terrain section's, snapped as the job will snap it."""
@@ -473,6 +498,7 @@ class Wadi2DDock(QgsDockWidget):
         self.run = EngineRun(settings.engine_text(), self)
         self._follow(self.run)
         settings.set_last_run(str(out))
+        self.model.write_run_copy(out)
         self.run.start(job, out, self._crs, duration)
 
     def attach_if_live(self, folder: str) -> bool:
@@ -628,6 +654,7 @@ class Wadi2DDock(QgsDockWidget):
         self._safely(values, out, launch, self._study_failed, box.say)
 
     def _launch_study(self, job: Path, out: Path) -> None:
+        self.model.write_run_copy(out)
         self.study_run = StudyRun(settings.engine_text(), self)
         self.study_run.updated.connect(self.study.show_state)
         self.study_run.ended.connect(self._study_ended)
@@ -953,6 +980,7 @@ class Wadi2DDock(QgsDockWidget):
 
     def release(self) -> None:
         """Leave a running engine alone: QGIS is closing or the plugin is being reloaded."""
+        self.model.release()
         if self.run is not None:
             self.run.release()
             self.run = None
