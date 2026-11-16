@@ -127,8 +127,8 @@ def apply_type(values: dict, kind: str | None) -> dict:
         return values
     out = {**values, "model_type": kind}
     if kind == TWO_D:
-        for key in ("hms", "basin", "lumped_entry", "lumped_only", "arf_by_element", "muskingum"):
-            out.pop(key, None)
+        for key in ("hms", "basin", "lumped_entry", "lumped_only", "arf_by_element", "muskingum", "inflows", "entry_problems"):
+            out.pop(key, None)  # the point inflows of lumped elements too (W103): no lumped element is left
         out["handbacks"] = []
         out["exclude_lumped"] = False
         return out

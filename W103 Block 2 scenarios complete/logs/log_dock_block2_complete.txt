@@ -1,0 +1,76 @@
+    0.0 script loaded
+    4.0 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa47a89265c3edf0b\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.3 === 2D: rerun2_run1_full_2d_aligned
+    6.8 PASS 2D: imported The job rerun2_run1_full_2d_aligned.json is in the dock. On the way: layer "GGC_2_MERGE_HDSM" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM.tif; layer "domain_no_rim" added to the project from D:\Moj
+    6.8 PASS 2D: its 0 point inflows held by element []
+    7.1 2D: hydrology reads: Curve number from CN_Include_Hill_Area
+    7.1 PASS 2D: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\2D.wadi2d.json
+    7.3 PASS the dock writes its job into rerun2_run1_full_2d_aligned 
+    7.9 2D: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+    7.9 PASS 2D: the job is the original but for {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']} {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}
+    7.9 PASS 2D: the dock's own comparison agrees ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']})
+    7.9 === Lumped: rerun2_run2_hms_lumped
+    8.8 PASS Lumped: imported The job rerun2_run2_hms_lumped.json is in the dock. On the way: layer "boundaries" added to the project from D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\rerun2_run2_hms_lumped_imported_inputs.gpkg. Could not be restored: 3. Hydrology, the meteor
+    8.8 PASS Lumped: each subbasin's own storm area held (0) (0, 0)
+    8.8 PASS Lumped: the outlets the job took away held (0) (0, 0)
+    8.8 PASS Lumped: the columns shown on the HMS project 
+    8.8 PASS Lumped: its 0 point inflows held by element []
+   10.5 Lumped: hydrology reads: HMS project HEC_HMS_Block_02 · 104 subbasins, 104 lumped · curve number from CN_Include_Hill_Area · 104 entries set by subbasin
+   10.5 PASS Lumped: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\Lumped.wadi2d.json
+   11.9 PASS the dock writes its job into rerun2_run2_hms_lumped 
+   12.0 Lumped: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s", "run.lumped_only"]}
+   12.0 PASS Lumped: the job is the original but for {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']} {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']}
+   12.0 PASS Lumped: the dock's own comparison agrees ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']})
+   12.0 === Hybrid Lumped: rerun2_run3_hybrid_aligned
+   13.2 PASS Hybrid Lumped: imported The job rerun2_run3_hybrid_aligned.json is in the dock. On the way: layer "boundaries" added to the project from D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\rerun2_run3_hybrid_aligned_imported_inputs.gpkg; layer "design_lines" added to the proje
+   13.2 PASS Hybrid Lumped: each subbasin's own storm area held (26) (26, 26)
+   13.2 PASS Hybrid Lumped: the outlets the job took away held (104) (104, 104)
+   13.2 PASS Hybrid Lumped: the columns shown on the HMS project 
+   13.2 PASS Hybrid Lumped: its 6 point inflows held by element [('Bidah 03 outflow', 'Bidah 03 Reservoir', 438748.489737834, 2727147.89346337, 'point', True), ('Faydh 01 outflow', 'Faydh 01 Reservoir', 431278.489737834, 2733422.89346337, 'point', True), ('R5A outflow', 'R5A Reservoir', 439243.489737834, 2721077.89346337, 
+   14.6 Hybrid Lumped: hydrology reads: HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · 26 at a storm area of their own · 104 entries set by subbasin · 6 point inflows
+   14.6 PASS Hybrid Lumped: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\Hybrid Lumped.wadi2d.json
+   16.1 PASS the dock writes its job into rerun2_run3_hybrid_aligned 
+   16.2 Hybrid Lumped: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+   16.2 PASS Hybrid Lumped: the job is the original but for {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']} {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}
+   16.2 PASS Hybrid Lumped: the dock's own comparison agrees ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']})
+   16.2 === Hybrid 2D: rerun2_run4_hybrid_2d_routing_aligned
+   17.4 PASS Hybrid 2D: imported The job rerun2_run4_hybrid_2d_routing_aligned.json is in the dock. On the way: layer "crest_line" added to the project from D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\rerun2_run4_hybrid_2d_routing_aligned_imported_inputs.gpkg; layer "spillway" 
+   17.4 PASS Hybrid 2D: each subbasin's own storm area held (26) (26, 26)
+   17.4 PASS Hybrid 2D: the outlets the job took away held (78) (78, 78)
+   17.4 PASS Hybrid 2D: the columns shown on the HMS project 
+   17.4 PASS Hybrid 2D: its 0 point inflows held by element []
+   18.9 Hybrid 2D: hydrology reads: HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · 26 at a storm area of their own · 104 entries set by subbasin
+   18.9 PASS Hybrid 2D: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\Hybrid 2D.wadi2d.json
+   20.4 PASS the dock writes its job into rerun2_run4_hybrid_2d_routing_aligned 
+   20.5 Hybrid 2D: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+   20.5 PASS Hybrid 2D: the job is the original but for {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']} {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}
+   20.5 PASS Hybrid 2D: the dock's own comparison agrees ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']})
+   20.5 === the new controls, on Hybrid Lumped
+   22.3 PASS the dock writes its job into opened_again 
+   22.3 PASS a scenario opened again writes the same hydrology 
+   22.3 PASS the status line counts what is set HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · 26 at a storm area of their own · 104 entries set by subbasin · 6 point inflows
+   22.3 PASS an outlet that is no point is Missing, in words Subbasin S13: the outlet "below the dam" is not a point. Give x, y in the DEM's coordinates, "none" for no outlet of its own (an inflow below it carries its water), or leave it empty for the basin's.
+   22.4 PASS and Run refuses it in the same words ['Subbasin S13: the outlet "below the dam" is not a point. Give x, y in the DEM\'s coordinates, "none" for no outlet of its own (an inflow below it carries its water), or leave it empty for the basin\'s.']
+   22.4 PASS written back, it is Ready again HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · 26 at a storm area of their own · 104 entries set by subbasin · 6 point inflows
+   22.4 PASS S13 reads Bidah 03's 20.97 km2 20.97
+   22.5 PASS Click on the map takes the canvas 
+   22.5 PASS a click adds a row at its point in the DEM's coordinates ('Inflow 7', 'J1', 438700.0, 2727100.0, 'point', True)
+   22.5 PASS and gives the tool back 
+   22.5 PASS Remove row takes it out 6
+   22.6 PASS a 2D model carries no point inflow and no edit 
+   22.6 === the dock's own way
+   23.3 PASS Hybrid Lumped, dock way: the lumped part a curve, the 2D part at 100 km2 {'lumped': {'form': 'curve', 'curve': 'Area reduction', 'area_km2': 100.0, 'coefficient': 1.0, 'single_km2': 0.0}, 'grid': {'form': 'area', 'curve': 'Area reduction', 'area_km2': 100.0, 'coefficient': 1.0, 'single_km2': 0.0}, 'lumped_absent': False, 'grid_abse
+   23.3 PASS Hybrid Lumped, dock way: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\Hybrid Lumped, dock way.wadi2d.json
+   24.6 PASS the dock writes its job into hybrid_lumped_dock_way 
+   24.6 PASS Hybrid Lumped, dock way: the job reads the lumped curve at the entries {'lumped': {'form': 'curve', 'curve': 'Area reduction'}, 'grid': {'form': 'area', 'curve': 'Area reduction', 'area_km2': 100.0}}
+   24.6 PASS Hybrid Lumped, dock way: no own storm area and no hand-placed inflow 
+   24.6 PASS Hybrid Lumped, dock way: the lumped water kept on the network 
+   25.2 PASS Hybrid 2D, dock way: the lumped part a curve, the 2D part at 100 km2 {'lumped': {'form': 'curve', 'curve': 'Area reduction', 'area_km2': 100.0, 'coefficient': 1.0, 'single_km2': 0.0}, 'grid': {'form': 'area', 'curve': 'Area reduction', 'area_km2': 100.0, 'coefficient': 1.0, 'single_km2': 0.0}, 'lumped_absent': False, 'grid_abse
+   25.2 PASS Hybrid 2D, dock way: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W103 Block 2 scenarios complete\scenarios\Hybrid 2D, dock way.wadi2d.json
+   26.7 PASS the dock writes its job into hybrid_2d_dock_way 
+   26.8 PASS Hybrid 2D, dock way: the job reads the lumped curve at the entries {'lumped': {'form': 'curve', 'curve': 'Area reduction'}, 'grid': {'form': 'area', 'curve': 'Area reduction', 'area_km2': 100.0}}
+   26.8 PASS Hybrid 2D, dock way: no own storm area and no hand-placed inflow 
+   26.8 PASS the report written 
+   26.8 SUMMARY 59 passed, 0 failed 
+   26.8 DONE

@@ -191,7 +191,7 @@ def test_runs_three_fields_move_to_simulation_as_they_are() -> None:
         and "start" not in widgets["gauges"]
     )
     assert words == []  # nothing of the job changed: nothing to say
-    assert model_doc.loads(json.dumps(old_doc("single")))["version"] == model_doc.VERSION == 4  # W101: format 4
+    assert model_doc.loads(json.dumps(old_doc("single")))["version"] == model_doc.VERSION == 5  # W103: format 5
 
 
 @pytest.mark.parametrize(

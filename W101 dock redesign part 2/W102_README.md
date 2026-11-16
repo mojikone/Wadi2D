@@ -1,5 +1,7 @@
 # W102 Block 2 models in the dock
 
+**Superseded for the two Hybrids (2026-11-16): the Hybrid Lumped and Hybrid 2D scenarios here are not W79's runs 3 and 4; use `W103 Block 2 scenarios complete`, where the dock holds each subbasin's storm area, entry and outlet and the six point inflows.**
+
 **Live (2026-11-16).** The four Block 2 jobs of W79 (`W79 Block 2 four ways/jobs/rerun2_run*.json`), which the dock did
 not write, imported into the dock of branch `feature/dock-redesign-2` (W101) with its new Import a job, and saved as
 four scenarios. Made in a throwaway QGIS 3.44.8 by `W101 dock redesign part 2/dock_import_block2.py` (46 of 46

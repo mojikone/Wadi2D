@@ -1,0 +1,49 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base_b126c09\plugin\wadi2d_qgis\__init__.py
+    5.3 PASS engine found Engine ready.
+    5.5 PASS the Bidah job has two outlets 2
+    5.5 === 1 a layer with no fields fills the table
+    5.6 PASS the layer has no kind or value []
+    5.6 PASS no layer, no rows 0
+    5.6 PASS one row per line 3
+    5.6 PASS rows are numbered 
+    5.6 PASS the name is not editable 
+    5.6 === 2 Kind and Value set every line
+    5.6 PASS all rows follow the kind 
+    5.6 PASS all rows follow the value 
+    5.6 === 3 each line its own
+    5.6 PASS value filled by kind 0.0
+    5.6 PASS stage takes any level (-1000000000000.0, 1000000000000.0)
+    5.6 PASS free has no value 
+    5.6 PASS normal keeps the schema's bounds (1e-05, 0.5)
+    5.6 PASS an untouched row still follows 0.02
+    5.6 PASS an edited row stays 2.5
+    5.8 === 4 it reaches the engine
+    5.8 dock says: Starting...
+    8.8 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    9.9 dock says: 39 more places with deep water against the domain edge: see edge_checks.gpkg
+   10.2 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   10.2 PASS three lines in the job 3
+   10.2 PASS line 1 is a stage {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5}
+   10.2 PASS line 2 is normal {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [438800.0, 2728690.0]], 'slope': 0.02}
+   10.2 PASS line 3 is free {'kind': 'free', 'coordinates': [[438800.0, 2728690.0], [440300.0, 2728690.0]]}
+   10.2 PASS the engine took them {'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6, 'name': None, 'flow': None}
+   10.2 PASS mass closes -2.5287116160311103e-09
+   10.2 === 5 the field route stays
+   10.2 PASS rows of the new layer 2
+   10.2 PASS fields fill the table 
+   10.2 PASS fields outrank Kind 
+   10.3 dock says: Starting...
+   11.8 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   12.3 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   13.4 PASS the field reaches the job {'kind': 'normal', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'slope': 0.01}
+   13.4 PASS an edit outranks the field {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'slope': 0.03}
+   13.4 === 6 the table keeps up with the layer
+   13.4 PASS a drawn layer has a row 1
+   13.5 PASS a new line appears 2
+   13.5 PASS the edit survives 0.04
+   13.5 PASS no layer, no rows again 
+   13.5 PASS back to the layer, rows afresh 
+   13.5 PASS the old layer is let go 
+   13.5 SUMMARY 34 passed, 0 failed 
+   13.5 DONE

@@ -20,8 +20,9 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 4
-"""4 (W101, his item 7): the one depth threshold for the maps is the model's (Run). 3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
+VERSION = 5
+"""5 (W103): Hydrology holds each subbasin's own storm area, entry and outlet and the point inflows of lumped elements.
+4 (W101, his item 7): the one depth threshold for the maps is the model's (Run). 3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
 depth and a pattern. 2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved
 maps and the engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
 MIGRATED = "migrated"
@@ -194,7 +195,17 @@ def _to_4(doc: dict) -> dict:
     return doc
 
 
-MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4}
+def _to_5(doc: dict) -> dict:
+    """Format 4 to 5 (W103): each subbasin's own storm area, entry and outlet, and the point inflows of lumped
+    elements. A model from before holds none of them: no edit and no inflow, so its job is the job it was, and nothing
+    is said."""
+    hydrology = doc["sections"].setdefault("hydrology", {})
+    hydrology.setdefault("widgets", {}).setdefault("inflows", [])
+    hydrology.setdefault("extra", {}).setdefault("edits", {})
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4, 4: _to_5}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

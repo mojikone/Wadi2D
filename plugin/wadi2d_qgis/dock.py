@@ -34,6 +34,7 @@ from .domain_links import DomainLinks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .gauge_rows import joined_gauges
+from .inflow_points import InflowPointLinks
 from .job_builder import (
     LayerError,
     SchemaView,
@@ -288,6 +289,7 @@ class Wadi2DDock(QgsDockWidget):
         self.reduction.set_source(self.storm.kind.currentData())
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self.basin_points = BasinPointsLinks(self)  # the Basin points layer and its clicks (W73)
+        self.inflow_points = InflowPointLinks(self)  # the point inflows table's clicks (W103)
         self._basin_query: EngineQuery | None = None
         self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)

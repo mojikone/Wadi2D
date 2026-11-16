@@ -220,6 +220,27 @@ def reduction_job(reduction: dict, storm_kind: str, curves: dict, study: bool = 
     return ({"area_reduction": parts} if parts else {}), used
 
 
+OBSERVED, SPLIT = "observed", "split"
+
+
+def lumped_form(reduction: dict | None, storm_kind: str | None) -> str:
+    """What a lumped subbasin's own storm area meets in a single run's job (W103): ``curve`` (a lumped curve), ``area``
+    (one curve read at one storm area for every part, the single-storm form), :data:`OBSERVED` (a rain that takes no
+    reduction), :data:`SPLIT` (a lumped part at one area beside another reduction, ``storm.area_reduction``), or the
+    form itself. The engine reads an own storm area only on a lumped curve or the single-storm form."""
+    if storm_kind not in REDUCED_KINDS:
+        return OBSERVED
+    if reduction is None:
+        return NONE
+    legacy = _legacy(reduction, storm_kind, False)
+    if legacy is not None:
+        return legacy[0]
+    entry = None if reduction.get(f"{LUMPED}_absent") else _effective(reduction.get(LUMPED), False)
+    if entry is None:
+        return NONE
+    return CURVE if entry["form"] == CURVE else SPLIT if entry["form"] == AREA else entry["form"]
+
+
 def curves_read(reduction: dict, storm_kind: str | None, study: bool = False) -> set[str]:
     """The stored curves a run of this storm reads, by name, whatever form the job holds them in."""
     if storm_kind not in REDUCED_KINDS:

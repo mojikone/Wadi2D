@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 import pytest
-from wadi2d_qgis import job_builder
+from wadi2d_qgis import entry_rows, job_builder
 from wadi2d_qgis.job_builder import Feature, SchemaView, basin_job, build_job, merge_hms, preview_job
 from wadi2d_qgis.sections import basin_rows
 from wadi2d_qgis.shaped import END_KEYS, LINING, OBJECT_PATH, SECTION_PATH, SHAPE_KEYS, SHAPED_KINDS
@@ -65,6 +65,12 @@ PATHS = (
     basin_rows.TRANSMISSION_RATE,
     *(SECTION_PATH + key for key in SHAPE_KEYS),
     *(OBJECT_PATH + key for key in (*END_KEYS, LINING)),
+    entry_rows.STORM_AREA,
+    entry_rows.SUBBASIN_ENTRY,
+    entry_rows.SUBBASIN_OUTLET,
+    entry_rows.INFLOW_ELEMENT,
+    entry_rows.INFLOW_ENTRY,
+    entry_rows.INFLOW_ENTERS,
 )
 
 
@@ -76,6 +82,15 @@ def real() -> SchemaView:
 @pytest.mark.parametrize("path", PATHS)
 def test_every_path_the_dock_binds_exists_in_the_engine(real: SchemaView, path: str) -> None:
     assert real.has(path)
+
+
+def test_the_entry_rules_the_dock_offers_are_the_engines_and_point_is_its_default(real: SchemaView) -> None:
+    """W103: a job read back pins an entry the job leaves out at the engine's default."""
+    for path in (entry_rows.SUBBASIN_ENTRY, entry_rows.INFLOW_ENTRY):
+        assert real.default(path) == entry_rows.ENTRY_POINT
+        assert set(real.enum(path)) == {entry_rows.ENTRY_POINT, entry_rows.ENTRY_WADI}
+    assert set(entry_rows.ENTRY_WORDS) - {None} == set(entry_rows.INFLOW_ENTRY_WORDS) == set(real.enum(entry_rows.SUBBASIN_ENTRY))
+    assert real.default(entry_rows.INFLOW_ENTERS) is True
 
 
 def test_every_reach_routing_scheme_of_the_engine_has_words_in_the_dock(real: SchemaView) -> None:
