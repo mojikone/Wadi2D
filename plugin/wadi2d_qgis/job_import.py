@@ -102,6 +102,12 @@ def inline_layers(job: dict) -> dict:
         layers["design_lines"] = {"geometry": "LineString", "fields": {"name": str, "drainage_area_km2": float}, "features": design_lines}
     if design_points:
         layers["design_points"] = {"geometry": "Point", "fields": {"name": str}, "features": design_points}
+    points = job.get("initial_points") or []
+    if points:
+        layers["initial_points"] = {
+            "geometry": "Point", "fields": {"name": str, "level": float},
+            "features": [([p["x"], p["y"]], {"name": p.get("name"), "level": p.get("level")}) for p in points],
+        }  # fmt: skip
     ponds = [lv for lv in job.get("initial_levels") or [] if lv.get("coordinates")]
     if ponds:
         layers["initial_water"] = {

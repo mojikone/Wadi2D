@@ -296,6 +296,9 @@ def problems(values: dict) -> list[str]:
     dams = [row.name for row in values.get("dam_rows") or []]
     found.extend(breach_problems(values.get("breach_rows") or [], dams, values))
     found.extend(initial_problems(values.get("initial_water") or []))
+    unlevelled = [p["name"] for p in values.get("initial_points") or [] if not isinstance(p.get("level"), (int, float))]
+    if unlevelled:
+        found.append(f"Initial level points need a level: choose the field that holds it ({', '.join(unlevelled)}).")
     found.extend(boundary_problems(values))
     found.extend(type_problems(values))
     found.extend(simulation_problems(values))
@@ -559,7 +562,12 @@ def _boundary(feature: Feature) -> dict:
     elif kind == "normal" and value is not None:
         entry["slope"] = value
     elif kind == "flow":  # HEC-RAS's Flow Hydrograph line: the engine shares it by normal depth (W61)
-        entry["flow"] = {"file": feature.properties.get("file")}
+        if feature.properties.get("flows"):  # typed at a step in the dock (W101 item 3)
+            entry["flow"] = {"step_s": feature.properties["step_s"], "flows": list(feature.properties["flows"])}
+        else:
+            entry["flow"] = {"file": feature.properties.get("file")}
+        if feature.properties.get("slope") is not None:
+            entry["flow"]["slope"] = feature.properties["slope"]
         for key in ("momentum", "direction"):  # W70's two, written only where the table moved them off the default
             if feature.properties.get(key) is not None:
                 entry["flow"][key] = feature.properties[key]
@@ -570,10 +578,18 @@ def boundary_problems(values: dict) -> list[str]:
     """A flow line with no hydrograph file stops the run."""
     lines = values.get("boundaries") or []
     kinds = [getattr(f, "properties", {}) for f in lines]
-    missing = [n for n, p in enumerate(kinds, start=1) if p.get("kind") == "flow" and not p.get("file")]
+    missing = [n for n, p in enumerate(kinds, start=1) if p.get("kind") == "flow" and not p.get("file") and not p.get("flows")]
+    found = [
+        f"Boundary line {n}: a typed hydrograph needs a step above zero and two flows at least, none below zero."
+        for n, p in enumerate(kinds, start=1)
+        if p.get("flows") is not None and (len(p["flows"]) < 2 or p.get("step_s", 0.0) <= 0.0 or min(p["flows"]) < 0.0)
+    ]
     if not missing:
-        return []
-    return [f"Boundary line {', '.join(map(str, missing))}: a flow line needs its hydrograph file (CSV or DSS) in the table."]
+        return found
+    return found + [
+        f"Boundary line {', '.join(map(str, missing))}: a flow line needs its hydrograph, a file (CSV or DSS) or a table "
+        "typed at a step, in the table."
+    ]
 
 
 def _design_outputs(features: list[Feature]) -> dict:
@@ -671,6 +687,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["dam_levels"] = values["dam_levels"]
     if values.get("breach_rows"):
         job["breaches"] = breach_jobs(values["breach_rows"])
+    if values.get("initial_points"):  # W101 item 3: levels from points (W96)
+        job["initial_points"] = [dict(point) for point in values["initial_points"]]
     if values.get("initial_water"):
         write_geojson(inputs / "initial_water.geojson", values["initial_water"], crs)
         job["initial_levels"] = initial_water(values["initial_water"])

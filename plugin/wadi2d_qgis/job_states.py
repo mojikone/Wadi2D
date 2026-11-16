@@ -276,6 +276,9 @@ def _structures(job: dict, inputs_dir: Path, gpkg=None, inline: dict | None = No
         widgets["start_water.ponds"], widgets["start_water.pond_level"] = layer(ponds), "level"
     elif _inline(gpkg, inline, "initial_water") is not None:
         widgets["start_water.ponds"], widgets["start_water.pond_level"] = _inline(gpkg, inline, "initial_water"), "level"
+    if _inline(gpkg, inline, "initial_points") is not None:  # W101 item 3
+        widgets["start_water.points"] = _inline(gpkg, inline, "initial_points")
+        widgets["start_water.point_level"], widgets["start_water.point_name"] = "level", "name"
     widgets["terrain_map"] = bool(job.get("outputs", {}).get("terrain_map"))
     dams = []
     for entry in job.get("dam_levels") or []:
@@ -392,6 +395,27 @@ def _simulation(job: dict) -> dict:
     return widgets
 
 
+def _boundary_rows(job: dict) -> list[dict]:
+    """The table's rows of a job's boundary lines, by their place in the layer the dock writes (fid 1, 2, ...): what a
+    layer's fields cannot hold, a flow line's typed hydrograph and its slope (W101 item 3)."""
+    rows = []
+    for number, line in enumerate(job.get("boundaries") or [], start=1):
+        kind = line.get("kind")
+        flow = line.get("flow") or {}
+        value = line.get("stage") if kind == "stage" else line.get("slope") if kind == "normal" else None
+        row = {"fid": number, "label": f"Line {number}", "kind": kind, "value": value, "kind_pinned": True,
+               "value_pinned": value is not None, "file": flow.get("file")}  # fmt: skip
+        if flow.get("flows") is not None and flow.get("step_s"):
+            row.update(typed=True, step_min=flow["step_s"] / 60.0, flows=list(flow["flows"]))
+        if flow.get("slope") is not None and flow.get("slope") != 0.005:
+            row["slope"] = flow["slope"]
+        for key in ("momentum", "direction"):
+            if flow.get(key) is not None:
+                row[key] = flow[key]
+        rows.append(row)
+    return rows
+
+
 def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None) -> dict:
     """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``. A job written
     elsewhere holds its lines and polygons inline: with ``gpkg``, the GeoPackage :func:`job_import.inline_layers` was
@@ -458,7 +482,8 @@ def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None
         "structures": _structures(job, inputs_dir, gpkg, inline),
         "boundaries": {
             "widgets": {"layer": layer(edges)} if edges.is_file()
-            else ({"layer": _inline(gpkg, inline, "boundaries")} if "boundaries" in inline else {})
+            else ({"layer": _inline(gpkg, inline, "boundaries")} if "boundaries" in inline else {}),
+            "rows": {"": _boundary_rows(job)} if not edges.is_file() and "boundaries" in inline else {},
         },
         "points": {"widgets": points},
         "simulation": {"widgets": _simulation(job)},

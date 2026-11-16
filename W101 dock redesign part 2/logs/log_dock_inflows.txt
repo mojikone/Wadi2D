@@ -1,0 +1,27 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 the hydrograph of the flow line, typed
+    5.2 PASS the box shows the flow line chosen 
+    5.2 PASS and hides for a normal-depth line 
+    5.2 PASS a file route first: missing in words 
+    5.2 PASS the row holds the table Row(fid=2, label='Inflow at the dam', kind='flow', value=None, kind_pinned=True, value_pinned=False, file=None, momentum=True, direction='auto', typed=True, step_min=15.0, flows=[0.0, 50.0, 20.0, 0.0], slope=0.01)
+    5.2 PASS its chart: four flows, a quarter-hour apart ([0.0, 0.25, 0.5, 0.75], [0.0, 50.0, 20.0, 0.0])
+    5.2 PASS the card ready, in words Status(state='ready', words='3 lines · 2 normal, 1 flow')
+    5.2 PASS the job carries HEC-RAS's table {'step_s': 900.0, 'flows': [0.0, 50.0, 20.0, 0.0], 'slope': 0.01}
+    5.6 PASS the engine's schema takes it 
+    5.6 PASS one flow is refused in words 
+    5.9 === 2 initial-level points
+    6.0 PASS the job's initial points [{'name': 'a point', 'x': 435442.99487, 'y': 2725600.19673, 'level': 999.0}]
+    6.0 PASS no level field: refused in words 
+    6.0 === 3 saved and brought back
+    6.1 PASS the same job after the round trip 
+    6.1 PASS the typed rows came back 
+    6.1 === 4 a real run with the typed inflow
+    6.2 dock says: Starting...
+    8.2 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   24.9 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   24.9 PASS the engine read the table 
+   24.9 done event: {"ev": "done", "status": "finished", "code": 0, "partial": false, "t": 2700.0, "duration_s": 2700.0, "steps": 1261, "loop_s": 16.03, "tables_s": 0.86, "wet_area_km2": 0.4293, "dt_min": 1.8038936735927884, "balance": {"rain_m3": 142974.00158953678, "inflow_m3": 62999.999962585665, "outflow_m3": 19527.883635625192, "storage_start_m3": 0.0, "storage_end_m3": 186446.11775476273, "error_m3": 0.00016173
+   24.9 SUMMARY 17 passed, 0 failed 
+   24.9 DONE

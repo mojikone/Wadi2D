@@ -28,6 +28,10 @@ NAME_FIELDS = ("name", "Name", "NAME")
 DAM_KINDS = ("crest_line", "embankment")
 SHOWN_ROWS = 5
 LEVEL_DECIMALS = 2
+POINTS_TIP = (
+    "A level from a point: the cells under the level joined to the point's cell start full, as a dam's start fills its "
+    "pool (W96); a point offshore fills the sea. Square cells only: the quadtree and the aligned cells refuse it"
+)
 UNSET = -1.0e4
 """The level box's floor: shown as "not set"."""
 
@@ -52,10 +56,17 @@ class StartWater(QWidget):
         self.table.setToolTip("Each named crest line or embankment. A lumped reservoir of the same name takes the start; else the pool behind the line on the grid.")
         self.ponds = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "None")
         self.pond_level = field_combo(self.ponds)
+        self.points = layer_combo(QgsMapLayerProxyModel.PointLayer, "None")  # W101 item 3: initial_points (W96)
+        self.point_level = field_combo(self.points)
+        self.point_name = field_combo(self.points)
+        self.points.setToolTip(POINTS_TIP)
         form.addRow(self.note)
         form.addRow("Dam start levels", self.table)
         form.addRow("Initial water, polygons", self.ponds)
         form.addRow("Water level field", self.pond_level)
+        form.addRow("Initial levels, points", self.points)
+        form.addRow("Level field", self.point_level)
+        form.addRow("Name field", self.point_name)
         for picker in self.pickers.values():
             picker.layerChanged.connect(self._layers_changed)
         self._layers_changed()
@@ -119,4 +130,15 @@ class StartWater(QWidget):
         ponds = []
         if layer is not None:
             ponds = layer_features(layer, crs, {"level": self.pond_level.currentField()})
-        return {"dam_rows": list(self.rows), "dam_levels": dam_levels(self.rows), "initial_water": ponds}
+        points = []
+        layer = self.points.currentLayer()
+        if layer is not None:
+            fields = {"level": self.point_level.currentField(), "name": self.point_name.currentField()}
+            for number, feature in enumerate(layer_features(layer, crs, fields), start=1):
+                x, y = feature.coordinates[:2]
+                points.append({"name": str(feature.properties.get("name") or f"Initial point {number}"), "x": x, "y": y,
+                               "level": feature.properties.get("level")})  # fmt: skip
+        return {
+            "dam_rows": list(self.rows), "dam_levels": dam_levels(self.rows), "initial_water": ponds,
+            "initial_points": points,
+        }  # fmt: skip
