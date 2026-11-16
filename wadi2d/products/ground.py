@@ -35,6 +35,9 @@ READ_WORKERS = max(1, (os.cpu_count() or 2) // 2)
 STRIPS_AHEAD = 4
 """Strips of tiles whose kept cells are with the reading threads at once. One strip has some forty tiles with cells
 kept, of uneven work, and its slowest (a hole to fill) held the other threads idle for half the stage (W84)."""
+WHOLE_READS = 2
+"""Strips of tiles read whole at once when terrain objects edit them (W93): each holds its whole window, up to a
+GB on Block 2, so more of them would buy little time for the memory."""
 READ_CACHE_MB = 256
 """GDAL's block cache while they read. Each block is read about once, so a large cache holds nothing worth keeping,
 and closing the handles freed it at 1.2 s a handle: 21 s of Block 2's 32 s (W50)."""
@@ -161,13 +164,14 @@ class CellReader:
             part = out[lo - a : hi - a]
             _whole_strip(bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
 
+        wholes = ThreadPoolExecutor(WHOLE_READS if self.beds.workers > 1 else 1)
         try:
             picked = {
                 s: ahead.submit(self.beds.pick, rows[lo:hi], cols[lo:hi], k, datum, out[lo - a : hi - a], self.spans[s])
                 for s, (lo, hi) in runs.items()
                 if self.edit is None and lo < hi
             }
-            edited = {s: ahead.submit(whole, s, lo, hi) for s, (lo, hi) in runs.items() if self.edit is not None and lo < hi}
+            edited = {s: wholes.submit(whole, s, lo, hi) for s, (lo, hi) in runs.items() if self.edit is not None and lo < hi}
             for s, (lo, hi) in runs.items():
                 if tick is not None:
                     tick(s, self.strips)
@@ -182,6 +186,7 @@ class CellReader:
                 _whole_strip(self.bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
         finally:
             ahead.shutdown(wait=True, cancel_futures=True)  # a stop waits for the strips in hand, not for all
+            wholes.shutdown(wait=True, cancel_futures=True)
 
     def read(self, a: int, b: int) -> np.ndarray:
         """The ground of kept cells ``[a, b)``, (cells, k * k), float32 over the datum."""
