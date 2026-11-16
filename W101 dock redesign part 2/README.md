@@ -1,4 +1,4 @@
-# W101 dock redesign part 2
+﻿# W101 dock redesign part 2
 
 **Status (2026-11-16): branch `feature/dock-redesign-2` off `feature/fast-products` (`75be51e`); not merged, nothing
 pushed. Built item by item under a usage ceiling (96 % of his 99 % when his item 7 was added): item 1 and item 7 (the
@@ -54,11 +54,33 @@ Rerun and passing: `test_storm_rows.py` 29, `test_job_builder.py` 47, `test_stud
 `test_section_status.py` 13, `test_model_types.py` 11, `test_job_states.py` 5 (two of its checks rewritten: the old
 widget names are gone). Through the real dock: `dock_rain.py`, see the table below.
 
+## Item 7: the map controls (his, added mid-task; built)
+
+His words of 2026-11-16, applied (`sections/run.py`, `window_links.py`, `window_rows.py`, `sections/terrain.py`):
+
+1. **Map pixel** in Run, under the pixel-map tick: Automatic (empty, the engine's rule of W100) or a pixel in m
+   (`outputs.pixels.pixel_m`).
+2. **Map a window at the terrain's finest resolution**, beside the time sliders: a rectangle dragged on the map,
+   `wadi2d window` on it at the DEM's own pixel (`--pixel 0`), and its depth, speed and hazard rasters loaded into the
+   run's group under "Window at the DEM pixel, ...". Named for the terrain, not "0.5 m": the tooltip gives this DEM's
+   pixel. The run's own maps are not touched.
+3. **No choice of surface**: the dock writes none, so the pixel maps are the continuous surface (the engine's default);
+   the cell maps stay one value a cell; `corners` and `cell_fill` stay loadable in the engine for old jobs.
+4. **Depth x speed raster**, a tick, off by default (`outputs.pixels.dv_raster`).
+5. **A Lumped model's Terrain** hides the cell size, Manning and the pit fill (their values kept for the day the type
+   has a 2D part again). See Found 1: a generated basin still reads Manning for its reaches.
+
+At the defaults the job holds no `outputs.pixels` at all, so an older model writes the job it wrote. The results page
+(item 6) is not built, so the window button lives in Run beside the other map tools, which item 6 would move.
+Tests: `tests/plugin/test_map_controls.py` 4 (the job at the defaults, both settings written and taken by the
+engine's schema with the continuous surface, none without pixel maps, the window's command and folder).
+
 ## Tests through the real dock
 
 | Scenario | What it proves | Passed |
 |---|---|---|
 | `dock_rain.py` | item 1: the sections in their places; Data tables (add, the next free name, a refused table Missing in words, rename, remove, both charts); six sources, the Steady rain's mm/h giving its job; SCS sets 24 h and refuses 6 h; a pattern by name carried into the job and filled in by the engine; a depth grid; the parts by model type; one area for both parts = the old form, parts that differ = `area_reduction`; the study's single-run area; **a real run on Bidah of a depth with a pattern of Data tables and the 2D part's own reduction, the engine's factor equal to the dock's**; saved and brought back to the same job; a format 2 model's steady rain and design storm moved, in words | 54 of 54 |
+| `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched** | 23 of 23 |
 
 ## Found on the way
 

@@ -1,0 +1,34 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 === 1 the controls and the job at their defaults
+    5.4 PASS Map pixel, Automatic first Automatic
+    5.4 PASS the depth x speed raster off 
+    5.4 PASS no choice of surface is offered ['Output folder', 'Map pixel', '', '', '', 'Draw depth from', 'Map title', 'Map background', 'Choose an output folder.']
+    5.4 PASS at the defaults the job holds no pixel settings {'map_every_s': 900.0}
+    5.4 PASS the window button named for the terrain's own resolution 
+    5.4 PASS its tooltip gives this DEM's pixel Draw a rectangle on the map: the run's depth, speed and hazard in it at the DEM's own pixel, 5 m on this DEM, from the saved results; the maps of record are coarser by rule (W100). Nothing of the run is changed.
+    5.4 PASS no window before a run 
+    5.4 === 2 Lumped asks Terrain for no cell size, Manning or pit fill
+    5.4 PASS lumped: cell size, Manning, pit fill hidden 
+    5.5 PASS 2d: cell size, Manning, pit fill shown 
+    5.5 PASS None: cell size, Manning, pit fill shown 
+    5.8 === 3 a run with a pixel of 10 m and the depth x speed raster
+    6.2 PASS the job holds both, the engine takes them {'map_every_s': 900.0, 'pixels': {'pixel_m': 10.0, 'dv_raster': True}}
+    6.3 dock says: Starting...
+    8.9 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   28.0 dock says: water stood 3.0 m deep against the domain edge at (432341, 2727215), in 900 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment
+   28.5 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   28.6 PASS the maps of record at 10 m 10.0
+   28.6 PASS the depth x speed raster written 
+   28.6 PASS the window button enabled after the run 
+   28.6 === 4 a window at the terrain's finest resolution
+   28.6 dock says: Mapping the window at the DEM's pixel...
+   30.3 PASS depth, speed and hazard loaded (['Depth, m', 'Speed, m/s', 'Hazard class'], "The window is in the run's group: Depth, m, Speed, m/s, Hazard class.")
+   30.3 PASS at the DEM's own pixel [5.0, 5.0, 5.0]
+   30.3 PASS over the window drawn 435040.9897378338500857,2725195.3934633731842041 : 435845.9897378338500857,2726000.3934633731842041
+   30.3 PASS in the run's group Window at the DEM pixel, window_435043_2725200_435843_2726000_dem
+   30.3 PASS the run's own maps untouched 
+   30.3 PASS the model beside the job holds the settings 
+   30.3 SUMMARY 23 passed, 0 failed 
+   30.3 DONE

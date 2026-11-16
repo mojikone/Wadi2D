@@ -116,6 +116,8 @@ from .study_rows import (
 )
 from .time_layer import has_frames, has_results, load_frames
 from .type_links import TypeLinks
+from .window_links import WindowLinks
+from .window_rows import tip_text
 
 LOG_TAG = "Wadi2D"
 LUMPED_RUN_NOTE = (
@@ -316,6 +318,7 @@ class Wadi2DDock(QgsDockWidget):
         self.model = ModelLinks(self)  # the model saved with the project, in each run folder, as scenarios (W99)
         self.types = TypeLinks(self)  # the model type: the start page, the sections shown, the type in the job (W99)
         self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
+        self.window_links = WindowLinks(self)  # a window of a finished run at the DEM's pixel (W101, his item 7)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -381,6 +384,7 @@ class Wadi2DDock(QgsDockWidget):
         dem = self.terrain.dem_layer()
         pixel = dem.rasterUnitsPerPixelX() if dem is not None else 0.0
         self.mesh.set_finest(snap_dx(self.terrain.dx.value(), pixel))
+        self.panel.window_button.setToolTip(tip_text(pixel or None))
 
     def _set_ready(self, ready: bool) -> None:
         idle = self.run is None and self.study_run is None and self.drawing is None
@@ -625,6 +629,7 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.frames_button.setEnabled(has_frames(folder))
             self.panel.pixel_frames_button.setEnabled(has_frames(folder))
             self.panel.lines_button.setEnabled(True)
+            self.panel.window_button.setEnabled(True)
         if folder and is_lumped_run(folder) and find_run_results(folder) is None:  # the HMS way: its network is the map
             load_network(folder, Path(folder).name)
             self.panel.say(LUMPED_RUN_NOTE, "note")
@@ -896,6 +901,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.pixel_frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.lines_button.setEnabled(has_results(run.out_dir))
+        self.panel.window_button.setEnabled(has_results(run.out_dir))
         if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
             self.line_panel.open_run(run.out_dir)
         if state.succeeded:

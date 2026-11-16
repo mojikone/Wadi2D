@@ -21,6 +21,8 @@ from qgis.PyQt.QtWidgets import (
 
 from .. import section_status, settings, style
 from ..job_builder import (
+    DV_RASTER,
+    PIXEL_M,
     PIXELS_ON,
     SMOOTH_ON,
     SMOOTH_TIP,
@@ -28,6 +30,8 @@ from ..job_builder import (
 )
 from .common import Section
 
+WINDOW_WORDS = "Map a window at the terrain's finest resolution"
+"""His item 7 (W101): named for the terrain's own pixel, which differs between projects; the tooltip gives it."""
 COLOURS = {"info": "#444444", "note": "#a06000", "good": "#1a7a30", "bad": "#b00020"}
 BACKGROUNDS = (("Hillshade of the DEM", "hillshade"), ("Satellite (needs internet; check the licence)", "satellite"))
 
@@ -50,6 +54,14 @@ class RunSection(Section):
         self.smooth.setToolTip(SMOOTH_TIP)
         self._smooth_default = False
         self.pixels.toggled.connect(self._pixels_toggled)
+        self._has_maps = True
+        self.map_pixel = QDoubleSpinBox()  # his item 7 (W101): the pixel of the maps of record, empty the rule
+        self.map_pixel.setDecimals(2)
+        self.map_pixel.setRange(0.0, 1000.0)
+        self.map_pixel.setSpecialValueText("Automatic")
+        self.map_pixel.setSuffix(" m")
+        self.dv_raster = QCheckBox("Depth x speed raster")
+        self.dv_raster.setChecked(False)
         self.limiter = QCheckBox("Name the cell that sets the time step")
         self.limiter.setChecked(False)
         self._has_limiter = True
@@ -98,6 +110,8 @@ class RunSection(Section):
             "The saved frames of the last finished run drawn at the terrain pixel for what is on screen, as RAS Mapper "
             "draws them: nothing is written per frame"
         )
+        self.window_button = QPushButton(WINDOW_WORDS)
+        self.window_button.setEnabled(False)
         self.lines_button = QPushButton("Result lines")
         self.lines_button.setEnabled(False)
         self.lines_button.setToolTip("Hydrograph, depth and water surface on a line: upfront ones, or one drawn now over the saved frames")
@@ -114,6 +128,8 @@ class RunSection(Section):
             row.addWidget(button)
         self.form.addRow("Output folder", self.folder)
         self.form.addRow(self.pixels)
+        self.form.addRow("Map pixel", self.map_pixel)
+        self.form.addRow(self.dv_raster)
         self.form.addRow(self.smooth)
         self.form.addRow(self.limiter)
         self.form.addRow(buttons)
@@ -128,6 +144,7 @@ class RunSection(Section):
         self.form.addRow(self.map_button)
         self.form.addRow(self.frames_button)
         self.form.addRow(self.pixel_frames_button)
+        self.form.addRow(self.window_button)
         self.form.addRow(self.lines_button)
         self.form.addRow(self.workbook_button)
 
@@ -146,10 +163,17 @@ class RunSection(Section):
         self.limiter.setEnabled(self._has_limiter)
         self._smooth_default = bool(schema.default(SMOOTH_ON, False))
         self.smooth.setChecked(self._smooth_default)
+        self.map_pixel.setToolTip(f"{schema.tip(PIXEL_M)}. Automatic leaves it to that rule")
+        self.dv_raster.setToolTip(schema.tip(DV_RASTER))
+        self.dv_raster.setChecked(bool(schema.default(DV_RASTER, False)))
+        self._has_maps = schema.has(PIXEL_M) and schema.has(DV_RASTER)  # an engine before W100 would refuse them
+        self._pixels_toggled(self.pixels.isChecked())
 
     def _pixels_toggled(self, on: bool) -> None:
-        """The polygons and the picture are drawn from the pixel maps: none without them."""
+        """The polygons and the picture are drawn from the pixel maps: none without them; nor a pixel or a raster."""
         self.smooth.setEnabled(on and self.pixels.isEnabled())
+        for widget in (self.map_pixel, self.dv_raster):
+            widget.setEnabled(on and self.pixels.isEnabled() and self._has_maps)
 
     def _cutoff_changed(self, value: float) -> None:
         settings.set_depth_cutoff(value)
@@ -169,6 +193,8 @@ class RunSection(Section):
             "pixels": self.pixels.isChecked(),
             "smooth": self.chosen_smooth(),
             "step_limiter": self.limiter.isChecked() and self._has_limiter,
+            "map_pixel": self.map_pixel.value() if self._has_maps and self.map_pixel.value() > 0.0 else None,
+            "dv_raster": self._has_maps and self.dv_raster.isChecked(),
         }
 
     def set_running(self, running: bool) -> None:
@@ -180,9 +206,12 @@ class RunSection(Section):
             self.frames_button.setEnabled(False)
             self.pixel_frames_button.setEnabled(False)
             self.lines_button.setEnabled(False)
+            self.window_button.setEnabled(False)
         self.on_running(running)
         self.pixels.setEnabled(not running)
         self.smooth.setEnabled(not running and self.pixels.isChecked())
+        for widget in (self.map_pixel, self.dv_raster):
+            widget.setEnabled(not running and self.pixels.isChecked() and self._has_maps)
         self.limiter.setEnabled(not running and self._has_limiter)
         if running:
             self.map_button.setEnabled(False)

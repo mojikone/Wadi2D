@@ -106,6 +106,9 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+PIXEL_M = "outputs.pixels.pixel_m"
+DV_RASTER = "outputs.pixels.dv_raster"
+"""His item 7 (W101): the pixel of the maps of record and the depth x speed raster, each written only when set."""
 FILL_PITS = "terrain.fill_pits"
 EXCLUDE_LUMPED = "grid.exclude_lumped"
 """The 2D mesh leaves out the catchments the lumped network carries (W88)."""
@@ -673,6 +676,11 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["pixels"] = {"enabled": False}
     elif values.get("smooth") is not None:  # only a choice away from the engine's default
         job["outputs"]["smooth"] = {"enabled": bool(values["smooth"])}
+    if values.get("pixels") is not False:  # his item 7 (W101): only what was set: an old job stays the job it was
+        chosen = {"pixel_m": values.get("map_pixel"), "dv_raster": True if values.get("dv_raster") else None}
+        chosen = {key: value for key, value in chosen.items() if value is not None}
+        if chosen:
+            job["outputs"]["pixels"] = {**job["outputs"].get("pixels", {}), **chosen}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
     if values.get("step_limiter"):

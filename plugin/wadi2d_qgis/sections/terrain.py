@@ -9,6 +9,7 @@ from qgis.PyQt.QtWidgets import QCheckBox
 
 from .. import section_status
 from ..job_builder import DX, FILL_PITS, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
+from ..model_types import LUMPED
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
 
 
@@ -40,6 +41,17 @@ class TerrainSection(Section):
         self.fill_pits.setChecked(bool(schema.default(FILL_PITS, False)))
         self.fill_pits.setToolTip(schema.tip(FILL_PITS))
         self.fill_pits.setEnabled(schema.has(FILL_PITS))  # an engine from before W85 would refuse the field
+
+    def set_model_type(self, kind: str | None) -> None:
+        """His item 7 (W101): a Lumped model asks for no cell size, no Manning and no pit fill; the engine's lumped run
+        reads none of them. Their values stay as they were, for the day the type has a 2D part again. A basin
+        generated in Hydrology still reads Manning for its reaches (W101 README, found 1)."""
+        lumped = kind == LUMPED
+        for widget in (self.dx, self.manning, self.fill_pits):
+            widget.setVisible(not lumped)
+            label = self.form.labelForField(widget)
+            if label is not None:
+                label.setVisible(not lumped)
 
     def dem_layer(self):
         return self.dem.currentLayer()
