@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .entry_rows import edits_from_job, inflow_rows
 from .gauge_rows import RAIN
 from .job_builder import COORDINATE_DECIMALS
 from .model_doc import RASTER_PROVIDER
@@ -338,6 +339,7 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
             for key, name in chosen["files"].items():
                 widgets[f"files.{key}"] = {"data": None, "text": name}
             extra["hms_words"] = chosen["words"]
+        extra["edits"] = edits_from_job(hydrology.get("subbasins") or [])  # W103: each one as the job holds it
     elif hydrology.get("basin_json"):
         basin = job.get("basin") or {}
         widgets["basin#checked"] = True
@@ -353,6 +355,7 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     widgets["lumped_only"] = bool(run.get("lumped_only"))
     _put(widgets, "routing", choice(hydrology["reach_routing"]) if hydrology.get("reach_routing") else None)
     widgets["exclude"] = bool((job.get("grid") or {}).get("exclude_lumped"))
+    widgets["inflows"] = [list(row) for row in inflow_rows(hydrology.get("inflows") or [])]  # W103
     handbacks = inputs_dir / "handbacks.geojson"
     if handbacks.is_file():
         widgets["handbacks.layer"] = layer(handbacks)

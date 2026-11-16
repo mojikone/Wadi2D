@@ -18,12 +18,13 @@ from pathlib import Path
 from .basin_point_rows import apply_delineate, delineate_field
 from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
+from .entry_rows import apply_edits, edit_problems, inflow_jobs, inflow_problems
 from .gauge_rows import gauge_problems, observed_records, rain_storm
 from .land_rows import cn_job, cn_problems, roughness_job, roughness_problems
 from .mesh_rows import reversed_note, rounded_note
 from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
-from .reduction_rows import curves_read, reduction_job, reduction_problems
+from .reduction_rows import curves_read, lumped_form, reduction_job, reduction_problems
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .simulation_rows import LUMPED_REPLACES, simulation_problems
@@ -295,6 +296,7 @@ def problems(values: dict) -> list[str]:
         found.append("Press Generate basin first, or untick it: the run needs the generated basin.json.")
     if any(not feature.properties.get("element") for feature in values.get("handbacks") or []):
         found.append("Every hand-back line needs an element to enter: choose one in the table.")
+    found.extend(_entry_problems(values))
     found.extend(_structure_problems(values.get("structures", {})))
     found.extend(dam_problems(values.get("dam_rows") or []))
     dams = [row.name for row in values.get("dam_rows") or []]
@@ -307,6 +309,28 @@ def problems(values: dict) -> list[str]:
     found.extend(type_problems(values))
     found.extend(simulation_problems(values))
     return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
+
+
+NO_NETWORK = (
+    "Point inflows take the outflow of a lumped element: choose an HMS project or generate the basin, in Hydrology, or "
+    "remove them."
+)
+
+
+def _entry_problems(values: dict) -> list[str]:
+    """The subbasins' own storm areas, entries and outlets and the point inflows (W103), in plain words."""
+    hms = values.get("hms") or {}
+    found = list(values.get("entry_problems") or [])
+    form = None  # the HMS project's own storm carries its table
+    if values.get("storm"):  # the kind the job is written as: a depth that fits it is the design storm (_reduced)
+        kind = KIND_DESIGN if _design_table(values) is not None else values["storm"].get("kind")
+        form = lumped_form(values.get("reduction"), kind)
+    found += edit_problems(hms.get("edits"), hms.get("modes") or {}, form)
+    rows = values.get("inflows") or []
+    found += inflow_problems(rows)
+    if rows and not (values.get("hms") or values.get("basin")):
+        found.append(NO_NETWORK)
+    return found
 
 
 def _uses_gauges(values: dict) -> bool:
@@ -662,6 +686,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             job["hydrology"]["arf_by_element"] = True
     if values.get("curve_number"):
         job["hydrology"]["curve_number"] = values["curve_number"]
+    if values.get("inflows"):  # W103: the point inflows of lumped elements, only when there are rows
+        job["hydrology"]["inflows"] = inflow_jobs(values["inflows"])
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
     if values.get("reach_routing") == "muskingum" and values.get("muskingum"):  # the reach table's rows (W89)
@@ -855,7 +881,7 @@ def merge_hms(job: dict, imported: dict, hms: dict) -> dict:
     """The hydrology and storm of an imported HMS project, inside the job the dock built.
 
     The import owns the network and the simulated time, and the storm unless the dock's Storm section replaced it.
-    The dock owns the mode of each subbasin.
+    The dock owns the mode of each subbasin, and what it sets of each one's storm area, entry and outlet (W103).
     """
     merged = {**job}
     for key in ("storm", "arf"):
@@ -874,6 +900,8 @@ def merge_hms(job: dict, imported: dict, hms: dict) -> dict:
     hydrology["subbasins"] = [
         {**known.get(name, {}), "name": name, "mode": mode} for name, mode in modes.items()
     ] or list(known.values())
+    if hms.get("edits"):  # only what was set: a model with none writes the job it wrote
+        hydrology["subbasins"] = apply_edits(hydrology["subbasins"], hms["edits"])
     merged["hydrology"] = hydrology
     return merged
 

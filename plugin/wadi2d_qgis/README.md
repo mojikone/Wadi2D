@@ -48,7 +48,12 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    elevation, so no field is needed, and a crest face passes at most critical flow. The thalwegs come beneath it as a
    read-only reference. The file sits beside the run folder. Needs `whitebox`, like the mesh.
 3. **Hydrology.** An HMS project folder, if there is one: choose the basin, met and control files and set each subbasin to
-   lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`.
+   lumped or 2d. The network and the simulated time then come from the project through `wadi2d hms-import`. On an HMS
+   project the same table takes each subbasin's own storm area (the area its rain reads the area-reduction curve at, as
+   HMS's depth-area analysis at a dam), its entry (the wadi outlet of its polygon, or its outlet point) and its outlet
+   (x, y, or `none` for a subbasin whose water an inflow below it carries), each written into the job only when set.
+   **Point inflows of lumped elements**, a table of name, element, x, y, entry and whether the water enters the grid,
+   put a dam's, a junction's or a reach's outflow into the grid at a point; Click on the map adds a row (W103).
    Or tick **Generate the basin from the DEM**: a stream threshold, pour points (the dams and the design lines are pour points
    by themselves), the lag method, and Generate runs `wadi2d basin` on the terrain of section 1 and the dams of section 5,
    keeps `basin.json` and `basin.gpkg` in `wadi2d_basin` under the output folder, and loads the subbasins, reaches and

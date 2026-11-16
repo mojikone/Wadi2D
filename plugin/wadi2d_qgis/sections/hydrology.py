@@ -1,29 +1,33 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin; the reach routing scheme
-(with K, X and subreaches per reach under Muskingum, W89) and the curve number either way; hand-back lines and the
-transmission loss. The rain is section 4."""
+"""3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin, and on an HMS project its
+own storm area, entry and outlet (W103); the point inflows of lumped elements (W103); the reach routing scheme (with K,
+X and subreaches per reach under Muskingum, W89) and the curve number either way; hand-back lines and the transmission
+loss. The rain is section 4."""
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsFileWidget
-from qgis.PyQt.QtCore import pyqtSignal
+from qgis.PyQt.QtCore import QSignalBlocker, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDoubleSpinBox,
     QFormLayout,
     QHeaderView,
     QLabel,
+    QLineEdit,
     QTableWidget,
     QTableWidgetItem,
     QWidget,
 )
 
-from .. import section_status
+from .. import entry_rows, section_status
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
@@ -53,10 +57,35 @@ from .basin_rows import (
 )
 from .class_table import ClassTable
 from .common import Section, ValueOrRaster, bind, layer_combo
+from .inflow_table import InflowTable
 from .muskingum_table import MuskingumBox
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
 REFUSED_COLOUR = "#b00000"
+SUBBASIN_COLUMNS = ["Subbasin", "Treated as", "Storm area, km2", "Enters", "Outlet x, y"]
+NAME, MODE, AREA, ENTRY, OUTLET = range(len(SUBBASIN_COLUMNS))
+EDIT_COLUMNS = (AREA, ENTRY, OUTLET)
+"""The columns of each subbasin's own storm area, entry and outlet (W103): shown on an HMS project, whose import the
+job's subbasins come from. A generated basin's subbasins take neither storm area nor entry in this engine."""
+AREA_DECIMALS = 4
+AREA_MOST = 1.0e7
+OWN_STORM = "the storm's"
+BASIN_GIVES = "the basin's"
+EDIT_TIPS = {
+    AREA: (
+        "The area at which this lumped subbasin's rain reads the area-reduction curve, in place of the storm's: a "
+        "subbasin above a dam at the dam's drainage area, as HMS's depth-area analysis at the dam reads it. Empty: the "
+        "storm's own area, or the lumped curve's entry area (4b)."
+    ),
+    ENTRY: (
+        "Where the lumped hydrograph enters the grid: at the wadi outlet of the subbasin's polygon (the HMS import's way, "
+        "since HMS icons are schematic), or at its outlet point as given. 'As the basin gives' writes nothing."
+    ),
+    OUTLET: (
+        'The outlet point, x, y in the DEM\'s coordinates. "none": no outlet of its own, for a subbasin whose water a '
+        "point inflow below it carries (it would otherwise enter twice). Empty: the HMS import's."
+    ),
+}
 
 
 class HydrologySection(Section):
@@ -111,12 +140,20 @@ class HydrologySection(Section):
         self.basin = BasinBox()
         lumped.addRow(self.basin)
 
-        self.table = QTableWidget(0, 2)
-        self.table.setHorizontalHeaderLabels(["Subbasin", "Treated as"])
+        self.table = QTableWidget(0, len(SUBBASIN_COLUMNS))
+        self.table.setHorizontalHeaderLabels(SUBBASIN_COLUMNS)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().hide()
+        for column, tip in EDIT_TIPS.items():
+            self.table.horizontalHeaderItem(column).setToolTip(tip)
         lumped.addRow(self.table)
         self.table.hide()
+        self._edits: dict[str, dict] = {}
+        """Each subbasin's own storm area, entry and outlet, by name (W103): what the job writes over the import's."""
+        self._edit_problems: dict[str, str] = {}
+        """An outlet cell that holds no point, in words, by subbasin."""
+        self.inflows = InflowTable()  # W103: hydrology.inflows, saved with the model as a pair table
+        lumped.addRow(self.inflows)
 
         self.routing = QComboBox()
         lumped.addRow("Reach routing", self.routing)
@@ -245,7 +282,13 @@ class HydrologySection(Section):
             raster.name() if raster is not None else None,
             self.loss.rate.value() if self.loss.enabled.isChecked() else None,
         )
-        return section_status.Status(status.state, section_status.join(status.words, cn_words(override)))
+        edits = self.subbasin_edits() if kind != TWO_D else {}
+        rows = self.inflows.rows() if kind != TWO_D else []
+        found = self.entry_problems() + entry_rows.edit_problems(edits, modes) + entry_rows.inflow_problems(rows)
+        if found and status.state != section_status.MISSING:  # W103: what the table holds, in words
+            return section_status.Status(section_status.MISSING, found[0])
+        words = section_status.join(status.words, cn_words(override), entry_rows.words(edits, rows))
+        return section_status.Status(status.state, words)
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""
@@ -295,6 +338,7 @@ class HydrologySection(Section):
             combo.addItems(found.get(key, []))
         if not use_hms:
             self.table.setVisible(self.basin.in_use())
+        self._show_edit_columns()
         self._fill_reaches()
 
     def _generate_toggled(self, on: bool) -> None:
@@ -304,6 +348,8 @@ class HydrologySection(Section):
             asked = self._subbasin_modes()
             self._fill_table(subbasin_rows(self.basin.model, asked))
             self.handbacks.set_choices(self.basin.element_choices())
+            self.inflows.set_choices(self.basin.element_choices())
+        self._show_edit_columns()
         self._fill_reaches()
 
     def _basin_changed(self, name: str) -> None:
@@ -313,6 +359,7 @@ class HydrologySection(Section):
         names = hms_subbasins(path)
         self._fill_table([SubbasinRow(n, [], "lumped", mode_tip(n, [], "lumped")) for n in names])
         self.handbacks.set_choices(hms_elements(path))
+        self.inflows.set_choices(hms_elements(path))
         self.show_structures([], "")
         self._fill_reaches()
         if path.is_file():
@@ -347,19 +394,107 @@ class HydrologySection(Section):
             mode.setToolTip(row.tip)
             mode.setEnabled(not row.missing)
             self.table.setCellWidget(number, 1, mode)
+            self._edit_cells(number, row.name)
         self.table.setVisible(bool(rows))
+        self._show_edit_columns()
         if self.basin.in_use():
             self.handbacks.set_choices(self.basin.element_choices())
+            self.inflows.set_choices(self.basin.element_choices())
             self._fill_reaches()
 
     def _subbasin_modes(self) -> dict[str, str]:
         rows = range(self.table.rowCount())
         return {self.table.item(row, 0).text(): self.table.cellWidget(row, 1).currentText() for row in rows}
 
+    # Each subbasin's own storm area, entry and outlet (W103): cells of the subbasin table over a dict by name.
+
+    def _show_edit_columns(self) -> None:
+        for column in EDIT_COLUMNS:
+            self.table.setColumnHidden(column, not self._use_hms())
+
+    def _edit_cells(self, number: int, name: str) -> None:
+        """The three cells of one subbasin, from what ``_edits`` holds for it."""
+        edit = self._edits.get(name, {})
+        area = QDoubleSpinBox()
+        area.setDecimals(AREA_DECIMALS)
+        area.setRange(0.0, AREA_MOST)
+        area.setSpecialValueText(OWN_STORM)
+        area.setToolTip(EDIT_TIPS[AREA])
+        with QSignalBlocker(area):
+            area.setValue(edit.get("storm_area_km2") or 0.0)
+        area.valueChanged.connect(partial(self._area_changed, name))
+        self.table.setCellWidget(number, AREA, area)
+        entry = QComboBox()
+        for key, words in entry_rows.ENTRY_WORDS.items():
+            entry.addItem(words, key)
+        entry.setToolTip(EDIT_TIPS[ENTRY])
+        with QSignalBlocker(entry):
+            entry.setCurrentIndex(max(entry.findData(edit.get("entry")), 0) if edit.get("entry") else 0)
+        entry.currentIndexChanged.connect(partial(self._entry_changed, name, entry))
+        self.table.setCellWidget(number, ENTRY, entry)
+        outlet = QLineEdit(entry_rows.outlet_text(edit.get("outlet")))
+        outlet.setPlaceholderText(BASIN_GIVES)
+        outlet.setToolTip(EDIT_TIPS[OUTLET])
+        outlet.editingFinished.connect(partial(self._outlet_changed, name, outlet))
+        self.table.setCellWidget(number, OUTLET, outlet)
+
+    def _set_edit(self, name: str, key: str, value) -> None:
+        edit = {**self._edits.get(name, {}), key: value}
+        edit = entry_rows.clean(edit)
+        if edit:
+            self._edits[name] = edit
+        else:
+            self._edits.pop(name, None)
+
+    def _area_changed(self, name: str, value: float) -> None:
+        self._set_edit(name, "storm_area_km2", value if value > 0.0 else None)
+
+    def _entry_changed(self, name: str, combo: QComboBox, _index: int) -> None:
+        self._set_edit(name, "entry", combo.currentData())
+
+    def _outlet_changed(self, name: str, cell: QLineEdit) -> None:
+        held = self._edits.get(name, {}).get("outlet")
+        if cell.text().strip() == entry_rows.outlet_text(held):  # what it showed: the point to the last digit stays
+            self._edit_problems.pop(name, None)
+            cell.setStyleSheet("")
+            return
+        try:
+            outlet = entry_rows.parse_outlet(cell.text(), name)
+        except ValueError as problem:
+            self._edit_problems[name] = str(problem)
+            cell.setStyleSheet(f"color: {REFUSED_COLOUR}")
+            cell.setToolTip(str(problem))
+            return
+        self._edit_problems.pop(name, None)
+        cell.setStyleSheet("")
+        cell.setToolTip(EDIT_TIPS[OUTLET])
+        self._set_edit(name, "outlet", outlet)
+
+    def subbasin_edits(self) -> dict[str, dict]:
+        """The edits of the subbasins the table shows, on an HMS project; none on a generated basin."""
+        if not self._use_hms():
+            return {}
+        shown = set(self._subbasin_modes())
+        return {name: edit for name, edit in entry_rows.clean_all(self._edits).items() if name in shown}
+
+    def entry_problems(self) -> list[str]:
+        return list(self._edit_problems.values()) if self._use_hms() else []
+
+    def set_edits(self, edits: dict) -> None:
+        """Every subbasin's edit at once, the cells shown again."""
+        self._edits = {name: dict(edit) for name, edit in entry_rows.clean_all(edits).items()}
+        self._edit_problems = {}
+        for number in range(self.table.rowCount()):
+            self._edit_cells(number, self.table.item(number, NAME).text())
+
     # The saved model (W99): the generated basin is a file, and the mode of each subbasin a table of cell widgets.
 
     def extra_state(self) -> dict:
-        return {"basin_json": self.basin.json_path, "modes": self._subbasin_modes()}
+        return {
+            "basin_json": self.basin.json_path,
+            "modes": self._subbasin_modes(),
+            "edits": entry_rows.clean_all(self._edits),  # W103, format 5
+        }
 
     def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
         found = []
@@ -377,6 +512,12 @@ class HydrologySection(Section):
         missing = sorted(set(modes) - set(self._subbasin_modes()))
         if missing:
             found.append(f"subbasins no longer in the basin: {', '.join(missing)}")
+        edits = extra.get("edits")
+        if edits is not None:  # a model from before format 5 holds none: the cells keep what the reset left
+            self.set_edits(edits)
+            lost = sorted(set(entry_rows.clean_all(edits)) - set(self._subbasin_modes()))
+            if lost and self._use_hms():
+                found.append(f"storm areas, entries or outlets of subbasins no longer in the basin: {', '.join(lost)}")
         if self.routing.currentData() == MUSKINGUM:
             self._fill_reaches()
         return found
@@ -390,12 +531,16 @@ class HydrologySection(Section):
             "handbacks": self.handbacks.features(crs),
             "transmission": self.loss.values(),
             "cn_override": self.cn_override(),
+            "inflows": self.inflows.rows(),  # W103: written only when there are rows
+            "entry_problems": self.entry_problems(),
         }
         if values["reach_routing"] == MUSKINGUM:
             values["muskingum"] = self.muskingum.values()
         if self._use_hms():
             hms = {key: combo.currentText() for key, combo in self.files.items()}
-            values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}
+            values["hms"] = {
+                **hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes(), "edits": self.subbasin_edits(),
+            }  # fmt: skip
             values["lumped_entry"] = self.lumped_entry.currentData() if self.lumped_entry.isEnabled() else None
             values["lumped_only"] = self.lumped_only.isChecked() and self.lumped_only.isEnabled()
         elif self.basin.isChecked():
