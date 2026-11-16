@@ -682,7 +682,11 @@ class Wadi2DDock(QgsDockWidget):
         self._basin_model = model_name(values["output"])
         pour = None
         try:
-            job = write_job(basin_job(values, out), out)
+            data = basin_job(values, out)
+            # the run's own cache, as Build mesh reads it (W104): the DEM's store is made once for the basin, the
+            # domain, the mesh and the runs; beside the basin folder it was a second copy, 27 GB on Block 2
+            data["grid"]["cache_dir"] = str(Path(values["output"]).resolve().parent / CACHE_DIR)
+            job = write_job(data, out)
             points = values["basin"]["pour_points"]
             if points:
                 pour = write_geojson(out / POUR_POINTS_FILE, points, values["crs"])
