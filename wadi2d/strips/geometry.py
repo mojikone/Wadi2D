@@ -134,14 +134,27 @@ class MeshGeometry:
         start = np.zeros(len(rings) + 1, np.int64)
         start[1:] = np.cumsum([len(r) for r in rings])
         ring_node = np.concatenate([np.asarray(r, np.int64) for r in rings]) if rings else np.zeros(0, np.int64)
-        edges: dict[tuple[int, int], list[int]] = {}
-        for c, r in enumerate(rings):
-            r = np.asarray(r, np.int64)
-            for k in range(r.size):
-                a, b = int(r[k]), int(r[(k + 1) % r.size])
-                edges.setdefault((min(a, b), max(a, b)), []).append(c)
-        face_node = np.array(list(edges), np.int64).reshape(-1, 2)
-        face_cell = np.full((face_node.shape[0], 2), -1, np.int64)
-        for f, cells in enumerate(edges.values()):
-            face_cell[f, : len(cells[:2])] = cells[:2]
+        # every ring's edges in ring order; a face is an edge's first appearance, its cells the rings of its first two
+        # (the order a dict of edges gave, on whole arrays: W92, 8 s of Block 2's mesh in Python)
+        lengths = np.diff(start)
+        ring_of = np.repeat(np.arange(len(rings), dtype=np.int64), lengths)
+        following = np.arange(1, ring_node.size + 1, dtype=np.int64)
+        if ring_node.size:
+            following[start[1:][lengths > 0] - 1] = start[:-1][lengths > 0]  # a ring's last node closes on its first
+        a, b = ring_node, ring_node[following] if ring_node.size else ring_node
+        lo, hi = np.minimum(a, b), np.maximum(a, b)
+        span = int(hi.max()) + 1 if hi.size else 1
+        code = lo * span + hi
+        order = np.argsort(code, kind="stable")
+        sorted_code = code[order]
+        head = np.ones(order.size, bool)
+        head[1:] = sorted_code[1:] != sorted_code[:-1]
+        group = np.nonzero(head)[0]
+        first = order[group]
+        size = np.diff(np.append(group, order.size))
+        second = np.where(size > 1, order[np.minimum(group + 1, order.size - 1)], -1)
+        by_first = np.argsort(first, kind="stable")
+        first, second = first[by_first], second[by_first]
+        face_node = np.column_stack((lo[first], hi[first])).astype(np.int64).reshape(-1, 2)
+        face_cell = np.column_stack((ring_of[first], np.where(second >= 0, ring_of[np.maximum(second, 0)], -1))).astype(np.int64).reshape(-1, 2)
         return cls(np.asarray(x, np.float64), np.asarray(y, np.float64), start, ring_node, face_node, face_cell)

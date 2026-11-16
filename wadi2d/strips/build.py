@@ -91,9 +91,13 @@ HARD_KINDS = ("crest_line", "wall", "embankment", "channel_dyke")
 """Terrain objects whose line is a hard breakline for the centre generator: its faces carry the physics."""
 
 
-def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
+def centre_mesh_of(
+    cfg: RunConfig, grid: TileGrid, domain: np.ndarray | None = None, cache_dir: str | None = None
+) -> StripMesh:
     """The centre generator's mesh of a job (W46): guide lines are the thalwegs of the banks file, ranked by drainage
-    area, their banks read on the DEM by the floor rule; hard lines are the job's crests and walls."""
+    area, their banks read on the DEM by the floor rule; hard lines are the job's crests and walls. ``domain`` is the
+    job's domain mask before any catchment is left out, and ``cache_dir`` the folder of the DEM's chunk store, when
+    the caller has them (W92: the floor rule's ground then comes from the store, and the mask is not read again)."""
     from wadi2d.breaklines.window import read_window
     from wadi2d.strips.banks import read_thalwegs
     from wadi2d.strips.centres import CentreSettings, Line, build_centre_mesh, chain_streams
@@ -117,7 +121,7 @@ def centre_mesh_of(cfg: RunConfig, grid: TileGrid) -> StripMesh:
     if any(not line.hard for line in lines):
         from wadi2d.strips.centres import stations_of
 
-        win = read_window(cfg)
+        win = read_window(cfg, domain, cache_dir)
         rule = FloorRule.from_settings(cfg.breaklines, cfg.grid.dx)
         for k, line in enumerate(lines):
             if line.hard:
@@ -160,13 +164,15 @@ def snap_geometry(coordinates) -> shapely.Geometry:
 
 
 def mask_for_strips(
-    cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, domain: shapely.Geometry | None = None
+    cfg: RunConfig, mask: np.ndarray, x0: float, y0: float, domain: shapely.Geometry | None = None,
+    domain_mask: np.ndarray | None = None, cache_dir: str | None = None,
 ) -> tuple[np.ndarray, StripMesh]:
     """The domain mask with the cells under the strips taken out, and the strip mesh built on the padded grid the
-    final mask gives (the padding is one cell north and west, whatever the mask)."""
+    final mask gives (the padding is one cell north and west, whatever the mask). ``domain_mask`` and ``cache_dir``
+    go to the centre generator (``centre_mesh_of``)."""
     provisional = TileGrid.from_mask(mask, x0, y0, cfg.grid.dx)
     if cfg.strips.generator == "centres":
-        strip = centre_mesh_of(cfg, provisional)
+        strip = centre_mesh_of(cfg, provisional, domain_mask, cache_dir)
     else:
         corridors, notes, rules = corridors_of(cfg.strips, cfg.grid.dx, domain)
         strip = build_strip_mesh(provisional, corridors, cfg.strips.buffer_cells * cfg.grid.dx, cfg.strips.smooth)

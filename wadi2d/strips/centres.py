@@ -30,8 +30,10 @@ import shapely
 from scipy.spatial import Voronoi, cKDTree
 
 from wadi2d.grid.tiles import TileGrid
+from wadi2d.strips.diagram import areas_centroids, contract_short_faces, regions_to_rings, shared_faces
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.mesher import StripMesh, resample
+from wadi2d.strips.placing import ActiveSquares, Store, kept_bins, rows_of_line
 
 NEAR = 0.75
 """A lattice centre within this many cells of a line centre goes: a sliver would form between them."""
@@ -169,7 +171,18 @@ def turns_of(pts: np.ndarray) -> np.ndarray:
 
 def stations_of(line: Line, s: CentreSettings) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """The line's stations every cell along it and their left normals; a guide line smoothed where it turns more
-    than a 4-sided cell allows, a hard line reported there."""
+    than a 4-sided cell allows, a hard line reported there. Kept on the line for the settings and vertices they were
+    made from: the floor rule and the placing both ask (W92), and each caller gets copies."""
+    key = (s, line.hard, np.ascontiguousarray(line.xy, np.float64).tobytes())
+    held = line.__dict__.get("_stations")
+    if held is None or held[0] != key:
+        held = (key, _stations_of(line, s))
+        line.__dict__["_stations"] = held
+    pts, normals, notes = held[1]
+    return pts.copy(), normals.copy(), list(notes)
+
+
+def _stations_of(line: Line, s: CentreSettings) -> tuple[np.ndarray, np.ndarray, list[str]]:
     notes: list[str] = []
     pts = resample(shapely.LineString(line.xy), s.dx, s.smooth if not line.hard else 0)
     if not line.hard:
@@ -232,7 +245,12 @@ def place_centres(
     # hard lines first, then by rank, and at equal rank the longer line: a braid's twin stem carries the main's area
     # and must never be placed before the main (circle 2 of 2026-11-08, where the main's stations gave way to it)
     order = sorted(range(len(lines)), key=lambda k: (not lines[k].hard, -lines[k].rank, -shapely.LineString(lines[k].xy).length))
-    xs, ls, st, sd, rw = [], [], [], [], []
+    placed_so_far = Store(s.clearance_cells * s.dx)
+    """Every centre placed so far, binned (W92: the walk beyond the pairs, compiled; ``placing``)."""
+    kept = kept_bins(inside if isinstance(inside, ActiveSquares) else None)
+    if inside is not None and not isinstance(inside, ActiveSquares):
+        raise TypeError("place_centres takes the active squares as an ActiveSquares")
+    lattice = (inside.mask, inside.x0, inside.y0) if inside is not None else (np.zeros((1, 1), bool), 0.0, 0.0)
     notes: list[str] = []
     kept_stations: list[list[int]] = [[] for _ in lines]
     clearance = s.clearance_cells * s.dx
@@ -262,7 +280,7 @@ def place_centres(
         pts = 0.5 * (pts[:-1] + pts[1:])
         n_left = np.minimum(n_left[:-1], n_left[1:])
         n_right = np.minimum(n_right[:-1], n_right[1:])
-        placed = cKDTree(np.array(xs)) if xs else None
+        placed = cKDTree(placed_so_far.xy()) if placed_so_far.n else None
         # the pair decides whether a station lives: both its centres clear of every placed centre
         pair_l = pts + 0.5 * s.dx * normals
         pair_r = pts - 0.5 * s.dx * normals
@@ -290,28 +308,17 @@ def place_centres(
         dropped = int(pts.shape[0] - sum(b - a for a, b in pieces))
         if dropped:
             notes.append(f"line {line.name}: {dropped} of {pts.shape[0]} stations given up to higher lines, the domain's edge or too short to stand")
-        own: list[np.ndarray] = []
         for a, b in pieces:
             kept_stations[k].extend(range(a, b))
-            for side, sign, counts in ((1, 1.0, n_left), (-1, -1.0, n_right)):
-                for i in range(a, b):
-                    for j in range(int(counts[i])):
-                        p = pts[i] + sign * (j + 0.5) * s.dx * normals[i]
-                        if j > 0:
-                            if placed is not None and placed.query(p)[0] < clearance:
-                                break  # this row and the rows beyond it on this side give way
-                            if inside is not None and not bool(np.asarray(inside(p[None, :]))[0]):
-                                break  # the rows stop at the domain's edge
-                            if own and cKDTree(np.vstack(own)).query(p)[0] < 0.5 * s.dx:
-                                break  # the line's own rows meeting inside a bend
-                        own.append(p[None, :])
-                        xs.append(p)
-                        ls.append(k)
-                        st.append(i)
-                        sd.append(side)
-                        rw.append(j)
-    xy = np.array(xs).reshape(-1, 2)
-    out = Placed(xy, np.array(ls, np.int64), np.array(st, np.int64), np.array(sd, np.int64), np.array(rw, np.int64), np.zeros(len(xs), bool), notes)
+        placed_so_far.room(int(sum(n_left[a:b].sum() + n_right[a:b].sum() for a, b in pieces)))
+        q = placed_so_far
+        q.n = rows_of_line(
+            pts, normals, n_left.astype(np.int64), n_right.astype(np.int64), np.array(pieces, np.int64).reshape(-1, 2), k, s.dx, clearance,
+            q.heads, q.size, q.px, q.py, q.nxt, q.line, q.station, q.side, q.row, q.n,
+            inside is not None, lattice[0], lattice[1], lattice[2], *kept[:6], inside.radius if inside is not None else 0.0, kept[6],
+        )  # fmt: skip
+    q, n = placed_so_far, placed_so_far.n
+    out = Placed(q.xy(), q.line[:n].copy(), q.station[:n].copy(), q.side[:n].copy(), q.row[:n].copy(), np.zeros(n, bool), notes)
     return out, kept_stations
 
 
@@ -342,7 +349,7 @@ def lattice_centres(
     kept = np.zeros(jj.size, bool)
     if keep_out is not None:
         kept[inside] = keep_out[jj[inside], ii[inside]]
-    d, _ = cKDTree(line_xy).query(np.column_stack((cx, cy)))
+    d, _ = cKDTree(line_xy).query(np.column_stack((cx, cy)), workers=-1)  # every core, each point's answer its own
     dropped = active & ~kept & (d < NEAR * dx)
     band = active & ~kept & ~dropped & (d <= BAND * dx)
     # the frame: active positions beyond the band, and positions outside the domain only beyond the band's reach, so
@@ -358,10 +365,12 @@ def lattice_centres(
     return placed, np.column_stack((cx[frame], cy[frame])), (jj[masked], ii[masked]), np.column_stack((cx[blocked], cy[blocked]))
 
 
-def _rings_of(points: np.ndarray, nreal: int, grid: TileGrid, dx: float) -> tuple[np.ndarray, list[np.ndarray], dict[tuple[int, int], tuple[int, int]]]:
+def _rings_of(
+    points: np.ndarray, nreal: int, grid: TileGrid, dx: float, faces: bool = True
+) -> tuple[np.ndarray, list[np.ndarray], dict[tuple[int, int], tuple[int, int]] | None]:
     """The Voronoi diagram of all points: the nodes (vertices snapped to lattice corners where they are one, then
     merged), one counter-clockwise ring of node indices per real point, and per pair of real points sharing a face
-    the two nodes of that face."""
+    the two nodes of that face (None when ``faces`` is False: only the merge rounds read them)."""
     vor = Voronoi(points)
     v = vor.vertices.copy()
     # a vertex at a lattice corner is that corner exactly, so the join faces are the lattice's own edges
@@ -374,48 +383,15 @@ def _rings_of(points: np.ndarray, nreal: int, grid: TileGrid, dx: float) -> tupl
     _uniq, first, inverse = np.unique(key, axis=0, return_index=True, return_inverse=True)
     inverse = inverse.ravel()
     nodes = v[first]
-    rings: list[np.ndarray] = []
-    for p in range(nreal):
-        region = vor.regions[vor.point_region[p]]
-        if not region or -1 in region:
-            raise ValueError(f"the diagram is unbounded at ({points[p, 0]:.0f}, {points[p, 1]:.0f}): a line centre too near the edge of the lattice")
-        ids = inverse[np.asarray(region, np.int64)]
-        keep = np.ones(ids.size, bool)
-        keep[1:] = ids[1:] != ids[:-1]
-        ids = ids[keep]
-        if ids.size > 1 and ids[0] == ids[-1]:
-            ids = ids[:-1]
-        if ids.size >= 3:
-            x, y = nodes[ids, 0], nodes[ids, 1]
-            if 0.5 * np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y) < 0.0:
-                ids = ids[::-1]
-        rings.append(ids)
-    shared: dict[tuple[int, int], tuple[int, int]] = {}
-    for (a, b), (va, vb) in zip(vor.ridge_points.tolist(), vor.ridge_vertices, strict=True):
-        if a < nreal and b < nreal and va >= 0 and vb >= 0:
-            na, nb = int(inverse[va]), int(inverse[vb])
-            if na != nb:
-                shared[(min(a, b), max(a, b))] = (min(na, nb), max(na, nb))
+    rings = regions_to_rings(vor, nreal, inverse, nodes, points)  # the loop of one ring at a time, on whole arrays (W92)
+    shared = shared_faces(vor, nreal, inverse) if faces else None
     return nodes, rings, shared
 
 
 def _areas_centroids(nodes: np.ndarray, rings: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    area = np.zeros(len(rings))
-    cen = np.zeros((len(rings), 2))
-    for k, r in enumerate(rings):
-        if r.size < 3:
-            continue
-        ox, oy = nodes[r[0], 0], nodes[r[0], 1]  # from the ring's first node: on map coordinates the products cancel (W52)
-        x, y = nodes[r, 0] - ox, nodes[r, 1] - oy
-        x1, y1 = np.roll(x, -1), np.roll(y, -1)
-        cross = x * y1 - x1 * y
-        a = 0.5 * cross.sum()
-        area[k] = a
-        if abs(a) > 1e-12:
-            cen[k] = (ox + ((x + x1) * cross).sum() / (6.0 * a), oy + ((y + y1) * cross).sum() / (6.0 * a))
-        else:
-            cen[k] = (ox + x.mean(), oy + y.mean())
-    return area, cen
+    """Signed area and centroid of every ring, from its first node (on map coordinates the products cancel, W52);
+    zero for a ring under three nodes. All rings of one length at once (``diagram.areas_centroids``, W92)."""
+    return areas_centroids(nodes, rings)
 
 
 SHORT_FACE = 0.15
@@ -433,47 +409,7 @@ def _contract_short_faces(nodes: np.ndarray, rings: list[np.ndarray], grid: Tile
     ci = np.round((nodes[:, 0] - grid.x0) / dx)
     cj = np.round((grid.y0 - nodes[:, 1]) / dx)
     corner = (np.abs(nodes[:, 0] - (grid.x0 + ci * dx)) < CORNER_SNAP) & (np.abs(nodes[:, 1] - (grid.y0 - cj * dx)) < CORNER_SNAP)
-    parent = np.arange(nodes.shape[0])
-
-    def find(a: int) -> int:
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-
-    for _round in range(6):
-        merged = 0
-        seen: set[tuple[int, int]] = set()
-        for r in rings:
-            for k in range(r.size):
-                a, b = find(int(r[k])), find(int(r[(k + 1) % r.size]))
-                if a == b:
-                    continue
-                key = (min(a, b), max(a, b))
-                if key in seen:
-                    continue
-                seen.add(key)
-                if np.hypot(*(nodes[a] - nodes[b])) < limit:
-                    if corner[a] and corner[b]:
-                        continue  # a lattice edge is never that short; two corners stay apart
-                    keep, gone = (a, b) if corner[a] else ((b, a) if corner[b] else (a, b))
-                    if not corner[keep]:
-                        nodes[keep] = 0.5 * (nodes[a] + nodes[b])
-                    parent[gone] = keep
-                    merged += 1
-        if merged == 0:
-            break
-        out = []
-        for r in rings:
-            ids = np.array([find(int(v)) for v in r], np.int64)
-            keep_mask = np.ones(ids.size, bool)
-            keep_mask[1:] = ids[1:] != ids[:-1]
-            ids = ids[keep_mask]
-            if ids.size > 1 and ids[0] == ids[-1]:
-                ids = ids[:-1]
-            out.append(ids)
-        rings = out
-    return nodes, rings
+    return contract_short_faces(nodes, rings, corner, limit)  # the same loop in the same order, compiled (W92)
 
 
 def _clip_to_hole(nodes: np.ndarray, rings: list[np.ndarray], which: np.ndarray, hole: shapely.Geometry) -> tuple[np.ndarray, list[np.ndarray]]:
@@ -541,22 +477,12 @@ def build_centre_mesh(
     leaves through squares that carry the boundary (the strip covering the outlet's squares ponded 23 m deep at
     Faydh's outlet, 2026-11-08, since a strip face on the domain's edge is a wall)."""
     dx = s.dx
-    ny, nx = grid.shape
-    kept_tree = None
+    kept = None
     if keep_out is not None and keep_out.any():
         kj, ki = np.nonzero(keep_out)
-        kept_tree = cKDTree(np.column_stack((grid.x0 + (ki + 0.5) * dx, grid.y0 - (kj + 0.5) * dx)))
-
-    def inside(xy: np.ndarray) -> np.ndarray:
-        """Whether points stand in active squares of the lattice, clear of the squares kept for the boundaries."""
-        j = np.floor((grid.y0 - xy[:, 1]) / dx).astype(np.int64)
-        i = np.floor((xy[:, 0] - grid.x0) / dx).astype(np.int64)
-        ok = (j >= 0) & (j < ny) & (i >= 0) & (i < nx)
-        ok[ok] = grid.mask[j[ok], i[ok]]
-        if kept_tree is not None and ok.any():
-            d, _ = kept_tree.query(xy[ok])
-            ok[np.nonzero(ok)[0][d <= BAND * dx]] = False
-        return ok
+        kept = np.column_stack((grid.x0 + (ki + 0.5) * dx, grid.y0 - (kj + 0.5) * dx))
+    inside = ActiveSquares(grid.mask, grid.x0, grid.y0, dx, kept, BAND * dx)
+    """Whether points stand in active squares of the lattice, clear of the squares kept for the boundaries."""
 
     centres, kept_stations = place_centres(lines, floors, s, inside)
     notes = list(centres.notes)
@@ -589,9 +515,9 @@ def build_centre_mesh(
     )  # fmt: skip
     min_area = s.min_area_fraction * dx * dx
 
-    def diagram(p: Placed):
+    def diagram(p: Placed, faces: bool = True):
         pts = np.vstack((p.xy, frame))
-        nodes, rings, shared = _rings_of(pts, p.n, grid, dx)
+        nodes, rings, shared = _rings_of(pts, p.n, grid, dx, faces)
         if hole is not None:
             near, _ = edge_tree.query(p.xy)
             nodes, rings = _clip_to_hole(nodes, rings, np.nonzero(near <= 3.0 * dx)[0], hole)
@@ -654,7 +580,7 @@ def build_centre_mesh(
         if not move.any():
             break
         all_pts.xy[move] = cen[move]
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
     faces = np.array([r.size for r in rings])
     for _round in range(s.merge_rounds):
         # a band cell over the face limit loses its centre; a line cell cut to a triangle at a line's end loses the
@@ -678,12 +604,12 @@ def build_centre_mesh(
         if not drop.any():
             break
         all_pts = all_pts.keep(~drop)
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
         faces = np.array([r.size for r in rings])
     gone = faces < 3  # a cell the domain's edge cut to nothing, or a sliver the merge rounds left: its centre goes
     if gone.any():
         all_pts = all_pts.keep(~gone)
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
         faces = np.array([r.size for r in rings])
         if (faces < 3).any():
             c = int(np.nonzero(faces < 3)[0][0])
@@ -710,13 +636,19 @@ def build_centre_mesh(
         edge = _common_edge(rings[c], rings[other])
         if edge is not None:
             breakline_edges.setdefault(f"{lines[k].name}:0", set()).add(edge)
-    polygons: list[shapely.Geometry] = []
-    for k in range(len(lines)):
-        mine = np.nonzero(corridor == k)[0]
+    by_line = np.argsort(corridor, kind="stable")
+    bounds = np.searchsorted(corridor[by_line], np.arange(len(lines) + 1))
+
+    def outline(k: int) -> shapely.Geometry:
+        mine = by_line[bounds[k] : bounds[k + 1]]  # the line's cells in their order, as np.nonzero gave them
         if mine.size == 0:
-            polygons.append(shapely.Polygon())
-            continue
-        polygons.append(shapely.unary_union([shapely.Polygon(np.column_stack((geometry.x[r], geometry.y[r]))) for r in (rings[c] for c in mine)]))
+            return shapely.Polygon()
+        return shapely.unary_union([shapely.Polygon(np.column_stack((geometry.x[r], geometry.y[r]))) for r in (rings[c] for c in mine)])
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(min(16, max(1, len(lines)))) as pool:  # GEOS lets go of the interpreter: each line on a core
+        polygons: list[shapely.Geometry] = list(pool.map(outline, range(len(lines))))
     # the cells tile the squares they replace, to the last digit that matters; a sliver where the domain's edge cuts
     # a cell (2 m2 in 0.66 km2 on the Faydh reach, 2026-11-08) is noted, a real disagreement refused
     hole = masked[0].size * dx * dx

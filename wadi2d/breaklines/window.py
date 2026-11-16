@@ -22,7 +22,6 @@ from wadi2d.mesh.streams import ANALYSIS_TRIES, ANALYSIS_WAIT_S, BREACH_DISTANCE
 
 __all__ = ["POINTER_STEPS", "Window", "flow_fields", "pixel_factor", "read_field", "read_window"]
 from wadi2d.run import domain_mask, grid_window
-from wadi2d.terrain import RasterBed
 
 POINTER_STEPS = {
     1: (-1, 1),
@@ -81,13 +80,23 @@ def pixel_factor(dx: float, wanted: float) -> int:
     return max(1, int(np.floor(dx / wanted + 1e-9)))
 
 
-def read_window(cfg: RunConfig) -> Window:
-    with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
-        window = grid_window(cfg, bed)
-        mask = domain_mask(cfg, bed, window)
-        crs = bed.crs.to_wkt() if bed.crs is not None else ""
+def read_window(cfg: RunConfig, domain: np.ndarray | None = None, cache_dir: str | Path | None = None) -> Window:
+    """The window's ground at the analysis pixel and the pixels under its active cells.
+
+    ``domain`` is the job's domain mask when the caller has it (the grid build made it a moment before; read again
+    here it was 44 s of Block 2's mesh, W92). The ground comes from the DEM's chunk store under ``cache_dir`` (the
+    job's cache folder when None) as GDAL's own block average, on every core (``demstore.coarse``); without a store,
+    through GDAL as before."""
+    from wadi2d.demstore import cache_folder, open_bed
+    from wadi2d.demstore.coarse import read_coarse_from
+
     factor = pixel_factor(cfg.grid.dx, cfg.mesh.analysis_pixel)
-    z = read_coarse(cfg.terrain.dem, window.x0, window.y0, window.ny, window.nx, cfg.grid.dx, factor)
+    with open_bed(cfg, cache_folder(cfg) if cache_dir is None else cache_dir) as bed:
+        window = grid_window(cfg, bed)
+        held = domain is not None and np.shape(domain) == (window.ny, window.nx)
+        mask = np.asarray(domain, bool) if held else domain_mask(cfg, bed, window)
+        crs = bed.crs.to_wkt() if bed.crs is not None else ""
+        z = read_coarse_from(bed, cfg.terrain.dem, window.x0, window.y0, window.ny, window.nx, cfg.grid.dx, factor)
     inside = np.repeat(np.repeat(mask, factor, axis=0), factor, axis=1) if factor > 1 else mask.copy()
     return Window(z, inside & np.isfinite(z), window.x0, window.y0, cfg.grid.dx / factor, cfg.grid.dx, crs)
 

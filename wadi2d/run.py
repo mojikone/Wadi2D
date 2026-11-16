@@ -466,6 +466,8 @@ def prepare_grid(
         mask = kept_domain_mask(cfg, bed, window, cache_dir)
         if not mask.any():
             raise InvalidJob("the domain holds no active cell")
+        domain = mask
+        """The domain's active cells before any catchment is left out: the strip's floor rule reads them (W92)."""
         gone = None
         """The domain's cells under the left-out catchments, or None when the job leaves none out."""
         if left is not None and left.names:
@@ -498,7 +500,7 @@ def prepare_grid(
             if gone is not None:  # corridors built from a banks file end a cell clear of the left-out catchments
                 polygon = polygon.difference(left.area.buffer(cfg.grid.dx))
             try:
-                mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0, polygon)
+                mask, strip = mask_for_strips(cfg, mask, window.x0, window.y0, polygon, domain, str(cache_dir))
             except (ValueError, OSError) as error:
                 raise InvalidJob(str(error)) from error
         # the strip's cells are part of the key: the tables are built on the mask the strip leaves, and a mesher that
