@@ -254,8 +254,8 @@ def test_a_flow_line_reaches_the_engine_with_its_file_and_one_without_stops_the_
     (b,) = parsed.boundaries
     assert b.kind == "flow" and b.flow.file == "D:/inflow.csv" and b.flow.distribution == "normal_depth"
     bare = Feature("LineString", line, {"kind": "flow", "value": None, "file": None})
-    assert any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[bare])))
-    assert not any("hydrograph file" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[flow])))
+    assert any("needs its hydrograph" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[bare])))  # a file or a typed table (W101)
+    assert not any("needs its hydrograph" in p for p in job_builder.problems(full_values(tmp_path, boundaries=[flow])))
 
 
 def test_a_flow_line_s_momentum_and_direction_reach_the_engine_only_off_their_defaults(tmp_path: Path) -> None:
