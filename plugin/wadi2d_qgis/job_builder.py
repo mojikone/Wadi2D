@@ -20,6 +20,7 @@ from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
 from .gauge_rows import gauge_problems, observed_records, rain_storm
 from .mesh_rows import reversed_note, rounded_note
+from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
@@ -277,6 +278,7 @@ def problems(values: dict) -> list[str]:
     found.extend(breach_problems(values.get("breach_rows") or [], dams, values))
     found.extend(initial_problems(values.get("initial_water") or []))
     found.extend(boundary_problems(values))
+    found.extend(type_problems(values))
     return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
 
 
@@ -525,6 +527,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     }
     if values.get("backend"):  # only a choice away from the engine's default: an old job stays the job it was
         job["run"]["backend"] = values["backend"]
+    if values.get("model_type"):  # only when a type was chosen on the start page (W99): the same
+        job["run"]["model_type"] = values["model_type"]
     if values.get("domain"):
         job["grid"]["domain"] = str(write_geojson(inputs / "domain.geojson", values["domain"], crs))
     elif values.get("extent"):
