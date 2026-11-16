@@ -757,17 +757,50 @@ def _project_tables(h, hms_basin):
     )
 
 
-def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
+def _routes_of(h, basin, wanted, decided):
+    """The routes a run plans for its hand-backs and a generated basin; None on an HMS basin without hand-backs."""
+    generated = h.basin_json is not None
+    if not h.handbacks and not generated:
+        return None
+    from wadi2d.hydrology.live_network import plan_routes
+
+    leaving = [element for _name, _point, element in wanted]
+    return plan_routes(basin, [line.element for line in h.handbacks], leaving, decided, cut_entries=not generated)
+
+
+def _entry_map(cfg: RunConfig, basin, decided=(), routes=None) -> dict[str, str]:
+    """Every element of the network at or above an entry, with the element its water enters the grid at (W98)."""
+    from wadi2d.engine.entry_area import entry_of
+
+    wanted = _entering(cfg.hydrology)
+    if routes is None:
+        routes = _routes_of(cfg.hydrology, basin, wanted, decided)
+    return entry_of(basin, [element for _name, _point, element in wanted], routes)
+
+
+def _reads_entry_areas(cfg: RunConfig) -> bool:
+    """A lumped curve in a run with a 2D part: each subbasin reads it at its entry element's area (W98)."""
+    return lumped_curve(cfg.storm) and not cfg.run.lumped_only
+
+
+def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str, decided=(), at_entry: bool = True):
     """What falls on the lumped network: the storm, or a grid averaged over each subbasin; a subbasin with a storm area
     of its own reads the area reduction there. With ``storm.area_reduction`` the network takes the lumped part's
-    reduction, and a lumped curve in a run with a 2D part reads each subbasin at its own storm area, else at its own
-    area (W95)."""
+    reduction, and a lumped curve in a run with a 2D part reads each subbasin at its own storm area, else at the total
+    upstream area of the element where its water enters the grid, else at its own area (W95, W98: his rule of
+    2026-11-15). ``decided`` holds the links a generated basin's routes cut; ``at_entry`` False leaves the entry areas
+    out, for a rerun at an element's own area."""
     if cfg.storm.area_reduction is not None:
         storm = with_reduction(storm, part_reduction(cfg.storm, PART_LUMPED))
     rain = _network_rain(cfg, storm, basin, hms_basin, crs)
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
-    if lumped_curve(cfg.storm) and not cfg.run.lumped_only:  # a lumped-only run reads every element by itself
-        own = {name: own.get(name, subbasin.area_km2) for name, subbasin in basin.subbasins.items()} | own
+    if at_entry and _reads_entry_areas(cfg):  # a lumped-only run reads every element by itself
+        from wadi2d.engine.entry_area import subbasin_entry_areas
+
+        entries = subbasin_entry_areas(basin, _entry_map(cfg, basin, decided))
+        own = {
+            name: entries[name][1] if name in entries else subbasin.area_km2 for name, subbasin in basin.subbasins.items()
+        } | own
     if not own:
         return rain
     from wadi2d.storm.own_area import OwnAreas
@@ -960,18 +993,36 @@ def _network(cfg: RunConfig, storm, crs: str = ""):
     _check_routes(h, basin, wanted, routes)
     steps = int(np.ceil(cfg.run.duration_s / SECONDS_PER_MINUTE / h.time_step_min))
     grid = TimeGrid(h.time_step_min, steps)
-    rain = NoRain() if storm is None else _lumped_rain(cfg, storm, basin, hms_basin, crs)
-    run = LumpedEngine(basin).run(rain, grid, cut=routes.cut if routes is not None else ())
+    rain = NoRain() if storm is None else _lumped_rain(cfg, storm, basin, hms_basin, crs, decided)
+    engine = LumpedEngine(basin)
+    run = engine.run(rain, grid, cut=routes.cut if routes is not None else ())
     times = grid.minutes * SECONDS_PER_MINUTE
     leaving = {i.name for i in h.inflows if not i.enters}  # water that leaves the model there, as at an HMS sink (W88)
     for name, point, element in wanted:
         if name not in leaving:
             table.append((name, point, times, run.outflow[element]))
     keep = None if generated else _ran(basin, wanted, routes)
+    series = NetworkSeries(basin, run, routes.live if routes is not None else (), keep=keep)
+    if storm is not None and _reads_entry_areas(cfg):
+        _own_area_series(cfg, storm, basin, hms_basin, crs, decided, routes, grid, engine, series)
     if routes is None or not routes.live:
-        return table, None, NetworkSeries(basin, run, keep=keep)
+        return table, None, series
     live = LiveNetwork(basin, routes, run, _live_reentries(routes, wanted))
-    return table, live, NetworkSeries(basin, run, routes.live, keep=keep)
+    return table, live, series
+
+
+def _own_area_series(cfg: RunConfig, storm, basin, hms_basin, crs, decided, routes, grid, engine, series) -> None:
+    """The elements above their entry, rerun lumped at their own drainage area, as their series of record, and the
+    record of every subbasin's area (W98)."""
+    from wadi2d.engine.entry_area import entry_record, own_area_runs
+
+    entry = _entry_map(cfg, basin, decided, routes)
+    plain = _lumped_rain(cfg, storm, basin, hms_basin, crs, decided, at_entry=False)
+    series.own_area = own_area_runs(engine, plain, grid, series.written(), entry, routes)
+    explicit = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
+    table = part_reduction(cfg.storm, PART_LUMPED)[0]
+    curve = cfg.storm.area_reduction.lumped.curve
+    series.record = entry_record(basin, table, entry, explicit, series.own_area, curve)
 
 
 def _ran(basin, wanted, routes) -> set[str]:
@@ -1412,6 +1463,17 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
         if record is not None:
             progress.emit("output", kind="area_reduction", **record)
             progress.emit("warn", message=part_words(record))
+    entry_said = getattr(lumped, "record", None)
+    if entry_said is not None:  # where each lumped subbasin read the curve, and which series are of record (W98)
+        read = [row for row in entry_said["subbasins"] if row["enters_at"] is not None]
+        reruns = [row["element"] for row in entry_said["elements"]]
+        progress.emit("output", kind="lumped_entry_areas", subbasins=len(read), reruns=reruns)
+        progress.emit(
+            "warn",
+            message=f"rain on the lumped part: {len(read)} subbasins read the curve at the drainage area of the element "
+            f"where their water enters the grid; {len(reruns)} elements above their entry are reported from a lumped "
+            "rerun at their own drainage area, the grid's hydrograph beside them as entry_area_<element>",
+        )
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
     if own and cfg.storm.arf is not None:  # the subbasins that read the table at an area of their own (W79)
         progress.emit("output", kind="subbasin_storm_areas", areas_km2=own, arf_table_type=cfg.storm.arf.table_type)
@@ -1656,7 +1718,7 @@ def _network_layers(cfg: RunConfig, tables, monitor, out: Path, crs: str, progre
     """The lumped network of a run with a 2D part as map layers (W88): the catchments that ran the HMS way, with
     their peaks and whether the mesh left them out. A failure costs a warning, never the run."""
     from wadi2d.engine.network_layers import element_rows, write_network
-    from wadi2d.engine.network_series import NetworkSeries, element_columns
+    from wadi2d.engine.network_series import NetworkSeries
 
     found = [part for part in monitor.parts if isinstance(part, NetworkSeries)]
     if not found:
@@ -1667,7 +1729,7 @@ def _network_layers(cfg: RunConfig, tables, monitor, out: Path, crs: str, progre
     try:
         enters = {**own, **carried_subbasins(cfg, crs)}
         t = part.run.grid.minutes * SECONDS_PER_MINUTE
-        series = {name: element_columns(part.basin, part.run, name) for name in part.written()}
+        series = {name: part.columns(name) for name in part.written()}  # the series of record (W98)
         rows = element_rows(part.basin, series, t)
         path = write_network(out, cfg, part.basin, rows, crs, set(left.names) if left is not None else set(), enters)
     except Exception as error:

@@ -7,12 +7,16 @@ network only the elements whose water reached the grid are written (``keep``); t
 
 Each element's series carries ``rain_mm`` and ``excess_mm`` per step beside its flows (W64): the chart's rain bar.
 
+With a lumped curve read at entry areas, an element above its entry is written from its own-area rerun, and what the
+grid took beside it (:mod:`wadi2d.engine.entry_area`, W98).
+
 Interface: :class:`NetworkSeries`, :func:`element_columns`, :func:`write_element`, :func:`reservoir_columns`,
 :func:`rain_columns`.
 """
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Mapping
 
 import h5py
@@ -104,6 +108,10 @@ class NetworkSeries:
         self.live = set(live)
         self.keep = None if keep is None else set(keep)
         """The elements to write; None writes every one, as on a generated basin."""
+        self.own_area: dict[str, Run] = {}
+        """Elements above their entry rerun at their own drainage area: their series of record (W98)."""
+        self.record: dict | None = None
+        """What :data:`wadi2d.engine.entry_area.ENTRY_AREAS_FILE` holds, when the lumped curve read entry areas."""
 
     def notes(self) -> list[str]:
         return []
@@ -122,10 +130,22 @@ class NetworkSeries:
             if name not in self.live and name in run.outflow and (self.keep is None or name in self.keep)
         ]  # fmt: skip
 
+    def columns(self, name: str) -> dict:
+        """An element's series of record: its own-area rerun if it has one (W98), else the base run's."""
+        return element_columns(self.basin, self.own_area.get(name, self.run), name)
+
     def write(self, results: Results, out) -> None:
+        from wadi2d.engine.entry_area import ENTRY_AREA_KIND, ENTRY_AREAS_FILE
+
         t = self.run.grid.minutes * SECONDS_PER_MINUTE
         for name in self.written():
-            write_element(results, out, name, t, element_columns(self.basin, self.run, name))
+            write_element(results, out, name, t, self.columns(name))
+            if name in self.own_area:  # what the grid took, kept beside the series of record (W98)
+                columns = element_columns(self.basin, self.run, name)
+                results.series(ENTRY_AREA_KIND, name, t, columns)
+                write_series_csv(out / "series" / f"{ENTRY_AREA_KIND}_{safe_name(name)}.csv", t, columns)
+        if self.record is not None:
+            (out / ENTRY_AREAS_FILE).write_text(json.dumps(self.record, indent=1), encoding="utf-8")
 
     def save(self, f: h5py.File) -> None:
         """Nothing: the base run is rerun from the job on a resume."""

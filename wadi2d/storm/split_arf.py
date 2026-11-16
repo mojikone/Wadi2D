@@ -9,9 +9,11 @@ before. With it, each part takes one of three forms:
 - ``coefficient``: one factor, at every area;
 - ``area``: the curve read at one area, one factor for the part;
 - ``curve``: the curve read at an area of each element's own. On the lumped part that is each element's drainage area
-  in a lumped-only run (HMS's depth-area analysis, W88) and each lumped subbasin's ``storm_area_km2``, else its own
-  area, in a run with a 2D part (``38dc74e``). On the 2D part it is each run's storm area in a depth-area study; a
-  single run refuses it, since the cells have no area of their own to read it at.
+  in a lumped-only run (HMS's depth-area analysis, W88) and, in a run with a 2D part, each lumped subbasin's
+  ``storm_area_km2``, else the total upstream area of the element where its water enters the grid, found from the
+  network and never refused (W98, his rule of 2026-11-15; :mod:`wadi2d.engine.entry_area`). On the 2D part it is each
+  run's storm area in a depth-area study; a single run refuses it, since the cells have no area of their own to read
+  it at.
 """
 
 from __future__ import annotations
@@ -115,5 +117,10 @@ def part_words(record: dict) -> str:
         return (
             f"rain on the {where}: every depth is multiplied by {record['factor']:.4f}, the curve{named} at "
             f"{record['storm_area_km2']:g} km2"
+        )
+    if record["part"] == PART_LUMPED:
+        return (
+            f"rain on the {where}: the curve{named} is read at each element's own drainage area in a lumped-only run, "
+            "and at the drainage area of the element where a subbasin's water enters the grid in a run with a 2D part"
         )
     return f"rain on the {where}: the curve{named} is read at each element's own area"
