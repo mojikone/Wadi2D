@@ -27,6 +27,8 @@ from rasterio.transform import Affine
 from wadi2d.config.schema import DomainSettings
 
 RIM, GAP = "rim removed", "gap added"
+BAND_TOLERANCES = 4.0
+"""Half-width of the band round the outline's edge the alignment works in, in tolerances."""
 
 
 @dataclass
@@ -83,8 +85,16 @@ def align_outline(
     tol = settings.align_tolerance_m
     whole = _joined(catchments, settings.join_m)
     outline = shapely.make_valid(outline)
-    rim = _polygonal(_thin(outline.difference(whole), tol).intersection(whole.buffer(2.0 * tol)))
-    gap = _polygonal(_thin(whole.difference(outline), tol).intersection(outline.buffer(2.0 * tol)))
+    # everything that moves lies within twice the tolerance of the outline's edge: the work is done on a band round it
+    # (Basin 3's 104 polygons hold 2.3 M vertices, and set operations on them whole took 220 s); a piece the band cuts
+    # is not thin where it is cut, and what the opening rounds there lies beyond the reach
+    edge = outline.boundary
+    band = edge.buffer(BAND_TOLERANCES * tol)
+    reach = edge.buffer(2.0 * tol)
+    near_whole, near_outline = whole.intersection(band), outline.intersection(band)
+    rim = _thin(near_outline.difference(near_whole), tol).intersection(near_whole.buffer(2.0 * tol))
+    rim = _polygonal(rim.intersection(reach))
+    gap = _polygonal(_thin(near_whole.difference(near_outline), tol).intersection(reach))
     if kept:
         zone = shapely.union_all(kept).buffer(settings.keep_m)
         rim, gap = rim.difference(zone), gap.difference(zone)
@@ -103,7 +113,6 @@ def align_outline(
         notes.append(
             f"{len(domain.interiors)} holes inside the domain filled, {(filled.area - domain.area) / 1e6:.4f} km2"
         )
-    beyond = filled.difference(whole)
     report = {
         "tolerance_m": tol,
         "catchments": len(catchments),
@@ -111,17 +120,18 @@ def align_outline(
         "domain_km2": round(filled.area / 1e6, 4),
         "rim_removed_km2": round(rim.area / 1e6, 4),
         "gap_added_km2": round(gap.area / 1e6, 4),
-        "outside_catchments_km2": round(beyond.area / 1e6, 4),
-        "outside_catchments_thin_km2": round(
-            _thin(beyond, tol).intersection(whole.buffer(2.0 * tol)).area / 1e6, 4
-        ),
-        "catchments_outside_km2": round(whole.difference(filled).area / 1e6, 4),
         "notes": notes,
     }
     if cell_m is not None:
-        report["cell_m"] = cell_m
         both = shapely.union(outline, filled).bounds
-        report["cells_outside_catchments_before"] = outside_cells(outline, whole, cell_m, both)
-        report["cells_outside_catchments"] = outside_cells(filled, whole, cell_m, both)
+        before = outside_cells(outline, whole, cell_m, both)
+        after = outside_cells(filled, whole, cell_m, both)
+        report.update({
+            "cell_m": cell_m,
+            "cells_outside_catchments_before": before,
+            "cells_outside_catchments": after,
+            "outside_catchments_km2": round(after * cell_m**2 / 1e6, 4),
+            "catchment_cells_outside": outside_cells(whole, filled, cell_m, both),
+        })  # fmt: skip
     report["seconds"] = round(time.perf_counter() - started, 1)
     return Aligned(filled, rim, gap, report)
