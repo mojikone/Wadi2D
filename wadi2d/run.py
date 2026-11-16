@@ -361,6 +361,14 @@ def _drop_point_entries(hydrology: dict) -> None:
         hydrology.pop("entry_erode_m")
 
 
+def _drop_no_step(line: dict) -> dict:
+    """A flow line's table without a step hashes as it did before steps existed (W96)."""
+    flow = line.get("flow")
+    if flow is not None and flow.get("step_s") is None:
+        flow.pop("step_s", None)
+    return line
+
+
 def job_hash(cfg: RunConfig) -> str:
     """What a checkpoint must match: everything that changes the water, the input files included."""
     data = cfg.model_dump(mode="json")
@@ -426,6 +434,7 @@ def job_hash(cfg: RunConfig) -> str:
         for key in ("name", "flow"):
             if line.get(key) is None:
                 line.pop(key, None)
+        _drop_no_step(line)
     limit = cfg.grid.content_hash_limit_mb
     files = {}
     for n, b in enumerate(cfg.boundaries):
@@ -631,7 +640,7 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
             "terrain": terrain,
             "grid": grid,
             "breaklines": cfg.breaklines.model_dump(mode="json"),
-            "boundaries": [b.model_dump(mode="json") for b in cfg.boundaries],
+            "boundaries": [_drop_no_step(b.model_dump(mode="json")) for b in cfg.boundaries],
             "code": source_identity(STRIP_SOURCES),
         }
     )

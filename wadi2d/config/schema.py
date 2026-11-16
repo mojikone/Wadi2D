@@ -521,6 +521,13 @@ class FlowHydrograph(_Part):
         None, description="Date and time of the run's minute zero, for a record with dates; else storm.rain_start"
     )
     times_s: list[float] | None = Field(None, description="Table times, s, in place of a file")
+    step_s: float | None = Field(
+        None,
+        gt=0.0,
+        le=2.6e6,
+        description="Table interval, s, in place of times_s: flows[k] at k x step_s from the run's start, as HEC-RAS's "
+        "Flow Hydrograph table gives an interval and a list (W96)",
+    )
     flows: list[float] | None = Field(None, description="Table discharges, m3/s, in place of a file")
     distribution: Literal["normal_depth", "conveyance"] = Field(
         FLOW_NORMAL_DEPTH,
@@ -546,12 +553,24 @@ class FlowHydrograph(_Part):
 
     @model_validator(mode="after")
     def _source(self) -> FlowHydrograph:
-        table = self.times_s is not None and self.flows is not None
+        if self.times_s is not None and self.step_s is not None:
+            raise ValueError("a flow line's table takes times_s or step_s, not both")
+        table = (self.times_s is not None or self.step_s is not None) and self.flows is not None
         if table == (self.file is not None):
-            raise ValueError("a flow line needs either file or times_s and flows")
-        if table and len(self.times_s) != len(self.flows):
+            raise ValueError("a flow line needs either file, or flows with times_s or step_s")
+        if table and self.times_s is not None and len(self.times_s) != len(self.flows):
             raise ValueError("a flow line's table needs one flow per time")
+        if table and self.step_s is not None and len(self.flows) < 2:
+            raise ValueError("a flow line's table at a step needs two flows at least")
         return self
+
+    def table(self) -> tuple[list[float], list[float]] | None:
+        """(times, s; flows, m3/s) of a table given in the job, the step's times written out; None for a file. The
+        dock draws the curve from this, the run takes it."""
+        if self.flows is None:
+            return None
+        times = self.times_s if self.times_s is not None else [k * self.step_s for k in range(len(self.flows))]
+        return list(times), list(self.flows)
 
 
 class Boundary(_Part):

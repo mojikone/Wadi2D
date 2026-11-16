@@ -1509,6 +1509,21 @@
           "description": "Table times, s, in place of a file",
           "title": "Times S"
         },
+        "step_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 2600000.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Table interval, s, in place of times_s: flows[k] at k x step_s from the run's start, as HEC-RAS's Flow Hydrograph table gives an interval and a list (W96)",
+          "title": "Step S"
+        },
         "flows": {
           "anyOf": [
             {
