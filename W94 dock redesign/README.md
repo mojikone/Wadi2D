@@ -139,3 +139,8 @@ His rule of 2026-11-16 for the map controls: one depth threshold for the maps in
 every output (pixel depth, speed, water level, hazard, the slider's frames, the renderer, the cell maps) and to the
 display cutoff of the depth layers, so files and screen agree; no second threshold anywhere. Sent to the part 2 worker
 with item 7.
+
+His rule of 2026-11-16 (answer on W103's finding): "in run 4 every lumped catchment takes its dam's ARF. The dams are
+actually the last point of the lumped model." So a lumped model ends at its dams (and junctions marked as last points,
+HAT-J4 on Block 2); in Hybrid Lumped the lumped water enters the 2D model at those points; with the lumped reduction in
+the curve form every lumped subbasin is read at the drainage area of the first last point below it. Being built as W105.
