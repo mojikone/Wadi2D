@@ -76,6 +76,13 @@ def device_room(xp) -> float:
     return float(xp.cuda.Device().mem_info[0])
 
 
+def _rows(xp, batch, on):
+    """The ground of a batch's cells ``on`` on the device: the batch's own array when every cell is in it, which is
+    the same numbers without a copy of its pixels (W93)."""
+    ground = xp.asarray(batch.ground)
+    return ground if on.size == ground.shape[0] else ground[on]
+
+
 @dataclass
 class Batch:
     """A run of kept cells, ``first`` to ``last``. On the device the whole time, or only while a map is worked on."""
@@ -161,7 +168,7 @@ class PixelMaxima:
                 if on.size:
                     cells = on + batch.first
                     shape = self._shape(levels, around, cells)
-                    change[cells] = fill_offset(xp, shape, xp.asarray(batch.ground)[on], h[cells])
+                    change[cells] = fill_offset(xp, shape, _rows(xp, batch, on), h[cells])
             offset = offset + change
             around = offsets_around(self.near, offset, links)
         return around, offset
@@ -215,12 +222,16 @@ class PixelMaxima:
             if on.size == 0:
                 continue
             cells = on + batch.first
-            pixel_depth = fill_cells(xp, self._shape(levels, around, cells), xp.asarray(batch.ground)[on], h[cells])
+            pixel_depth = fill_cells(xp, self._shape(levels, around, cells), _rows(xp, batch, on), h[cells])
             pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
             store = [xp.asarray(a) for a in batch.maxima]
             new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed]
+            whole = on.size == batch.last - batch.first  # every cell of the batch wet: no gather, no scatter (W93)
             for held, value in zip(store[: 3 if moment else 2], new, strict=False):
-                held[on] = xp.maximum(held[on], value)
+                if whole:
+                    xp.maximum(held, value, out=held)
+                else:
+                    held[on] = xp.maximum(held[on], value)
             batch.maxima = [self._rest(a) for a in store]
         if moment:
             self.cell_dv = xp.maximum(self.cell_dv, d * s)
