@@ -15,14 +15,14 @@ import re
 import sys
 from pathlib import Path
 
-from qgis.core import QgsApplication, QgsDataProvider, QgsProject
+from qgis.core import QgsApplication, QgsDataProvider, QgsProject, QgsRasterLayer
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 SOURCE = REPO / "W79 Block 2 four ways" / "Block2_four_ways.qgz"
-TARGET = HERE / "Block2_four_ways_W100.qgz"
+TARGET = HERE / "Block2_four_ways_W100_level.qgz"  # a new file: the first copy may be open in his QGIS
 REMAKE = HERE / "runs"
-TAG = "hazard01_"
+TAG = "level_"  # the remakes with the hazard floor and the water level raster
 DROPPED = "pixel_dv.tif"
 PATTERN = re.compile(r"/runs/(rerun2_run[134][^/]*)/(pixels|maps)/([^|]+)(.*)$")
 
@@ -61,9 +61,18 @@ for layer in project.mapLayers().values():
     if make is not None and str(REMAKE) in str(Path(layer.source().split("|")[0])):
         make(layer)
         restyled += 1
+added = 0
 for group in project.layerTreeRoot().findGroups(True):
     if group.name() == "Pixel rasters, the numbers of record":
         group.setName("Pixel rasters of record (W100: continuous surface, 2 m; hazard from 0.1 m)")
+        run = next((g.name().split(" ")[-1] for g in [group.parent()] if g is not None), "")
+        level = REMAKE / f"{TAG}{run}" / "pixels" / "pixel_level.tif"
+        if level.exists():
+            layer = QgsRasterLayer(level.as_posix(), "Highest water level, m")
+            project.addMapLayer(layer, False)
+            group.addLayer(layer).setItemVisibilityChecked(False)
+            added += 1
+print(f"water level layers added: {added}")
 project.setTitle("Block 2, four ways, with W100's maps")
 assert project.write(str(TARGET)), TARGET
 print(f"moved {moved}, dropped {dropped}, kept on W79 {kept}, restyled {restyled}; wrote {TARGET}")
