@@ -103,6 +103,66 @@ def remake(run: Path, backend: str | None = None, echo: bool = False) -> int:
     return code
 
 
+WINDOWS_DIR = "windows"
+"""Under a run's ``pixels``: the rasters of drawn windows at the pixel asked for (W100)."""
+
+
+def window_folder(run: Path, window: tuple[float, float, float, float], pixel_m: float) -> Path:
+    """Where ``wadi2d window`` puts a window's rasters when it is not told: named by its corners and pixel."""
+    xmin, ymin, xmax, ymax = (round(v) for v in window)
+    return run / PIXEL_DIR / WINDOWS_DIR / f"window_{xmin}_{ymin}_{xmax}_{ymax}_{pixel_m:g}m"
+
+
+def export_window(
+    run: Path,
+    window: tuple[float, float, float, float],
+    pixel_m: float = 0.0,
+    out: Path | None = None,
+    backend: str | None = None,
+    echo: bool = False,
+    surface: str | None = None,
+) -> int:
+    """``wadi2d window``: the rasters of record of one window of a finished run at another pixel, the DEM's own by
+    default (W100). The maps of record are coarser; this is their detail where it is wanted, each pixel what the
+    whole run at that pixel would hold there. Nothing of the run is touched but the new folder."""
+    from wadi2d.run import InvalidJob, prepare_grid
+
+    run = Path(run)
+    xmin, ymin, xmax, ymax = window
+    target = Path(out) if out is not None else window_folder(run, window, pixel_m)
+    target.mkdir(parents=True, exist_ok=True)
+    config = run / "config.resolved.json"
+    with Progress(target / PRODUCTS_LOG, echo=echo) as progress:
+        try:
+            if not config.is_file() or not (run / "results.h5").is_file():
+                raise InvalidJob(f"{run} holds no finished run")
+            if xmax <= xmin or ymax <= ymin:
+                raise InvalidJob("a window runs from its west and south edges to its east and north ones")
+            cfg = RunConfig.model_validate_json(config.read_text(encoding="utf-8"))
+            update = {"enabled": True, "pixel_m": pixel_m, **({"surface": surface} if surface else {})}
+            asked = cfg.outputs.pixels.model_copy(update=update)
+            asked = type(asked).model_validate(asked.model_dump())  # the settings checked as a job's would be
+            cfg = cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"pixels": asked})})
+            cache = Path(cfg.grid.cache_dir) if cfg.grid.cache_dir else run / "cache"
+            tables, crs = prepare_grid(cfg, cache, progress)
+            stop = run / "stop"
+            watch = Watch(progress.emit, stop.exists, STAGES_RECORD)
+            make_products(cfg, tables, crs, run, watch, backend or cfg.run.backend, None, tuple(window), target)
+        except InvalidJob as error:
+            progress.emit("error", code=EXIT_INVALID, message=str(error))
+            return EXIT_INVALID
+        except ProductsStopped:
+            (run / "stop").unlink(missing_ok=True)
+            progress.emit("done", status=PRODUCTS_STOPPED, code=EXIT_STOPPED, products=PRODUCTS_STOPPED)
+            return EXIT_STOPPED
+        except (ValueError, OSError) as error:
+            progress.emit("error", code=EXIT_FAILED, message=f"The window could not be made: {error}", trace=traceback.format_exc())
+            return EXIT_FAILED
+        progress.emit("output", kind="window", path=str(target))
+        progress.emit("done", status=PRODUCTS_DONE, code=EXIT_OK, products=PRODUCTS_DONE)
+    return EXIT_OK
+
+
 def _draw(run: Path, backend: str | None, progress: Progress) -> None:
     """The polygons and the depth drawing from the rasters a run holds; the layers too when the run has none."""
     from wadi2d.io.geopackage import layer_names
