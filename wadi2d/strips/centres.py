@@ -23,6 +23,7 @@ lattice edge, so every face between the strip and the squares is a lattice edge,
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -222,6 +223,33 @@ def counts_of(distance: np.ndarray, s: CentreSettings) -> np.ndarray:
     return held
 
 
+class _NearPoints:
+    """Points binned on a lattice of twice ``radius``: whether any lies closer than ``radius`` to a point, by the
+    distance ``cKDTree.query`` gives, the square root of the sum of the squared differences (W92)."""
+
+    def __init__(self, radius: float) -> None:
+        self.radius = radius
+        self.size = 2.0 * radius
+        self.bins: dict[tuple[int, int], list[tuple[float, float]]] = {}
+        self.count = 0
+
+    def add(self, p: np.ndarray) -> None:
+        x, y = float(p[0]), float(p[1])
+        self.bins.setdefault((math.floor(x / self.size), math.floor(y / self.size)), []).append((x, y))
+        self.count += 1
+
+    def any_within(self, p: np.ndarray) -> bool:
+        x, y = float(p[0]), float(p[1])
+        gx, gy = math.floor(x / self.size), math.floor(y / self.size)
+        for i in (gx - 1, gx, gx + 1):
+            for j in (gy - 1, gy, gy + 1):
+                for qx, qy in self.bins.get((i, j), ()):
+                    dx, dy = x - qx, y - qy
+                    if math.sqrt(dx * dx + dy * dy) < self.radius:
+                        return True
+        return False
+
+
 def place_centres(
     lines: list[Line], floors: list[tuple[np.ndarray, np.ndarray] | None], s: CentreSettings, inside=None
 ) -> tuple[Placed, list[list[int]]]:
@@ -290,7 +318,9 @@ def place_centres(
         dropped = int(pts.shape[0] - sum(b - a for a, b in pieces))
         if dropped:
             notes.append(f"line {line.name}: {dropped} of {pts.shape[0]} stations given up to higher lines, the domain's edge or too short to stand")
-        own: list[np.ndarray] = []
+        own_near = _NearPoints(0.5 * s.dx)
+        """The line's own centres again, binned for the test 'within half a cell of one of them' (W92: a tree of them
+        built anew for every centre was 90 s of Block 2's mesh; the test and its arithmetic are the tree's)."""
         for a, b in pieces:
             kept_stations[k].extend(range(a, b))
             for side, sign, counts in ((1, 1.0, n_left), (-1, -1.0, n_right)):
@@ -302,9 +332,9 @@ def place_centres(
                                 break  # this row and the rows beyond it on this side give way
                             if inside is not None and not bool(np.asarray(inside(p[None, :]))[0]):
                                 break  # the rows stop at the domain's edge
-                            if own and cKDTree(np.vstack(own)).query(p)[0] < 0.5 * s.dx:
+                            if own_near.count and own_near.any_within(p):
                                 break  # the line's own rows meeting inside a bend
-                        own.append(p[None, :])
+                        own_near.add(p)
                         xs.append(p)
                         ls.append(k)
                         st.append(i)
