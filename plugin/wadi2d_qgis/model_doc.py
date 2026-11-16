@@ -20,9 +20,10 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 2
-"""2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved maps and the
-engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
+VERSION = 3
+"""3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
+depth and a pattern. 2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved
+maps and the engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
 MIGRATED = "migrated"
 """The key of a document's list of words on what a migration moved or dropped, for whoever opens it."""
 MODEL_FILE = "model.wadi2d.json"
@@ -80,7 +81,111 @@ def _to_2(doc: dict) -> dict:
     return doc
 
 
-MIGRATIONS: dict = {1: _to_2}
+FIXED_WORDS = (
+    "The constant rain of {rain:g} mm/h for {hours:g} h is now a fixed depth of {depth:g} mm over {hours:g} h with a "
+    "uniform pattern, in Storm: the same rain, and the same job."
+)
+DESIGN_WORDS = (
+    'The design storm is now a Depth and pattern, in Storm: its pattern is the table "{name}" of Data tables, the same '
+    "numbers. The job now names the storm kind depth with that pattern; the engine reads it as the old design storm to "
+    "the digit (W95)."
+)
+CURVE_MOVED = 'The area reduction table is now the curve "{name}" of Data tables, read by the Area reduction section (4b).'
+STUDY_SPLIT = (
+    "The area reduction by the depth-area study is now the 2D part's choice in section 4b, at {area:g} km2 for a single "
+    "Run; the lumped part reads the curve at each subbasin's entry area, so a single Run's lumped subbasins are no "
+    "longer all read at {area:g} km2. A study reads every part at its storm areas, as before."
+)
+BY_ELEMENT_CURVE = (
+    "Each element at its own drainage area (Hydrology) is now the lumped part's curve, in section 4b: the same rule "
+    "(W95). The job names storm.area_reduction in place of hydrology.arf_by_element."
+)
+BY_ELEMENT_HMS = "Each element at its own drainage area (Hydrology) is now a tick of section 4b, for the HMS storm."
+DESIGN_PATTERN, ARF_CURVE = "Design pattern", "Area reduction"
+OLD_STORM = ("single", "design_depth", "design_hours", "pattern", "arf_mode", "storm_area", "arf", "arf_factor", "rain")
+"""The Storm section's widgets of format 2 that format 3 moved out or retired."""
+
+
+def _data(widgets: dict, key: str):
+    held = widgets.get(key)
+    return held.get("data") if isinstance(held, dict) else None
+
+
+def _combo(data, text: str = "") -> dict:
+    return {"data": data, "text": text or ("" if data is None else str(data))}
+
+
+def _parts(reduction: dict, which: str, **fields) -> None:
+    for name, value in fields.items():
+        reduction[f"{which}.{name}"] = value
+
+
+def _to_3(doc: dict) -> dict:
+    """Format 2 to 3 (W101): the Steady rain is a fixed depth, the design storm a depth and a pattern of Data tables,
+    the area reduction its own section with a lumped and a 2D part, and Hydrology's by-element tick its lumped curve.
+    Everything a model changes in the job is said in words under :data:`MIGRATED`."""
+    storm, hydrology = _widgets(doc, "storm"), _widgets(doc, "hydrology")
+    reduction = _widgets(doc, "reduction")
+    tables = doc["sections"].setdefault("tables", {}).setdefault("extra", {}).setdefault("store", {})
+    patterns, curves = tables.setdefault("patterns", {}), tables.setdefault("arf_curves", {})
+    words = []
+    kind = _data(storm, "kind")
+    single = _data(storm, "single")
+    if kind == "single" and single == "hyetograph":
+        storm["kind"] = _combo("hyetograph")
+    elif kind == "single":  # the Steady rain, the default source of format 2
+        rain, hours = float(storm.get("rain") or 0.0), float(storm.get("hours") or 0.0)
+        storm["kind"], storm["fixed_depth"] = _combo("fixed"), rain * hours
+        if rain > 0.0:
+            words.append(FIXED_WORDS.format(rain=rain, hours=hours, depth=rain * hours))
+    elif kind == "hypothetical":
+        storm["kind"] = _combo("depth")
+        storm["depth_mm"], storm["depth_hours"] = storm.get("design_depth", 0.0), storm.get("design_hours", 0.0)
+        rows = storm.get("pattern") or []
+        if rows:
+            patterns[DESIGN_PATTERN] = {
+                "time": [r[0] for r in rows], "depth": [r[1] for r in rows], "time_units": "percent", "form": "cumulative",
+            }  # fmt: skip
+            storm["depth_pattern"] = _combo(f"table:{DESIGN_PATTERN}")
+            words.append(DESIGN_WORDS.format(name=DESIGN_PATTERN))
+    curve = ""
+    rows = storm.get("arf") or []
+    if kind in ("hypothetical", "gridded") or hydrology.get("arf_by_element"):
+        if rows:
+            curves[ARF_CURVE] = {"areas_km2": [r[0] for r in rows], "factors": [r[1] for r in rows], "reduces_below_table": True}
+            curve = ARF_CURVE
+        elif kind == "gridded" and hydrology.get("folder"):
+            curve = "(hms)"  # the HMS project's table, as format 2 read an empty table under an HMS project
+    mode = _data(storm, "arf_mode") if kind in ("hypothetical", "gridded") else None
+    area = float(storm.get("storm_area") or 0.0)
+    if mode == "area":
+        for which in ("lumped", "grid"):
+            _parts(reduction, which, form=_combo("area"), curve=_combo(curve or None, curve), area=area)
+    elif mode == "given":
+        factor = float(storm.get("arf_factor") or 1.0)
+        for which in ("lumped", "grid"):
+            _parts(reduction, which, form=_combo("coefficient"), coefficient=factor)
+    elif mode == "study":
+        _parts(reduction, "lumped", form=_combo("curve"), curve=_combo(curve or None, curve))
+        _parts(reduction, "grid", form=_combo("study"), curve=_combo(curve or None, curve), single=area)
+        words.append(STUDY_SPLIT.format(area=area))
+    if curve and curve != "(hms)" and mode in ("area", "given", "study"):
+        words.append(CURVE_MOVED.format(name=curve))
+    if hydrology.pop("arf_by_element", False):
+        if kind == "hms":
+            reduction["by_element"] = True
+            words.append(BY_ELEMENT_HMS)
+        else:
+            _parts(reduction, "lumped", form=_combo("curve"), curve=_combo(curve or None, curve))
+            words.append(BY_ELEMENT_CURVE)
+    for key in OLD_STORM:
+        storm.pop(key, None)
+    if words:
+        doc[MIGRATED] = [*doc.get(MIGRATED, []), *words]
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2, 2: _to_3}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

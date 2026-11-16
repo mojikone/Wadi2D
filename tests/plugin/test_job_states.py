@@ -30,12 +30,8 @@ def test_a_plain_job_comes_back_as_section_states(tmp_path: Path) -> None:
     assert terrain["dem"]["provider"] == "gdal" and terrain["dem"]["source"].endswith("dem.tif")
     assert Path(terrain["domain"]["source"]) == tmp_path.resolve() / "inputs" / "domain.geojson"
     storm = states["storm"]["widgets"]
-    assert (storm["kind"]["data"], storm["single"]["data"], storm["rain"], storm["hours"]) == (
-        "single",
-        "uniform",
-        40.0,
-        0.5,
-    )
+    # W101: the Steady rain is a fixed depth, the same job (40 mm/h for 0.5 h is 20 mm over 0.5 h)
+    assert (storm["kind"]["data"], storm["fixed_depth"], storm["hours"]) == ("fixed", 20.0, 0.5)
     assert states["hydrology"]["widgets"]["cn.box"] == 85.0
     assert states["points"]["widgets"]["name"] == "name"
     run, simulation = states["run"]["widgets"], states["simulation"]["widgets"]
@@ -87,21 +83,21 @@ def test_storms_the_dock_writes_are_read_back(tmp_path: Path) -> None:
         "kind": "hypothetical", "depth_mm": 120.0, "hours": 6.0, "pattern": [(0.0, 0.0), (100.0, 100.0)],
         "arf_mode": "area", "area_km2": 74.3, "arf": [(10.0, 0.99), (100.0, 0.913)],
     }  # fmt: skip
-    storm = job_states.job_states(build_job(values(storm=design), tmp_path), tmp_path)["storm"]["widgets"]
-    assert (storm["kind"]["data"], storm["design_depth"], storm["design_hours"]) == (
-        "hypothetical",
-        120.0,
-        6.0,
-    )
-    assert storm["pattern"] == [[0.0, 0.0], [100.0, 100.0]]
-    assert (storm["arf_mode"]["data"], storm["storm_area"], storm["arf"]) == (
-        "area",
-        74.3,
-        [[10.0, 0.99], [100.0, 0.913]],
-    )
+    states = job_states.job_states(build_job(values(storm=design), tmp_path), tmp_path)
+    storm = states["storm"]["widgets"]  # W101: a design storm comes back as a depth with its pattern in Data tables
+    assert (storm["kind"]["data"], storm["depth_mm"], storm["depth_hours"]) == ("depth", 120.0, 6.0)
+    assert storm["depth_pattern"]["data"] == "table:Design pattern"
+    store = states["tables"]["extra"]["store"]
+    assert store["patterns"]["Design pattern"]["time"] == [0.0, 100.0]
+    assert store["arf_curves"]["Area reduction"]["factors"] == [0.99, 0.913]
+    reduction = states["reduction"]["widgets"]
+    for part in ("lumped", "grid"):
+        assert (reduction[f"{part}.form"]["data"], reduction[f"{part}.curve"]["data"], reduction[f"{part}.area"]) == (
+            "area", "Area reduction", 74.3,
+        )  # fmt: skip
     table = {"kind": "hyetograph", "rows": [(15.0, 4.0), (30.0, 11.5)]}
     storm = job_states.job_states(build_job(values(storm=table), tmp_path), tmp_path)["storm"]["widgets"]
-    assert (storm["single"]["data"], storm["hyetograph"]) == ("hyetograph", [[15.0, 4.0], [30.0, 11.5]])
+    assert (storm["kind"]["data"], storm["hyetograph"]) == ("hyetograph", [[15.0, 4.0], [30.0, 11.5]])
 
 
 def test_dam_start_levels_come_back_as_rows(tmp_path: Path) -> None:

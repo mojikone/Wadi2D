@@ -13,13 +13,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import NamedTuple
 
+from . import reduction_rows, table_rows
 from .model_types import NEEDS_LUMPED, TWO_D, TYPES, UNUSED_LUMPED
 from .simulation_rows import STEPS_REVERSED, start_problem
 from .storm_rows import (
     ARF_AREA,
     ARF_GIVEN,
     ARF_STUDY,
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
     KIND_DESIGN,
+    KIND_FIXED,
     KIND_GAUGES,
     KIND_GRID,
     KIND_HMS,
@@ -34,9 +38,9 @@ STATE_MARKS = {READY: "\N{CHECK MARK}", OPTIONAL: "\N{EN DASH}", MISSING: "!"}
 """A mark beside a step's name, so the strip does not tell a state by colour alone."""
 SEP = " \N{MIDDLE DOT} "
 STEP_NAMES = {
-    "terrain": "Terrain", "mesh": "Mesh", "hydrology": "Hydrology", "storm": "Storm", "structures": "Structures",
-    "boundaries": "Boundaries", "points": "Points", "gauges": "Gauges", "simulation": "Simulation", "run": "Run",
-    "study": "Study",
+    "terrain": "Terrain", "mesh": "Mesh", "hydrology": "Hydrology", "tables": "Tables", "storm": "Storm",
+    "reduction": "ARF", "structures": "Structures", "boundaries": "Boundaries", "points": "Points", "gauges": "Gauges",
+    "simulation": "Simulation", "run": "Run", "study": "Study",
 }  # fmt: skip
 """Section key to its short name on the step strip."""
 
@@ -158,6 +162,14 @@ def storm(source: str, values: dict, hms_in_use: bool, rain_gauges: int = 0) -> 
     if found:
         return Status(MISSING, found[0])
     kind = held["kind"]
+    if kind == KIND_FIXED:
+        return Status(READY, f"Fixed depth {held['depth_mm']:g} mm over {held['hours']:g} h, uniform")
+    if kind == KIND_DEPTH:
+        pattern = table_rows.pattern_words(held.get("pattern"))
+        return Status(READY, f"Depth {held['depth_mm']:g} mm in {held['hours']:g} h, {pattern}")
+    if kind == KIND_DEPTH_GRID:
+        pattern = table_rows.pattern_words(held.get("pattern"))
+        return Status(READY, f"Depth grid {Path(held['raster']).name} over {held['hours']:g} h, {pattern}")
     if kind == KIND_STEADY:
         return Status(READY, f"Constant rain {held['mm_h']:g} mm/h for {held['hours']:g} h")
     if kind == KIND_TABLE:
@@ -170,6 +182,42 @@ def storm(source: str, values: dict, hms_in_use: bool, rain_gauges: int = 0) -> 
     if kind == KIND_GRID:
         return Status(READY, join(f"Gridded rain from {Path(held['file']).name}", _reduction(held)))
     return Status(READY, "")
+
+
+def reduction(source: str | None, parts: dict, curves: dict, hms: bool) -> Status:
+    """The area reduction (W101): ``parts`` is what the section gives the job builder, ``source`` the rain source."""
+    if source == KIND_HMS:
+        return Status(READY, "As in the HMS project's meteorologic file")
+    if source not in reduction_rows.REDUCED_KINDS:
+        return Status(OPTIONAL, reduction_rows.UNUSED_WORDS)
+    found = reduction_rows.reduction_problems(parts, source, curves, hms=hms)
+    if found and found[0] != reduction_rows.SINGLE_WORDS:  # the study's single-run area is Run's matter
+        return Status(MISSING, found[0])
+    shown = [
+        reduction_rows.words(parts.get(which), which, curves)
+        for which in (reduction_rows.LUMPED, reduction_rows.GRID)
+        if not parts.get(f"{which}_absent")
+    ]
+    every = [parts.get(which) for which in (reduction_rows.LUMPED, reduction_rows.GRID) if not parts.get(f"{which}_absent")]
+    if all((entry or {}).get("form", reduction_rows.NONE) == reduction_rows.NONE for entry in every):
+        return Status(OPTIONAL, "None: the depth falls whole")
+    return Status(READY, join(*shown))
+
+
+def tables(store: dict) -> Status:
+    patterns, curves = store.get(table_rows.PATTERNS, {}), store.get(table_rows.CURVES, {})
+    for name, pattern in sorted(patterns.items()):
+        found = table_rows.pattern_problems(name, pattern)
+        if found:
+            return Status(MISSING, found[0])
+    for name, curve in sorted(curves.items()):
+        found = table_rows.curve_problems(name, curve)
+        if found:
+            return Status(MISSING, found[0])
+    if not patterns and not curves:
+        return Status(OPTIONAL, "None: patterns are uniform or an SCS type, and no area reduction reads a curve")
+    count = lambda n, word: f"{n} {word}{'s' if n != 1 else ''}"  # noqa: E731
+    return Status(READY, join(count(len(patterns), "pattern"), count(len(curves), "curve")))
 
 
 def structures(

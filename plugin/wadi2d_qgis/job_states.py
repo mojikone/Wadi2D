@@ -22,15 +22,14 @@ from .protocol import INPUTS_DIR
 from .shaped import END_KEYS, SHAPED_KINDS, TABLE
 from .simulation_rows import NUMERIC_KEYS, STEP_AUTO, STEP_FIXED, fixed_step
 from .storm_rows import (
-    ARF_AREA,
-    ARF_GIVEN,
-    ARF_NONE,
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
     KIND_DESIGN,
+    KIND_FIXED,
     KIND_GAUGES,
     KIND_GRID,
     KIND_STEADY,
     KIND_TABLE,
-    SOURCE_SINGLE,
 )
 from .study_rows import AREA_KEY
 
@@ -95,42 +94,109 @@ def _put(widgets: dict, path: str, value) -> None:
         widgets[path] = value
 
 
-def _arf(storm: dict, widgets: dict) -> None:
-    if "arf_factor" in storm:
-        widgets["arf_mode"], widgets["arf_factor"] = choice(ARF_GIVEN), storm["arf_factor"]
-    elif "storm_area_km2" in storm:
-        table = storm.get("arf") or {}
-        widgets["arf_mode"], widgets["storm_area"] = choice(ARF_AREA), storm["storm_area_km2"]
-        widgets["arf"] = [
-            list(pair) for pair in zip(table.get("areas_km2", []), table.get("factors", []), strict=False)
-        ]
+DESIGN_PATTERN, ARF_CURVE, HMS_TABLE = "Design pattern", "Area reduction", "(hms)"
+
+
+def _part(reduction: dict, which: str, entry: dict | None) -> None:
+    """One part of ``storm.area_reduction`` as the Area reduction section's widgets (W101)."""
+    if entry is None:
+        reduction[f"{which}.form"] = choice("none")
+        return
+    form = entry.get("form")
+    if form == "coefficient":
+        reduction[f"{which}.form"], reduction[f"{which}.coefficient"] = choice("coefficient"), entry.get("coefficient")
+        return
+    name = entry.get("curve") or ARF_CURVE
+    reduction[f"{which}.curve"] = choice(name)
+    if form == "area":
+        reduction[f"{which}.form"], reduction[f"{which}.area"] = choice("area"), entry.get("area_km2")
+    elif which == "grid":  # a 2D curve: the depth-area study's
+        reduction[f"{which}.form"] = choice("study")
     else:
-        widgets["arf_mode"] = choice(ARF_NONE)
+        reduction[f"{which}.form"] = choice("curve")
 
 
-def _storm(storm: dict) -> dict:
-    """The Storm section's state for the storm kinds the dock itself writes; another kind is left to the comparison."""
+def _reduction(storm: dict, store: dict) -> dict:
+    """The Area reduction section's widgets from a job's storm, the curves it reads put into ``store`` (W101)."""
+    widgets: dict = {}
+    split = storm.get("area_reduction")
+    if split:
+        for which in ("lumped", "grid"):
+            _part(widgets, which, split.get(which))
+        return widgets
+    if "arf_factor" in storm:
+        for which in ("lumped", "grid"):
+            _part(widgets, which, {"form": "coefficient", "coefficient": storm["arf_factor"]})
+    elif "storm_area_km2" in storm:
+        table = storm.get("arf")
+        name = HMS_TABLE
+        if table:
+            name = ARF_CURVE
+            store["arf_curves"][name] = {
+                "areas_km2": list(table.get("areas_km2", [])), "factors": list(table.get("factors", [])),
+                "reduces_below_table": table.get("reduces_below_table", True),
+            }  # fmt: skip
+        for which in ("lumped", "grid"):
+            _part(widgets, which, {"form": "area", "curve": name, "area_km2": storm["storm_area_km2"]})
+    return widgets
+
+
+def _tables(job: dict) -> dict:
+    """The job's ``data_tables`` as the Data tables section holds them."""
+    held = job.get("data_tables") or {}
+    store: dict = {"patterns": {}, "arf_curves": {}}
+    for name, table in (held.get("patterns") or {}).items():
+        store["patterns"][name] = {
+            "time": list(table["time"]), "depth": list(table["depth"]),
+            "time_units": table.get("time_units", "percent"), "form": table.get("form", "cumulative"),
+        }  # fmt: skip
+    for name, table in (held.get("arf_curves") or {}).items():
+        store["arf_curves"][name] = {
+            "areas_km2": list(table["areas_km2"]), "factors": list(table["factors"]),
+            "reduces_below_table": table.get("reduces_below_table", True),
+        }  # fmt: skip
+    return store
+
+
+def _pattern_choice(pattern: dict | None) -> dict:
+    if not pattern or pattern.get("kind") == "uniform":
+        return choice("uniform")
+    if pattern.get("kind") == "scs":
+        return choice(f"scs:{pattern.get('scs_type')}")
+    return choice(f"table:{pattern.get('table')}")
+
+
+def _storm(storm: dict, store: dict) -> dict:
+    """The Storm section's state for the storm kinds the dock itself writes; another kind is left to the comparison.
+    A design storm of a run from before W101 comes back as a depth with its pattern put into ``store``."""
     widgets: dict = {}
     rows: dict = {}
     kind = storm.get("kind")
+    hours = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
     if kind == KIND_STEADY:
-        hours = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
-        widgets.update(kind=choice(SOURCE_SINGLE), single=choice(KIND_STEADY), hours=hours)
-        widgets["rain"] = storm.get("depth_mm", 0.0) / hours if hours > 0.0 else 0.0
+        widgets.update(kind=choice(KIND_FIXED), hours=hours, fixed_depth=storm.get("depth_mm", 0.0))
     elif kind == KIND_TABLE:
         table = zip(storm.get("hyetograph_min", []), storm.get("hyetograph_mm", []), strict=False)
-        widgets.update(
-            kind=choice(SOURCE_SINGLE), single=choice(KIND_TABLE), hyetograph=[list(pair) for pair in table]
-        )
+        widgets.update(kind=choice(KIND_TABLE), hyetograph=[list(pair) for pair in table])
     elif kind == KIND_DESIGN and "time_percent" in storm:
-        pattern = zip(storm["time_percent"], storm.get("depth_percent", []), strict=False)
+        store["patterns"][DESIGN_PATTERN] = {
+            "time": list(storm["time_percent"]), "depth": list(storm.get("depth_percent", [])),
+            "time_units": "percent", "form": "cumulative",
+        }  # fmt: skip
         widgets.update(
-            kind=choice(KIND_DESIGN),
-            design_depth=storm.get("depth_mm"),
-            pattern=[list(pair) for pair in pattern],
-        )
-        widgets["design_hours"] = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
-        _arf(storm, widgets)
+            kind=choice(KIND_DEPTH), depth_mm=storm.get("depth_mm"), depth_hours=hours,
+            depth_pattern=choice(f"table:{DESIGN_PATTERN}"),
+        )  # fmt: skip
+    elif kind == KIND_DEPTH:
+        widgets.update(
+            kind=choice(KIND_DEPTH), depth_mm=storm.get("depth_mm"), depth_hours=hours,
+            depth_pattern=_pattern_choice(storm.get("pattern")),
+        )  # fmt: skip
+    elif kind == KIND_DEPTH_GRID:
+        widgets.update(
+            kind=choice(KIND_DEPTH_GRID), depth_raster=layer(storm.get("depth_grid"), raster=True), grid_hours=hours,
+            grid_pattern=_pattern_choice(storm.get("pattern")),
+        )  # fmt: skip
     elif kind == KIND_GRID:
         source = storm.get("rain_file", "")
         widgets.update(
@@ -147,7 +213,6 @@ def _storm(storm: dict) -> dict:
         widgets["variable"] = {"data": None, "text": storm.get("rain_variable", "")}
         widgets["stamp"] = choice(storm.get("rain_stamp"))
         widgets["period"] = storm.get("rain_interval_min", 0.0)
-        _arf(storm, widgets)
     elif kind == KIND_GAUGES:
         spread = storm.get("gauges") or {}
         widgets.update(
@@ -253,7 +318,6 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
         widgets, "lumped_entry", choice(hydrology["lumped_entry"]) if hydrology.get("lumped_entry") else None
     )
     widgets["lumped_only"] = bool(run.get("lumped_only"))
-    widgets["arf_by_element"] = bool(hydrology.get("arf_by_element"))
     _put(widgets, "routing", choice(hydrology["reach_routing"]) if hydrology.get("reach_routing") else None)
     widgets["exclude"] = bool((job.get("grid") or {}).get("exclude_lumped"))
     handbacks = inputs_dir / "handbacks.geojson"
@@ -314,11 +378,19 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
     panel = {"folder": str(root), "pixels": (outputs.get("pixels") or {}).get("enabled", True)}
     _put(panel, "smooth", (outputs.get("smooth") or {}).get("enabled"))
     panel["limiter"] = bool(outputs.get("step_limiter"))
+    store = _tables(job)
+    storm = job.get("storm") or {}
+    storm_state = _storm(storm, store)
+    reduction = _reduction(storm, store)
+    if (job.get("hydrology") or {}).get("arf_by_element"):
+        reduction["by_element"] = True
     return {
         "terrain": {"widgets": ground},
         "mesh": _mesh(job, inputs_dir),
         "hydrology": _hydrology(job, inputs_dir),
-        "storm": _storm(job.get("storm") or {}),
+        "tables": {"widgets": {}, "extra": {"store": store}},
+        "storm": storm_state,
+        "reduction": {"widgets": reduction},
         "structures": _structures(job, inputs_dir),
         "boundaries": {"widgets": {"layer": layer(edges)} if edges.is_file() else {}},
         "points": {"widgets": points},

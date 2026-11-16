@@ -175,76 +175,82 @@ def pick(combo, key) -> None:
 
 
 def storm_sources(dock) -> None:
-    """The Rain source of W65: one choice, only its fields, and for each kind the job the old section wrote."""
+    """The Rain sources of W101 (W65's one choice, only its fields) and the Area reduction and Data tables sections:
+    for each kind the job the old section wrote, where the old section had that kind."""
     from wadi2d_qgis.storm_rows import storm_job
 
-    storm, crs = dock.storm, UTM
+    storm, crs, arf, tables = dock.storm, UTM, dock.reduction, dock.tables
     sources = [storm.kind.itemData(i) for i in range(storm.kind.count())]
-    check(sources == ["hypothetical", "gridded", "gauges", "single"], f"storm: four rain sources without HMS {sources}")
-    check(storm.kind.currentData() == "single" and storm.single.currentData() == "uniform", "storm: constant rain first")
-    check(storm.reduction.isHidden(), "storm: no area reduction on a single hyetograph")
+    check(sources == ["fixed", "depth", "depth_grid", "gridded", "gauges", "hyetograph"], f"storm: six rain sources without HMS {sources}")
+    check(storm.kind.currentData() == "fixed", "storm: a fixed depth first")
     storm.rain.setValue(30.0)
     storm.hours.setValue(2.0)
-    check(storm.values(crs) == {"rain_mm_h": 30.0, "rain_hours": 2.0}, "storm: constant rain writes what Steady rain wrote")
+    check(storm.values(crs) == {"storm": {"kind": "fixed", "depth_mm": 60.0, "hours": 2.0}}, f"storm: the Steady rain's mm/h gives its depth {storm.values(crs)}")
+    check(storm_job(storm.values(crs)["storm"]) == {"kind": "uniform", "depth_mm": 60.0, "duration_min": 120.0}, "storm: a fixed depth writes what Steady rain wrote")
+    storm.fixed_depth.setValue(75.5)
+    check(storm.values(crs)["storm"]["depth_mm"] == 75.5, "storm: a depth typed is the depth")
 
-    pick(storm.single, "hyetograph")
+    pick(storm.kind, "hyetograph")
     storm.hyetograph.set_rows([(30.0, 10.0), (60.0, 25.0)])
     old = {"kind": "hyetograph", "rows": [(30.0, 10.0), (60.0, 25.0)]}
     check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a table writes what Hyetograph table wrote")
+    check(arf.standing().state == "optional", f"arf: observed rain takes no reduction {arf.standing()}")
 
-    pick(storm.kind, "hypothetical")
-    check(not storm.reduction.isHidden() and storm.arf_detail.isHidden(), "storm: the reduction block, None first")
-    storm.design_depth.setValue(100.0)
-    storm.design_hours.setValue(24.0)
-    pattern = [(0.0, 0.0), (50.0, 70.0), (100.0, 100.0)]
-    storm.pattern.set_rows(pattern)
-    old = {"kind": "hypothetical", "depth_mm": 100.0, "hours": 24.0, "pattern": pattern, "area_km2": 0.0, "arf": []}
-    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a design storm with no reduction as before")
-    pick(storm.arf_mode, "area")
-    check(not storm.arf_detail.isHidden(), "storm: one storm area shows the area and the table")
-    storm.storm_area.setValue(200.0)
-    storm.arf.set_rows([(10.0, 0.95), (1000.0, 0.7)])
-    old = {**old, "area_km2": 200.0, "arf": [(10.0, 0.95), (1000.0, 0.7)]}
-    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a reduced design storm as before")
-    pick(storm.arf_mode, "study")
-    check(not storm.study_label.isHidden() and "storm areas" in storm.study_label.text(), "storm: the study's areas")
-    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: the study reads the same table")
-    pick(storm.arf_mode, "given")
-    check(storm.arf_detail.isHidden() and not storm.given_box.isHidden(), "storm: a given factor shows its one number")
-    storm.arf_factor.setValue(0.7)
-    given = storm_job(storm.values(crs)["storm"])
-    check(given.get("arf_factor") == 0.7 and "arf" not in given and "storm_area_km2" not in given,
-          f"storm: a given factor writes the factor alone {given}")  # fmt: skip
-    pick(storm.arf_mode, "study")
-    check(storm.given_box.isHidden(), "storm: the given factor hidden under the study")
-    storm.arf.set_rows([])
-    check(any("reduction table" in p for p in problems({**dock._collect(), "output": str(WORK)})),
-          "storm: a reduction with no table is refused before the run")  # fmt: skip
+    name = tables.add_table("patterns", "Front", {"time": [0.0, 30.0, 100.0], "depth": [0.0, 70.0, 100.0], "time_units": "percent", "form": "cumulative"})
+    curve = tables.add_table("arf_curves", "Block 2", {"areas_km2": [10.0, 1000.0], "factors": [0.95, 0.7], "reduces_below_table": True})
+    check(storm.depth_pattern.findData(f"table:{name}") >= 0, "tables: a pattern of Data tables is offered in Storm")
+    check(arf.grid.curve.findData(curve) >= 0 and arf.lumped.curve.findData(curve) >= 0, "tables: a curve is offered to both parts")
+    pick(storm.kind, "depth")
+    storm.depth_mm.setValue(100.0)
+    pick(storm.depth_pattern, "scs:II")
+    check(storm.depth_hours.value() == 24.0, "storm: an SCS curve sets 24 h")
+    pick(storm.depth_pattern, f"table:{name}")
+    storm.depth_hours.setValue(6.0)
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "area")
+        pick(box.curve, curve)
+        box.area.setValue(200.0)
+    check("0.9020" in arf.grid.factor.text(), f"arf: the factor at the area shown {arf.grid.factor.text()}")
+    values = {**dock._collect(), "output": str(WORK)}
+    rain_words = [p for p in problems(values) if any(w in p for w in ("pattern", "curve", "depth", "reduction", "part"))]
+    check(rain_words == [], f"storm: a depth with a pattern of Data tables runs {rain_words}")
+    from wadi2d_qgis.job_builder import build_job
+
+    job = build_job(values, WORK / "job_depth")
+    check(job["storm"]["pattern"] == {"kind": "table", "table": name} and name in job["data_tables"]["patterns"], f"storm: the job names the pattern {job['storm']}")
+    check(job["storm"]["area_reduction"]["grid"] == {"form": "area", "curve": curve, "area_km2": 200.0}, "arf: a depth storm writes both parts")
+    pick(arf.lumped.form, "curve")
+    pick(arf.grid.form, "study")
+    check(not arf.study_label.isHidden(), "arf: the study's storm areas shown under the 2D part")
+    check(any("single Run" in p for p in problems({**dock._collect(), "output": str(WORK)})), "arf: the study with no single-run area is refused for Run")
+    arf.grid.single.setValue(74.3)
+    check(not any("single Run" in p for p in problems({**dock._collect(), "output": str(WORK)})), "arf: the study's single-run area lets Run go")
+    pick(arf.lumped.form, "none")
+    pick(arf.grid.form, "none")
 
     pick(storm.kind, "gridded")
     path = WORK / "rain.nc"
     storm.rain_file.setFilePath(str(path))
-    pick(storm.arf_mode, "none")
-    check(not storm.grid_note.isHidden(), "storm: a gridded file says observed rain takes no reduction")
     grid = storm.values(crs)["storm"]
     old = {"kind": "gridded", "file": str(path), "variable": "", "choices": [], "units": grid["units"],
-           "interval_min": 0.0, "stamp": grid["stamp"], "start": "", "arf_on": False, "area_km2": 200.0, "arf": []}  # fmt: skip
+           "interval_min": 0.0, "stamp": grid["stamp"], "start": ""}  # fmt: skip
     check(storm_job(grid) == storm_job(old), "storm: an observed grid as before")
-    pick(storm.arf_mode, "area")
-    storm.arf.set_rows([(10.0, 0.9), (1000.0, 0.6)])
-    old = {**old, "arf_on": True, "arf": [(10.0, 0.9), (1000.0, 0.6)]}
-    check(storm_job(storm.values(crs)["storm"]) == storm_job(old), "storm: a grid of point depths as before")
-    pick(storm.arf_mode, "given")
-    given = storm_job(storm.values(crs)["storm"])
-    check(given.get("arf_factor") == 0.7 and "arf" not in given and "storm_area_km2" not in given,
-          f"storm: a grid with a given factor {given}")  # fmt: skip
-    pick(storm.arf_mode, "area")
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "coefficient")
+        box.coefficient.setValue(0.7)
+    path.write_bytes(b"x")
+    job = build_job({**dock._collect(), "output": str(WORK)}, WORK / "job_grid")
+    check(job["storm"].get("arf_factor") == 0.7 and "area_reduction" not in job["storm"], f"arf: one coefficient for both parts is the given factor {job['storm']}")
+    path.unlink()
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "none")
+    pick(storm.depth_pattern, "uniform")
+    tables.remove("patterns", name)
+    check(storm.depth_pattern.findData(f"table:{name}") < 0, "tables: a removed pattern leaves Storm's choices")
 
     storm_gauges(dock, crs)
 
-    pick(storm.kind, "single")
-    pick(storm.single, "uniform")
-    pick(storm.arf_mode, "none")
+    pick(storm.kind, "fixed")
 
 
 def storm_gauges(dock, crs) -> None:
@@ -408,27 +414,42 @@ def real_preview(dock) -> None:
     check(area.featureCount() == 1 and abs(next(area.getFeatures())["depth_mm"] - 20.0) < 1e-6, "real: the 2D area, 20 mm")
 
     gauge_preview(dock)
-    pick(storm.kind, "hypothetical")
-    storm.design_depth.setValue(80.0)
-    storm.design_hours.setValue(0.25)
-    storm.pattern.set_rows([(0.0, 0.0), (100.0, 100.0)])
-    pick(storm.arf_mode, "area")
-    storm.storm_area.setValue(505.0)
-    storm.arf.set_rows([(10.0, 1.0), (1000.0, 0.5)])
+    arf, tables = dock.reduction, dock.tables  # W101: the reduction in its own section, its curve in Data tables
+    curve = tables.add_table("arf_curves", "Halving", {"areas_km2": [10.0, 1000.0], "factors": [1.0, 0.5], "reduces_below_table": True})
+    pick(storm.kind, "fixed")
+    storm.fixed_depth.setValue(80.0)
+    storm.hours.setValue(0.25)
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "area")
+        pick(box.curve, curve)
+        box.area.setValue(505.0)
     said = previewed()
     depth = storm.preview_table.rows[0]["depth_mm"]
-    check(abs(depth - 80.0 * 0.75) < 1e-4 and "0.7500 at 505" in said, f"real: the design storm reduced, {said} {depth}")
-    pick(storm.arf_mode, "given")
-    storm.arf_factor.setValue(0.7)
+    check(abs(depth - 80.0 * 0.75) < 1e-4 and "0.7500 at 505" in said, f"real: the fixed depth reduced, {said} {depth}")
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "coefficient")
+        box.coefficient.setValue(0.7)
     said = previewed()
     depth = storm.preview_table.rows[0]["depth_mm"]
     check(abs(depth - 80.0 * 0.7) < 1e-4 and "0.7000 (given)" in said, f"real: a given factor, {said} {depth}")
-    pick(storm.arf_mode, "area")
-    storm.arf.set_rows([])
+    pick(storm.kind, "depth")
+    storm.depth_mm.setValue(80.0)
+    storm.depth_hours.setValue(0.25)
+    pick(arf.lumped.form, "coefficient")
+    arf.lumped.coefficient.setValue(0.6)
+    pick(arf.grid.form, "area")
+    pick(arf.grid.curve, curve)
+    arf.grid.area.setValue(505.0)
     previewed()
-    check("reduction table" in storm.preview_label.text(), f"real: refused in words, {storm.preview_label.text()}")
-    pick(storm.kind, "single")
-    pick(storm.arf_mode, "none")
+    depth = storm.preview_table.rows[0]["depth_mm"] if storm.preview_table.rows else None
+    check(depth is not None and abs(depth - 80.0 * 0.75) < 1e-4, f"real: the 2D part's own reduction on a depth, {storm.preview_label.text()} {depth}")
+    pick(arf.grid.form, "study")
+    previewed()
+    check("single Run" in storm.preview_label.text(), f"real: refused in words, {storm.preview_label.text()}")
+    pick(storm.kind, "fixed")
+    for box in (arf.lumped, arf.grid):
+        pick(box.form, "none")
+    tables.remove("arf_curves", curve)
 
 
 def smoke() -> None:

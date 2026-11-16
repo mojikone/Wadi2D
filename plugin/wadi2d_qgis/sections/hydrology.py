@@ -26,7 +26,6 @@ from .. import section_status
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
-    ARF_BY_ELEMENT,
     CURVE_NUMBER,
     EXCLUDE_LUMPED,
     HMS_KEYS,
@@ -101,8 +100,6 @@ class HydrologySection(Section):
         hms.addRow("Lumped water enters the 2D model", self.lumped_entry)
         self.lumped_only = QCheckBox("The HMS way only: the lumped network alone, no 2D model")
         hms.addRow(self.lumped_only)
-        self.arf_by_element = QCheckBox("Each element at its own drainage area's area reduction (depth-area analysis)")
-        hms.addRow(self.arf_by_element)
         self.lumped_only.toggled.connect(self._lumped_only_toggled)
         lumped.addRow(self.hms_box)
         self.hms_box.hide()
@@ -159,7 +156,6 @@ class HydrologySection(Section):
         self.lumped_entry.setToolTip(schema.tip(LUMPED_ENTRY))
         self.lumped_only.setToolTip(schema.tip(LUMPED_ONLY))
         self.lumped_only.setEnabled(schema.has(LUMPED_ONLY))  # an engine from before W88 would refuse the fields
-        self.arf_by_element.setToolTip(schema.tip(ARF_BY_ELEMENT))
         self.exclude.setChecked(bool(schema.default(EXCLUDE_LUMPED, False)))
         self.exclude.setToolTip(schema.tip(EXCLUDE_LUMPED))
         self._exclude_known = schema.has(EXCLUDE_LUMPED)
@@ -178,7 +174,6 @@ class HydrologySection(Section):
         self.lumped_box.setVisible(kind != TWO_D)
         self.lumped_only.setVisible(not typed)
         self.exclude.setVisible(not typed)
-        self.arf_by_element.setVisible(not typed or kind == LUMPED)
         entry = not typed or kind == HYBRID_LUMPED
         self.lumped_entry.setVisible(entry)
         self.hms_box.layout().labelForField(self.lumped_entry).setVisible(entry)
@@ -233,7 +228,6 @@ class HydrologySection(Section):
             self.muskingum.set_reaches([], False)
 
     def _lumped_only_toggled(self, on: bool) -> None:
-        self.arf_by_element.setEnabled(on)
         self.lumped_entry.setEnabled(not on and self.lumped_entry.count() > 0)
         self.exclude.setEnabled(not on and self._exclude_known)
 
@@ -356,7 +350,6 @@ class HydrologySection(Section):
             values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}
             values["lumped_entry"] = self.lumped_entry.currentData() if self.lumped_entry.isEnabled() else None
             values["lumped_only"] = self.lumped_only.isChecked() and self.lumped_only.isEnabled()
-            values["arf_by_element"] = values["lumped_only"] and self.arf_by_element.isChecked()
         elif self.basin.isChecked():
             values["basin"] = {**self.basin.values(crs), "modes": self._subbasin_modes()}
         return values

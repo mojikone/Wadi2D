@@ -40,12 +40,12 @@ class StormLinks(QObject):
         self._map_dir: str | None = None
         self._map_shown: str | None = None
         self.storm.preview_requested.connect(self.preview)
-        self.storm.study_areas_requested.connect(self.show_study_areas)
+        dock.reduction.study_areas_requested.connect(self.show_study_areas)  # the 2D part's study (W101)
 
     def show_study_areas(self) -> None:
         study = self.dock.study
         study._refresh_areas()
-        self.storm.show_study_areas(study.areas_label.text())
+        self.dock.reduction.show_study_areas(study.areas_label.text())
 
     # Preview rain
 

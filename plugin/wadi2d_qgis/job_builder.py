@@ -22,11 +22,21 @@ from .gauge_rows import gauge_problems, observed_records, rain_storm
 from .mesh_rows import reversed_note, rounded_note
 from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
+from .reduction_rows import curves_read, reduction_job, reduction_problems
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .simulation_rows import LUMPED_REPLACES, simulation_problems
-from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems, takes_hms_table
+from .storm_rows import (
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
+    KIND_GAUGES,
+    storm_job,
+    storm_notes,
+    storm_problems,
+    takes_hms_table,
+)
 from .study_rows import AREA_KEY, line_area
+from .table_rows import CURVES, pattern_name, store_job, store_problems
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -266,6 +276,7 @@ def problems(values: dict) -> list[str]:
         found.append("Choose an output folder.")
     hms = values.get("hms")
     found.extend(_rain_problems(values))
+    found.extend(_reduction_problems(values))
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
     basin = values.get("basin")
@@ -331,6 +342,45 @@ def _rain_problems(values: dict) -> list[str]:
     if rain <= 0.0:
         return ["Set the rain, or choose an HMS project."]
     return [] if values.get("rain_hours", 0.0) > 0.0 else ["Set how many hours the rain lasts."]
+
+
+DEPTH_KINDS = (KIND_DEPTH, KIND_DEPTH_GRID)
+"""The storms that read a pattern by name (W101); a design storm of the old dict carries its rows as ``pattern``."""
+
+
+def _for_study(values: dict) -> bool:
+    """A depth-area study's job, or the check before one: the 2D part reads the study's areas (W101)."""
+    return bool(values.get("study") or values.get("for_study"))
+
+
+def _reduction_problems(values: dict) -> list[str]:
+    """The area reduction and the stored tables the storm reads (W101): a name Data tables does not hold, a curve or a
+    pattern the engine would refuse, a part set to what this run cannot read."""
+    storm = values.get("storm") or {}
+    kind = storm.get("kind")
+    store = values.get("data_tables") or {}
+    reduction = values.get("reduction")
+    found = []
+    if reduction is not None:
+        found += reduction_problems(
+            reduction, kind, store.get(CURVES, {}), study=_for_study(values), hms=bool(values.get("hms"))
+        )
+    if found:
+        return found
+    patterns = {pattern_name(storm.get("pattern"))} - {None} if kind in DEPTH_KINDS else set()
+    curves = curves_read(reduction, kind, _for_study(values)) if reduction is not None else set()
+    return store_problems(store, patterns, curves)
+
+
+def _reduced(values: dict) -> tuple[dict, dict]:
+    """What the area reduction adds to the storm block, and the job's ``data_tables``: only the tables the storm names."""
+    storm = values.get("storm") or {}
+    kind = storm.get("kind")
+    store = values.get("data_tables") or {}
+    reduction = values.get("reduction")
+    extra, curves = reduction_job(reduction, kind, store.get(CURVES, {}), _for_study(values)) if reduction else ({}, set())
+    patterns = {pattern_name(storm.get("pattern"))} - {None} if kind in DEPTH_KINDS else set()
+    return extra, store_job(store, patterns, curves)
 
 
 def _structure_problems(structures: dict) -> list[str]:
@@ -564,6 +614,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})
     elif values.get("storm"):
         job["storm"] = storm_job(values["storm"])
+        extra, tables = _reduced(values)  # the Area reduction and the Data tables the storm reads (W101)
+        job["storm"].update(extra)
+        if tables:
+            job["data_tables"] = tables
     elif not values.get("hms"):
         hours = values["rain_hours"]
         job["storm"] = {

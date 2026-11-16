@@ -2,75 +2,62 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """4. Storm: what falls. The same rain reaches the 2D cells and the lumped subbasins.
 
-One Rain source and only its fields (W65, his word of 2026-11-14): a design storm, a gridded file, the rain gauges, or
-a single hyetograph for the whole model; the HMS project's storm when one is loaded. A design storm and a grid of point
-depths share one area reduction block. Preview rain asks the engine what each lumped subbasin and the 2D area take.
+One Rain source and only its fields (W65, his word of 2026-11-14), the sources of his redesign since W101: a fixed
+depth, a depth and a pattern, a depth grid and a pattern, a gridded file (DSS, NetCDF or GeoTIFFs), the rain gauges, a
+hyetograph as received, and the HMS project's meteorologic file when one is loaded. Patterns are uniform, the four
+NRCS 24-hour curves (HEC-HMS's own tables, W98) or a pattern of Data tables. The area reduction is its own section
+since W101 (4b), with a lumped and a 2D part. Preview rain asks the engine what each lumped subbasin and the 2D area
+take.
 """
 
 from __future__ import annotations
 
+from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtWidgets import (
-    QApplication,
     QComboBox,
     QFormLayout,
-    QHBoxLayout,
-    QHeaderView,
     QLabel,
     QLineEdit,
     QPushButton,
     QStackedWidget,
-    QTableWidget,
-    QTableWidgetItem,
     QWidget,
 )
 
 from .. import section_status
 from ..gauge_rows import GAP_WORDS, INVERSE_DISTANCE, METHOD_WORDS, RAIN, VALUE_WORDS, GaugeRow
-from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
+from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION, raster_path
 from ..rain_chart import HyetographChart, PreviewTable
 from ..storm_rows import (
-    ARF_AREA,
-    ARF_GIVEN,
-    ARF_NONE,
-    ARF_STUDY,
-    KIND_DESIGN,
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
+    KIND_FIXED,
     KIND_GAUGES,
     KIND_GRID,
     KIND_HMS,
-    KIND_STEADY,
     KIND_TABLE,
-    SOURCE_SINGLE,
-    pasted_rows,
     preview_text,
     rain_text,
 )
-from .common import Section, bind, number_box
+from ..table_rows import PATTERN_CHOICES, SCS, SCS_HOURS, TABLE_PREFIX
+from .common import Section, bind, layer_combo, number_box
 from .gauge_table import GaugeTable
+from .pair_table import PairTable
 
 RAIN_UNITS = "storm.rain_units"
 RAIN_STAMP = "storm.rain_stamp"
 RAIN_INTERVAL = "storm.rain_interval_min"
 RAIN_FILES = "Rain files (*.nc *.nc4 *.cdf *.netcdf *.dss);;All files (*)"
 SOURCES = (
-    (KIND_DESIGN, "Design storm with area reduction"),
-    (KIND_GRID, "Gridded file with area reduction"),
+    (KIND_FIXED, "Fixed depth, uniform in time"),
+    (KIND_DEPTH, "Depth and pattern"),
+    (KIND_DEPTH_GRID, "Depth grid (a raster of mm) and pattern"),
+    (KIND_GRID, "Gridded rain: DSS, NetCDF or GeoTIFFs"),
     (KIND_GAUGES, "Rain gauges"),
-    (SOURCE_SINGLE, "Single hyetograph"),
+    (KIND_TABLE, "A hyetograph, as received"),
 )
-HMS_CHOICE = (KIND_HMS, "As in the HMS project")
-REDUCED = (KIND_DESIGN, KIND_GRID)
-"""The sources the area reduction block belongs to."""
-ARF_CHOICES = (
-    (ARF_NONE, "None"),
-    (ARF_AREA, "At one storm area"),
-    (ARF_GIVEN, "A given factor"),
-    (ARF_STUDY, "By the depth-area study (section 9)"),
-)
-GIVEN_DECIMALS = 4
-GIVEN_TIP = "Every depth is multiplied by this factor, with no table and no storm area: 0.7 is a 30 % reduction"
-SINGLE_CHOICES = ((KIND_STEADY, "Constant rain"), (KIND_TABLE, "A table of periods"))
+HMS_CHOICE = (KIND_HMS, "The HMS meteorologic file")
 GAUGES_NOTE = (
     "Each gauge's record spread over the cells and the lumped subbasins by the method below, as received: gauged rain "
     "has no area reduction. Flow and level gauges, to compare a run with, are in the Gauges section (7b). Records "
@@ -78,62 +65,13 @@ GAUGES_NOTE = (
 )
 POSITION_TIP = "x, y in the DEM's coordinates; a gauge from the points layer stands at its point."
 RADIUS_DECIMALS = 0
-STUDY_NOTE = (
-    "The depth-area study reads the table at each of its storm areas, run by run. The storm area above is that of a "
-    "single Run."
-)
-GRID_ARF_NOTE = "Leave it at None for observed rain: only grids of point depths are reduced."
-HMS_TABLE_NOTE = "Left empty, the table of the HMS project is used."
 STAMP_WORDS = {"end": "closes its period", "start": "opens its period"}
-TABLE_ROWS = 8
-
-
-class PairTable(QWidget):
-    """A two-column table of numbers: add a row, drop one, or paste from a spreadsheet."""
-
-    def __init__(self, first: str, second: str) -> None:
-        super().__init__()
-        self.table = QTableWidget(0, 2)
-        self.table.setHorizontalHeaderLabels([first, second])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.verticalHeader().hide()
-        self.table.setMinimumHeight(self.table.fontMetrics().height() * TABLE_ROWS)
-        self.add_button = QPushButton("Add row")
-        self.drop_button = QPushButton("Remove row")
-        self.paste_button = QPushButton("Paste")
-        self.paste_button.setToolTip("Two columns from a spreadsheet or a text file; a heading line is left out")
-        buttons = QHBoxLayout()
-        for button in (self.add_button, self.drop_button, self.paste_button):
-            buttons.addWidget(button)
-        column = QFormLayout(self)
-        column.setContentsMargins(0, 0, 0, 0)
-        column.addRow(self.table)
-        column.addRow(buttons)
-        self.add_button.clicked.connect(lambda: self.table.insertRow(self.table.rowCount()))
-        self.drop_button.clicked.connect(self._drop)
-        self.paste_button.clicked.connect(lambda: self.set_rows(pasted_rows(QApplication.clipboard().text())))
-
-    def _drop(self) -> None:
-        row = self.table.currentRow()
-        self.table.removeRow(row if row >= 0 else self.table.rowCount() - 1)
-
-    def set_rows(self, rows: list[tuple[float, ...]]) -> None:
-        self.table.setRowCount(len(rows))
-        for n, row in enumerate(rows):
-            for m, value in enumerate(row):
-                self.table.setItem(n, m, QTableWidgetItem(f"{value:g}"))
-
-    def rows(self) -> list[tuple[float, float]]:
-        """The filled rows; a cell that is not a number leaves its row out, and the check on the table says so."""
-        found = []
-        for row in range(self.table.rowCount()):
-            cells = [self.table.item(row, m) for m in (0, 1)]
-            text = [cell.text().strip() if cell is not None else "" for cell in cells]
-            try:
-                found.append((float(text[0]), float(text[1])))
-            except ValueError:
-                continue
-        return found
+DEPTH_DECIMALS = 3
+REDUCTION_NOTE = "The area reduction of a depth, a depth grid and a grid of point depths is set in section 4b."
+PATTERN_NOTE = (
+    "Uniform falls at a constant rate; an SCS type is the NRCS 24-hour curve, so the duration is 24 h; a pattern of "
+    "Data tables (section 3b) is stretched over the duration when its times are in percent or a fraction of it."
+)
 
 
 def _page() -> tuple[QWidget, QFormLayout]:
@@ -153,17 +91,23 @@ class StormSection(Section):
     heading = "4. Storm"
     key = "storm"
     state_rows = (("gauge_table", GaugeRow, "_show"),)
-    state_hold = ("variable",)  # the series of a rain file: the engine reads the file and answers later
-    state_skip = ("start", "gauge_start")  # the run's one start, the Simulation section's widget (W99)
+    state_hold = ("variable", "depth_pattern", "grid_pattern")
+    """The series of a rain file, which the engine reads and answers later; a pattern of Data tables, which may be
+    restored after this section."""
+    state_skip = ("start", "gauge_start", "rain")
+    """The run's one start is the Simulation section's widget (W99); ``rain`` is the Steady rain's mm/h, which older
+    dock checks still set and a saved model no longer holds (W101)."""
     rain_file_changed = pyqtSignal()
     """The rain file or how it is read has changed: ask the engine what it holds."""
     preview_requested = pyqtSignal()
     """Preview rain: the dock writes the job and asks the engine."""
-    study_areas_requested = pyqtSignal()
-    """The depth-area study's storm areas are wanted, read only."""
+    source_changed = pyqtSignal(str)
+    """The rain source: the area reduction follows it (W101)."""
 
     def build(self) -> None:
         self._hms_in_use = False
+        self._legacy_rate = False
+        self._syncing = False
         self.start = self.gauge_start = QLineEdit()  # a section used alone; in the dock, the run's one start
         self.kind = QComboBox()
         self.kind.setToolTip("Where the rain comes from; only the chosen source's fields are shown")
@@ -173,12 +117,14 @@ class StormSection(Section):
         self._page_of: dict[str, int] = {}
         self._add_page(KIND_HMS, _words("The storm of the HMS meteorologic file, with its area reduction. Preview "
                                         "rain shows what it puts on each subbasin."))  # fmt: skip
-        self._add_page(KIND_DESIGN, self._design_page())
+        self._add_page(KIND_FIXED, self._fixed_page())
+        self._add_page(KIND_DEPTH, self._depth_page())
+        self._add_page(KIND_DEPTH_GRID, self._depth_grid_page())
         self._add_page(KIND_GRID, self._grid_page())
         self._add_page(KIND_GAUGES, self._gauges_page())
-        self._add_page(SOURCE_SINGLE, self._single_page())
-        self.reduction = self._reduction_block()
-        self.form.addRow(self.reduction)
+        self._add_page(KIND_TABLE, self._table_page())
+        self.reduction_note = _words(REDUCTION_NOTE)
+        self.form.addRow(self.reduction_note)
         self.form.addRow(self._preview_block())
         self._fill_kinds(False)
         self.kind.currentIndexChanged.connect(self._kind_changed)
@@ -196,34 +142,115 @@ class StormSection(Section):
 
     # The pages
 
-    def _single_page(self) -> QWidget:
+    def _fixed_page(self) -> QWidget:
+        """A depth over a duration at a constant rate. ``rain`` is the Steady rain's mm/h, out of sight: an older check
+        that sets it, with ``hours``, gets the depth it gave before, to the last digit."""
         page, form = _page()
-        self.single = QComboBox()
-        for key, words in SINGLE_CHOICES:
-            self.single.addItem(words, key)
-        self.single_pages = QStackedWidget()
-        steady, steady_form = _page()
-        self.rain = number_box(1)
+        self.fixed_depth = number_box(DEPTH_DECIMALS)
         self.hours = number_box(2)
-        steady_form.addRow("Rain, mm/h", self.rain)
-        steady_form.addRow("Lasting, hours", self.hours)
-        self.hyetograph = PairTable("End of period, min", "Depth in it, mm")
-        self.single_pages.addWidget(steady)
-        self.single_pages.addWidget(self.hyetograph)
-        form.addRow("Rain", self.single)
-        form.addRow(self.single_pages)
-        form.addRow(_words("The same rain on every cell and every lumped subbasin, as received: no area reduction."))
-        self.single.currentIndexChanged.connect(self.single_pages.setCurrentIndex)
+        self.rain = number_box(1)
+        form.addRow("Depth, mm", self.fixed_depth)
+        form.addRow("Over, hours", self.hours)
+        form.addRow(self.rain)
+        self.rain.hide()
+        form.addRow(_words("The same depth on every cell and every lumped subbasin, at a constant rate, before the "
+                           "area reduction of section 4b."))  # fmt: skip
+        self.rain.valueChanged.connect(self._rate_set)
+        self.hours.valueChanged.connect(self._hours_set)
+        self.fixed_depth.valueChanged.connect(self._depth_set)
         return page
 
-    def _design_page(self) -> QWidget:
+    def _rate_set(self, *_) -> None:
+        self._legacy_rate = True
+        self._sync_depth()
+
+    def _hours_set(self, *_) -> None:
+        if self._legacy_rate:
+            self._sync_depth()
+
+    def _depth_set(self, *_) -> None:
+        if not self._syncing:
+            self._legacy_rate = False
+
+    def _sync_depth(self) -> None:
+        self._syncing = True
+        self.fixed_depth.setValue(self.rain.value() * self.hours.value())
+        self._syncing = False
+
+    def fixed_depth_mm(self) -> float:
+        """The depth a fixed rain gives: the Steady rain's mm/h times its hours when that was set last."""
+        return self.rain.value() * self.hours.value() if self._legacy_rate else self.fixed_depth.value()
+
+    def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
+        """A saved model holds the depth itself: the Steady rain's mm/h, if an older check set it, no longer counts."""
+        self._legacy_rate = False
+        self.rain.blockSignals(True)  # so that an older check's next mm/h is taken, whatever it was before
+        self.rain.setValue(0.0)
+        self.rain.blockSignals(False)
+        return []
+
+    def _pattern_combo(self) -> QComboBox:
+        combo = QComboBox()
+        for key, words in PATTERN_CHOICES:
+            combo.addItem(words, key)
+        combo.setToolTip(PATTERN_NOTE)
+        return combo
+
+    def _depth_page(self) -> QWidget:
         page, form = _page()
-        self.design_depth = number_box(1)
-        self.design_hours = number_box(2)
-        self.pattern = PairTable("Time, % of duration", "Depth, % of total")
-        form.addRow("Point depth, mm", self.design_depth)
-        form.addRow("Duration, hours", self.design_hours)
-        form.addRow(self.pattern)
+        self.depth_mm = number_box(DEPTH_DECIMALS)
+        self.depth_hours = number_box(2)
+        self.depth_pattern = self._pattern_combo()
+        form.addRow("Depth, mm", self.depth_mm)
+        form.addRow("Duration, hours", self.depth_hours)
+        form.addRow("Pattern", self.depth_pattern)
+        form.addRow(_words(PATTERN_NOTE))
+        self.depth_pattern.currentIndexChanged.connect(lambda *_: self._scs_hours(self.depth_pattern, self.depth_hours))
+        return page
+
+    def _depth_grid_page(self) -> QWidget:
+        page, form = _page()
+        self.depth_raster = layer_combo(QgsMapLayerProxyModel.RasterLayer, "Choose the raster of depths, mm")
+        self.grid_hours = number_box(2)
+        self.grid_pattern = self._pattern_combo()
+        form.addRow("Depth grid, mm", self.depth_raster)
+        form.addRow("Duration, hours", self.grid_hours)
+        form.addRow("Pattern", self.grid_pattern)
+        form.addRow(_words("Each 2D cell takes the depth under its centre, each lumped subbasin the mean over its "
+                           "polygon, as HEC-HMS's gridded depth does. " + PATTERN_NOTE))  # fmt: skip
+        self.grid_pattern.currentIndexChanged.connect(lambda *_: self._scs_hours(self.grid_pattern, self.grid_hours))
+        return page
+
+    @staticmethod
+    def _scs_hours(combo: QComboBox, hours) -> None:
+        """An NRCS curve is a 24-hour storm: its duration is set, and set back by hand if wanted."""
+        if (combo.currentData() or "").startswith(f"{SCS}:"):
+            hours.setValue(SCS_HOURS)
+
+    def set_patterns(self, patterns: dict) -> None:
+        """The patterns of Data tables after the four of every model; the choice held where it still is."""
+        for combo in (self.depth_pattern, self.grid_pattern):
+            held = combo.currentData() or combo.currentText()
+            combo.blockSignals(True)
+            combo.clear()
+            for key, words in PATTERN_CHOICES:
+                combo.addItem(words, key)
+            for name in sorted(patterns):
+                combo.addItem(f"{name} (Data tables)", f"{TABLE_PREFIX}{name}")
+            index = combo.findData(held)
+            if index < 0 and held:
+                index = combo.findText(held)
+            if index < 0 and held and str(held).startswith(TABLE_PREFIX):  # gone from Data tables: kept, and named
+                combo.addItem(f"{held[len(TABLE_PREFIX) :]} (not in Data tables)", held)
+                index = combo.count() - 1
+            combo.setCurrentIndex(max(index, 0))
+            combo.blockSignals(False)
+
+    def _table_page(self) -> QWidget:
+        page, form = _page()
+        self.hyetograph = PairTable("End of period, min", "Depth in it, mm")
+        form.addRow(self.hyetograph)
+        form.addRow(_words("The same rain on every cell and every lumped subbasin, as received: no area reduction."))
         return page
 
     def _grid_page(self) -> QWidget:
@@ -296,45 +323,6 @@ class StormSection(Section):
         }
         return {"rows": rows, "settings": settings}
 
-    def _reduction_block(self) -> QWidget:
-        """One area reduction for a design storm and a grid of point depths: none, at one area, or by the study."""
-        block, form = _page()
-        self.arf_mode = QComboBox()
-        for key, words in ARF_CHOICES:
-            self.arf_mode.addItem(words, key)
-        self.arf_mode.setToolTip(
-            "The factor multiplies every depth, on the 2D cells and the lumped subbasins alike"
-        )
-        self.arf_detail = QWidget()
-        inner = QFormLayout(self.arf_detail)
-        inner.setContentsMargins(0, 0, 0, 0)
-        self.storm_area = number_box(3)
-        self.storm_area.setRange(0.0, 1e7)
-        self.storm_area.setToolTip("The area at which the reduction table is read: the design point's drainage area")
-        self.arf = PairTable("Area, km2", "Reduction factor")
-        self.hms_note = _words(HMS_TABLE_NOTE)
-        self.study_label = _words("")
-        inner.addRow("Storm area, km2", self.storm_area)
-        inner.addRow(self.arf)
-        inner.addRow(self.hms_note)
-        inner.addRow(self.study_label)
-        self.grid_note = _words(GRID_ARF_NOTE)
-        self.given_box = QWidget()
-        given = QFormLayout(self.given_box)
-        given.setContentsMargins(0, 0, 0, 0)
-        self.arf_factor = number_box(GIVEN_DECIMALS)
-        self.arf_factor.setRange(0.0, 1.0)
-        self.arf_factor.setSingleStep(0.05)
-        self.arf_factor.setValue(1.0)
-        self.arf_factor.setToolTip(GIVEN_TIP)
-        given.addRow("Reduction factor", self.arf_factor)
-        form.addRow("Area reduction", self.arf_mode)
-        form.addRow(self.grid_note)
-        form.addRow(self.arf_detail)
-        form.addRow(self.given_box)
-        self.arf_mode.currentIndexChanged.connect(self._reduction_shown)
-        return block
-
     def _preview_block(self) -> QWidget:
         block, form = _page()
         self.preview_button = QPushButton("Preview rain")
@@ -358,9 +346,11 @@ class StormSection(Section):
 
     def apply_schema(self, schema) -> None:
         bind(self.rain, schema, RAIN_DEPTH)
-        bind(self.hours, schema, RAIN_DURATION, scale=1.0 / MINUTES_PER_HOUR)
-        bind(self.design_depth, schema, RAIN_DEPTH)
-        bind(self.design_hours, schema, RAIN_DURATION, scale=1.0 / MINUTES_PER_HOUR)
+        for box in (self.fixed_depth, self.depth_mm):
+            bind(box, schema, RAIN_DEPTH)
+        for box in (self.hours, self.depth_hours, self.grid_hours):
+            bind(box, schema, RAIN_DURATION, scale=1.0 / MINUTES_PER_HOUR)
+        self._legacy_rate = False
         self.units.clear()
         self.units.addItems(schema.enum(RAIN_UNITS))
         self.stamp.clear()
@@ -383,10 +373,10 @@ class StormSection(Section):
         self.kind.clear()
         for key, words in ((HMS_CHOICE, *SOURCES) if with_hms else SOURCES):
             self.kind.addItem(words, key)
-        if held in (None, SOURCE_SINGLE) and with_hms:
+        if held in (None, KIND_FIXED) and with_hms:
             wanted = KIND_HMS
         elif held is None or (held == KIND_HMS and not with_hms):
-            wanted = SOURCE_SINGLE
+            wanted = KIND_FIXED
         else:
             wanted = held
         self.kind.setCurrentIndex(max(self.kind.findData(wanted), 0))
@@ -398,30 +388,14 @@ class StormSection(Section):
         self._hms_in_use = in_use
         self._fill_kinds(in_use)
 
-    def _kind_changed(self) -> None:
+    def _kind_changed(self, *_) -> None:
         source = self.kind.currentData()
         self.pages.setCurrentIndex(self._page_of[source])
-        self.reduction.setVisible(source in REDUCED)
-        self._reduction_shown()
+        self.reduction_note.setVisible(source in (KIND_FIXED, KIND_DEPTH, KIND_DEPTH_GRID, KIND_GRID))
         self.preview_label.clear()
         self.preview_table.hide()
         self.preview_chart.hide()
-
-    def _reduction_shown(self) -> None:
-        mode = self.arf_mode.currentData()
-        grid = self.kind.currentData() == KIND_GRID
-        self.arf_detail.setVisible(mode not in (ARF_NONE, ARF_GIVEN))
-        self.given_box.setVisible(mode == ARF_GIVEN)
-        self.grid_note.setVisible(grid and mode == ARF_NONE)
-        self.hms_note.setVisible(grid and self._hms_in_use)
-        self.study_label.setVisible(mode == ARF_STUDY)
-        if mode == ARF_STUDY:
-            self.study_label.setText(STUDY_NOTE)
-            self.study_areas_requested.emit()
-
-    def show_study_areas(self, text: str) -> None:
-        """The study's storm areas, read only: they are set in section 9."""
-        self.study_label.setText(f"{STUDY_NOTE} {text}".strip())
+        self.source_changed.emit(source or "")
 
     # The rain file, through the engine
 
@@ -484,17 +458,8 @@ class StormSection(Section):
             return section_status.storm(source, {}, self._hms_in_use, len(self.gauge_table.rows))
         return section_status.storm(source, {} if source == KIND_HMS else self.values(None), self._hms_in_use)
 
-    def _reduction(self) -> dict:
-        mode = self.arf_mode.currentData()
-        rows = self.arf.rows() if mode not in (ARF_NONE, ARF_GIVEN) else []
-        found = {"arf_mode": mode, "area_km2": self.storm_area.value(), "arf": rows}
-        if mode == ARF_GIVEN:
-            found["arf_factor"] = self.arf_factor.value()
-        return found
-
     def grid_values(self) -> dict:
         count = self.variable.count()
-        reduction = self._reduction()
         return {
             "kind": KIND_GRID,
             "file": self.rain_file.filePath(),
@@ -504,34 +469,28 @@ class StormSection(Section):
             "interval_min": self.period.value(),
             "stamp": self.stamp.currentData(),
             "start": self.start.text().strip(),
-            "arf_on": reduction["arf_mode"] not in (ARF_NONE, ARF_GIVEN),
-            "area_km2": reduction["area_km2"],
-            "arf": reduction["arf"],
-            "arf_from_hms": self._hms_in_use,
-            "arf_mode": reduction["arf_mode"],
-            **({"arf_factor": reduction["arf_factor"]} if "arf_factor" in reduction else {}),
         }
 
     def values(self, crs) -> dict:
         source = self.kind.currentData()
         if source == KIND_HMS:
             return {}
-        if source == SOURCE_SINGLE and self.single.currentData() == KIND_STEADY:
-            steady = {"rain_mm_h": self.rain.value(), "rain_hours": self.hours.value()}
-            if not self._hms_in_use:
-                return steady
-            return {"storm": {"kind": KIND_STEADY, "mm_h": self.rain.value(), "hours": self.hours.value()}}
-        if source == SOURCE_SINGLE:
-            return {"storm": {"kind": KIND_TABLE, "rows": self.hyetograph.rows()}}
-        if source == KIND_DESIGN:
+        if source == KIND_FIXED:
+            return {"storm": {"kind": KIND_FIXED, "depth_mm": self.fixed_depth_mm(), "hours": self.hours.value()}}
+        if source == KIND_DEPTH:
             storm = {
-                "kind": KIND_DESIGN,
-                "depth_mm": self.design_depth.value(),
-                "hours": self.design_hours.value(),
-                "pattern": self.pattern.rows(),
-                **self._reduction(),
-            }
+                "kind": KIND_DEPTH, "depth_mm": self.depth_mm.value(), "hours": self.depth_hours.value(),
+                "pattern": self.depth_pattern.currentData(),
+            }  # fmt: skip
             return {"storm": storm}
+        if source == KIND_DEPTH_GRID:
+            storm = {
+                "kind": KIND_DEPTH_GRID, "raster": raster_path(self.depth_raster.currentLayer()) or "",
+                "hours": self.grid_hours.value(), "pattern": self.grid_pattern.currentData(),
+            }  # fmt: skip
+            return {"storm": storm}
+        if source == KIND_TABLE:
+            return {"storm": {"kind": KIND_TABLE, "rows": self.hyetograph.rows()}}
         if source == KIND_GAUGES:
             return {"storm": {"kind": KIND_GAUGES}, "rain_gauges": self.gauge_values_of(crs)}
         return {"storm": self.grid_values()}

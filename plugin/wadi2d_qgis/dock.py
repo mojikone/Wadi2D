@@ -90,11 +90,13 @@ from .sections.gauges import GaugesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
+from .sections.reduction import AreaReductionSection
 from .sections.run import RunSection
 from .sections.simulation import SimulationSection
 from .sections.storm import StormSection
 from .sections.structures import StructuresSection
 from .sections.study import StudySection
+from .sections.tables import DataTablesSection
 from .sections.terrain import TerrainSection
 from .start_page import ModelHeader, StartPage
 from .status_bars import Footer, StepStrip
@@ -187,6 +189,8 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology = HydrologySection()
         self.storm = StormSection()
         self.hydrology.rain, self.hydrology.hours = self.storm.rain, self.storm.hours  # older dock checks reach them here
+        self.tables = DataTablesSection()  # named patterns and area-reduction curves (W101)
+        self.reduction = AreaReductionSection()  # the lumped and the 2D part of the area reduction (W101)
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
@@ -205,8 +209,8 @@ class Wadi2DDock(QgsDockWidget):
         self.study_run: StudyRun | None = None
         self._study_dir: Path | None = None
         self.sections = (
-            self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.gauges, self.simulation, self.panel, self.study,
+            self.terrain, self.mesh, self.hydrology, self.tables, self.storm, self.reduction, self.structures,
+            self.boundaries, self.points, self.gauges, self.simulation, self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -268,6 +272,10 @@ class Wadi2DDock(QgsDockWidget):
 
         self.engine_button.clicked.connect(self.open_settings)
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
+        self.hydrology.hms_changed.connect(self.reduction.set_hms)
+        self.storm.source_changed.connect(self.reduction.set_source)
+        self.tables.tables_changed.connect(self._tables_changed)
+        self.reduction.set_source(self.storm.kind.currentData())
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self.basin_points = BasinPointsLinks(self)  # the Basin points layer and its clicks (W73)
         self._basin_query: EngineQuery | None = None
@@ -419,13 +427,22 @@ class Wadi2DDock(QgsDockWidget):
     def _collect(self) -> dict:
         return self.types.values(self.raw_values())  # the type's own values laid over the dock's (W99)
 
-    def _checked_values(self, say=None) -> dict | None:
+    def _tables_changed(self) -> None:
+        """Data tables changed: the patterns and curves the other sections choose by name follow (W101)."""
+        store = self.tables.store
+        self.storm.set_patterns(store["patterns"])
+        self.reduction.set_curves(store["arf_curves"])
+
+    def _checked_values(self, say=None, study: bool = False) -> dict | None:
+        """``study``: the check before a depth-area study, whose 2D part reads the study's areas (W101)."""
         say = say or self.panel.say
         try:
             values = self._collect()
         except LayerError as error:
             say(str(error), "bad")
             return None
+        if study:
+            values["for_study"] = True
         found = problems(values)
         if found:
             say(" ".join(found), "bad")
@@ -690,15 +707,19 @@ class Wadi2DDock(QgsDockWidget):
         dem = self.terrain.dem_layer()
         crs = dem.crs() if dem is not None else QgsProject.instance().crs()
         try:
-            return {**self.storm.values(crs), **self.points.values(crs)}
+            return {
+                **self.storm.values(crs), **self.reduction.values(crs), **self.tables.values(crs),
+                **self.points.values(crs),
+            }  # fmt: skip
         except LayerError:
             return None
 
     def start_study(self) -> None:
         box = self.study
-        values = self._checked_values(box.say)
+        values = self._checked_values(box.say, study=True)
         if values is None:
             return
+        values.pop("for_study", None)
         form = box.form_values()
         found = study_problems(values) + form_problems(form)
         if found:
