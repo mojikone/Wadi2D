@@ -148,7 +148,7 @@ class StartPage(QWidget):
 class ModelHeader(QFrame):
     """What the model is, over its sections: the type in words and as a badge, the way back, the show-all switch."""
 
-    def __init__(self) -> None:
+    def __init__(self, dark: bool = False) -> None:
         super().__init__()
         named(self, look.HEADER)
         self.back_button = named(
@@ -161,7 +161,7 @@ class ModelHeader(QFrame):
         self.badge = badge("", "")
         self.show_all = QCheckBox(SHOW_ALL)
         self.show_all.setToolTip(SHOW_ALL_TIP)
-        look.ink(self.show_all)
+        look.ink(self.show_all, dark)
         self.note = words("")
         self.note.hide()
         text = QVBoxLayout()

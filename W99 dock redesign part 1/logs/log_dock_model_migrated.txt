@@ -1,0 +1,26 @@
+    0.0 script loaded
+    4.0 === 1 the project saved by the plugin of steps 1 and 2
+    4.2 PASS the project opens 
+    4.2 PASS it holds a model of format 1, with the starts and Run's fields where they were 1
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.2 PASS the job the dock builds is the old plugin's, to the character []
+    5.2 PASS and every input file []
+    5.2 PASS Run's three fields are Simulation's now (2.25, 1, 'cpu')
+    5.2 PASS the observed gauges' start is the run's one start 2021-10-04 00:00
+    5.2 model bar says: The model was restored from the QGIS project. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the observed gauges.
+    5.2 PASS what moved is said in words The model was restored from the QGIS project. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the observed gauges.
+    5.2 PASS nothing is called lost The model was restored from the QGIS project. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the observed gauges.
+    5.2 PASS the project's copy is of format 2 once it is kept 2
+    5.2 === 2 the runs that plugin wrote, each with its model of format 1
+    5.2 PASS the old plugin's rain gauge runs are there ['inverse_distance', 'thiessen']
+    5.5 PASS inverse_distance: a model of format 1 gives the job that run wrote []
+    5.5 PASS inverse_distance: the rain gauges' start is the run's ('2021-10-04 00:00', ('2021-10-04 00:00', ''))
+    5.5 inverse_distance: starts ('2021-10-04 00:00', ''); model bar says: The model of run inverse_distance is in the dock. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the rain; layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain bidah" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf
+    5.5 PASS inverse_distance: said in words The model of run inverse_distance is in the dock. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the rain; layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terr
+    5.8 PASS thiessen: a model of format 1 gives the job that run wrote []
+    5.8 PASS thiessen: the rain gauges' start is the run's ('2021-10-04 00:00', ('2021-10-04 00:00', ''))
+    5.8 thiessen: starts ('2021-10-04 00:00', ''); model bar says: The model of run thiessen is in the dock. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the rain; layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain bidah" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b
+    5.8 PASS thiessen: said in words The model of run thiessen is in the dock. On the way: The run has one start now, in the Simulation section: it took "2021-10-04 00:00" from the rain; layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_
+    5.8 SUMMARY 18 passed, 0 failed 
+    5.8 DONE

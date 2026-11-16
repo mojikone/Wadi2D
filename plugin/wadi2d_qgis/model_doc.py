@@ -20,7 +20,11 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 1
+VERSION = 2
+"""2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved maps and the
+engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
+MIGRATED = "migrated"
+"""The key of a document's list of words on what a migration moved or dropped, for whoever opens it."""
 MODEL_FILE = "model.wadi2d.json"
 """The model document of a run, written into its folder beside ``job.json`` when Run is pressed."""
 SCENARIO_DIR = "scenarios"
@@ -28,7 +32,55 @@ SCENARIO_DIR = "scenarios"
 SCENARIO_SUFFIX = ".wadi2d.json"
 MATTERS = ("model_type", "show_all", "sections")
 """What makes two documents the same model: not the stamp, not the plugin that wrote it, not the page shown."""
-MIGRATIONS: dict = {}
+GRIDDED, GAUGES = "gridded", "gauges"
+"""The storm kinds whose rain carries a start: a rain file, and rain gauges."""
+ONE_START = 'The run has one start now, in the Simulation section: it took "{start}" from {source}.'
+OBSERVED_DROPPED = (
+    'The observed gauges had a start of their own, "{own}": it is dropped, and their records are read from the run\'s '
+    'start, "{start}".'
+)
+RAIN_FOLLOWS = 'The rain now starts there too: rain before "{start}" is left out, where it was read from its first period.'
+UNUSED_DROPPED = 'A start typed for a rain source that was not in use, "{own}", is dropped.'
+
+
+def _widgets(doc: dict, key: str) -> dict:
+    section = doc["sections"].setdefault(key, {})
+    return section.setdefault("widgets", {})
+
+
+def _to_2(doc: dict) -> dict:
+    """Format 1 to 2: Run's simulated time, saved maps and engine choice move to Simulation as they are; the three
+    starts become one. The start in use wins, the rain's before the observed records': whatever that changes in the
+    job is said in words under :data:`MIGRATED`, and a start that was typed and not in use is not lost in silence.
+    """
+    run, storm, gauges, simulation = (_widgets(doc, key) for key in ("run", "storm", "gauges", "simulation"))
+    for key in ("duration", "maps", "backend"):
+        if key in run:
+            simulation[key] = run.pop(key)
+    kind = (storm.get("kind") or {}).get("data") if isinstance(storm.get("kind"), dict) else None
+    held = {GRIDDED: storm.pop("start", "") or "", GAUGES: storm.pop("gauge_start", "") or ""}
+    observed = gauges.pop("start", "") or ""
+    rain = held.get(kind, "")
+    start = rain or observed
+    words = []
+    if start:
+        simulation["start"] = start
+        words.append(ONE_START.format(start=start, source="the rain" if rain else "the observed gauges"))
+    if rain and observed and observed != rain:
+        words.append(OBSERVED_DROPPED.format(own=observed, start=rain))
+    if kind in held and not rain and observed:
+        words.append(RAIN_FOLLOWS.format(start=observed))
+    words += [
+        UNUSED_DROPPED.format(own=own)
+        for source, own in held.items()
+        if own and source != kind and own != start
+    ]
+    if words:
+        doc[MIGRATED] = [*doc.get(MIGRATED, []), *words]
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

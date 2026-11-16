@@ -4,83 +4,84 @@
     4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
     5.2 PASS engine found Engine ready.
     5.2 PASS the dock holds the saved model []
-    5.2 PASS project then dock: the job is the first QGIS's []
-    5.2 PASS project then dock: every input file is the same []
-    5.2 PASS nothing is said when all came back 
-    5.2 PASS the restored model does not mark the project changed 
-    5.4 === 2 a new project empties the dock; reading the project with the dock open fills it
-    5.4 PASS a new project: the cell size is the default again 20.0
-    5.4 PASS a new project: the mesh is off again 
-    5.4 PASS a new project: no gauge rows 0
-    5.7 PASS the project opens again 
-    5.8 PASS dock then project: the job is the first QGIS's []
-    5.8 PASS dock then project: every input file is the same []
-    5.8 === 3 a scenario: a named copy in the output folder
-    5.9 PASS the scenario file is in the model's folder Scenario full_ as saved saved: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\model_shared\runs\full\scenarios\full_ as saved.wadi2d.json
-    5.9 PASS the scenario is listed ['full_ as saved']
-    6.0 PASS the changes reach the job 
-    6.1 PASS scenario: the job is the first QGIS's []
-    6.1 PASS scenario: every input file is the same []
-    6.1 PASS an opened scenario is the project's model now []
-    6.1 === 4 other inputs, each saved and brought back in this session
-    6.1 --- rain gauges from a point layer and one typed in, inverse distance
-    6.2 PASS rain gauges: the dock went back to its defaults 
-    6.2 PASS rain gauges: nothing is reported as lost []
-    6.2 PASS rain gauges: the model is the same []
-    6.2 PASS rain gauges: the job is the same []
-    6.2 PASS rain gauges: the input files are the same 
-    6.2 PASS rain gauges: three gauges reach the job {'kind': 'gauges', 'gauges': {'gauges': [{'name': 'west', 'x': 434542.99487, 'y': 2725600.19673, 'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_new\\dock_model_saved_b\\data\\
-    6.2 --- a hyetograph table, a flow line with its file, at rest, to the left
-    6.3 PASS hyetograph and flow line: the dock went back to its defaults 
-    6.3 PASS hyetograph and flow line: nothing is reported as lost []
-    6.3 PASS hyetograph and flow line: the model is the same []
-    6.4 PASS hyetograph and flow line: the job is the same []
-    6.4 PASS hyetograph and flow line: the input files are the same 
-    6.4 PASS hyetograph and flow line: the flow line is in the job {'kind': 'flow', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_new\\dock_model_saved_b\\data\\w99_infl
-    6.4 --- gridded rain from a folder, a given reduction factor
-    6.4 PASS gridded rain: the dock went back to its defaults 
-    6.4 PASS gridded rain: nothing is reported as lost []
-    6.4 PASS gridded rain: the model is the same []
-    6.5 PASS gridded rain: the job is the same []
-    6.5 PASS gridded rain: the input files are the same 
-    6.5 PASS gridded rain: the factor and the start reach the job {'kind': 'gridded', 'rain_file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_new\\dock_model_saved_b\\data\\w99_grids', 'rain_units': 'auto', 'rain_stamp': 'start', 'rain_interval_
-    6.5 --- corridors, an embankment with numbers, a breach, no mesh
-    6.5 PASS corridors, embankment, breach: the dock went back to its defaults 
-    6.5 PASS corridors, embankment, breach: nothing is reported as lost []
-    6.5 PASS corridors, embankment, breach: the model is the same []
-    6.6 PASS corridors, embankment, breach: the job is the same []
-    6.6 PASS corridors, embankment, breach: the input files are the same 
-    6.6 PASS corridors, embankment, breach: all three reach the job ['project', 'grid', 'terrain', 'hydrology', 'boundaries', 'outputs', 'run', 'storm', 'breaches', 'strips', 'breaklines']
-    6.6 --- an HMS project: files, modes, Muskingum numbers, the lumped network's entry
-    6.7 PASS HMS project: the dock went back to its defaults 
-    6.8 PASS HMS project: nothing is reported as lost []
-    6.8 PASS HMS project: the model is the same []
-    6.8 PASS HMS project: the job is the same []
-    6.8 PASS HMS project: the input files are the same 
-    6.9 PASS HMS project: the modes came back {'S1': '2d', 'S2': 'lumped', 'S3': 'lumped', 'S4': '2d', 'S5': 'lumped', 'S6': 'lumped', 'S7': '2d', 'S8': 'lumped', 'S9': 'lumped', 'S10': '2d', 'S11': 'lumped', 'S12': 'lumped', 'S13': '2d', 'S14': 'lumped', 'S15': 'lumped', 'S16': '2d', 'S17': 'lumped', 'S1
-    6.9 PASS HMS project: the typed K and X are in the job [{'reach': 'R1', 'k_hours': 1.25, 'x': 0.2, 'subreaches': 1}]
-    6.9 PASS HMS project: the storm is the project's hms
-    6.9 === 5 a finished run opened into an empty project
-    7.3 dock says: Starting...
-    9.2 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
-    9.8 dock says: line S14 ring crosses no active face
-   24.7 PASS the run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
-   24.7 PASS the run folder holds its model 
-   24.8 PASS the empty project has no layers 0
-   24.8 PASS the dock is back at its defaults 0.0
-   24.9 model bar says: The model of run own is in the dock. Added: layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain bidah" added to the project from D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\W1 research and design note\validation\block2_full\domain_Bidah03.geojson; layer "mixed outlets" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\data\mixed.geojson; layer "dam lines" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\data\dams.geojson.
-   24.9 PASS the layers of the run were added to the project ['dam lines', 'domain bidah', 'mixed outlets', 'terrain']
-   24.9 PASS the job of the refilled dock is the run's []
-   24.9 PASS the run's results are the dock's C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\runs\own
-   24.9 PASS Result lines is offered for the opened run 
-   24.9 === 6 a run from before the model was saved: only its job
-   25.2 model bar says: Run old_run has no saved model: the dock holds what its job tells. Added: layer "GGC_2_MERGE_HDSM_5" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\runs\old_run\inputs\domain.geojson; layer "boundaries" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\runs\old_run\inputs\boundaries.geojson; layer "design_points" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\runs\old_run\inputs\design_points.geojson.
-   25.2 PASS it says the run has no saved model Run old_run has no saved model: the dock holds what its job tells. Added: layer "GGC_2_MERGE_HDSM_5" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MER
-   25.4 differences from the old job, coordinates to the millimetre: ['run.model_type (only in second)']
-   25.4 PASS the DEM, the cell size and the domain came back {'dx': 30.0, 'cache_dir': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_new\\dock_model_saved_b\\runs\\wadi2d_cache', 'domain': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\041
-   25.4 PASS the old run's type is read from its job: 2D ('2d', ['run.model_type (only in second)'])
-   25.4 PASS the whole job came back, coordinates to the millimetre []
-   25.4 PASS nothing is reported as lost chpad\runs_new\dock_model_saved_b\runs\old_run\inputs\boundaries.geojson; layer "design_points" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\runs_new\dock_model_saved_b\ru
-   25.4 PASS the dock's inputs the job reader names all exist 
-   25.4 SUMMARY 66 passed, 0 failed 
-   25.4 DONE
+    5.3 PASS project then dock: the job is the first QGIS's []
+    5.3 PASS project then dock: every input file is the same []
+    5.3 PASS nothing is said when all came back 
+    5.3 PASS the restored model does not mark the project changed 
+    5.5 === 2 a new project empties the dock; reading the project with the dock open fills it
+    5.6 PASS a new project: the cell size is the default again 20.0
+    5.6 PASS a new project: the mesh is off again 
+    5.6 PASS a new project: no gauge rows 0
+    5.9 PASS the project opens again 
+    6.0 PASS dock then project: the job is the first QGIS's []
+    6.0 PASS dock then project: every input file is the same []
+    6.0 === 3 a scenario: a named copy in the output folder
+    6.1 PASS the scenario file is in the model's folder Scenario full_ as saved saved: C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\model_shared\runs\full\scenarios\full_ as saved.wadi2d.json
+    6.1 PASS the scenario is listed ['full_ as saved']
+    6.2 PASS the changes reach the job 
+    6.3 PASS scenario: the job is the first QGIS's []
+    6.3 PASS scenario: every input file is the same []
+    6.3 PASS an opened scenario is the project's model now []
+    6.3 === 4 other inputs, each saved and brought back in this session
+    6.3 --- rain gauges from a point layer and one typed in, inverse distance
+    6.4 PASS rain gauges: the dock went back to its defaults 
+    6.4 PASS rain gauges: nothing is reported as lost []
+    6.4 PASS rain gauges: the model is the same []
+    6.4 PASS rain gauges: the job is the same []
+    6.4 PASS rain gauges: the input files are the same 
+    6.4 PASS rain gauges: three gauges reach the job {'kind': 'gauges', 'gauges': {'gauges': [{'name': 'west', 'x': 434542.99487, 'y': 2725600.19673, 'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_model_saved_b\\d
+    6.5 --- a hyetograph table, a flow line with its file, at rest, to the left
+    6.5 PASS hyetograph and flow line: the dock went back to its defaults 
+    6.5 PASS hyetograph and flow line: nothing is reported as lost []
+    6.5 PASS hyetograph and flow line: the model is the same []
+    6.6 PASS hyetograph and flow line: the job is the same []
+    6.6 PASS hyetograph and flow line: the input files are the same 
+    6.6 PASS hyetograph and flow line: the flow line is in the job {'kind': 'flow', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_model_saved_b\\data\\w99
+    6.6 --- gridded rain from a folder, a given reduction factor
+    6.6 PASS gridded rain: the dock went back to its defaults 
+    6.6 PASS gridded rain: nothing is reported as lost []
+    6.6 PASS gridded rain: the model is the same []
+    6.7 PASS gridded rain: the job is the same []
+    6.7 PASS gridded rain: the input files are the same 
+    6.7 PASS gridded rain: the factor and the start reach the job {'kind': 'gridded', 'rain_file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_model_saved_b\\data\\w99_grids', 'rain_units': 'auto', 'rain_stamp': 'start', 'rain_inte
+    6.7 --- corridors, an embankment with numbers, a breach, no mesh
+    6.7 PASS corridors, embankment, breach: the dock went back to its defaults 
+    6.7 PASS corridors, embankment, breach: nothing is reported as lost []
+    6.7 PASS corridors, embankment, breach: the model is the same []
+    6.8 PASS corridors, embankment, breach: the job is the same []
+    6.8 PASS corridors, embankment, breach: the input files are the same 
+    6.8 PASS corridors, embankment, breach: all three reach the job ['project', 'grid', 'terrain', 'hydrology', 'boundaries', 'outputs', 'run', 'storm', 'breaches', 'strips', 'breaklines']
+    6.8 --- an HMS project: files, modes, Muskingum numbers, the lumped network's entry
+    6.9 PASS HMS project: the dock went back to its defaults 
+    7.0 PASS HMS project: nothing is reported as lost []
+    7.0 PASS HMS project: the model is the same []
+    7.0 PASS HMS project: the job is the same []
+    7.0 PASS HMS project: the input files are the same 
+    7.0 PASS HMS project: the modes came back {'S1': '2d', 'S2': 'lumped', 'S3': 'lumped', 'S4': '2d', 'S5': 'lumped', 'S6': 'lumped', 'S7': '2d', 'S8': 'lumped', 'S9': 'lumped', 'S10': '2d', 'S11': 'lumped', 'S12': 'lumped', 'S13': '2d', 'S14': 'lumped', 'S15': 'lumped', 'S16': '2d', 'S17': 'lumped', 'S1
+    7.0 PASS HMS project: the typed K and X are in the job [{'reach': 'R1', 'k_hours': 1.25, 'x': 0.2, 'subreaches': 1}]
+    7.0 PASS HMS project: the storm is the project's hms
+    7.0 === 5 a finished run opened into an empty project
+    7.4 dock says: Starting...
+    9.5 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   10.0 dock says: line R2A ring crosses no active face
+   10.6 dock says: line S14 ring crosses no active face
+   25.9 PASS the run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
+   25.9 PASS the run folder holds its model 
+   26.0 PASS the empty project has no layers 0
+   26.0 PASS the dock is back at its defaults 0.0
+   26.1 model bar says: The model of run own is in the dock. On the way: layer "terrain" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain bidah" added to the project from D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\W1 research and design note\validation\block2_full\domain_Bidah03.geojson; layer "mixed outlets" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\data\mixed.geojson; layer "dam lines" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\data\dams.geojson.
+   26.1 PASS the layers of the run were added to the project ['dam lines', 'domain bidah', 'mixed outlets', 'terrain']
+   26.2 PASS the job of the refilled dock is the run's []
+   26.2 PASS the run's results are the dock's C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\runs\own
+   26.2 PASS Result lines is offered for the opened run 
+   26.2 === 6 a run from before the model was saved: only its job
+   26.5 model bar says: Run old_run has no saved model: the dock holds what its job tells. On the way: layer "GGC_2_MERGE_HDSM_5" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM_5.tif; layer "domain" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\runs\old_run\inputs\domain.geojson; layer "boundaries" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\runs\old_run\inputs\boundaries.geojson; layer "design_points" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\runs\old_run\inputs\design_points.geojson.
+   26.5 PASS it says the run has no saved model Run old_run has no saved model: the dock holds what its job tells. On the way: layer "GGC_2_MERGE_HDSM_5" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_
+   26.6 differences from the old job, coordinates to the millimetre: ['run.model_type (only in second)']
+   26.6 PASS the DEM, the cell size and the domain came back {'dx': 30.0, 'cache_dir': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_model_saved_b\\runs\\wadi2d_cache', 'domain': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude
+   26.6 PASS the old run's type is read from its job: 2D ('2d', ['run.model_type (only in second)'])
+   26.6 PASS the whole job came back, coordinates to the millimetre []
+   26.6 PASS nothing is reported as lost _runs_new\dock_model_saved_b\runs\old_run\inputs\boundaries.geojson; layer "design_points" added to the project from C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_runs_new\dock_model_saved_b\ru
+   26.6 PASS the dock's inputs the job reader names all exist 
+   26.7 SUMMARY 66 passed, 0 failed 
+   26.7 DONE

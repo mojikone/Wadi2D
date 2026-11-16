@@ -20,9 +20,10 @@ from __future__ import annotations
 import configparser
 import contextlib
 import json
+import traceback
 from pathlib import Path
 
-from qgis.core import QgsProject
+from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.PyQt.QtCore import QObject, QTimer
 
 from . import model_doc
@@ -30,12 +31,13 @@ from .protocol import JOB_FILE
 from .widget_state import NOTE
 
 ENTRY_SCOPE = "Wadi2D"
+LOG_TAG = "Wadi2D"
 ENTRY_KEY = "model"
 KEEP_MS = 2000
 """How often the dock is compared with the project's copy."""
 RESTORED = "The model was restored from the QGIS project."
 NOT_RESTORED = "Could not be restored:"
-ADDED = "Added:"
+ADDED = "On the way:"
 NO_FOLDER = "Choose the output folder in Run first: scenarios are kept inside it."
 NO_NAME = "Give the scenario a name."
 NO_RUN = "There is no run in this folder: it holds neither a saved model nor a job."
@@ -56,9 +58,9 @@ def outcome(first: str, words: list[str]) -> str:
     lost = [text for text in words if not text.startswith(NOTE)]
     parts = [first]
     if news:
-        parts.append(f"{ADDED} {'; '.join(news)}.")
+        parts.append(f"{ADDED} {'; '.join(text.rstrip('.') for text in news)}.")
     if lost:
-        parts.append(f"{NOT_RESTORED} {'; '.join(lost)}.")
+        parts.append(f"{NOT_RESTORED} {'; '.join(text.rstrip('.') for text in lost)}.")
     return " ".join(parts)
 
 
@@ -78,6 +80,7 @@ class ModelLinks(QObject):
         self._applying = False
         self._last = ""
         self._pristine: dict | None = None
+        self._said: set[str] = set()
         self._version = plugin_version()
         self._timer = QTimer(self)
         self._timer.setInterval(KEEP_MS)
@@ -99,7 +102,9 @@ class ModelLinks(QObject):
 
     def apply(self, doc: dict, add_missing: bool = False) -> list[str]:
         """Fill the dock from a document; what could not be restored, section by section."""
-        words = []
+        words = [
+            f"{NOTE}{text}" for text in doc.get(model_doc.MIGRATED, [])
+        ]  # what an older format's way up changed
         self._applying = True
         try:
             self.dock.set_model_parts(doc)
@@ -144,7 +149,11 @@ class ModelLinks(QObject):
         """Write the model into the project when it differs from what was last written there."""
         if not self.ready or self._applying:
             return
-        doc = self.collect()
+        try:
+            doc = self.collect()
+        except Exception:  # keeping the model must never stop the dock, nor say so every two seconds
+            self._log_once("The model could not be read from the dock, so the project's copy is not kept")
+            return
         mark = model_doc.fingerprint(doc)
         if mark != self._last:
             QgsProject.instance().writeEntry(ENTRY_SCOPE, ENTRY_KEY, model_doc.dumps(doc))
@@ -172,9 +181,19 @@ class ModelLinks(QObject):
     # A run folder
 
     def write_run_copy(self, run_folder: Path | str) -> None:
-        """The model that made a run, into its folder. A copy that cannot be written stops no run."""
-        with contextlib.suppress(OSError):
+        """The model that made a run, into its folder. A copy that cannot be made or written stops no run."""
+        try:
             model_doc.write_doc(Path(run_folder) / model_doc.MODEL_FILE, self.collect())
+        except OSError:
+            pass
+        except Exception:
+            self._log_once(f"The model of the run in {run_folder} could not be saved beside its job")
+
+    def _log_once(self, words: str) -> None:
+        """A fault of the saved model, into the Wadi2D log with its traceback, once for each kind."""
+        if words not in self._said:
+            self._said.add(words)
+            QgsMessageLog.logMessage(f"{words}: {traceback.format_exc()}", LOG_TAG, Qgis.Warning)
 
     def open_run(self, folder: str) -> None:
         """Refill the dock from a finished run: its saved model, or what its job can tell."""

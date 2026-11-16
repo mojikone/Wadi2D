@@ -12,14 +12,15 @@ from __future__ import annotations
 
 from qgis.PyQt.QtWidgets import QLabel, QLineEdit
 
+from .. import section_status
 from ..gauge_rows import FLOW, LEVEL, RAIN, GaugeRow
 from .common import Section
 from .gauge_table import GaugeTable
 
 NOTE = (
     "Flow and level gauges are drawn beside the run's own series in Result lines, with their agreement. A CSV has the "
-    "time first, as minutes from the run's start or as dates, then the values. Rain gauges are set in the Storm "
-    "section, Rain source: Rain gauges."
+    "time first, as minutes from the run's start or as dates, then the values; dates are read from the run's start, "
+    "in the Simulation section. Rain gauges are set in the Storm section, Rain source: Rain gauges."
 )
 AT_TIP = (
     "A flow gauge: the name of a result line or a lumped element. A level gauge: the name of a result point."
@@ -31,6 +32,7 @@ class GaugesSection(Section):
     start_collapsed = True
     key = "gauges"
     state_rows = (("gauges", GaugeRow, "_show"),)
+    state_skip = ("start",)  # the run's one start, the Simulation section's widget (W99)
 
     def build(self) -> None:
         self.note = QLabel(NOTE)
@@ -41,15 +43,14 @@ class GaugesSection(Section):
             self.gauges.add_buttons,
             self.gauges.remove_button,
         )
-        self.start = QLineEdit()
-        self.start.setPlaceholderText("As the rain gauges' start, in the Storm section")
-        self.start.setToolTip(
-            "Date and time the run starts at, as 2021-10-04 00:00, for records written with dates; left empty, the "
-            "start of the rain gauges' storm"
-        )
+        self.start = QLineEdit()  # a section used alone; in the dock, the run's one start (W99)
         self.form.addRow(self.note)
         self.form.addRow(self.gauges)
-        self.form.addRow("Run starts at", self.start)
+
+    def set_start_field(self, field) -> None:
+        """The run's one start, from which records written with dates are read (W99): the Simulation section's
+        field takes the place of the "Run starts at" field that sat here."""
+        self.start = field
 
     @property
     def rows(self):
@@ -60,6 +61,9 @@ class GaugesSection(Section):
 
     def set_row(self, index: int, **fields) -> None:
         self.gauges.set_row(index, **fields)
+
+    def standing(self, kind=None):
+        return section_status.gauges([(row.name, row.file, row.at) for row in self.gauges.rows])
 
     def values(self, crs) -> dict:
         return {

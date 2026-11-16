@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel
 
+from .. import section_status
 from ..job_builder import layer_features
 from ..study_rows import AREA_KEY
 from .common import Section, field_combo, layer_combo
@@ -29,6 +30,10 @@ class PointsSection(Section):
         self.form.addRow("Design points", self.layer)
         self.form.addRow("Name field", self.name)
         self.form.addRow("Drainage area field, km2", self.area)
+
+    def standing(self, kind=None):
+        layer = self.layer.currentLayer()
+        return section_status.points(layer.name() if layer is not None else None, layer.featureCount() if layer is not None else 0)
 
     def values(self, crs) -> dict:
         layer = self.layer.currentLayer()

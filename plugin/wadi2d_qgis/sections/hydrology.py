@@ -22,6 +22,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from .. import section_status
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
@@ -185,6 +186,24 @@ class HydrologySection(Section):
             return
         self.lumped_only.setChecked(kind == LUMPED)
         self.exclude.setChecked(kind == HYBRID_LUMPED)
+
+    def standing(self, kind=None):
+        use_hms = self._use_hms()
+        modes = self._subbasin_modes()
+        raster = self.cn.raster.currentLayer()
+        curve = self.cn.value() if self.cn.box.isEnabled() and self.cn.value() > self.cn.box.minimum() else None
+        return section_status.hydrology(
+            kind,
+            Path(self.folder.filePath()).name if use_hms else None,
+            all(self.files[key].currentText() for key in HMS_KEYS),
+            self.basin.isChecked() and not use_hms,
+            bool(self.basin.json_path),
+            len(modes),
+            sum(1 for mode in modes.values() if mode == LUMPED),
+            curve,
+            raster.name() if raster is not None else None,
+            self.loss.rate.value() if self.loss.enabled.isChecked() else None,
+        )
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""

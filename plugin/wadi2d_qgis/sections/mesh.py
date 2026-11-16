@@ -8,6 +8,7 @@ from qgis.core import QgsMapLayerProxyModel
 from qgis.PyQt.QtCore import Qt
 from qgis.PyQt.QtWidgets import QCheckBox, QLabel, QPushButton, QSpinBox
 
+from .. import section_status
 from ..job_builder import (
     BREAK_CREST,
     BREAK_DEPTH,
@@ -179,6 +180,13 @@ class MeshSection(Section):
         bind(self.crest_height, schema, BREAK_CREST)
         bind(self.crest_disc, schema, BREAK_DISC)
         bind(self.crest_slope, schema, BREAK_SLOPE)
+
+    def standing(self, kind=None):
+        banks = self.corridor_layer.currentLayer()
+        return section_status.mesh(
+            self.enabled.isChecked(), self.coarse.value(), len(self.lines.rows), self.corridors.isChecked(),
+            banks.name() if banks is not None else None,
+        )  # fmt: skip
 
     def breakline_values(self) -> dict:
         """The Suggest settings for the job's ``breaklines`` section; the depth map is the chosen raster's file."""

@@ -1,89 +1,89 @@
     0.0 script loaded
     4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
-    5.0 PASS engine found Engine ready.
-    5.0 === 1 the dock opens on the start page
-    5.0 PASS the start page is the one showing 
-    5.0 PASS four cards, in the engine's own names ['2d', 'lumped', 'hybrid_lumped', 'hybrid_2d']
-    5.0 PASS the section keys are the dock's ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'run', 'study']
-    5.1 PASS the engine knows the four types ['2d', 'lumped', 'hybrid_lumped', 'hybrid_2d']
-    5.1 PASS card 2d: title, badge and meaning in words Rain on the grid everywhere: hills, wadis, dams and plain all in 2D.
-    5.1 PASS card lumped: title, badge and meaning in words The HMS way: subbasins, reaches and reservoirs, no 2D model.
-    5.1 PASS card hybrid_lumped: title, badge and meaning in words Lumped catchments left out of the mesh, entering the 2D model at their outlets; rain on the grid on the rest.
-    5.1 PASS card hybrid_2d: title, badge and meaning in words The same catchments lumped, their water routed on the 2D mesh with dams as 2D pools; rain on the grid on the rest.
-    5.1 PASS no section shows on the start page []
-    5.1 PASS the engine line stays in sight 
-    5.2 PASS looking at the start page changes no project 
-    5.2 === 2 2D: every section, no lumped part
-    5.3 PASS the model page shows 
-    5.3 PASS 2D: the header names the type in words and as a badge Model type: 2D
-    5.3 PASS 2D: all sections show ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'run', 'study']
-    5.3 PASS 2D: Hydrology shows no lumped row 
-    5.3 PASS 2D: no Show all switch, nothing is hidden 
-    5.4 PASS 2D: the job names its type {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': '2d'}
-    5.4 PASS 2D: nothing else moved in the job {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': '2d'}
-    5.4 === 3 a real run of the 2D type: the engine takes the job
-    5.5 dock says: Starting...
-    7.5 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
-   23.6 PASS the 2D run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
-   23.6 PASS the run's job names the type 
-   23.6 PASS the run's model names the type ('2d', 'model')
-   23.6 === 4 the way back, and Lumped: no mesh, no boundaries, no study
-   23.6 PASS back on the start page 
-   23.6 PASS the chosen card is marked 
-   23.6 PASS nothing in the sections was lost on the way back 
-   23.6 PASS Lumped: mesh, boundaries and the depth-area study are not shown ['mesh', 'boundaries', 'study']
-   23.6 PASS Lumped: the header says so The HMS way: subbasins, reaches and reservoirs, no 2D model.
-   23.6 PASS Lumped: the lumped rows show 
-   23.7 PASS Lumped with no network: said in words before a run ['A Lumped model needs its lumped catchments: choose an HMS project or generate the basin, in Hydrology.']
-   23.7 PASS Lumped: the HMS-way tick is the type's, not shown 
-   23.7 PASS Lumped: no entry into a 2D model to choose 
-   23.7 PASS Lumped: each element at its own area stays a choice 
-   23.8 PASS Lumped with a network: nothing stops it []
-   23.8 PASS Lumped: the job is the lumped network alone {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'lumped', 'lumped_only': True}
-   23.8 PASS Lumped: the element areas reach the job {'arf_by_element': True, 'reach_routing': 'hms'}
-   23.8 PASS Lumped, Show all sections: the old full list ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'run', 'study']
-   23.8 PASS Lumped, Show all sections: the type still owns its tick 
-   23.8 === 5 Hybrid Lumped: catchments left out of the mesh, the entry a choice
-   23.9 PASS Hybrid Lumped: all sections show ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'run', 'study']
-   23.9 PASS Hybrid Lumped: left-out and HMS-way ticks are the type's 
-   23.9 PASS Hybrid Lumped: where the lumped water enters is a choice 
-   23.9 PASS Hybrid Lumped: no per-element area reduction 
-   23.9 PASS Hybrid Lumped: the job leaves the catchments out (dict_keys(['dx', 'cache_dir', 'domain', 'exclude_lumped']), {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'hybrid_lumped'})
-   23.9 PASS Hybrid Lumped: the chosen entry reaches the job {'lumped_entry': 'network', 'reach_routing': 'hms'}
-   23.9 === 6 Hybrid 2D: catchments kept, entering at their outlets
-   23.9 PASS Hybrid 2D: the three ticks are the type's 
-   23.9 PASS Hybrid 2D: the subbasin table stays a choice 
-   24.0 PASS Hybrid 2D: the job keeps the catchments in the mesh (['dx', 'cache_dir', 'domain'], {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'hybrid_2d'})
-   24.0 PASS Hybrid 2D: the entry is the outlets, the engine's default {'reach_routing': 'hms'}
-   24.0 PASS Hybrid 2D: the entry chosen for Hybrid Lumped is kept for later 
-   24.0 === 7 2D with an HMS project still set: left out of the job, and said
-   24.0 PASS the HMS project is still in the dock 
-   24.0 PASS 2D: the HMS project stays out of the values 
-   24.0 PASS 2D: the header says what is not used The HMS project or generated basin set in Hydrology is not used: a 2D model has no lumped part.
-   24.0 PASS 2D: the storm of the HMS project cannot be meant, and that stops the run in words ['Set the rain, or choose an HMS project.']
-   24.0 === 8 the type is the model's: saved and read back
-   24.0 PASS the model document holds the type 
-   24.0 PASS a new model starts on the start page with no type 
-   24.1 PASS the type came back with the model ('hybrid_lumped', 'HYB-L')
-   24.1 PASS its ticks came back with it 
-   24.1 === 9 a model with no word on its type gets the one it runs as
-   24.2 PASS an HMS project with the catchments left out: Hybrid Lumped hybrid_lumped
-   24.4 PASS the same with the catchments kept: Hybrid 2D hybrid_2d
-   24.5 PASS the HMS way only: Lumped lumped
-   24.6 PASS no lumped part: 2D 2d
-   24.6 PASS an HMS folder that is gone leaves no file chosen from it 
-   24.6 === 10 All sections, no model type: the dock as it was
-   24.6 PASS all sections and every Hydrology row 
-   24.6 PASS the job names no type {'duration_s': 2700.0}
-   24.6 PASS the header says so in words Every section, as the dock was: the job names no model type and the engine reads it from the job.
-   24.6 === 11 Open a finished run from the start page
-   24.6 PASS a folder with no run: said on the start page There is no run in this folder: it holds neither a saved model nor a job.
-   24.7 PASS the run's model is in the dock, on the model page ('2d', 30.0)
-   24.7 PASS its results are at hand 
-   24.7 === 12 two things that must not lose a model
-   24.7 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
-   25.2 PASS the engine answering again keeps every field (35.0, 1.5, '2d')
-   25.2 PASS a model file edited by hand: the bad section is named ["1. Terrain, its saved state could not be read (could not convert string to float: 'wide')"]
-   25.2 PASS and the other sections still come back 2.5
-   25.2 SUMMARY 71 passed, 0 failed 
-   25.2 DONE
+    5.2 PASS engine found Engine ready.
+    5.2 === 1 the dock opens on the start page
+    5.2 PASS the start page is the one showing 
+    5.2 PASS four cards, in the engine's own names ['2d', 'lumped', 'hybrid_lumped', 'hybrid_2d']
+    5.2 PASS the section keys are the dock's ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.2 PASS the engine knows the four types ['2d', 'lumped', 'hybrid_lumped', 'hybrid_2d']
+    5.2 PASS card 2d: title, badge and meaning in words Rain on the grid everywhere: hills, wadis, dams and plain all in 2D.
+    5.2 PASS card lumped: title, badge and meaning in words The HMS way: subbasins, reaches and reservoirs, no 2D model.
+    5.2 PASS card hybrid_lumped: title, badge and meaning in words Lumped catchments left out of the mesh, entering the 2D model at their outlets; rain on the grid on the rest.
+    5.2 PASS card hybrid_2d: title, badge and meaning in words The same catchments lumped, their water routed on the 2D mesh with dams as 2D pools; rain on the grid on the rest.
+    5.2 PASS no section shows on the start page []
+    5.2 PASS the engine line stays in sight 
+    5.3 PASS looking at the start page changes no project 
+    5.3 === 2 2D: every section, no lumped part
+    5.5 PASS the model page shows 
+    5.5 PASS 2D: the header names the type in words and as a badge Model type: 2D
+    5.5 PASS 2D: all sections show ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.5 PASS 2D: Hydrology shows no lumped row 
+    5.5 PASS 2D: no Show all switch, nothing is hidden 
+    5.5 PASS 2D: the job names its type {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': '2d'}
+    5.5 PASS 2D: nothing else moved in the job {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': '2d'}
+    5.6 === 3 a real run of the 2D type: the engine takes the job
+    5.7 dock says: Starting...
+    7.7 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   28.0 PASS the 2D run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
+   28.0 PASS the run's job names the type 
+   28.0 PASS the run's model names the type ('2d', 'model')
+   28.0 === 4 the way back, and Lumped: no mesh, no boundaries, no study
+   28.0 PASS back on the start page 
+   28.0 PASS the chosen card is marked 
+   28.0 PASS nothing in the sections was lost on the way back 
+   28.0 PASS Lumped: mesh, boundaries and the depth-area study are not shown ['mesh', 'boundaries', 'study']
+   28.0 PASS Lumped: the header says so The HMS way: subbasins, reaches and reservoirs, no 2D model.
+   28.0 PASS Lumped: the lumped rows show 
+   28.0 PASS Lumped with no network: said in words before a run ['A Lumped model needs its lumped catchments: choose an HMS project or generate the basin, in Hydrology.']
+   28.1 PASS Lumped: the HMS-way tick is the type's, not shown 
+   28.1 PASS Lumped: no entry into a 2D model to choose 
+   28.1 PASS Lumped: each element at its own area stays a choice 
+   28.1 PASS Lumped with a network: nothing stops it []
+   28.1 PASS Lumped: the job is the lumped network alone {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'lumped', 'lumped_only': True}
+   28.2 PASS Lumped: the element areas reach the job {'arf_by_element': True, 'reach_routing': 'hms'}
+   28.2 PASS Lumped, Show all sections: the old full list ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+   28.2 PASS Lumped, Show all sections: the type still owns its tick 
+   28.2 === 5 Hybrid Lumped: catchments left out of the mesh, the entry a choice
+   28.2 PASS Hybrid Lumped: all sections show ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+   28.2 PASS Hybrid Lumped: left-out and HMS-way ticks are the type's 
+   28.2 PASS Hybrid Lumped: where the lumped water enters is a choice 
+   28.2 PASS Hybrid Lumped: no per-element area reduction 
+   28.3 PASS Hybrid Lumped: the job leaves the catchments out (dict_keys(['dx', 'cache_dir', 'domain', 'exclude_lumped']), {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'hybrid_lumped'})
+   28.3 PASS Hybrid Lumped: the chosen entry reaches the job {'lumped_entry': 'network', 'reach_routing': 'hms'}
+   28.3 === 6 Hybrid 2D: catchments kept, entering at their outlets
+   28.3 PASS Hybrid 2D: the three ticks are the type's 
+   28.3 PASS Hybrid 2D: the subbasin table stays a choice 
+   28.3 PASS Hybrid 2D: the job keeps the catchments in the mesh (['dx', 'cache_dir', 'domain'], {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': 'hybrid_2d'})
+   28.3 PASS Hybrid 2D: the entry is the outlets, the engine's default {'reach_routing': 'hms'}
+   28.3 PASS Hybrid 2D: the entry chosen for Hybrid Lumped is kept for later 
+   28.3 === 7 2D with an HMS project still set: left out of the job, and said
+   28.4 PASS the HMS project is still in the dock 
+   28.4 PASS 2D: the HMS project stays out of the values 
+   28.4 PASS 2D: the header says what is not used The HMS project or generated basin set in Hydrology is not used: a 2D model has no lumped part.
+   28.4 PASS 2D: the storm of the HMS project cannot be meant, and that stops the run in words ['Set the rain, or choose an HMS project.']
+   28.4 === 8 the type is the model's: saved and read back
+   28.4 PASS the model document holds the type 
+   28.4 PASS a new model starts on the start page with no type 
+   28.5 PASS the type came back with the model ('hybrid_lumped', 'HYB-L')
+   28.5 PASS its ticks came back with it 
+   28.5 === 9 a model with no word on its type gets the one it runs as
+   28.6 PASS an HMS project with the catchments left out: Hybrid Lumped hybrid_lumped
+   28.8 PASS the same with the catchments kept: Hybrid 2D hybrid_2d
+   29.0 PASS the HMS way only: Lumped lumped
+   29.0 PASS no lumped part: 2D 2d
+   29.0 PASS an HMS folder that is gone leaves no file chosen from it 
+   29.0 === 10 All sections, no model type: the dock as it was
+   29.1 PASS all sections and every Hydrology row 
+   29.1 PASS the job names no type {'duration_s': 2700.0}
+   29.1 PASS the header says so in words Every section, as the dock was: the job names no model type and the engine reads it from the job.
+   29.1 === 11 Open a finished run from the start page
+   29.1 PASS a folder with no run: said on the start page There is no run in this folder: it holds neither a saved model nor a job.
+   29.2 PASS the run's model is in the dock, on the model page ('2d', 30.0)
+   29.2 PASS its results are at hand 
+   29.2 === 12 two things that must not lose a model
+   29.2 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   29.7 PASS the engine answering again keeps every field (35.0, 1.5, '2d')
+   29.7 PASS a model file edited by hand: the bad section is named ["1. Terrain, its saved state could not be read (could not convert string to float: 'wide')"]
+   29.7 PASS and the other sections still come back 2.5
+   29.7 SUMMARY 71 passed, 0 failed 
+   29.7 DONE

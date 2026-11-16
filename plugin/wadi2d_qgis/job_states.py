@@ -20,6 +20,7 @@ from .job_builder import COORDINATE_DECIMALS
 from .model_doc import RASTER_PROVIDER
 from .protocol import INPUTS_DIR
 from .shaped import END_KEYS, SHAPED_KINDS, TABLE
+from .simulation_rows import NUMERIC_KEYS, STEP_AUTO, STEP_FIXED, fixed_step
 from .storm_rows import (
     ARF_AREA,
     ARF_GIVEN,
@@ -146,7 +147,6 @@ def _storm(storm: dict) -> dict:
         widgets["variable"] = {"data": None, "text": storm.get("rain_variable", "")}
         widgets["stamp"] = choice(storm.get("rain_stamp"))
         widgets["period"] = storm.get("rain_interval_min", 0.0)
-        widgets["start"] = storm.get("rain_start", "")
         _arf(storm, widgets)
     elif kind == KIND_GAUGES:
         spread = storm.get("gauges") or {}
@@ -156,7 +156,6 @@ def _storm(storm: dict) -> dict:
             gauge_gaps=choice(spread.get("gaps")),
         )
         widgets["gauge_radius"] = spread.get("search_radius_m") or 0.0
-        widgets["gauge_start"] = storm.get("rain_start", "")
         stations = spread.get("gauges") or []
         if stations:
             widgets["gauge_values"] = choice(stations[0].get("values"))
@@ -268,11 +267,36 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     return {"widgets": widgets, "extra": extra}
 
 
+def _simulation(job: dict) -> dict:
+    """The Simulation section: the run's start (the rain's, else the first observed record's), the times, the 2D step
+    as fixed where the job holds both bounds equal, and the numbers a job gives only when they left the defaults.
+    """
+    run, outputs, storm, numerics, hydrology = (
+        job.get(key) or {} for key in ("run", "outputs", "storm", "numerics", "hydrology")
+    )
+    widgets: dict = {}
+    observed = [entry.get("start") for entry in outputs.get("observed") or [] if entry.get("start")]
+    _put(widgets, "start", storm.get("rain_start") or (observed[0] if observed else None))
+    _put(widgets, "duration", run["duration_s"] / SECONDS_PER_HOUR if "duration_s" in run else None)
+    _put(widgets, "maps", choice(outputs["map_every_s"]) if "map_every_s" in outputs else None)
+    _put(widgets, "backend", choice(run["backend"]) if run.get("backend") else None)
+    held = fixed_step(numerics)
+    widgets["step_mode"] = choice(STEP_FIXED if held is not None else STEP_AUTO)
+    if held is not None:
+        widgets["fixed_step"] = held
+    else:
+        for key in NUMERIC_KEYS:
+            _put(widgets, key, numerics.get(key))
+    _put(widgets, "lumped_step", hydrology.get("time_step_min"))
+    _put(widgets, "series", outputs.get("series_every_s"))
+    return widgets
+
+
 def job_states(job: dict, run_folder: Path | str) -> dict:
     """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``."""
     root = Path(run_folder)
     inputs_dir = root / INPUTS_DIR
-    grid, terrain, run, outputs = (job.get(key) or {} for key in ("grid", "terrain", "run", "outputs"))
+    grid, terrain, outputs = (job.get(key) or {} for key in ("grid", "terrain", "outputs"))
     ground = {"dem": layer(terrain.get("dem"), raster=True), "fill_pits": bool(terrain.get("fill_pits"))}
     _put(ground, "dx", grid.get("dx"))
     _put(ground, "domain", layer(grid.get("domain")))
@@ -288,11 +312,8 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
             "area": AREA_KEY if AREA_KEY in held else "",
         }
     panel = {"folder": str(root), "pixels": (outputs.get("pixels") or {}).get("enabled", True)}
-    _put(panel, "duration", run["duration_s"] / SECONDS_PER_HOUR if "duration_s" in run else None)
-    _put(panel, "maps", choice(outputs["map_every_s"]) if "map_every_s" in outputs else None)
     _put(panel, "smooth", (outputs.get("smooth") or {}).get("enabled"))
     panel["limiter"] = bool(outputs.get("step_limiter"))
-    _put(panel, "backend", choice(run["backend"]) if run.get("backend") else None)
     return {
         "terrain": {"widgets": ground},
         "mesh": _mesh(job, inputs_dir),
@@ -301,6 +322,7 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
         "structures": _structures(job, inputs_dir),
         "boundaries": {"widgets": {"layer": layer(edges)} if edges.is_file() else {}},
         "points": {"widgets": points},
+        "simulation": {"widgets": _simulation(job)},
         "run": {"widgets": panel},
     }
 

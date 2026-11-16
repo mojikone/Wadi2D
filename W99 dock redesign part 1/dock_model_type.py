@@ -225,7 +225,7 @@ def scenario(h):
     h.check("the engine answering again keeps every field", dock.terrain.dx.value() == 35.0 and dock.panel.duration.value() == 1.5 and types.kind == "2d", (dock.terrain.dx.value(), dock.panel.duration.value(), types.kind))
     broken = json.loads(json.dumps(dock.model.collect()))
     broken["sections"]["terrain"]["widgets"]["dx"] = "wide"
-    broken["sections"]["run"]["widgets"]["duration"] = 2.5
+    broken["sections"]["simulation"]["widgets"]["duration"] = 2.5
     said = dock.model.apply(broken)
     h.check("a model file edited by hand: the bad section is named", any("1. Terrain" in text and "could not be read" in text for text in said), said)
     h.check("and the other sections still come back", dock.panel.duration.value() == 2.5, dock.panel.duration.value())

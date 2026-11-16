@@ -34,10 +34,11 @@ def scenario(h):
     keys = [section.key for section in dock.sections]
     h.check("every section has its name in the model", all(keys) and len(set(keys)) == len(keys), keys)
     first = model.collect()
-    h.check("the document names its format", (first["format"], first["version"]) == ("wadi2d-model", 1), first["version"])
+    h.check("the document names its format", (first["format"], first["version"]) == ("wadi2d-model", 2), first["version"])
     counts = {key: len(state["widgets"]) for key, state in first["sections"].items()}
     h.log(f"inputs found by section: {counts}")
-    h.check("every section's inputs are found", all(counts[k] > 0 for k in keys), counts)
+    h.check("every section's inputs are found", all(counts[k] > 0 for k in keys if k != "gauges"), counts)
+    h.check("Gauges, whose one field became the run's start, still saves its table", "gauges" in first["sections"]["gauges"]["rows"])
     h.check("the Storm widgets Hydrology borrows are saved once", "rain" not in first["sections"]["hydrology"]["widgets"])
     model.keep()
     _text, found = QgsProject.instance().readEntry("Wadi2D", "model", "")

@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
+import traceback
 from pathlib import Path
 
 from qgis.core import Qgis, QgsMessageLog, QgsProject
@@ -82,6 +83,7 @@ from .protocol import (
 from .rain_query import StormLinks
 from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
+from .section_card import SectionCard
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
 from .sections.gauges import GaugesSection
@@ -89,11 +91,14 @@ from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
 from .sections.run import RunSection
+from .sections.simulation import SimulationSection
 from .sections.storm import StormSection
 from .sections.structures import StructuresSection
 from .sections.study import StudySection
 from .sections.terrain import TerrainSection
 from .start_page import ModelHeader, StartPage
+from .status_bars import Footer, StepStrip
+from .status_links import StatusLinks
 from .storm_rows import rain_args, rain_reply
 from .structures_query import StructuresLinks
 from .study_rows import (
@@ -116,6 +121,10 @@ LUMPED_RUN_NOTE = (
     "and junctions are on the map with their peaks; Result lines, or a right-click on one, shows its hydrograph."
 )
 HMS_JOB = "hms_import.json"
+SCHEMA_FAILED = (
+    "These sections could not take the engine's settings, so their fields may hold old defaults and bounds: "
+    "{sections}. The other sections are in order; the Wadi2D log panel has the detail."
+)
 
 FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
 DRAWING_NOTE = (
@@ -182,13 +191,22 @@ class Wadi2DDock(QgsDockWidget):
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
         self.gauges = GaugesSection(iface.mapCanvas())
+        self.simulation = SimulationSection()  # when, how long, the steps, the saved maps, the engine (W99 step 4)
+        self.storm.set_start_field(self.simulation.start)  # the run's one start, which these two read
+        self.gauges.set_start_field(self.simulation.start)
         self.panel = RunSection()
+        # the simulated time, the saved maps and the engine choice moved to Simulation: older dock checks reach them here
+        self.panel.duration, self.panel.maps, self.panel.backend = (
+            self.simulation.duration, self.simulation.maps, self.simulation.backend,
+        )  # fmt: skip
+        self.panel.chosen_backend = self.simulation.chosen_backend
+        self.panel.on_running = self.simulation.set_running
         self.study = StudySection()
         self.study_run: StudyRun | None = None
         self._study_dir: Path | None = None
         self.sections = (
             self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.gauges, self.panel, self.study,
+            self.gauges, self.simulation, self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -199,20 +217,29 @@ class Wadi2DDock(QgsDockWidget):
         top.addWidget(self.engine_label, 1)
         top.addWidget(self.engine_button)
         self.model_bar = ModelBar()
+        dark = look.is_dark(self.palette())  # a dark QGIS theme takes the palette's dark counterpart
+        self.cards = {section.key: SectionCard(section) for section in self.sections}  # each section in a card (W99)
         body = QWidget()
+        body.setObjectName(look.BODY)
+        body.setAttribute(Qt.WA_StyledBackground, True)
         column = QVBoxLayout(body)
+        column.setContentsMargins(look.BODY_MARGIN, look.GAP, look.BODY_MARGIN, look.GAP)  # with the card's own edge, the side margin the sections had
+        column.setSpacing(look.GAP)
         column.addWidget(self.model_bar)
         for section in self.sections:
-            column.addWidget(section)
+            column.addWidget(self.cards[section.key])
         column.addStretch(1)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
         scroll.setWidget(body)
-        # Two pages (W99): the model types to choose from, and the model: its header over the sections.
+        self.scroll = scroll
+        # Two pages (W99): the model types to choose from, and the model: its header and the step strip over the
+        # sections, the footer under them.
         self.start_page = StartPage()
-        self.header = ModelHeader()
-        for framed in (self.start_page, self.header):
-            framed.setStyleSheet(look.sheet())  # on the dock's own frame only: the sections keep the QGIS theme
+        self.header = ModelHeader(dark)
+        self.strip = StepStrip()
+        self.footer = Footer()
         start_scroll = QScrollArea()
         start_scroll.setWidgetResizable(True)
         start_scroll.setFrameShape(QFrame.NoFrame)
@@ -223,15 +250,20 @@ class Wadi2DDock(QgsDockWidget):
         model_column.setContentsMargins(0, 0, 0, 0)
         model_column.setSpacing(0)
         model_column.addWidget(self.header)
+        model_column.addWidget(self.strip)
         model_column.addWidget(scroll, 1)
+        model_column.addWidget(self.footer)
         self.pages = QStackedWidget()
         self.pages.addWidget(start_scroll)
         self.pages.addWidget(model_page)
         frame = QWidget()
+        frame.setObjectName(look.FRAME)
+        frame.setAttribute(Qt.WA_StyledBackground, True)
         frame_column = QVBoxLayout(frame)
         frame_column.setContentsMargins(0, 0, 0, 0)
         frame_column.addLayout(top)
         frame_column.addWidget(self.pages, 1)
+        frame.setStyleSheet(look.sheet(dark))  # matched by the frame's own object names: the sections keep the QGIS theme
         self.setWidget(frame)
 
         self.engine_button.clicked.connect(self.open_settings)
@@ -275,6 +307,7 @@ class Wadi2DDock(QgsDockWidget):
         self.structures.edit_requested.connect(self.edit_profile)
         self.model = ModelLinks(self)  # the model saved with the project, in each run folder, as scenarios (W99)
         self.types = TypeLinks(self)  # the model type: the start page, the sections shown, the type in the job (W99)
+        self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -299,11 +332,16 @@ class Wadi2DDock(QgsDockWidget):
             return
         held = self.model.collect() if self.model.ready else None  # a second answer (Engine...) resets every field
         self.schema = schema
+        failed = []
         for section in self.sections:
-            section.apply_schema(schema)
+            try:
+                section.apply_schema(schema)
+            except Exception as problem:  # one section's error must not stop the dock halfway, with no word
+                failed.append(f"{section.heading} ({type(problem).__name__}: {problem})")
+                QgsMessageLog.logMessage(f"{section.heading}: {traceback.format_exc()}", LOG_TAG, Qgis.Critical)
         self.types.apply_schema(schema)
         self._finest_changed()
-        self.engine_label.setText("Engine ready.")
+        self.engine_label.setText(f"Engine ready. {SCHEMA_FAILED.format(sections='; '.join(failed))}" if failed else "Engine ready.")
         self._set_ready(True)
         if held is None:
             self.model.start()
@@ -324,6 +362,7 @@ class Wadi2DDock(QgsDockWidget):
     def model_applied(self, job_type: str | None = None, infer: bool = False) -> None:
         self._finest_changed()
         self.types.restored(job_type, infer)
+        self.status_links.refresh()
 
     def show_run(self, folder: str) -> None:
         """A finished run opened into the dock: its results are the ones Make map and the sliders work on."""
@@ -416,7 +455,7 @@ class Wadi2DDock(QgsDockWidget):
             except ValueError as error:  # what the import lacks, in the dock's words
                 failed(str(error))
                 return
-            for note in merge_notes(job, complete):
+            for note in merge_notes(job, complete, data):
                 say(note, "note")
             then(write_job(complete, out))
 
@@ -961,7 +1000,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.pixel_frames_button.setEnabled(False)
         self.panel.say("Starting the drawing process for this run...")
         self._slider_client = render_client.client_for(
-            self.results_dir, settings.engine_text(), self.panel.chosen_backend()
+            self.results_dir, settings.engine_text(), self.simulation.chosen_backend()
         )
         self._slider_timer.start(SLIDER_POLL_MS)
         self._slider_poll()
@@ -1020,6 +1059,7 @@ class Wadi2DDock(QgsDockWidget):
     def release(self) -> None:
         """Leave a running engine alone: QGIS is closing or the plugin is being reloaded."""
         self.model.release()
+        self.status_links.release()
         if self.run is not None:
             self.run.release()
             self.run = None
