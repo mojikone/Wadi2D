@@ -324,6 +324,23 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
     return {"widgets": widgets}
 
 
+def _last_point_rows(hydrology: dict) -> list[tuple]:
+    """A job's ``hydrology.last_points`` as the table's rows: the dams of its basin, each ticked where the job names it,
+    and its other names as junctions. A basin that is not there makes every name a junction: the same list is written."""
+    from .last_point_rows import hms_candidates, model_candidates, rows_from_job
+
+    dams, junctions = [], []
+    hms, generated = hydrology.get("hms_basin"), hydrology.get("basin_json")
+    try:
+        if hms and Path(hms).is_file():
+            dams, junctions, _icons = hms_candidates(hms)
+        elif generated and Path(generated).is_file():
+            dams, junctions, _icons = model_candidates(json.loads(Path(generated).read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        dams, junctions = [], []
+    return rows_from_job(hydrology["last_points"], dams, junctions)
+
+
 def _hydrology(job: dict, inputs_dir: Path) -> dict:
     widgets: dict = {}
     extra: dict = {}
@@ -356,6 +373,8 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     _put(widgets, "routing", choice(hydrology["reach_routing"]) if hydrology.get("reach_routing") else None)
     widgets["exclude"] = bool((job.get("grid") or {}).get("exclude_lumped"))
     widgets["inflows"] = [list(row) for row in inflow_rows(hydrology.get("inflows") or [])]  # W103
+    if hydrology.get("last_points") is not None:  # W105: the job's own list over the dams its basin holds
+        widgets["last_points"] = [list(row) for row in _last_point_rows(hydrology)]
     handbacks = inputs_dir / "handbacks.geojson"
     if handbacks.is_file():
         widgets["handbacks.layer"] = layer(handbacks)

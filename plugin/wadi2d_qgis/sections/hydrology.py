@@ -1,7 +1,8 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
 """3. Hydrology: an HMS project, or a basin generated from the DEM, with a mode per subbasin, and on an HMS project its
-own storm area, entry and outlet (W103); the point inflows of lumped elements (W103); the reach routing scheme (with K,
+own storm area, entry and outlet (W103); the point inflows of lumped elements (W103); the last points of the lumped
+model, every dam ticked and junctions added (W105, ``hydrology.last_points``); the reach routing scheme (with K,
 X and subreaches per reach under Muskingum, W89) and the curve number either way; hand-back lines and the transmission
 loss. The rain is section 4."""
 
@@ -27,7 +28,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from .. import entry_rows, section_status
+from .. import entry_rows, last_point_rows, section_status
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
@@ -58,6 +59,7 @@ from .basin_rows import (
 from .class_table import ClassTable
 from .common import Section, ValueOrRaster, bind, layer_combo
 from .inflow_table import InflowTable
+from .last_points_table import LastPointsTable
 from .muskingum_table import MuskingumBox
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
@@ -154,6 +156,8 @@ class HydrologySection(Section):
         """An outlet cell that holds no point, in words, by subbasin."""
         self.inflows = InflowTable()  # W103: hydrology.inflows, saved with the model as a pair table
         lumped.addRow(self.inflows)
+        self.last_points = LastPointsTable()  # W105: hydrology.last_points, saved with the model as a pair table
+        lumped.addRow(self.last_points)
 
         self.routing = QComboBox()
         lumped.addRow("Reach routing", self.routing)
@@ -285,10 +289,21 @@ class HydrologySection(Section):
         edits = self.subbasin_edits() if kind != TWO_D else {}
         rows = self.inflows.rows() if kind != TWO_D else []
         found = self.entry_problems() + entry_rows.edit_problems(edits, modes) + entry_rows.inflow_problems(rows)
+        lasts = self.last_points.rows() if kind != TWO_D and (use_hms or self.basin.in_use()) else []
+        found += last_point_rows.problems(lasts, self.last_points.dams + self.last_points.junctions)  # W105
         if found and status.state != section_status.MISSING:  # W103: what the table holds, in words
             return section_status.Status(section_status.MISSING, found[0])
-        words = section_status.join(status.words, cn_words(override), entry_rows.words(edits, rows))
+        words = section_status.join(
+            status.words, cn_words(override), entry_rows.words(edits, rows), last_point_rows.words(lasts)
+        )
         return section_status.Status(status.state, words)
+
+    def last_points_value(self) -> list[str] | None:
+        """``hydrology.last_points`` as the table holds it: None, not written, while every dam is ticked and no
+        junction added (W105)."""
+        if not (self._use_hms() or self.basin.in_use()):
+            return None
+        return last_point_rows.job_value(self.last_points.rows(), self.last_points.dams)
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""
@@ -349,6 +364,7 @@ class HydrologySection(Section):
             self._fill_table(subbasin_rows(self.basin.model, asked))
             self.handbacks.set_choices(self.basin.element_choices())
             self.inflows.set_choices(self.basin.element_choices())
+            self.last_points.set_candidates(*last_point_rows.model_candidates(self.basin.model))
         self._show_edit_columns()
         self._fill_reaches()
 
@@ -360,6 +376,7 @@ class HydrologySection(Section):
         self._fill_table([SubbasinRow(n, [], "lumped", mode_tip(n, [], "lumped")) for n in names])
         self.handbacks.set_choices(hms_elements(path))
         self.inflows.set_choices(hms_elements(path))
+        self.last_points.set_candidates(*(last_point_rows.hms_candidates(path) if path.is_file() else ([], [], {})))
         self.show_structures([], "")
         self._fill_reaches()
         if path.is_file():
@@ -400,6 +417,7 @@ class HydrologySection(Section):
         if self.basin.in_use():
             self.handbacks.set_choices(self.basin.element_choices())
             self.inflows.set_choices(self.basin.element_choices())
+            self.last_points.set_candidates(*last_point_rows.model_candidates(self.basin.model))
             self._fill_reaches()
 
     def _subbasin_modes(self) -> dict[str, str]:
@@ -533,7 +551,11 @@ class HydrologySection(Section):
             "cn_override": self.cn_override(),
             "inflows": self.inflows.rows(),  # W103: written only when there are rows
             "entry_problems": self.entry_problems(),
-        }
+            "last_points": self.last_points_value(),  # W105: written only off the engine's default, every dam
+            "last_point_problems": last_point_rows.problems(
+                self.last_points.rows(), self.last_points.dams + self.last_points.junctions
+            ) if self.last_points_value() is not None else [],
+        }  # fmt: skip
         if values["reach_routing"] == MUSKINGUM:
             values["muskingum"] = self.muskingum.values()
         if self._use_hms():

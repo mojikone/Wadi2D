@@ -96,6 +96,14 @@ def test_the_entry_rules_the_dock_offers_are_the_engines_and_point_is_its_defaul
     assert real.default(entry_rows.INFLOW_ENTERS) is True
 
 
+def test_the_last_points_are_the_engines_field_and_none_is_its_default(real: SchemaView) -> None:
+    """W105: the dock writes the list only off the engine's default, every dam."""
+    from wadi2d_qgis import last_point_rows
+
+    assert real.has(last_point_rows.LAST_POINTS)
+    assert real.default(last_point_rows.LAST_POINTS, "absent") is None
+
+
 def test_every_reach_routing_scheme_of_the_engine_has_words_in_the_dock(real: SchemaView) -> None:
     assert set(real.enum(basin_rows.REACH_ROUTING)) == set(basin_rows.ROUTING_WORDS)
     assert real.default(basin_rows.REACH_ROUTING) == "hms"

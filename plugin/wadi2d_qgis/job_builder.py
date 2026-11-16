@@ -320,7 +320,7 @@ NO_NETWORK = (
 def _entry_problems(values: dict) -> list[str]:
     """The subbasins' own storm areas, entries and outlets and the point inflows (W103), in plain words."""
     hms = values.get("hms") or {}
-    found = list(values.get("entry_problems") or [])
+    found = list(values.get("entry_problems") or []) + list(values.get("last_point_problems") or [])  # W105
     form = None  # the HMS project's own storm carries its table
     if values.get("storm"):  # the kind the job is written as: a depth that fits it is the design storm (_reduced)
         kind = KIND_DESIGN if _design_table(values) is not None else values["storm"].get("kind")
@@ -688,6 +688,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["hydrology"]["curve_number"] = values["curve_number"]
     if values.get("inflows"):  # W103: the point inflows of lumped elements, only when there are rows
         job["hydrology"]["inflows"] = inflow_jobs(values["inflows"])
+    if values.get("last_points") is not None:  # W105: only off the engine's default, every dam
+        job["hydrology"]["last_points"] = list(values["last_points"])
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
     if values.get("reach_routing") == "muskingum" and values.get("muskingum"):  # the reach table's rows (W89)

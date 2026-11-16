@@ -290,6 +290,7 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self.basin_points = BasinPointsLinks(self)  # the Basin points layer and its clicks (W73)
         self.inflow_points = InflowPointLinks(self)  # the point inflows table's clicks (W103)
+        self.last_point_clicks = InflowPointLinks(self, self.hydrology.last_points)  # the last points' (W105)
         self._basin_query: EngineQuery | None = None
         self._basin_model = model_name(None)
         self.storm.rain_file_changed.connect(self.read_rain_file)

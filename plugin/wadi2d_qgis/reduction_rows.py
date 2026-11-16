@@ -34,13 +34,16 @@ FORM_WORDS = {
     NONE: "No reduction",
     COEFFICIENT: "A coefficient",
     AREA: "At one storm area, read on a curve",
-    CURVE: "A curve: each subbasin at the area where its water enters the grid",
+    CURVE: "A curve: each lumped subbasin read at its dam's (last point's) drainage area",
     STUDY: "By the depth-area study: each run at its own storm area",
 }
 CURVE_NOTE = (
-    "Each lumped subbasin is read on the curve at the drainage area of the element where its water enters the grid, a "
-    "dam or a junction found from the network (W98); in a Lumped model each element at its own drainage area, the HMS "
-    "depth-area way; in a depth-area study at each run's storm area. A subbasin with a storm area of its own keeps it."
+    "Each lumped subbasin read at its dam's (last point's) drainage area: in Hybrid 2D, where the lumped subbasins "
+    "enter at their own outlets and the 2D model routes them once, every one at the drainage area of the first last "
+    "point below it (a dam, or a junction added in Hydrology), one factor per dam (his rule of 2026-11-16, W105). In "
+    "Lumped and Hybrid Lumped each element at its own drainage area, the HMS depth-area way: the water a dam hands to "
+    "the 2D model is the dam's own, at the dam's area (W98). In a depth-area study at each run's storm area. A "
+    "subbasin with a storm area of its own keeps it."
 )
 STUDY_NOTE = (
     "The study (section 9) reads the curve at each of its storm areas, run by run. A single Run reads it at the area "

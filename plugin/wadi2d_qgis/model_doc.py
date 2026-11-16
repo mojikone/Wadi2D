@@ -20,8 +20,9 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 5
-"""5 (W103): Hydrology holds each subbasin's own storm area, entry and outlet and the point inflows of lumped elements.
+VERSION = 6
+"""6 (W105): Hydrology holds the last points of the lumped model (every dam by default, junctions added).
+5 (W103): Hydrology holds each subbasin's own storm area, entry and outlet and the point inflows of lumped elements.
 4 (W101, his item 7): the one depth threshold for the maps is the model's (Run). 3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
 depth and a pattern. 2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved
 maps and the engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
@@ -205,7 +206,40 @@ def _to_5(doc: dict) -> dict:
     return doc
 
 
-MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4, 4: _to_5}
+LAST_POINTS_CURVE = (
+    "The lumped model now ends at its dams (his rule of 2026-11-16): with the lumped part of the area reduction a "
+    "curve, a lumped subbasin that enters the 2D model at its own outlet is read at its dam's drainage area, one factor "
+    "per dam, where it was read at its own; the job is the same, its rain is not. Hydrology lists the dams as last "
+    "points; untick them all to read each subbasin at its own area again."
+)
+LAST_POINTS_NETWORK = (
+    "The lumped model now ends at its dams (his rule of 2026-11-16): the lumped water kept on the HMS network enters "
+    "the 2D model at each dam, on the edge of the catchments left out of the mesh, where it went on down the reach "
+    "below to the first rain-on-grid join; the job is the same, its entries are not. Hydrology lists the dams as last "
+    "points; add a junction there to end the lumped model at it too."
+)
+
+
+def _to_6(doc: dict) -> dict:
+    """Format 5 to 6 (W105): the last points of the lumped model. A model from before holds none, so its table comes up
+    with every dam ticked, the engine's default, and its job is the job it was; where that default changes what the job
+    gives (a lumped curve, or the lumped water kept on the network), it is said in words under :data:`MIGRATED`."""
+    hydrology = _widgets(doc, "hydrology")
+    reduction = _widgets(doc, "reduction")
+    words = []
+    if doc.get("model_type") in ("lumped", "2d") or (not hydrology.get("folder") and not hydrology.get("basin#checked")):
+        return doc  # a Lumped model reads every element at its own area as before; a 2D model has no lumped part
+    network = _data(hydrology, "lumped_entry") == "network" and doc.get("model_type") != "hybrid_2d"
+    if _data(reduction, "lumped.form") == "curve" and not network:
+        words.append(LAST_POINTS_CURVE)
+    if network:
+        words.append(LAST_POINTS_NETWORK)
+    if words:
+        doc[MIGRATED] = [*doc.get(MIGRATED, []), *words]
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4, 4: _to_5, 5: _to_6}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

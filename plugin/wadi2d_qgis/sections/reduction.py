@@ -3,8 +3,9 @@
 """4b. Area reduction (W101): one setting for the lumped part, one for the 2D part (``storm.area_reduction``, W95).
 
 Each part is a coefficient, a fixed area read on a curve of Data tables, or a curve: the lumped part read at the area
-of the element where each subbasin's water enters the grid (W98), the 2D part read by the depth-area study at each of
-its storm areas. What a part writes into the job is ``reduction_rows``'s; this side holds the choices and shows the
+of the element where each subbasin's water enters the grid (W98), each lumped subbasin read at its dam's (last
+point's) drainage area where the 2D model routes it from its own outlet (W105), the 2D part read by the depth-area
+study at each of its storm areas. What a part writes into the job is ``reduction_rows``'s; this side holds the choices and shows the
 curve with the factor it gives.
 """
 
