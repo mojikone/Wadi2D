@@ -158,6 +158,25 @@ def test_a_deep_pool_is_drawn_flat() -> None:
         assert np.abs(depth[wet] - expected[wet]).max() < 1e-3, surface
 
 
+def test_a_surface_spanning_a_hollow_it_holds_no_water_for_is_lowered() -> None:
+    """Steep ground with a millimetre of water: the surface through the corners spans a gully and draws a metre in
+    it, so the cell is lowered to hold its own; a thin sheet drawing more than its own, but nowhere deeper than its own
+    level, is left alone (cut, the hillsides stepped at every such cell)."""
+    rule = Pixels()
+    ground = np.zeros((2, K * K), np.float32)
+    cells = CellPixels(np.array([0, 0]), np.array([0, 1]), K, PIXEL, 0.0, ground)
+    maxima = PixelMaxima(np, cells, np.zeros((1, 2), np.float32), *(np.zeros((1, 2), np.float32),) * 2, np.ones((1, 2), bool), rule)
+    over = np.full((2, K * K), -1.0, np.float32)
+    over[0, :20] = 2.0  # a gully the corners span: 2 m drawn in a fifth of the cell
+    over[1] = 0.08  # a sheet: 8 cm drawn where the cell holds 4 cm, but its own level stands 0.4 m over its lowest point
+    mean = np.array([0.001, 0.04], np.float32)
+    level_over_lowest = np.array([0.25, 0.4], np.float32)
+    sheet = over[1].copy()
+    maxima._hold_water(over, np.array([True, True]), mean, level_over_lowest)
+    assert np.maximum(over[0], 0.0).mean() == pytest.approx(0.001, abs=1e-4)
+    np.testing.assert_array_equal(over[1], sheet)
+
+
 @pytest.mark.gpu
 @pytest.mark.parametrize("surface", ["continuous", "corners"])
 def test_the_card_draws_what_the_host_draws(surface: str) -> None:

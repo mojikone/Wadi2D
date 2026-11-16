@@ -56,6 +56,9 @@ CORNER_REACH = 2
 """Cells a corner's links read past the cell itself."""
 CONTINUOUS, CORNERS, CELL_FILL = "continuous", "corners", "cell_fill"
 """The values of ``outputs.pixels.surface``."""
+VOLUME_EPS = 1e-4
+"""Metres of mean depth a cell may draw over its own and its slack before it is lowered: float32's rounding of a
+cell that holds next to nothing."""
 
 
 def halo(rule: Pixels) -> int:
@@ -302,6 +305,7 @@ class PixelMaxima:
             store = [xp.asarray(a) for a in batch.maxima]
             pixel_depth = at_pixels(xp, corners, cells, self.basis_t)
             pixel_depth -= _rows(xp, batch, on)
+            self._hold_water(pixel_depth, wet[cells], h[cells], d[cells])
             xp.maximum(pixel_depth, 0.0, out=pixel_depth)
             pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
             new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed] if moment else [pixel_depth, pixel_speed]
@@ -316,6 +320,25 @@ class PixelMaxima:
             self.cell_dv = xp.maximum(self.cell_dv, d * s)
         if xp is not np and self.tidy:  # the wet set changes with every map: left alone, the pool fills the card
             xp.get_default_memory_pool().free_all_blocks()  # and Windows pages it
+
+    def _hold_water(self, over_ground, wet, mean_depth, depth) -> None:
+        """A wet cell whose surface spans a hollow it holds no water for is lowered, in place, until it holds its own
+        (W100): it draws more water than it holds, past ``volume_slack`` of it or ``volume_slack_m`` of mean depth,
+        and somewhere deeper than its own level stands over its lowest ground (``depth``), by ``volume_slack_m``.
+        ``over_ground`` is (cells, k * k) the surface over the ground, not yet cut at zero.
+
+        On steep ground with little water a surface through the corners spans gullies: on Block 2's mountains cells
+        holding a millimetre drew a metre in their gullies, nine times the water over a kilometre square. A thin sheet
+        whose water the corners move between cells draws more or less than its own but never deeper than its own
+        level; capping those too cut the hillsides into blocks again (the share of wet-dry changes at cell edges 0.16
+        against 0.03 inside). Where it holds, the surface is untouched and has no step."""
+        xp, rule = self.xp, self.rule
+        drawn = xp.maximum(over_ground, 0.0).mean(axis=1)
+        slack = xp.maximum(rule.volume_slack * mean_depth, rule.volume_slack_m)
+        hollow = over_ground.max(axis=1) > depth + rule.volume_slack_m
+        over = xp.nonzero(wet & hollow & (drawn > mean_depth + slack + VOLUME_EPS))[0]
+        if over.size:
+            over_ground[over] = fill_cells(xp, over_ground[over], xp.zeros_like(over_ground[over]), mean_depth[over])
 
     def _add_filled(self, d, h, s, moment: bool, level, given) -> None:
         """One map by W9's rule: each cell filled to its own water, its fill offset eased across joined edges."""

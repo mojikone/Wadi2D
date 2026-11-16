@@ -794,6 +794,21 @@ class Pixels(_Part):
         description="Under surface 'cell_fill' only: a cell whose mean depth never reaches this is left out, m; the "
         "other surfaces map every cell that was ever wet",
     )
+    volume_slack: float = Field(
+        0.25,
+        ge=0.0,
+        le=100.0,
+        description="On the continuous surfaces: a wet cell may draw this share more water than it holds, or "
+        "volume_slack_m of mean depth if more; past it, its surface is lowered until it holds its own, a step at its "
+        "edges (steep ground with little water, where a surface through the corners spans a gully)",
+    )
+    volume_slack_m: float = Field(
+        0.03,
+        ge=0.0,
+        le=10.0,
+        description="On the continuous surfaces: the mean depth, m, a wet cell may draw over its own whatever it "
+        "holds, so a thin sheet varying from cell to cell is not cut into steps",
+    )
     depth_floor: float = Field(
         0.05, ge=0.0, le=10.0, description="Below this a pixel is dry and takes no class, m"
     )

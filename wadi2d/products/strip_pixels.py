@@ -427,6 +427,27 @@ class BlockStripMaxima(StripMaxima):
         met[cell[passes]] = True
         return out[0], out[1], met
 
+    def _hold_water(self, over_ground, wet, h, d) -> None:
+        """The squares' :meth:`wadi2d.products.pixels.PixelMaxima._hold_water` on polygons: a wet cell whose surface
+        spans a hollow it holds no water for is lowered, in place, until it holds its own (W100)."""
+        from wadi2d.products.pixels import VOLUME_EPS
+        from wadi2d.strips.pixels import _scatter_min
+
+        xp, rule = self.xp, self.rule
+        pixels = xp.maximum(self.npix_cell, 1.0)
+        drawn = self.kernels.cell_sums(self.ptr, xp.maximum(over_ground, 0.0)) / pixels
+        lowest = xp.full(self.n, xp.inf, xp.float32)
+        _scatter_min(xp, lowest, self.cell, -over_ground)  # the deepest each cell draws, negated
+        hollow = -lowest > d + rule.volume_slack_m
+        over = wet & hollow & (drawn > h + xp.maximum(rule.volume_slack * h, rule.volume_slack_m) + VOLUME_EPS)
+        if not bool(over.any()):
+            return
+        relief = -over_ground  # the ground over the surface
+        offset = self._fill_offset(relief, h * self.npix_cell)
+        lowered = xp.maximum(offset[self.cell] - relief, 0.0)
+        mine = over[self.cell]
+        over_ground[mine] = lowered[mine]
+
     def _node_sills(self, label, joined):
         """Per incidence, the lowest ground of the faces round its node that water does not pass and that border the
         cells sharing the node with it; infinite where there are none (W100, the squares' :func:`corner_sills`)."""
@@ -509,6 +530,7 @@ class BlockStripMaxima(StripMaxima):
             drawn |= met
         pixel_depth = self._at_pixels(total)
         pixel_depth -= self.ground
+        self._hold_water(pixel_depth, wet, h, d)
         xp.maximum(pixel_depth, 0.0, out=pixel_depth)
         pixel_depth *= drawn[self.cell]
         pixel_speed = self._at_pixels(node_speed)
