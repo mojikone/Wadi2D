@@ -1,0 +1,70 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.2 === 1 the model page: a card a section, each with its status in words
+    5.4 PASS the light palette on a light theme 
+    5.4 PASS every section sits in a card 
+    5.4 PASS every section answers with a state and words {}
+    5.4 PASS every card's pill says its state in a word ['Ready', 'Optional', 'Optional', 'Missing', 'Optional', 'Optional', 'Optional', 'Optional', 'Ready', 'Missing', 'Optional']
+    5.4 PASS a closed card shows its words under the title 
+    5.4 PASS an open card shows its words as its first row 
+    5.4 PASS the sections are the boxes they were: title and arrow their own 
+    5.4 statuses: {'terrain': ('ready', 'DEM terrain · cell 20 m · current map extent · Manning 0.035'), 'mesh': ('optional', 'One cell size everywhere, the one of Terrain'), 'hydrology': ('optional', 'No losses: all the rain on the grid runs off'), 'storm': ('missing', 'Set the rain and how many hours it lasts.'), 'structures': ('optional', 'None: the terrain as the DEM has it'), 'boundaries': ('optional', 'None: every edge is a wall, so water cannot leave the domain'), 'points': ('optional', 'None: no hydrograph or level is recorded during the run'), 'gauges': ('optional', 'None: the run is compared with no record'), 'simulation': ('ready', '1 h · automatic step, Courant 0.45 · maps every 15 min'), 'run': ('missing', 'Choose an output folder.'), 'study': ('optional', 'Design flows by drainage area: one run per storm area, started from here')}
+    5.4 PASS Terrain is ready with the DEM it found Status(state='ready', words='DEM terrain · cell 20 m · current map extent · Manning 0.035')
+    5.4 PASS Run misses its output folder, in words Status(state='missing', words='Choose an output folder.')
+    5.4 PASS Storm misses its rain, in words Status(state='missing', words='Set the rain and how many hours it lasts.')
+    5.4 PASS nothing optional is called missing {'terrain': 'ready', 'mesh': 'optional', 'hydrology': 'optional', 'storm': 'missing', 'structures': 'optional', 'boundaries': 'optional', 'points': 'optional', 'gauges': 'optional', 'simulation': 'ready', 'run': 'missing', 'study': 'optional'}
+    5.4 === 2 the step strip and the footer
+    5.4 PASS one step a section, in the dock's order ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.4 PASS a step carries its name and a mark, not colour alone ['✓ Terrain', '– Mesh', '– Hydrology', '! Storm', '– Structures', '– Boundaries', '– Points', '– Gauges', '✓ Simulation', '! Run', '– Study']
+    5.4 PASS a step says its status in words to a pointer and a screen reader Run: Missing. Choose an output folder.
+    5.4 PASS the footer counts what is missing, and names it 2 sections need you before running: Storm, Run
+    5.4 PASS Check and run is there, in the footer 
+    5.6 === 3 the status follows the widgets
+    5.6 PASS the folder chosen: Run is ready Status(state='ready', words='Into status · cell maps only')
+    5.6 PASS the footer says so No section is missing anything
+    5.6 PASS Terrain says the cell and the domain DEM terrain · cell 30 m · domain domain bidah · Manning 0.035
+    5.6 PASS Storm says the rain Status(state='ready', words='Constant rain 40 mm/h for 0.5 h')
+    5.6 PASS Boundaries says its lines Status(state='ready', words='2 lines · 2 normal')
+    5.6 PASS a flow line with no hydrograph: missing, and which line Status(state='missing', words='Boundary line 2: a flow line needs its hydrograph file in the table.')
+    5.6 PASS its card's border and pill follow 
+    5.6 PASS a design storm with no pattern: missing, in the job check's own words Status(state='missing', words='Fill the design pattern: percent of the duration against percent of the depth.')
+    5.6 PASS with its pattern: ready, and what it is Status(state='ready', words='Design storm 120 mm in 6 h · no area reduction')
+    5.7 PASS crest lines with no elevation: missing Status(state='missing', words='Crest lines need an elevation: choose a field, or use a layer with Z values.')
+    5.7 PASS with their field: ready Status(state='ready', words='Crest lines')
+    5.7 PASS a wall needs no elevation: ready Status(state='ready', words='Walls')
+    5.7 PASS the mesh and the corridors together: missing Status(state='missing', words='Corridors run on the uniform grid: untick the mesh refinement or the corridors.')
+    5.7 PASS a gauge with no record: missing, by name Status(state='missing', words='Gauge G1 needs its record file.')
+    5.7 PASS back to optional with no gauge 
+    5.7 === 4 the type has its say in the status
+    5.7 PASS Lumped with no network: Hydrology is missing, in words Status(state='missing', words='A Lumped model needs its lumped catchments: choose an HMS project or generate the basin, in Hydrology.')
+    5.7 PASS the strip shows the type's sections only ['terrain', 'hydrology', 'storm', 'structures', 'points', 'gauges', 'simulation', 'run']
+    5.7 PASS the footer counts only what shows 1 section needs you before running: Hydrology
+    5.8 PASS 2D again: nothing missing No section is missing anything
+    5.8 === 5 a step opens its section
+    5.8 PASS the step's section is open, the others stay closed 
+    5.8 PASS the step is marked as the one in hand 
+    5.8 PASS the open card shows its words under its title 
+    6.1 === 6 Check and run: refuses in words, then runs
+    6.1 PASS no rain: Storm is missing Status(state='missing', words='Set the rain and how many hours it lasts.')
+    6.1 PASS Check and run opens Run and says what stops it Set the rain, or choose an HMS project.
+    6.2 PASS while it runs the footer's button waits, as Run's does 
+    6.2 dock says: Starting...
+    8.2 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   28.4 dock says: water stood 3.0 m deep against the domain edge at (432341, 2727215), in 900 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment
+   28.6 PASS the run started from the footer finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
+   28.6 PASS and the button is back 
+   28.6 PASS the job is the 2D model's {'duration_s': 2700.0, 'backend': 'cpu', 'model_type': '2d'}
+   28.6 === 7 a section that cannot take the engine's settings is named, and the others go on
+   28.6 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   28.9 engine line: Engine ready. These sections could not take the engine's settings, so their fields may hold old defaults and bounds: 3. Hydrology (FileNotFoundError: the basin file is gone). The other sections are in order; the Wadi2D log panel has the detail.
+   28.9 PASS the section is named with the error's own words Engine ready. These sections could not take the engine's settings, so their fields may hold old defaults and bounds: 3. Hydrology (FileNotFoundError: the basin file is gone). The other sections are in order; the Wadi2D log panel has the detail.
+   28.9 PASS the model was kept all the same 35.0
+   28.9 PASS the dock is ready to run 
+   29.2 PASS with the section whole again the line is plain Engine ready.
+   29.2 === 8 a section's saved state is its own widgets, whatever its attributes lead to
+   29.2 PASS a helper that points back at the dock adds nothing to the Mesh section's state []
+   29.2 PASS no widget is saved by two sections {'terrain': 6, 'mesh': 22, 'hydrology': 26, 'storm': 24, 'structures': 77, 'boundaries': 3, 'points': 3, 'gauges': 0, 'simulation': 11, 'run': 6, 'study': 9}
+   29.2 PASS the model is still kept, and a run can still save its copy set()
+   29.2 SUMMARY 53 passed, 0 failed 
+   29.2 DONE

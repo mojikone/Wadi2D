@@ -1,0 +1,73 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.2 === 1 a section of its own, before Run
+    5.2 PASS Simulation sits before Run ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.2 PASS the sections before it keep their places and names 
+    5.2 PASS it has its card and its step 
+    5.3 PASS one Run starts at field in the whole dock, in Simulation 1
+    5.3 PASS the gridded rain, the rain gauges and the observed gauges read that one field 
+    5.3 PASS Run no longer shows the simulated time, the maps or the engine 
+    5.3 PASS Simulation shows them 
+    5.3 PASS older checks still reach them from Run 
+    5.3 === 2 at the defaults the job holds nothing new
+    5.3 PASS no numerics, no lumped step, no series interval, no start (None, {'reach_routing': 'hms'}, {'map_every_s': 900.0, 'pixels': {'enabled': False}})
+    5.3 PASS the simulated time, the maps and the engine as before {'duration_s': 2700.0, 'backend': 'cpu'}
+    5.3 PASS the defaults shown are the engine's (0.45, 5.0, 0.001)
+    5.3 PASS its status says what will run Status(state='ready', words='0.75 h · automatic step, Courant 0.45 · maps every 15 min · lumped step 5 min')
+    5.3 === 3 the one start reaches whoever reads it
+    5.4 PASS a design rain: the observed record is read from the run's start [{'name': 'gauge', 'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_simulation\\data\\w99_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah 03', 
+    5.5 PASS a gridded rain starts there {'kind': 'gridded', 'rain_file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_simulation\\data\\w99_grids', 'rain_units': 'auto', 'rain_stamp': 'end', 'rain_interval_
+    5.5 PASS and carries it for the observed record, as before [{'name': 'gauge', 'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w99b_runs_new\\dock_simulation\\data\\w99_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah 03'}]
+    5.5 PASS rain gauges start there, and the observed record with them 2021-10-04 00:00
+    5.6 PASS a start that is no date stops the run in words ["The run's start is not a date and time: write it as 2021-10-04 00:00, or leave it empty."]
+    5.6 PASS and the section is Missing 
+    5.6 === 4 the 2D step: automatic, then fixed
+    5.6 PASS automatic by default, with its three numbers in sight 
+    5.6 PASS a Courant number moved off the default reaches the job, alone {'cfl': 0.3}
+    5.7 PASS so do the largest and the smallest step {'cfl': 0.3, 'dt_max': 2.0, 'dt_min': 0.01}
+    5.8 PASS a smallest step over the largest stops the run in words ['The smallest 2D step must not exceed the largest.']
+    5.8 PASS and the section says so 
+    5.8 PASS back at the defaults the job has no numerics again 
+    5.8 PASS Fixed shows its one number and hides the three 
+    5.8 PASS its bounds are the engine's own (0.001, 1.0)
+    5.8 PASS and are said in words, with what the engine does when the step is too long The step is held by setting the engine's largest and smallest step to it. The engine takes a smallest step of at most 1 s, so a fixed step lies between 0.001 and 1 s. Where the flow needs a shorter step than the one given, the engine does not shorten it: it st
+    5.8 PASS a step over the engine's bound cannot be typed 1.0
+    5.9 PASS a fixed step is both of the engine's bounds in the job {'dt_max': 0.25, 'dt_min': 0.25}
+    5.9 PASS the status says fixed 0.75 h · fixed step 0.25 s · maps every 15 min · lumped step 5 min
+    6.1 === 5 a real run at the fixed step
+    6.2 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+    8.2 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   23.8 done: {'ev': 'done', 'status': 'finished', 'code': 0, 'partial': False, 't': 360.0, 'duration_s': 360.0, 'steps': 1440, 'loop_s': 14.88, 'tables_s': 0.83, 'wet_area_km2': 0.0, 'dt_min': 0.25, 'balance': {'rain_m3': 114379.20127162943, 'inflow_m3': 0.0, 'outflow_m3': 429.8278806190289, 'storage_start_m3': 0.0, 'storage_end_m3': 113949.37347107536, 'error_m3': -8.006497228052467e-05, 'relative_error': -6.999959030172382e-10}, 'tile_steps': None, 'products': 'none'}
+   23.8 PASS the run at the fixed step finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or
+   23.8 PASS its job holds the fixed step {'dt_max': 0.25, 'dt_min': 0.25}
+   23.8 PASS it took one step every 0.25 s: 1,440 in 0.1 h 1440
+   23.8 === 6 a fixed step longer than the flow allows: the engine's own refusal
+   23.8 dock says: No boundary set: every edge is a wall, so water cannot leave the domain. The rain outlasts the simulated time, so the run ends while it is still raining.
+   37.2 Run says: The run went numerically unstable. time step 7.50e-01 s below the minimum at t = 0.750 s. At x 435,293.5, y 2,725,747.9 (marked on the map).
+   37.2 PASS the engine stopped the run {'ev': 'done', 'status': 'numerical failure', 'code': 5, 'partial': True, 't': 0.75, 'duration_s': 360.0, 'steps': 1, 'loop_s': 11.69, 'tables_s': 0.3, 'wet_area_km2': 0.0, 'dt_min': inf, 'balance': {'rain_m3': 0.7500000083382474, 'inflow_m3': 0.0, 'outflow_m3
+   37.2 PASS and Run shows its words: the time step, below the floor The run went numerically unstable. time step 7.50e-01 s below the minimum at t = 0.750 s. At x 435,293.5, y 2,725,747.9 (marked on the map).
+   37.2 PASS automatic again: no numerics 
+   37.2 === 7 the lumped step, the series and the engine
+   37.2 PASS a lumped step and a series interval moved off the defaults reach the job ({'reach_routing': 'hms', 'time_step_min': 2.0}, {'map_every_s': 900.0, 'series_every_s': 30.0, 'pixels': {'enabled': False}})
+   37.3 PASS the map interval as before 
+   37.3 PASS the lumped step shows with no type 
+   37.3 PASS 2D: no lumped step to set, and none in the job {'reach_routing': 'hms'}
+   37.3 PASS 2D: its status leaves the lumped step out 0.1 h · automatic step, Courant 0.45 · maps every 5 min
+   37.3 PASS a hybrid: the lumped step shows 
+   37.3 PASS Lumped: no 2D step and no maps to set 
+   37.3 PASS Lumped: its status is the lumped model's Status(state='ready', words='0.1 h · lumped step 2 min')
+   37.4 PASS one engine choice, and it is the one the pixel slider takes 
+   37.4 === 8 saved with the model, under Simulation
+   37.4 PASS the document is of the new format 
+   37.4 PASS Simulation holds the start, the time, the steps, the intervals and the engine {'start': '2021-10-04 00:00', 'duration': 0.1, 'step_mode': {'data': 'fixed', 'text': 'Fixed (advanced)'}, 'cfl': 0.45, 'dt_max': 5.0, 'dt_min': 0.001, 'fixed_step': 0.5, 'lumped_step': 2.0, 'maps': {'data': 300.0, 'text': 'Every 5 minutes, for an animation'},
+   37.4 PASS no other section saves them ['folder', 'pixels', 'smooth', 'limiter', 'background', 'map_title']
+   37.4 PASS a new model: the defaults again 
+   37.5 PASS the model comes back, and its job with it []
+   37.5 === 9 while a run is going the maps and the engine are held, as they were in Run
+   37.5 PASS held while it runs 
+   37.5 dock says: Starting...
+   39.0 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   52.6 PASS free again when it ends 
+   52.6 SUMMARY 54 passed, 0 failed 
+   52.6 DONE

@@ -1,0 +1,42 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w99b_base\plugin\wadi2d_qgis\__init__.py
+    4.9 PASS engine found Engine ready.
+    5.1 === 1 the table lists the dam once, empty
+    5.1 PASS no crest layer, no rows 0
+    5.1 PASS three pieces, one dam 1
+    5.1 PASS named by the layer Bidah dam
+    5.1 PASS starts empty empty
+    5.1 PASS no level for an empty dam 
+    5.2 === 2 empty: no dam_levels in the job, no water at the start
+    5.3 dock says: Starting...
+    7.8 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    8.5 PASS empty finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+    8.5 PASS empty writes nothing None
+    8.5 PASS no water at the start 0.0
+    8.6 === 3 full to the spillway: the pool behind the dam, as W32 measured it
+    8.6 dock says: Starting...
+   10.1 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   10.6 dock says: dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3
+   10.9 PASS spillway finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   10.9 PASS the job names the start [{'name': 'Bidah dam', 'start': 'spillway'}]
+   10.9 start storage 3,832,907 m3; notes ['dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3']
+   10.9 PASS the run says what it filled ['dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3']
+   10.9 PASS within 3 % of W32's grid pool with crest lines 1.0248
+   10.9 PASS no less than W32's polygon, which stopped 3 km up 3,832,907
+   10.9 === 4 a level: less water, and the level in the job
+   10.9 PASS a level box once asked 
+   10.9 dock says: Starting...
+   12.4 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   12.9 dock says: dam Bidah dam: the pool on the grid starts at 98 m, 1469 cells, 2,599,163 m3
+   13.2 PASS level finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   13.2 PASS the job holds the level [{'name': 'Bidah dam', 'start': 98.0}]
+   13.2 PASS a lower level holds less (2599162.9943313194, 3832906.8999122363)
+   13.2 === 5 initial water, a pond drawn as a polygon
+   13.2 PASS a pond without its level field is stopped ['Every initial water polygon needs a level: choose the field that holds it.']
+   13.3 dock says: Starting...
+   14.8 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   15.6 PASS pond finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   15.6 PASS the pond reaches the job [{'coordinates': [[435242.99487, 2725400.19673], [435642.99487, 2725400.19673], [435642.99487, 2725800.19673], [435242.99487, 2725800.19673], [435242.99487, 2725400.19673]], 'level': 159.83456420898438}]
+   15.6 PASS the pond holds water at the start 555590.2648164425
+   15.6 SUMMARY 23 passed, 0 failed 
+   15.6 DONE
