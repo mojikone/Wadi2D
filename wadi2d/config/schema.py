@@ -13,6 +13,7 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from wadi2d.config.gauges import GaugeRain, Observed
+from wadi2d.config.land import CurveOverride, Roughness
 
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
@@ -390,6 +391,21 @@ class Terrain(_Part):
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
     manning_raster: str | None = None
     cn_raster: str | None = None
+    roughness: Roughness | None = Field(
+        None,
+        description="Manning n in one of four forms: one value, square and aligned cells apart, a grid, or land-use "
+        "classes with a table (W96). None keeps manning and manning_raster as they were; with it, manning_raster is "
+        "refused and manning is only what a raster's holes take when roughness.n is not given",
+    )
+
+    @model_validator(mode="after")
+    def _one_roughness(self) -> Terrain:
+        if self.roughness is not None and self.manning_raster is not None:
+            raise ValueError(
+                "terrain.roughness and terrain.manning_raster both give the roughness: give the raster as roughness "
+                "form 'grid'"
+            )
+        return self
 
 
 class Tables(_Part):
@@ -1215,6 +1231,11 @@ class Hydrology(_Part):
     curve_number: float | None = Field(
         None, gt=0.0, le=100.0, description="CN of 2D cells without a better source; None means no losses"
     )
+    cn_override: CurveOverride | None = Field(
+        None,
+        description="CN in place of the CN grid's, the job's and the basin file's, on rain-on-grid cells and lumped "
+        "subbasins alike: by land-use class, by CN value range, or by subbasin (W96). None leaves every CN as it was",
+    )
     subbasins: list[Subbasin] = []
     inflows: list[Inflow] = []
     handbacks: list[Handback] = []
@@ -1709,6 +1730,16 @@ class RunConfig(_Part):
             raise ValueError(
                 "hydrology.arf_by_element reads the area-reduction table at each element's own area: that needs "
                 "storm.arf, and no storm.arf_factor"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _split_roughness(self) -> RunConfig:
+        r = self.terrain.roughness
+        if r is not None and r.form == "split" and not self.strips.enabled:
+            raise ValueError(
+                "terrain.roughness form 'split' gives the aligned cells their own n, and this job has none "
+                "(strips.enabled is off): use form 'uniform'"
             )
         return self
 

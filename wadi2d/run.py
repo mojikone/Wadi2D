@@ -92,6 +92,7 @@ from wadi2d.io.checkpoint import checkpoint_job, load_checkpoint, save_checkpoin
 from wadi2d.io.identity import file_identity
 from wadi2d.io.progress import Progress
 from wadi2d.io.results import Results, safe_name, write_series_csv
+from wadi2d.land import land_paths, roughness_identity, with_curve_overrides, with_land_paths
 from wadi2d.products.cell_grid import write_cell_grid
 from wadi2d.products.runner import PRODUCTS_NONE, make_after_run
 from wadi2d.solver.model import Model
@@ -203,7 +204,7 @@ def resolve_paths(cfg: RunConfig, base: Path) -> RunConfig:
     if any(_table(o) for o in cfg.terrain.objects):
         updates.setdefault("terrain", {})["objects"] = [_absolute_table(o, base) for o in cfg.terrain.objects]
     cfg = cfg.model_copy(update={p: getattr(cfg, p).model_copy(update=u) for p, u in updates.items()})
-    return resolve_station_paths(cfg, base)
+    return with_land_paths(resolve_station_paths(cfg, base), base)
 
 
 def _table(obj: TerrainObject) -> str | None:
@@ -234,6 +235,9 @@ def check_inputs(cfg: RunConfig) -> None:
             raise InputMissing(f"section table of {obj.name or obj.kind} not found: {table}")
     for missing in missing_station_files(cfg):
         raise InputMissing(missing)
+    for key, path in land_paths(cfg).items():
+        if not Path(path).exists():
+            raise InputMissing(f"{key} not found: {path}")
 
 
 def _domain_polygon(path: str | None, crs: str) -> shapely.Geometry | None:
@@ -330,6 +334,7 @@ def grid_key(
             "tables": cfg.tables.model_dump(),
             "manning": t.manning,
             "extras": extras,
+            **({"roughness": roughness_identity(cfg, lambda p: file_identity(p, limit))} if t.roughness else {}),
             **({"strips": cfg.strips.model_dump()} if cfg.strips.enabled else {}),
             **({"strip_cells": strip_cells} if strip_cells is not None else {}),
             **({"left_out": cells_key(left_out)} if left_out is not None else {}),
@@ -373,6 +378,10 @@ def job_hash(cfg: RunConfig) -> str:
             data["terrain"].pop(name)
     for obj in data["terrain"]["objects"]:
         obj.pop("delineate", None)  # the same: it shapes basin.json only (W73)
+    if cfg.terrain.roughness is None:  # a job with neither keeps the hash it had before them (W96)
+        data["terrain"].pop("roughness")
+    if cfg.hydrology.cn_override is None:
+        data["hydrology"].pop("cn_override")
     if not cfg.hydrology.handbacks:
         data["hydrology"].pop("handbacks")
     if not cfg.transmission.enabled:
@@ -427,6 +436,7 @@ def job_hash(cfg: RunConfig) -> str:
         if value is not None and (part, name) not in OPTIONAL_INPUT:
             files[f"{part}.{name}"] = file_identity(value, limit)
     files.update(gauge_identity(cfg, limit))
+    files.update({key: file_identity(path, limit) for key, path in land_paths(cfg).items()})
     return cache_key({"job": data, "files": files})
 
 
@@ -539,7 +549,7 @@ def prepare_grid(
                 jj, ii = np.nonzero(tables.grid.mask)
                 sj, si = strip_squares(strip.geometry, tables.grid)  # the squares under the strip left the mask
                 cells = (np.concatenate((jj, sj)), np.concatenate((ii, si)))
-                n = manning_grid(cfg, tables.grid, crs, cells)
+                n = manning_grid(cfg, tables.grid, crs, cells, aligned=True)  # roughness 'split' has its own (W96)
                 held, changed = strip_base(cfg, base, strip)  # only the pieces the pit fills reach (W91)
                 tables.strip = strip_tables(cfg, tables, bed, strip, n, held, changed, keep_raw=fills_follow(cfg))
                 tables.strip_raw = tables.strip.mesh.__dict__.pop("raw", None)  # kept off the cached strip
@@ -607,6 +617,8 @@ def strip_key(cfg: RunConfig, bed: RasterBed, window: GridWindow, mask: np.ndarr
     # the pit settings shape no strip: the check changes nothing, and a fill reaches the strip as its objects (W85)
     for name in ("pit_check", "fill_pits", "pit_max_cells", "pit_min_depth"):
         terrain.pop(name, None)
+    if cfg.terrain.roughness is None:  # a job without it keeps its strip key; with it, the grid key carries it (W96)
+        terrain.pop("roughness", None)
     grid = cfg.grid.model_dump(mode="json")
     grid.pop("cache_dir", None)  # where the cache lies is not what is in it
     for name in ("exclude_lumped", "exclude_subbasins"):  # what they take out is in the mask below (W88)
@@ -823,6 +835,7 @@ def _lumped_basin(cfg: RunConfig, crs: str):
         gen = generated_basin(cfg, crs)
         basin = engine_basin(gen.model, gen.modes, h.reach_routing)
         with_dam_starts(basin, cfg.dam_levels)
+        _curve_overrides(basin, cfg, crs)
         return basin, None, gen.cut
     from wadi2d.hms import load_basin
     from wadi2d.hydrology.from_hms import basin_from_hms
@@ -832,7 +845,16 @@ def _lumped_basin(cfg: RunConfig, crs: str):
         hms_basin, _project_tables(h, hms_basin), h.reach_routing, run_calendar(cfg), {m.reach: m for m in h.muskingum}
     )
     with_dam_starts(basin, cfg.dam_levels)
+    _curve_overrides(basin, cfg, crs)
     return basin, hms_basin, ()
+
+
+def _curve_overrides(basin, cfg: RunConfig, crs: str) -> None:
+    """``hydrology.cn_override`` on the lumped subbasins, as on the cells (W96)."""
+    try:
+        with_curve_overrides(basin, cfg, crs)
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
 
 
 def run_calendar(cfg: RunConfig) -> datetime | None:
