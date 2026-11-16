@@ -30,7 +30,7 @@ from wadi2d.config.schema import RunConfig
 from wadi2d.products.ground import bed_stride
 from wadi2d.products.strip_kernels import StripKernels, check_width
 from wadi2d.products.surface import FILL_STEPS, FILL_TOLERANCE
-from wadi2d.strips.pixels import MAX_NODES, StripMaxima, _wachspress
+from wadi2d.strips.pixels import MAX_NODES, StripMaxima
 from wadi2d.strips.tables import PIECE_PAD_PIXELS, BedPixels, _cell_pieces, _owners_of, _ring_ranges
 from wadi2d.tables.parallel import ThreadBeds, run_all, table_workers
 
@@ -39,10 +39,6 @@ RINGS_MORE = 1
 STRIP_HOST_BYTES = 72
 """Host bytes a strip pixel takes besides its weights while its block is gathered and written: its row, column,
 cell and ground twice over as the pieces are joined and put in order, then its three maxima and its class."""
-WEIGHT_RUN = 1 << 18
-"""Pixels whose node weights one thread takes at once (W93): every pixel's weights are its own, however cut, and
-a run's temporaries stay some hundreds of MB."""
-WEIGHT_THREADS = 8
 STRIP_FIXED_BYTES = 48
 """Device bytes a strip pixel takes while its block is worked, besides its weights: ground, cell, three maxima and
 a map's work arrays."""
@@ -271,20 +267,13 @@ class StripReader:
 
     def _weights(self, r: np.ndarray, c: np.ndarray, cell: np.ndarray) -> np.ndarray:
         """The Wachspress weights of each pixel's cell's nodes at the pixel, zero in a padded slot."""
+        from wadi2d.products.strip_weights import pixel_weights
+
         geo, pix = self.geo, self.pix
         weights = np.zeros((r.size, self.width), np.float32)
-
-        def one(lo: int) -> None:  # a run of pixels; the runs on the table builder's threads (W93), each its own rows
-            hi = min(lo + WEIGHT_RUN, r.size)
-            rb, cb, cellb = r[lo:hi], c[lo:hi], cell[lo:hi]
-            px = pix.x0 + (cb + 0.5) * pix.pixel
-            py = pix.y0 - (rb + 0.5) * pix.pixel
-            for m in np.unique(self.length[cellb]):
-                on = np.flatnonzero(self.length[cellb] == m)
-                nodes = self.cell_node[cellb[on], :m]
-                weights[lo + on, :m] = _wachspress(px[on], py[on], geo.x[nodes], geo.y[nodes])
-
-        run_all(range(0, r.size, WEIGHT_RUN), one, min(WEIGHT_THREADS, table_workers(None)))
+        # NumPy's steps of wadi2d.strips.pixels._wachspress in one compiled pass a pixel, every core (W93)
+        x, y = np.asarray(geo.x, np.float64), np.asarray(geo.y, np.float64)
+        pixel_weights(r, c, cell, self.cell_node, self.length, float(pix.x0), float(pix.y0), float(pix.pixel), x, y, weights)
         return weights
 
     def sets(self, own: np.ndarray, rule: PixelRule) -> tuple[np.ndarray, np.ndarray]:
