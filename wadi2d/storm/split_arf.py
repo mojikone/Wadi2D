@@ -11,7 +11,9 @@ before. With it, each part takes one of three forms:
 - ``curve``: the curve read at an area of each element's own. On the lumped part that is each element's drainage area
   in a lumped-only run (HMS's depth-area analysis, W88) and, in a run with a 2D part, each lumped subbasin's
   ``storm_area_km2``, else the total upstream area of the element where its water enters the grid, found from the
-  network and never refused (W98, his rule of 2026-11-15; :mod:`wadi2d.engine.entry_area`). On the 2D part it is each
+  network and never refused (W98, his rule of 2026-11-15; :mod:`wadi2d.engine.entry_area`); a subbasin entering at its
+  own outlet, the area of the first last point at or below it, its dam's (W105, his rule of 2026-11-16;
+  :mod:`wadi2d.engine.last_points`). On the 2D part it is each
   run's storm area in a depth-area study; a single run refuses it, since the cells have no area of their own to read
   it at.
 """
@@ -121,6 +123,7 @@ def part_words(record: dict) -> str:
     if record["part"] == PART_LUMPED:
         return (
             f"rain on the {where}: the curve{named} is read at each element's own drainage area in a lumped-only run, "
-            "and at the drainage area of the element where a subbasin's water enters the grid in a run with a 2D part"
+            "and at the drainage area of the element where a subbasin's water enters the grid in a run with a 2D part; "
+            "one entering at its own outlet, at its dam's (the first last point below it)"
         )
     return f"rain on the {where}: the curve{named} is read at each element's own area"

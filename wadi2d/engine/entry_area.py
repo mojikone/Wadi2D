@@ -3,8 +3,11 @@
 With ``storm.area_reduction.lumped`` a curve, in a run with a 2D part, each lumped subbasin reads the curve at the total
 upstream area of the element where its water enters the 2D grid: the inflow's element (a dam, a junction) or the end of
 a hand-back's route it lies above, on links the grid does not carry; a subbasin that enters at its own outlet reads its
-own area. It is found from the network, HMS import and generated basin alike, and never refused. A subbasin with
-``storm_area_km2`` of its own keeps it; one whose water reaches no entry (a table inflow of its name) reads its own area.
+own area, unless a last point lies at or below it (a dam, or a junction ``hydrology.last_points`` names): then that
+last point's area, one factor per dam, because the grid routes it from its outlet and the 2D model cannot run once per
+point (W105, his rule of 2026-11-16; :mod:`wadi2d.engine.last_points`). It is found from the network, HMS import and
+generated basin alike, and never refused. A subbasin with ``storm_area_km2`` of its own keeps it; one whose water
+reaches no entry (a table inflow of its name) reads its own area.
 
 The grid takes the hydrographs of that run. An element above its entry (a dam whose outflow passes another design
 point before the grid) is not read at its own area there, so its series of record comes from a lumped-only rerun of the
@@ -12,8 +15,8 @@ network above it at its own drainage area, HMS's depth-area practice, as a lumpe
 (:mod:`wadi2d.engine.lumped_run`); the hydrograph that run gave the grid is kept beside it (``ENTRY_AREA_KIND``), and
 ``ENTRY_AREAS_FILE`` says which is which.
 
-Interface: :func:`entry_of`, :func:`subbasin_entry_areas`, :func:`own_area_runs`, :func:`entry_record`,
-:data:`ENTRY_AREAS_FILE`, :data:`ENTRY_AREA_KIND`.
+Interface: :func:`entry_of`, :func:`subbasin_entry_areas`, :func:`read_areas`, :func:`own_area_runs`,
+:func:`entry_record`, :data:`ENTRY_AREAS_FILE`, :data:`ENTRY_AREA_KIND`.
 """
 
 from __future__ import annotations
@@ -63,6 +66,32 @@ def subbasin_entry_areas(basin: Basin, entry: Mapping[str, str]) -> dict[str, tu
     return {name: (entry[name], basin.drainage_area(entry[name])) for name in basin.subbasins if name in entry}
 
 
+CARRIED, AT_LAST_POINT, OWN_OUTLET, NO_ENTRY = "carried", "last point", "own outlet", "no entry"
+"""Why a subbasin reads the curve where it does (:func:`read_areas`)."""
+
+
+def read_areas(
+    basin: Basin, entry: Mapping[str, str], last: Mapping[str, str] | None = None
+) -> dict[str, tuple[float, str | None, str]]:
+    """Each subbasin, the area the lumped curve reads it at in a run with a 2D part, the element whose drainage area
+    that is, and why: carried by the network to an entry, that entry's (W98: the grid takes the entry's own
+    hydrograph); entering at its own outlet with a last point at or below it (``last``, :func:`wadi2d.engine.last_points.
+    first_last_point`), that last point's (W105: the 2D routing below it runs once); else its own area."""
+    last = last or {}
+    found = {}
+    for name, sub in basin.subbasins.items():
+        enters = entry.get(name)
+        if enters is not None and enters != name:
+            found[name] = (basin.drainage_area(enters), enters, CARRIED)
+        elif enters == name and last.get(name, name) != name:
+            found[name] = (basin.drainage_area(last[name]), last[name], AT_LAST_POINT)
+        elif enters == name:
+            found[name] = (basin.drainage_area(name), name, OWN_OUTLET)
+        else:
+            found[name] = (sub.area_km2, None, NO_ENTRY)
+    return found
+
+
 def needs_own_run(basin: Basin, name: str, entry: Mapping[str, str]) -> bool:
     """An element above its entry, with a drainage area other than the entry's: the grid's run does not read it."""
     if name not in entry or entry[name] == name:
@@ -97,26 +126,41 @@ def own_area_runs(
 
 
 def entry_record(
-    basin: Basin, table, entry: Mapping[str, str], explicit: Mapping[str, float], reruns: Iterable[str], curve: str | None
+    basin: Basin,
+    table,
+    entry: Mapping[str, str],
+    explicit: Mapping[str, float],
+    reruns: Iterable[str],
+    curve: str | None,
+    last: Mapping[str, str] | None = None,
 ) -> dict:
     """What ``ENTRY_AREAS_FILE`` holds: each subbasin's area and factor and where it came from, and each element whose
-    series of record is its own-area rerun."""
+    series of record is its own-area rerun. ``last`` is each element's first last point (W105)."""
 
     def factor(area: float) -> float:
         return round(float(table.factor(area)), 6)
 
+    read = read_areas(basin, entry, last)
     subbasins = []
-    for name, sub in basin.subbasins.items():
+    for name in basin.subbasins:
+        area, at, why = read[name]
+        enters = entry.get(name)
         if name in explicit:
-            area, enters, source = explicit[name], entry.get(name), "its own storm_area_km2"
-        elif name in entry:
-            enters = entry[name]
-            area = basin.drainage_area(enters)
-            source = "its own area: it enters at its own outlet" if enters == name else f"the drainage area of {enters}"
+            area, source = explicit[name], "its own storm_area_km2"
+        elif why == CARRIED:
+            source = f"the drainage area of {at}"
+        elif why == AT_LAST_POINT:
+            source = f"the drainage area of its last point {at}: it enters at its own outlet and the grid routes it there"
+        elif why == OWN_OUTLET:
+            source = "its own area: it enters at its own outlet"
         else:
-            area, enters, source = sub.area_km2, None, "its own area: its water enters the grid at no element"
-        subbasins.append({"subbasin": name, "enters_at": enters, "storm_area_km2": round(area, 6), "factor": factor(area),
-                          "read_at": source})  # fmt: skip
+            source = "its own area: its water enters the grid at no element"
+        row = {"subbasin": name, "enters_at": enters, "storm_area_km2": round(area, 6), "factor": factor(area),
+               "read_at": source}  # fmt: skip
+        if last:
+            row["last_point"] = last.get(name)
+            row["at_last_point"] = why == AT_LAST_POINT and name not in explicit
+        subbasins.append(row)
     elements = []
     for name in reruns:
         own, at = basin.drainage_area(name), basin.drainage_area(entry[name])
@@ -127,10 +171,17 @@ def entry_record(
             "series_of_record": "network: a lumped-only rerun of the network above it at its own drainage area",
             "grid_series": f"{ENTRY_AREA_KIND}: the run whose water entered the grid, at {entry[name]}'s area",
         })  # fmt: skip
-    return {
+    record = {
         "rule": "the lumped part's curve read at the total upstream area of the element where each subbasin's water "
         "enters the 2D grid; an element above its entry reported at its own drainage area (W98)",
         "curve": curve,
         "subbasins": subbasins,
         "elements": elements,
     }
+    if last:
+        record["rule"] += (
+            "; a subbasin entering at its own outlet read at the drainage area of the first last point at or below "
+            "it, one factor per dam, since the 2D routing runs once (W105)"
+        )
+        record["last_points"] = sorted({point for point in last.values()})
+    return record

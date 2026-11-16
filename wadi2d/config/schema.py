@@ -13,6 +13,8 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from wadi2d.config.gauges import GaugeRain, Observed
+from wadi2d.config.land import CurveOverride, ModelType, Roughness
+from wadi2d.config.model_type import implied_by_type, model_type_problems
 from wadi2d.config.rain import (
     ARF_CURVE,
     PATTERN_SCS,
@@ -23,8 +25,6 @@ from wadi2d.config.rain import (
     StormPattern,
     resolve_tables,
 )
-from wadi2d.config.land import CurveOverride, ModelType, Roughness
-from wadi2d.config.model_type import implied_by_type, model_type_problems
 
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
@@ -1217,9 +1217,11 @@ class Storm(_Part):
             raise ValueError("hyetograph_mm cannot go below zero and must hold some rain")
 
 
-ENTRY_POINT, ENTRY_WADI = "point", "wadi"
+ENTRY_POINT, ENTRY_WADI, ENTRY_EDGE = "point", "wadi", "edge"
 EntryRule = Literal["point", "wadi"]
 """Where lumped water enters the grid: at the point given, or on the wadi clear above every line (W41)."""
+InflowEntryRule = Literal["point", "wadi", "edge"]
+"""An inflow's rule: those two, or on the edge of the catchments it brings in that the mesh leaves out (W105)."""
 
 
 class Subbasin(_Part):
@@ -1266,10 +1268,13 @@ class Inflow(_Part):
     x: float = Field(description="Easting, m")
     y: float = Field(description="Northing, m")
     element: str | None = Field(None, description="Lumped element whose outflow enters here")
-    entry: EntryRule = Field(
+    entry: InflowEntryRule = Field(
         ENTRY_POINT,
         description="'point' enters at x, y. 'wadi' starts there and moves up the wadi until the cells it reaches are "
-        "clear of every result and hand-back line; a generated basin's inflows are 'wadi'",
+        "clear of every result and hand-back line; a generated basin's inflows are 'wadi'. 'edge' enters at the pour "
+        "point of the catchments it brings in that the mesh leaves out (grid.exclude_lumped): the lowest cell on "
+        "their whole edge, the wadi just below a dam, wherever x, y lies; with none left out it enters at x, y. "
+        "hydrology.lumped_entry 'network' writes it at a last point (W105)",
     )
     times_s: list[float] | None = Field(None, description="Table times, s")
     flows: list[float] | None = Field(None, description="Table discharges, m3/s")
@@ -1368,7 +1373,19 @@ class Hydrology(_Part):
         "the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only "
         "lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that "
         "element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in "
-        "HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88)",
+        "HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88). The water stops at the "
+        "lowest last point on its way (hydrology.last_points) and enters there, on the edge of the catchments it "
+        "brings in (W105)",
+    )
+    last_points: list[str] | None = Field(
+        None,
+        description="Where the lumped model ends (his rule of 2026-11-16, W105): None is every dam of the lumped "
+        "network (an HMS reservoir, a generated basin's dam); a list names them all, dams and junctions alike, and [] "
+        "none. With lumped_entry 'network' the lumped water enters the grid at the lowest last point on its way, "
+        "never further down a reach. With the lumped part of storm.area_reduction a curve, a lumped subbasin that "
+        "enters the grid at its own outlet (the grid routes it from there, Hybrid 2D) is read at the drainage area of "
+        "the first last point at or below it: one factor per dam, since the 2D routing runs once. A subbasin the "
+        "network carries to an entry is read at that entry's area, and every element reported at its own (W98)",
     )
     arf_by_element: bool = Field(
         False,
@@ -1444,6 +1461,8 @@ class Hydrology(_Part):
         reaches = [m.reach for m in self.muskingum]
         if len(set(reaches)) != len(reaches):
             raise ValueError("hydrology.muskingum names a reach twice")
+        if self.last_points is not None and len(set(self.last_points)) != len(self.last_points):
+            raise ValueError("hydrology.last_points names an element twice")
         if reaches and self.reach_routing != REACH_MUSKINGUM:
             raise ValueError(
                 f"hydrology.muskingum gives K and X for {reaches} but hydrology.reach_routing is "

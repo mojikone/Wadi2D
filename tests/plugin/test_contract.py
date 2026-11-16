@@ -85,11 +85,14 @@ def test_every_path_the_dock_binds_exists_in_the_engine(real: SchemaView, path: 
 
 
 def test_the_entry_rules_the_dock_offers_are_the_engines_and_point_is_its_default(real: SchemaView) -> None:
-    """W103: a job read back pins an entry the job leaves out at the engine's default."""
+    """W103: a job read back pins an entry the job leaves out at the engine's default. W105: an inflow also takes
+    'edge', the pour point of the catchments it brings in."""
     for path in (entry_rows.SUBBASIN_ENTRY, entry_rows.INFLOW_ENTRY):
         assert real.default(path) == entry_rows.ENTRY_POINT
-        assert set(real.enum(path)) == {entry_rows.ENTRY_POINT, entry_rows.ENTRY_WADI}
-    assert set(entry_rows.ENTRY_WORDS) - {None} == set(entry_rows.INFLOW_ENTRY_WORDS) == set(real.enum(entry_rows.SUBBASIN_ENTRY))
+    assert set(real.enum(entry_rows.SUBBASIN_ENTRY)) == {entry_rows.ENTRY_POINT, entry_rows.ENTRY_WADI}
+    assert set(real.enum(entry_rows.INFLOW_ENTRY)) == {entry_rows.ENTRY_POINT, entry_rows.ENTRY_WADI, entry_rows.ENTRY_EDGE}
+    assert set(entry_rows.ENTRY_WORDS) - {None} == set(real.enum(entry_rows.SUBBASIN_ENTRY))
+    assert set(entry_rows.INFLOW_ENTRY_WORDS) == set(real.enum(entry_rows.INFLOW_ENTRY))
     assert real.default(entry_rows.INFLOW_ENTERS) is True
 
 

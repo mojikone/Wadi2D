@@ -440,6 +440,9 @@ def job_hash(cfg: RunConfig) -> str:
         for name in ("exclude_lumped", "exclude_subbasins"):
             data["grid"].pop(name)
         data["hydrology"].pop("entry_snap_m")
+    untouched = cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS and not lumped_curve(cfg.storm)
+    if cfg.hydrology.last_points is None and untouched:  # a job they cannot touch keeps its hash; one they can, not
+        data["hydrology"].pop("last_points")  # (W105)
     if cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS:  # and the lumped water at the outlets, as always (W88)
         data["hydrology"].pop("lumped_entry")
     if not cfg.hydrology.arf_by_element:
@@ -783,11 +786,22 @@ def _reads_entry_areas(cfg: RunConfig) -> bool:
     return lumped_curve(cfg.storm) and not cfg.run.lumped_only
 
 
+def _last_point_map(cfg: RunConfig, basin) -> dict[str, str]:
+    """Every element of the network at or above a last point, with the first last point at or below it (W105)."""
+    from wadi2d.engine.last_points import first_last_point, last_points
+
+    try:
+        return first_last_point(basin, last_points(cfg.hydrology.last_points, basin))
+    except ValueError as error:
+        raise InvalidJob(str(error)) from error
+
+
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str, decided=(), at_entry: bool = True):
     """What falls on the lumped network: the storm, or a grid averaged over each subbasin; a subbasin with a storm area
     of its own reads the area reduction there. With ``storm.area_reduction`` the network takes the lumped part's
     reduction, and a lumped curve in a run with a 2D part reads each subbasin at its own storm area, else at the total
-    upstream area of the element where its water enters the grid, else at its own area (W95, W98: his rule of
+    upstream area of the element where its water enters the grid, else, entering at its own outlet, at the area of the
+    first last point at or below it (a dam: W105, his rule of 2026-11-16), else at its own area (W95, W98: his rule of
     2026-11-15). ``decided`` holds the links a generated basin's routes cut; ``at_entry`` False leaves the entry areas
     out, for a rerun at an element's own area."""
     if cfg.storm.area_reduction is not None:
@@ -795,12 +809,10 @@ def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str, decided=(), 
     rain = _network_rain(cfg, storm, basin, hms_basin, crs)
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
     if at_entry and _reads_entry_areas(cfg):  # a lumped-only run reads every element by itself
-        from wadi2d.engine.entry_area import subbasin_entry_areas
+        from wadi2d.engine.entry_area import read_areas
 
-        entries = subbasin_entry_areas(basin, _entry_map(cfg, basin, decided))
-        own = {
-            name: entries[name][1] if name in entries else subbasin.area_km2 for name, subbasin in basin.subbasins.items()
-        } | own
+        read = read_areas(basin, _entry_map(cfg, basin, decided), _last_point_map(cfg, basin))
+        own = {name: read[name][0] for name in basin.subbasins} | own
     if not own:
         return rain
     from wadi2d.storm.own_area import OwnAreas
@@ -1022,7 +1034,8 @@ def _own_area_series(cfg: RunConfig, storm, basin, hms_basin, crs, decided, rout
     explicit = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
     table = part_reduction(cfg.storm, PART_LUMPED)[0]
     curve = cfg.storm.area_reduction.lumped.curve
-    series.record = entry_record(basin, table, entry, explicit, series.own_area, curve)
+    last = _last_point_map(cfg, basin)
+    series.record = entry_record(basin, table, entry, explicit, series.own_area, curve, last)
 
 
 def _ran(basin, wanted, routes) -> set[str]:
@@ -1265,11 +1278,13 @@ def _resolved(cfg: RunConfig, crs: str):
     if cfg.hydrology.basin_json is None:
         if cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS or cfg.hydrology.hms_basin is None:
             return cfg, None
+        from wadi2d.engine.last_points import last_points
         from wadi2d.engine.network_entries import hms_icons, route_on_network
 
         basin, hms_basin, _cut = _lumped_basin(cfg, crs)
         try:
-            return route_on_network(cfg, basin, hms_icons(hms_basin)), None
+            points = last_points(cfg.hydrology.last_points, basin)
+            return route_on_network(cfg, basin, hms_icons(hms_basin), points), None
         except ValueError as error:
             raise InvalidJob(str(error)) from error
     from wadi2d.basin.job import resolve
@@ -1466,13 +1481,17 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     entry_said = getattr(lumped, "record", None)
     if entry_said is not None:  # where each lumped subbasin read the curve, and which series are of record (W98)
         read = [row for row in entry_said["subbasins"] if row["enters_at"] is not None]
+        at_last = [row for row in read if row.get("at_last_point")]
         reruns = [row["element"] for row in entry_said["elements"]]
-        progress.emit("output", kind="lumped_entry_areas", subbasins=len(read), reruns=reruns)
+        progress.emit(
+            "output", kind="lumped_entry_areas", subbasins=len(read), reruns=reruns, at_last_point=len(at_last),
+        )  # fmt: skip
+        dams = f", {len(at_last)} of them, entering at their own outlets, at their last point's (W105)" if at_last else ""
         progress.emit(
             "warn",
             message=f"rain on the lumped part: {len(read)} subbasins read the curve at the drainage area of the element "
-            f"where their water enters the grid; {len(reruns)} elements above their entry are reported from a lumped "
-            "rerun at their own drainage area, the grid's hydrograph beside them as entry_area_<element>",
+            f"where their water enters the grid{dams}; {len(reruns)} elements above their entry are reported from a "
+            "lumped rerun at their own drainage area, the grid's hydrograph beside them as entry_area_<element>",
         )
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
     if own and cfg.storm.arf is not None:  # the subbasins that read the table at an area of their own (W79)

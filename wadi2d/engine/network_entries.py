@@ -21,13 +21,20 @@ The rule, element by element of the HMS basin:
   HMS way, run 2.
 - An element whose second outlet (a diversion, a reservoir's auxiliary outlet) feeds an element that is not lumped all
   the way is refused in words: that water would reach neither the network's entry nor the grid.
+- **The lumped model ends at its last points** (W105, his rule of 2026-11-16; :mod:`wadi2d.engine.last_points`): every
+  dam unless ``hydrology.last_points`` names them, junctions too (HAT-J4 on Block 2). A last point lumped all the way
+  whose water reaches no other last point on lumped elements is an *entering* last point; nothing below it is lumped,
+  so the water stops there and enters the grid at it, not 5 to 12 km down the reach below (W103's finding). A dam above
+  a dam passes its water on, lumped, to the lower one. The inflow of an entering last point is written at its icon with
+  ``entry: edge``: with the catchments left out of the mesh it enters at their pour point, the lowest cell on their
+  whole edge, the wadi just below the dam (:mod:`wadi2d.engine.left_out`).
 
-Interface: :func:`route_on_network`, :func:`hms_icons`.
+Interface: :func:`route_on_network`, :func:`stop_at_last_points`, :func:`hms_icons`.
 """
 
 from __future__ import annotations
 
-from wadi2d.config.schema import ENTRY_POINT, LUMPED_ON_NETWORK, Inflow, RunConfig
+from wadi2d.config.schema import ENTRY_EDGE, ENTRY_POINT, LUMPED_ON_NETWORK, Inflow, RunConfig
 from wadi2d.hydrology.model import Basin, Branching
 
 OUTFLOW = "{element} outflow"
@@ -58,21 +65,66 @@ def _entry_element(basin: Basin, start: str, complete: dict[str, bool]) -> str:
     branch = element.branch if isinstance(element, Branching) else None
     if branch is not None and not complete[branch] and name != start:
         raise ValueError(
-            f"{name} sends part of its water to {branch}, which a rain-on-grid subbasin drains to: on the lumped "
-            "network that part would reach neither the grid nor the network's entry. Switch the subbasins above "
-            f"{branch} to lumped, or let the lumped water enter at each subbasin's outlet"
+            f"{name} sends part of its water to {branch}, which is off the lumped network (a rain-on-grid subbasin "
+            "drains to it, or it lies below a last point, where the lumped model ends): on the lumped network that "
+            f"part would reach neither the grid nor the network's entry. Switch the subbasins above {branch} to "
+            "lumped, take the last point off, or let the lumped water enter at each subbasin's outlet"
         )
     return name
 
 
-def route_on_network(cfg: RunConfig, basin: Basin, icons: dict[str, tuple[float, float] | None]) -> RunConfig:
+def _below(basin: Basin, name: str) -> set[str]:
+    """Every element an element's water reaches, itself left out, branches included."""
+    found: set[str] = set()
+    stack = [name]
+    while stack:
+        element = basin.elements[stack.pop()]
+        branch = element.branch if isinstance(element, Branching) else None
+        for target in (element.downstream, branch):
+            if target is not None and target not in found:
+                found.add(target)
+                stack.append(target)
+    return found
+
+
+def _passes_on(basin: Basin, point: str, complete: dict[str, bool], points: set[str]) -> bool:
+    """A last point whose water goes on, lumped all the way, to another last point below it (a dam above a dam)."""
+    name = point
+    while True:
+        element = basin.elements[name]
+        below = element.downstream
+        branch = element.branch if isinstance(element, Branching) else None
+        if below is None or not complete[below] or (branch is not None and not complete[branch]):
+            return False
+        if below in points:
+            return True
+        name = below
+
+
+def stop_at_last_points(basin: Basin, complete: dict[str, bool], points: list[str]) -> tuple[dict[str, bool], set[str]]:
+    """``complete`` with every element below an entering last point taken out of the lumped network, and the entering
+    last points: those lumped all the way whose water reaches no other last point on lumped elements (W105). Below
+    one, the water is the grid's: the network ends there."""
+    chosen = set(points)
+    entering = {point for point in points if complete[point] and not _passes_on(basin, point, complete, chosen)}
+    gone: set[str] = set()
+    for point in entering:
+        gone |= _below(basin, point)
+    return {name: on and name not in gone for name, on in complete.items()}, entering
+
+
+def route_on_network(
+    cfg: RunConfig, basin: Basin, icons: dict[str, tuple[float, float] | None], points: list[str] | None = None
+) -> RunConfig:
     """The job with the lumped water kept on the network (see the module's words); the job itself when it asks for
-    the subbasins' outlets. ``icons`` gives each element's HMS icon. Calling it again on its own result adds nothing."""
+    the subbasins' outlets. ``icons`` gives each element's HMS icon; ``points`` the last points, where the water stops
+    and enters on the edge of the catchments it brings in (W105). Calling it again on its own result adds nothing."""
     h = cfg.hydrology
     if h.lumped_entry != LUMPED_ON_NETWORK:
         return cfg
     lumped = {s.name for s in h.subbasins if s.mode == "lumped" and s.name in basin.elements}
     complete = _all_lumped(basin, lumped)
+    complete, entering = stop_at_last_points(basin, complete, list(points or []))
     entry = {name: _entry_element(basin, name, complete) for name in lumped}
     given = {i.element for i in h.inflows if i.element is not None}
     inflows = list(h.inflows)
@@ -86,8 +138,9 @@ def route_on_network(cfg: RunConfig, basin: Basin, icons: dict[str, tuple[float,
                 f"from element {element} with its point"
             )
         leaves = basin.elements[element].downstream is None
+        how = ENTRY_EDGE if element in entering else ENTRY_POINT
         inflows.append(
-            Inflow(name=OUTFLOW.format(element=element), x=point[0], y=point[1], element=element, entry=ENTRY_POINT,
+            Inflow(name=OUTFLOW.format(element=element), x=point[0], y=point[1], element=element, entry=how,
                    enters=not leaves)
         )  # fmt: skip
     subbasins = [

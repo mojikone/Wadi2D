@@ -13,7 +13,9 @@ carried: the grid routes its water through its own polygon, so its cells stay (r
   strip alike.
 - An entry whose point lies in a left-out cell moves to the wadi just outside: the lowest cell of the mesh that touches
   the catchments that entry itself brings in, within ``hydrology.entry_snap_m`` of the point. The pour point of a
-  catchment is the lowest point of its edge, so this is the wadi; none within reach stops the run, in words.
+  catchment is the lowest point of its edge, so this is the wadi; none within reach stops the run, in words. An inflow
+  with ``entry: edge`` (a last point's, W105) moves to the lowest cell on the whole edge of its catchments, wherever its
+  point lies.
 
 Interface: :class:`LeftOut`, :func:`choose`, :func:`snap_entries`, :class:`Snapped`.
 """
@@ -30,7 +32,7 @@ from rasterio.transform import Affine
 from scipy import ndimage
 
 from wadi2d.config.constants import M2_PER_KM2
-from wadi2d.config.schema import RunConfig
+from wadi2d.config.schema import ENTRY_EDGE, RunConfig
 
 EDGE_CELLS = (1, 2)
 """An entry lands on a cell that touches the left-out area; where none does within reach (an aligned strip's cell,
@@ -161,24 +163,31 @@ def _positions(tables, near: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.nda
 
 
 def snap_entries(cfg: RunConfig, tables, flows: list, left: LeftOut | None) -> list[Snapped]:
-    """Every entry of ``flows`` whose point lies in a left-out cell, moved to the wadi just outside.
+    """Every entry of ``flows`` whose point lies in a left-out cell, moved to the wadi just outside; and every inflow
+    with ``entry: edge`` that brings in left-out catchments (a last point's, W105), moved to their pour point wherever
+    its point lies: the lowest cell on the whole edge of the catchments it brings in, since they all drain through the
+    last point. An HMS icon is schematic: on Block 2 the reach-limited search from R2A's icon found the dam's second
+    chute, 740 m from its main one, where the whole edge's lowest cell lies 35 m from the dam axis.
 
-    Raises ``ValueError`` when no cell of the mesh touches that entry's catchments within ``hydrology.entry_snap_m``.
-    The moved points are kept on ``left`` for the edge check after the run.
+    Raises ``ValueError`` when no cell of the mesh touches that entry's catchments within ``hydrology.entry_snap_m``
+    (an ``edge`` inflow: anywhere). The moved points are kept on ``left`` for the edge check after the run.
     """
     if left is None or not left.names:
         return []
     grid = tables.grid
     out = left.on(grid)
-    reach = cfg.hydrology.entry_snap_m
+    edge = {i.name for i in cfg.hydrology.inflows if i.entry == ENTRY_EDGE}
     moved: list[Snapped] = []
     for name, point, _times, _flows in flows:
         if point is None:
             continue
         j, i = grid.cell_of(float(point[0]), float(point[1]))
-        if not (0 <= j < out.shape[0] and 0 <= i < out.shape[1] and out[j, i]):
-            continue
+        inside = 0 <= j < out.shape[0] and 0 <= i < out.shape[1] and out[j, i]
         own = left.brought_by(name)
+        pour = name in edge and bool(own)
+        if not inside and not pour:
+            continue
+        reach = np.inf if pour else cfg.hydrology.entry_snap_m
         mine = left.on(grid, own) if own else out
         for rings in EDGE_CELLS:
             near = ndimage.binary_dilation(mine, structure=NEIGHBOURS, iterations=rings) & ~out
@@ -190,19 +199,26 @@ def snap_entries(cfg: RunConfig, tables, flows: list, left: LeftOut | None) -> l
         whose = f"the {len(own)} catchments it brings in" if own else "the left-out catchments"
         if not within.any():
             nearest = f"the nearest is {d.min():.0f} m away" if d.size else "there is none"
+            where = "brings in catchments left out of the mesh" if pour else "lies in the catchments left out of the mesh"
+            limit = "at all" if pour else f"within {reach:g} m of it ({nearest})"
             raise ValueError(
-                f"inflow {name} at ({point[0]:.0f}, {point[1]:.0f}) lies in the catchments left out of the mesh, and "
-                f"no cell of the mesh on the edge of {whose} lies within {reach:g} m of it ({nearest}): move the "
-                "point to the wadi below them, or raise hydrology.entry_snap_m"
+                f"inflow {name} at ({point[0]:.0f}, {point[1]:.0f}) {where}, and no cell of the mesh on the edge of "
+                f"{whose} lies {limit}: move the point to the wadi below them, or raise hydrology.entry_snap_m"
             )
         low = z[within].min()
         pick = np.nonzero(within & (z <= low + 1e-9))[0]
         k = int(pick[np.argmin(d[pick])])
         to = (float(x[k]), float(y[k]))
-        note = (
-            f"lies in the catchments left out of the mesh: it enters {d[k]:.0f} m away at ({to[0]:.0f}, {to[1]:.0f}), "
-            f"the lowest cell on the edge of {whose}"
-        )
+        if pour:
+            note = (
+                f"is a last point of the lumped model: it enters {d[k]:.0f} m from its point at ({to[0]:.0f}, "
+                f"{to[1]:.0f}), the lowest cell on the whole edge of {whose}, their pour point"
+            )
+        else:
+            note = (
+                f"lies in the catchments left out of the mesh: it enters {d[k]:.0f} m away at ({to[0]:.0f}, "
+                f"{to[1]:.0f}), the lowest cell on the edge of {whose}"
+            )
         moved.append(Snapped(name, (float(point[0]), float(point[1])), to, float(d[k]), note))
     left.entries = [m.point for m in moved]
     return moved

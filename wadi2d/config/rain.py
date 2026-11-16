@@ -125,7 +125,8 @@ class ArfPart(_Part):
 
     form: Literal["curve", "area", "coefficient"] = Field(
         description="'curve': read at each element's own area (lumped; in a run with a 2D part, each subbasin at the "
-        "drainage area of the element where its water enters the grid) or at each run's storm area of a depth-area "
+        "drainage area of the element where its water enters the grid, and one entering at its own outlet at the "
+        "first last point's below it, its dam's, hydrology.last_points) or at each run's storm area of a depth-area "
         "study (2D). 'area': read on the curve at area_km2, one factor for the part. 'coefficient': one factor given",
     )
     curve: str | None = Field(None, description="Name of a curve in data_tables.arf_curves")
