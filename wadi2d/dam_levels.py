@@ -1,6 +1,6 @@
 """Where a dam's pool starts: empty by default, at its spillway crest or at a level for a scenario (a breach, say).
 
-Interface: :func:`with_dam_starts`, :func:`grid_pool_depth`.
+Interface: :func:`with_dam_starts`, :func:`grid_pool_depth`, :func:`point_pool_depth` (a level set from a point, W96).
 
 One start per dam name, ``RunConfig.dam_levels``. A reservoir that routes in the run's lumped network takes it; any other
 name is a crest line or an embankment on the grid, and the pool behind it is filled. One pool, never both, holds the
@@ -190,6 +190,46 @@ def _pool(tables: GridTables, open_cells: np.ndarray, name: str, pieces: list[Te
             "close the valley at that level, or the pool runs out of the domain"
         )
     return np.isin(component, list(held))
+
+
+def point_pool_depth(cfg: RunConfig, tables: GridTables) -> tuple[np.ndarray, list[str]]:
+    """The mean depth that fills the water of every ``initial_points`` level from its point (W96), and what was done.
+
+    The pool is the cells under the level joined to the point's cell through faces open at it, as a dam's pool is
+    found; an open boundary does not stop it, since a point in the sea means the water beyond the line as well.
+    """
+    grid = tables.grid
+    out = np.zeros(grid.shape)
+    notes: list[str] = []
+    if not cfg.initial_points:
+        return out, notes
+    if getattr(grid, "quad", False):
+        raise ValueError("initial_points: a level is filled from a point on a uniform grid only; on the mesh, draw it in initial_levels")
+    hc, dtab = grid.from_tiles(tables.hc), grid.from_tiles(tables.dtab)
+    zmin = np.asarray(tables.zmin, np.float64)
+    for k, item in enumerate(cfg.initial_points, start=1):
+        label = item.name or f"Initial point {k}"
+        j, i = grid.cell_of(item.x, item.y)
+        inside = 0 <= j < grid.shape[0] and 0 <= i < grid.shape[1]
+        if not inside or not grid.mask[j, i]:
+            raise ValueError(
+                f"initial_points: {label} at {item.x:.1f}, {item.y:.1f} lies on no square cell of the domain (the "
+                "aligned cells of a strip take a polygon in initial_levels)"
+            )
+        component, _flat = _components(tables, item.level)
+        if component[j, i] < 0:
+            raise ValueError(
+                f"initial_points: {label}: its cell's ground, {zmin[j, i]:.2f} m at its lowest, stands above the level "
+                f"{item.level:g} m: check the datum or move the point onto the water"
+            )
+        pool = component == component[j, i]
+        depth = np.asarray(hbar_at_level(item.level, zmin[pool], hc[pool], dtab[pool]))
+        out[pool] = np.maximum(out[pool], depth)
+        volume = float(depth.sum()) * grid.dx * grid.dx
+        notes.append(f"{label}: the water starts at {item.level:g} m on {int(pool.sum())} cells, {volume:,.0f} m3")
+    if getattr(tables, "strip", None) is not None:
+        notes.append("initial_points fill the square cells only: an aligned cell of a strip under the level starts dry")
+    return out, notes
 
 
 def grid_pool_depth(

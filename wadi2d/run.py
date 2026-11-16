@@ -35,7 +35,7 @@ from wadi2d.config.schema import (
     Terrain,
     TerrainObject,
 )
-from wadi2d.dam_levels import grid_pool_depth, with_dam_starts
+from wadi2d.dam_levels import grid_pool_depth, point_pool_depth, with_dam_starts
 from wadi2d.demstore import cache_folder, open_bed
 from wadi2d.edge_valleys import (
     crossing_notes,
@@ -400,6 +400,8 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("muskingum")
     if not cfg.dam_levels:
         data.pop("dam_levels")
+    if not cfg.initial_points:
+        data.pop("initial_points")  # a job without them keeps the hash it had before them (W96)
     if not cfg.breaches:
         data.pop("breaches")  # a job without a breach keeps the hash it had before breaches existed (W63)
     for breach in data.get("breaches", []):  # and a W63 estimator the hash it had before W76's two fields
@@ -1335,7 +1337,8 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
 
         for note in reach_notes(lumped.basin, cfg.hydrology.time_step_min):
             progress.emit("warn", message=note)
-    still = storm is None and not flows and not cfg.initial_levels and not cfg.dam_levels and not flow_lines(cfg.boundaries)
+    still = storm is None and not flows and not cfg.initial_levels and not cfg.initial_points and not cfg.dam_levels
+    still = still and not flow_lines(cfg.boundaries)
     if still and not any(b.kind == "stage" for b in cfg.boundaries):
         progress.emit("warn", message="no rain, no inflow and no stage boundary: nothing will happen")
     if cfg.storm.depth_grid is not None:
@@ -1451,8 +1454,12 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     taken = _taken_starts(cfg, lumped)
     try:
         pools, notes = grid_pool_depth(cfg, tables, bset.mask, taken)
+        points, more = point_pool_depth(cfg, tables)  # nothing, for a job without initial points (W96)
     except ValueError as error:
         raise InvalidJob(str(error)) from error
+    if cfg.initial_points:
+        pools = np.maximum(pools, points)
+        notes += more
     for note in notes:
         progress.emit("warn", message=note)
     hybrid = None

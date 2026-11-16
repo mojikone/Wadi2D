@@ -2312,6 +2312,47 @@
       "title": "InitialLevel",
       "type": "object"
     },
+    "InitialPoint": {
+      "additionalProperties": false,
+      "description": "Water standing at a level from a point when the run starts (W96): every cell whose ground lies under the level\nand is joined to the point's cell through faces open at it is filled, as a dam's start level fills its pool. A\npoint behind a dam fills the reservoir, a point offshore the sea; nothing of the pool is drawn.",
+      "properties": {
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "What the run's notes call it; else 'Initial point n'",
+          "title": "Name"
+        },
+        "x": {
+          "description": "Easting, m",
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "description": "Northing, m",
+          "title": "Y",
+          "type": "number"
+        },
+        "level": {
+          "description": "Water level on the datum of the DEM, m",
+          "title": "Level",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "level"
+      ],
+      "title": "InitialPoint",
+      "type": "object"
+    },
     "ManningClass": {
       "additionalProperties": false,
       "description": "One row of a land-use table of roughness.",
@@ -5428,6 +5469,15 @@
         "$ref": "#/$defs/InitialLevel"
       },
       "title": "Initial Levels",
+      "type": "array"
+    },
+    "initial_points": {
+      "default": [],
+      "description": "Levels set from a point: the cells under each level joined to its point's cell start full (W96)",
+      "items": {
+        "$ref": "#/$defs/InitialPoint"
+      },
+      "title": "Initial Points",
       "type": "array"
     },
     "dam_levels": {

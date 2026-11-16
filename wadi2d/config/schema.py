@@ -610,6 +610,17 @@ class InitialLevel(_Part):
     level: float = Field(description="Water level on the datum of the DEM, m")
 
 
+class InitialPoint(_Part):
+    """Water standing at a level from a point when the run starts (W96): every cell whose ground lies under the level
+    and is joined to the point's cell through faces open at it is filled, as a dam's start level fills its pool. A
+    point behind a dam fills the reservoir, a point offshore the sea; nothing of the pool is drawn."""
+
+    name: str | None = Field(None, description="What the run's notes call it; else 'Initial point n'")
+    x: float = Field(description="Easting, m")
+    y: float = Field(description="Northing, m")
+    level: float = Field(description="Water level on the datum of the DEM, m")
+
+
 DAM_EMPTY, DAM_SPILLWAY = "empty", "spillway"
 
 
@@ -1736,6 +1747,9 @@ class RunConfig(_Part):
     transmission: Transmission = Transmission()
     boundaries: list[Boundary] = []
     initial_levels: list[InitialLevel] = []
+    initial_points: list[InitialPoint] = Field(
+        [], description="Levels set from a point: the cells under each level joined to its point's cell start full (W96)"
+    )
     dam_levels: list[DamLevel] = []
     breaches: list[Breach] = []
     outputs: Outputs = Outputs()
