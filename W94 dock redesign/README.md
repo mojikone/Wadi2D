@@ -114,3 +114,15 @@ Redundant or in the wrong place, to fold into the redesign:
 - "Name the cell that sets the time step": a diagnostic, Advanced.
 - Two engine controls (Engine... at the top, Engine in Run): one, in the simulation panel.
 - Section numbers 7 and 7b: renumber, or drop numbers once sections show by model type.
+
+Mesh section of the redesign (his question of 2026-11-16, "mesh generation is included?"): one section between Domain and
+Hydrology for every type with a 2D part:
+- Mesh kind: squares, quadtree (coarse cells on steep hills, fine on wadis and plains), aligned centre mesh (cells along
+  the smoothed streams, squares beyond), and the aligned streams inside quadtree hills when W82's speed is solved.
+- Cell sizes: finest, coarsest, the slope over which hills coarsen; for the aligned mesh the stream threshold (km2), the
+  floor rule (height above the channel, capped by the slope) and fixed cell across.
+- Lines: streams (generated, smoothed, editable), high ground (roads, dykes, dams) from a layer or Suggest, refinement
+  zones and lines (near size, rows, far size).
+- Build mesh: builds and draws the cells on the map before any run, with cell count, smallest cell, the time-step
+  estimate and the refusals in words (tiling guard, overlapping corridors); cached, so Run reuses it.
+- Advanced: the bank and crest thresholds of Suggest, gorge rows, local time stepping (quadtree only).
