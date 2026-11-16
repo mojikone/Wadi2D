@@ -17,17 +17,9 @@ from dataclasses import dataclass
 MODEL_TYPE = "run.model_type"
 TWO_D, LUMPED, HYBRID_LUMPED, HYBRID_2D = "2d", "lumped", "hybrid_lumped", "hybrid_2d"
 ALL_SECTIONS = (
-    "terrain",
-    "mesh",
-    "hydrology",
-    "storm",
-    "structures",
-    "boundaries",
-    "points",
-    "gauges",
-    "run",
+    "terrain", "mesh", "hydrology", "storm", "structures", "boundaries", "points", "gauges", "simulation", "run",
     "study",
-)
+)  # fmt: skip
 """Section keys in the dock's order; a contract test holds them to the dock's own."""
 ENTRY_OUTLET = "outlet"
 

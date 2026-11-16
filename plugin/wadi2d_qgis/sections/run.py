@@ -1,6 +1,7 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""8. Run: where the results go, estimate, run, stop, and what is happening now."""
+"""8. Run: where the results go, estimate, run, stop, and what is happening now. The simulated time, the saved maps
+and the engine choice moved to the Simulation section (W99)."""
 
 from __future__ import annotations
 
@@ -20,44 +21,28 @@ from qgis.PyQt.QtWidgets import (
 
 from .. import section_status, settings, style
 from ..job_builder import (
-    ANIMATION_MAP_S,
-    BACKEND,
-    BACKEND_TIP,
-    BACKEND_WORDS,
-    DURATION,
-    MAP_EVERY,
     PIXELS_ON,
-    SECONDS_PER_HOUR,
     SMOOTH_ON,
     SMOOTH_TIP,
     STEP_LIMITER,
 )
-from .common import Section, bind, number_box
+from .common import Section
 
 COLOURS = {"info": "#444444", "note": "#a06000", "good": "#1a7a30", "bad": "#b00020"}
-MAPS_NOTE = (
-    "Peak depth and hazard do not need the shorter interval: the run keeps its own peaks. It takes three times "
-    "the disk, so choose it for an animation. Estimate says how much."
-)
 BACKGROUNDS = (("Hillshade of the DEM", "hillshade"), ("Satellite (needs internet; check the licence)", "satellite"))
-
-
-SECONDS_PER_MINUTE = 60.0
 
 
 class RunSection(Section):
     heading = "8. Run"
     key = "run"
-    state_skip = ("cutoff",)  # a display setting, kept with QGIS, not with the model
+    state_skip = ("cutoff", "duration", "maps", "backend")
+    """The depth cutoff is a display setting, kept with QGIS; the other three are the Simulation section's widgets,
+    which older dock checks reach from here."""
 
     def build(self) -> None:
         self.folder = QgsFileWidget()
         self.folder.setStorageMode(QgsFileWidget.GetDirectory)
         self.folder.setDialogTitle("Output folder")
-        self.duration = number_box(2)
-        self.maps = QComboBox()
-        self.maps_note = self._text_label()
-        self.maps_note.setText(MAPS_NOTE)
         self.pixels = QCheckBox("Make pixel depth and hazard maps after the run")
         self.pixels.setChecked(True)
         self.smooth = QCheckBox("Smooth map polygons and depth picture (slower)")
@@ -68,9 +53,9 @@ class RunSection(Section):
         self.limiter = QCheckBox("Name the cell that sets the time step")
         self.limiter.setChecked(False)
         self._has_limiter = True
-        self.backend = QComboBox()
-        self.backend.setToolTip(BACKEND_TIP)
-        self._backend_default: str | None = None
+        self.on_running = lambda _running: None
+        """Told when a run starts and ends: the dock passes it on to the Simulation section, whose maps and engine
+        choices are held while a run is going, as they were when they sat here."""
         self.estimate_button = QPushButton("Estimate")
         self.run_button = QPushButton("Run")
         self.stop_button = QPushButton("Stop")
@@ -128,13 +113,9 @@ class RunSection(Section):
         for button in (self.estimate_button, self.run_button, self.stop_button):
             row.addWidget(button)
         self.form.addRow("Output folder", self.folder)
-        self.form.addRow("Simulated time, h", self.duration)
-        self.form.addRow("Save maps", self.maps)
-        self.form.addRow(self.maps_note)
         self.form.addRow(self.pixels)
         self.form.addRow(self.smooth)
         self.form.addRow(self.limiter)
-        self.form.addRow("Engine", self.backend)
         self.form.addRow(buttons)
         self.form.addRow(self.estimate_label)
         self.form.addRow(self.bar)
@@ -158,12 +139,6 @@ class RunSection(Section):
         return label
 
     def apply_schema(self, schema) -> None:
-        bind(self.duration, schema, DURATION, scale=1.0 / SECONDS_PER_HOUR)
-        usual = schema.default(MAP_EVERY, 0.0)
-        self.maps.clear()
-        self.maps.addItem(f"Every {usual / SECONDS_PER_MINUTE:g} minutes, for design work", usual)
-        self.maps.addItem(f"Every {ANIMATION_MAP_S / SECONDS_PER_MINUTE:g} minutes, for an animation", ANIMATION_MAP_S)
-        self.maps.setToolTip(schema.tip(MAP_EVERY))
         self.pixels.setChecked(bool(schema.default(PIXELS_ON, True)))
         self.pixels.setToolTip(schema.tip(PIXELS_ON))
         self.limiter.setToolTip(schema.tip(STEP_LIMITER))
@@ -171,18 +146,6 @@ class RunSection(Section):
         self.limiter.setEnabled(self._has_limiter)
         self._smooth_default = bool(schema.default(SMOOTH_ON, False))
         self.smooth.setChecked(self._smooth_default)
-        self._backend_default = schema.default(BACKEND)
-        held = self.backend.currentData()
-        self.backend.clear()
-        for key in schema.enum(BACKEND):
-            self.backend.addItem(BACKEND_WORDS.get(key, key), key)
-        wanted = held if held is not None else self._backend_default
-        self.backend.setCurrentIndex(max(self.backend.findData(wanted), 0))
-
-    def chosen_backend(self) -> str | None:
-        """The engine the user chose, or None for the engine's own default."""
-        key = self.backend.currentData()
-        return key if key is not None and key != self._backend_default else None
 
     def _pixels_toggled(self, on: bool) -> None:
         """The polygons and the picture are drawn from the pixel maps: none without them."""
@@ -203,12 +166,9 @@ class RunSection(Section):
     def values(self, crs) -> dict:
         return {
             "output": self.folder.filePath(),
-            "duration_h": self.duration.value(),
-            "map_every_s": self.maps.currentData(),
             "pixels": self.pixels.isChecked(),
             "smooth": self.chosen_smooth(),
             "step_limiter": self.limiter.isChecked() and self._has_limiter,
-            "backend": self.chosen_backend(),
         }
 
     def set_running(self, running: bool) -> None:
@@ -220,10 +180,9 @@ class RunSection(Section):
             self.frames_button.setEnabled(False)
             self.pixel_frames_button.setEnabled(False)
             self.lines_button.setEnabled(False)
-        self.maps.setEnabled(not running)
+        self.on_running(running)
         self.pixels.setEnabled(not running)
         self.smooth.setEnabled(not running and self.pixels.isChecked())
-        self.backend.setEnabled(not running)
         self.limiter.setEnabled(not running and self._has_limiter)
         if running:
             self.map_button.setEnabled(False)

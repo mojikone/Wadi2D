@@ -38,13 +38,48 @@ def test_a_plain_job_comes_back_as_section_states(tmp_path: Path) -> None:
     )
     assert states["hydrology"]["widgets"]["cn.box"] == 85.0
     assert states["points"]["widgets"]["name"] == "name"
-    run = states["run"]["widgets"]
-    assert (run["duration"], run["maps"]["data"], run["pixels"], run["folder"]) == (
+    run, simulation = states["run"]["widgets"], states["simulation"]["widgets"]
+    assert (run["pixels"], run["folder"]) == (False, str(tmp_path))
+    assert (simulation["duration"], simulation["maps"]["data"], simulation["step_mode"]["data"]) == (
         2.0,
         900.0,
-        False,
-        str(tmp_path),
+        "auto",
     )
+    for unsaid in ("start", "cfl", "dt_max", "dt_min", "lumped_step", "series", "backend"):
+        assert unsaid not in simulation  # what the job leaves to the engine stays at the dock's defaults
+
+
+def test_the_simulation_section_is_read_back_from_a_job(tmp_path: Path) -> None:
+    job = build_job(values(), tmp_path)
+    job["numerics"] = {"dt_max": 0.5, "dt_min": 0.5}
+    job["hydrology"]["time_step_min"] = 2.0
+    job["outputs"]["series_every_s"] = 30.0
+    job["storm"] = {
+        "kind": "gridded",
+        "rain_file": "rain.nc",
+        "rain_units": "mm",
+        "rain_stamp": "end",
+        "rain_start": "2021-10-03 06:00",
+    }
+    states = job_states.job_states(job, tmp_path)
+    simulation, storm = states["simulation"]["widgets"], states["storm"]["widgets"]
+    assert (simulation["step_mode"]["data"], simulation["fixed_step"]) == ("fixed", 0.5)
+    assert (simulation["lumped_step"], simulation["series"], simulation["start"]) == (
+        2.0,
+        30.0,
+        "2021-10-03 06:00",
+    )
+    assert "start" not in storm and "gauge_start" not in storm  # the run has one start, and it is not Storm's
+    job["numerics"] = {"cfl": 0.3, "local_time_stepping": True}
+    job["storm"] = {"kind": "uniform", "depth_mm": 20.0, "duration_min": 30.0}
+    job["outputs"]["observed"] = [{"name": "g", "start": "2021-10-04 00:00"}]
+    simulation = job_states.job_states(job, tmp_path)["simulation"]["widgets"]
+    assert (simulation["step_mode"]["data"], simulation["cfl"], simulation["start"]) == (
+        "auto",
+        0.3,
+        "2021-10-04 00:00",
+    )
+    assert "fixed_step" not in simulation and "dt_max" not in simulation
 
 
 def test_storms_the_dock_writes_are_read_back(tmp_path: Path) -> None:

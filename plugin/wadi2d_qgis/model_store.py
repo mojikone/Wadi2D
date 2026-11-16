@@ -35,7 +35,7 @@ KEEP_MS = 2000
 """How often the dock is compared with the project's copy."""
 RESTORED = "The model was restored from the QGIS project."
 NOT_RESTORED = "Could not be restored:"
-ADDED = "Added:"
+ADDED = "On the way:"
 NO_FOLDER = "Choose the output folder in Run first: scenarios are kept inside it."
 NO_NAME = "Give the scenario a name."
 NO_RUN = "There is no run in this folder: it holds neither a saved model nor a job."
@@ -56,9 +56,9 @@ def outcome(first: str, words: list[str]) -> str:
     lost = [text for text in words if not text.startswith(NOTE)]
     parts = [first]
     if news:
-        parts.append(f"{ADDED} {'; '.join(news)}.")
+        parts.append(f"{ADDED} {'; '.join(text.rstrip('.') for text in news)}.")
     if lost:
-        parts.append(f"{NOT_RESTORED} {'; '.join(lost)}.")
+        parts.append(f"{NOT_RESTORED} {'; '.join(text.rstrip('.') for text in lost)}.")
     return " ".join(parts)
 
 
@@ -99,7 +99,9 @@ class ModelLinks(QObject):
 
     def apply(self, doc: dict, add_missing: bool = False) -> list[str]:
         """Fill the dock from a document; what could not be restored, section by section."""
-        words = []
+        words = [
+            f"{NOTE}{text}" for text in doc.get(model_doc.MIGRATED, [])
+        ]  # what an older format's way up changed
         self._applying = True
         try:
             self.dock.set_model_parts(doc)

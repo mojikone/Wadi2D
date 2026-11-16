@@ -24,6 +24,7 @@ from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
+from .simulation_rows import LUMPED_REPLACES, simulation_problems
 from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems, takes_hms_table
 from .study_rows import AREA_KEY, line_area
 
@@ -279,6 +280,7 @@ def problems(values: dict) -> list[str]:
     found.extend(initial_problems(values.get("initial_water") or []))
     found.extend(boundary_problems(values))
     found.extend(type_problems(values))
+    found.extend(simulation_problems(values))
     return found + _mesh_problems(values) + _strip_problems(values) + _gauge_problems(values)
 
 
@@ -425,8 +427,9 @@ def _line_notes(values: dict) -> list[str]:
     return found
 
 
-def merge_notes(job: dict, merged: dict) -> list[str]:
-    """What the HMS import changed from the form, for the user to see before the run starts."""
+def merge_notes(job: dict, merged: dict, imported: dict | None = None) -> list[str]:
+    """What the HMS import changed from the form, for the user to see before the run starts; and, given the import
+    itself, what the form changed from it."""
     found = []
     asked, set_by_hms = job["run"]["duration_s"], merged["run"]["duration_s"]
     if asked != set_by_hms:
@@ -436,6 +439,10 @@ def merge_notes(job: dict, merged: dict) -> list[str]:
         )
     if takes_hms_table(job.get("storm") or {}):
         found.append("The gridded rain is reduced by the area reduction table of the HMS project.")
+    own = job.get("hydrology", {}).get("time_step_min")
+    theirs = ((imported or {}).get("hydrology") or {}).get("time_step_min")
+    if own is not None and theirs is not None and own != theirs:
+        found.append(LUMPED_REPLACES.format(own=own, theirs=theirs))
     return found
 
 
@@ -604,6 +611,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["transmission"] = {"enabled": True, "rate_mm_h": values["transmission"]["rate_mm_h"]}
     if values.get("map_every_s") is not None:
         job["outputs"]["map_every_s"] = values["map_every_s"]
+    if values.get("series_every_s") is not None:  # only moved off the engine's default (W99): an old job stays itself
+        job["outputs"]["series_every_s"] = values["series_every_s"]
+    if values.get("lumped_step_min") is not None:  # the same
+        job["hydrology"]["time_step_min"] = values["lumped_step_min"]
     if values.get("pixels") is False:
         job["outputs"]["pixels"] = {"enabled": False}
     elif values.get("smooth") is not None:  # only a choice away from the engine's default
@@ -614,6 +625,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["step_limiter"] = STEP_LIMITER_ON
     if values.get("local_steps"):
         job["numerics"] = {"local_time_stepping": True}
+    if values.get("numerics"):  # the 2D step: a fixed one, or what was moved off the engine's defaults (W99)
+        job["numerics"] = {**job.get("numerics", {}), **values["numerics"]}
     if values.get("study"):  # the depth-area study's job only: a run never carries one
         job["arf"] = values["study"]
     if values.get("mesh"):

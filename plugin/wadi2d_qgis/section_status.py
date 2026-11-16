@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import NamedTuple
 
 from .model_types import NEEDS_LUMPED, TWO_D, TYPES, UNUSED_LUMPED
+from .simulation_rows import STEPS_REVERSED, start_problem
 from .storm_rows import (
     ARF_AREA,
     ARF_GIVEN,
@@ -34,7 +35,7 @@ STATE_MARKS = {READY: "\N{CHECK MARK}", OPTIONAL: "\N{EN DASH}", MISSING: "!"}
 SEP = " \N{MIDDLE DOT} "
 STEP_NAMES = {
     "terrain": "Terrain", "mesh": "Mesh", "hydrology": "Hydrology", "storm": "Storm", "structures": "Structures",
-    "boundaries": "Boundaries", "points": "Points", "gauges": "Gauges", "run": "Run",
+    "boundaries": "Boundaries", "points": "Points", "gauges": "Gauges", "simulation": "Simulation", "run": "Run",
     "study": "Study",
 }  # fmt: skip
 """Section key to its short name on the step strip."""
@@ -231,3 +232,25 @@ def run(folder: str, pixels: bool) -> Status:
 
 def study() -> Status:
     return Status(OPTIONAL, "Design flows by drainage area: one run per storm area, started from here")
+
+
+def simulation(
+    start: str, hours: float, fixed_step: float | None, cfl: float, maps_min: float | None, lumped_min: float | None,
+    bounds: tuple[float, float] | None = None,
+) -> Status:  # fmt: skip
+    """``fixed_step`` is None for the automatic step, whose smallest and largest step are ``bounds``; ``maps_min``
+    and ``lumped_min`` are None where the model has no 2D part or no lumped part."""
+    problem = start_problem(start)
+    if problem:
+        return Status(MISSING, problem)
+    if bounds is not None and bounds[0] > bounds[1]:
+        return Status(MISSING, STEPS_REVERSED)
+    if maps_min is None:
+        step = maps = ""
+    else:
+        step = (
+            f"fixed step {fixed_step:g} s" if fixed_step is not None else f"automatic step, Courant {cfl:g}"
+        )
+        maps = f"maps every {maps_min:g} min" if maps_min else "no maps"
+    lumped = f"lumped step {lumped_min:g} min" if lumped_min is not None else ""
+    return Status(READY, join(f"Starts {start}" if start else "", f"{hours:g} h", step, maps, lumped))

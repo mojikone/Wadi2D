@@ -155,6 +155,10 @@ def read_position(text: str) -> tuple[float, float] | None:
         return None
 
 
+GRIDDED = "gridded"
+"""The storm kind of a rain file, as ``storm_rows.KIND_GRID`` has it; a test holds the two together."""
+
+
 def joined_gauges(values: dict) -> dict:
     """The dock's values with W54's one ``gauges`` table, from the Storm section's rain gauges (``rain_gauges``, given
     only when the storm takes its rain from them) and the Gauges section's flow and level gauges (``observed_gauges``).
@@ -166,6 +170,10 @@ def joined_gauges(values: dict) -> dict:
     rain = values.pop("rain_gauges", None) or {}
     observed = values.pop("observed_gauges", None) or {}
     settings = dict(rain.get("settings") or {})
-    settings["observed_start"] = observed.get("start", "") or settings.get("start", "")
+    own = observed.get("start", "")
+    storm = values.get("storm") or {}
+    if own and storm.get("kind") == GRIDDED and own == storm.get("start"):
+        own = ""  # the run's one start (W99) is the gridded rain's already, and the engine reads the records from it
+    settings["observed_start"] = own or settings.get("start", "")
     values["gauges"] = {"rows": list(rain.get("rows") or []) + list(observed.get("rows") or []), "settings": settings}
     return values

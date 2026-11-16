@@ -73,7 +73,8 @@ GIVEN_TIP = "Every depth is multiplied by this factor, with no table and no stor
 SINGLE_CHOICES = ((KIND_STEADY, "Constant rain"), (KIND_TABLE, "A table of periods"))
 GAUGES_NOTE = (
     "Each gauge's record spread over the cells and the lumped subbasins by the method below, as received: gauged rain "
-    "has no area reduction. Flow and level gauges, to compare a run with, are in the Gauges section (7b)."
+    "has no area reduction. Flow and level gauges, to compare a run with, are in the Gauges section (7b). Records "
+    "written with dates are read from the run's start, in the Simulation section."
 )
 POSITION_TIP = "x, y in the DEM's coordinates; a gauge from the points layer stands at its point."
 RADIUS_DECIMALS = 0
@@ -153,6 +154,7 @@ class StormSection(Section):
     key = "storm"
     state_rows = (("gauge_table", GaugeRow, "_show"),)
     state_hold = ("variable",)  # the series of a rain file: the engine reads the file and answers later
+    state_skip = ("start", "gauge_start")  # the run's one start, the Simulation section's widget (W99)
     rain_file_changed = pyqtSignal()
     """The rain file or how it is read has changed: ask the engine what it holds."""
     preview_requested = pyqtSignal()
@@ -162,6 +164,7 @@ class StormSection(Section):
 
     def build(self) -> None:
         self._hms_in_use = False
+        self.start = self.gauge_start = QLineEdit()  # a section used alone; in the dock, the run's one start
         self.kind = QComboBox()
         self.kind.setToolTip("Where the rain comes from; only the chosen source's fields are shown")
         self.form.addRow("Rain source", self.kind)
@@ -180,6 +183,13 @@ class StormSection(Section):
         self._fill_kinds(False)
         self.kind.currentIndexChanged.connect(self._kind_changed)
         self._kind_changed()
+
+    def set_start_field(self, field) -> None:
+        """The run's one start, which the gridded rain and the rain gauges read (W99): the Simulation section's
+        field takes the place of the two "Run starts at" fields that sat here. A rain file is read again when it
+        changes, as it was for the field of the gridded rain."""
+        self.start = self.gauge_start = field
+        field.editingFinished.connect(self._reading_changed)
 
     def _add_page(self, kind: str, page: QWidget) -> None:
         self._page_of[kind] = self.pages.addWidget(page)
@@ -228,9 +238,6 @@ class StormSection(Section):
         self.period = number_box(1)
         self.period.setSpecialValueText("As in the file")
         self.stamp = QComboBox()
-        self.start = QLineEdit()
-        self.start.setPlaceholderText("Start of the first period")
-        self.start.setToolTip("Date and time the run starts at, as 2021-10-03 06:00; rain before it is left out")
         self.rain_label = _words("")
         form.addRow("Source", self.is_folder)
         form.addRow("Rain file", self.rain_file)
@@ -238,14 +245,12 @@ class StormSection(Section):
         form.addRow("Units", self.units)
         form.addRow("Period, min", self.period)
         form.addRow("A time with no period", self.stamp)
-        form.addRow("Run starts at", self.start)
         form.addRow(self.rain_label)
         self.is_folder.currentIndexChanged.connect(self._source_changed)
         self.rain_file.fileChanged.connect(self._file_changed)
         for signal in (self.variable.activated, self.units.activated, self.stamp.activated):
             signal.connect(self._reading_changed)
         self.period.editingFinished.connect(self._reading_changed)
-        self.start.editingFinished.connect(self._reading_changed)
         return page
 
     def _gauges_page(self) -> QWidget:
@@ -264,16 +269,12 @@ class StormSection(Section):
         self.gauge_values = QComboBox()
         for key, words in VALUE_WORDS.items():
             self.gauge_values.addItem(words, key)
-        self.gauge_start = QLineEdit()
-        self.gauge_start.setPlaceholderText("Start of the first period of rain")
-        self.gauge_start.setToolTip("Date and time the run starts at, as 2021-10-04 00:00, for records written with dates")
         form.addRow(_words(GAUGES_NOTE))
         form.addRow(self.gauge_table)
         form.addRow("Rain spread by", self.gauge_method)
         form.addRow("Search radius, m", self.gauge_radius)
         form.addRow("A gauge with no value", self.gauge_gaps)
         form.addRow("A rain CSV holds", self.gauge_values)
-        form.addRow("Run starts at", self.gauge_start)
         self.gauge_method.currentIndexChanged.connect(self._method_changed)
         self._method_changed()
         return page

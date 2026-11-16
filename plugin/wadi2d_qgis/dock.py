@@ -91,6 +91,7 @@ from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
 from .sections.run import RunSection
+from .sections.simulation import SimulationSection
 from .sections.storm import StormSection
 from .sections.structures import StructuresSection
 from .sections.study import StudySection
@@ -190,13 +191,22 @@ class Wadi2DDock(QgsDockWidget):
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
         self.gauges = GaugesSection(iface.mapCanvas())
+        self.simulation = SimulationSection()  # when, how long, the steps, the saved maps, the engine (W99 step 4)
+        self.storm.set_start_field(self.simulation.start)  # the run's one start, which these two read
+        self.gauges.set_start_field(self.simulation.start)
         self.panel = RunSection()
+        # the simulated time, the saved maps and the engine choice moved to Simulation: older dock checks reach them here
+        self.panel.duration, self.panel.maps, self.panel.backend = (
+            self.simulation.duration, self.simulation.maps, self.simulation.backend,
+        )  # fmt: skip
+        self.panel.chosen_backend = self.simulation.chosen_backend
+        self.panel.on_running = self.simulation.set_running
         self.study = StudySection()
         self.study_run: StudyRun | None = None
         self._study_dir: Path | None = None
         self.sections = (
             self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.gauges, self.panel, self.study,
+            self.gauges, self.simulation, self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -445,7 +455,7 @@ class Wadi2DDock(QgsDockWidget):
             except ValueError as error:  # what the import lacks, in the dock's words
                 failed(str(error))
                 return
-            for note in merge_notes(job, complete):
+            for note in merge_notes(job, complete, data):
                 say(note, "note")
             then(write_job(complete, out))
 
@@ -990,7 +1000,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.pixel_frames_button.setEnabled(False)
         self.panel.say("Starting the drawing process for this run...")
         self._slider_client = render_client.client_for(
-            self.results_dir, settings.engine_text(), self.panel.chosen_backend()
+            self.results_dir, settings.engine_text(), self.simulation.chosen_backend()
         )
         self._slider_timer.start(SLIDER_POLL_MS)
         self._slider_poll()
