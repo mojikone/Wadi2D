@@ -191,8 +191,9 @@ def _with_cn(basin: Basin, name: str, value: float) -> None:
 
 
 def with_curve_overrides(basin: Basin, cfg: RunConfig, crs: str = "") -> dict[str, float]:
-    """Set the CN of the lumped subbasins ``hydrology.cn_override`` reaches, in place; the CN taken, by name."""
-    o = cfg.hydrology.cn_override
+    """Set the CN of the lumped subbasins ``hydrology.cn_override`` reaches, in place; the CN taken, by name. A job
+    part without the field (a stand-in some callers build) means no override."""
+    o = getattr(cfg.hydrology, "cn_override", None)
     if o is None:
         return {}
     taken: dict[str, float] = {}
