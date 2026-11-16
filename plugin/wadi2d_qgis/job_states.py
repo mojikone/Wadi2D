@@ -354,6 +354,16 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     _put(widgets, "loss.rate", loss.get("rate_mm_h"))
     _put(widgets, "cn.box", hydrology.get("curve_number"))
     _put(widgets, "cn.raster", layer(terrain.get("cn_raster"), raster=True))
+    override = hydrology.get("cn_override") or {}
+    if override.get("by"):  # W101 item 2
+        widgets["cn_by"] = choice(override["by"])
+        _put(widgets, "cn_landuse", layer(override.get("land_use"), raster=True))
+        rows = {
+            "land_use": [[c["code"], c["curve_number"], c.get("name", "")] for c in override.get("classes") or []],
+            "range": [[r["low"], r["high"], r["curve_number"]] for r in override.get("ranges") or []],
+            "subbasin": [[b["name"], b["curve_number"]] for b in override.get("subbasins") or []],
+        }[override["by"]]
+        widgets["cn_table"] = rows
     return {"widgets": widgets, "extra": extra}
 
 
@@ -397,6 +407,16 @@ def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None
     _put(ground, "domain", layer(grid.get("domain")))
     _put(ground, "manning.box", terrain.get("manning"))
     _put(ground, "manning.raster", layer(terrain.get("manning_raster"), raster=True))
+    rough = terrain.get("roughness") or {}
+    if rough.get("form") in ("split", "land_use"):  # W101 item 2: the two forms the old fields cannot say
+        ground["manning_form"] = choice(rough["form"])
+        _put(ground, "manning.box", rough.get("n"))
+        _put(ground, "manning_aligned", rough.get("n_aligned"))
+        _put(ground, "rough_landuse", layer(rough.get("land_use"), raster=True))
+        if rough.get("classes"):
+            ground["rough_classes"] = [[c["code"], c["n"], c.get("name", "")] for c in rough["classes"]]
+    elif terrain.get("manning_raster"):
+        ground["manning_form"] = choice("grid")
     edges, design = inputs_dir / "boundaries.geojson", inputs_dir / "design_points.geojson"
     points = {}
     inline_design = next((name for name in ("design_lines", "design_points") if name in inline), None)

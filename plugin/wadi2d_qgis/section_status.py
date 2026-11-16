@@ -13,7 +13,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import NamedTuple
 
-from . import reduction_rows, table_rows
+from . import land_rows, reduction_rows, table_rows
 from .model_types import NEEDS_LUMPED, TWO_D, TYPES, UNUSED_LUMPED
 from .simulation_rows import STEPS_REVERSED, start_problem
 from .storm_rows import (
@@ -79,12 +79,16 @@ def terrain(
     domain: str | None,
     manning: float,
     manning_raster: str | None,
+    roughness: dict | None = None,
 ) -> Status:
     if dem is None or not has_file:
         return Status(MISSING, "Choose a DEM layer backed by a file.")
     if geographic:
         return Status(MISSING, "The DEM must be in a projected CRS, in metres.")
-    rough = f"Manning from {manning_raster}" if manning_raster else f"Manning {manning:g}"
+    found = land_rows.roughness_problems(roughness, True)  # the aligned cells are the Mesh section's to say
+    if found:
+        return Status(MISSING, found[0])
+    rough = land_rows.rough_words(roughness, manning, manning_raster)
     return Status(
         READY,
         join(f"DEM {dem}", f"cell {dx:g} m", f"domain {domain}" if domain else "current map extent", rough),

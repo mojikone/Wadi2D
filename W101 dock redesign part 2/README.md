@@ -1,4 +1,4 @@
-﻿# W101 dock redesign part 2
+# W101 dock redesign part 2
 
 **Status (2026-11-16): branch `feature/dock-redesign-2` off `feature/fast-products` (`75be51e`); not merged, nothing
 pushed. Built item by item under a usage ceiling (96 % of his 99 % when his item 7 was added): item 1 and item 7 (the
@@ -54,6 +54,22 @@ Rerun and passing: `test_storm_rows.py` 29, `test_job_builder.py` 47, `test_stud
 `test_section_status.py` 13, `test_model_types.py` 11, `test_job_states.py` 5 (two of its checks rewritten: the old
 widget names are gone). Through the real dock: `dock_rain.py`, see the table below.
 
+## Item 2: losses and roughness (built)
+
+- **Manning given as** (Terrain), four forms (`land_rows.py`): one value; squares and aligned cells apart (a second n
+  for the aligned cells, `terrain.roughness` form `split`, refused in words without the aligned cells); a grid of n;
+  land-use classes (a raster of class codes and a table of code, n and name, form `land_use`; the value above is what
+  a cell no class covers takes). Only the chosen form's fields show; a Lumped model shows none. **One value and a grid
+  write `terrain.manning` and `terrain.manning_raster` as the dock always did**, so an older model writes its job; a
+  model from before with a Manning raster opens as a grid (the raster's choice sets the form).
+- **CN override** (Hydrology, `hydrology.cn_override`): none; by land-use class (a raster and a table of code, CN,
+  name); by CN range (from, to, becomes; overlaps refused in words, as the engine refuses them); by subbasin (name,
+  CN). The table's columns follow the choice; written only when one is chosen.
+- Both come back from a job (`job_states`), both are in the sections' status words, and a missing table, a class
+  twice, overlapping ranges or an unnamed subbasin is Missing in words.
+- Tests: `tests/plugin/test_land_rows.py` 5 (each form's job taken by the engine's schema, one value and a grid the job
+  of before, the refusals, a job read back); the dock bounds a CN range above 0 as the engine does.
+
 ## Item 7: the map controls (his, added mid-task; built)
 
 His words of 2026-11-16, applied (`sections/run.py`, `window_links.py`, `window_rows.py`, `sections/terrain.py`):
@@ -95,6 +111,7 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | Scenario | What it proves | Passed |
 |---|---|---|
 | `dock_rain.py` | item 1: the sections in their places; Data tables (add, the next free name, a refused table Missing in words, rename, remove, both charts); six sources, the Steady rain's mm/h giving its job; SCS sets 24 h and refuses 6 h; a pattern by name carried into the job and filled in by the engine; a depth grid; the parts by model type; one area for both parts = the old form, parts that differ = `area_reduction`; the study's single-run area; **a real run on Bidah of a depth with a pattern of Data tables and the 2D part's own reduction, the engine's factor equal to the dock's**; saved and brought back to the same job; a format 2 model's steady rain and design storm moved, in words | 54 of 54 |
+| `dock_losses.py` | item 2: four Manning forms, each showing its own fields; one value the job of before; a raster makes it a grid and one value drops it; split refused without aligned cells; land-use classes Missing until its table is filled, then the job's roughness; Lumped shows no Manning; the CN override's forms and columns, overlapping ranges Missing, the job's override; saved and brought back to the same job; **a real Bidah run whose `config.resolved.json` holds the land-use Manning and the CN by range** | 24 of 24 |
 | `dock_import_block2.py` | his item: the four W79 jobs imported; for each the 48 h, the ARF at 100 km2 with its factor shown, the outflow lines with their slopes, the crest lines and spillways, the result lines, the aligned centre mesh; saved as scenarios in W102; **the job the dock writes, compared field by field with the original through the engine's schema: identical but for what is listed, and the dock's own comparison lists the same** | 46 of 46 |
 | `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
 | `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched**; the one depth threshold: 0.1 m, beside the map controls, no second field, the display cutoff the same, one change moving both, a format 3 model keeping the engine's floors, and **after the run no pixel of the depth map and no cell of the cell maps under 0.1 m** | 31 of 31 |

@@ -19,6 +19,7 @@ from .basin_point_rows import apply_delineate, delineate_field
 from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
 from .gauge_rows import gauge_problems, observed_records, rain_storm
+from .land_rows import cn_job, cn_problems, roughness_job, roughness_problems
 from .mesh_rows import reversed_note, rounded_note
 from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
@@ -281,6 +282,8 @@ def problems(values: dict) -> list[str]:
     hms = values.get("hms")
     found.extend(_rain_problems(values))
     found.extend(_reduction_problems(values))
+    found.extend(roughness_problems(values.get("roughness"), bool(values.get("strips"))))  # W101 item 2
+    found.extend(cn_problems(values.get("cn_override")))
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
     basin = values.get("basin")
@@ -621,6 +624,12 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     for key in ("manning_raster", "cn_raster"):
         if values.get(key):
             job["terrain"][key] = str(Path(values[key]).resolve())
+    rough = roughness_job(values.get("roughness"))
+    if rough is not None:  # squares and aligned apart, or land-use classes (W101 item 2): one value and a grid stay
+        job["terrain"]["roughness"] = rough  # terrain.manning and terrain.manning_raster, as the dock always wrote them
+    override = cn_job(values.get("cn_override"))
+    if override is not None:
+        job["hydrology"]["cn_override"] = override
     if values.get("fill_pits"):  # only a tick away from the engine's default: an old job stays the job it was
         job["terrain"]["fill_pits"] = True
     if values.get("exclude_lumped"):  # the same

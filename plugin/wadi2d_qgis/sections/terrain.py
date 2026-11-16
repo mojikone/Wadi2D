@@ -5,12 +5,14 @@
 from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel, QgsProject
-from qgis.PyQt.QtWidgets import QCheckBox
+from qgis.PyQt.QtWidgets import QCheckBox, QComboBox
 
 from .. import section_status
 from ..dem_choice import default_dem
 from ..job_builder import DX, FILL_PITS, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
+from ..land_rows import GRID, LAND, LAND_COLUMNS, ONE, ROUGH_WORDS, SPLIT
 from ..model_types import LUMPED
+from .class_table import ClassTable
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
 
 
@@ -22,11 +24,29 @@ class TerrainSection(Section):
         self.dem = layer_combo(QgsMapLayerProxyModel.RasterLayer, "Choose the DEM")  # W101: never a run's raster
         self.dx = number_box(2)
         self.domain = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "Current map extent")
+        self.manning_form = QComboBox()  # W101 item 2: Manning in its four forms (W96's terrain.roughness)
+        for key, words in ROUGH_WORDS.items():
+            self.manning_form.addItem(words, key)
         self.manning = ValueOrRaster(3, "Same value everywhere")
+        self.manning_aligned = number_box(3)
+        self.manning_aligned.setRange(0.008, 0.5)
+        self.manning_aligned.setValue(0.04)
+        self.manning_aligned.setToolTip("Manning n of the aligned cells along the streams; the squares take the value above")
+        self.rough_landuse = layer_combo(QgsMapLayerProxyModel.RasterLayer, "Choose the land-use raster")
+        self.rough_classes = ClassTable(*LAND_COLUMNS)
+        self.rough_classes.setToolTip("Manning n of each class of the land-use raster; a class found and not listed stops the run")
         self.form.addRow("DEM", self.dem)
         self.form.addRow("Cell size, m", self.dx)
         self.form.addRow("Domain", self.domain)
+        self.form.addRow("Manning given as", self.manning_form)
         self.form.addRow("Manning n", self.manning)
+        self.form.addRow("Manning n, aligned cells", self.manning_aligned)
+        self.form.addRow("Land-use raster", self.rough_landuse)
+        self.form.addRow(self.rough_classes)
+        self.manning_form.currentIndexChanged.connect(self._manning_shown)
+        self.manning.raster.layerChanged.connect(self._manning_raster_chosen)
+        self._lumped = False
+        self._manning_shown()
         self.fill_pits = QCheckBox("Fill pits: small deep holes of the terrain, to their spill level")
         self.form.addRow(self.fill_pits)
         self.dem.layerChanged.connect(self._dem_changed)
@@ -37,6 +57,37 @@ class TerrainSection(Section):
         """The DEM a run in the project was made on, or none: a layer picker would take the first raster, which in a
         project of results is a depth map (his fault of 2026-11-16)."""
         self.dem.setLayer(default_dem(QgsProject.instance()))
+
+    def _row(self, widget, on: bool) -> None:
+        widget.setVisible(on)
+        label = self.form.labelForField(widget)
+        if label is not None:
+            label.setVisible(on)
+
+    def _manning_shown(self, *_) -> None:
+        """Only the chosen form's fields; one value takes no raster, a grid its raster, the land use its table."""
+        form = self.manning_form.currentData()
+        shown = not self._lumped
+        self.manning.raster.setVisible(form == GRID)
+        if form == ONE and self.manning.raster.currentLayer() is not None:
+            self.manning.raster.setLayer(None)
+        self.manning.box.setEnabled(form != GRID or self.manning.raster.currentLayer() is None)
+        self._row(self.manning_form, shown)
+        self._row(self.manning, shown)
+        self._row(self.manning_aligned, shown and form == SPLIT)
+        self._row(self.rough_landuse, shown and form == LAND)
+        self.rough_classes.setVisible(shown and form == LAND)
+
+    def _manning_raster_chosen(self, layer) -> None:
+        """A raster chosen, or brought back by a model from before the forms: the form is a grid."""
+        if layer is not None and self.manning_form.currentData() == ONE:
+            self.manning_form.setCurrentIndex(self.manning_form.findData(GRID))
+
+    def roughness(self) -> dict:
+        return {
+            "form": self.manning_form.currentData(), "n": self.manning.value(), "n_aligned": self.manning_aligned.value(),
+            "land_use": raster_path(self.rough_landuse.currentLayer()) or "", "classes": self.rough_classes.rows(),
+        }  # fmt: skip
 
     def _dem_changed(self, layer) -> None:
         if layer is not None:
@@ -54,11 +105,10 @@ class TerrainSection(Section):
         reads none of them. Their values stay as they were, for the day the type has a 2D part again. A basin
         generated in Hydrology still reads Manning for its reaches (W101 README, found 1)."""
         lumped = kind == LUMPED
-        for widget in (self.dx, self.manning, self.fill_pits):
-            widget.setVisible(not lumped)
-            label = self.form.labelForField(widget)
-            if label is not None:
-                label.setVisible(not lumped)
+        self._lumped = lumped
+        for widget in (self.dx, self.fill_pits):
+            self._row(widget, not lumped)
+        self._manning_shown()
 
     def dem_layer(self):
         return self.dem.currentLayer()
@@ -73,6 +123,7 @@ class TerrainSection(Section):
             domain.name() if domain is not None else None,
             self.manning.value(),
             raster.name() if raster is not None else None,
+            self.roughness(),
         )
 
     def values(self, crs) -> dict:
@@ -85,7 +136,8 @@ class TerrainSection(Section):
             "pixel": layer.rasterUnitsPerPixelX(),
             "dx": self.dx.value(),
             "manning": self.manning.value(),
-            "manning_raster": self.manning.path(),
+            "manning_raster": self.manning.path() if self.manning_form.currentData() in (ONE, GRID) else None,
+            "roughness": self.roughness(),
             "fill_pits": self.fill_pits.isChecked() and self.fill_pits.isEnabled(),
         }
         if domain is not None:
