@@ -206,6 +206,45 @@ def test_a_strip_in_many_blocks_is_the_strip_in_one_to_the_digit(striped, tmp_pa
         np.testing.assert_array_equal(made[name], whole[name], err_msg=name)
 
 
+@pytest.mark.parametrize("case", ["wadi", "striped"])
+def test_cells_a_map_cannot_raise_are_left_unfilled_with_the_same_rasters(case, request, tmp_path, monkeypatch) -> None:
+    """W93: on the card a map's cell is filled only where the map may raise one of its pixels' maxima; the rasters
+    are those of filling every wet cell of every map, to the digit, in one block and in many."""
+    pytest.importorskip("cupy")
+    if array_module("auto") is np:
+        pytest.skip("no GPU")
+    cfg, tables, crs, run = request.getfixturevalue(case)
+    counts = []
+    real_init = PixelMaxima.__init__
+
+    def counted(self, *args, **kwargs):
+        real_init(self, *args, **kwargs)
+        counts.append(self)
+
+    made = {}
+    # each cut against the same cut filling every cell: on the card the squares' corner products are cuBLAS's,
+    # whose kernel, and so its last digit, changes with the number of cells a block holds (found in W93)
+    for skip, blocks_of in ((False, 0), (True, 0), (False, 8), (True, 8)):
+        folder = tmp_path / f"{skip}_{blocks_of}"
+        folder.mkdir()
+        (folder / "results.h5").write_bytes((run / "results.h5").read_bytes())
+        with monkeypatch.context() as patch:
+            if blocks_of:
+                _small_blocks(patch, blocks_of)
+            patch.setattr(PixelMaxima, "__init__", counted)
+            patch.setattr(PixelMaxima, "skip", skip, raising=False)
+            counts.clear()
+            make_products(cfg, tables, crs, folder, QUIET, "gpu")
+        made[(skip, blocks_of)] = _rasters(folder)
+        if skip and not blocks_of:
+            offered = sum(m.offered for m in counts)
+            assert 0 < sum(m.filled for m in counts) < offered, "some cells filled and some left alone"
+    for blocks_of in (0, 8):
+        for name in made[(True, blocks_of)]:
+            got, want = made[(True, blocks_of)][name], made[(False, blocks_of)][name]
+            np.testing.assert_array_equal(got, want, err_msg=f"{blocks_of} {name}")
+
+
 def test_a_try_that_does_not_fit_the_card_is_made_again_in_smaller_blocks(wadi, tmp_path, monkeypatch) -> None:
     pytest.importorskip("cupy")
     if array_module("auto") is np:

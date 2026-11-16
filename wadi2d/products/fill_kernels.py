@@ -41,14 +41,70 @@ extern "C" __global__ void masked_gap(const float* relief, const long long* rows
 }
 """
 
+RAISE_SOURCE = r"""
+// Whether a map may raise a cell's held maxima anywhere: the Newton fill walks down from start, the offset where
+// every pixel is wet, so no pixel is deeper than start - relief, and the speed at a pixel is a weighted mean of its
+// corners', never over their largest. Margins far over float32's rounding; a NaN anywhere asks for the fill.
+extern "C" __global__ void may_raise(const float* relief, const float* start, const float* top_speed,
+                                     const long long* on, const float* held_depth, const float* held_speed,
+                                     const float* held_dv, int* need, int pixels, float floor_depth) {
+    __shared__ int part[256];
+    long long r = blockIdx.x;
+    const float* own = relief + r * (long long)pixels;
+    long long at = on[r] * (long long)pixels;
+    float c = start[r];
+    float s = top_speed[r] * 1.00001f + 1e-7f;
+    int any = 0;
+    for (int j = threadIdx.x; j < pixels; j += blockDim.x) {
+        float b = c - own[j];
+        b = b + fabsf(b) * 1e-3f + 1e-3f;
+        if (!(b <= 0.0f)) {
+            if (!(b <= held_depth[at + j])) any = 1;
+            if (!(b < floor_depth)) {
+                if (!(s <= held_speed[at + j])) any = 1;
+                if (!(b * s * 1.00001f <= held_dv[at + j])) any = 1;
+            }
+        }
+    }
+    part[threadIdx.x] = any;
+    __syncthreads();
+    for (int k = blockDim.x / 2; k > 0; k >>= 1) {
+        if (threadIdx.x < k) part[threadIdx.x] |= part[threadIdx.x + k];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) need[r] = part[0];
+}
+"""
+
 _KERNEL: dict = {}
 
 
+def _function(xp, name: str):
+    if name not in _KERNEL:
+        module = xp.RawModule(code=SOURCE + RAISE_SOURCE, options=("--fmad=false",))
+        for each in ("masked_gap", "may_raise"):
+            _KERNEL[each] = module.get_function(each)
+    return _KERNEL[name]
+
+
 def _masked_gap(xp):
-    if "masked_gap" not in _KERNEL:
-        module = xp.RawModule(code=SOURCE, options=("--fmad=false",))
-        _KERNEL["masked_gap"] = module.get_function("masked_gap")
-    return _KERNEL["masked_gap"]
+    return _function(xp, "masked_gap")
+
+
+def may_raise(xp, relief, mean_depth, top_speed, on, held, floor_depth: float):
+    """Per cell of ``relief`` (its rows), whether this map may raise any of its pixels' three held maxima (W93):
+    the cells that cannot are not filled, and what they hold stays as it is, as the fill would have left it.
+    ``held`` are the batch's (depth, speed, depth x speed) arrays and ``on`` the rows of the cells in them."""
+    m, pixels = relief.shape
+    need = xp.zeros(m, xp.int32)
+    if m == 0:
+        return need.astype(bool)
+    start = (relief.mean(axis=1) + mean_depth).astype(xp.float32)
+    relief = xp.ascontiguousarray(relief)
+    depth, speed, dv = (xp.ascontiguousarray(a) for a in held)
+    args = (relief, start, xp.ascontiguousarray(top_speed, xp.float32), xp.ascontiguousarray(on, xp.int64))
+    _function(xp, "may_raise")((m,), (THREADS,), (*args, depth, speed, dv, need, np.int32(pixels), np.float32(floor_depth)))
+    return need.astype(bool)
 
 
 def newton_card(xp, relief, mean_depth, steps: int, tolerance: float):

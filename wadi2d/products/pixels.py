@@ -96,6 +96,9 @@ class Batch:
 class PixelMaxima:
     """Owns the maxima of one product step. Maps arrive as grids and are reduced to the kept cells at once."""
 
+    skip = True
+    """On the card, leave a map's cell unfilled where the map cannot raise any of its pixels' maxima (W93)."""
+
     def __init__(
         self, xp, cells: CellPixels, zmin, sill_x, sill_y, keep, rule: Pixels, flat: bool = False, ghosts=None
     ) -> None:
@@ -104,6 +107,8 @@ class PixelMaxima:
         self.tidy = True
         """Hand the device's unused memory back after every map. A block of a large run sets this off: its pool is
         capped by the block's own budget, and giving it back 193 times a block costs more than the maps (W86)."""
+        self.filled = self.offered = 0
+        """Cells of the maps filled, and offered for filling, while ``skip`` holds."""
         self.rows, self.cols = cells.rows, cells.cols
         order = None
         if ghosts is not None:
@@ -222,11 +227,32 @@ class PixelMaxima:
             if on.size == 0:
                 continue
             cells = on + batch.first
-            pixel_depth = fill_cells(xp, self._shape(levels, around, cells), _rows(xp, batch, on), h[cells])
-            pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
+            surface = self._shape(levels, around, cells)
             store = [xp.asarray(a) for a in batch.maxima]
-            new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed]
             whole = on.size == batch.last - batch.first  # every cell of the batch wet: no gather, no scatter (W93)
+            if xp is not np and moment and self.skip:
+                # a cell this map cannot raise anywhere is not filled (W93); the speed's product over every wet cell
+                # of the batch stays one product, as before, so its numbers do not move with the cells filled
+                from wadi2d.products.fill_kernels import may_raise
+
+                relief = _rows(xp, batch, on) - surface
+                top = xp.maximum(xp.maximum(speeds[0][cells], speeds[1][cells]), xp.maximum(speeds[2][cells], speeds[3][cells]))
+                need = xp.nonzero(may_raise(xp, relief, h[cells], top, on, store, rule.depth_floor))[0]
+                self.filled += int(need.size)
+                self.offered += int(on.size)
+                if need.size < on.size:
+                    if need.size:
+                        pixel_depth = fill_cells(xp, surface[need], _rows(xp, batch, on)[need], h[cells][need])
+                        speed_all = at_pixels(xp, speeds, cells, self.basis_t)
+                        pixel_speed = speed_all[need] * (pixel_depth >= rule.depth_floor)
+                        rows = on[need]
+                        for held, value in zip(store, [pixel_depth, pixel_speed, pixel_depth * pixel_speed], strict=True):
+                            held[rows] = xp.maximum(held[rows], value)
+                    batch.maxima = [self._rest(a) for a in store]
+                    continue
+            pixel_depth = fill_cells(xp, surface, _rows(xp, batch, on), h[cells])
+            pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
+            new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed]
             for held, value in zip(store[: 3 if moment else 2], new, strict=False):
                 if whole:
                     xp.maximum(held, value, out=held)
