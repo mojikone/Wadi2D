@@ -36,6 +36,7 @@ from ..job_builder import (
     hms_files,
     hms_subbasins,
 )
+from ..model_types import HYBRID_LUMPED, LUMPED, TWO_D
 from ..muskingum_rows import MUSKINGUM, ReachRow, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
 from .basin_rows import (
@@ -65,10 +66,14 @@ class HydrologySection(Section):
     """An HMS basin file was chosen: the dock asks the engine what its reservoirs route by (W75)."""
 
     def build(self) -> None:
+        self.lumped_box = QWidget()  # every row of the lumped part: a 2D model hides them in one go (W99)
+        lumped = QFormLayout(self.lumped_box)
+        lumped.setContentsMargins(0, 0, 0, 0)
+        lumped.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.folder = QgsFileWidget()
         self.folder.setStorageMode(QgsFileWidget.GetDirectory)
         self.folder.setDialogTitle("HEC-HMS project folder")
-        self.form.addRow("HMS project (optional)", self.folder)
+        lumped.addRow("HMS project (optional)", self.folder)
 
         self.hms_box = QWidget()
         hms = QFormLayout(self.hms_box)
@@ -98,30 +103,31 @@ class HydrologySection(Section):
         self.arf_by_element = QCheckBox("Each element at its own drainage area's area reduction (depth-area analysis)")
         hms.addRow(self.arf_by_element)
         self.lumped_only.toggled.connect(self._lumped_only_toggled)
-        self.form.addRow(self.hms_box)
+        lumped.addRow(self.hms_box)
         self.hms_box.hide()
 
         self.basin = BasinBox()
-        self.form.addRow(self.basin)
+        lumped.addRow(self.basin)
 
         self.table = QTableWidget(0, 2)
         self.table.setHorizontalHeaderLabels(["Subbasin", "Treated as"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().hide()
-        self.form.addRow(self.table)
+        lumped.addRow(self.table)
         self.table.hide()
 
         self.routing = QComboBox()
-        self.form.addRow("Reach routing", self.routing)
+        lumped.addRow("Reach routing", self.routing)
         self.muskingum = MuskingumBox()
-        self.form.addRow(self.muskingum)
+        lumped.addRow(self.muskingum)
         self.muskingum.hide()
         self._exclude_known = False
         self.exclude = QCheckBox("Leave the catchments the lumped network carries out of the 2D mesh")
-        self.form.addRow(self.exclude)
+        lumped.addRow(self.exclude)
 
         self.handbacks = HandbackBox()
-        self.form.addRow(self.handbacks)
+        lumped.addRow(self.handbacks)
+        self.form.addRow(self.lumped_box)
         self.loss = LossRow()
         self.form.addRow(self.loss)
 
@@ -160,6 +166,25 @@ class HydrologySection(Section):
         self.basin.apply_schema(schema)
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
+
+    def set_model_type(self, kind: str | None) -> None:
+        """What the model type leaves to choose here (W99). A 2D model has no lumped part. A type sets the HMS way
+        only and the catchments left out of the mesh, and Hybrid 2D the entry at the outlets: those three show only
+        where a real choice is left. The two ticks follow the type, so what they switch on and off follows too; the
+        entry keeps the user's choice for the day the type is Hybrid Lumped again (the job takes the type's,
+        ``model_types.apply_type``). With no type every row shows, as before."""
+        typed = kind is not None
+        self.lumped_box.setVisible(kind != TWO_D)
+        self.lumped_only.setVisible(not typed)
+        self.exclude.setVisible(not typed)
+        self.arf_by_element.setVisible(not typed or kind == LUMPED)
+        entry = not typed or kind == HYBRID_LUMPED
+        self.lumped_entry.setVisible(entry)
+        self.hms_box.layout().labelForField(self.lumped_entry).setVisible(entry)
+        if not typed:
+            return
+        self.lumped_only.setChecked(kind == LUMPED)
+        self.exclude.setChecked(kind == HYBRID_LUMPED)
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""

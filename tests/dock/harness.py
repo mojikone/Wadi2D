@@ -159,8 +159,13 @@ class Bidah:
         iface.mapCanvas().refresh()
 
 
-def open_dock():
-    """The plugin of this checkout; yields until the engine has answered. Use: ``dock = yield from h.open_dock()``."""
+def open_dock(all_sections=True):
+    """The plugin of this checkout; yields until the engine has answered. Use: ``dock = yield from h.open_dock()``.
+
+    Since W99 the dock opens on its start page. The checks written before it drive the sections directly, so by
+    default this leaves the start page as its "All sections, no model type" button does: every section showing and
+    a job that names no type, the dock those checks were written for. ``all_sections=False`` stays on the start page.
+    """
     sys.path.insert(0, str(REPO / "plugin"))
     import wadi2d_qgis
     from wadi2d_qgis import settings
@@ -174,6 +179,8 @@ def open_dock():
     current[0] = dock
     yield lambda: dock.schema is not None
     check("engine found", "ready" in dock.engine_label.text().lower(), dock.engine_label.text())
+    if all_sections and dock.types.page == "start":
+        dock.start_page.all_button.click()
     return dock
 
 

@@ -32,7 +32,7 @@ def refill(links, job: dict, run_folder: Path) -> list[str]:
         if unknown:  # this module names an input the section no longer has: say so, do not pass over it
             words.append(f"{section.heading}, inputs the dock no longer has: {', '.join(unknown)}")
         words += labelled(section, section.restore(state, add_missing=True))
-    dock.model_applied()
+    dock.model_applied((job.get("run") or {}).get("model_type"), infer=True)
     scratch = Path(tempfile.mkdtemp(prefix="wadi2d_open_run_"))
     try:
         rebuilt = json.loads(json.dumps(build_job(dock._collect(), scratch)))

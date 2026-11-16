@@ -26,8 +26,8 @@ MODEL_FILE = "model.wadi2d.json"
 SCENARIO_DIR = "scenarios"
 """Inside the model's folder (the Run section's output folder), as the generated basin's folder is."""
 SCENARIO_SUFFIX = ".wadi2d.json"
-MATTERS = ("model_type", "show_all", "simulation", "sections")
-"""What makes two documents the same model: not the stamp, not the plugin that wrote it."""
+MATTERS = ("model_type", "show_all", "sections")
+"""What makes two documents the same model: not the stamp, not the plugin that wrote it, not the page shown."""
 MIGRATIONS: dict = {}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"

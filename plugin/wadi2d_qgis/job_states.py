@@ -54,6 +54,8 @@ ROUNDING = 0.51 * 10.0**-COORDINATE_DECIMALS
 """How far a coordinate read back from an input file may stand from the job's own."""
 IGNORED = ("project.name", "grid.cache_dir")
 """Parts of a job that say where it was written, not what it is."""
+UNNAMED_TYPE = "run.model_type"
+"""A job from before the model types names none; the dock gives it the one it runs as, which is not a loss."""
 
 
 def layer(path: str | Path | None, raster: bool = False) -> dict | None:
@@ -338,7 +340,8 @@ def differing(a, b, path: str = "") -> list[str]:
 
 
 def lost(job: dict, run_folder: Path, rebuilt: dict, out: Path) -> list[str]:
-    paths = [p for p in differing(comparable(job, run_folder), comparable(rebuilt, out)) if p not in IGNORED]
+    ignored = IGNORED if "model_type" in (job.get("run") or {}) else (*IGNORED, UNNAMED_TYPE)
+    paths = [p for p in differing(comparable(job, run_folder), comparable(rebuilt, out)) if p not in ignored]
     if len(paths) > MOST_WORDS:
         paths = [*paths[:MOST_WORDS], f"and {len(paths) - MOST_WORDS} more"]
     return [f"these parts of the job, which stay as the dock has them: {', '.join(paths)}"] if paths else []
