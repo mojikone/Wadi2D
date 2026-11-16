@@ -50,6 +50,16 @@ class TypeLinks(QObject):
         self.page = PAGE_START
         self.refresh()
 
+    def show_model(self) -> None:
+        """The model page with the type as it is: a run the dock follows must be in sight."""
+        self.page = PAGE_MODEL
+        self.refresh()
+
+    @staticmethod
+    def fresh() -> dict:
+        """The parts of a new model: no type yet, on the start page."""
+        return {"model_type": None, "show_all": False, "page": PAGE_START}
+
     def open_run(self) -> None:
         """The start page's Open run: the model of the run, its type with it, and its results at hand."""
         self.dock.model.open_run(self.start.run_folder.filePath())
@@ -65,7 +75,7 @@ class TypeLinks(QObject):
         shown = sections_shown(self.kind, self.header.show_all.isChecked())
         for section in dock.sections:
             section.setVisible(section.key in shown)
-        dock.hydrology.set_model_type(self.kind)
+            section.set_model_type(self.kind)
 
     # The job
 

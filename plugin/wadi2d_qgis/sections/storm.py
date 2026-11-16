@@ -151,6 +151,7 @@ class StormSection(Section):
     heading = "4. Storm"
     key = "storm"
     state_rows = (("gauge_table", GaugeRow, "_show"),)
+    state_hold = ("variable",)  # the series of a rain file: the engine reads the file and answers later
     rain_file_changed = pyqtSignal()
     """The rain file or how it is read has changed: ask the engine what it holds."""
     preview_requested = pyqtSignal()

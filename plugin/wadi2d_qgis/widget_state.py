@@ -164,8 +164,9 @@ def read(widget):
     return [list(row) for row in widget.rows()]  # a pair table
 
 
-def write(widget, value, add_missing: bool = False) -> str:
-    """Set the widget; what could not be set, in words, or an empty string."""
+def write(widget, value, add_missing: bool = False, hold: bool = False) -> str:
+    """Set the widget; what could not be set, in words, or an empty string. ``hold`` is for a list the engine fills
+    later: the saved choice is put into the empty list, to be found there when the answer comes."""
     if isinstance(widget, QgsMapLayerComboBox):
         return _write_layer(widget, value, add_missing)
     if isinstance(widget, QgsFieldComboBox):
@@ -175,7 +176,7 @@ def write(widget, value, add_missing: bool = False) -> str:
         widget.setFilePath(value or "")
         return ""
     if isinstance(widget, QComboBox):
-        return _write_combo(widget, value)
+        return _write_combo(widget, value, hold)
     if isinstance(widget, (QGroupBox, QAbstractButton)):
         widget.setChecked(bool(value))
         return ""
@@ -207,7 +208,7 @@ def _write_layer(widget, saved, add_missing: bool) -> str:
     return added
 
 
-def _write_combo(widget, saved) -> str:
+def _write_combo(widget, saved, hold: bool = False) -> str:
     if not isinstance(saved, dict):
         saved = {"data": None, "text": "" if saved is None else str(saved)}
     data, text = saved.get("data"), saved.get("text") or ""
@@ -218,8 +219,8 @@ def _write_combo(widget, saved) -> str:
         widget.setCurrentText(text)
         return ""
     if (
-        index < 0 and text and widget.count() == 0
-    ):  # a list the engine fills later: hold the choice until it does
+        index < 0 and text and hold and widget.count() == 0
+    ):  # the engine has not answered yet: keep the choice
         widget.addItem(text)
         index = 0
     if index < 0:

@@ -46,6 +46,8 @@ class Section(QgsCollapsibleGroupBox):
     """The section's name in a saved model; never changed once a model has been saved with it."""
     state_skip: tuple[str, ...] = ()
     """Attribute paths left out of the saved model: another section's widgets, display settings kept elsewhere."""
+    state_hold: tuple[str, ...] = ()
+    """Paths of lists the engine fills after the section is restored: the saved choice waits in the empty list."""
     state_rows: tuple[tuple[str, type, str], ...] = ()
     """Tables of dataclass rows: (path of the object that holds ``rows``, the row class, its method that redraws)."""
 
@@ -69,7 +71,7 @@ class Section(QgsCollapsibleGroupBox):
             for path, widget in inputs(self, self.state_skip):
                 if path not in saved:
                     continue
-                text = write(widget, saved[path], add_missing)
+                text = write(widget, saved[path], add_missing, path in self.state_hold)
                 if text.startswith(NOTE):
                     news.append(text[len(NOTE) :])
                 elif last and text:
@@ -85,6 +87,9 @@ class Section(QgsCollapsibleGroupBox):
     def extra_state(self) -> dict:
         """What neither the walk nor ``state_rows`` reaches."""
         return {}
+
+    def set_model_type(self, kind: str | None) -> None:
+        """Show what a model of this type leaves to choose in the section; None is no type, everything."""
 
     def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
         return []

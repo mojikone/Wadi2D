@@ -315,6 +315,9 @@ class Wadi2DDock(QgsDockWidget):
     def model_parts(self) -> dict:
         return self.types.parts()
 
+    def fresh_parts(self) -> dict:
+        return self.types.fresh()
+
     def set_model_parts(self, doc: dict) -> None:
         self.types.set_parts(doc)
 
@@ -547,6 +550,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.say(f"Following the run in {Path(folder).name}.", "note")
         settings.set_last_run(folder)
         self.run.attach(folder)
+        self.types.show_model()  # not behind the start page (W99)
         return True
 
     def _follow(self, run: EngineRun) -> None:

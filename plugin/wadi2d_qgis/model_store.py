@@ -105,8 +105,12 @@ class ModelLinks(QObject):
             self.dock.set_model_parts(doc)
             for section in self.dock.sections:
                 state = doc["sections"].get(section.key)
-                if state is not None:
+                if state is None:
+                    continue
+                try:
                     words += labelled(section, section.restore(state, add_missing))
+                except (KeyError, TypeError, ValueError, AttributeError) as problem:  # a file edited by hand
+                    words.append(f"{section.heading}, its saved state could not be read ({problem})")
         finally:
             self._applying = False
         self.dock.model_applied()
@@ -116,7 +120,7 @@ class ModelLinks(QObject):
 
     def start(self) -> None:
         """The engine has answered and every section holds its defaults: from now on the model is kept."""
-        self._pristine = self.collect()
+        self._pristine = {**self.collect(), **self.dock.fresh_parts()}
         self._last = model_doc.fingerprint(self._pristine)
         self.ready = True
         self.restore_from_project()
@@ -187,6 +191,7 @@ class ModelLinks(QObject):
             except (OSError, ValueError) as problem:
                 self.bar.say(str(problem))
                 return
+            self.reset()
             words = self.apply(doc, add_missing=True)
             self.bar.say(outcome(f"The model of run {root.name} is in the dock.", words))
         elif job.is_file():
@@ -238,6 +243,7 @@ class ModelLinks(QObject):
         except (OSError, ValueError) as problem:
             self.bar.say(str(problem))
             return
+        self.reset()
         words = self.apply(doc, add_missing=True)
         name = Path(path).name[: -len(model_doc.SCENARIO_SUFFIX)]
         self.bar.say(outcome(f"Scenario {name} is in the dock.", words))
