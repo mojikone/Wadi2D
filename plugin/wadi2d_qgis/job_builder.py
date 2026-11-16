@@ -19,14 +19,26 @@ from .basin_point_rows import apply_delineate, delineate_field
 from .breach_rows import breach_jobs, breach_problems
 from .dam_rows import dam_problems, initial_problems, initial_water
 from .gauge_rows import gauge_problems, observed_records, rain_storm
+from .land_rows import cn_job, cn_problems, roughness_job, roughness_problems
 from .mesh_rows import reversed_note, rounded_note
 from .model_types import type_problems
 from .protocol import CACHE_DIR, INPUTS_DIR, JOB_FILE
+from .reduction_rows import curves_read, reduction_job, reduction_problems
 from .sections.basin_rows import basin_settings
 from .shaped import SHAPED_KINDS, TABLE, shaped_object, shaped_problems
 from .simulation_rows import LUMPED_REPLACES, simulation_problems
-from .storm_rows import KIND_GAUGES, storm_job, storm_notes, storm_problems, takes_hms_table
+from .storm_rows import (
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
+    KIND_DESIGN,
+    KIND_GAUGES,
+    storm_job,
+    storm_notes,
+    storm_problems,
+    takes_hms_table,
+)
 from .study_rows import AREA_KEY, line_area
+from .table_rows import CURVES, pattern_name, store_job, store_problems
 
 DX = "grid.dx"
 MANNING = "terrain.manning"
@@ -51,6 +63,7 @@ STRIPS_CELL_MIN = "strips.cell_min_m"
 STRIPS_CELL_MAX = "strips.cell_max_m"
 STRIPS_FRACTION = "strips.width_fraction"
 STRIPS_OUTSIDE = "strips.rows_outside"
+STRIPS_GORGE = "strips.gorge_rows"
 STRIPS_KEYS = ("cell_min_m", "cell_max_m", "width_fraction", "rows_outside")
 CORRIDOR_NOTE = (
     "A corridor of cells aligned with each pair of suggested banks: its rows span the wadi between the banks, the cell "
@@ -66,10 +79,13 @@ BREAK_CREST = "breaklines.crest_height_m"
 BREAK_DISC = "breaklines.disc_radius_m"
 BREAK_SLOPE = "breaklines.ground_slope_max"
 BREAK_OFFSET = "breaklines.bank_offset_cells"
+BREAK_SCARP = "breaklines.bank_scarp_m"
+BREAK_SLOPE_CAP = "breaklines.bank_slope"
+BREAK_CAP = "breaklines.bank_slope_cap"
 BREAK_KEYS = frozenset(
     {
         "bank_rise_m", "bank_reach_m", "bank_depth_m", "bank_offset_cells", "crest_height_m", "disc_radius_m",
-        "ground_slope_max", "bank_depth_map",
+        "ground_slope_max", "bank_depth_map", "bank_scarp_m", "bank_slope", "bank_slope_cap",
     }
 )  # fmt: skip
 """What the Mesh section's Suggest settings write into the job's ``breaklines`` section."""
@@ -96,6 +112,9 @@ LINES_NOTE = (
 )
 MAP_EVERY = "outputs.map_every_s"
 PIXELS_ON = "outputs.pixels.enabled"
+PIXEL_M = "outputs.pixels.pixel_m"
+DV_RASTER = "outputs.pixels.dv_raster"
+"""His item 7 (W101): the pixel of the maps of record and the depth x speed raster, each written only when set."""
 FILL_PITS = "terrain.fill_pits"
 EXCLUDE_LUMPED = "grid.exclude_lumped"
 """The 2D mesh leaves out the catchments the lumped network carries (W88)."""
@@ -266,6 +285,9 @@ def problems(values: dict) -> list[str]:
         found.append("Choose an output folder.")
     hms = values.get("hms")
     found.extend(_rain_problems(values))
+    found.extend(_reduction_problems(values))
+    found.extend(roughness_problems(values.get("roughness"), bool(values.get("strips"))))  # W101 item 2
+    found.extend(cn_problems(values.get("cn_override")))
     if hms and not all(hms.get(key) for key in HMS_KEYS):
         found.append("The HMS folder needs a basin, a meteorologic and a control file.")
     basin = values.get("basin")
@@ -278,6 +300,9 @@ def problems(values: dict) -> list[str]:
     dams = [row.name for row in values.get("dam_rows") or []]
     found.extend(breach_problems(values.get("breach_rows") or [], dams, values))
     found.extend(initial_problems(values.get("initial_water") or []))
+    unlevelled = [p["name"] for p in values.get("initial_points") or [] if not isinstance(p.get("level"), (int, float))]
+    if unlevelled:
+        found.append(f"Initial level points need a level: choose the field that holds it ({', '.join(unlevelled)}).")
     found.extend(boundary_problems(values))
     found.extend(type_problems(values))
     found.extend(simulation_problems(values))
@@ -331,6 +356,69 @@ def _rain_problems(values: dict) -> list[str]:
     if rain <= 0.0:
         return ["Set the rain, or choose an HMS project."]
     return [] if values.get("rain_hours", 0.0) > 0.0 else ["Set how many hours the rain lasts."]
+
+
+DEPTH_KINDS = (KIND_DEPTH, KIND_DEPTH_GRID)
+"""The storms that read a pattern by name (W101); a design storm of the old dict carries its rows as ``pattern``."""
+
+
+def _for_study(values: dict) -> bool:
+    """A depth-area study's job, or the check before one: the 2D part reads the study's areas (W101)."""
+    return bool(values.get("study") or values.get("for_study"))
+
+
+def _reduction_problems(values: dict) -> list[str]:
+    """The area reduction and the stored tables the storm reads (W101): a name Data tables does not hold, a curve or a
+    pattern the engine would refuse, a part set to what this run cannot read."""
+    storm = values.get("storm") or {}
+    kind = storm.get("kind")
+    store = values.get("data_tables") or {}
+    reduction = values.get("reduction")
+    found = []
+    if reduction is not None:
+        found += reduction_problems(
+            reduction, kind, store.get(CURVES, {}), study=_for_study(values), hms=bool(values.get("hms"))
+        )
+    if found:
+        return found
+    patterns = {pattern_name(storm.get("pattern"))} - {None} if kind in DEPTH_KINDS else set()
+    curves = curves_read(reduction, kind, _for_study(values)) if reduction is not None else set()
+    return store_problems(store, patterns, curves)
+
+
+def _design_table(values: dict) -> dict | None:
+    """The stored pattern of a depth storm when the design storm's own form holds it to the digit: percent of the
+    duration, cumulative, from 0 to 100 % of the depth; None otherwise."""
+    storm = values.get("storm") or {}
+    name = pattern_name(storm.get("pattern")) if storm.get("kind") == KIND_DEPTH else None
+    table = ((values.get("data_tables") or {}).get("patterns") or {}).get(name) if name else None
+    if not table or table.get("time_units", "percent") != "percent" or table.get("form", "cumulative") != "cumulative":
+        return None
+    t, d = table.get("time") or [], table.get("depth") or []
+    return table if len(t) >= 2 and t[0] == 0.0 and d[0] == 0.0 and t[-1] == 100.0 and d[-1] == 100.0 else None
+
+
+def _reduced(values: dict, job_storm: dict) -> tuple[dict, dict]:
+    """The storm block with what the area reduction adds, and the job's ``data_tables``: only the tables the storm
+    names. A depth whose pattern and reduction the design storm's form holds is written in that form (W101), so a job
+    of that form, read into the dock, writes itself again."""
+    storm = values.get("storm") or {}
+    kind = storm.get("kind")
+    store = values.get("data_tables") or {}
+    reduction = values.get("reduction")
+    curves_of = store.get(CURVES, {})
+    design = _design_table(values)
+    if design is not None and reduction is not None:
+        extra, curves = reduction_job(reduction, KIND_DESIGN, curves_of, _for_study(values))
+        if "area_reduction" not in extra:  # one reduction for every part: the design storm's form
+            shaped = {
+                "kind": KIND_DESIGN, "depth_mm": job_storm["depth_mm"], "duration_min": job_storm["duration_min"],
+                "time_percent": list(design["time"]), "depth_percent": list(design["depth"]), **extra,
+            }  # fmt: skip
+            return shaped, store_job(store, set(), curves)
+    extra, curves = reduction_job(reduction, kind, curves_of, _for_study(values)) if reduction else ({}, set())
+    patterns = {pattern_name(storm.get("pattern"))} - {None} if kind in DEPTH_KINDS else set()
+    return {**job_storm, **extra}, store_job(store, patterns, curves)
 
 
 def _structure_problems(structures: dict) -> list[str]:
@@ -478,7 +566,12 @@ def _boundary(feature: Feature) -> dict:
     elif kind == "normal" and value is not None:
         entry["slope"] = value
     elif kind == "flow":  # HEC-RAS's Flow Hydrograph line: the engine shares it by normal depth (W61)
-        entry["flow"] = {"file": feature.properties.get("file")}
+        if feature.properties.get("flows"):  # typed at a step in the dock (W101 item 3)
+            entry["flow"] = {"step_s": feature.properties["step_s"], "flows": list(feature.properties["flows"])}
+        else:
+            entry["flow"] = {"file": feature.properties.get("file")}
+        if feature.properties.get("slope") is not None:
+            entry["flow"]["slope"] = feature.properties["slope"]
         for key in ("momentum", "direction"):  # W70's two, written only where the table moved them off the default
             if feature.properties.get(key) is not None:
                 entry["flow"][key] = feature.properties[key]
@@ -489,10 +582,18 @@ def boundary_problems(values: dict) -> list[str]:
     """A flow line with no hydrograph file stops the run."""
     lines = values.get("boundaries") or []
     kinds = [getattr(f, "properties", {}) for f in lines]
-    missing = [n for n, p in enumerate(kinds, start=1) if p.get("kind") == "flow" and not p.get("file")]
+    missing = [n for n, p in enumerate(kinds, start=1) if p.get("kind") == "flow" and not p.get("file") and not p.get("flows")]
+    found = [
+        f"Boundary line {n}: a typed hydrograph needs a step above zero and two flows at least, none below zero."
+        for n, p in enumerate(kinds, start=1)
+        if p.get("flows") is not None and (len(p["flows"]) < 2 or p.get("step_s", 0.0) <= 0.0 or min(p["flows"]) < 0.0)
+    ]
     if not missing:
-        return []
-    return [f"Boundary line {', '.join(map(str, missing))}: a flow line needs its hydrograph file (CSV or DSS) in the table."]
+        return found
+    return found + [
+        f"Boundary line {', '.join(map(str, missing))}: a flow line needs its hydrograph, a file (CSV or DSS) or a table "
+        "typed at a step, in the table."
+    ]
 
 
 def _design_outputs(features: list[Feature]) -> dict:
@@ -543,6 +644,12 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     for key in ("manning_raster", "cn_raster"):
         if values.get(key):
             job["terrain"][key] = str(Path(values[key]).resolve())
+    rough = roughness_job(values.get("roughness"))
+    if rough is not None:  # squares and aligned apart, or land-use classes (W101 item 2): one value and a grid stay
+        job["terrain"]["roughness"] = rough  # terrain.manning and terrain.manning_raster, as the dock always wrote them
+    override = cn_job(values.get("cn_override"))
+    if override is not None:
+        job["hydrology"]["cn_override"] = override
     if values.get("fill_pits"):  # only a tick away from the engine's default: an old job stays the job it was
         job["terrain"]["fill_pits"] = True
     if values.get("exclude_lumped"):  # the same
@@ -563,7 +670,9 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if _uses_gauges(values):
         job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})
     elif values.get("storm"):
-        job["storm"] = storm_job(values["storm"])
+        job["storm"], tables = _reduced(values, storm_job(values["storm"]))  # the Area reduction, Data tables (W101)
+        if tables:
+            job["data_tables"] = tables
     elif not values.get("hms"):
         hours = values["rain_hours"]
         job["storm"] = {
@@ -582,6 +691,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["dam_levels"] = values["dam_levels"]
     if values.get("breach_rows"):
         job["breaches"] = breach_jobs(values["breach_rows"])
+    if values.get("initial_points"):  # W101 item 3: levels from points (W96)
+        job["initial_points"] = [dict(point) for point in values["initial_points"]]
     if values.get("initial_water"):
         write_geojson(inputs / "initial_water.geojson", values["initial_water"], crs)
         job["initial_levels"] = initial_water(values["initial_water"])
@@ -619,6 +730,15 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["outputs"]["pixels"] = {"enabled": False}
     elif values.get("smooth") is not None:  # only a choice away from the engine's default
         job["outputs"]["smooth"] = {"enabled": bool(values["smooth"])}
+    if values.get("pixels") is not False:  # his item 7 (W101): only what was set: an old job stays the job it was
+        chosen = {"pixel_m": values.get("map_pixel"), "dv_raster": True if values.get("dv_raster") else None}
+        chosen = {key: value for key, value in chosen.items() if value is not None}
+        if chosen:
+            job["outputs"]["pixels"] = {**job["outputs"].get("pixels", {}), **chosen}
+    if values.get("map_threshold") is not None:  # his one depth threshold for every map (W101)
+        floor = values["map_threshold"]
+        floors = {"depth_floor": floor, "hazard_depth_floor": floor, "cell_depth_floor": floor}
+        job["outputs"]["pixels"] = {**job["outputs"].get("pixels", {}), **floors}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
     if values.get("step_limiter"):
@@ -640,6 +760,12 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             "banks": str(Path(strips["banks"]).resolve()),
             **{key: strips[key] for key in STRIPS_KEYS if key in strips},
         }
+        if strips.get("generator") == "centres":  # only off the engine's default: an old job stays the job it was
+            job["strips"]["generator"] = "centres"
+        if strips.get("gorge_rows"):  # rows across a narrow gorge (W52), the centre mesh only (W101 item 4)
+            job["strips"]["gorge_rows"] = int(strips["gorge_rows"])
+    if values.get("stream_km2") is not None and "mesh" not in job:  # Suggest's streams without the quadtree (W101)
+        job["mesh"] = {"stream_area_mid_km2": values["stream_km2"]}
     if values.get("breaklines"):
         job["breaklines"] = _breaklines(values["breaklines"])
     return job
@@ -676,6 +802,20 @@ def preview_job(values: dict, out_dir: Path | str) -> dict:
     job = build_job({**values, **blank}, out_dir)
     job.pop("storm", None)
     job["run"] = {}
+    return job
+
+
+def domain_job(values: dict, out_dir: Path | str) -> dict:
+    """What ``wadi2d domain`` reads (W101 item 5): the terrain and its objects, the boundary lines as the edges kept as
+    drawn (their place only, so a flow line with no hydrograph yet does not stop it), and the generated basin's
+    delineation settings when the model has them, so the domain and the basin read the same streams (W97)."""
+    job = preview_job({**values, "basin": None, "handbacks": [], "transmission": None}, out_dir)  # no water
+    lines = [f.xy() for f in values.get("boundaries") or [] if getattr(f, "kind", "LineString") == "LineString"]
+    job["boundaries"] = [{"kind": "free", "coordinates": xy} for xy in lines if len(xy) > 1]
+    basin = values.get("basin") or {}
+    if basin.get("settings"):
+        job["basin"] = basin_settings(**basin["settings"])
+        apply_delineate(job["terrain"]["objects"], basin.get("delineate"))
     return job
 
 

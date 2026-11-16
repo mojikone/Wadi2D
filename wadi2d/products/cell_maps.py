@@ -89,8 +89,30 @@ def lattice_maps(fields: dict, zmin: np.ndarray) -> dict:
     }
 
 
-def write_cell_maps(folder: Path, maps: dict, grid, crs, tags, also: np.ndarray | None = None) -> None:
-    for name, (data, valid) in maps.items():
+FLOORED = ("max_depth", LEVEL, "max_speed", "hazard", "max_mean_depth")
+"""The cell maps a depth floor empties where the cell never reached it (W101); the arrival has its own depth."""
+
+
+def floored(maps: dict, floor: float | None) -> dict:
+    """The cell maps with a cell whose largest depth stays under ``floor`` made invalid in the floored ones; the same
+    maps when ``floor`` is None."""
+    if floor is None:
+        return maps
+    dry = maps["max_depth"][0] < floor
+    out = dict(maps)
+    for name in FLOORED:
+        if name in out:
+            data, valid = out[name]
+            out[name] = (data, ~dry if valid is None else (valid & ~dry))
+    return out
+
+
+def write_cell_maps(
+    folder: Path, maps: dict, grid, crs, tags, also: np.ndarray | None = None, floor: float | None = None
+) -> None:
+    """``floor``: a cell whose largest depth stays under it is left out of the floored maps (W101,
+    ``outputs.pixels.cell_depth_floor``); None keeps every cell, as before."""
+    for name, (data, valid) in floored(maps, floor).items():
         if valid is None and also is not None and name not in STRIP_FIELDS:
             valid = ~also  # a map the strip has no value for stays blank on its cells
         write_map(folder / f"{name}.tif", data, grid, crs, valid, tags, also)
@@ -119,4 +141,4 @@ def remake_cell_maps(run: Path, tables, crs) -> int:
     return int(where[0].size)
 
 
-__all__ = ["lattice_maps", "paint_strip", "remake_cell_maps", "strip_on_lattice", "write_cell_maps"]
+__all__ = ["floored", "lattice_maps", "paint_strip", "remake_cell_maps", "strip_on_lattice", "write_cell_maps"]

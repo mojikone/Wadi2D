@@ -1,0 +1,68 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 the two new sections in their places
+    5.2 PASS Data tables before Storm, Area reduction after it ['terrain', 'mesh', 'hydrology', 'tables', 'storm', 'reduction', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.2 PASS their titles ('3b. Data tables', '4b. Area reduction')
+    5.2 PASS each has a card and a step ['terrain', 'mesh', 'hydrology', 'tables', 'storm', 'reduction', 'structures', 'boundaries', 'points', 'gauges', 'simulation', 'run', 'study']
+    5.2 PASS an empty store is optional, in words Status(state='optional', words='None: patterns are uniform or an SCS type, and no area reduction reads a curve')
+    5.2 === 2 Data tables: a pattern and a curve, each with its chart
+    5.2 PASS the store holds both 
+    5.2 PASS the curve shown, drawn on log area ([1.0, 10.0, 100.0, 1000.0], True)
+    5.2 PASS status Ready, counted Status(state='ready', words='1 pattern · 1 curve')
+    5.2 PASS a second of the same name takes the next free one Block 2 2
+    5.2 PASS a table the engine would refuse makes the section Missing, in words Status(state='missing', words='Curve "Block 2 2": its areas must rise.')
+    5.2 PASS and says so under the table Curve "Block 2 2": its areas must rise.
+    5.2 PASS renamed in place 
+    5.2 PASS removed ['Block 2']
+    5.2 PASS the pattern drawn as the share fallen ([0.0, 25.0, 100.0], [0.0, 0.6, 1.0])
+    5.4 === 3 the rain sources
+    5.4 PASS six sources, the Steady rain retired ['fixed', 'depth', 'depth_grid', 'gridded', 'gauges', 'hyetograph']
+    5.4 PASS a fixed depth first 
+    5.4 PASS an older check's mm/h gives the job Steady rain wrote {'kind': 'uniform', 'depth_mm': 20.0, 'duration_min': 30.0}
+    5.4 PASS the Storm card says so Status(state='ready', words='Fixed depth 20 mm over 0.5 h, uniform')
+    5.4 PASS the patterns of Data tables are offered 
+    5.4 PASS an SCS curve sets 24 h 
+    5.8 PASS depth and SCS II: the engine takes it {'kind': 'depth', 'depth_mm': 157.0, 'duration_min': 1440.0, 'pattern': {'kind': 'scs', 'scs_type': 'II'}}
+    5.9 PASS an SCS curve over 6 h is refused in words ['An SCS pattern is the NRCS 24-hour curve: set the duration to 24 h, or choose a pattern of Data tables.']
+    5.9 PASS a pattern of Data tables: named, and carried {'patterns': {'Front loaded': {'time': [0.0, 25.0, 100.0], 'depth': [0.0, 60.0, 100.0]}}}
+    5.9 PASS the engine fills it in 
+    6.0 PASS a depth grid: its file, no pattern for uniform {'kind': 'depth_grid', 'depth_grid': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w101\\dock_rain\\data\\depth_50mm.tif', 'duration_min': 60.0}
+    6.0 === 4 the parts by model type
+    6.0 PASS 2d: lumped part hidden, 2D part shown (False, True)
+    6.0 PASS lumped: lumped part shown, 2D part hidden (True, False)
+    6.1 PASS hybrid_lumped: lumped part shown, 2D part shown (True, True)
+    6.1 PASS None: lumped part shown, 2D part shown (True, True)
+    6.1 PASS observed rain: the parts off, said No area reduction for this rain: it is the rain itself, at one area.
+    6.1 PASS its status Optional 
+    6.1 === 5 the job of each reduction
+    6.1 PASS the factor at the area shown, as the engine reads it ('Factor at 100 km2: 0.9130', (100.0, 0.913))
+    6.1 PASS one area for both parts: the single-storm form of before {'kind': 'uniform', 'depth_mm': 20.0, 'duration_min': 30.0, 'storm_area_km2': 100.0, 'arf': {'areas_km2': [1.0, 10.0, 100.0, 1000.0], 'factors': [1.0, 0.97, 0.913, 0.7]}}
+    6.1 PASS the lumped curve says what it reads 
+    6.1 PASS parts that differ: storm.area_reduction, the curve by name {'kind': 'uniform', 'depth_mm': 20.0, 'duration_min': 30.0, 'area_reduction': {'lumped': {'form': 'curve', 'curve': 'Block 2'}, 'grid': {'form': 'area', 'curve': 'Block 2', 'area_km2': 100.0}}}
+    6.2 PASS the study: refused for a single Run without its area, in words 
+    6.2 PASS a single Run reads the study's curve at its area {'lumped': {'form': 'curve', 'curve': 'Block 2'}, 'grid': {'form': 'area', 'curve': 'Block 2', 'area_km2': 74.3}}
+    6.2 PASS the study's job reads the curve itself 
+    6.2 PASS the 2D part's study areas shown 
+    6.3 PASS a coefficient of 0: Missing, in words Status(state='missing', words="The lumped part's coefficient lies above 0 and at most 1: 0.7 is a 30 % reduction.")
+    6.3 === 6 a real run: a depth with a pattern of Data tables, the 2D part's own reduction
+    6.4 dock says: Starting...
+    7.9 dock says: rain on the 2D part: every depth is multiplied by 0.9637, the curve 'Block 2' at 20 km2
+    8.4 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   29.8 PASS finished Finished. rain on the 2D part: every depth is multiplied by 0.9637, the curve 'Block 2' at 20 km2. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the
+   29.8 PASS the run's job: a depth, its pattern by name, the 2D part alone {'kind': 'depth', 'depth_mm': 40.0, 'duration_min': 30.0, 'pattern': {'kind': 'table', 'table': 'Front loaded'}, 'area_reduction': {'grid': {'form': 'area', 'curve': 'Block 2', 'area_km2': 20.0}}}
+   29.8 PASS the engine read the 2D factor the dock showed ([{'ev': 'output', 'kind': 'area_reduction', 'part': 'grid', 'form': 'area', 'curve': 'Block 2', 'storm_area_km2': 20.0, 'factor': 0.9636666666666667, 'arf_table_type': 'fixed-area'}], 0.9636666666666667)
+   29.8 PASS the model beside the job holds the store 
+   29.8 === 7 saved and brought back
+   29.9 PASS a reset empties the store 
+   29.9 PASS the same job after the round trip []
+   29.9 PASS the choices by name came back 
+   29.9 === 8 a model of format 2
+   30.0 PASS its steady rain opens as a fixed depth ('fixed', 20.0)
+   30.0 PASS said in words ['note: The constant rain of 40 mm/h for 0.5 h is now a fixed depth of 20 mm over 0.5 h with a uniform pattern, in Storm: the same rain, and the same job.']
+   30.0 PASS and writes the job it wrote ({'kind': 'uniform', 'depth_mm': 20.0, 'duration_min': 30.0}, {'kind': 'uniform', 'depth_mm': 20.0, 'duration_min': 30.0})
+   30.0 PASS a design storm opens as a depth with its pattern in Data tables ('depth', 'table:Design pattern')
+   30.0 PASS its area reduction as both parts at its area 
+   30.0 PASS said in words ['note: The design storm is now a Depth and pattern, in Storm: its pattern is the table "Design pattern" of Data tables, the same numbers. The job now names the storm kind depth with that pattern; the engine reads it as the old design storm to the digit (W95).
+   30.1 SUMMARY 54 passed, 0 failed 
+   30.1 DONE

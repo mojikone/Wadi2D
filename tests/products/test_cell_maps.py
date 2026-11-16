@@ -86,3 +86,18 @@ def test_a_run_without_a_strip_keeps_its_maps(tmp_path, tilted_dem) -> None:  # 
     band = _read(tmp_path / "run" / "maps" / "max_depth.tif")
     with h5py.File(tmp_path / "run" / "results.h5", "r") as f:
         np.testing.assert_array_equal(band, np.where(tables.grid.mask, f["maxima"]["depth"][:], NODATA).astype(np.float32))
+
+
+def test_a_depth_floor_leaves_shallow_cells_out_of_the_cell_maps() -> None:
+    """W101: the dock's one depth threshold (outputs.pixels.cell_depth_floor) empties every cell map where the cell's
+    largest depth stayed under it; without it every cell stays, as before."""
+    from wadi2d.products.cell_maps import FLOORED, floored, lattice_maps
+
+    depth = np.array([[0.0, 0.04, 0.1, 0.5]])
+    fields = {"depth": depth, "speed": depth * 2.0, "hazard": depth, "arrival": np.full_like(depth, 60.0), "mean_depth": depth}
+    maps = lattice_maps(fields, np.zeros_like(depth))
+    assert floored(maps, None) is maps
+    held = floored(maps, 0.1)
+    for name in FLOORED:
+        assert held[name][1].tolist() == [[False, False, True, True]], name
+    assert held["arrival"][1].tolist() == maps["arrival"][1].tolist()  # the arrival keeps its own depth

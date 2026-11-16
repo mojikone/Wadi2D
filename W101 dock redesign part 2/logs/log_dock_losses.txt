@@ -1,0 +1,34 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 Manning in four forms
+    5.2 PASS four forms ['uniform', 'split', 'grid', 'land_use']
+    5.2 PASS one value: the job of before 
+    5.2 PASS one value shows its number alone 
+    5.3 PASS a raster chosen makes it a grid, as a model from before opens 
+    5.3 PASS back to one value drops the raster 
+    5.3 PASS squares and aligned apart shows the aligned cells' n 
+    5.3 PASS and is refused without the aligned cells, in words 
+    5.3 PASS land-use classes with no table: Missing in words Status(state='missing', words='Fill the table of Manning n by land-use class.')
+    5.3 PASS land-use classes: the job's roughness {'form': 'land_use', 'land_use': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w101\\dock_losses\\data\\landuse_one.tif', 'classes': [{'code': 1, 'n': 0.05, 'name': 'the whole of it'}]}
+    6.0 PASS a Lumped model asks for no Manning in any form 
+    6.0 === 2 the CN override
+    6.0 PASS none and three forms ['none', 'land_use', 'range', 'subbasin']
+    6.1 PASS none: no table, no job part 
+    6.1 PASS by subbasin: two columns 
+    6.1 PASS by range: three columns, the raster hidden 
+    6.1 PASS overlapping ranges: Missing in words 
+    6.1 PASS by range: the job's override {'by': 'range', 'ranges': [{'low': 1.0, 'high': 100.0, 'curve_number': 90.0}]}
+    6.1 PASS the card says so Curve number 80 · CN override by cn range, 1 rows
+    6.2 === 3 saved and brought back
+    6.3 PASS the same job after the round trip 
+    6.3 PASS the forms came back 
+    6.3 === 4 a real run with both
+    6.3 dock says: Starting...
+    8.4 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+    8.9 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   25.0 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   25.0 PASS the engine read the land-use Manning 
+   25.0 PASS and the CN by range 
+   25.0 SUMMARY 24 passed, 0 failed 
+   25.0 DONE

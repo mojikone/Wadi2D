@@ -156,11 +156,33 @@ def design_lines(design: list) -> tuple[list[tuple[str, float]], list[str], int]
     return with_area, without, points
 
 
+REDUCED_STUDY_WORDS = (
+    "A study needs rain whose depth is reduced by area: in Storm, choose a fixed depth, a depth and pattern, a depth "
+    "grid or a gridded file, or the HMS project's storm; and set the 2D part of the Area reduction (4b) to By the "
+    "depth-area study."
+)
+
+
+def _reduced_problems(values: dict) -> list[str]:
+    """The study of the dock since W101: the storm and its Area reduction section."""
+    from .reduction_rows import GRID, REDUCED_KINDS, STUDY, STUDY_WANTS
+
+    storm = values.get("storm")
+    if storm is None and values.get("hms"):
+        return []
+    if storm is None or storm.get("kind") not in REDUCED_KINDS:
+        return [REDUCED_STUDY_WORDS]
+    grid = (values.get("reduction") or {}).get(GRID) or {}
+    return [] if grid.get("form") == STUDY else [STUDY_WANTS]
+
+
 def study_problems(values: dict) -> list[str]:
     """What stops a study beyond what stops a run, in plain words."""
     found = []
     storm = values.get("storm")
-    if (storm is None and not values.get("hms")) or (storm is not None and storm.get("kind") not in STUDY_KINDS):
+    if "reduction" in values:
+        found += _reduced_problems(values)
+    elif (storm is None and not values.get("hms")) or (storm is not None and storm.get("kind") not in STUDY_KINDS):
         found.append(STORM_WORDS)
     elif storm is not None and storm.get("arf_mode") == ARF_GIVEN:
         found.append(GIVEN_FACTOR_WORDS)
@@ -256,6 +278,11 @@ def study_table(values: dict) -> dict | None:
     storm = values.get("storm")
     if storm is None:
         return None
+    if "reduction" in values:  # the dock since W101: the 2D part's curve, of Data tables
+        from .reduction_rows import study_curve
+
+        curves = (values.get("data_tables") or {}).get("arf_curves", {})
+        return study_curve(values["reduction"], curves)
     rows = storm.get("arf") or []
     if not rows or (storm.get("kind") == KIND_GRID and not storm.get("arf_on")):
         return None

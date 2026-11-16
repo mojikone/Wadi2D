@@ -27,7 +27,6 @@ from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.PyQt.QtCore import QObject, QTimer
 
 from . import model_doc
-from .protocol import JOB_FILE
 from .widget_state import NOTE
 
 ENTRY_SCOPE = "Wadi2D"
@@ -41,6 +40,9 @@ ADDED = "On the way:"
 NO_FOLDER = "Choose the output folder in Run first: scenarios are kept inside it."
 NO_NAME = "Give the scenario a name."
 NO_RUN = "There is no run in this folder: it holds neither a saved model nor a job."
+NO_IMPORT_FOLDER = (
+    "Choose the output folder in Run first: the job's lines and polygons are written there, beside the model."
+)
 
 
 def plugin_version() -> str:
@@ -91,6 +93,9 @@ class ModelLinks(QObject):
         project.writeProject.connect(self._project_writing)
         self.bar.open_run_button.clicked.connect(lambda: self.open_run(self.bar.run_folder.filePath()))
         self.bar.save_button.clicked.connect(lambda: self.save_scenario(self.bar.scenario_name.text()))
+        self.bar.import_button.clicked.connect(self._choose_job)
+        self.comparison = None
+        """The last comparison of an imported job with the dock's: (words, what differs by section) (W101)."""
         self.bar.open_button.clicked.connect(lambda: self.open_scenario(self.bar.scenarios.currentData()))
         dock.panel.folder.fileChanged.connect(self.list_scenarios)
 
@@ -134,7 +139,8 @@ class ModelLinks(QObject):
 
     def restore_from_project(self) -> None:
         text, found = QgsProject.instance().readEntry(ENTRY_SCOPE, ENTRY_KEY, "")
-        if not found or not text:
+        if not found or not text:  # no saved model: the DEM of a run in the project, never a run's raster (W101)
+            self.dock.terrain.choose_default_dem()
             return
         try:
             doc = model_doc.loads(text)
@@ -203,7 +209,9 @@ class ModelLinks(QObject):
         if root is None or not root.is_dir():
             self.bar.say(NO_RUN)
             return
-        saved, job = root / model_doc.MODEL_FILE, root / JOB_FILE
+        from .job_import import find_job
+
+        saved, job = root / model_doc.MODEL_FILE, find_job(root)  # job.json, else the engine's config.resolved.json (W101)
         if saved.is_file():
             try:
                 doc = model_doc.read_doc(saved)
@@ -213,21 +221,74 @@ class ModelLinks(QObject):
             self.reset()
             words = self.apply(doc, add_missing=True)
             self.bar.say(outcome(f"The model of run {root.name} is in the dock.", words))
-        elif job.is_file():
+        elif job is not None:
             from .job_reader import refill
 
             try:
-                words = refill(self, json.loads(job.read_text(encoding="utf-8")), root)
+                original = json.loads(job.read_text(encoding="utf-8"))
+                words = refill(self, original, root)
             except (OSError, ValueError) as problem:
                 self.bar.say(f"The job of run {root.name} could not be read: {problem}")
                 return
-            first = f"Run {root.name} has no saved model: the dock holds what its job tells."
+            first = f"Run {root.name} has no saved model: the dock holds what its {job.name} tells."
             self.bar.say(outcome(first, words))
+            self._said_first = self.bar.message.text()
+            self.compare_job(original)
         else:
             self.bar.say(NO_RUN)
             return
         self.keep()
         self.dock.show_run(str(root))
+
+    # A job the dock did not write (W101)
+
+    def _choose_job(self) -> None:
+        from qgis.PyQt.QtWidgets import QFileDialog
+
+        path, _filter = QFileDialog.getOpenFileName(self.bar, "A job to import", self.model_folder(), "Jobs (*.json)")
+        if path:
+            self.import_job(path)
+
+    def import_job(self, path: str) -> list[str]:
+        """Fill the dock from a job file anywhere: its inline lines and polygons go into a GeoPackage in the output
+        folder, beside the model, and the output folder stays the model's. The comparison follows."""
+        from .job_reader import refill
+
+        folder = self.model_folder()
+        if not self.ready or not path:
+            return []
+        if not folder:
+            self.bar.say(NO_IMPORT_FOLDER)
+            return []
+        try:
+            original = json.loads(Path(path).read_text(encoding="utf-8"))
+            words = refill(self, original, Path(path).parent, folder)
+        except (OSError, ValueError) as problem:
+            self.bar.say(f"The job could not be read: {problem}")
+            return []
+        self.dock.panel.folder.setFilePath(folder)  # the model's folder, not the folder the job came from
+        self.bar.say(outcome(f"The job {Path(path).name} is in the dock.", words))
+        self.keep()
+        self._said_first = self.bar.message.text()
+        self.compare_job(original)
+        return words
+
+    def compare_job(self, original: dict) -> None:
+        """The job the dock writes now against ``original``: what it cannot hold yet, by section, in the Model box."""
+        from .job_reader import compare
+
+        self.comparison = None
+        self._compared = getattr(self, "_compared", 0) + 1
+        asked = self._compared
+        held = getattr(self, "_said_first", None) or self.bar.message.text()  # the import's own words, once
+
+        def done(words: list[str], found) -> None:
+            if asked != self._compared:  # a later comparison was asked for: this answer is out of date
+                return
+            self.comparison = (words, found)
+            self.bar.say(f"{held} {' '.join(text.rstrip('.') + '.' for text in words)}".strip())
+
+        compare(self, original, done)
 
     # Scenarios
 

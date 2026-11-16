@@ -30,6 +30,7 @@ from . import look, settings
 from .basin_layers import load_basin_layers
 from .basin_points import BasinPointsLinks
 from .check_layers import clear_terrain_checks, load_terrain_checks
+from .domain_links import DomainLinks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .gauge_rows import joined_gauges
@@ -48,8 +49,9 @@ from .job_builder import (
     write_job,
 )
 from .layer_groups import SLOT_BASIN, clear_slot, find_run_results, model_name
-from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
+from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_built_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
+from .mesh_kinds import built_words
 from .model_bar import ModelBar
 from .model_store import ModelLinks
 from .muskingum_query import MuskingumLinks
@@ -60,6 +62,7 @@ from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
     BASIN_DIR,
+    CACHE_DIR,
     COMPOSITE_DIR,
     EXIT_STOPPED,
     FRAMES_TIMEOUT_S,
@@ -72,7 +75,6 @@ from .protocol import (
     has_drawings,
     is_lumped_run,
     mesh_args,
-    mesh_text,
     next_run_dir,
     next_study_dir,
     parse_basin,
@@ -83,6 +85,8 @@ from .protocol import (
 from .rain_query import StormLinks
 from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
+from .results_links import ResultsLinks
+from .results_page import ResultsPage
 from .section_card import SectionCard
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
@@ -90,11 +94,13 @@ from .sections.gauges import GaugesSection
 from .sections.hydrology import HydrologySection
 from .sections.mesh import MeshSection
 from .sections.points import PointsSection
+from .sections.reduction import AreaReductionSection
 from .sections.run import RunSection
 from .sections.simulation import SimulationSection
 from .sections.storm import StormSection
 from .sections.structures import StructuresSection
 from .sections.study import StudySection
+from .sections.tables import DataTablesSection
 from .sections.terrain import TerrainSection
 from .start_page import ModelHeader, StartPage
 from .status_bars import Footer, StepStrip
@@ -114,6 +120,8 @@ from .study_rows import (
 )
 from .time_layer import has_frames, has_results, load_frames
 from .type_links import TypeLinks
+from .window_links import WindowLinks
+from .window_rows import tip_text
 
 LOG_TAG = "Wadi2D"
 LUMPED_RUN_NOTE = (
@@ -187,6 +195,8 @@ class Wadi2DDock(QgsDockWidget):
         self.hydrology = HydrologySection()
         self.storm = StormSection()
         self.hydrology.rain, self.hydrology.hours = self.storm.rain, self.storm.hours  # older dock checks reach them here
+        self.tables = DataTablesSection()  # named patterns and area-reduction curves (W101)
+        self.reduction = AreaReductionSection()  # the lumped and the 2D part of the area reduction (W101)
         self.structures = StructuresSection()
         self.boundaries = BoundariesSection()
         self.points = PointsSection()
@@ -205,8 +215,8 @@ class Wadi2DDock(QgsDockWidget):
         self.study_run: StudyRun | None = None
         self._study_dir: Path | None = None
         self.sections = (
-            self.terrain, self.mesh, self.hydrology, self.storm, self.structures, self.boundaries, self.points,
-            self.gauges, self.simulation, self.panel, self.study,
+            self.terrain, self.mesh, self.hydrology, self.tables, self.storm, self.reduction, self.structures,
+            self.boundaries, self.points, self.gauges, self.simulation, self.panel, self.study,
         )  # fmt: skip
 
         self.engine_label = QLabel("Looking for the engine...")
@@ -253,9 +263,13 @@ class Wadi2DDock(QgsDockWidget):
         model_column.addWidget(self.strip)
         model_column.addWidget(scroll, 1)
         model_column.addWidget(self.footer)
+        self.results_page = ResultsPage()  # W101 item 6: a finished run's elements, runs compared, maps and tools
+        for button in self.panel.tools:
+            self.results_page.tools.addWidget(button)
         self.pages = QStackedWidget()
         self.pages.addWidget(start_scroll)
         self.pages.addWidget(model_page)
+        self.pages.addWidget(self.results_page)
         frame = QWidget()
         frame.setObjectName(look.FRAME)
         frame.setAttribute(Qt.WA_StyledBackground, True)
@@ -268,6 +282,10 @@ class Wadi2DDock(QgsDockWidget):
 
         self.engine_button.clicked.connect(self.open_settings)
         self.hydrology.hms_changed.connect(self.storm.hms_changed)
+        self.hydrology.hms_changed.connect(self.reduction.set_hms)
+        self.storm.source_changed.connect(self.reduction.set_source)
+        self.tables.tables_changed.connect(self._tables_changed)
+        self.reduction.set_source(self.storm.kind.currentData())
         self.hydrology.basin.generate_requested.connect(self.generate_basin)
         self.basin_points = BasinPointsLinks(self)  # the Basin points layer and its clicks (W73)
         self._basin_query: EngineQuery | None = None
@@ -289,7 +307,7 @@ class Wadi2DDock(QgsDockWidget):
         self._slider_client = None
         self._slider_timer = QTimer(self)
         self._slider_timer.timeout.connect(self._slider_poll)
-        self.panel.lines_button.clicked.connect(self.result_lines)
+        self.panel.lines_button.clicked.connect(lambda: self.result_lines())
         self.panel.workbook_button.clicked.connect(self.dam_workbook)
         self.workbook_dialog = None
         self.study.start_button.clicked.connect(self.start_study)
@@ -308,6 +326,9 @@ class Wadi2DDock(QgsDockWidget):
         self.model = ModelLinks(self)  # the model saved with the project, in each run folder, as scenarios (W99)
         self.types = TypeLinks(self)  # the model type: the start page, the sections shown, the type in the job (W99)
         self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
+        self.window_links = WindowLinks(self)  # a window of a finished run at the DEM's pixel (W101, his item 7)
+        self.domain_links = DomainLinks(self)  # Terrain's domain from a rough outline (W101 item 5)
+        self.results_links = ResultsLinks(self)  # the results page (W101 item 6)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -373,12 +394,13 @@ class Wadi2DDock(QgsDockWidget):
         dem = self.terrain.dem_layer()
         pixel = dem.rasterUnitsPerPixelX() if dem is not None else 0.0
         self.mesh.set_finest(snap_dx(self.terrain.dx.value(), pixel))
+        self.panel.window_button.setToolTip(tip_text(pixel or None))
 
     def _set_ready(self, ready: bool) -> None:
         idle = self.run is None and self.study_run is None and self.drawing is None
         self.panel.run_button.setEnabled(ready and idle)
         self.panel.estimate_button.setEnabled(ready and idle)
-        self.mesh.preview_button.setEnabled(ready and idle and self.mesh.enabled.isChecked())
+        self.mesh.preview_button.setEnabled(ready and idle)  # Build mesh, on every kind (W101 item 4)
         self.study.start_button.setEnabled(ready and idle)
 
     def open_settings(self) -> None:
@@ -419,13 +441,22 @@ class Wadi2DDock(QgsDockWidget):
     def _collect(self) -> dict:
         return self.types.values(self.raw_values())  # the type's own values laid over the dock's (W99)
 
-    def _checked_values(self, say=None) -> dict | None:
+    def _tables_changed(self) -> None:
+        """Data tables changed: the patterns and curves the other sections choose by name follow (W101)."""
+        store = self.tables.store
+        self.storm.set_patterns(store["patterns"])
+        self.reduction.set_curves(store["arf_curves"])
+
+    def _checked_values(self, say=None, study: bool = False) -> dict | None:
+        """``study``: the check before a depth-area study, whose 2D part reads the study's areas (W101)."""
         say = say or self.panel.say
         try:
             values = self._collect()
         except LayerError as error:
             say(str(error), "bad")
             return None
+        if study:
+            values["for_study"] = True
         found = problems(values)
         if found:
             say(" ".join(found), "bad")
@@ -505,22 +536,30 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.estimate_label.setText(estimate_text(estimate))
         self._drop_scratch()
 
-    # Mesh preview.
+    # Build mesh: the cells a run would step, before any run, on every kind of mesh (W101 item 4).
 
     def preview_mesh(self) -> None:
-        values = self._checked_values()
+        say = lambda text, _tone="": self.mesh.summary.setText(text)  # noqa: E731 - the Mesh section speaks for itself
+        values = self._checked_values(say)
         if values is None:
             return
-        if not values.get("mesh"):
-            self.mesh.summary.setText("Tick the mesh first.")
-            return
         self.mesh.preview_button.setEnabled(False)
-        self.mesh.summary.setText("Reading the ground and the streams...")
+        self.mesh.summary.setText("Building the mesh: reading the ground and the streams...")
+        chosen = self.panel.folder.filePath()
         self._scratch = tempfile.mkdtemp(prefix="wadi2d_estimate_")
         values["output"] = self._scratch
-        self._safely(values, Path(self._scratch), self._run_mesh)
+        self._safely(values, Path(self._scratch), lambda job: self._run_mesh(job, chosen), self._mesh_failed, say)
 
-    def _run_mesh(self, job: Path) -> None:
+    def _mesh_failed(self, text: str) -> None:
+        self.mesh.summary.setText(text)
+        self.mesh.preview_button.setEnabled(self.schema is not None)
+        self._drop_scratch()
+
+    def _run_mesh(self, job: Path, chosen: str = "") -> None:
+        if chosen:  # the run's own cache: the DEM's store and the domain mask are read once for both (W84)
+            data = json.loads(job.read_text(encoding="utf-8"))
+            data["grid"]["cache_dir"] = str(Path(chosen).resolve().parent / CACHE_DIR)
+            job.write_text(json.dumps(data, indent=2), encoding="utf-8")
         folder = tempfile.mkdtemp(prefix="wadi2d_mesh_")
         self._mesh_folder_next = folder
         self._query = EngineQuery(settings.engine_text(), self)
@@ -528,20 +567,21 @@ class Wadi2DDock(QgsDockWidget):
         self._query.start(mesh_args(job, folder))
 
     def _meshed(self, code: int, out: str, err: str) -> None:
-        self.mesh.preview_button.setEnabled(self.schema is not None and self.mesh.enabled.isChecked())
+        self.mesh.preview_button.setEnabled(self.schema is not None)
         self._drop_scratch()
         event = parse_mesh(out) if code == 0 else None
         if event is None:
-            self.mesh.summary.setText(f"{exit_message(code)} {engine_error_text(err)}")
+            self.mesh.summary.setText(f"The mesh was not built. {exit_message(code)} {engine_error_text(err)}".strip())
             shutil.rmtree(self._mesh_folder_next, ignore_errors=True)
             return
         summary = json.loads(Path(event["summary"]).read_text(encoding="utf-8"))
         sizes = [float(size.split()[0]) for size in summary["tiles_by_size"]]
-        self._mesh_layer = show_mesh(event["raster"], sizes, model_name(self.panel.folder.filePath()))
+        shown = show_built_mesh(event, sizes, model_name(self.panel.folder.filePath()))
+        self._mesh_layer = shown[0] if shown else None
         if self._mesh_folder:
             shutil.rmtree(self._mesh_folder, ignore_errors=True)
         self._mesh_folder = self._mesh_folder_next
-        self.mesh.summary.setText(mesh_text(summary))
+        self.mesh.summary.setText(built_words(summary))
 
     def _drop_scratch(self) -> None:
         if self._scratch:
@@ -608,6 +648,8 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.frames_button.setEnabled(has_frames(folder))
             self.panel.pixel_frames_button.setEnabled(has_frames(folder))
             self.panel.lines_button.setEnabled(True)
+            self.panel.window_button.setEnabled(True)
+            self.panel.results_button.setEnabled(True)
         if folder and is_lumped_run(folder) and find_run_results(folder) is None:  # the HMS way: its network is the map
             load_network(folder, Path(folder).name)
             self.panel.say(LUMPED_RUN_NOTE, "note")
@@ -690,15 +732,19 @@ class Wadi2DDock(QgsDockWidget):
         dem = self.terrain.dem_layer()
         crs = dem.crs() if dem is not None else QgsProject.instance().crs()
         try:
-            return {**self.storm.values(crs), **self.points.values(crs)}
+            return {
+                **self.storm.values(crs), **self.reduction.values(crs), **self.tables.values(crs),
+                **self.points.values(crs),
+            }  # fmt: skip
         except LayerError:
             return None
 
     def start_study(self) -> None:
         box = self.study
-        values = self._checked_values(box.say)
+        values = self._checked_values(box.say, study=True)
         if values is None:
             return
+        values.pop("for_study", None)
         form = box.form_values()
         found = study_problems(values) + form_problems(form)
         if found:
@@ -875,6 +921,8 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.pixel_frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.lines_button.setEnabled(has_results(run.out_dir))
+        self.panel.window_button.setEnabled(has_results(run.out_dir))
+        self.panel.results_button.setEnabled(has_results(run.out_dir))
         if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
             self.line_panel.open_run(run.out_dir)
         if state.succeeded:
@@ -1028,12 +1076,14 @@ class Wadi2DDock(QgsDockWidget):
             return
         self.panel.say(slider_note(client.ready), "good")
 
-    def result_lines(self) -> None:
-        if self.results_dir is None:
+    def result_lines(self, run: Path | None = None, wanted: str | None = None) -> None:
+        """The Result lines panel on a run, the last finished one by default; ``wanted`` an element shown first."""
+        run = run or self.results_dir
+        if run is None:
             return
         if self.line_panel is None:
             self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
-        self.line_panel.open_run(self.results_dir)
+        self.line_panel.open_run(run, wanted)
 
     def dam_workbook(self) -> None:
         """The dam workbook dialog (W60), the last finished run as its first return period."""

@@ -812,6 +812,14 @@ class Pixels(_Part):
     depth_floor: float = Field(
         0.05, ge=0.0, le=10.0, description="Below this a pixel is dry and takes no class, m"
     )
+    cell_depth_floor: float | None = Field(
+        None,
+        ge=0.0,
+        le=10.0,
+        description="Below this largest depth a cell is left out of the cell maps (maps/: depth, level, speed, hazard, "
+        "mean depth), m, as depth_floor leaves a pixel dry; None keeps every cell that was ever wet, as before it "
+        "(W101: the dock's one depth threshold for the maps writes it with depth_floor and hazard_depth_floor)",
+    )
     hazard_depth_floor: float = Field(
         0.1,
         ge=0.0,

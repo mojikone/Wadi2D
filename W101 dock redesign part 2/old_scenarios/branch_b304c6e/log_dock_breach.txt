@@ -1,0 +1,24 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\head3\plugin\wadi2d_qgis\__init__.py
+    5.3 PASS engine found Engine ready.
+    5.6 === 1 the row: added on the named dam, each field a widget
+    5.6 PASS no breach until one is added 
+    5.6 PASS one row, on the named dam [BreachRow(dam='Bidah dam', mode='overtopping', bottom_z=None, width_m=None, slope=1.0, formation_min=None, progression='linear', trigger='level', value=None, held_min=None, piping_z=None)]
+    5.6 PASS the dam's names are the table's 
+    5.6 PASS held and pipe off for a level-started overtopping 
+    5.6 PASS an empty row is stopped in words ['Breach of Bidah dam: type the final bottom, the bottom width, the formation time, the pool level.']
+    5.8 === 2 refused on the mesh, in the engine's words, before any run
+    5.8 PASS the mesh refuses the breach ['A dam breach runs on the uniform grid in this version: untick the mesh refinement or the breach.', 'A dam breach is not tested with local time stepping: switch it off or remove the breach.']
+    5.8 PASS ticking the mesh ticked local steps, which stays refused ['A dam breach is not tested with local time stepping: switch it off or remove the breach.']
+    5.8 PASS off the mesh and local steps, nothing stops it []
+    5.8 === 3 the breach runs
+    5.9 dock says: Starting...
+    8.5 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    9.0 dock says: dam Bidah dam: the pool on the grid starts at 100 m, 1810 cells, 3,832,907 m3
+   53.2 PASS the run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   53.2 PASS the job carries the row in the engine's units [{'dam': 'Bidah dam', 'mode': 'overtopping', 'bottom_z': 90.0, 'bottom_width_m': 40.0, 'left_slope': 1.0, 'right_slope': 1.0, 'formation_time_s': 600.0, 'progression': 'linear', 'trigger': 'time', 'trigger_time_s': 180.0}]
+   53.2 breach events: [{'ev': 'breach', 'dam': 'Bidah dam', 'event': 'start', 't': 180.0}, {'ev': 'breach', 'dam': 'Bidah dam', 'event': 'formed', 't': 780.0}]
+   53.2 PASS the breach started and formed ['', '']
+   53.2 PASS its series is written ['breach_Bidah dam.csv']
+   53.2 SUMMARY 14 passed, 0 failed 
+   53.2 DONE

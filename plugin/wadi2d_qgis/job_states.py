@@ -22,15 +22,14 @@ from .protocol import INPUTS_DIR
 from .shaped import END_KEYS, SHAPED_KINDS, TABLE
 from .simulation_rows import NUMERIC_KEYS, STEP_AUTO, STEP_FIXED, fixed_step
 from .storm_rows import (
-    ARF_AREA,
-    ARF_GIVEN,
-    ARF_NONE,
+    KIND_DEPTH,
+    KIND_DEPTH_GRID,
     KIND_DESIGN,
+    KIND_FIXED,
     KIND_GAUGES,
     KIND_GRID,
     KIND_STEADY,
     KIND_TABLE,
-    SOURCE_SINGLE,
 )
 from .study_rows import AREA_KEY
 
@@ -45,6 +44,7 @@ PLAIN_KINDS = {
 BREAKLINE_BOXES = {
     "bank_rise": "bank_rise_m", "bank_reach": "bank_reach_m", "bank_depth": "bank_depth_m", "bank_offset": "bank_offset_cells",
     "crest_height": "crest_height_m", "crest_disc": "disc_radius_m", "crest_slope": "ground_slope_max",
+    "bank_scarp": "bank_scarp_m", "bank_slope": "bank_slope", "bank_slope_cap": "bank_slope_cap",
 }  # fmt: skip
 CORRIDOR_BOXES = {
     "corridor_cell_min": "cell_min_m", "corridor_cell_max": "cell_max_m", "corridor_fraction": "width_fraction",
@@ -60,16 +60,25 @@ UNNAMED_TYPE = "run.model_type"
 
 
 def layer(path: str | Path | None, raster: bool = False) -> dict | None:
-    """A layer named by its file alone, for the sections to find in the project or add to it."""
+    """A layer named by its file alone, for the sections to find in the project or add to it; a GeoPackage's layer by
+    its ``path|layername=name`` source and that name (W101)."""
     if not path:
         return None
-    path = Path(path)
+    source = str(path)
+    name = source.split("|layername=")[1] if "|layername=" in source else Path(source).stem
     return {
         "id": None,
-        "source": str(path),
-        "name": path.stem,
+        "source": source,
+        "name": name,
         "provider": RASTER_PROVIDER if raster else "ogr",
     }
+
+
+def _inline(gpkg, held: dict, name: str):
+    """The GeoPackage layer that holds a job's inline geometry of this name, or None (W101)."""
+    from .job_import import layer_source
+
+    return layer(layer_source(gpkg, name)) if gpkg is not None and name in held else None
 
 
 def choice(data) -> dict:
@@ -95,42 +104,110 @@ def _put(widgets: dict, path: str, value) -> None:
         widgets[path] = value
 
 
-def _arf(storm: dict, widgets: dict) -> None:
-    if "arf_factor" in storm:
-        widgets["arf_mode"], widgets["arf_factor"] = choice(ARF_GIVEN), storm["arf_factor"]
-    elif "storm_area_km2" in storm:
-        table = storm.get("arf") or {}
-        widgets["arf_mode"], widgets["storm_area"] = choice(ARF_AREA), storm["storm_area_km2"]
-        widgets["arf"] = [
-            list(pair) for pair in zip(table.get("areas_km2", []), table.get("factors", []), strict=False)
-        ]
+DESIGN_PATTERN, ARF_CURVE, HMS_TABLE = "Design pattern", "Area reduction", "(hms)"
+
+
+def _part(reduction: dict, which: str, entry: dict | None) -> None:
+    """One part of ``storm.area_reduction`` as the Area reduction section's widgets (W101)."""
+    if entry is None:
+        reduction[f"{which}.form"] = choice("none")
+        return
+    form = entry.get("form")
+    if form == "coefficient":
+        reduction[f"{which}.form"], reduction[f"{which}.coefficient"] = choice("coefficient"), entry.get("coefficient")
+        return
+    name = entry.get("curve") or ARF_CURVE
+    reduction[f"{which}.curve"] = choice(name)
+    if form == "area":
+        reduction[f"{which}.form"], reduction[f"{which}.area"] = choice("area"), entry.get("area_km2")
+    elif which == "grid":  # a 2D curve: the depth-area study's
+        reduction[f"{which}.form"] = choice("study")
     else:
-        widgets["arf_mode"] = choice(ARF_NONE)
+        reduction[f"{which}.form"] = choice("curve")
 
 
-def _storm(storm: dict) -> dict:
-    """The Storm section's state for the storm kinds the dock itself writes; another kind is left to the comparison."""
+def _reduction(storm: dict, store: dict) -> dict:
+    """The Area reduction section's widgets from a job's storm, the curves it reads put into ``store`` (W101)."""
+    widgets: dict = {}
+    split = storm.get("area_reduction")
+    if split:
+        for which in ("lumped", "grid"):
+            _part(widgets, which, split.get(which))
+        return widgets
+    if storm.get("arf_factor") is not None:  # a resolved job writes the key out as null (W101)
+        for which in ("lumped", "grid"):
+            _part(widgets, which, {"form": "coefficient", "coefficient": storm["arf_factor"]})
+    elif storm.get("storm_area_km2") is not None:
+        table = storm.get("arf")
+        name = HMS_TABLE
+        if table:
+            name = ARF_CURVE
+            store["arf_curves"][name] = {
+                "areas_km2": list(table.get("areas_km2", [])), "factors": list(table.get("factors", [])),
+                "reduces_below_table": table.get("reduces_below_table", True),
+                **({"table_type": table["table_type"]} if table.get("table_type", "fixed-area") != "fixed-area" else {}),
+            }  # fmt: skip
+        for which in ("lumped", "grid"):
+            _part(widgets, which, {"form": "area", "curve": name, "area_km2": storm["storm_area_km2"]})
+    return widgets
+
+
+def _tables(job: dict) -> dict:
+    """The job's ``data_tables`` as the Data tables section holds them."""
+    held = job.get("data_tables") or {}
+    store: dict = {"patterns": {}, "arf_curves": {}}
+    for name, table in (held.get("patterns") or {}).items():
+        store["patterns"][name] = {
+            "time": list(table["time"]), "depth": list(table["depth"]),
+            "time_units": table.get("time_units", "percent"), "form": table.get("form", "cumulative"),
+        }  # fmt: skip
+    for name, table in (held.get("arf_curves") or {}).items():
+        store["arf_curves"][name] = {
+            "areas_km2": list(table["areas_km2"]), "factors": list(table["factors"]),
+            "reduces_below_table": table.get("reduces_below_table", True),
+        }  # fmt: skip
+    return store
+
+
+def _pattern_choice(pattern: dict | None) -> dict:
+    if not pattern or pattern.get("kind") == "uniform":
+        return choice("uniform")
+    if pattern.get("kind") == "scs":
+        return choice(f"scs:{pattern.get('scs_type')}")
+    return choice(f"table:{pattern.get('table')}")
+
+
+def _storm(storm: dict, store: dict) -> dict:
+    """The Storm section's state for the storm kinds the dock itself writes; another kind is left to the comparison.
+    A design storm of a run from before W101 comes back as a depth with its pattern put into ``store``."""
     widgets: dict = {}
     rows: dict = {}
     kind = storm.get("kind")
+    hours = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
     if kind == KIND_STEADY:
-        hours = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
-        widgets.update(kind=choice(SOURCE_SINGLE), single=choice(KIND_STEADY), hours=hours)
-        widgets["rain"] = storm.get("depth_mm", 0.0) / hours if hours > 0.0 else 0.0
+        widgets.update(kind=choice(KIND_FIXED), hours=hours, fixed_depth=storm.get("depth_mm", 0.0))
     elif kind == KIND_TABLE:
         table = zip(storm.get("hyetograph_min", []), storm.get("hyetograph_mm", []), strict=False)
-        widgets.update(
-            kind=choice(SOURCE_SINGLE), single=choice(KIND_TABLE), hyetograph=[list(pair) for pair in table]
-        )
+        widgets.update(kind=choice(KIND_TABLE), hyetograph=[list(pair) for pair in table])
     elif kind == KIND_DESIGN and "time_percent" in storm:
-        pattern = zip(storm["time_percent"], storm.get("depth_percent", []), strict=False)
+        store["patterns"][DESIGN_PATTERN] = {
+            "time": list(storm["time_percent"]), "depth": list(storm.get("depth_percent", [])),
+            "time_units": "percent", "form": "cumulative",
+        }  # fmt: skip
         widgets.update(
-            kind=choice(KIND_DESIGN),
-            design_depth=storm.get("depth_mm"),
-            pattern=[list(pair) for pair in pattern],
-        )
-        widgets["design_hours"] = storm.get("duration_min", 0.0) / MINUTES_PER_HOUR
-        _arf(storm, widgets)
+            kind=choice(KIND_DEPTH), depth_mm=storm.get("depth_mm"), depth_hours=hours,
+            depth_pattern=choice(f"table:{DESIGN_PATTERN}"),
+        )  # fmt: skip
+    elif kind == KIND_DEPTH:
+        widgets.update(
+            kind=choice(KIND_DEPTH), depth_mm=storm.get("depth_mm"), depth_hours=hours,
+            depth_pattern=_pattern_choice(storm.get("pattern")),
+        )  # fmt: skip
+    elif kind == KIND_DEPTH_GRID:
+        widgets.update(
+            kind=choice(KIND_DEPTH_GRID), depth_raster=layer(storm.get("depth_grid"), raster=True), grid_hours=hours,
+            grid_pattern=_pattern_choice(storm.get("pattern")),
+        )  # fmt: skip
     elif kind == KIND_GRID:
         source = storm.get("rain_file", "")
         widgets.update(
@@ -147,7 +224,6 @@ def _storm(storm: dict) -> dict:
         widgets["variable"] = {"data": None, "text": storm.get("rain_variable", "")}
         widgets["stamp"] = choice(storm.get("rain_stamp"))
         widgets["period"] = storm.get("rain_interval_min", 0.0)
-        _arf(storm, widgets)
     elif kind == KIND_GAUGES:
         spread = storm.get("gauges") or {}
         widgets.update(
@@ -167,14 +243,20 @@ def _storm(storm: dict) -> dict:
     return {"widgets": widgets, "rows": rows}
 
 
-def _structures(job: dict, inputs_dir: Path) -> dict:
+def _structures(job: dict, inputs_dir: Path, gpkg=None, inline: dict | None = None) -> dict:
     widgets: dict = {}
+    inline = inline or {}
     objects = job.get("terrain", {}).get("objects", [])
     for kind, keys in PLAIN_KINDS.items():
         path = inputs_dir / f"{kind}.geojson"
         if path.is_file():
             held = _properties(path)
             widgets[f"layers.{kind}"] = layer(path)
+            for key in keys:
+                _put(widgets, f"fields.{kind}.{key}", key if key in held else None)
+        elif _inline(gpkg, inline, kind) is not None:  # a job written elsewhere: its objects inline (W101)
+            held = {k for _xy, props in inline[kind]["features"] for k, v in props.items() if v is not None}
+            widgets[f"layers.{kind}"] = _inline(gpkg, inline, kind)
             for key in keys:
                 _put(widgets, f"fields.{kind}.{key}", key if key in held else None)
     for kind in SHAPED_KINDS:
@@ -193,6 +275,11 @@ def _structures(job: dict, inputs_dir: Path) -> dict:
     ponds = inputs_dir / "initial_water.geojson"
     if ponds.is_file():
         widgets["start_water.ponds"], widgets["start_water.pond_level"] = layer(ponds), "level"
+    elif _inline(gpkg, inline, "initial_water") is not None:
+        widgets["start_water.ponds"], widgets["start_water.pond_level"] = _inline(gpkg, inline, "initial_water"), "level"
+    if _inline(gpkg, inline, "initial_points") is not None:  # W101 item 3
+        widgets["start_water.points"] = _inline(gpkg, inline, "initial_points")
+        widgets["start_water.point_level"], widgets["start_water.point_name"] = "level", "name"
     widgets["terrain_map"] = bool(job.get("outputs", {}).get("terrain_map"))
     dams = []
     for entry in job.get("dam_levels") or []:
@@ -218,6 +305,8 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
         ("mid_area", "stream_area_mid_km2"),
     ):
         _put(widgets, box, mesh.get(key))
+    if not mesh.get("enabled"):  # Suggest's streams without the quadtree (W101 item 4)
+        _put(widgets, "stream_area", mesh.get("stream_area_mid_km2"))
     lines = inputs_dir / "mesh_lines.geojson"
     if lines.is_file():
         widgets["lines.layer"] = layer(lines)
@@ -226,9 +315,11 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
         _put(widgets, box, breaks.get(key))
     _put(widgets, "bank_depth_layer", layer(breaks.get("bank_depth_map"), raster=True))
     widgets["corridors"] = bool(strips.get("enabled"))
+    _put(widgets, "corridor_generator", choice(strips["generator"]) if strips.get("generator") else None)
     _put(widgets, "corridor_layer", layer(strips.get("banks")))
     for box, key in CORRIDOR_BOXES.items():
         _put(widgets, box, strips.get(key))
+    _put(widgets, "gorge_rows", strips.get("gorge_rows"))
     return {"widgets": widgets}
 
 
@@ -238,8 +329,15 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     hydrology, terrain, run = job.get("hydrology") or {}, job.get("terrain") or {}, job.get("run") or {}
     hms = hydrology.get("hms_basin")
     if hms:
+        from .job_import import hms_choice
+
         widgets["folder"] = str(Path(hms).parent)
         widgets["files.basin"] = {"data": None, "text": Path(hms).name}
+        if Path(hms).parent.is_dir():  # a job written elsewhere names no met or control file (W101)
+            chosen = hms_choice(Path(hms).parent, job)
+            for key, name in chosen["files"].items():
+                widgets[f"files.{key}"] = {"data": None, "text": name}
+            extra["hms_words"] = chosen["words"]
     elif hydrology.get("basin_json"):
         basin = job.get("basin") or {}
         widgets["basin#checked"] = True
@@ -253,7 +351,6 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
         widgets, "lumped_entry", choice(hydrology["lumped_entry"]) if hydrology.get("lumped_entry") else None
     )
     widgets["lumped_only"] = bool(run.get("lumped_only"))
-    widgets["arf_by_element"] = bool(hydrology.get("arf_by_element"))
     _put(widgets, "routing", choice(hydrology["reach_routing"]) if hydrology.get("reach_routing") else None)
     widgets["exclude"] = bool((job.get("grid") or {}).get("exclude_lumped"))
     handbacks = inputs_dir / "handbacks.geojson"
@@ -264,6 +361,16 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     _put(widgets, "loss.rate", loss.get("rate_mm_h"))
     _put(widgets, "cn.box", hydrology.get("curve_number"))
     _put(widgets, "cn.raster", layer(terrain.get("cn_raster"), raster=True))
+    override = hydrology.get("cn_override") or {}
+    if override.get("by"):  # W101 item 2
+        widgets["cn_by"] = choice(override["by"])
+        _put(widgets, "cn_landuse", layer(override.get("land_use"), raster=True))
+        rows = {
+            "land_use": [[c["code"], c["curve_number"], c.get("name", "")] for c in override.get("classes") or []],
+            "range": [[r["low"], r["high"], r["curve_number"]] for r in override.get("ranges") or []],
+            "subbasin": [[b["name"], b["curve_number"]] for b in override.get("subbasins") or []],
+        }[override["by"]]
+        widgets["cn_table"] = rows
     return {"widgets": widgets, "extra": extra}
 
 
@@ -292,18 +399,55 @@ def _simulation(job: dict) -> dict:
     return widgets
 
 
-def job_states(job: dict, run_folder: Path | str) -> dict:
-    """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``."""
+def _boundary_rows(job: dict) -> list[dict]:
+    """The table's rows of a job's boundary lines, by their place in the layer the dock writes (fid 1, 2, ...): what a
+    layer's fields cannot hold, a flow line's typed hydrograph and its slope (W101 item 3)."""
+    rows = []
+    for number, line in enumerate(job.get("boundaries") or [], start=1):
+        kind = line.get("kind")
+        flow = line.get("flow") or {}
+        value = line.get("stage") if kind == "stage" else line.get("slope") if kind == "normal" else None
+        row = {"fid": number, "label": f"Line {number}", "kind": kind, "value": value, "kind_pinned": True,
+               "value_pinned": value is not None, "file": flow.get("file")}  # fmt: skip
+        if flow.get("flows") is not None and flow.get("step_s"):
+            row.update(typed=True, step_min=flow["step_s"] / 60.0, flows=list(flow["flows"]))
+        if flow.get("slope") is not None and flow.get("slope") != 0.005:
+            row["slope"] = flow["slope"]
+        for key in ("momentum", "direction"):
+            if flow.get(key) is not None:
+                row[key] = flow[key]
+        rows.append(row)
+    return rows
+
+
+def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None) -> dict:
+    """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``. A job written
+    elsewhere holds its lines and polygons inline: with ``gpkg``, the GeoPackage :func:`job_import.inline_layers` was
+    written into, its layers stand where the run's input files would (W101)."""
+    from .job_import import inline_layers
+
     root = Path(run_folder)
     inputs_dir = root / INPUTS_DIR
+    inline = inline_layers(job) if gpkg is not None else {}
     grid, terrain, outputs = (job.get(key) or {} for key in ("grid", "terrain", "outputs"))
     ground = {"dem": layer(terrain.get("dem"), raster=True), "fill_pits": bool(terrain.get("fill_pits"))}
     _put(ground, "dx", grid.get("dx"))
     _put(ground, "domain", layer(grid.get("domain")))
     _put(ground, "manning.box", terrain.get("manning"))
     _put(ground, "manning.raster", layer(terrain.get("manning_raster"), raster=True))
+    rough = terrain.get("roughness") or {}
+    if rough.get("form") in ("split", "land_use"):  # W101 item 2: the two forms the old fields cannot say
+        ground["manning_form"] = choice(rough["form"])
+        _put(ground, "manning.box", rough.get("n"))
+        _put(ground, "manning_aligned", rough.get("n_aligned"))
+        _put(ground, "rough_landuse", layer(rough.get("land_use"), raster=True))
+        if rough.get("classes"):
+            ground["rough_classes"] = [[c["code"], c["n"], c.get("name", "")] for c in rough["classes"]]
+    elif terrain.get("manning_raster"):
+        ground["manning_form"] = choice("grid")
     edges, design = inputs_dir / "boundaries.geojson", inputs_dir / "design_points.geojson"
     points = {}
+    inline_design = next((name for name in ("design_lines", "design_points") if name in inline), None)
     if design.is_file():
         held = _properties(design)
         points = {
@@ -311,16 +455,40 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
             "name": "name" if "name" in held else "",
             "area": AREA_KEY if AREA_KEY in held else "",
         }
+    elif inline_design is not None:
+        held = {k for _xy, props in inline[inline_design]["features"] for k, v in props.items() if v is not None}
+        points = {
+            "layer": _inline(gpkg, inline, inline_design),
+            "name": "name" if "name" in held else "",
+            "area": AREA_KEY if AREA_KEY in held else "",
+        }
     panel = {"folder": str(root), "pixels": (outputs.get("pixels") or {}).get("enabled", True)}
     _put(panel, "smooth", (outputs.get("smooth") or {}).get("enabled"))
     panel["limiter"] = bool(outputs.get("step_limiter"))
+    pixels = outputs.get("pixels") or {}
+    panel["map_pixel"] = pixels["pixel_m"] if pixels.get("pixel_m") is not None else -1.0  # W101: -1 is Automatic
+    panel["dv_raster"] = bool(pixels.get("dv_raster"))
+    floors = {pixels.get(key) for key in ("depth_floor", "hazard_depth_floor", "cell_depth_floor")}
+    panel["cutoff"] = floors.pop() if len(floors) == 1 and None not in floors else -0.001  # one threshold, or the engine's
+    store = _tables(job)
+    storm = job.get("storm") or {}
+    storm_state = _storm(storm, store)
+    reduction = _reduction(storm, store)
+    if (job.get("hydrology") or {}).get("arf_by_element"):
+        reduction["by_element"] = True
     return {
         "terrain": {"widgets": ground},
         "mesh": _mesh(job, inputs_dir),
         "hydrology": _hydrology(job, inputs_dir),
-        "storm": _storm(job.get("storm") or {}),
-        "structures": _structures(job, inputs_dir),
-        "boundaries": {"widgets": {"layer": layer(edges)} if edges.is_file() else {}},
+        "tables": {"widgets": {}, "extra": {"store": store}},
+        "storm": storm_state,
+        "reduction": {"widgets": reduction},
+        "structures": _structures(job, inputs_dir, gpkg, inline),
+        "boundaries": {
+            "widgets": {"layer": layer(edges)} if edges.is_file()
+            else ({"layer": _inline(gpkg, inline, "boundaries")} if "boundaries" in inline else {}),
+            "rows": {"": _boundary_rows(job)} if not edges.is_file() and "boundaries" in inline else {},
+        },
         "points": {"widgets": points},
         "simulation": {"widgets": _simulation(job)},
         "run": {"widgets": panel},

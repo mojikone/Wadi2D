@@ -12,8 +12,17 @@ from functools import partial
 
 from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsFileWidget
-from qgis.PyQt.QtCore import QSignalBlocker, Qt
-from qgis.PyQt.QtWidgets import QCheckBox, QComboBox, QHeaderView, QLabel, QTableWidget, QTableWidgetItem
+from qgis.PyQt.QtCore import QSignalBlocker, Qt, pyqtSignal
+from qgis.PyQt.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QFormLayout,
+    QGroupBox,
+    QHeaderView,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 from .. import section_status
 from ..boundary_rows import (
@@ -22,6 +31,7 @@ from ..boundary_rows import (
     VALUE_KINDS,
     Row,
     follow,
+    has_hydrograph,
     job_properties,
     line_label,
     merge_rows,
@@ -32,6 +42,8 @@ from ..boundary_rows import (
     set_value,
 )
 from ..job_builder import BOUNDARY_KIND, BOUNDARY_SLOPE, BOUNDARY_STAGE, layer_features
+from ..pair_chart import PairChart
+from .class_table import ClassTable
 from .common import Section, bind, layer_combo, number_box
 
 VALUE_FIELDS = {"stage": (BOUNDARY_STAGE, "Stage, m"), "normal": (BOUNDARY_SLOPE, "Energy slope")}
@@ -61,6 +73,8 @@ class BoundariesSection(Section):
     start_collapsed = True
     key = "boundaries"
     state_rows = (("", Row, "_fill"),)
+    state_skip = ("hydrograph",)
+    """The hydrograph box shows the row chosen in the table; the rows themselves are the saved state."""
 
     def build(self) -> None:
         self.layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "None: all edges are walls")
@@ -76,6 +90,9 @@ class BoundariesSection(Section):
         self.form.addRow("Kind, for every line", self.kind)
         self.form.addRow(self.value_label, self.value)
         self.form.addRow(self.table)
+        self.hydrograph = HydrographBox()  # W101 item 3: a flow line's hydrograph typed at a step, HEC-RAS's way
+        self.form.addRow(self.hydrograph)
+        self.hydrograph.edited.connect(self._show_rows)
         self._schema = None
         self._watched = None
         self.rows: list[Row] = []
@@ -214,13 +231,14 @@ class BoundariesSection(Section):
         set_direction(row, side.currentData())
 
     def _flash(self, number: int, *_) -> None:
+        self.hydrograph.show_row(self.rows[number] if 0 <= number < len(self.rows) else None)
         layer = self.layer.currentLayer()
         if layer is not None and self.canvas is not None and 0 <= number < len(self.rows):
             self.canvas.flashFeatureIds(layer, [self.rows[number].fid])
 
     def standing(self, kind=None):
         layer = self.layer.currentLayer()
-        rows = [(row.kind, row.file) for row in self.rows]
+        rows = [(row.kind, ("a typed table" if has_hydrograph(row) else None) if row.typed else row.file) for row in self.rows]
         return section_status.boundaries(layer.name() if layer is not None else None, rows, tuple(FILE_KINDS))
 
     def values(self, crs) -> dict:
@@ -234,3 +252,81 @@ class BoundariesSection(Section):
             row = by_id[feature.properties["fid"]]
             lines.append(replace(feature, properties=job_properties(row)))
         return {"boundaries": lines}
+
+
+FROM_WORDS = {False: "A file (the table's column)", True: "A table typed here, a flow every step"}
+
+
+class HydrographBox(QGroupBox):
+    """The hydrograph of the flow line chosen in the table: its file, or flows typed at a step with the energy slope
+    that shares them, and its chart (W101 item 3; the engine's ``flow.step_s`` and ``flow.flows``, W96)."""
+
+
+    edited = pyqtSignal()
+
+    def __init__(self) -> None:
+        super().__init__("Hydrograph of the flow line chosen in the table")
+        self.row: Row | None = None
+        self._showing = False
+        form = QFormLayout(self)
+        form.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        self.source = QComboBox()
+        for key, words in FROM_WORDS.items():
+            self.source.addItem(words, key)
+        self.step = number_box(2)
+        self.step.setRange(0.0, 1e5)
+        self.step.setValue(15.0)
+        self.slope = number_box(5)
+        self.slope.setRange(0.0, 0.5)
+        self.slope.setSpecialValueText("The engine's 0.005")
+        self.slope.setToolTip("Energy slope across the line: the flow is shared by normal depth at it (HEC-RAS's rule)")
+        self.flows = ClassTable(("Flow, m3/s",))
+        self.chart = PairChart("Time, h", "Flow, m3/s")
+        form.addRow("Hydrograph from", self.source)
+        form.addRow("Step, min", self.step)
+        form.addRow("Energy slope", self.slope)
+        form.addRow(self.flows)
+        form.addRow(self.chart)
+        self._form = form
+        self.source.currentIndexChanged.connect(self._edited)
+        self.step.valueChanged.connect(self._edited)
+        self.slope.valueChanged.connect(self._edited)
+        self.flows.changed.connect(self._edited)
+        self.show_row(None)
+
+    def show_row(self, row: Row | None) -> None:
+        self.row = row
+        flow = row is not None and row.kind in FILE_KINDS
+        self.setVisible(flow)
+        if not flow:
+            return
+        self._showing = True
+        try:
+            self.source.setCurrentIndex(self.source.findData(bool(row.typed)))
+            self.step.setValue(row.step_min)
+            self.slope.setValue(row.slope or 0.0)
+            self.flows.set_rows([(float(q),) for q in row.flows])
+        finally:
+            self._showing = False
+        self._shown()
+
+    def _shown(self) -> None:
+        typed = bool(self.source.currentData())
+        for widget in (self.step,):
+            widget.setVisible(typed)
+            self._form.labelForField(widget).setVisible(typed)
+        self.flows.setVisible(typed)
+        self.chart.setVisible(typed)
+        if typed and self.row is not None:
+            hours = [k * self.row.step_min / 60.0 for k in range(len(self.row.flows))]
+            self.chart.show_pairs(hours, self.row.flows, f"{self.row.label}: {len(self.row.flows)} flows every {self.row.step_min:g} min")
+
+    def _edited(self, *_) -> None:
+        if self._showing or self.row is None:
+            return
+        self.row.typed = bool(self.source.currentData())
+        self.row.step_min = self.step.value()
+        self.row.slope = self.slope.value() if self.slope.value() > 0.0 else None
+        self.row.flows = [row[0] for row in self.flows.rows()]
+        self._shown()
+        self.edited.emit()

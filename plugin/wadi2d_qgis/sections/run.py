@@ -21,6 +21,8 @@ from qgis.PyQt.QtWidgets import (
 
 from .. import section_status, settings, style
 from ..job_builder import (
+    DV_RASTER,
+    PIXEL_M,
     PIXELS_ON,
     SMOOTH_ON,
     SMOOTH_TIP,
@@ -28,6 +30,19 @@ from ..job_builder import (
 )
 from .common import Section
 
+THRESHOLD_M = 0.1
+"""His one depth threshold for the maps (W101), 0.1 m: the pixel maps, the hazard, the cell maps, the time slider and
+the layers drawn in QGIS."""
+THRESHOLD_UNSET = -0.001
+THRESHOLD_UNSET_WORDS = "The engine's own floors"
+"""A model from before the threshold: the job writes none, the engine keeps 0.05 m for depth, 0.1 m for the hazard, and
+the cell maps every wet cell, as they did."""
+THRESHOLD_TIP = (
+    "Water shallower than this is left out of every map: pixel depth, speed, level and hazard, the cell maps, the time "
+    "slider, and the depth layers QGIS draws. One value for the files and the screen"
+)
+WINDOW_WORDS = "Map a window at the terrain's finest resolution"
+"""His item 7 (W101): named for the terrain's own pixel, which differs between projects; the tooltip gives it."""
 COLOURS = {"info": "#444444", "note": "#a06000", "good": "#1a7a30", "bad": "#b00020"}
 BACKGROUNDS = (("Hillshade of the DEM", "hillshade"), ("Satellite (needs internet; check the licence)", "satellite"))
 
@@ -35,9 +50,9 @@ BACKGROUNDS = (("Hillshade of the DEM", "hillshade"), ("Satellite (needs interne
 class RunSection(Section):
     heading = "8. Run"
     key = "run"
-    state_skip = ("cutoff", "duration", "maps", "backend")
-    """The depth cutoff is a display setting, kept with QGIS; the other three are the Simulation section's widgets,
-    which older dock checks reach from here."""
+    state_skip = ("duration", "maps", "backend")
+    """The Simulation section's widgets, which older dock checks reach from here. The depth threshold is the model's
+    since W101 (it writes the maps' floors); before, the display cutoff was a QGIS setting alone."""
 
     def build(self) -> None:
         self.folder = QgsFileWidget()
@@ -50,6 +65,15 @@ class RunSection(Section):
         self.smooth.setToolTip(SMOOTH_TIP)
         self._smooth_default = False
         self.pixels.toggled.connect(self._pixels_toggled)
+        self._has_maps = True
+        self.map_pixel = QDoubleSpinBox()  # his item 7 (W101): the pixel of the maps of record, empty the rule
+        self.map_pixel.setDecimals(2)
+        self.map_pixel.setRange(-1.0, 1000.0)  # -1 is Automatic; 0 is the DEM's own pixel, as the engine reads it
+        self.map_pixel.setSpecialValueText("Automatic")
+        self.map_pixel.setValue(-1.0)
+        self.map_pixel.setSuffix(" m")
+        self.dv_raster = QCheckBox("Depth x speed raster")
+        self.dv_raster.setChecked(False)
         self.limiter = QCheckBox("Name the cell that sets the time step")
         self.limiter.setChecked(False)
         self._has_limiter = True
@@ -70,17 +94,16 @@ class RunSection(Section):
         self.background = QComboBox()
         for label, value in BACKGROUNDS:
             self.background.addItem(label, value)
-        self.cutoff = QDoubleSpinBox()
+        self.cutoff = QDoubleSpinBox()  # his one depth threshold for the maps (W101): files and screen alike
         self.cutoff.setDecimals(3)
         self.cutoff.setSingleStep(0.01)
-        self.cutoff.setRange(0.0, style.DEPTH_CUTOFF_MAX_M)
+        self.cutoff.setRange(THRESHOLD_UNSET, style.DEPTH_CUTOFF_MAX_M)
+        self.cutoff.setSpecialValueText(THRESHOLD_UNSET_WORDS)
         self.cutoff.setSuffix(" m")
-        self.cutoff.setValue(settings.depth_cutoff())
-        self.cutoff.setToolTip(
-            "Depth layers, cell maps, the aligned cells, the time slider and Make map draw nothing shallower than this. "
-            "A display choice: the rasters keep their numbers. 0 draws every wet cell"
-        )
+        self.cutoff.setValue(THRESHOLD_M)
+        self.cutoff.setToolTip(THRESHOLD_TIP)
         self.cutoff.valueChanged.connect(self._cutoff_changed)
+        self._cutoff_changed(self.cutoff.value())
         self.map_title = QLineEdit()
         self.map_title.setPlaceholderText("The name of the run")
         self.map_button = QPushButton("Make map")
@@ -98,9 +121,16 @@ class RunSection(Section):
             "The saved frames of the last finished run drawn at the terrain pixel for what is on screen, as RAS Mapper "
             "draws them: nothing is written per frame"
         )
+        self.window_button = QPushButton(WINDOW_WORDS)
+        self.window_button.setEnabled(False)
         self.lines_button = QPushButton("Result lines")
         self.lines_button.setEnabled(False)
         self.lines_button.setToolTip("Hydrograph, depth and water surface on a line: upfront ones, or one drawn now over the saved frames")
+        self.results_button = QPushButton("Results \N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK}")  # W101 item 6
+        self.results_button.setEnabled(False)
+        self.results_button.setToolTip(
+            "The results page of the last finished run: its elements of record, runs compared, and the maps and tools"
+        )
         self.workbook_button = QPushButton("Dam workbook...")
         self.workbook_button.setToolTip(
             "The dam-site Excel workbook from finished runs, one per return period: inflow, and outflow where a "
@@ -114,6 +144,9 @@ class RunSection(Section):
             row.addWidget(button)
         self.form.addRow("Output folder", self.folder)
         self.form.addRow(self.pixels)
+        self.form.addRow("Map pixel", self.map_pixel)
+        self.form.addRow(self.dv_raster)
+        self.form.addRow("Depth threshold for the maps", self.cutoff)
         self.form.addRow(self.smooth)
         self.form.addRow(self.limiter)
         self.form.addRow(buttons)
@@ -122,14 +155,15 @@ class RunSection(Section):
         self.form.addRow(self.status)
         self.form.addRow(self.message)
         self.form.addRow(self.open_button)
-        self.form.addRow("Draw depth from", self.cutoff)
         self.form.addRow("Map title", self.map_title)
         self.form.addRow("Map background", self.background)
-        self.form.addRow(self.map_button)
-        self.form.addRow(self.frames_button)
-        self.form.addRow(self.pixel_frames_button)
-        self.form.addRow(self.lines_button)
-        self.form.addRow(self.workbook_button)
+        self.form.addRow(self.results_button)
+        # Make map, the two time sliders, the window, Result lines and the workbook are laid out on the results page
+        # (W101 item 6): ``tools`` names them for the dock, which moves them there
+        self.tools = (
+            self.map_button, self.frames_button, self.pixel_frames_button, self.window_button, self.lines_button,
+            self.workbook_button,
+        )  # fmt: skip
 
     @staticmethod
     def _text_label() -> QLabel:
@@ -146,14 +180,24 @@ class RunSection(Section):
         self.limiter.setEnabled(self._has_limiter)
         self._smooth_default = bool(schema.default(SMOOTH_ON, False))
         self.smooth.setChecked(self._smooth_default)
+        self.map_pixel.setToolTip(f"{schema.tip(PIXEL_M)}. Automatic leaves it to that rule; 0 is the DEM's own pixel")
+        self.dv_raster.setToolTip(schema.tip(DV_RASTER))
+        self.dv_raster.setChecked(bool(schema.default(DV_RASTER, False)))
+        self._has_maps = schema.has(PIXEL_M) and schema.has(DV_RASTER)  # an engine before W100 would refuse them
+        self._pixels_toggled(self.pixels.isChecked())
 
     def _pixels_toggled(self, on: bool) -> None:
-        """The polygons and the picture are drawn from the pixel maps: none without them."""
+        """The polygons and the picture are drawn from the pixel maps: none without them; nor a pixel or a raster."""
         self.smooth.setEnabled(on and self.pixels.isEnabled())
+        for widget in (self.map_pixel, self.dv_raster):
+            widget.setEnabled(on and self.pixels.isEnabled() and self._has_maps)
 
     def _cutoff_changed(self, value: float) -> None:
-        settings.set_depth_cutoff(value)
-        style.restyle_depth_layers()
+        """The layers drawn in QGIS take the threshold the files are written with; a model from before it keeps the
+        display cutoff it had."""
+        if value >= 0.0:
+            settings.set_depth_cutoff(value)
+            style.restyle_depth_layers()
 
     def chosen_smooth(self) -> bool | None:
         """Whether the run draws its polygons and depth picture, or None for the engine's own default."""
@@ -169,6 +213,9 @@ class RunSection(Section):
             "pixels": self.pixels.isChecked(),
             "smooth": self.chosen_smooth(),
             "step_limiter": self.limiter.isChecked() and self._has_limiter,
+            "map_pixel": self.map_pixel.value() if self._has_maps and self.map_pixel.value() >= 0.0 else None,
+            "dv_raster": self._has_maps and self.dv_raster.isChecked(),
+            "map_threshold": self.cutoff.value() if self.cutoff.value() >= 0.0 else None,
         }
 
     def set_running(self, running: bool) -> None:
@@ -180,9 +227,12 @@ class RunSection(Section):
             self.frames_button.setEnabled(False)
             self.pixel_frames_button.setEnabled(False)
             self.lines_button.setEnabled(False)
+            self.window_button.setEnabled(False)
         self.on_running(running)
         self.pixels.setEnabled(not running)
         self.smooth.setEnabled(not running and self.pixels.isChecked())
+        for widget in (self.map_pixel, self.dv_raster):
+            widget.setEnabled(not running and self.pixels.isChecked() and self._has_maps)
         self.limiter.setEnabled(not running and self._has_limiter)
         if running:
             self.map_button.setEnabled(False)

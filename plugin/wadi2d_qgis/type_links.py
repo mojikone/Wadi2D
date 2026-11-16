@@ -14,7 +14,9 @@ from qgis.PyQt.QtCore import QObject
 from .job_builder import LayerError
 from .model_types import MODEL_TYPE, TYPES, apply_type, inferred, sections_shown, title_of, type_notes
 
-PAGE_START, PAGE_MODEL = "start", "model"
+PAGE_START, PAGE_MODEL, PAGE_RESULTS = "start", "model", "results"
+PAGE_INDEX = {PAGE_START: 0, PAGE_MODEL: 1, PAGE_RESULTS: 2}
+"""The dock's pages; the results page (W101 item 6) is never saved: a model opens on its sections."""
 OLD_ENGINE = "This engine is from before the model types: the job will not name the type, and the engine reads it from the job."
 
 
@@ -50,6 +52,11 @@ class TypeLinks(QObject):
         self.page = PAGE_START
         self.refresh()
 
+    def show_results(self) -> None:
+        """The results page of a finished run (W101 item 6)."""
+        self.page = PAGE_RESULTS
+        self.refresh()
+
     def show_model(self) -> None:
         """The model page with the type as it is: a run the dock follows must be in sight."""
         self.page = PAGE_MODEL
@@ -66,10 +73,12 @@ class TypeLinks(QObject):
         said = self.dock.model_bar.message.text()
         if self.page == PAGE_START:  # nothing was opened: the reason belongs on this page
             self.start.say(said)
+        elif self.dock.panel.results_button.isEnabled():  # a run with results opens on its results (W101 item 6)
+            self.dock.results_links.open(self.dock.results_dir)
 
     def refresh(self, *_) -> None:
         dock = self.dock
-        dock.pages.setCurrentIndex(0 if self.page == PAGE_START else 1)
+        dock.pages.setCurrentIndex(PAGE_INDEX.get(self.page, 1))
         self.start.mark(self.kind)
         self.header.show_type(self.kind)
         shown = sections_shown(self.kind, self.header.show_all.isChecked())
@@ -94,7 +103,8 @@ class TypeLinks(QObject):
     # The saved model
 
     def parts(self) -> dict:
-        return {"model_type": self.kind, "show_all": self.header.show_all.isChecked(), "page": self.page}
+        page = PAGE_MODEL if self.page == PAGE_RESULTS else self.page
+        return {"model_type": self.kind, "show_all": self.header.show_all.isChecked(), "page": page}
 
     def set_parts(self, doc: dict) -> None:
         """Before the sections are restored. A model saved with no word on its type gets one from its own content."""

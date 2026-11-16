@@ -178,7 +178,9 @@ class ResultLinesPanel(QgsDockWidget):
 
     # The run.
 
-    def open_run(self, run: Path | str) -> None:
+    def open_run(self, run: Path | str, wanted: str | None = None) -> None:
+        """The run's lines and elements; ``wanted``, an entry's label, is shown first (the results page, W101)."""
+        self.wanted = wanted
         self.run = Path(run)
         self.read = {}
         self.show()
@@ -226,7 +228,9 @@ class ResultLinesPanel(QgsDockWidget):
         self.frame = 0
         self._show_time()
         self.items = entries(listing) + [item for item in self.items if item.kind == TEMPORARY]
-        self._fill_choice(0)
+        labels = [item.label for item in self.items]
+        wanted = getattr(self, "wanted", None)
+        self._fill_choice(labels.index(wanted) if wanted in labels else 0)
         study = listing.get("study")
         self.note = study_text(study) if study else ""
         if study:

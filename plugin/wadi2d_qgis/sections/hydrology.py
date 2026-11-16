@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import pyqtSignal
 from qgis.PyQt.QtGui import QColor
@@ -26,7 +27,6 @@ from .. import section_status
 from ..hms_structure_rows import COLUMNS as STRUCTURE_COLUMNS
 from ..hms_structure_rows import ReservoirRow
 from ..job_builder import (
-    ARF_BY_ELEMENT,
     CURVE_NUMBER,
     EXCLUDE_LUMPED,
     HMS_KEYS,
@@ -36,7 +36,9 @@ from ..job_builder import (
     SUBBASIN_MODE,
     hms_files,
     hms_subbasins,
+    raster_path,
 )
+from ..land_rows import BY_LAND, CN_COLUMNS, CN_WORDS, NONE, by_rows, cn_problems, cn_words
 from ..model_types import HYBRID_LUMPED, LUMPED, TWO_D
 from ..muskingum_rows import MUSKINGUM, ReachRow, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
@@ -49,7 +51,8 @@ from .basin_rows import (
     mode_tip,
     subbasin_rows,
 )
-from .common import Section, ValueOrRaster, bind
+from .class_table import ClassTable
+from .common import Section, ValueOrRaster, bind, layer_combo
 from .muskingum_table import MuskingumBox
 
 HMS_LABELS = {"basin": "Basin file", "met": "Meteorologic file", "control": "Control file"}
@@ -101,8 +104,6 @@ class HydrologySection(Section):
         hms.addRow("Lumped water enters the 2D model", self.lumped_entry)
         self.lumped_only = QCheckBox("The HMS way only: the lumped network alone, no 2D model")
         hms.addRow(self.lumped_only)
-        self.arf_by_element = QCheckBox("Each element at its own drainage area's area reduction (depth-area analysis)")
-        hms.addRow(self.arf_by_element)
         self.lumped_only.toggled.connect(self._lumped_only_toggled)
         lumped.addRow(self.hms_box)
         self.hms_box.hide()
@@ -135,13 +136,51 @@ class HydrologySection(Section):
         self.cn = ValueOrRaster(1, "Same value everywhere")
         self.cn.box.setSpecialValueText("No losses")
         self.form.addRow("Curve number", self.cn)
+        self.cn_by = QComboBox()  # W101 item 2: the CN override (W96's hydrology.cn_override)
+        for key, words in CN_WORDS.items():
+            self.cn_by.addItem(words, key)
+        self.cn_by.setToolTip(
+            "CN in place of what the CN grid, the value above and the basin give, on rain-on-grid cells and lumped "
+            "subbasins alike"
+        )
+        self.cn_landuse = layer_combo(QgsMapLayerProxyModel.RasterLayer, "Choose the land-use raster")
+        self.cn_table = ClassTable(*CN_COLUMNS[BY_LAND])
+        self.form.addRow("CN override", self.cn_by)
+        self.form.addRow("Land-use raster", self.cn_landuse)
+        self.form.addRow(self.cn_table)
+        self.cn_by.currentIndexChanged.connect(self._cn_shown)
+        self._cn_shown()
 
         self._modes: list[str] = []
+        self._cn_by_shown = None
         self.folder.fileChanged.connect(self._folder_changed)
         self.files["basin"].currentTextChanged.connect(self._basin_changed)
         self.basin.toggled.connect(self._generate_toggled)
         self.basin.subbasins_changed.connect(self._fill_table)
         self.routing.currentIndexChanged.connect(self._routing_changed)
+
+    def _cn_shown(self, *_) -> None:
+        if not hasattr(self, "_cn_by_shown"):
+            self._cn_by_shown = None
+        by = self.cn_by.currentData()
+        self.cn_landuse.setVisible(by == BY_LAND)
+        self.form.labelForField(self.cn_landuse).setVisible(by == BY_LAND)
+        self.cn_table.setVisible(by != NONE)
+        if by != NONE:
+            held = self.cn_table.rows()
+            self.cn_table.set_headers(*CN_COLUMNS[by])
+            if self._cn_by_shown not in (None, by):  # another kind of table: its rows do not carry over
+                held = []
+            self.cn_table.set_rows(held)
+        self._cn_by_shown = by
+
+    def cn_override(self) -> dict:
+        by = self.cn_by.currentData()
+        rows = self.cn_table.rows() if by != NONE else []
+        found = {"by": by, "land_use": raster_path(self.cn_landuse.currentLayer()) or ""}
+        if by != NONE:
+            found[by_rows(by)] = rows
+        return found
 
     def apply_schema(self, schema) -> None:
         bind(self.cn.box, schema, CURVE_NUMBER)
@@ -159,7 +198,6 @@ class HydrologySection(Section):
         self.lumped_entry.setToolTip(schema.tip(LUMPED_ENTRY))
         self.lumped_only.setToolTip(schema.tip(LUMPED_ONLY))
         self.lumped_only.setEnabled(schema.has(LUMPED_ONLY))  # an engine from before W88 would refuse the fields
-        self.arf_by_element.setToolTip(schema.tip(ARF_BY_ELEMENT))
         self.exclude.setChecked(bool(schema.default(EXCLUDE_LUMPED, False)))
         self.exclude.setToolTip(schema.tip(EXCLUDE_LUMPED))
         self._exclude_known = schema.has(EXCLUDE_LUMPED)
@@ -178,7 +216,6 @@ class HydrologySection(Section):
         self.lumped_box.setVisible(kind != TWO_D)
         self.lumped_only.setVisible(not typed)
         self.exclude.setVisible(not typed)
-        self.arf_by_element.setVisible(not typed or kind == LUMPED)
         entry = not typed or kind == HYBRID_LUMPED
         self.lumped_entry.setVisible(entry)
         self.hms_box.layout().labelForField(self.lumped_entry).setVisible(entry)
@@ -192,7 +229,11 @@ class HydrologySection(Section):
         modes = self._subbasin_modes()
         raster = self.cn.raster.currentLayer()
         curve = self.cn.value() if self.cn.box.isEnabled() and self.cn.value() > self.cn.box.minimum() else None
-        return section_status.hydrology(
+        override = self.cn_override()
+        found = cn_problems(override)
+        if found:  # the CN override (W101 item 2)
+            return section_status.Status(section_status.MISSING, found[0])
+        status = section_status.hydrology(
             kind,
             Path(self.folder.filePath()).name if use_hms else None,
             all(self.files[key].currentText() for key in HMS_KEYS),
@@ -204,6 +245,7 @@ class HydrologySection(Section):
             raster.name() if raster is not None else None,
             self.loss.rate.value() if self.loss.enabled.isChecked() else None,
         )
+        return section_status.Status(status.state, section_status.join(status.words, cn_words(override)))
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""
@@ -233,7 +275,6 @@ class HydrologySection(Section):
             self.muskingum.set_reaches([], False)
 
     def _lumped_only_toggled(self, on: bool) -> None:
-        self.arf_by_element.setEnabled(on)
         self.lumped_entry.setEnabled(not on and self.lumped_entry.count() > 0)
         self.exclude.setEnabled(not on and self._exclude_known)
 
@@ -348,6 +389,7 @@ class HydrologySection(Section):
             "exclude_lumped": self.exclude.isChecked() and self.exclude.isEnabled(),
             "handbacks": self.handbacks.features(crs),
             "transmission": self.loss.values(),
+            "cn_override": self.cn_override(),
         }
         if values["reach_routing"] == MUSKINGUM:
             values["muskingum"] = self.muskingum.values()
@@ -356,7 +398,6 @@ class HydrologySection(Section):
             values["hms"] = {**hms, "folder": self.folder.filePath(), "modes": self._subbasin_modes()}
             values["lumped_entry"] = self.lumped_entry.currentData() if self.lumped_entry.isEnabled() else None
             values["lumped_only"] = self.lumped_only.isChecked() and self.lumped_only.isEnabled()
-            values["arf_by_element"] = values["lumped_only"] and self.arf_by_element.isChecked()
         elif self.basin.isChecked():
             values["basin"] = {**self.basin.values(crs), "modes": self._subbasin_modes()}
         return values

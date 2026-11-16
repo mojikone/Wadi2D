@@ -24,6 +24,15 @@ area of the depth-area study, which replaces the one area run by run (W65)."""
 ARF_GIVEN = "given"
 """A factor the user gives, 0.7 for a 30 % reduction, with no table and no area (W83); the job's ``arf_factor``."""
 GIVEN_WORDS = "A given reduction factor lies above 0 and at most 1: 0.7 is a 30 % reduction."
+KIND_FIXED = "fixed"
+"""W101: a depth over a duration at a constant rate, the job's kind ``uniform``. It took the place of the Steady rain
+(mm/h for hours), which wrote the same job."""
+KIND_DEPTH, KIND_DEPTH_GRID = "depth", "depth_grid"
+"""W101: a depth, or a raster of depths, spread in time by a pattern (W95's ``storm.pattern``)."""
+NEW_KINDS = (KIND_FIXED, KIND_DEPTH, KIND_DEPTH_GRID)
+DEPTH_WORDS = "Set the depth and how many hours the rain lasts."
+SCS_WORDS = "An SCS pattern is the NRCS 24-hour curve: set the duration to 24 h, or choose a pattern of Data tables."
+RASTER_WORDS = "Choose the depth grid: a raster of rain depths in mm, backed by a file."
 
 
 def pasted_rows(text: str, columns: int = 2) -> list[tuple[float, ...]]:
@@ -118,11 +127,31 @@ def _steady_problems(storm: dict) -> list[str]:
     return [] if storm["mm_h"] > 0.0 and storm["hours"] > 0.0 else ["Set the rain and how many hours it lasts."]
 
 
+def _depth_problems(storm: dict) -> list[str]:
+    """A fixed depth, a depth with a pattern, or a depth grid with a pattern (W101)."""
+    found = []
+    if storm["kind"] == KIND_DEPTH_GRID:
+        source = storm.get("raster") or ""
+        if not source:
+            found.append(RASTER_WORDS)
+        elif not Path(source).is_file():
+            found.append(f"The depth grid is not there: {source}")
+        if storm.get("hours", 0.0) <= 0.0:
+            found.append("Set how many hours the rain lasts.")
+    elif storm.get("depth_mm", 0.0) <= 0.0 or storm.get("hours", 0.0) <= 0.0:
+        found.append(DEPTH_WORDS)
+    pattern = storm.get("pattern") or ""
+    if pattern.startswith("scs:") and abs(storm.get("hours", 0.0) - 24.0) > 1e-9:
+        found.append(SCS_WORDS)
+    return found
+
+
 def storm_problems(storm: dict) -> list[str]:
     """What stops a run, in plain words."""
     checks = {
         KIND_STEADY: _steady_problems, KIND_TABLE: _table_problems, KIND_DESIGN: _design_problems,
-        KIND_GRID: _grid_problems, KIND_GAUGES: lambda _storm: [],
+        KIND_GRID: _grid_problems, KIND_GAUGES: lambda _storm: [], KIND_FIXED: _depth_problems,
+        KIND_DEPTH: _depth_problems, KIND_DEPTH_GRID: _depth_problems,
     }  # fmt: skip
     return checks[storm["kind"]](storm)
 
@@ -131,7 +160,7 @@ def storm_notes(storm: dict, duration_h: float) -> list[str]:
     """What is allowed but probably not meant."""
     if storm["kind"] == KIND_TABLE and storm["rows"]:
         lasts_h = storm["rows"][-1][0] / HOURS_TO_MINUTES
-    elif storm["kind"] in (KIND_DESIGN, KIND_STEADY):
+    elif storm["kind"] in (KIND_DESIGN, KIND_STEADY, *NEW_KINDS):
         lasts_h = storm["hours"]
     else:
         return []
@@ -148,9 +177,32 @@ def _arf(storm: dict) -> dict:
     return {"storm_area_km2": storm["area_km2"], "arf": {"areas_km2": areas, "factors": factors}}
 
 
+def _depth_job(storm: dict) -> dict:
+    """A fixed depth (the job's ``uniform``, as the Steady rain wrote it), a depth or a depth grid with a pattern. The
+    area reduction is added by ``reduction_rows.reduction_job``."""
+    from .table_rows import pattern_of
+
+    kind = storm["kind"]
+    minutes = storm["hours"] * HOURS_TO_MINUTES
+    if kind == KIND_FIXED:
+        return {"kind": KIND_STEADY, "depth_mm": storm["depth_mm"], "duration_min": minutes}
+    job = {"kind": kind}
+    if kind == KIND_DEPTH:
+        job["depth_mm"] = storm["depth_mm"]
+    else:
+        job["depth_grid"] = str(Path(storm["raster"]).resolve())
+    job["duration_min"] = minutes
+    pattern = pattern_of(storm.get("pattern"))
+    if pattern:
+        job["pattern"] = pattern
+    return job
+
+
 def storm_job(storm: dict) -> dict:
     """The job's ``storm`` block. Every number the job holds comes from the user; defaults stay the engine's."""
     kind = storm["kind"]
+    if kind in NEW_KINDS:
+        return _depth_job(storm)
     if kind == KIND_STEADY:
         minutes = storm["hours"] * HOURS_TO_MINUTES
         return {"kind": kind, "depth_mm": storm["mm_h"] * storm["hours"], "duration_min": minutes}

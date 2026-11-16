@@ -8,7 +8,7 @@ user editing it.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 VALUE_KINDS = ("stage", "normal")
@@ -35,6 +35,12 @@ class Row:
     """A ``flow`` line's water enters moving (W70): the layer's ``momentum`` field or the table."""
     direction: str = "auto"
     """The side a ``flow`` line's water goes to (W70): the layer's ``direction`` field or the table."""
+    typed: bool = False
+    """W101 item 3: the hydrograph is typed in the dock, a flow every ``step_min``, HEC-RAS's way, not a file."""
+    step_min: float = 15.0
+    flows: list = field(default_factory=list)
+    slope: float | None = None
+    """The energy slope across the line that shares the flow by normal depth; None is the engine's (0.005)."""
 
 
 def default_value(kind: str, defaults: dict[str, float]) -> float | None:
@@ -127,12 +133,35 @@ def set_direction(row: Row, direction: str) -> None:
     row.direction = direction if direction in DIRECTIONS else "auto"
 
 
+def has_hydrograph(row: Row) -> bool:
+    """A flow line with what it brings in: a file, or a typed table of two flows at least at a step above zero."""
+    return bool(row.file) if not row.typed else len(row.flows) >= 2 and row.step_min > 0.0
+
+
+def table_problems(rows: list[Row]) -> list[str]:
+    """What is wrong with the typed hydrographs, in words (W101)."""
+    found = []
+    for number, row in enumerate(rows, start=1):
+        if row.kind not in FILE_KINDS or not row.typed:
+            continue
+        if len(row.flows) < 2 or row.step_min <= 0.0:
+            found.append(f"Boundary line {number}: a typed hydrograph needs a step above zero and two flows at least.")
+        elif min(row.flows) < 0.0:
+            found.append(f"Boundary line {number}: a typed hydrograph's flows cannot go below zero.")
+    return found
+
+
 def job_properties(row: Row) -> dict:
     """What the job builder takes; a flow line's momentum and direction only where they differ from the engine's
     defaults, so a default left alone stays the engine's (the quadtree drops it with a warning, W70)."""
     out = {"kind": row.kind, "value": row.value if row.kind in VALUE_KINDS else None}
+    if row.kind in FILE_KINDS and row.typed:  # W101 item 3: HEC-RAS's table of flows at a step
+        out["step_s"] = row.step_min * 60.0
+        out["flows"] = [float(q) for q in row.flows]
+    if row.kind in FILE_KINDS and row.slope is not None:
+        out["slope"] = row.slope
     if row.kind in FILE_KINDS:
-        out["file"] = row.file
+        out["file"] = None if row.typed else row.file
         if row.momentum != MOMENTUM_DEFAULT:
             out["momentum"] = row.momentum
         if row.direction != "auto":

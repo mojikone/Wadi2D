@@ -1,0 +1,25 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base75\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 === 1 the kind is offered with its file column
+    5.4 PASS flow is a kind ['stage', 'normal', 'free', 'flow']
+    5.4 FAIL a file column 
+    5.4 PASS one row per line 2
+    5.4 PASS a free line has no file 
+    5.4 PASS a flow line takes a file 
+    5.4 PASS and no value 
+    5.4 === 2 a run on Bidah ground at 20 m
+    5.4 === 3 the file reaches the engine and its water enters whole
+    5.7 dock says: Starting...
+    8.2 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+    8.7 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    9.7 dock says: water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 m over 100 m of edge and 0.034 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line
+   10.0 PASS finished Finished. a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley. a stream draining 1.01 km2 leaves the domain at (437791
+   10.0 PASS line 1 stays free {'kind': 'free', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]]}
+   10.0 PASS line 2 is a flow line with its file {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\old_base\\dock_flow_line\\runs\\inflow.csv'}
+   10.0 PASS the engine took it {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'stage': 0.0, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6, 'name': None, 'flow': {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-4
+   10.0 PASS the hydrograph entered whole (35999.99958651423, 36000.0)
+   10.0 PASS mass closes 7.035268462088075e-10
+   10.0 SUMMARY 13 passed, 1 failed 
+   10.0   FAILED a file column: 
+   10.0 DONE
