@@ -23,6 +23,8 @@ from wadi2d.config.rain import (
     StormPattern,
     resolve_tables,
 )
+from wadi2d.config.land import CurveOverride, ModelType, Roughness
+from wadi2d.config.model_type import implied_by_type, model_type_problems
 
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
@@ -400,6 +402,21 @@ class Terrain(_Part):
     manning: float = Field(0.035, ge=0.008, le=0.5, description="Default Manning n, s/m^(1/3)")
     manning_raster: str | None = None
     cn_raster: str | None = None
+    roughness: Roughness | None = Field(
+        None,
+        description="Manning n in one of four forms: one value, square and aligned cells apart, a grid, or land-use "
+        "classes with a table (W96). None keeps manning and manning_raster as they were; with it, manning_raster is "
+        "refused and manning is only what a raster's holes take when roughness.n is not given",
+    )
+
+    @model_validator(mode="after")
+    def _one_roughness(self) -> Terrain:
+        if self.roughness is not None and self.manning_raster is not None:
+            raise ValueError(
+                "terrain.roughness and terrain.manning_raster both give the roughness: give the raster as roughness "
+                "form 'grid'"
+            )
+        return self
 
 
 class Tables(_Part):
@@ -515,6 +532,13 @@ class FlowHydrograph(_Part):
         None, description="Date and time of the run's minute zero, for a record with dates; else storm.rain_start"
     )
     times_s: list[float] | None = Field(None, description="Table times, s, in place of a file")
+    step_s: float | None = Field(
+        None,
+        gt=0.0,
+        le=2.6e6,
+        description="Table interval, s, in place of times_s: flows[k] at k x step_s from the run's start, as HEC-RAS's "
+        "Flow Hydrograph table gives an interval and a list (W96)",
+    )
     flows: list[float] | None = Field(None, description="Table discharges, m3/s, in place of a file")
     distribution: Literal["normal_depth", "conveyance"] = Field(
         FLOW_NORMAL_DEPTH,
@@ -540,12 +564,24 @@ class FlowHydrograph(_Part):
 
     @model_validator(mode="after")
     def _source(self) -> FlowHydrograph:
-        table = self.times_s is not None and self.flows is not None
+        if self.times_s is not None and self.step_s is not None:
+            raise ValueError("a flow line's table takes times_s or step_s, not both")
+        table = (self.times_s is not None or self.step_s is not None) and self.flows is not None
         if table == (self.file is not None):
-            raise ValueError("a flow line needs either file or times_s and flows")
-        if table and len(self.times_s) != len(self.flows):
+            raise ValueError("a flow line needs either file, or flows with times_s or step_s")
+        if table and self.times_s is not None and len(self.times_s) != len(self.flows):
             raise ValueError("a flow line's table needs one flow per time")
+        if table and self.step_s is not None and len(self.flows) < 2:
+            raise ValueError("a flow line's table at a step needs two flows at least")
         return self
+
+    def table(self) -> tuple[list[float], list[float]] | None:
+        """(times, s; flows, m3/s) of a table given in the job, the step's times written out; None for a file. The
+        dock draws the curve from this, the run takes it."""
+        if self.flows is None:
+            return None
+        times = self.times_s if self.times_s is not None else [k * self.step_s for k in range(len(self.flows))]
+        return list(times), list(self.flows)
 
 
 class Boundary(_Part):
@@ -582,6 +618,17 @@ class InitialLevel(_Part):
     """Water standing at a level when the run starts: a reservoir at its full supply level, say."""
 
     coordinates: list[tuple[float, float]] = Field(description="Polygon ring, m", min_length=3)
+    level: float = Field(description="Water level on the datum of the DEM, m")
+
+
+class InitialPoint(_Part):
+    """Water standing at a level from a point when the run starts (W96): every cell whose ground lies under the level
+    and is joined to the point's cell through faces open at it is filled, as a dam's start level fills its pool. A
+    point behind a dam fills the reservoir, a point offshore the sea; nothing of the pool is drawn."""
+
+    name: str | None = Field(None, description="What the run's notes call it; else 'Initial point n'")
+    x: float = Field(description="Easting, m")
+    y: float = Field(description="Northing, m")
     level: float = Field(description="Water level on the datum of the DEM, m")
 
 
@@ -1272,6 +1319,11 @@ class Hydrology(_Part):
     curve_number: float | None = Field(
         None, gt=0.0, le=100.0, description="CN of 2D cells without a better source; None means no losses"
     )
+    cn_override: CurveOverride | None = Field(
+        None,
+        description="CN in place of the CN grid's, the job's and the basin file's, on rain-on-grid cells and lumped "
+        "subbasins alike: by land-use class, by CN value range, or by subbasin (W96). None leaves every CN as it was",
+    )
     subbasins: list[Subbasin] = []
     inflows: list[Inflow] = []
     handbacks: list[Handback] = []
@@ -1433,6 +1485,14 @@ class Run(_Part):
         description="Run the lumped network alone, the HMS way: no grid, no tables, no 2D solver; every element's "
         "inflow and outflow written as a series, the network as map layers. A run whose domain lies wholly under "
         "catchments left out of the mesh runs this way too (W88)",
+    )
+    model_type: ModelType | None = Field(
+        None,
+        description="The kind of run, saved so the dock shows its sections (W96): '2d', rain on the grid and no lumped "
+        "part; 'lumped', the lumped network alone (sets run.lumped_only when the job does not); 'hybrid_lumped', lumped "
+        "catchments left out of the mesh (sets grid.exclude_lumped when the job does not); 'hybrid_2d', lumped "
+        "catchments whose cells stay in the mesh. Checked against the rest of the job and refused in words where it "
+        "does not fit. None: the job runs as before, its type read from it (wadi2d.config.model_type)",
     )
 
 
@@ -1785,6 +1845,9 @@ class RunConfig(_Part):
     transmission: Transmission = Transmission()
     boundaries: list[Boundary] = []
     initial_levels: list[InitialLevel] = []
+    initial_points: list[InitialPoint] = Field(
+        [], description="Levels set from a point: the cells under each level joined to its point's cell start full (W96)"
+    )
     dam_levels: list[DamLevel] = []
     breaches: list[Breach] = []
     outputs: Outputs = Outputs()
@@ -1813,12 +1876,34 @@ class RunConfig(_Part):
             return self._lumped_curve()
         return self.storm.arf is not None and self.storm.arf_factor is None
 
+    @model_validator(mode="before")
+    @classmethod
+    def _implied_by_type(cls, data):
+        return implied_by_type(data)
+
+    @model_validator(mode="after")
+    def _fits_its_type(self) -> RunConfig:
+        problems = model_type_problems(self)
+        if problems:
+            raise ValueError(f"run.model_type {self.run.model_type!r}: " + "; ".join(problems))
+        return self
+
     @model_validator(mode="after")
     def _by_element(self) -> RunConfig:
         if self.hydrology.arf_by_element and not self._reads_a_table():
             raise ValueError(
                 "hydrology.arf_by_element reads the area-reduction table at each element's own area: that needs "
                 "storm.arf, and no storm.arf_factor, or a lumped curve in storm.area_reduction"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _split_roughness(self) -> RunConfig:
+        r = self.terrain.roughness
+        if r is not None and r.form == "split" and not self.strips.enabled:
+            raise ValueError(
+                "terrain.roughness form 'split' gives the aligned cells their own n, and this job has none "
+                "(strips.enabled is off): use form 'uniform'"
             )
         return self
 

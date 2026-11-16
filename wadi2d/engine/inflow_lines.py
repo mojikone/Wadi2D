@@ -56,8 +56,9 @@ def flow_lines(boundaries: list[Boundary]) -> list[tuple[str, Boundary]]:
 def flow_series(b: Boundary, cfg: RunConfig) -> tuple[np.ndarray, np.ndarray]:
     """(t_s from the run's start, m3/s) of a flow line: its table, or its CSV or DSS record put on the run's clock."""
     f = b.flow
-    if f.file is None:
-        return np.asarray(f.times_s, np.float64), np.asarray(f.flows, np.float64)
+    if f.file is None:  # a table of times, or of a step (W96)
+        times, flows = f.table()
+        return np.asarray(times, np.float64), np.asarray(flows, np.float64)
     record = read_record(f.file, f.record, f.time_unit, f.time_format, want=WANT_FLOW)
     if record.kind not in KINDS_READ:
         raise ValueError(f"{record.source} is a {record.kind} record, not a flow")

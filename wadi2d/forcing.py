@@ -30,6 +30,7 @@ from wadi2d.hydrology.gauge_rain import GaugeCellRain
 from wadi2d.hydrology.losses import ScsCurveNumber
 from wadi2d.io.geotiff import grid_transform
 from wadi2d.io.rain import read_rain
+from wadi2d.land import override_cells, reads_cells, roughness_grid
 from wadi2d.solver.backend import BoundaryCells
 from wadi2d.solver.layout import STRIDE2
 from wadi2d.solver.model import Model
@@ -154,9 +155,16 @@ def _labels(grid: TileGrid, polygons: list[shapely.Geometry]) -> np.ndarray:
 
 
 def manning_grid(
-    cfg: RunConfig, grid: TileGrid, crs: str = "", cells: tuple[np.ndarray, np.ndarray] | None = None
+    cfg: RunConfig,
+    grid: TileGrid,
+    crs: str = "",
+    cells: tuple[np.ndarray, np.ndarray] | None = None,
+    aligned: bool = False,
 ) -> float | np.ndarray:
-    """One value, or a grid where a Manning raster gives one; ``cells`` names the cells to read, the mask by default."""
+    """One value, or a grid where a Manning raster gives one; ``cells`` names the cells to read, the mask by default.
+    ``aligned`` asks for the strips' cells, which only ``terrain.roughness`` form 'split' tells apart."""
+    if cfg.terrain.roughness is not None:  # one of the four forms (W96); absent, the two fields below as before
+        return roughness_grid(cfg, grid, crs, cells, aligned)
     if cfg.terrain.manning_raster is None:
         return cfg.terrain.manning
     n = raster_at_cells(cfg.terrain.manning_raster, grid, crs, cells)
@@ -193,7 +201,7 @@ def curve_numbers(
     if cfg.terrain.cn_raster is not None:
         raster = raster_at_cells(cfg.terrain.cn_raster, grid, crs, cells)
         cn = np.where(np.isfinite(raster), raster, cn)
-    return cn
+    return override_cells(cfg, cn, grid, polygons, crs, cells)  # unchanged when the job gives no override (W96)
 
 
 @dataclass
@@ -523,7 +531,7 @@ class Forcing:
             )
         self.rained = _labels(grid, [polygons[name] for name in names])[self.jj, self.ii] == 0
         cn = curve_numbers(cfg, grid, polygons, crs, self._read_cells(grid))
-        cn = self._at_cells(cn, grid) if cfg.terrain.cn_raster else cn[self.jj, self.ii]
+        cn = self._at_cells(cn, grid) if reads_cells(cfg) else cn[self.jj, self.ii]
         self._check_curve_numbers(cfg, cn)
         self.depths = None
         if cfg.storm.depth_grid is not None:
