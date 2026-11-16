@@ -23,7 +23,6 @@ lattice edge, so every face between the strip and the squares is a lattice edge,
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -34,6 +33,7 @@ from wadi2d.grid.tiles import TileGrid
 from wadi2d.strips.diagram import areas_centroids, contract_short_faces, regions_to_rings, shared_faces
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.mesher import StripMesh, resample
+from wadi2d.strips.placing import ActiveSquares, Store, kept_bins, rows_of_line
 
 NEAR = 0.75
 """A lattice centre within this many cells of a line centre goes: a sliver would form between them."""
@@ -224,33 +224,6 @@ def counts_of(distance: np.ndarray, s: CentreSettings) -> np.ndarray:
     return held
 
 
-class _NearPoints:
-    """Points binned on a lattice of twice ``radius``: whether any lies closer than ``radius`` to a point, by the
-    distance ``cKDTree.query`` gives, the square root of the sum of the squared differences (W92)."""
-
-    def __init__(self, radius: float) -> None:
-        self.radius = radius
-        self.size = 2.0 * radius
-        self.bins: dict[tuple[int, int], list[tuple[float, float]]] = {}
-        self.count = 0
-
-    def add(self, p: np.ndarray) -> None:
-        x, y = float(p[0]), float(p[1])
-        self.bins.setdefault((math.floor(x / self.size), math.floor(y / self.size)), []).append((x, y))
-        self.count += 1
-
-    def any_within(self, p: np.ndarray) -> bool:
-        x, y = float(p[0]), float(p[1])
-        gx, gy = math.floor(x / self.size), math.floor(y / self.size)
-        for i in (gx - 1, gx, gx + 1):
-            for j in (gy - 1, gy, gy + 1):
-                for qx, qy in self.bins.get((i, j), ()):
-                    dx, dy = x - qx, y - qy
-                    if math.sqrt(dx * dx + dy * dy) < self.radius:
-                        return True
-        return False
-
-
 def place_centres(
     lines: list[Line], floors: list[tuple[np.ndarray, np.ndarray] | None], s: CentreSettings, inside=None
 ) -> tuple[Placed, list[list[int]]]:
@@ -261,10 +234,12 @@ def place_centres(
     # hard lines first, then by rank, and at equal rank the longer line: a braid's twin stem carries the main's area
     # and must never be placed before the main (circle 2 of 2026-11-08, where the main's stations gave way to it)
     order = sorted(range(len(lines)), key=lambda k: (not lines[k].hard, -lines[k].rank, -shapely.LineString(lines[k].xy).length))
-    xs, ls, st, sd, rw = [], [], [], [], []
-    held = np.empty((1024, 2))
-    """The centres placed so far as one array, kept as they are placed (W92: np.array of the growing list for every
-    line was 10 s of Block 2's mesh)."""
+    placed_so_far = Store(s.clearance_cells * s.dx)
+    """Every centre placed so far, binned (W92: the walk beyond the pairs, compiled; ``placing``)."""
+    kept = kept_bins(inside if isinstance(inside, ActiveSquares) else None)
+    if inside is not None and not isinstance(inside, ActiveSquares):
+        raise TypeError("place_centres takes the active squares as an ActiveSquares")
+    lattice = (inside.mask, inside.x0, inside.y0) if inside is not None else (np.zeros((1, 1), bool), 0.0, 0.0)
     notes: list[str] = []
     kept_stations: list[list[int]] = [[] for _ in lines]
     clearance = s.clearance_cells * s.dx
@@ -294,7 +269,7 @@ def place_centres(
         pts = 0.5 * (pts[:-1] + pts[1:])
         n_left = np.minimum(n_left[:-1], n_left[1:])
         n_right = np.minimum(n_right[:-1], n_right[1:])
-        placed = cKDTree(held[: len(xs)]) if xs else None
+        placed = cKDTree(placed_so_far.xy()) if placed_so_far.n else None
         # the pair decides whether a station lives: both its centres clear of every placed centre
         pair_l = pts + 0.5 * s.dx * normals
         pair_r = pts - 0.5 * s.dx * normals
@@ -322,33 +297,17 @@ def place_centres(
         dropped = int(pts.shape[0] - sum(b - a for a, b in pieces))
         if dropped:
             notes.append(f"line {line.name}: {dropped} of {pts.shape[0]} stations given up to higher lines, the domain's edge or too short to stand")
-        own_near = _NearPoints(0.5 * s.dx)
-        """The line's own centres again, binned for the test 'within half a cell of one of them' (W92: a tree of them
-        built anew for every centre was 90 s of Block 2's mesh; the test and its arithmetic are the tree's)."""
         for a, b in pieces:
             kept_stations[k].extend(range(a, b))
-            for side, sign, counts in ((1, 1.0, n_left), (-1, -1.0, n_right)):
-                for i in range(a, b):
-                    for j in range(int(counts[i])):
-                        p = pts[i] + sign * (j + 0.5) * s.dx * normals[i]
-                        if j > 0:
-                            if placed is not None and placed.query(p)[0] < clearance:
-                                break  # this row and the rows beyond it on this side give way
-                            if inside is not None and not bool(np.asarray(inside(p[None, :]))[0]):
-                                break  # the rows stop at the domain's edge
-                            if own_near.count and own_near.any_within(p):
-                                break  # the line's own rows meeting inside a bend
-                        own_near.add(p)
-                        if len(xs) == held.shape[0]:
-                            held = np.vstack((held, np.empty_like(held)))
-                        held[len(xs)] = p
-                        xs.append(p)
-                        ls.append(k)
-                        st.append(i)
-                        sd.append(side)
-                        rw.append(j)
-    xy = np.array(xs).reshape(-1, 2)
-    out = Placed(xy, np.array(ls, np.int64), np.array(st, np.int64), np.array(sd, np.int64), np.array(rw, np.int64), np.zeros(len(xs), bool), notes)
+        placed_so_far.room(int(sum(n_left[a:b].sum() + n_right[a:b].sum() for a, b in pieces)))
+        q = placed_so_far
+        q.n = rows_of_line(
+            pts, normals, n_left.astype(np.int64), n_right.astype(np.int64), np.array(pieces, np.int64).reshape(-1, 2), k, s.dx, clearance,
+            q.heads, q.size, q.px, q.py, q.nxt, q.line, q.station, q.side, q.row, q.n,
+            inside is not None, lattice[0], lattice[1], lattice[2], *kept[:6], inside.radius if inside is not None else 0.0, kept[6],
+        )  # fmt: skip
+    q, n = placed_so_far, placed_so_far.n
+    out = Placed(q.xy(), q.line[:n].copy(), q.station[:n].copy(), q.side[:n].copy(), q.row[:n].copy(), np.zeros(n, bool), notes)
     return out, kept_stations
 
 
@@ -505,22 +464,12 @@ def build_centre_mesh(
     leaves through squares that carry the boundary (the strip covering the outlet's squares ponded 23 m deep at
     Faydh's outlet, 2026-11-08, since a strip face on the domain's edge is a wall)."""
     dx = s.dx
-    ny, nx = grid.shape
-    kept_tree = None
+    kept = None
     if keep_out is not None and keep_out.any():
         kj, ki = np.nonzero(keep_out)
-        kept_tree = cKDTree(np.column_stack((grid.x0 + (ki + 0.5) * dx, grid.y0 - (kj + 0.5) * dx)))
-
-    def inside(xy: np.ndarray) -> np.ndarray:
-        """Whether points stand in active squares of the lattice, clear of the squares kept for the boundaries."""
-        j = np.floor((grid.y0 - xy[:, 1]) / dx).astype(np.int64)
-        i = np.floor((xy[:, 0] - grid.x0) / dx).astype(np.int64)
-        ok = (j >= 0) & (j < ny) & (i >= 0) & (i < nx)
-        ok[ok] = grid.mask[j[ok], i[ok]]
-        if kept_tree is not None and ok.any():
-            d, _ = kept_tree.query(xy[ok])
-            ok[np.nonzero(ok)[0][d <= BAND * dx]] = False
-        return ok
+        kept = np.column_stack((grid.x0 + (ki + 0.5) * dx, grid.y0 - (kj + 0.5) * dx))
+    inside = ActiveSquares(grid.mask, grid.x0, grid.y0, dx, kept, BAND * dx)
+    """Whether points stand in active squares of the lattice, clear of the squares kept for the boundaries."""
 
     centres, kept_stations = place_centres(lines, floors, s, inside)
     notes = list(centres.notes)
