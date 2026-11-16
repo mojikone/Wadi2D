@@ -1217,7 +1217,7 @@ def _write_outputs(cfg, tables, monitor: Monitor, results: Results, out: Path, c
     if where is not None and where[0].size and "strip_depth" in strip_maxima:
         # the squares a strip replaced read the strip cell at their centre: the wadis are not blank (W86)
         also = paint_strip(maps, strip_maxima, where, tables.strip.mesh.zmin)
-    write_cell_maps(out / "maps", maps, grid, crs, tags, also)
+    write_cell_maps(out / "maps", maps, grid, crs, tags, also, cfg.outputs.pixels.cell_depth_floor)  # W101
     for make in monitor.extra_products:
         kind, path = make(out / "maps", crs)
         progress.emit("output", kind=kind, path=str(path))

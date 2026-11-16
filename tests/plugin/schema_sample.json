@@ -3117,6 +3117,7 @@
             "volume_slack": 0.25,
             "volume_slack_m": 0.03,
             "depth_floor": 0.05,
+            "cell_depth_floor": null,
             "hazard_depth_floor": 0.1,
             "hazard_limits": [
               [
@@ -3351,6 +3352,21 @@
           "minimum": 0.0,
           "title": "Depth Floor",
           "type": "number"
+        },
+        "cell_depth_floor": {
+          "anyOf": [
+            {
+              "maximum": 10.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Below this largest depth a cell is left out of the cell maps (maps/: depth, level, speed, hazard, mean depth), m, as depth_floor leaves a pixel dry; None keeps every cell that was ever wet, as before it (W101: the dock's one depth threshold for the maps writes it with depth_floor and hazard_depth_floor)",
+          "title": "Cell Depth Floor"
         },
         "hazard_depth_floor": {
           "default": 0.1,
@@ -5922,6 +5938,7 @@
           "auto_pixel_m": 2.0,
           "batch_pixels": 50000000,
           "cell_depth": 0.05,
+          "cell_depth_floor": null,
           "depth_floor": 0.05,
           "dv_raster": false,
           "edge_band": 0.3,

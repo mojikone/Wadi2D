@@ -39,6 +39,30 @@ def test_no_pixel_maps_take_no_pixel(tmp_path) -> None:
     assert job["outputs"]["pixels"] == {"enabled": False}
 
 
+def test_one_depth_threshold_sets_every_floor(tmp_path) -> None:
+    job = build_job(values(tmp_path, pixels=True, map_threshold=0.1), tmp_path / "t")
+    assert job["outputs"]["pixels"] == {"depth_floor": 0.1, "hazard_depth_floor": 0.1, "cell_depth_floor": 0.1}
+    pixels = RunConfig.model_validate(job).outputs.pixels
+    assert (pixels.depth_floor, pixels.hazard_depth_floor, pixels.cell_depth_floor) == (0.1, 0.1, 0.1)
+    off = build_job(values(tmp_path, pixels=False, map_threshold=0.2), tmp_path / "u")
+    assert off["outputs"]["pixels"] == {"enabled": False, "depth_floor": 0.2, "hazard_depth_floor": 0.2, "cell_depth_floor": 0.2}
+    assert "pixels" not in build_job(values(tmp_path, pixels=True, map_threshold=None), tmp_path / "v")["outputs"]
+
+
+def test_a_model_and_a_job_from_before_keep_the_engines_floors(tmp_path) -> None:
+    import json
+
+    from wadi2d_qgis import job_states, model_doc
+
+    doc = {"format": model_doc.FORMAT, "version": 3, "sections": {"run": {"widgets": {"folder": "x"}}}}
+    brought = model_doc.loads(json.dumps(doc))
+    assert brought["sections"]["run"]["widgets"]["cutoff"] < 0.0 and not brought.get(model_doc.MIGRATED)
+    old = build_job(values(tmp_path, pixels=True), tmp_path / "w")
+    assert job_states.job_states(old, tmp_path)["run"]["widgets"]["cutoff"] < 0.0
+    new = build_job(values(tmp_path, pixels=True, map_threshold=0.15), tmp_path / "x")
+    assert job_states.job_states(new, tmp_path)["run"]["widgets"]["cutoff"] == 0.15
+
+
 def test_the_window_asks_for_the_dems_own_pixel(tmp_path) -> None:
     box = (1000.0, 2000.0, 1500.25, 2600.0)
     folder = window_folder(tmp_path, box)

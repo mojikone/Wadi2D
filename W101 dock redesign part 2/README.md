@@ -70,7 +70,22 @@ His words of 2026-11-16, applied (`sections/run.py`, `window_links.py`, `window_
 5. **A Lumped model's Terrain** hides the cell size, Manning and the pit fill (their values kept for the day the type
    has a 2D part again). See Found 1: a generated basin still reads Manning for its reaches.
 
-At the defaults the job holds no `outputs.pixels` at all, so an older model writes the job it wrote. The results page
+6. **One depth threshold for the maps** (his addition): "Depth threshold for the maps" in Run with the other map
+   controls, 0.1 m by default. It writes `outputs.pixels.depth_floor`, `hazard_depth_floor` and the new
+   `cell_depth_floor` all to that value (the pixel depth, speed, level and hazard; the time slider and the on-demand
+   renderer read `depth_floor` already) and sets the display cutoff of the depth layers in QGIS ("Draw depth from",
+   0.05 m and separate before) to the same value: one place, screen and files alike, and it is now saved with the
+   model. **Engine hook**: the cell maps (`maps/`) kept every cell ever wet; `outputs.pixels.cell_depth_floor`
+   (None by default, so an old job writes the maps it wrote; outside the job hash, as all of `outputs.pixels`) leaves a
+   cell whose largest depth stayed under it out of the depth, level, speed, hazard and mean-depth maps
+   (`products/cell_maps.floored`, `run._write_outputs`); the arrival map keeps its own depth. A model from before
+   (format 3, now 4) shows "The engine's own floors" and writes none: its job is the job it was. A job read back gives
+   the threshold where its three floors agree.
+
+At the defaults the map pixel and the raster write nothing; **the threshold writes its three floors in every new
+model**, so a fresh dock's job now carries `outputs.pixels.depth_floor`, `hazard_depth_floor` and `cell_depth_floor`
+of 0.1 (a named change: the hazard floor was 0.1 already, the pixel floor 0.05, the cell maps none). Seen on the way:
+the headless smoke test's 20 mm sheet peaks at 6.5 cm, so at 0.1 m its maps hold nothing; that test now sets 0.05. The results page
 (item 6) is not built, so the window button lives in Run beside the other map tools, which item 6 would move.
 Tests: `tests/plugin/test_map_controls.py` 4 (the job at the defaults, both settings written and taken by the
 engine's schema with the continuous surface, none without pixel maps, the window's command and folder).
@@ -82,7 +97,7 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | `dock_rain.py` | item 1: the sections in their places; Data tables (add, the next free name, a refused table Missing in words, rename, remove, both charts); six sources, the Steady rain's mm/h giving its job; SCS sets 24 h and refuses 6 h; a pattern by name carried into the job and filled in by the engine; a depth grid; the parts by model type; one area for both parts = the old form, parts that differ = `area_reduction`; the study's single-run area; **a real run on Bidah of a depth with a pattern of Data tables and the 2D part's own reduction, the engine's factor equal to the dock's**; saved and brought back to the same job; a format 2 model's steady rain and design storm moved, in words | 54 of 54 |
 | `dock_import_block2.py` | his item: the four W79 jobs imported; for each the 48 h, the ARF at 100 km2 with its factor shown, the outflow lines with their slopes, the crest lines and spillways, the result lines, the aligned centre mesh; saved as scenarios in W102; **the job the dock writes, compared field by field with the original through the engine's schema: identical but for what is listed, and the dock's own comparison lists the same** | 46 of 46 |
 | `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
-| `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched** | 23 of 23 |
+| `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched**; the one depth threshold: 0.1 m, beside the map controls, no second field, the display cutoff the same, one change moving both, a format 3 model keeping the engine's floors, and **after the run no pixel of the depth map and no cell of the cell maps under 0.1 m** | 31 of 31 |
 
 ## A job the dock did not write (his item of 2026-11-16; built)
 

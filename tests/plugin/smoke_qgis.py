@@ -217,8 +217,14 @@ def storm_sources(dock) -> None:
     from wadi2d_qgis.job_builder import build_job
 
     job = build_job(values, WORK / "job_depth")
-    check(job["storm"]["pattern"] == {"kind": "table", "table": name} and name in job["data_tables"]["patterns"], f"storm: the job names the pattern {job['storm']}")
-    check(job["storm"]["area_reduction"]["grid"] == {"form": "area", "curve": curve, "area_km2": 200.0}, "arf: a depth storm writes both parts")
+    # a percent pattern to 100 % with one reduction for both parts: the design storm's own form (W101, the import)
+    check(job["storm"]["kind"] == "hypothetical" and job["storm"]["time_percent"] == [0.0, 30.0, 100.0], f"storm: the pattern in the design storm's form {job['storm']}")
+    check(job["storm"]["storm_area_km2"] == 200.0 and job["storm"]["arf"]["factors"] == [0.95, 0.7], "arf: one area for both parts, the single-storm form")
+    arf.lumped.area.setValue(150.0)
+    split = build_job({**dock._collect(), "output": str(WORK)}, WORK / "job_depth_split")
+    check(split["storm"]["kind"] == "depth" and split["storm"]["pattern"] == {"kind": "table", "table": name} and name in split["data_tables"]["patterns"], f"storm: a split names the pattern {split['storm']}")
+    check(split["storm"]["area_reduction"]["grid"] == {"form": "area", "curve": curve, "area_km2": 200.0}, "arf: a depth storm with a split writes both parts")
+    arf.lumped.area.setValue(200.0)
     pick(arf.lumped.form, "curve")
     pick(arf.grid.form, "study")
     check(not arf.study_label.isHidden(), "arf: the study's storm areas shown under the 2D part")
@@ -952,6 +958,7 @@ def real_engine() -> None:
     pump(lambda: dock.schema is not None, 60.0, "the real schema")
     check(dock.terrain.dx.value() == 20.0, "real: the dock takes its defaults from wadi2d schema")
     dock.terrain.dem.setLayer(dem)  # W101: the dock no longer chooses the first raster for the user
+    dock.panel.cutoff.setValue(0.05)  # W101: a 20 mm sheet peaks at 6.5 cm, under the maps' threshold of 0.1 m
     dock.hydrology.rain.setValue(100.0)
     dock.hydrology.hours.setValue(0.2)
     dock.panel.duration.setValue(0.25)

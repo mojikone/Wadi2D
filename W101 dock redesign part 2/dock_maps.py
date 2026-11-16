@@ -31,8 +31,23 @@ def scenario(h):
     h.check("the depth x speed raster off", not panel.dv_raster.isChecked() and panel.dv_raster.text() == "Depth x speed raster")
     shown = [label.text() for label in panel.findChildren(QLabel) if label.isVisibleTo(panel)]
     h.check("no choice of surface is offered", not any("urface" in text for text in shown), shown)
+    from wadi2d_qgis import style
+
+    h.check("one depth threshold for the maps, 0.1 m, beside the other map controls", panel.cutoff.value() == 0.1 and len(w.words_of(panel, "Depth threshold for the maps")) == 1 and not w.words_of(dock.widget(), "Draw depth from"), panel.cutoff.value())
+    h.check("the layers QGIS draws take it", abs(style.depth_cutoff() - 0.1) < 1e-9, style.depth_cutoff())
     job = w.built(dock, out)
-    h.check("at the defaults the job holds no pixel settings", "pixels" not in job["outputs"], job["outputs"])
+    h.check("at the defaults the job holds the threshold alone, for every map", job["outputs"].get("pixels") == {"depth_floor": 0.1, "hazard_depth_floor": 0.1, "cell_depth_floor": 0.1}, job["outputs"])
+    panel.cutoff.setValue(0.2)
+    h.check("one change moves files and screen together", w.built(dock, out)["outputs"]["pixels"]["cell_depth_floor"] == 0.2 and abs(style.depth_cutoff() - 0.2) < 1e-9)
+    panel.cutoff.setValue(0.1)
+    from wadi2d_qgis import model_doc
+
+    held_doc = dock.model.collect()
+    old = model_doc.loads(model_doc.dumps({**held_doc, "version": 3, "sections": {k: v for k, v in held_doc["sections"].items() if k != "run"} | {"run": {"widgets": {k: v for k, v in held_doc["sections"]["run"]["widgets"].items() if k != "cutoff"}}}}))
+    dock.model.apply(old)
+    h.check("a model from before keeps the engine's own floors, said in the field", panel.cutoff.text() == "The engine's own floors" and "pixels" not in w.built(dock, out)["outputs"], (panel.cutoff.text(), w.built(dock, out)["outputs"].get("pixels")))
+    dock.model.apply(held_doc)
+    h.check("and the model of now its threshold", panel.cutoff.value() == 0.1)
     h.check("the window button named for the terrain's own resolution", panel.window_button.text() == "Map a window at the terrain's finest resolution")
     h.check("its tooltip gives this DEM's pixel", f"{pixel:g} m on this DEM" in panel.window_button.toolTip(), panel.window_button.toolTip())
     h.check("no window before a run", not panel.window_button.isEnabled())
@@ -49,7 +64,7 @@ def scenario(h):
     panel.map_pixel.setValue(10.0)
     panel.dv_raster.setChecked(True)
     job = w.built(dock, out)
-    h.check("the job holds both, the engine takes them", job["outputs"]["pixels"] == {"pixel_m": 10.0, "dv_raster": True} and w.validated(job).outputs.pixels.surface == "continuous", job["outputs"])
+    h.check("the job holds both, the engine takes them", {k: job["outputs"]["pixels"][k] for k in ("pixel_m", "dv_raster")} == {"pixel_m": 10.0, "dv_raster": True} and w.validated(job).outputs.pixels.surface == "continuous", job["outputs"])
     panel.backend.setCurrentIndex(panel.backend.findData("cpu"))
     w.big_shot(h, dock, "run_maps", open_only="run")
     yield from h.run(dock)
@@ -59,6 +74,21 @@ def scenario(h):
     depth = QgsRasterLayer(str(run / "pixels" / "pixel_depth.tif"), "d")
     h.check("the maps of record at 10 m", depth.isValid() and abs(depth.rasterUnitsPerPixelX() - 10.0) < 1e-6, depth.rasterUnitsPerPixelX())
     h.check("the depth x speed raster written", (run / "pixels" / "pixel_dv.tif").is_file())
+    import numpy as np
+    from osgeo import gdal
+
+    def wet_values(path):
+        source = gdal.Open(str(path))
+        band = source.GetRasterBand(1)
+        data, nodata = band.ReadAsArray().astype(float), band.GetNoDataValue()
+        return data[(data != nodata) & (data > 0.0)] if nodata is not None else data[data > 0.0]
+
+    pixel_wet, cell_wet = wet_values(run / "pixels" / "pixel_depth.tif"), wet_values(run / "maps" / "max_depth.tif")
+    h.check("no pixel of the depth map under the threshold", pixel_wet.size > 0 and pixel_wet.min() >= 0.1 - 1e-3, (pixel_wet.size, float(pixel_wet.min()) if pixel_wet.size else None))
+    h.check("no cell of the cell maps under it either", cell_wet.size > 0 and cell_wet.min() >= 0.1 - 1e-6, (cell_wet.size, float(cell_wet.min()) if cell_wet.size else None))
+    level = wet_values(run / "maps" / "max_level.tif")
+    h.check("the cell level map as many cells as the depth map", level.size == cell_wet.size, (level.size, cell_wet.size))
+    del np
     h.check("the window button enabled after the run", panel.window_button.isEnabled())
 
     h.log("=== 4 a window at the terrain's finest resolution")

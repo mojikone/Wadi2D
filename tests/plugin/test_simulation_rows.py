@@ -184,14 +184,14 @@ def test_runs_three_fields_move_to_simulation_as_they_are() -> None:
         "maps": {"data": 300.0, "text": "x"},
         "backend": {"data": "cpu", "text": "CPU only"},
     }
-    assert widgets["run"] == {"folder": "out", "pixels": False}
+    assert widgets["run"] == {"folder": "out", "pixels": False, "cutoff": -0.001}  # W101: the engine's own floors kept
     assert (
         "start" not in widgets["storm"]
         and "gauge_start" not in widgets["storm"]
         and "start" not in widgets["gauges"]
     )
     assert words == []  # nothing of the job changed: nothing to say
-    assert model_doc.loads(json.dumps(old_doc("single")))["version"] == model_doc.VERSION == 3  # W101: format 3
+    assert model_doc.loads(json.dumps(old_doc("single")))["version"] == model_doc.VERSION == 4  # W101: format 4
 
 
 @pytest.mark.parametrize(

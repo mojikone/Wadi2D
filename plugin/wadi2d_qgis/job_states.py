@@ -420,6 +420,8 @@ def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None
     pixels = outputs.get("pixels") or {}
     panel["map_pixel"] = pixels["pixel_m"] if pixels.get("pixel_m") is not None else -1.0  # W101: -1 is Automatic
     panel["dv_raster"] = bool(pixels.get("dv_raster"))
+    floors = {pixels.get(key) for key in ("depth_floor", "hazard_depth_floor", "cell_depth_floor")}
+    panel["cutoff"] = floors.pop() if len(floors) == 1 and None not in floors else -0.001  # one threshold, or the engine's
     store = _tables(job)
     storm = job.get("storm") or {}
     storm_state = _storm(storm, store)

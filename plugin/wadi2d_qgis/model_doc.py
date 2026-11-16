@@ -20,8 +20,8 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 3
-"""3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
+VERSION = 4
+"""4 (W101, his item 7): the one depth threshold for the maps is the model's (Run). 3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
 depth and a pattern. 2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved
 maps and the engine choice. 1 kept three starts, in Storm (two) and Gauges, and the other three in Run."""
 MIGRATED = "migrated"
@@ -186,7 +186,15 @@ def _to_3(doc: dict) -> dict:
     return doc
 
 
-MIGRATIONS: dict = {1: _to_2, 2: _to_3}
+def _to_4(doc: dict) -> dict:
+    """Format 3 to 4: the one depth threshold for the maps. A model from before it says nothing of the floors, so it
+    keeps the engine's own (0.05 m for depth, 0.1 m for the hazard, every wet cell in the cell maps) and the job it
+    writes; the field shows "The engine's own floors"."""
+    _widgets(doc, "run")["cutoff"] = -0.001  # nothing of its job changes, so nothing is said: the field says it
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

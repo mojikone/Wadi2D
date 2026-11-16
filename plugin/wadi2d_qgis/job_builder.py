@@ -704,6 +704,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         chosen = {key: value for key, value in chosen.items() if value is not None}
         if chosen:
             job["outputs"]["pixels"] = {**job["outputs"].get("pixels", {}), **chosen}
+    if values.get("map_threshold") is not None:  # his one depth threshold for every map (W101)
+        floor = values["map_threshold"]
+        floors = {"depth_floor": floor, "hazard_depth_floor": floor, "cell_depth_floor": floor}
+        job["outputs"]["pixels"] = {**job["outputs"].get("pixels", {}), **floors}
     if values.get("terrain_map"):
         job["outputs"]["terrain_map"] = True
     if values.get("step_limiter"):
