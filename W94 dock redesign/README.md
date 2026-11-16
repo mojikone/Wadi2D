@@ -50,3 +50,35 @@ Rain sources: uniform, hyetograph, design storm with ARF table, gridded NetCDF/D
 - Domain from a drawn outline plus automatic upstream delineation, the mountain edge snapped to catchment boundaries, and an "align the domain to the catchments" action.
 - Inflow table entry with a time step and a slope option; initial level points.
 - The four model types as a saved setting that drives what the dock shows.
+
+## Dock to-do list (2026-11-16): everything the engine has and the dock lacks
+
+Status: the engine pieces above are built and merged (W95, W96, W97); nothing below is in the dock yet. The look is the
+mockup's: one model type chosen first, only its sections shown, a status tick per section (Ready, Optional, Missing), a
+check list before the run, a results view with compare. QGIS widgets styled to match (Qt style sheets: colours, rounded
+panels, tabs and progress bars all work in a QGIS dock).
+
+From the redesign requirements (built in the engine, no dock yet):
+- Model type first: 2D, Lumped, Hybrid Lumped, Hybrid 2D (`run.model_type`), or open a finished run.
+- ARF split into a lumped and a 2D part, each a curve (table and chart), a fixed area or a coefficient (`storm.area_reduction`).
+- Rain: fixed depth, depth and pattern, TIF depth grid and pattern, SCS types, DSS, NetCDF (`storm.kind`, `storm.pattern`).
+- One Data tables section for patterns and ARF curves (`data_tables`), as HEC-HMS's paired data.
+- CN override table by land use, CN range or subbasin (`hydrology.cn_override`).
+- Manning: one value, squares and aligned apart, a grid, land-use classes (`terrain.roughness`).
+- Inflow line typed as a table at a time step, with a chart (`flow.step_s`); point inflows typed as a table.
+- Initial-level points (`initial_points`).
+- Domain from a drawn outline, completed upstream, and an Align to catchments button (`wadi2d domain`).
+
+Found by the audit of 2026-11-16 (in the engine, never in the dock, not in the requirements):
+- The aligned centre mesh (`strips.generator: centres`, the mesh of the four Block 2 runs), the thalweg corridor and fixed
+  cells, gorge rows, the slope bank rule.
+- Simulation panel: start date and time, duration, the 2D step (automatic: Courant number, max and min step; fixed under
+  Advanced, warned when unstable), the lumped step (`hydrology.time_step_min`), map and series intervals, frames window.
+- Resume from a checkpoint, and the checkpoint interval.
+- Leaving out named subbasins from the mesh (`grid.exclude_subbasins`), not only all lumped ones.
+- Breach estimator inputs (dam type, slopes, erodibility, pool volume) and the weir and piping coefficients.
+- The ARF study's exact reruns at chosen points (`arf.exact_points`).
+
+Proposed with it (his question of 2026-11-16, not yet his decision): scenarios as HMS runs and RAS plans (components,
+a scenario inherits a base and stores only its differences), a batch queue (all return periods or all model types), stop
+rules (end when every dam inflow has peaked and fallen), hot start from a saved state, batch sensitivity, run notes.
