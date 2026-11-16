@@ -52,3 +52,27 @@ def test_a_kept_edge_stays_as_drawn() -> None:
     done = align_outline(with_rim, CATCHMENTS, DomainSettings(keep_m=50.0), kept=[south])
     assert done.polygon.bounds[1] == -40.0
     assert done.polygon.bounds[3] == 5000.0
+
+
+def test_the_command_aligns_to_a_layer(tmp_path) -> None:
+    import json
+
+    from wadi2d.engine.cli import main
+
+    def layer(name: str, shapes: list) -> str:
+        rows = [
+            {"type": "Feature", "properties": {"name": f"S{n}"}, "geometry": shapely.geometry.mapping(s)}
+            for n, s in enumerate(shapes)
+        ]
+        path = tmp_path / name
+        path.write_text(json.dumps({"type": "FeatureCollection", "features": rows}), encoding="utf-8")
+        return str(path)
+
+    outline = layer("outline.geojson", [WHOLE.buffer(40.0, join_style="mitre")])
+    job = tmp_path / "job.json"
+    job.write_text(json.dumps({"grid": {"dx": CELL, "domain": outline}}), encoding="utf-8")
+    catchments = layer("catchments.geojson", CATCHMENTS)
+    assert main(["domain", str(job), "--out", str(tmp_path / "out"), "--align", catchments]) == 0
+    report = json.loads((tmp_path / "out" / "domain_report.json").read_text(encoding="utf-8"))
+    assert report["mode"] == "align" and report["cells_outside_catchments"] == 0
+    assert report["cells_outside_catchments_before"] > 0
