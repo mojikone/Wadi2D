@@ -1,0 +1,48 @@
+[
+ {
+  "step": "open the dock",
+  "seconds": 1.1,
+  "said": "Engine ready."
+ },
+ {
+  "step": "Complete upstream",
+  "seconds": 169.3,
+  "said": "Domain 1,399.36 km2, the outline of 1,416.58 km2 completed upstream: 17.39 km2 added, draining in (0 catchments with a stream over 10 km2, 17.39 km2 in smaller pieces); 22.76 km2 removed, draining out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, draining in across kept edges: 0.05 km2 (0 catchments with a stream over 10 km2). Kept edges: 4 lines; the ground read at 5 m. 29 pieces apart from the domain left out, 0.195 km2. 10 holes inside the domain filled, 4.265 km2.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-af9693af489868acb\\W104 Block 2 from the dock\\runs\\Lumped_domain"
+ },
+ {
+  "step": "Generate basin, 10 km2",
+  "seconds": 99.8,
+  "said": "78 subbasins, 35 reaches, 41 junctions, 5 reservoirs; 47.9929 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S36 (curve_number). crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 1 subbasins have the CN raster over less of them than 0.9; open ground, no channel in the sections: ['R10', 'R17'].",
+  "subbasins": 78,
+  "threshold_km2": 10.0
+ },
+ {
+  "step": "Generate basin, 7.5 km2",
+  "seconds": 62.4,
+  "said": "108 subbasins, 49 reaches, 57 junctions, 5 reservoirs; 33.8462 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S36 (curve_number). crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 1 subbasins have the CN raster over less of them than 0.9; open ground, no channel in the sections: ['R10', 'R17', 'R40'].",
+  "subbasins": 108,
+  "threshold_km2": 7.5
+ },
+ {
+  "step": "Align to catchments",
+  "seconds": 21.2,
+  "said": "Domain 1,416.46 km2, the outline of 1,416.58 km2 aligned to 170 catchments: a rim of 1.64 km2 outside them removed, gaps of 1.36 km2 added (bands narrower than twice 100 m). Cells of 20 m outside every catchment: 174,771, 69.91 km2 (were 178,423). 115 pieces apart from the domain left out, 0.0189 km2. 208 holes inside the domain filled, 0.1851 km2.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-af9693af489868acb\\W104 Block 2 from the dock\\runs\\Lumped_domain_2"
+ },
+ {
+  "step": "Generate basin on the aligned domain, 7.5 km2",
+  "seconds": 65.1,
+  "said": "108 subbasins, 49 reaches, 57 junctions, 5 reservoirs; 54.1401 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S37 (curve_number), S36 (curve_number). crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 1 subbasins have the CN raster over less of them than 0.9; open ground, no channel in the sections: ['R17', 'R52', 'R53', 'R55'].",
+  "subbasins": 108,
+  "reservoirs": 5
+ },
+ {
+  "step": "Run Lumped",
+  "seconds": 2.1,
+  "said": "The engine refused the job: a setting is invalid. subbasins S37, S36 are rain-on-grid, and a lumped-only run has no grid: make them lumped, or run with a 2D part.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-af9693af489868acb\\W104 Block 2 from the dock\\runs\\Lumped",
+  "started_epoch": 1794850916.1735618,
+  "ended_epoch": 1794850918.2266247
+ }
+]

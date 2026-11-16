@@ -1,0 +1,50 @@
+{
+ "HAT-J4": {
+  "subbasins": 21,
+  "area_km2": 260.36,
+  "dam_area_km2": 260.36,
+  "factor_applied_mean": 0.8463,
+  "factor_at_dam_area": 0.8463,
+  "runoff_ratio": 1.0
+ },
+ "Z4C": {
+  "subbasins": 20,
+  "area_km2": 211.61,
+  "dam_area_km2": 211.56,
+  "factor_applied_mean": 0.8606,
+  "factor_at_dam_area": 0.8606,
+  "runoff_ratio": 1.0
+ },
+ "R2A": {
+  "subbasins": 15,
+  "area_km2": 175.96,
+  "dam_area_km2": 175.94,
+  "factor_applied_mean": 0.8758,
+  "factor_at_dam_area": 0.8758,
+  "runoff_ratio": 1.0
+ },
+ "R5A": {
+  "subbasins": 7,
+  "area_km2": 117.13,
+  "dam_area_km2": 117.12,
+  "factor_applied_mean": 0.9046,
+  "factor_at_dam_area": 0.9046,
+  "runoff_ratio": 1.0
+ },
+ "Faydh 01": {
+  "subbasins": 6,
+  "area_km2": 74.46,
+  "dam_area_km2": 74.42,
+  "factor_applied_mean": 0.9309,
+  "factor_at_dam_area": 0.9309,
+  "runoff_ratio": 1.0
+ },
+ "Bidah 03": {
+  "subbasins": 4,
+  "area_km2": 20.06,
+  "dam_area_km2": 20.03,
+  "factor_applied_mean": 0.9759,
+  "factor_at_dam_area": 0.976,
+  "runoff_ratio": 1.0
+ }
+}

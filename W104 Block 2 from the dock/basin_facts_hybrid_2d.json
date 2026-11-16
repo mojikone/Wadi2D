@@ -1,0 +1,31 @@
+{
+ "analysis": {
+  "pixel_m": 5.0,
+  "x0": 407646.48973783385,
+  "y0": 2746825.393463373,
+  "ny": 9361,
+  "nx": 9767,
+  "ground_km2": 1394.3984,
+  "unassigned_km2": 547.6977
+ },
+ "counts": {
+  "subbasin": 71,
+  "reach": 29,
+  "junction": 41
+ },
+ "HAT-J4": {
+  "kind": "junction",
+  "drainage_area_km2": 260.3589,
+  "subbasins": 21,
+  "subbasin_km2_mean": 12.4,
+  "lag_min_range": [
+   1.5,
+   89.3
+  ],
+  "reaches": 9,
+  "reach_length_km": 30.5,
+  "reach_manning_n": [
+   0.04
+  ]
+ }
+}

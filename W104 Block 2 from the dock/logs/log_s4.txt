@@ -1,0 +1,40 @@
+    0.0 script loaded
+    5.0 unavailable layers left as they are: 3
+    5.3 PASS project read: Block2_from_the_dock.qgz D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\W104 Block 2 from the dock\Block2_from_the_dock.qgz
+    5.3 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\plugin\wadi2d_qgis\__init__.py
+    6.7 PASS engine found Engine ready.
+    6.7 restored: page model, type hybrid_2d, folder D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\W104 Block 2 from the dock\runs\Hybrid2D
+    6.7 === 1 the card alone, on Hybrid Lumped's basin: what the job does
+    7.7 the card alone is not checked again: ['Press Generate basin first, or untick it: the run needs the generated basin.json.']
+    7.7 === 2 the basin again, with no crest lines, into this model's folder
+    7.8 Bidah 03: 1 junctions 150 m above the dam
+    7.8 Faydh 01: 1 junctions 150 m above the dam
+    7.8 R5A: 4 junctions 150 m above the dam
+    7.8 R2A: 3 junctions 150 m above the dam
+    7.8 Z4C: 1 junctions 150 m above the dam
+    7.9 PASS outfalls above the dams and at HAT-J4 [('HAT-J4', 'outfall'), ('Bidah 03 above 1', 'outfall'), ('Faydh 01 above 1', 'outfall'), ('R5A above 1', 'outfall'), ('R5A above 2', 'outfall'), ('R5A above 3', 'outfall'), ('R5A above 4', 'outfall'), ('R2A above 1', 'outfall'), ('R2A above 2', 'outfall'), ('
+    7.9 STEP Generate basin without the dams
+   59.8 STEP DONE Generate basin without the dams 51.9 s: 71 subbasins, 29 reaches, 41 junctions, 0 reservoirs; 547.698 km2 reach the edge without meeting a stream and rain on the grid. open ground, no channel in the sections: ['R12', 'R16', 'R27']; 129 elements drain to no outfall of the Basin points layer: left out.
+   59.8 PASS no reservoir in this basin 71 subbasins, 29 reaches, 41 junctions, 0 reservoirs; 547.698 km2 reach the edge without meeting a stream and rain on the grid. open ground, no channel in the sections: ['R12', 'R16', 'R27']; 129 elements drain to no outfall of the Basin points layer: left out
+   59.8 lumped area above each dam (outfalls) against the dam's: [('Bidah 03', 19.31, 20.03), ('Faydh 01', 72.91, 74.42), ('R5A', 109.19, 117.12), ('R2A', 174.65, 175.94), ('Z4C', 210.28, 211.56), ('HAT-J4', 260.36, 260.36)]
+   59.8 PASS the dams back in Structures for the 2D pools 
+   59.8 === 3 Reach routing Muskingum with no K and X: every reach left out
+   59.8 Muskingum table: 29 reaches, values []
+   62.7 reduction: lumped curve Each lumped subbasin is read on the curve at the drainage area of the element where its water enters the grid, a dam or a junction found from the network (W98); in a Lumped model each element at its o | 2D area Factor at 100 km2: 0.9130
+   62.7 simulation: 48.0 h, lumped 5.0 min, maps Every 15 minutes, for design work, GPU only
+   64.2 Hybrid 2D job: grid {'dx': 20.0, 'cache_dir': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\wadi2d_cache', 'domain': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\w104_job_hl8ic1zk\\inputs\\domain.geojson'} | routing muskingum muskingum None | storm {"kind": "depth", "depth_mm": 251.0, "duration_min": 1440.0, "pattern": {"kind": "table", "table": "FM 10-1000yr"}, "area_reduction": {"lumped": {"form": "curve", "curve": "ARF FM"}, "grid": {"form": "area", "curve": "ARF FM", "area_km2": 100.0}}}
+   64.2 status: terrain: ready DEM GGC_2_MERGE_HDSM (0.5 m) · cell 20 m · domain Domain aligned to the catchments, 1,398.25 km2 · Manning from Manning ; mesh: ready The aligned centre mesh along the streams of Suggested breaklines: 4756 banks, 13725 crests; hydrology: ready Basin generated from the DEM · 71 subbasins, 71 lumped · curve number from CN_Include_Hill_Area, holes filled with 88; tables: ready 1 pattern · 1 curve; storm: ready Depth 251 mm in 24 h, pattern "FM 10-1000yr"; reduction: ready lumped: ARF FM at each entry's area · 2D: ARF FM at 100 km2 (0.913); structures: ready Crest lines, Spillways; boundaries: ready 4 lines · 4 normal; points: ready 5 lines and points from Dam lines; gauges: optional None: the run is compared with no record; simulation: ready 48 h · automatic step, Courant 0.45 · maps every 15 min · lumped step 5 min; run: ready Into Hybrid2D · pixel maps after the run; study: optional Design flows by drainage area: one run per storm area, started from here
+   64.8 PASS project saved: Block2_from_the_dock.qgz 
+   64.8 STEP Run Hybrid 2D
+   66.1 dock says: Starting...
+   67.7 dock says: rain on the lumped part: 71 subbasins read the curve at the drainage area of the element where their water enters the grid; 61 elements above their entry are reported from a lumped rerun at their own drainage area, the grid's hydrograph beside them as entry_area_<element>
+  354.6 dock says: a stream draining 0.33 km2 beyond the edge enters the domain at (437746, 2740355) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+  386.0 dock says: 30 pits filled, 29246 m3 in all (terrain.fill_pits); they lie in terrain_checks.gpkg
+  393.0 dock says: Open boundary 4: the line is 0.7 km long but opens only 0.4 km of the domain: much of it lies more than 150 m off the active cells. Water will pond against the rest of it. Draw it on or just inside the domain edge.
+  398.0 dock says: line R2A crosses the cells where the lumped hydrograph of R2A above 2 enters the grid: its raw peak reads the pond's surge there, not the flow; read the lumped element's own series (series/network_<name>.csv), or move the line downstream of the inflow
+ 2354.1 STEP DONE Run Hybrid 2D 2289.2 s: Finished. Earthworks. pit fill 1.1: fill 125 m3; pit fill 1.2: fill 4,476 m3; pit fill 1.3: fill 332 m3; pit fill 1.4: fill 4,775 m3; pit fill 2.1: fill 24 m3; pit fill 2.2: fill 73 m3; pit fill 2.3: fill 10 m3; pit fill 2.4: fill 100 m3; pit fill 2.5: fill 4 m3; pit fill 2.6: fill 1 m3; pit fill 2.
+ 2354.4 Hybrid 2D outcome: finished True; the dock says: Finished. Earthworks. pit fill 1.1: fill 125 m3; pit fill 1.2: fill 4,476 m3; pit fill 1.3: fill 332 m3; pit fill 1.4: fill 4,775 m3; pit fill 2.1: fill 24 m3; pit fill 2.2: fill 73 m3; pit fill 2.3: fill 10 m3; pit fill 2.4: fill 100 m3; pit fill 2.5: fill 4 m3; pit fill 2.6: fill 1 m3; pit fill 2.7: fill 22 m3; pit fill 2.8: fill 4 m3; pit fill 3.2: fill 10 m3; pit fill 3.3: fill 117 m3; pit fill 3.4: fill 26 m3; pit fill 3.5: fill 1,227 m3; pit fill 3.6: fill 1,328 m3; pit fill 4.1: fill 17 m3; pit fill 4.3: fill 3 m3; pit fill 4.4: fill 67 m3; pit fill 4.5: fill 7 m3; pit fill 4.6: fill 3 m3; pit fill 4.7: fill 2 m3; pit fill 4.8: fill 482 m3; pit fill 4.9: fill 2 m3; pit fill 5.1: fill 3 m3; pit fill 5.2: fill 40 m3; pit fill 5.3: fill 222 m3; pit fill 5.4: fill 23 m3; pit fill 6.1: fill 12 m3; pit fill 6.2: fill 142 m3; pit fill 7.1: fill 255 m3; pit fill 7.2: fill 269 m3; pit fill 8.1: fill 6 m3; pit fill 8.2: fill 18 m3; pit fill 8.3: fill 36 m3; pit fill 8.4: fill 446 m3; pit fill 8.6: fill 10 m3; pit fill 9.2: fill 494 m3; pit fill 10: fill 291 m3; pit fill 11.1: fill 130 m3; pit fill 11.2: fill 81 m3; pit fill 12.1: fill 282 m3; pit fill 12.2: fill 236 m3; pit fill 12.3: fill 71 m3; pit fill 12.4: fill 14 m3; pit fill 13.1: fill 57 m3; pit fill 13.2: fill 42 m3; pit fill 14.1: fill 8 m3; pit fill 14.2: fill 10 m3; pit fill 14.3: fill 381 m3; pit fill 14.4: fill 18 m3; pit fill 15.1: fill 60 m3; pit fill 15.2: fill 131 m3; pit fill 15.3: fill 1 m3; pit fill 15.4: fi
+ 2390.1 PASS scenario Hybrid 2D saved Scenario Hybrid 2D saved: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\W104 Block 2 from the dock\runs\Hybrid2D\scenarios\Hybrid 2D.wadi2d.json
+ 2392.1 PASS project saved: Block2_from_the_dock.qgz 
+ 2392.1 SUMMARY 9 passed, 0 failed 
+ 2392.1 DONE

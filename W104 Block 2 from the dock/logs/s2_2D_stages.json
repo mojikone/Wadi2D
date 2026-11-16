@@ -1,0 +1,13 @@
+{
+ "output": 208.9,
+ "warn": 344.2,
+ "terrain": 383.7,
+ "strips": 390.5,
+ "start": 397.1,
+ "step": 397.7,
+ "limiter": 402.4,
+ "products:ground": 2689.9,
+ "products:maps": 2765.6,
+ "products:rasters": 2903.0,
+ "done": 2903.0
+}

@@ -1,0 +1,548 @@
+{
+ "Lumped": {
+  "dams": {
+   "Bidah 03": {
+    "inflow": {
+     "peak_m3s": 479.238,
+     "time_to_peak_h": 12.583333333333334,
+     "volume_Mm3": 4.140969589910816
+    },
+    "outflow": {
+     "peak_m3s": 0.0,
+     "time_to_peak_h": 0.0,
+     "volume_Mm3": 0.0
+    },
+    "read": "lumped reservoir Bidah_03"
+   },
+   "Faydh 01": {
+    "inflow": {
+     "peak_m3s": 1198.13,
+     "time_to_peak_h": 12.916666666666666,
+     "volume_Mm3": 15.25818458919233
+    },
+    "outflow": {
+     "peak_m3s": 0.0,
+     "time_to_peak_h": 0.0,
+     "volume_Mm3": 0.0
+    },
+    "read": "lumped reservoir Faydh_01"
+   },
+   "R5A": {
+    "inflow": {
+     "peak_m3s": 1673.3,
+     "time_to_peak_h": 13.583333333333334,
+     "volume_Mm3": 22.875283956283536
+    },
+    "outflow": {
+     "peak_m3s": 926.597,
+     "time_to_peak_h": 14.833333333333334,
+     "volume_Mm3": 13.355724040349997
+    },
+    "read": "lumped reservoir R5A"
+   },
+   "R2A": {
+    "inflow": {
+     "peak_m3s": 2732.45,
+     "time_to_peak_h": 13.166666666666666,
+     "volume_Mm3": 32.96833997092388
+    },
+    "outflow": {
+     "peak_m3s": 979.425,
+     "time_to_peak_h": 15.0,
+     "volume_Mm3": 17.691938253
+    },
+    "read": "lumped reservoir R2A"
+   },
+   "Z4C": {
+    "inflow": {
+     "peak_m3s": 2978.04,
+     "time_to_peak_h": 13.666666666666666,
+     "volume_Mm3": 39.29914754630572
+    },
+    "outflow": {
+     "peak_m3s": 2743.02,
+     "time_to_peak_h": 14.0,
+     "volume_Mm3": 34.33220931885
+    },
+    "read": "lumped reservoir Z4C"
+   }
+  },
+  "run": {
+   "cells": 0,
+   "tiles": 0,
+   "status": "finished",
+   "code": 0,
+   "steps": 0,
+   "loop_s": 8.86,
+   "tables_s": 0.0,
+   "wet_area_km2": 0.0,
+   "mass_error": null,
+   "rain_Mm3": 0.0,
+   "inflow_Mm3": 0.0,
+   "outflow_Mm3": 0.0
+  }
+ },
+ "2D": {
+  "dams": {
+   "Bidah 03": {
+    "inflow": {
+     "peak_m3s": 583.4892654888109,
+     "time_to_peak_h": 12.505277777777778,
+     "volume_Mm3": 3.8207414298713367
+    },
+    "outflow": {
+     "peak_m3s": 0.0043748,
+     "time_to_peak_h": 11.825,
+     "volume_Mm3": 1.4336339881721867e-05
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "Faydh 01": {
+    "inflow": {
+     "peak_m3s": 2303.933655361301,
+     "time_to_peak_h": 12.255277777777778,
+     "volume_Mm3": 14.880279063575788
+    },
+    "outflow": {
+     "peak_m3s": 0.0392926,
+     "time_to_peak_h": 11.791666666666666,
+     "volume_Mm3": 0.00011676012386550235
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "R5A": {
+    "inflow": {
+     "peak_m3s": 2056.3782998492143,
+     "time_to_peak_h": 12.755277777777778,
+     "volume_Mm3": 22.80850480301024
+    },
+    "outflow": {
+     "peak_m3s": 611.948,
+     "time_to_peak_h": 14.458333333333334,
+     "volume_Mm3": 13.31114985014584
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "R2A": {
+    "inflow": {
+     "peak_m3s": 3928.5980785206066,
+     "time_to_peak_h": 12.755277777777778,
+     "volume_Mm3": 34.32065399910468
+    },
+    "outflow": {
+     "peak_m3s": 1153.03,
+     "time_to_peak_h": 14.108333333333333,
+     "volume_Mm3": 19.0575459300114
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "Z4C": {
+    "inflow": {
+     "peak_m3s": 3226.14914173102,
+     "time_to_peak_h": 13.755277777777778,
+     "volume_Mm3": 41.667744283305964
+    },
+    "outflow": {
+     "peak_m3s": 3434.35,
+     "time_to_peak_h": 13.908333333333333,
+     "volume_Mm3": 37.01762760140377
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   }
+  },
+  "run": {
+   "cells": 2926218,
+   "tiles": 3575,
+   "status": "finished",
+   "code": 0,
+   "steps": 426926,
+   "loop_s": 2292.39,
+   "tables_s": 374.0,
+   "wet_area_km2": 176.2304,
+   "mass_error": 3.6750311168906073e-09,
+   "rain_Mm3": 270.992467226351,
+   "inflow_Mm3": 0.0,
+   "outflow_Mm3": 214.8578039832201
+  }
+ },
+ "HybridLumped": {
+  "dams": {
+   "Bidah 03": {
+    "inflow": {
+     "peak_m3s": 479.238,
+     "time_to_peak_h": 12.583333333333334,
+     "volume_Mm3": 4.140969589910816
+    },
+    "outflow": {
+     "peak_m3s": 0.0,
+     "time_to_peak_h": 0.0,
+     "volume_Mm3": 0.0
+    },
+    "read": "lumped reservoir Bidah_03"
+   },
+   "Faydh 01": {
+    "inflow": {
+     "peak_m3s": 1198.13,
+     "time_to_peak_h": 12.916666666666666,
+     "volume_Mm3": 15.25818458919233
+    },
+    "outflow": {
+     "peak_m3s": 0.0,
+     "time_to_peak_h": 0.0,
+     "volume_Mm3": 0.0
+    },
+    "read": "lumped reservoir Faydh_01"
+   },
+   "R5A": {
+    "inflow": {
+     "peak_m3s": 1673.3,
+     "time_to_peak_h": 13.583333333333334,
+     "volume_Mm3": 22.875283956283536
+    },
+    "outflow": {
+     "peak_m3s": 926.597,
+     "time_to_peak_h": 14.833333333333334,
+     "volume_Mm3": 13.355724040349997
+    },
+    "read": "lumped reservoir R5A"
+   },
+   "R2A": {
+    "inflow": {
+     "peak_m3s": 2732.45,
+     "time_to_peak_h": 13.166666666666666,
+     "volume_Mm3": 32.96833997092388
+    },
+    "outflow": {
+     "peak_m3s": 979.425,
+     "time_to_peak_h": 15.0,
+     "volume_Mm3": 17.691938253
+    },
+    "read": "lumped reservoir R2A"
+   },
+   "Z4C": {
+    "inflow": {
+     "peak_m3s": 2978.04,
+     "time_to_peak_h": 13.666666666666666,
+     "volume_Mm3": 39.29914754630572
+    },
+    "outflow": {
+     "peak_m3s": 2743.02,
+     "time_to_peak_h": 14.0,
+     "volume_Mm3": 34.33220931885
+    },
+    "read": "lumped reservoir Z4C"
+   }
+  },
+  "run": {
+   "lumped_entry_areas": {
+    "subbasins": 73,
+    "reruns": [
+     "S6",
+     "S7",
+     "S8",
+     "S9",
+     "S10",
+     "S11",
+     "S12",
+     "S14",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20",
+     "S21",
+     "S25",
+     "S27",
+     "S28",
+     "S30",
+     "S32",
+     "S33",
+     "S35",
+     "S36",
+     "S37",
+     "S38",
+     "S39",
+     "S40",
+     "S41",
+     "S42",
+     "S43",
+     "S46",
+     "S50",
+     "S51",
+     "S52",
+     "S54",
+     "S55",
+     "S57",
+     "S58",
+     "S60",
+     "S67",
+     "S68",
+     "S69",
+     "S71",
+     "S73",
+     "S74",
+     "S75",
+     "S76",
+     "S78",
+     "S79",
+     "S80",
+     "S82",
+     "S83",
+     "S85",
+     "S90",
+     "S91",
+     "S92",
+     "S93",
+     "S95",
+     "S96",
+     "S97",
+     "S98",
+     "S100",
+     "S101",
+     "S102",
+     "S105",
+     "S106",
+     "S107",
+     "S108",
+     "S110",
+     "S111",
+     "S112",
+     "S114",
+     "S116",
+     "R1",
+     "R2",
+     "R4",
+     "R6",
+     "R8",
+     "R10",
+     "R14",
+     "R15",
+     "R16",
+     "R23",
+     "R24",
+     "R25",
+     "R26",
+     "R27",
+     "R29",
+     "R32",
+     "R33",
+     "R37",
+     "R38",
+     "R39",
+     "R41",
+     "R42",
+     "R43",
+     "R44",
+     "R45",
+     "R46",
+     "R49",
+     "R50",
+     "R51",
+     "R52",
+     "R53",
+     "R54",
+     "R55",
+     "R56",
+     "J8",
+     "Z4C",
+     "J9",
+     "J10",
+     "J12",
+     "J13",
+     "R2A",
+     "J14",
+     "J15",
+     "J16",
+     "J17",
+     "J20",
+     "R5A",
+     "J23",
+     "J25",
+     "J26",
+     "J28",
+     "Faydh 01",
+     "J29",
+     "J30",
+     "J31",
+     "J32",
+     "J33",
+     "J36",
+     "J40",
+     "J41",
+     "J43",
+     "J44",
+     "J45",
+     "J50",
+     "J51",
+     "J52",
+     "Bidah 03",
+     "J55"
+    ]
+   },
+   "left_out_km2": 859.5775,
+   "left_out_subbasins": 73,
+   "cells": 1090418,
+   "tiles": 1469,
+   "status": "finished",
+   "code": 0,
+   "steps": 519596,
+   "loop_s": 949.73,
+   "tables_s": 144.33,
+   "wet_area_km2": 124.6916,
+   "mass_error": -2.3964150845563332e-08,
+   "rain_Mm3": 101.22749979625158,
+   "inflow_Mm3": 112.37633755028035,
+   "outflow_Mm3": 207.62989278833655
+  }
+ },
+ "Hybrid2D": {
+  "dams": {
+   "Bidah 03": {
+    "inflow": {
+     "peak_m3s": 462.9532806554132,
+     "time_to_peak_h": 12.50611111111111,
+     "volume_Mm3": 4.154106331854875
+    },
+    "outflow": {
+     "peak_m3s": 0.00440485,
+     "time_to_peak_h": 11.808333333333334,
+     "volume_Mm3": 1.4374331673187323e-05
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "Faydh 01": {
+    "inflow": {
+     "peak_m3s": 1214.1276221865503,
+     "time_to_peak_h": 13.006388888888889,
+     "volume_Mm3": 15.592346251193518
+    },
+    "outflow": {
+     "peak_m3s": 0.039601,
+     "time_to_peak_h": 11.808333333333334,
+     "volume_Mm3": 0.00011710639414645419
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "R5A": {
+    "inflow": {
+     "peak_m3s": 1538.0666480289174,
+     "time_to_peak_h": 14.006388888888889,
+     "volume_Mm3": 24.44580491178436
+    },
+    "outflow": {
+     "peak_m3s": 838.7,
+     "time_to_peak_h": 15.175,
+     "volume_Mm3": 14.957337064601782
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "R2A": {
+    "inflow": {
+     "peak_m3s": 2683.4978249474766,
+     "time_to_peak_h": 13.506388888888889,
+     "volume_Mm3": 36.820410911485254
+    },
+    "outflow": {
+     "peak_m3s": 1369.26,
+     "time_to_peak_h": 14.775,
+     "volume_Mm3": 21.580511194101224
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   },
+   "Z4C": {
+    "inflow": {
+     "peak_m3s": 2801.1609241402216,
+     "time_to_peak_h": 14.256388888888889,
+     "volume_Mm3": 44.869956077479586
+    },
+    "outflow": {
+     "peak_m3s": 2957.87,
+     "time_to_peak_h": 14.275,
+     "volume_Mm3": 40.232977499623765
+    },
+    "read": "pool balance (15-min mean) / dam line"
+   }
+  },
+  "run": {
+   "lumped_entry_areas": {
+    "subbasins": 71,
+    "reruns": [
+     "S6",
+     "S7",
+     "S9",
+     "S12",
+     "S13",
+     "S15",
+     "S16",
+     "S17",
+     "S18",
+     "S19",
+     "S20",
+     "S23",
+     "S29",
+     "S31",
+     "S32",
+     "S38",
+     "S40",
+     "S42",
+     "S45",
+     "S46",
+     "S47",
+     "S50",
+     "S52",
+     "S55",
+     "S56",
+     "S58",
+     "S59",
+     "S61",
+     "S62",
+     "S64",
+     "S70",
+     "S73",
+     "S74",
+     "S76",
+     "S78",
+     "S79",
+     "S83",
+     "S84",
+     "S85",
+     "S87",
+     "S88",
+     "S91",
+     "S96",
+     "S97",
+     "S98",
+     "S100",
+     "S101",
+     "S102",
+     "S103",
+     "S106",
+     "S107",
+     "S108",
+     "S110",
+     "S111",
+     "S112",
+     "S113",
+     "S115",
+     "S116",
+     "S117",
+     "S119",
+     "S121"
+    ]
+   },
+   "cells": 2926218,
+   "tiles": 3575,
+   "status": "finished",
+   "code": 0,
+   "steps": 423984,
+   "loop_s": 1743.61,
+   "tables_s": 318.23,
+   "wet_area_km2": 131.3588,
+   "mass_error": 4.679107202076272e-08,
+   "rain_Mm3": 103.65763074493039,
+   "inflow_Mm3": 178.25217193977946,
+   "outflow_Mm3": 226.36287620403704
+  }
+ }
+}
