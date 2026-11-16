@@ -129,6 +129,7 @@ def _cached_tables(cfg: RunConfig, cache: Path):
 
 def _pixel_tables(source: RunSource, say: Callable[[str], None]) -> PixelTables:
     from wadi2d.products.ground import face_sills
+    from wadi2d.products.pixels import kept_cells
     from wadi2d.run import prepare_grid
 
     cfg, run = source.cfg, source.run
@@ -142,7 +143,7 @@ def _pixel_tables(source: RunSource, say: Callable[[str], None]) -> PixelTables:
     if not same or abs(grid.dx - source.dx) > 1e-9:
         raise ValueError("the tables built from this run's job do not lie on the grid of its saved maps")
     with h5py.File(source.results, "r") as f:
-        keep = f["maxima"]["mean_depth"][:] > cfg.outputs.pixels.cell_depth
+        keep = kept_cells(f["maxima"]["mean_depth"][:], cfg.outputs.pixels)
     datum = float(tables.zmin[keep].min()) if keep.any() else 0.0
     zmin = (tables.zmin - datum).astype(np.float32)
     sill_x, sill_y = face_sills(tables, datum)

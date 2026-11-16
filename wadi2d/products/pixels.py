@@ -4,6 +4,13 @@ One source for both backends: ``xp`` is CuPy on the GPU and NumPy on the CPU, an
 either. Each map updates three maxima per pixel: depth from the surface of :mod:`wadi2d.products.surface`, speed
 interpolated from the corners of the same connected water, and their product at that same moment. A map that is not
 one moment (the run's own maxima, each taken when it peaked) updates depth and speed only.
+
+How the surface is drawn is ``outputs.pixels.surface`` (W100). ``continuous``, the default: one surface through the
+cell corners, a corner taking the mean, over the cells joined there, of each cell's level and of how far that cell's
+surface must move to hold its water; the depth of a pixel is that surface over its ground, with no refill of the cell
+afterwards, so the surface does not step at a cell edge. ``corners``: the levels alone, RAS Mapper's sloping mode, which
+loses thin sheets on slopes. ``cell_fill``: every cell filled to its own water, eased across joined edges (W9), the
+maps made before W100.
 """
 
 from __future__ import annotations
@@ -18,14 +25,20 @@ from wadi2d.products.surface import (
     Neighbours,
     around_links,
     at_pixels,
+    capped_moves,
     corner_basis,
+    corner_components,
     corner_groups,
     corner_means,
+    corner_sills,
     edge_basis,
+    face_joins,
     face_links,
     fill_cells,
     fill_offset,
     offsets_around,
+    touched,
+    weighted_corner_means,
 )
 
 GPU_SHARE = 0.8
@@ -41,12 +54,25 @@ TINY = 1e-6
 """Depth x speed below this reads as none, m2/s."""
 CORNER_REACH = 2
 """Cells a corner's links read past the cell itself."""
+CONTINUOUS, CORNERS, CELL_FILL = "continuous", "corners", "cell_fill"
+"""The values of ``outputs.pixels.surface``."""
 
 
 def halo(rule: Pixels) -> int:
     """Cells a window must hold round its own for those to equal the whole-domain answer: a cell reads its
-    neighbours' levels and, through the refills that ease joined edges, their fill offsets, which read theirs."""
-    return rule.edge_passes + CORNER_REACH
+    neighbours' levels and, through the refills that ease joined edges, their fill offsets, which read theirs. On
+    the continuous surface a corner reads its cells' offsets once, and each offset its cell's corners."""
+    if rule.surface == CELL_FILL:
+        return rule.edge_passes + CORNER_REACH
+    return CORNER_REACH + (1 if rule.surface == CONTINUOUS else 0)
+
+
+def kept_cells(peak_mean_depth: np.ndarray, rule: Pixels) -> np.ndarray:
+    """The cells that take pixels: every cell that was ever wet, or under ``cell_fill`` only those whose mean depth
+    reached ``cell_depth`` (W100: that cut drew a cell of 6 cm beside one of 4 cm as a square block of water)."""
+    if rule.surface == CELL_FILL:
+        return peak_mean_depth > rule.cell_depth
+    return peak_mean_depth > 0.0
 
 
 def array_module(backend: str):
@@ -196,12 +222,103 @@ class PixelMaxima:
         """Values that already stand per kept cell, in the cells' order, moved to the device with the last entry."""
         return self.xp.asarray(np.append(values, left_out).astype(np.float32))
 
-    def add_listed(self, depth, mean_depth, speed, moment: bool = True) -> None:
+    def add_listed(self, depth, mean_depth, speed, moment: bool = True, offsets=None) -> None:
         """:meth:`add` for a map already reduced to the kept cells, in their order (W86): a block of a large run
-        takes its cells from the maps held once, not from grids."""
-        self._add(self._listed(depth), self._listed(mean_depth), self._listed(speed), moment, None, None)
+        takes its cells from the maps held once, not from grids. ``offsets`` as :meth:`add`'s, in the same order."""
+        given = None if offsets is None else self._listed(offsets, np.nan)
+        self._add(self._listed(depth), self._listed(mean_depth), self._listed(speed), moment, None, given)
+
+    def watch(self, cells: np.ndarray) -> None:
+        """Keep, map by map, the surface at the four corners of ``cells`` (places in the cells' order), their level
+        and depth: what a strip beside them takes at the nodes it shares with them (W100)."""
+        self.watched = self.xp.asarray(np.asarray(cells, np.int64))
+        self.record: list = []
+
+    def _keep_record(self, corners, speeds, level, d) -> None:
+        if getattr(self, "watched", None) is None or self.watched.size == 0:
+            return
+        xp, at = self.xp, self.watched
+        held = xp.stack([*(c[at] for c in corners), *(c[at] for c in speeds), level[at], d[at]])
+        self.record.append(to_host(held))
 
     def _add(self, d, h, s, moment: bool, level, given) -> None:
+        if self.rule.surface == CELL_FILL:
+            self._add_filled(d, h, s, moment, level, given)
+        else:
+            self._add_continuous(d, h, s, moment, level, given)
+
+    def _joins(self, level, d, wet) -> tuple[list, list]:
+        """The corner groups of the continuous surface (:func:`face_joins`, every path round a corner) and each
+        corner's lowest face its cells do not share (:func:`corner_sills`)."""
+        near, rule = self.near, self.rule
+        if self.flat:
+            lx = ly = self.xp.zeros_like(wet)
+        else:
+            lx = face_joins(near, level, d, wet, self.sill_x, 1, rule.link_margin, rule.link_ratio)
+            ly = face_joins(near, level, d, wet, self.sill_y, 0, rule.link_margin, rule.link_ratio)
+        return corner_components(near, lx, ly), corner_sills(near, lx, ly, self.sill_x, self.sill_y)
+
+    def _add_continuous(self, d, h, s, moment: bool, level, given) -> None:
+        """One map on the continuous surface (W100). Cells share a corner where :func:`face_joins` joins them; a
+        corner first takes the mean level of its wet cells; each wet cell's surface of that shape is moved, by one
+        Newton fill, until it holds the cell's water; the corners then also take the mean of those moves, kept from
+        lifting the surface over a face its cells do not share (:func:`capped_moves`), and a pixel's depth is the
+        surface through its cell's corners over its ground. Cells sharing a corner read the same value there, so the
+        surface is one sheet across their edge; a dry cell that water spills into takes pixels too, so that water ends
+        on its ground. On ``corners`` the moves are left out."""
+        xp, rule, near = self.xp, self.rule, self.near
+        wet = d > 0.0
+        level = self.zmin + d if level is None else level
+        groups, sills = self._joins(level, d, wet)
+        s = s * (d > rule.depth_floor)
+        weight = wet.astype(xp.float32)  # a dry cell's level, its lowest ground, is no water surface
+        levels = weighted_corner_means(near, level, weight, groups)
+        speeds = corner_means(near, s, s > 0.0, groups)
+        self.corners = (levels, speeds)
+        corners = levels
+        drawn = wet | touched(near, groups)
+        if rule.surface == CONTINUOUS:
+            offset = xp.zeros_like(h)
+            if given is not None:  # a coarser neighbour's move as it stands, NaN for a finer one not yet worked
+                known = ~xp.isnan(given)
+                known[: self.pixels_of] = True
+                offset = xp.where(known, xp.nan_to_num(given), 0.0).astype(xp.float32)
+                weight = weight * known
+            for batch in self.batches:
+                on = xp.nonzero(wet[batch.first : batch.last])[0]
+                if on.size:
+                    cells = on + batch.first
+                    shape = at_pixels(xp, levels, cells, self.basis_t)
+                    offset[cells] = fill_offset(xp, shape, _rows(xp, batch, on), h[cells])
+            self.offset = offset
+            moves = weighted_corner_means(near, offset, weight, groups)
+            corners = capped_moves(levels, moves, sills, xp)
+        self._keep_record(corners, speeds, level, d)
+        for batch in self.batches:
+            on = xp.nonzero(drawn[batch.first : batch.last])[0]
+            if on.size == 0:
+                continue
+            cells = on + batch.first
+            store = [xp.asarray(a) for a in batch.maxima]
+            pixel_depth = at_pixels(xp, corners, cells, self.basis_t)
+            pixel_depth -= _rows(xp, batch, on)
+            xp.maximum(pixel_depth, 0.0, out=pixel_depth)
+            pixel_speed = at_pixels(xp, speeds, cells, self.basis_t) * (pixel_depth >= rule.depth_floor)
+            new = [pixel_depth, pixel_speed, pixel_depth * pixel_speed] if moment else [pixel_depth, pixel_speed]
+            whole = on.size == batch.last - batch.first
+            for held, value in zip(store, new, strict=False):
+                if whole:
+                    xp.maximum(held, value, out=held)
+                else:
+                    held[on] = xp.maximum(held[on], value)
+            batch.maxima = [self._rest(a) for a in store]
+        if moment:
+            self.cell_dv = xp.maximum(self.cell_dv, d * s)
+        if xp is not np and self.tidy:  # the wet set changes with every map: left alone, the pool fills the card
+            xp.get_default_memory_pool().free_all_blocks()  # and Windows pages it
+
+    def _add_filled(self, d, h, s, moment: bool, level, given) -> None:
+        """One map by W9's rule: each cell filled to its own water, its fill offset eased across joined edges."""
         xp, rule, near = self.xp, self.rule, self.near
         wet = d > 0.0
         level = self.zmin + d if level is None else level
@@ -275,9 +392,26 @@ class PixelMaxima:
     def _lift(self, run) -> None:
         xp = self.xp
         missed = xp.clip(run / xp.maximum(self.cell_dv, TINY), 1.0, self.rule.peak_lift)
+        if self.rule.surface != CELL_FILL:
+            self._lift_smooth(missed)
+            return
         for batch in self.batches:
             held = xp.asarray(batch.maxima[2])
             batch.maxima[2] = self._rest(held * missed[batch.first : batch.last][:, None])
+
+    def _lift_smooth(self, missed) -> None:
+        """The lift through the corners (W100): each corner takes the mean of the lifts of the cells round it, and a
+        pixel the lift of the surface through them, so the hazard classes do not step at a cell edge where one cell
+        peaked between saved maps and its neighbour did not."""
+        xp, near = self.xp, self.near
+        kept = xp.arange(missed.size) < self.pixels_of  # not the ghosts of another size, nor the left-out entry
+        lx = kept & near.at(kept, 0, -1)
+        ly = kept & near.at(kept, -1, 0)
+        corners = corner_means(near, missed, kept, corner_components(near, lx, ly))
+        for batch in self.batches:
+            cells = xp.arange(batch.first, batch.last)
+            held = xp.asarray(batch.maxima[2])
+            batch.maxima[2] = self._rest(held * at_pixels(xp, corners, cells, self.basis_t))
 
     def result(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """(cells, k * k) depth, speed and depth x speed on the host."""

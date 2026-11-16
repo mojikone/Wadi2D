@@ -27,6 +27,11 @@ from wadi2d.run import prepare_grid, run_job
 
 QUIET = Watch(lambda *_a, **_k: None, lambda: False)
 FILES = (step.HAZARD_FILE, step.DEPTH_FILE, step.SPEED_FILE, step.DV_FILE)
+RECORD = {"surface": "cell_fill", "pixel_m": 0.0, "max_error_m": 0.0, "dv_raster": True}
+"""The maps W86 and W93 compared to the digit: W9's rule, the DEM's pixel, every digit kept, depth x speed written.
+W100 made other defaults; these tests keep guarding the blocks on the rule they were written for."""
+CONTINUOUS = {**RECORD, "surface": "continuous"}
+"""The continuous surface of W100 on the same terms, so blocks can be compared to the digit."""
 
 
 def test_blocks_hold_every_window_once_and_fit_their_budgets() -> None:
@@ -119,7 +124,7 @@ def _small_blocks(monkeypatch, window: int) -> list:
 @pytest.fixture(scope="module")
 def wadi(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("blocks")
-    cfg = wadi_job(tmp, map_every_s=120.0)
+    cfg = wadi_job(tmp, map_every_s=120.0, pixels=RECORD)
     tables, crs = prepare_grid(cfg, tmp / "cache")
     summary = run_job(cfg, tmp / "run", tables=(tables, crs))
     assert summary.exit_code == 0, summary.message
@@ -152,7 +157,7 @@ def striped(tmp_path_factory, tilted_dem_module):
     tmp = tmp_path_factory.mktemp("striped")
     cfg = plane_job(tilted_dem_module, corridor())
     heavy = cfg.storm.model_copy(update={"depth_mm": 400.0})  # enough for the squares to be kept too
-    pixels = cfg.outputs.pixels.model_copy(update={"enabled": True})
+    pixels = cfg.outputs.pixels.model_copy(update={"enabled": True, **RECORD})
     outputs = cfg.outputs.model_copy(update={"map_every_s": 150.0, "pixels": pixels})
     cfg = cfg.model_copy(update={"storm": heavy, "outputs": outputs})
     tables, crs = prepare_grid(cfg, tmp / "cache")
@@ -258,13 +263,94 @@ def test_a_try_that_does_not_fit_the_card_is_made_again_in_smaller_blocks(wadi, 
     squeezes, events = [], []
     real = step.lattice_pixels
 
-    def tight(*args):
+    def tight(*args, **kwargs):
         squeezes.append(args[-1])
         if len(squeezes) == 1:
             raise OutOfMemoryError
-        return real(*args)
+        return real(*args, **kwargs)
 
     monkeypatch.setattr(step, "lattice_pixels", tight)
     make_products(cfg, tables, crs, tmp_path, Watch(lambda ev, **_k: events.append(ev), lambda: False), "gpu")
     assert squeezes == [1.0, 0.5] and "warn" not in events
     np.testing.assert_array_equal(_rasters(tmp_path)[step.HAZARD_FILE], _rasters(run)[step.HAZARD_FILE])
+
+
+def _continuous(cfg):
+    pixels = cfg.outputs.pixels.model_copy(update=CONTINUOUS)
+    return cfg.model_copy(update={"outputs": cfg.outputs.model_copy(update={"pixels": pixels})})
+
+
+@pytest.mark.parametrize("case", ["wadi", "striped"])
+def test_the_continuous_surface_in_many_blocks_is_the_one_in_one_to_the_digit(case, request, tmp_path, monkeypatch) -> None:
+    """W100: a block's squares read their corners from a halo wide enough for one fill a cell and its neighbours',
+    its strip cells read the rings their nodes do, and the join of the two the squares' surface beside it: however the
+    run is cut, the rasters are the same."""
+    cfg, tables, crs, run = request.getfixturevalue(case)
+    cfg = _continuous(cfg)
+    made = {}
+    for blocks_of in (0, 8 if case == "wadi" else 16):
+        folder = tmp_path / f"cut_{blocks_of}"
+        folder.mkdir()
+        (folder / "results.h5").write_bytes((run / "results.h5").read_bytes())
+        with monkeypatch.context() as patch:
+            written = _small_blocks(patch, blocks_of) if blocks_of else []
+            make_products(cfg, tables, crs, folder, QUIET, "cpu")
+        if blocks_of:
+            assert len(set(written)) > 8
+        made[blocks_of] = _rasters(folder)
+    one, many = made.values()
+    assert (one[step.HAZARD_FILE] > DRY).any()
+    for name in one:
+        np.testing.assert_array_equal(many[name], one[name], err_msg=name)
+
+
+@pytest.mark.parametrize("case", ["wadi", "striped"])
+def test_a_window_is_the_whole_run_s_rasters_there(case, request, tmp_path) -> None:
+    """W100, ``wadi2d window``: the rasters of a drawn window are the whole run's rasters at those pixels, to the
+    digit: the cells round it it reads, the whole run's datum."""
+    cfg, tables, crs, run = request.getfixturevalue(case)
+    cfg = _continuous(cfg)
+    whole = tmp_path / "whole"
+    whole.mkdir()
+    (whole / "results.h5").write_bytes((run / "results.h5").read_bytes())
+    make_products(cfg, tables, crs, whole, QUIET, "cpu")
+    full = _rasters(whole)
+    pixel = full[step.DEPTH_FILE + ":at"][2]
+    west, north = full[step.DEPTH_FILE + ":at"][:2]
+    height, width = full[step.DEPTH_FILE].shape
+    box = (west + 0.3 * width * pixel, north - 0.8 * height * pixel, west + 0.7 * width * pixel, north - 0.2 * height * pixel)
+    folder = tmp_path / "window"
+    make_products(cfg, tables, crs, whole, QUIET, "cpu", None, box, folder)
+    for name in FILES:
+        with rasterio.open(folder / name) as src:
+            part = src.read(1)
+            t = src.transform
+        row, col = round((north - t.f) / pixel), round((t.c - west) / pixel)
+        assert part.shape[0] < height and part.shape[1] < width
+        np.testing.assert_array_equal(part, full[name][row : row + part.shape[0], col : col + part.shape[1]], err_msg=name)
+
+
+def test_the_strip_and_the_squares_meet_without_a_step(striped, tmp_path) -> None:
+    """W100: the squares take the strip cells beside them as neighbours and the strip takes the squares' surface at
+    the nodes it shares with them, so across the join the depth changes as it does inside the cells; before, a square
+    beside the strip saw nothing there and the surface stepped along the whole join."""
+    cfg, tables, crs, run = striped
+    cfg = _continuous(cfg)
+    (tmp_path / "results.h5").write_bytes((run / "results.h5").read_bytes())
+    make_products(cfg, tables, crs, tmp_path, QUIET, "cpu")
+    made = _rasters(tmp_path)
+    depth = made[step.DEPTH_FILE].astype(np.float64)
+    west, north, pixel = made[step.DEPTH_FILE + ":at"]
+    rows, cols, _cell = strip_on_lattice(tables)
+    k = round(tables.grid.dx / pixel)
+    top, left = round((tables.grid.y0 - north) / pixel), round((west - tables.grid.x0) / pixel)
+    on_strip = np.zeros(depth.shape, bool)
+    for r, c in zip(rows, cols, strict=True):
+        on_strip[max(r * k - top, 0) : max((r + 1) * k - top, 0), max(c * k - left, 0) : max((c + 1) * k - left, 0)] = True
+    wet = depth != step.NO_DEPTH
+    jump = np.abs(np.diff(depth, axis=1))
+    both = wet[:, 1:] & wet[:, :-1]
+    across = on_strip[:, 1:] != on_strip[:, :-1]
+    assert (both & across).sum() > 20
+    at_join, inside = float(jump[both & across].mean()), float(jump[both & ~across].mean())
+    assert at_join <= 2.0 * inside + 0.005

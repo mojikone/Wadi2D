@@ -104,23 +104,24 @@ def test_no_frame_stands_above_the_record_of_the_real_run(finished, renderer) ->
         assert float(over.max()) <= RULE_TOLERANCE
 
 
-def test_a_coarser_pixel_holds_the_water_of_each_cell(finished, renderer) -> None:
-    """One pixel in every two: a cell's pixels still hold that cell's mean depth, the rule's own promise."""
+COARSE_SHARE = 0.1
+"""On the continuous surface (W100) a coarser drawing reads the same surface over ground read one pixel in two, and
+a cell's move to hold its water is found over those pixels: the water drawn changes by a little."""
+
+
+def test_a_coarser_pixel_draws_about_the_same_water(finished, renderer) -> None:
+    """One pixel in every two: the water drawn (depth times pixel area) is the native drawing's within a tenth. Under
+    W9's rule this test held each cell's mean depth to 2e-4 m: that rule refilled every cell, this one does not."""
     source = renderer.source
-    west, south, east, north = source.extent()
-    view = native((west, south, east, north), 2 * PIXEL)
-    drawn = renderer.draw(float(source.times[PEAK_FRAME]), view, "depth")
-    assert drawn.detail == AT_PIXEL and drawn.pixel_m == 2 * PIXEL
-    k = round(CELL / (2 * PIXEL))
-    held = renderer.windows[next(reversed(renderer.windows))]
-    rows, cols = held.rows, held.cols
-    data = source.window(PEAK_FRAME, rows, cols)
-    with h5py.File(source.results, "r") as f:
-        keep = f["maxima"]["mean_depth"][rows[0] : rows[1], cols[0] : cols[1]] > finished.cfg.outputs.pixels.cell_depth
-    depth, _speed = held.frame.show(data["depth"], data["mean_depth"], data["speed"])  # before the floor takes the film
-    wet = keep & (data["depth"] > 0.0)
-    assert depth.shape[1] == k * k
-    assert np.abs(depth.mean(axis=1) - data["mean_depth"][keep])[wet[keep]].max() < 2e-4
+    extent = source.extent()
+    t = float(source.times[PEAK_FRAME])
+    coarse = renderer.draw(t, native(extent, 2 * PIXEL), "depth")
+    assert coarse.detail == AT_PIXEL and coarse.pixel_m == 2 * PIXEL
+    fine = to_host(renderer.draw(t, native(extent, PIXEL), "depth").values)
+    water_fine = float(np.nansum(fine)) * PIXEL**2
+    water_coarse = float(np.nansum(to_host(coarse.values))) * (2 * PIXEL) ** 2
+    assert water_fine > 0.0
+    assert water_coarse == pytest.approx(water_fine, rel=COARSE_SHARE)
 
 
 def test_far_out_a_cell_draws_the_cell_slider_s_numbers(finished, renderer) -> None:

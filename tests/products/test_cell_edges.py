@@ -14,6 +14,11 @@ K = 10
 PIXEL = 2.0
 
 
+def filled(**rule) -> Pixels:
+    """W9's rule, the maps before W100: this file tests its refill and eased edges, so it names it (W100)."""
+    return Pixels(surface="cell_fill", **rule)
+
+
 def _case(ground: np.ndarray, level: np.ndarray, mean: np.ndarray, rule: Pixels, xp=np, sill: float = -50.0):
     """One map on cells of K x K pixels. ``ground`` is (ny, nx, K, K); the sills let every wet neighbour join."""
     ny, nx = level.shape
@@ -71,8 +76,8 @@ def test_the_cells_mean_is_mostly_its_own() -> None:
 
 def test_the_step_at_an_edge_goes_and_the_water_stays() -> None:
     ground, level, mean = _uneven()
-    blocks, _ = _case(ground, level, mean, Pixels(edge_passes=0))
-    joined, _ = _case(ground, level, mean, Pixels(edge_passes=3))
+    blocks, _ = _case(ground, level, mean, filled(edge_passes=0))
+    joined, _ = _case(ground, level, mean, filled(edge_passes=3))
     assert _steps(blocks, ground) > 0.1
     assert _steps(joined, ground) < 0.25 * _steps(blocks, ground)
     assert joined.mean(axis=(2, 3)) == pytest.approx(mean, abs=1e-4)
@@ -81,7 +86,7 @@ def test_the_step_at_an_edge_goes_and_the_water_stays() -> None:
 def test_no_passes_is_the_plain_fill() -> None:
     """The old surface stays reachable, so a change in a map can be traced to this step."""
     ground, level, mean = _uneven()
-    plain, _ = _case(ground, level, mean, Pixels(edge_passes=0))
+    plain, _ = _case(ground, level, mean, filled(edge_passes=0))
     assert plain.mean(axis=(2, 3)) == pytest.approx(mean, abs=1e-4)
     assert _steps(plain, ground) > 0.1
 
@@ -91,24 +96,25 @@ def test_a_uniform_sheet_is_left_alone() -> None:
     ground = np.zeros((2, 3, K, K))
     level = np.full((2, 3), 0.5)
     mean = np.full((2, 3), 0.5)
-    joined, _ = _case(ground, level, mean, Pixels(edge_passes=3))
+    joined, _ = _case(ground, level, mean, filled(edge_passes=3))
     assert joined == pytest.approx(np.full_like(joined, 0.5), abs=1e-5)
 
 
 def test_a_step_at_a_bank_stays() -> None:
     """Cells that are not one body of water keep their own surface: the blend must not carry it over the bank."""
     ground, level, mean = _uneven()
-    joined, _ = _case(ground, level, mean, Pixels(edge_passes=3), sill=1000.0)
-    alone, _ = _case(ground, level, mean, Pixels(edge_passes=0), sill=1000.0)
+    joined, _ = _case(ground, level, mean, filled(edge_passes=3), sill=1000.0)
+    alone, _ = _case(ground, level, mean, filled(edge_passes=0), sill=1000.0)
     assert joined == pytest.approx(alone, abs=1e-5)
 
 
 @pytest.mark.gpu
-def test_both_backends_give_the_same_surface() -> None:
+@pytest.mark.parametrize("surface", ["cell_fill", "continuous", "corners"])
+def test_both_backends_give_the_same_surface(surface: str) -> None:
     xp = array_module("auto")
     if xp is np:
         pytest.skip("no GPU")
     ground, level, mean = _uneven()
-    gpu, _ = _case(ground, level, mean, Pixels(), xp)
-    cpu, _ = _case(ground, level, mean, Pixels())
+    gpu, _ = _case(ground, level, mean, Pixels(surface=surface), xp)
+    cpu, _ = _case(ground, level, mean, Pixels(surface=surface))
     assert gpu == pytest.approx(cpu, abs=2e-3)
