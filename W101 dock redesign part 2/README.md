@@ -231,6 +231,12 @@ differing only in their random scratch names (W99's `compare_previews.py`), as i
 at the same check on the base. These run the Steady rain's mm/h through the new fixed depth, so they are also the
 proof that it writes the old job. Logs in `old_scenarios/`. The faults' fix came after this batch; it changes no job.
 
+**Again at item 2 (`e116cc0`, after the import, the threshold and the Manning forms)**, each from a frozen copy: the
+same ten counts as the base, scenario for scenario (`old_scenarios/branch_e116cc0/`). The jobs now differ from the
+base's by one named change only: every one of the 22 run jobs carries the threshold's three floors at 0.1 m
+(`outputs.pixels.depth_floor`, `hazard_depth_floor`, `cell_depth_floor`), and with those taken out all 22 are
+identical to the character (`old_scenarios/floors_only.py`); the 5 preview jobs differ the same way.
+
 ## Found on the way
 
 1. The generated basin's reaches take their Manning n from Terrain's Manning (`wadi2d/basin/elements.py`
