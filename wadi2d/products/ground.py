@@ -153,16 +153,28 @@ class CellReader:
         runs = {s: (max(int(self.first[s]), a), min(int(self.first[s + 1]), b)) for s in strips}
         # these only hand a strip's tiles to the readers and wait; with one reader, one strip at a time
         ahead = ThreadPoolExecutor(STRIPS_AHEAD if self.beds.workers > 1 else 1)
+
+        def whole(s: int, lo: int, hi: int) -> None:
+            """A strip read whole, as before, on a reading thread's own handle (W93): Block 2's terrain objects (its
+            pit fills) sent every strip down this path, one after another, 140 s a band."""
+            bed = self.beds.bed() if self.beds.workers > 1 else self.bed
+            part = out[lo - a : hi - a]
+            _whole_strip(bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
+
         try:
             picked = {
                 s: ahead.submit(self.beds.pick, rows[lo:hi], cols[lo:hi], k, datum, out[lo - a : hi - a], self.spans[s])
                 for s, (lo, hi) in runs.items()
                 if self.edit is None and lo < hi
             }
+            edited = {s: ahead.submit(whole, s, lo, hi) for s, (lo, hi) in runs.items() if self.edit is not None and lo < hi}
             for s, (lo, hi) in runs.items():
                 if tick is not None:
                     tick(s, self.strips)
                 if lo >= hi:
+                    continue
+                if s in edited:
+                    edited[s].result()
                     continue
                 if s in picked and picked[s].result():
                     continue
@@ -337,6 +349,10 @@ class _ThreadBeds:
         self._lock = threading.Lock()
         self._stack = ExitStack()
         self._pool = ThreadPoolExecutor(workers) if workers > 1 else None
+
+    def bed(self) -> RasterBed:
+        """This thread's own handle, opened on its first call."""
+        return self._bed()
 
     def _bed(self) -> RasterBed:
         bed = getattr(self._local, "bed", None)
