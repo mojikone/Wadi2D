@@ -31,8 +31,9 @@ INFLOW_ELEMENT = "hydrology.inflows.element"
 INFLOW_ENTRY = "hydrology.inflows.entry"
 INFLOW_ENTERS = "hydrology.inflows.enters"
 """The engine's fields this module writes; a contract test holds them to the engine's schema."""
-ENTRY_POINT, ENTRY_WADI = "point", "wadi"
-"""The engine's two entry rules; ``point`` is its default, which a contract test holds."""
+ENTRY_POINT, ENTRY_WADI, ENTRY_EDGE = "point", "wadi", "edge"
+"""The engine's entry rules; ``point`` is its default, which a contract test holds. ``edge`` is an inflow's alone: at
+the pour point of the catchments it brings in that the mesh leaves out (W105)."""
 NO_OUTLET = "none"
 """An outlet taken away, as the table's cell shows and takes it."""
 KEYS = ("storm_area_km2", "entry", "outlet")
@@ -41,7 +42,11 @@ ENTRY_WORDS = {
     ENTRY_WADI: "At the wadi outlet of its polygon",
     ENTRY_POINT: "At its outlet point",
 }
-INFLOW_ENTRY_WORDS = {ENTRY_POINT: "At the point", ENTRY_WADI: "Up the wadi from the point"}
+INFLOW_ENTRY_WORDS = {
+    ENTRY_POINT: "At the point",
+    ENTRY_WADI: "Up the wadi from the point",
+    ENTRY_EDGE: "At the edge of the catchments left out",
+}
 INFLOW_COLUMNS = ("Name", "Element", "X", "Y", "Enters", "Enters the grid")
 OUTLET_WORDS = (
     'Subbasin {name}: the outlet "{text}" is not a point. Give x, y in the DEM\'s coordinates, "none" for no outlet of '

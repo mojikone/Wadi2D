@@ -1,0 +1,49 @@
+element,enters_at,own_area_km2,own_factor,own_area_peak_m3s,hybrid_2d_area_km2,hybrid_2d_factor,hybrid_2d_peak_m3s,hybrid_2d_read_at
+S1,Z4C Reservoir,59.078,0.941645,782.98,211.085,0.860748,710.07,the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there
+S2,Z4C Reservoir,44.392,0.952486,636.42,211.085,0.860748,570.3,the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there
+J1,Z4C Reservoir,103.47,0.9113,1358.1,,,,
+R1,Z4C Reservoir,103.47,0.9113,1346.48,,,,
+S3,Z4C Reservoir,87.597,0.921682,886.06,211.085,0.860748,821.47,the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there
+J2,Z4C Reservoir,191.067,0.868377,2070.77,,,,
+R2,Z4C Reservoir,191.067,0.868377,2063.29,,,,
+S4,Z4C Reservoir,20.018,0.97598,382.76,211.085,0.860748,331.57,the drainage area of its last point Z4C Reservoir: it enters at its own outlet and the grid routes it there
+S5,R2A Reservoir,73.869,0.931292,886.99,175.8665,0.875825,829.66,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+J4,R2A Reservoir,73.869,0.931292,886.99,,,,
+R3,R2A Reservoir,73.869,0.931292,883.03,,,,
+S6,R2A Reservoir,24.633,0.970904,481.38,175.8665,0.875825,430.54,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+J5,R2A Reservoir,24.633,0.970904,481.38,,,,
+R4,R2A Reservoir,24.633,0.970904,478.92,,,,
+S7,R2A Reservoir,37.656,0.95811,644.06,175.8665,0.875825,581.8,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+S8,R2A Reservoir,5.0816,0.993886,108.46,175.8665,0.875825,93.93,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+J6,R2A Reservoir,67.3706,0.935841,1051.19,,,,
+R5,R2A Reservoir,67.3706,0.935841,1048.95,,,,
+J7,R2A Reservoir,67.3706,0.935841,1048.95,,,,
+S9,R2A Reservoir,30.781,0.964297,436.95,175.8665,0.875825,392.1,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+S10,R2A Reservoir,3.8459,0.995443,103.31,175.8665,0.875825,89.21,the drainage area of its last point R2A Reservoir: it enters at its own outlet and the grid routes it there
+S11,Faydh 01 Reservoir,41.465,0.954828,711.61,74.304,0.930987,692.49,the drainage area of its last point Faydh 01 Reservoir: it enters at its own outlet and the grid routes it there
+J9,Faydh 01 Reservoir,41.465,0.954828,711.61,,,,
+R6,Faydh 01 Reservoir,41.465,0.954828,710.18,,,,
+S12,Faydh 01 Reservoir,32.839,0.962445,621.37,74.304,0.930987,599.49,the drainage area of its last point Faydh 01 Reservoir: it enters at its own outlet and the grid routes it there
+S14,R5A Reservoir,42.298,0.954162,645.86,117.1046,0.904619,609.83,the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there
+J12,R5A Reservoir,42.298,0.954162,645.86,,,,
+R7,R5A Reservoir,42.298,0.954162,642.23,,,,
+S15,R5A Reservoir,38.894,0.956995,627.67,117.1046,0.904619,590.4,the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there
+J13,R5A Reservoir,81.192,0.926166,999.74,,,,
+R8,R5A Reservoir,81.192,0.926166,995.38,,,,
+S16,R5A Reservoir,22.355,0.973409,405.22,117.1046,0.904619,372.87,the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there
+S17,R5A Reservoir,11.888,0.984923,261.16,117.1046,0.904619,237.43,the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there
+S18,R5A Reservoir,1.6696,0.998163,49.54,117.1046,0.904619,44.31,the drainage area of its last point R5A Reservoir: it enters at its own outlet and the grid routes it there
+HAT-S1,HAT-J4,29.961,0.965043,552.12,260.966,0.846117,479.38,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-S2,HAT-J4,20.067,0.975926,442.16,260.966,0.846117,379.24,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-J1,HAT-J4,50.028,0.94798,948.61,,,,
+HAT-R1,HAT-J4,50.028,0.94798,948.08,,,,
+HAT-S3,HAT-J4,20.082,0.97591,490.1,260.966,0.846117,419.91,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-S4,HAT-J4,28.725,0.966402,618.41,260.966,0.846117,533.91,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-J2,HAT-J4,98.835,0.913816,1718.94,,,,
+HAT-R2,HAT-J4,98.835,0.913816,1709.04,,,,
+HAT-S5,HAT-J4,21.803,0.974017,521.87,260.966,0.846117,446.52,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-S6,HAT-J4,45.398,0.951682,814.39,260.966,0.846117,716.4,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-J3,HAT-J4,166.036,0.880642,2230.72,,,,
+HAT-R3,HAT-J4,166.036,0.880642,2198.94,,,,
+HAT-S7,HAT-J4,32.817,0.962465,513.37,260.966,0.846117,445.29,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there
+HAT-S8,HAT-J4,62.113,0.939521,862.57,260.966,0.846117,765.8,the drainage area of its last point HAT-J4: it enters at its own outlet and the grid routes it there

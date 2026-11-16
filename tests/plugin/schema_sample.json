@@ -37,7 +37,7 @@
       "description": "The area reduction of one part of the model: a curve, a fixed area read on a curve, or a fixed coefficient.",
       "properties": {
         "form": {
-          "description": "'curve': read at each element's own area (lumped; in a run with a 2D part, each subbasin at the drainage area of the element where its water enters the grid) or at each run's storm area of a depth-area study (2D). 'area': read on the curve at area_km2, one factor for the part. 'coefficient': one factor given",
+          "description": "'curve': read at each element's own area (lumped; in a run with a 2D part, each subbasin at the drainage area of the element where its water enters the grid, and one entering at its own outlet at the first last point's below it, its dam's, hydrology.last_points) or at each run's storm area of a depth-area study (2D). 'area': read on the curve at area_km2, one factor for the part. 'coefficient': one factor given",
           "enum": [
             "curve",
             "area",
@@ -2155,13 +2155,29 @@
         },
         "lumped_entry": {
           "default": "outlet",
-          "description": "Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88)",
+          "description": "Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88). The water stops at the lowest last point on its way (hydrology.last_points) and enters there, on the edge of the catchments it brings in (W105)",
           "enum": [
             "outlet",
             "network"
           ],
           "title": "Lumped Entry",
           "type": "string"
+        },
+        "last_points": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Where the lumped model ends (his rule of 2026-11-16, W105): None is every dam of the lumped network (an HMS reservoir, a generated basin's dam); a list names them all, dams and junctions alike, and [] none. With lumped_entry 'network' the lumped water enters the grid at the lowest last point on its way, never further down a reach. With the lumped part of storm.area_reduction a curve, a lumped subbasin that enters the grid at its own outlet (the grid routes it from there, Hybrid 2D) is read at the drainage area of the first last point at or below it: one factor per dam, since the 2D routing runs once. A subbasin the network carries to an entry is read at that entry's area, and every element reported at its own (W98)",
+          "title": "Last Points"
         },
         "arf_by_element": {
           "default": false,
@@ -2365,10 +2381,11 @@
         },
         "entry": {
           "default": "point",
-          "description": "'point' enters at x, y. 'wadi' starts there and moves up the wadi until the cells it reaches are clear of every result and hand-back line; a generated basin's inflows are 'wadi'",
+          "description": "'point' enters at x, y. 'wadi' starts there and moves up the wadi until the cells it reaches are clear of every result and hand-back line; a generated basin's inflows are 'wadi'. 'edge' enters at the pour point of the catchments it brings in that the mesh leaves out (grid.exclude_lumped): the lowest cell on their whole edge, the wadi just below a dam, wherever x, y lies; with none left out it enters at x, y. hydrology.lumped_entry 'network' writes it at a last point (W105)",
           "enum": [
             "point",
-            "wadi"
+            "wadi",
+            "edge"
           ],
           "title": "Entry",
           "type": "string"
@@ -5833,6 +5850,7 @@
         "reach_routing": "hms",
         "muskingum": [],
         "lumped_entry": "outlet",
+        "last_points": null,
         "arf_by_element": false,
         "hms_project": null,
         "hms_sqlite": null,

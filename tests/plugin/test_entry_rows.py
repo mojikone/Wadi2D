@@ -218,7 +218,7 @@ def test_a_model_of_format_4_comes_up_with_nothing_set_and_nothing_said() -> Non
     }
     doc = model_doc.loads(json.dumps(old))
     hydrology = doc["sections"]["hydrology"]
-    assert doc["version"] == model_doc.VERSION == 5 and not doc.get(model_doc.MIGRATED)
+    assert doc["version"] == model_doc.VERSION == 6 and not doc.get(model_doc.MIGRATED)  # 6: W105, nothing said here
     assert hydrology["widgets"] == {"exclude": True, "inflows": []}
     assert hydrology["extra"] == {"modes": {"S1": "lumped"}, "edits": {}}
 

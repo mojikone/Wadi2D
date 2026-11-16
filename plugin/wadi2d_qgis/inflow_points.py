@@ -1,7 +1,8 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
 """The Hydrology section's point inflows table (W103), on the dock's canvas: Click on the map adds a row at the point
-clicked, in the DEM's coordinates, as the job holds them. Held by the dock."""
+clicked, in the DEM's coordinates, as the job holds them. Held by the dock. The last points table (W105) takes its
+clicks the same way: any box with ``place_requested``, ``place_stopped`` and ``add_point``."""
 
 from __future__ import annotations
 
@@ -10,9 +11,9 @@ from qgis.gui import QgsMapToolEmitPoint
 
 
 class InflowPointLinks:
-    def __init__(self, dock) -> None:
+    def __init__(self, dock, box=None) -> None:
         self.dock = dock
-        self.box = dock.hydrology.inflows
+        self.box = dock.hydrology.inflows if box is None else box
         self.canvas = dock.iface.mapCanvas()
         self.tool = QgsMapToolEmitPoint(self.canvas)
         self.old_tool = None

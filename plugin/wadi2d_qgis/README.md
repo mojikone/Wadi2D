@@ -54,6 +54,10 @@ one field, the Python or `wadi2d` executable, checked with `wadi2d doctor`. The 
    (x, y, or `none` for a subbasin whose water an inflow below it carries), each written into the job only when set.
    **Point inflows of lumped elements**, a table of name, element, x, y, entry and whether the water enters the grid,
    put a dam's, a junction's or a reach's outflow into the grid at a point; Click on the map adds a row (W103).
+   **Last points of the lumped model** (W105): every dam of the basin, ticked, and any junction added from the list or
+   by Pick on the map; in Hybrid Lumped the lumped water enters the 2D model there, at the edge of the catchments left
+   out of the mesh, and with the lumped curve a subbasin routed in 2D from its own outlet (Hybrid 2D) is read at its
+   dam's drainage area. Written only when it differs from every dam ticked and no junction.
    Or tick **Generate the basin from the DEM**: a stream threshold, pour points (the dams and the design lines are pour points
    by themselves), the lag method, and Generate runs `wadi2d basin` on the terrain of section 1 and the dams of section 5,
    keeps `basin.json` and `basin.gpkg` in `wadi2d_basin` under the output folder, and loads the subbasins, reaches and

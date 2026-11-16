@@ -1,0 +1,56 @@
+    0.0 script loaded
+    4.0 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\plugin\wadi2d_qgis\__init__.py
+    4.9 PASS engine found Engine ready.
+    5.1 message: [Python warning] warning:D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\plugin\wadi2d_qgis\sections\common.py:108: DeprecationWarning: QgsMapLayerComboBox.setFilters() is deprecated
+  combo.setFilters(filters)
+
+traceback:  File "<string>", line 242, in tick
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\W105 dams end the lumped model\dock_last_points.py", line 75, in scenario
+    dock = yield from open_dock(h)
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\W105 dams end the lumped model\dock_last_points.py", line
+    5.1 === Hybrid Lumped, dock way
+    5.1 PASS Hybrid Lumped, dock way: W103's scenario is format 5 
+    6.3 Hybrid Lumped, dock way: opened, words: None
+    6.3 PASS Hybrid Lumped, dock way: the migration says what moves Scenario Hybrid Lumped, dock way is in the dock. On the way: The lumped model now ends at its dams (his rule of 2026-11-16): the lumped water kept on the HMS network enters the 2D model at each dam, on the edge of the catchments left out of the mesh, where it 
+    6.3 PASS Hybrid Lumped, dock way: Basin 3's five dams listed and ticked [('Z4C Reservoir', 'dam', True), ('R2A Reservoir', 'dam', True), ('Faydh 01 Reservoir', 'dam', True), ('Bidah 03 Reservoir', 'dam', True), ('R5A Reservoir', 'dam', True)]
+    6.3 PASS Hybrid Lumped, dock way: HAT-J4 offered among the junctions 101
+    6.3 PASS Hybrid Lumped, dock way: as it stands nothing is written 
+    6.3 PASS Hybrid Lumped, dock way: Add a junction adds HAT-J4 ('HAT-J4', 'junction', True)
+    6.3 PASS Hybrid Lumped, dock way: Remove junction takes it out 
+    6.3 PASS Hybrid Lumped, dock way: Pick on the map takes the canvas 
+    6.3 PASS Hybrid Lumped, dock way: a click beside its icon adds HAT-J4 (('HAT-J4', 'junction', True), 'Nearest junction to the click: HAT-J4, 50 m from its icon.')
+    6.3 PASS Hybrid Lumped, dock way: and gives the tool back 
+    6.3 PASS Hybrid Lumped, dock way: the status line says it HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · the lumped model ends at 5 dams + HAT-J4
+    6.3 Hybrid Lumped, dock way: 4b reads: Each lumped subbasin read at its dam's (last point's) drainage area: in Hybrid 2D, where the lumped subbasins enter at their own outlets and the 2D model routes them once, every one at the drainage ar
+    6.3 PASS Hybrid Lumped, dock way: saved as a scenario of format 6 D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\W105 dams end the lumped model\dock_data\scenarios\Hybrid Lumped, dock way.wadi2d.json
+    7.8 PASS the dock writes its job into hybrid_lumped_last_points 
+    7.8 PASS Hybrid Lumped, dock way: the job holds the five dams, in the basin's order, and HAT-J4 ['Z4C Reservoir', 'R2A Reservoir', 'Faydh 01 Reservoir', 'Bidah 03 Reservoir', 'R5A Reservoir', 'HAT-J4']
+    7.8 PASS Hybrid Lumped, dock way: in hydrology only the last points differ from W103's job ['last_points']
+   10.3 PASS the dock writes its job into hybrid_lumped_last_points_opened_again 
+   10.3 PASS Hybrid Lumped, dock way: opened again, the same hydrology 
+   10.3 PASS Hybrid Lumped, dock way: a dam unticked (Z4C Reservoir) writes the others ['R2A Reservoir', 'Faydh 01 Reservoir', 'Bidah 03 Reservoir', 'R5A Reservoir', 'HAT-J4']
+   10.3 === Hybrid 2D, dock way
+   10.3 PASS Hybrid 2D, dock way: W103's scenario is format 5 
+   11.0 Hybrid 2D, dock way: opened, words: None
+   11.0 PASS Hybrid 2D, dock way: the migration says what moves Scenario Hybrid 2D, dock way is in the dock. On the way: The lumped model now ends at its dams (his rule of 2026-11-16): with the lumped part of the area reduction a curve, a lumped subbasin that enters the 2D model at its own outlet is read at its dam's drain
+   11.0 PASS Hybrid 2D, dock way: Basin 3's five dams listed and ticked [('Z4C Reservoir', 'dam', True), ('R2A Reservoir', 'dam', True), ('Faydh 01 Reservoir', 'dam', True), ('Bidah 03 Reservoir', 'dam', True), ('R5A Reservoir', 'dam', True)]
+   11.0 PASS Hybrid 2D, dock way: HAT-J4 offered among the junctions 101
+   11.0 PASS Hybrid 2D, dock way: as it stands nothing is written 
+   11.0 PASS Hybrid 2D, dock way: Add a junction adds HAT-J4 ('HAT-J4', 'junction', True)
+   11.0 PASS Hybrid 2D, dock way: Remove junction takes it out 
+   11.0 PASS Hybrid 2D, dock way: Pick on the map takes the canvas 
+   11.0 PASS Hybrid 2D, dock way: a click beside its icon adds HAT-J4 (('HAT-J4', 'junction', True), 'Nearest junction to the click: HAT-J4, 50 m from its icon.')
+   11.0 PASS Hybrid 2D, dock way: and gives the tool back 
+   11.0 PASS Hybrid 2D, dock way: the status line says it HMS project HEC_HMS_Block_02 · 104 subbasins, 26 lumped · curve number from CN_Include_Hill_Area · the lumped model ends at 5 dams + HAT-J4
+   11.0 Hybrid 2D, dock way: 4b reads: Each lumped subbasin read at its dam's (last point's) drainage area: in Hybrid 2D, where the lumped subbasins enter at their own outlets and the 2D model routes them once, every one at the drainage ar
+   11.1 PASS Hybrid 2D, dock way: saved as a scenario of format 6 D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa8a2bda888bc27c9\W105 dams end the lumped model\dock_data\scenarios\Hybrid 2D, dock way.wadi2d.json
+   12.5 PASS the dock writes its job into hybrid_2d_last_points 
+   12.5 PASS Hybrid 2D, dock way: the job holds the five dams, in the basin's order, and HAT-J4 ['Z4C Reservoir', 'R2A Reservoir', 'Faydh 01 Reservoir', 'Bidah 03 Reservoir', 'R5A Reservoir', 'HAT-J4']
+   12.5 PASS Hybrid 2D, dock way: in hydrology only the last points differ from W103's job ['last_points']
+   14.5 PASS the dock writes its job into hybrid_2d_last_points_opened_again 
+   14.5 PASS Hybrid 2D, dock way: opened again, the same hydrology 
+   14.5 PASS Hybrid 2D, dock way: a dam unticked (Z4C Reservoir) writes the others ['R2A Reservoir', 'Faydh 01 Reservoir', 'Bidah 03 Reservoir', 'R5A Reservoir', 'HAT-J4']
+   14.6 PASS a 2D model carries no last point 
+   14.6 PASS the report written 
+   14.6 SUMMARY 40 passed, 0 failed 
+   14.6 DONE
