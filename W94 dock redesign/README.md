@@ -94,7 +94,7 @@ chart on the map stays.
 
 Biggest gap: the dock saves nothing of a model. Only the engine path, the last folders and the depth cutoff persist (QGIS
 settings); every field is lost when QGIS closes, and choosing a finished run's folder does not refill the dock from its
-`job.json`. To build first: the model saved with the QGIS project, open a run's job into the dock, save as a scenario.
+`job.json`. To build first: the model saved with the QGIS project, open a run's job into the dock, save as a scenario. His decision of 2026-11-16: built with the redesign, as its first piece, not patched into the current dock.
 
 Redundant or in the wrong place, to fold into the redesign:
 - Three "Run starts at" fields (gridded rain, rain gauges, 7b gauges): one start time in the simulation panel.
