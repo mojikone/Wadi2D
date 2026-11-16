@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Wadi2D start</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f9e;text-decoration:none}a:hover{color:#123f6b}
+</style>
+</helmet>
+<div style="width: 420px; height: 900px; box-sizing: border-box; background: #f4f5f7; font-family: Inter, system-ui, sans-serif; color: #1c2430; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: #ffffff; border-bottom: 1px solid #dfe3e8">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 17px; font-weight: 700">Wadi2D</div>
+<div style="font-size: 12px; color: #4f5b68">Engine ready · GPU RTX 5080 · 0.4.0</div>
+</div>
+<button style="height: 32px; padding: 0 12px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 13px; color: #1c2430">Engine…</button>
+</div>
+<div style="padding: 14px 16px 0 16px">
+<div role="tablist" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); background: #e6e9ed; border-radius: 8px; padding: 3px">
+<button role="tab" aria-selected="true" style="height: 34px; border: none; border-radius: 6px; background: #ffffff; font: inherit; font-size: 13px; font-weight: 600; color: #1c2430">New model</button>
+<button role="tab" aria-selected="false" style="height: 34px; border: none; border-radius: 6px; background: transparent; font: inherit; font-size: 13px; color: #4f5b68">Open results</button>
+</div>
+</div>
+<div style="padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; font-weight: 600; color: #4f5b68; text-transform: uppercase; letter-spacing: 0.04em">Choose the model type</div>
+<a href="Setup_2D.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; color: #1c2430">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">2D</span><span style="font-size: 11px; font-weight: 600; color: #1d5f9e; background: #e4eef8; padding: 2px 8px; border-radius: 10px">2D</span></div>
+<div style="font-size: 12px; color: #4f5b68; line-height: 1.45">Rain on the grid everywhere. Hills, wadis, dams and plain all in 2D.</div>
+<div style="display: flex; gap: 6px"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Hills 2D</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Routing 2D</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Plain 2D</span></div>
+</a>
+<a href="Setup_Hybrid.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; color: #1c2430">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Lumped</span><span style="font-size: 11px; font-weight: 600; color: #8a4b00; background: #fbecd9; padding: 2px 8px; border-radius: 10px">LUMP</span></div>
+<div style="font-size: 12px; color: #4f5b68; line-height: 1.45">Subbasins, reaches and reservoirs as in HEC-HMS. No 2D grid. Each point at its own area reduction.</div>
+<div style="display: flex; gap: 6px"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f9e3c8; color: #7a4200">Hills lumped</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f9e3c8; color: #7a4200">Routing lumped</span></div>
+</a>
+<a href="Setup_Hybrid.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #ffffff; border: 2px solid #1d5f9e; border-radius: 8px; color: #1c2430">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Hybrid Lumped</span><span style="font-size: 11px; font-weight: 600; color: #5b3a8a; background: #ece4f6; padding: 2px 8px; border-radius: 10px">HYB-L</span></div>
+<div style="font-size: 12px; color: #4f5b68; line-height: 1.45">Mountains lumped with HMS reaches down to the dams and the front; rain on the grid below. Mountain cells left out of the mesh.</div>
+<div style="display: flex; gap: 6px"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f9e3c8; color: #7a4200">Hills lumped</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f9e3c8; color: #7a4200">Routing lumped</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Plain 2D</span></div>
+</a>
+<a href="Setup_Hybrid.dc.html" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; color: #1c2430">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 15px; font-weight: 600">Hybrid 2D</span><span style="font-size: 11px; font-weight: 600; color: #5b3a8a; background: #ece4f6; padding: 2px 8px; border-radius: 10px">HYB-2D</span></div>
+<div style="font-size: 12px; color: #4f5b68; line-height: 1.45">Mountains lumped, their hydrographs routed on the grid with dams as 2D pools; rain on the grid below.</div>
+<div style="display: flex; gap: 6px"><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f9e3c8; color: #7a4200">Hills lumped</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Routing 2D</span><span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #dcebf8; color: #1d4f80">Plain 2D</span></div>
+</a>
+</div>
+<div style="padding: 0 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #4f5b68; text-transform: uppercase; letter-spacing: 0.04em">Recent runs</div>
+<a href="Results.dc.html" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; color: #1c2430">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Block 2 · 200-yr</span><span style="font-size: 12px; color: #4f5b68">Hybrid Lumped · 15 Nov 10:52 · finished</span></div>
+<span style="font-size: 12px; color: #1d5f9e; font-weight: 600">Open</span>
+</a>
+<a href="Results.dc.html" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; color: #1c2430">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Block 2 · 200-yr</span><span style="font-size: 12px; color: #4f5b68">Lumped · 15 Nov 08:40 · finished</span></div>
+<span style="font-size: 12px; color: #1d5f9e; font-weight: 600">Open</span>
+</a>
+</div>
+<div style="margin-top: auto; padding: 12px 16px; border-top: 1px solid #dfe3e8; background: #ffffff; display: flex; align-items: center; justify-content: space-between">
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #1c2430"><input type="checkbox"> Show all settings</label>
+<a href="Results.dc.html" style="font-size: 13px; font-weight: 600">Browse for a run folder…</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

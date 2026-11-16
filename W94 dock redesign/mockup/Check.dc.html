@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Check and run</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f9e;text-decoration:none}a:hover{color:#123f6b}
+</style>
+</helmet>
+<div style="width: 420px; height: 900px; box-sizing: border-box; background: #f4f5f7; font-family: Inter, system-ui, sans-serif; color: #1c2430; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #dfe3e8">
+<a href="Setup_Hybrid.dc.html" aria-label="Back to setup" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #c7ced6; border-radius: 6px; color: #1c2430"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></a>
+<div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+<div style="font-size: 15px; font-weight: 700">Check and run</div>
+<div style="font-size: 12px; color: #4f5b68">Block 2 · 200-yr · Hybrid Lumped</div>
+</div>
+</div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #4f5b68; text-transform: uppercase; letter-spacing: 0.04em">Before the run</div>
+<div style="display: flex; gap: 10px; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-left: 1px solid #dfe3e8; border-radius: 8px">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: #2a8a46; margin-top: 4px; flex-shrink: 0"></span>
+<div style="font-size: 12px; line-height: 1.45">No stream over 1 km² leaves through a wall. Every cell gets one rainfall at most.</div>
+</div>
+<div style="display: flex; gap: 10px; padding: 10px 12px; background: #ffffff; border: 1px solid #e8c88d; border-radius: 8px">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: #c47a00; margin-top: 4px; flex-shrink: 0"></span>
+<div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
+<div style="font-size: 12px; line-height: 1.45">16 deep pits in the terrain (6,224 m³) will be filled, or the worst would hold the time step at 0.2 s.</div>
+<a href="Check.dc.html" style="font-size: 12px; font-weight: 600">Show on the map</a>
+</div>
+</div>
+<div style="display: flex; gap: 10px; padding: 10px 12px; background: #ffffff; border: 1px solid #e8c88d; border-radius: 8px">
+<span style="width: 10px; height: 10px; border-radius: 5px; background: #c47a00; margin-top: 4px; flex-shrink: 0"></span>
+<div style="display: flex; flex-direction: column; gap: 4px; flex-grow: 1">
+<div style="font-size: 12px; line-height: 1.45">The north outlet at Wadi HAT opens 0.4 of its 0.8 km: half lies on a catchment left out of the mesh.</div>
+<a href="Setup_Hybrid.dc.html" style="font-size: 12px; font-weight: 600">Go to Edges and outlets</a>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 4px">
+<div style="padding: 10px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px"><div style="font-size: 11px; color: #4f5b68">Active cells</div><div style="font-size: 16px; font-weight: 700">1.09 M</div></div>
+<div style="padding: 10px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px"><div style="font-size: 11px; color: #4f5b68">Tables</div><div style="font-size: 16px; font-weight: 700">cached</div></div>
+<div style="padding: 10px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px"><div style="font-size: 11px; color: #4f5b68">Estimate</div><div style="font-size: 16px; font-weight: 700">≈ 15 min</div></div>
+</div>
+</div>
+<div style="padding: 0 16px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #4f5b68; text-transform: uppercase; letter-spacing: 0.04em">Running</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px">
+<div style="display: flex; justify-content: space-between; font-size: 12px"><span style="font-weight: 600">Solver · 29 h of 48 h</span><span style="color: #4f5b68">step 0.40 s · mass 1e-8</span></div>
+<div role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="height: 8px; border-radius: 4px; background: #e6e9ed"><div style="width: 60%; height: 8px; border-radius: 4px; background: #1d5f9e"></div></div>
+<div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px">
+<div style="display: flex; justify-content: space-between"><span>Terrain and tables</span><span style="color: #1e6b34">done · 6 s from cache</span></div>
+<div style="display: flex; justify-content: space-between"><span>Solver</span><span style="color: #1d5f9e">running · 8 min left</span></div>
+<div style="display: flex; justify-content: space-between"><span>Maps at 0.5 m</span><span style="color: #4f5b68">next · about 5 min</span></div>
+</div>
+<div style="font-size: 12px; color: #4f5b68">Depth is drawn live on the map while it runs.</div>
+</div>
+</div>
+<div style="margin-top: auto; padding: 12px 16px; border-top: 1px solid #dfe3e8; background: #ffffff; display: flex; gap: 8px">
+<button style="height: 40px; padding: 0 18px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 14px; color: #1c2430">Stop</button>
+<a href="Results.dc.html" style="flex-grow: 1; display: flex; align-items: center; justify-content: center; height: 40px; border-radius: 6px; background: #1d5f9e; color: #ffffff; font-size: 14px; font-weight: 600">Open results when done</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

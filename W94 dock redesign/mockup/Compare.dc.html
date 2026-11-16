@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compare runs</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f9e;text-decoration:none}a:hover{color:#123f6b}
+</style>
+</helmet>
+<div style="width: 420px; height: 900px; box-sizing: border-box; background: #f4f5f7; font-family: Inter, system-ui, sans-serif; color: #1c2430; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #dfe3e8">
+<a href="Results.dc.html" aria-label="Back to results" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #c7ced6; border-radius: 6px; color: #1c2430"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></a>
+<div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+<div style="font-size: 15px; font-weight: 700">Compare runs</div>
+<div style="font-size: 12px; color: #4f5b68">Block 2 · 200-yr · 4 runs picked</div>
+</div>
+</div>
+<div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #e4eef8; color: #1d4f80; font-weight: 600">2D</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #fbecd9; color: #7a4200; font-weight: 600">Lumped</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #ece4f6; color: #5b3a8a; font-weight: 600">Hybrid Lumped</span>
+<span style="font-size: 12px; padding: 4px 10px; border-radius: 12px; background: #ece4f6; color: #5b3a8a; font-weight: 600">Hybrid 2D</span>
+<button style="font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 12px; border: 1px dashed #9aa5b1; background: transparent; color: #4f5b68">+ Add run</button>
+</div>
+<div style="padding: 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-weight: 600">Dam inflow peak, m³/s</span><span style="font-size: 11px; color: #4f5b68">interim runs of 15 Nov</span></div>
+<div style="display: grid; grid-template-columns: 1.2fr repeat(4, minmax(0, 1fr)); gap: 6px 6px; font-size: 12px">
+<span style="color: #4f5b68">Dam</span><span style="color: #4f5b68; text-align: right">2D</span><span style="color: #4f5b68; text-align: right">LUMP</span><span style="color: #4f5b68; text-align: right">HYB-L</span><span style="color: #4f5b68; text-align: right">HYB-2D</span>
+<span>Bidah 03</span><span style="text-align: right">581</span><span style="text-align: right">455</span><span style="text-align: right">455</span><span style="text-align: right">446</span>
+<span>Faydh 01</span><span style="text-align: right">2,321</span><span style="text-align: right">1,240</span><span style="text-align: right">1,240</span><span style="text-align: right">1,221</span>
+<span>R5A</span><span style="text-align: right">2,075</span><span style="text-align: right">1,144</span><span style="text-align: right">1,144</span><span style="text-align: right">1,136</span>
+<span>R2A</span><span style="text-align: right">3,949</span><span style="text-align: right">1,736</span><span style="text-align: right">1,736</span><span style="text-align: right">1,515</span>
+<span>Z4C</span><span style="text-align: right">3,249</span><span style="text-align: right">2,101</span><span style="text-align: right">2,101</span><span style="text-align: right">2,078</span>
+</div>
+<div style="display: flex; gap: 6px">
+<button style="flex-grow: 1; height: 30px; border: 1px solid #1d5f9e; border-radius: 6px; background: #e4eef8; font: inherit; font-size: 12px; font-weight: 600; color: #1d4f80">Peak</button>
+<button style="flex-grow: 1; height: 30px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 12px; color: #1c2430">Volume</button>
+<button style="flex-grow: 1; height: 30px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 12px; color: #1c2430">Time to peak</button>
+<button style="flex-grow: 1; height: 30px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 12px; color: #1c2430">Outflow</button>
+</div>
+</div>
+<div style="padding: 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600">Hydrographs on one chart</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #4f5b68">Element
+<select style="height: 32px; border: 1px solid #c7ced6; border-radius: 6px; font: inherit; font-size: 13px; color: #1c2430; background: #ffffff; padding: 0 8px"><option>Z4C dam: inflow</option></select>
+</label>
+<div role="img" aria-label="Chart placeholder: one hydrograph per run" style="height: 120px; border-radius: 6px; background: #f4f5f7; border: 1px dashed #c7ced6; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #4f5b68">One line per run, the run colours above</div>
+</div>
+<div style="padding: 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600">Difference map</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+<select aria-label="Run A" style="height: 32px; border: 1px solid #c7ced6; border-radius: 6px; font: inherit; font-size: 12px; color: #1c2430; background: #ffffff; padding: 0 6px"><option>Hybrid Lumped</option></select>
+<select aria-label="Run B" style="height: 32px; border: 1px solid #c7ced6; border-radius: 6px; font: inherit; font-size: 12px; color: #1c2430; background: #ffffff; padding: 0 6px"><option>2D</option></select>
+</div>
+<button style="height: 34px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 13px; color: #1c2430">Map max depth, A minus B</button>
+</div>
+</div>
+<div style="margin-top: auto; padding: 12px 16px; border-top: 1px solid #dfe3e8; background: #ffffff; display: flex; gap: 8px">
+<button style="flex-grow: 1; height: 40px; border-radius: 6px; border: none; background: #1d5f9e; color: #ffffff; font: inherit; font-size: 14px; font-weight: 600">Export the table to Excel</button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

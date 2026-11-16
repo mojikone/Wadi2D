@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hybrid Lumped setup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1d5f9e;text-decoration:none}a:hover{color:#123f6b}
+</style>
+</helmet>
+<div style="width: 420px; height: 900px; box-sizing: border-box; background: #f4f5f7; font-family: Inter, system-ui, sans-serif; color: #1c2430; display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #dfe3e8">
+<a href="Main.dc.html" aria-label="Back to start" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 1px solid #c7ced6; border-radius: 6px; color: #1c2430"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 3 5 8l5 5"></path></svg></a>
+<div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+<div style="font-size: 15px; font-weight: 700">Block 2 · 200-yr</div>
+<div style="font-size: 12px; color: #4f5b68">Model type: Hybrid Lumped</div>
+</div>
+<span style="font-size: 11px; font-weight: 600; color: #5b3a8a; background: #ece4f6; padding: 2px 8px; border-radius: 10px">HYB-L</span>
+</div>
+<div style="display: flex; gap: 4px; padding: 10px 16px; background: #ffffff; border-bottom: 1px solid #dfe3e8; font-size: 11px; font-weight: 600">
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #e2f2e6; color: #1e6b34">Terrain</span>
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #1d5f9e; color: #ffffff">Catchments</span>
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #e2f2e6; color: #1e6b34">Storm</span>
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #fdf0d5; color: #8a5300">Dams</span>
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #e2f2e6; color: #1e6b34">Edges</span>
+<span style="flex-grow: 1; text-align: center; padding: 5px 0; border-radius: 4px; background: #e2f2e6; color: #1e6b34">Outputs</span>
+</div>
+<div style="padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; overflow: hidden">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Terrain and domain</span><span style="font-size: 12px; color: #4f5b68">GGC 0.5 m · 20 m aligned mesh · domain to the sea</span></div>
+<span style="font-size: 11px; font-weight: 600; color: #1e6b34">Ready</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; background: #ffffff; border: 2px solid #1d5f9e; border-radius: 8px">
+<div style="display: flex; justify-content: space-between; align-items: center"><span style="font-size: 14px; font-weight: 600">Catchments</span><span style="font-size: 11px; font-weight: 600; color: #1e6b34">Ready</span></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #4f5b68">Source
+<select style="height: 32px; border: 1px solid #c7ced6; border-radius: 6px; font: inherit; font-size: 13px; color: #1c2430; background: #ffffff; padding: 0 8px"><option>HEC-HMS project · Basin 3</option><option>Generate from the DEM</option></select>
+</label>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="padding: 10px; border-radius: 6px; background: #fbecd9"><div style="font-size: 11px; color: #7a4200; font-weight: 600">LUMPED, HMS REACHES</div><div style="font-size: 18px; font-weight: 700; color: #4d2a00">26</div><div style="font-size: 12px; color: #7a4200">860.3 km² · left out of the mesh</div></div>
+<div style="padding: 10px; border-radius: 6px; background: #dcebf8"><div style="font-size: 11px; color: #1d4f80; font-weight: 600">RAIN ON THE GRID</div><div style="font-size: 18px; font-weight: 700; color: #123a63">78</div><div style="font-size: 12px; color: #1d4f80">510.5 km² + coast strip</div></div>
+</div>
+<div style="display: flex; gap: 8px">
+<button style="flex-grow: 1; height: 34px; border: 1px solid #1d5f9e; border-radius: 6px; background: #ffffff; font: inherit; font-size: 13px; font-weight: 600; color: #1d5f9e">Pick on the map</button>
+<button style="flex-grow: 1; height: 34px; border: 1px solid #c7ced6; border-radius: 6px; background: #ffffff; font: inherit; font-size: 13px; color: #1c2430">By slope over 20 %</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="font-size: 12px; font-weight: 600; color: #4f5b68">Where lumped water enters the grid</div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #eef0f3"><span>Bidah 03, Faydh 01, R5A, R2A, Z4C</span><span style="color: #4f5b68">200 m below each dam</span></div>
+<div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0"><span>Wadi HAT at HAT-J4</span><span style="color: #4f5b68">moved 34 m to the edge</span></div>
+</div>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Storm and area reduction</span><span style="font-size: 12px; color: #4f5b68">FM 200-yr · lumped at each element · grid at 100 km² (0.913)</span></div>
+<span style="font-size: 11px; font-weight: 600; color: #1e6b34">Ready</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #e8c88d; border-radius: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Dams and structures</span><span style="font-size: 12px; color: #4f5b68">5 lumped reservoirs, empty at start · 1 note</span></div>
+<span style="font-size: 11px; font-weight: 600; color: #8a5300">Check</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Edges and outlets</span><span style="font-size: 12px; color: #4f5b68">The sea + 3 side outlets · no stream leaves a wall</span></div>
+<span style="font-size: 11px; font-weight: 600; color: #1e6b34">Ready</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #ffffff; border: 1px solid #dfe3e8; border-radius: 8px">
+<div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 600">Outputs</span><span style="font-size: 12px; color: #4f5b68">Maps at 0.5 m · lines at 5 dams · light time slider</span></div>
+<span style="font-size: 11px; font-weight: 600; color: #1e6b34">Ready</span>
+</div>
+</div>
+<div style="margin-top: auto; padding: 12px 16px; border-top: 1px solid #dfe3e8; background: #ffffff; display: flex; gap: 8px; align-items: center">
+<div style="flex-grow: 1; font-size: 12px; color: #4f5b68">1.09 M cells · tables cached · about 15 min</div>
+<a href="Check.dc.html" style="display: flex; align-items: center; justify-content: center; height: 40px; padding: 0 22px; border-radius: 6px; background: #1d5f9e; color: #ffffff; font-size: 14px; font-weight: 600">Check and run</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":900}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
