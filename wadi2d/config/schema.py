@@ -1516,6 +1516,38 @@ class BasinSettings(_Part):
     )
 
 
+class DomainSettings(_Part):
+    """What ``wadi2d domain`` needs beyond the job (W97): completing a drawn outline with the catchments draining into
+    it, and aligning an outline to catchment polygons. Not part of a job; the delineation's pixel and stream threshold
+    are the job's ``basin`` settings, so the domain and a generated basin read the same D8 lines."""
+
+    keep_m: float = Field(
+        50.0,
+        gt=0.0,
+        le=1000.0,
+        description="An edge of the outline this close to a kept line (a boundary line of the job or a line given) is "
+        "drawn exactly and stays as drawn: water leaving across it is a downstream edge, water arriving across it is "
+        "not added, m",
+    )
+    margin_m: float = Field(
+        5000.0,
+        gt=0.0,
+        le=200000.0,
+        description="First reach of the delineation beyond the outline, m; doubled while a catchment runs to the edge "
+        "of the window, up to the DEM's own edge",
+    )
+    align_tolerance_m: float = Field(
+        100.0,
+        gt=0.0,
+        le=5000.0,
+        description="Aligning to catchments: a band between the outline and the catchments' outer edge narrower than "
+        "twice this is removed, a band of catchment just outside the outline as narrow is added, m",
+    )
+    join_m: float = Field(
+        1.0, ge=0.0, le=100.0, description="Gaps between catchment polygons narrower than twice this are closed, m"
+    )
+
+
 class SnapRow(_Part):
     """A corridor row that lies on a breakline: the row index into the offsets, and the line, or the pieces of it
     (a bank found in parts) as a list of lines."""

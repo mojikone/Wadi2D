@@ -153,6 +153,70 @@ def _basin(args: argparse.Namespace) -> int:
     return EXIT_DONE
 
 
+def _domain(args: argparse.Namespace) -> int:
+    """W97: complete the outline with the catchments draining into it, or align it to catchment polygons."""
+    import rasterio
+
+    from wadi2d.config.schema import BasinSettings, DomainSettings
+    from wadi2d.domain.files import write_domain
+    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError
+
+    try:
+        cfg = _load(args.job)
+        basin = cfg.basin.model_dump()
+        if args.threshold_km2 is not None:
+            basin["stream_threshold_km2"] = args.threshold_km2 or None
+        if args.pixel is not None:
+            basin["analysis_pixel"] = args.pixel
+        chosen = json.loads(Path(args.settings).read_text(encoding="utf-8")) if args.settings else {}
+        if args.tolerance_m is not None:
+            chosen["align_tolerance_m"] = args.tolerance_m
+        settings = DomainSettings.model_validate(chosen)
+        crs = ""
+        if cfg.terrain.dem is not None:
+            with rasterio.open(cfg.terrain.dem) as src:
+                crs = src.crs.to_wkt() if src.crs is not None else ""
+        source = args.outline or cfg.grid.domain
+        if source is None:
+            raise ValueError("no outline: give --outline or a job with grid.domain")
+        from wadi2d.domain.outline import kept_lines, read_outline
+
+        outline = read_outline(source, crs)
+        kept = kept_lines(cfg, args.keep, crs)
+        if args.align is None:
+            from wadi2d.domain.outline import complete_outline
+
+            done = complete_outline(cfg, outline, kept, BasinSettings.model_validate(basin), settings)
+            polygon, report = done.polygon, {"mode": "complete", **done.report}
+            changes = [(c.kind, c.geometry, c.km2, c.catchment, c.x, c.y) for c in done.changes]
+        else:
+            from wadi2d.domain.align import GAP, RIM, align_outline
+
+            if args.align == "job":
+                from wadi2d.forcing import load_polygons
+
+                catchments = list(load_polygons(cfg.hydrology, crs).values())
+            else:
+                from wadi2d.terrain.vector import read_features
+
+                catchments = [s for _p, s in read_features(args.align, crs) if s.geom_type.endswith("Polygon")]
+            done = align_outline(outline, catchments, settings, kept, args.cell_m or cfg.grid.dx)
+            polygon, report = done.polygon, {"mode": "align", **done.report}
+            changes = [(kind, g, g.area / 1e6, 1, g.centroid.x if not g.is_empty else 0.0,
+                        g.centroid.y if not g.is_empty else 0.0)
+                       for kind, g in ((RIM, done.rim), (GAP, done.gap)) if not g.is_empty]  # fmt: skip
+        report["outline"] = str(source)
+        written = write_domain(Path(args.out), polygon, Path(str(source)).stem, crs, report, changes)
+    except ValueError as error:
+        print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
+        return EXIT_INVALID
+    except JobError as error:
+        print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
+        return error.code
+    print(json.dumps({"ev": "domain", **written, "domain_km2": report["domain_km2"], "notes": report["notes"]}))
+    return EXIT_DONE
+
+
 def _arf(args: argparse.Namespace) -> int:
     from wadi2d.arf import arf_study
     from wadi2d.run import JobError
@@ -442,6 +506,23 @@ def parser() -> argparse.ArgumentParser:
     basin.add_argument("--pixel", type=float, help="analysis pixel, m")
     basin.add_argument("--settings", help="JSON file of BasinSettings")
     basin.set_defaults(call=_basin)
+
+    domain = sub.add_parser(
+        "domain", help="the 2D domain completed with the catchments draining into a drawn outline, or aligned to catchments"
+    )
+    domain.add_argument("job")
+    domain.add_argument("--out", required=True)
+    domain.add_argument("--outline", help="polygon layer; else the job's grid.domain")
+    domain.add_argument("--keep", help="line layer of the edges drawn exactly, beside the job's boundary lines")
+    domain.add_argument(
+        "--align", metavar="CATCHMENTS", help="align to a polygon layer, or 'job' for the job's subbasin polygons"
+    )
+    domain.add_argument("--threshold-km2", type=float, help="stream threshold that names a catchment among the changes")
+    domain.add_argument("--pixel", type=float, help="analysis pixel, m")
+    domain.add_argument("--tolerance-m", type=float, help="alignment tolerance, m")
+    domain.add_argument("--cell-m", type=float, help="cells counted outside every catchment, m; else grid.dx")
+    domain.add_argument("--settings", help="JSON file of DomainSettings")
+    domain.set_defaults(call=_domain)
 
     arf = sub.add_parser("arf", help="depth-area study: one run per storm area, design-point table")
     arf.add_argument("job")

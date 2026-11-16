@@ -1,0 +1,27 @@
+{
+ "completed_cells_outside": 12130,
+ "100m": {
+  "exit": 0,
+  "seconds": 107.7,
+  "domain_km2": 1400.791,
+  "cells_outside_every_polygon": 10288,
+  "basin3_outside_domain_km2": 3.554,
+  "against_w79_no_rim_symdiff_km2": 9.59
+ },
+ "200m": {
+  "exit": 0,
+  "seconds": 157.5,
+  "domain_km2": 1400.106,
+  "cells_outside_every_polygon": 9832,
+  "basin3_outside_domain_km2": 3.413,
+  "against_w79_no_rim_symdiff_km2": 9.918
+ },
+ "300m": {
+  "exit": 0,
+  "seconds": 86.7,
+  "domain_km2": 1400.116,
+  "cells_outside_every_polygon": 8875,
+  "basin3_outside_domain_km2": 3.016,
+  "against_w79_no_rim_symdiff_km2": 9.149
+ }
+}

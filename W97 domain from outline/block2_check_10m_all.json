@@ -1,0 +1,77 @@
+{
+ "pixel_m": 10.0,
+ "kept": "all",
+ "setup_s": 40.9,
+ "basin3_km2": 1370.7,
+ "w79_no_rim_km2": 1398.896,
+ "rough": {
+  "km2": 1436.594,
+  "edge_off_basin3_m": {
+   "p5": 261.0,
+   "median": 1661.0,
+   "p95": 2761.0,
+   "max": 3043.0
+  },
+  "outside_basin3_km2": 149.538,
+  "basin3_outside_km2": 113.475,
+  "cells_outside_every_polygon": 373932
+ },
+ "completed": {
+  "pixel_m": 10.0,
+  "stream_threshold_km2": 10.0,
+  "window": {
+   "x0": 399801.98973783385,
+   "y0": 2750910.393463373,
+   "rows": 5701,
+   "columns": 6173,
+   "margin_m": 5000.0,
+   "widened": 0
+  },
+  "kept_lines": 4,
+  "outline_km2": 1436.5938,
+  "domain_km2": 1405.3716,
+  "added_km2": 117.4069,
+  "removed_km2": 59.4571,
+  "not_added_km2": 0.0923,
+  "slivers_added_km2": 104.7249,
+  "slivers_removed_km2": 31.6236,
+  "catchments_not_added": [],
+  "pieces_apart_km2": 1.2188,
+  "holes_filled_km2": 0.0002,
+  "seconds": 39.4,
+  "notes": [
+   "11 pieces apart from the domain left out, 1.219 km2",
+   "6 holes inside the domain filled, 0.000 km2"
+  ],
+  "catchments_added": 1,
+  "catchments_removed": 2,
+  "against_basin3": {
+   "domain_outside_basin3_km2": 6.017,
+   "basin3_outside_domain_km2": 0.836,
+   "against_w79_no_rim_symdiff_km2": 8.588,
+   "cells_outside_every_polygon": 14762
+  }
+ },
+ "completed_aligned": {
+  "tolerance_m": 100.0,
+  "catchments": 104,
+  "outline_km2": 1405.3716,
+  "domain_km2": 1404.3598,
+  "rim_removed_km2": 1.4801,
+  "gap_added_km2": 0.216,
+  "notes": [
+   "20 pieces apart from the domain left out, 0.0061 km2",
+   "23 holes inside the domain filled, 0.2583 km2"
+  ],
+  "cell_m": 20.0,
+  "cells_outside_catchments_before": 88593,
+  "cells_outside_catchments": 85683,
+  "outside_catchments_km2": 34.2732,
+  "catchment_cells_outside": 1548,
+  "seconds": 150.6,
+  "basin3_outside_domain_km2": 0.62,
+  "against_w79_no_rim_symdiff_km2": 7.351,
+  "cells_outside_every_polygon": 11948
+ },
+ "total_s": 312.3
+}

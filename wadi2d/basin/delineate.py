@@ -24,7 +24,7 @@ from rasterio.windows import from_bounds
 from wadi2d.basin.barriers import GroundEdits
 from wadi2d.basin.kernels import NONE, accumulate, upstream_first
 from wadi2d.config.schema import BasinSettings, RunConfig
-from wadi2d.mesh.streams import NODATA, _accumulate, read_coarse
+from wadi2d.mesh.streams import NODATA, _accumulate
 from wadi2d.terrain.vector import read_features
 
 M2_PER_KM2 = 1.0e6
@@ -174,7 +174,12 @@ def read_surface(cfg: RunConfig, settings: BasinSettings) -> tuple[np.ndarray, f
             f"the delineation would take {ny * nx:,} pixels of {pixel} m, above max_pixels "
             f"{settings.max_pixels:,}: use a coarser analysis pixel"
         )
-    z = _on_domain(read_coarse(cfg.terrain.dem, x0, y0, ny, nx, pixel, 1), polygon, x0, y0, pixel)
+    from wadi2d.demstore import cache_folder, open_bed
+    from wadi2d.demstore.coarse import read_coarse_from
+
+    with open_bed(cfg, cache_folder(cfg), stride=1) as bed:  # GDAL's means from the job's chunk store (W92), if any
+        z = read_coarse_from(bed, cfg.terrain.dem, x0, y0, ny, nx, pixel, 1)
+    z = _on_domain(z, polygon, x0, y0, pixel)
     if not np.isfinite(z).any():
         raise ValueError("no ground under the job's domain")
     return z, pixel, x0, y0, crs
