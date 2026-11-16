@@ -2,9 +2,9 @@
 
 :class:`wadi2d.products.pixels.PixelMaxima` keeps the maxima of a run over all its kept cells. Here the same object
 is built on a window and holds one map at a time, so a frame on the slider and the rasters of record come from the same
-lines of code. A cell reads its neighbours' levels and, through the refills that ease joined edges, their fill offsets,
-which read theirs: ``edge_passes`` cells out, plus two for the links at the corners. The window is that much wider
-than the view, and the cells inside the view then equal the whole-domain answer.
+lines of code, by the job's own ``outputs.pixels.surface`` (W100: the continuous surface by default). A cell reads its
+neighbours' levels and their fill offsets: :func:`wadi2d.products.pixels.halo` cells out. The window is that much
+wider than the view, and the cells inside the view then equal the whole-domain answer.
 """
 
 from __future__ import annotations

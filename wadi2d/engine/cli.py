@@ -241,6 +241,13 @@ def _drawings(args: argparse.Namespace) -> int:
     return draw(Path(args.run), args.backend, echo=True)
 
 
+def _window(args: argparse.Namespace) -> int:
+    from wadi2d.products.runner import export_window
+
+    out = Path(args.out) if args.out else None
+    return export_window(Path(args.run), tuple(args.box), args.pixel, out, args.backend, echo=True, surface=args.surface)
+
+
 def _frames(args: argparse.Namespace) -> int:
     from wadi2d.products.time_slider import write_frames
 
@@ -541,6 +548,17 @@ def parser() -> argparse.ArgumentParser:
     drawings.add_argument("run", metavar="RUN_DIR")
     drawings.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
     drawings.set_defaults(call=_drawings)
+
+    window = sub.add_parser(
+        "window", help="depth, speed and hazard of one window of a finished run at the DEM's pixel or another (W100)"
+    )
+    window.add_argument("run", metavar="RUN_DIR")
+    window.add_argument("box", nargs=4, type=float, metavar=("XMIN", "YMIN", "XMAX", "YMAX"))
+    window.add_argument("--pixel", type=float, default=0.0, help="pixel of the rasters, m; 0, the default, the DEM's own")
+    window.add_argument("--out", default=None, help="folder of the rasters; by default pixels/windows/ in the run")
+    window.add_argument("--surface", choices=("continuous", "corners", "cell_fill"), default=None)
+    window.add_argument("--backend", choices=("auto", "gpu", "cpu"), default=None)
+    window.set_defaults(call=_window)
 
     frames = sub.add_parser("frames", help="the saved maps of a finished run as one NetCDF file for the time slider")
     frames.add_argument("run", metavar="RUN_DIR")

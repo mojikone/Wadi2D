@@ -1,4 +1,4 @@
-﻿"""The step through a real run: what lands on disk, GPU against CPU, stop, skip, the command line, the study."""
+"""The step through a real run: what lands on disk, GPU against CPU, stop, skip, the command line, the study."""
 
 from __future__ import annotations
 
@@ -79,8 +79,9 @@ def test_a_run_makes_its_pixel_maps_by_default(finished) -> None:
     _cfg, run, summary = finished
     assert summary.products == runner.PRODUCTS_DONE
     folder = run / PIXEL_DIR
-    for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.DV_FILE, step.STATS_FILE):
+    for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.STATS_FILE):
         assert (folder / name).exists()
+    assert not (folder / step.DV_FILE).exists()  # W100: written only when asked; the hazard classes hold it
     assert (folder / "map_layers.gpkg").exists()
     assert (run / "maps" / "hazard.tif").exists()  # the cell hazard stays
 
@@ -95,7 +96,7 @@ def test_the_polygons_and_the_depth_drawing_are_not_made_unless_asked(finished, 
     assert (asked / "depth_drawing.tif").exists()
     assert "hazard_classes" in _layers(drawn[1])
     assert "smooth" in json.loads((asked / step.STATS_FILE).read_text("utf-8"))
-    for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE, step.DV_FILE):  # the record does not depend on it
+    for name in (step.DEPTH_FILE, step.HAZARD_FILE, step.SPEED_FILE):  # the record does not depend on it
         with rasterio.open(plain / name) as a, rasterio.open(asked / name) as b:
             assert np.array_equal(a.read(1), b.read(1))
 
@@ -167,14 +168,21 @@ def test_the_done_event_comes_last_and_says_what_became_of_them(finished) -> Non
 
 
 def test_pixels_are_wet_only_in_the_wadi(finished) -> None:
+    """The wadi is wet over its width; on the flat bank tops the rain's own sheet (4.9 cm a cell at its peak in the
+    run) shows only where the ground dips under it. W100 changed this on purpose: before, no cell under 5 cm of mean
+    depth was mapped, so every wet pixel lay in the wadi; now no cell is cut and a pixel is wet by its own depth."""
     _cfg, run, _summary = finished
     with rasterio.open(run / PIXEL_DIR / step.HAZARD_FILE) as src:
         classes = src.read(1)
         t = src.transform
+    with rasterio.open(run / PIXEL_DIR / step.DEPTH_FILE) as src:
+        depth = src.read(1)
     assert classes.max() >= 1
-    wet = np.nonzero(classes)
-    y = t.f + (wet[0] + 0.5) * t.e
-    assert np.abs(y - (Y0 - 160.0)).max() < 45.0  # 30 m to the bank toe, and the first metres of its rise
+    y = t.f + (np.arange(classes.shape[0]) + 0.5) * t.e
+    off = np.abs(y - (Y0 - 160.0)) >= 45.0  # 30 m to the bank toe, and the first metres of its rise
+    assert (classes[~off] > 0).mean() > 0.5
+    assert (classes[off] > 0).mean() < 0.05
+    assert depth[off][classes[off] > 0].max(initial=0.0) < 0.15
 
 
 def test_cpu_and_gpu_give_the_same_answer(finished, tmp_path) -> None:
@@ -191,7 +199,8 @@ def test_cpu_and_gpu_give_the_same_answer(finished, tmp_path) -> None:
     cpu_dir.mkdir()
     (cpu_dir / "results.h5").write_bytes((run / "results.h5").read_bytes())
     make_products(cfg, tables, crs, cpu_dir, quiet, "cpu")
-    for name, tolerance in ((step.HAZARD_FILE, 0), (step.DEPTH_FILE, 1e-3), (step.SPEED_FILE, 1e-3)):
+    lossy = 2.0 * cfg.outputs.pixels.max_error_m  # each side within the compression's bound (W100)
+    for name, tolerance in ((step.HAZARD_FILE, 0), (step.DEPTH_FILE, 1e-3 + lossy), (step.SPEED_FILE, 1e-3 + lossy)):
         with rasterio.open(tmp_path / PIXEL_DIR / name) as a, rasterio.open(cpu_dir / PIXEL_DIR / name) as b:
             assert np.abs(a.read(1).astype(float) - b.read(1).astype(float)).max() <= tolerance
 
@@ -316,6 +325,23 @@ def test_the_command_line_refuses_a_folder_with_no_run(tmp_path) -> None:
     assert cli(["products", str(tmp_path)]) == runner.EXIT_INVALID
 
 
+def test_a_window_at_the_dem_pixel_from_the_command_line(finished, tmp_path) -> None:
+    """W100, ``wadi2d window``: a drawn window's rasters at the DEM's pixel, into a folder of its own; the run's own
+    pixel maps untouched."""
+    _cfg, run, _summary = finished
+    before = {p.name: p.stat().st_mtime for p in (run / PIXEL_DIR).glob("*.tif")}
+    box = [str(v) for v in (X0 + 100.0, Y0 - 250.0, X0 + 400.0, Y0 - 80.0)]
+    out = tmp_path / "w"
+    assert cli(["window", str(run), *box, "--pixel", "5", "--out", str(out), "--backend", "cpu"]) == 0
+    with rasterio.open(out / step.DEPTH_FILE) as src:
+        assert src.transform.a == 5.0 and src.width <= 60 and src.height <= 34
+        assert (src.read(1) != step.NO_DEPTH).any()
+    assert json.loads((out / step.STATS_FILE).read_text("utf-8"))["window"] == [float(v) for v in box]
+    assert {p.name: p.stat().st_mtime for p in (run / PIXEL_DIR).glob("*.tif")} == before
+    wrong = [box[2], box[1], box[0], box[3]]  # east before west
+    assert cli(["window", str(run), *wrong, "--out", str(tmp_path / "x")]) == runner.EXIT_INVALID
+
+
 def test_peak_depth_does_not_wait_for_a_saved_map(tmp_path) -> None:
     """Maps every 2300 s miss the peak of a short storm; the run's own peak still reaches the pixels."""
     summary = run_job(wadi_job(tmp_path, map_every_s=2300.0), tmp_path / "coarse")
@@ -330,7 +356,7 @@ def test_peak_depth_does_not_wait_for_a_saved_map(tmp_path) -> None:
 
 
 def test_the_run_s_peak_lifts_depth_times_speed_to_what_the_cell_saw(tmp_path) -> None:
-    summary = run_job(wadi_job(tmp_path, map_every_s=2300.0), tmp_path / "coarse")
+    summary = run_job(wadi_job(tmp_path, map_every_s=2300.0, pixels={"dv_raster": True}), tmp_path / "coarse")
     assert summary.exit_code == 0
     with h5py.File(tmp_path / "coarse" / "results.h5", "r") as f:
         run_peak = float(f["maxima"]["hazard"][:].max())

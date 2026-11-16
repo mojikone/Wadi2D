@@ -46,8 +46,13 @@ a map's work arrays."""
 
 
 def rings(rule: PixelRule) -> int:
-    """Rings of cells, through shared nodes, whose pixels are filled so a block's own pixels read true offsets."""
-    return rule.edge_passes + RINGS_MORE
+    """Rings of cells, through shared nodes, whose pixels are filled so a block's own pixels read true offsets. The
+    continuous surface (W100) reads its neighbours' offsets once; the corners alone read none."""
+    from wadi2d.products.pixels import CELL_FILL, CONTINUOUS
+
+    if rule.surface == CELL_FILL:
+        return rule.edge_passes + RINGS_MORE
+    return RINGS_MORE + (1 if rule.surface == CONTINUOUS else 0)
 
 
 @dataclass
@@ -366,6 +371,98 @@ class BlockStripMaxima(StripMaxima):
         mean = total[label] / xp.maximum(count[label], 1.0)
         return xp.where(count[label] > 0.0, mean, own)
 
+    def _node_weighted(self, label, value, weight):
+        """:meth:`_node_means` with weights of any size (W100): the parent divides by at least one."""
+        xp = self.xp
+        if self._ordered[0] is not label:
+            self._ordered = (label, self.kernels.label_order(label))
+        own = value[self.inc_cell]
+        w = weight[self.inc_cell].astype(xp.float32)
+        total, count = self.kernels.label_sums(label, self._ordered[1], own, w)
+        some = count[label] > 0.0
+        return xp.where(some, total[label] / xp.where(some, count[label], 1.0), own)
+
+    join = None
+    """The block's join faces with the squares (W100): set by :meth:`meet`, None for none."""
+    join_map = None
+    """The squares' surface at their join corners in the map being worked, (10, squares) as the squares kept it."""
+
+    def meet(self, cell, inc_u, inc_v, ground, square, corner_u, corner_v) -> None:
+        """The block's join faces: its cell, the incidences of that cell at the face's two nodes, the face's ground,
+        the square across it (a place in the squares' record) and the corner of that square each node is."""
+        a = self.xp.asarray
+        self.join = (a(cell), a(inc_u), a(inc_v), a(ground), a(square), a(corner_u), a(corner_v))
+
+    def _meet_squares(self, label, total, node_speed, level, d):
+        """At a node of a join face whose two sides the squares' rule joins (W100), the squares' own surface and
+        speed there, for every cell sharing that node with the strip cell; so the strip and the squares meet in one
+        value. Also which cells water from the squares spills into."""
+        if self.join is None or self.join_map is None:
+            return total, node_speed, None
+        from wadi2d.strips.pixels import _scatter_min
+
+        xp, rule = self.xp, self.rule
+        cell, inc_u, inc_v, ground, square, corner_u, corner_v = self.join
+        rec = xp.asarray(self.join_map)
+        face = ground + rule.link_margin
+        mine, theirs, my_level, their_level = d[cell], rec[9][square], level[cell], rec[8][square]
+        wet_a, wet_b = mine > 0.0, theirs > 0.0
+        over = (wet_a & (my_level > face)) | (wet_b & (their_level > face))
+        submerged = wet_a & wet_b & (xp.minimum(my_level, their_level) > face)
+        alike = xp.minimum(mine, theirs) >= rule.link_ratio * xp.maximum(mine, theirs)
+        passes = over & (submerged | alike | ~wet_a | ~wet_b)  # the squares' face_joins
+        if not bool(passes.any()):
+            return total, node_speed, None
+        incs = xp.concatenate((inc_u[passes], inc_v[passes]))
+        sq = xp.concatenate((square[passes], square[passes]))
+        corner = xp.concatenate((corner_u[passes], corner_v[passes])).astype(xp.int64)
+        lab = label[incs]
+        out = []
+        for values, base in ((rec[corner, sq], total), (rec[4 + corner, sq], node_speed)):
+            held = xp.full(self.ninc, xp.inf, xp.float32)
+            _scatter_min(xp, held, lab, -values)  # the highest where two squares meet one node: the same each run
+            taken = held[label]
+            out.append(xp.where(xp.isfinite(taken), -taken, base))
+        met = xp.zeros(self.n, bool)
+        met[cell[passes]] = True
+        return out[0], out[1], met
+
+    def _hold_water(self, over_ground, wet, h, d) -> None:
+        """The squares' :meth:`wadi2d.products.pixels.PixelMaxima._hold_water` on polygons: a wet cell whose surface
+        spans a hollow it holds no water for is lowered, in place, until it holds its own (W100)."""
+        from wadi2d.products.pixels import VOLUME_EPS
+        from wadi2d.strips.pixels import _scatter_min
+
+        xp, rule = self.xp, self.rule
+        pixels = xp.maximum(self.npix_cell, 1.0)
+        drawn = self.kernels.cell_sums(self.ptr, xp.maximum(over_ground, 0.0)) / pixels
+        lowest = xp.full(self.n, xp.inf, xp.float32)
+        _scatter_min(xp, lowest, self.cell, -over_ground)  # the deepest each cell draws, negated
+        hollow = -lowest > d + rule.volume_slack_m
+        over = wet & hollow & (drawn > h + xp.maximum(rule.volume_slack * h, rule.volume_slack_m) + VOLUME_EPS)
+        if not bool(over.any()):
+            return
+        relief = -over_ground  # the ground over the surface
+        offset = self._fill_offset(relief, h * self.npix_cell)
+        lowered = xp.maximum(offset[self.cell] - relief, 0.0)
+        mine = over[self.cell]
+        over_ground[mine] = lowered[mine]
+
+    def _node_sills(self, label, joined):
+        """Per incidence, the lowest ground of the faces round its node that water does not pass and that border the
+        cells sharing the node with it; infinite where there are none (W100, the squares' :func:`corner_sills`)."""
+        from wadi2d.strips.pixels import _scatter_min
+
+        xp = self.xp
+        apart = ~joined[self.pair_face]
+        ground = self.sill[self.pair_face[apart]]
+        lowest = xp.full(self.ninc, xp.inf, xp.float32)
+        _scatter_min(xp, lowest, self.pair_a[apart], ground)
+        _scatter_min(xp, lowest, self.pair_b[apart], ground)
+        shared = xp.full(self.ninc, xp.inf, xp.float32)
+        _scatter_min(xp, shared, label, lowest)
+        return shared[label]
+
     def _fill_offset(self, relief, water):
         """The offset per cell that holds the cell's water under a surface of this shape: the parent's Newton, a
         cell's pixels summed from first to last, and each cell stopping on its own step, so what a cell gets does
@@ -383,6 +480,87 @@ class BlockStripMaxima(StripMaxima):
         return offset
 
     def add(self, d, h, s, moment: bool = True) -> None:
+        """One map by the job's surface rule (W100)."""
+        from wadi2d.products.pixels import CELL_FILL
+
+        if self.rule.surface == CELL_FILL:
+            self._add_filled(d, h, s, moment)
+        else:
+            self._add_continuous(d, h, s, moment)
+
+    def _add_continuous(self, d, h, s, moment: bool) -> None:
+        """The squares' continuous surface on polygons (W100): cells share a node where the squares'
+        :func:`wadi2d.products.surface.face_joins` joins them across a face; a node takes their mean level and, on
+        ``continuous``, the mean of how far each of their surfaces must move to hold its water; a pixel's depth is the
+        Wachspress surface of its cell's nodes over its ground, with no refill afterwards. A dry cell that water spills
+        into takes pixels, so that water ends on its ground."""
+        from wadi2d.products.pixels import CONTINUOUS
+
+        xp, rule = self.xp, self.rule
+        d, h, s = (xp.asarray(np.asarray(a, np.float32)) for a in (d, h, s))
+        wet = d > 0.0
+        level = self.zmin + d
+        L, R = self.face_l, self.face_r
+        inner = self.n > R
+        Rs = xp.where(inner, R, 0)
+        face = self.sill + rule.link_margin
+        passes = (wet[L] & (level[L] > face)) | (wet[Rs] & (level[Rs] > face))
+        submerged = wet[L] & wet[Rs] & (xp.minimum(level[L], level[Rs]) > face)
+        alike = xp.minimum(d[L], d[Rs]) >= rule.link_ratio * xp.maximum(d[L], d[Rs])
+        joined = inner & passes & (submerged | alike | ~wet[L] | ~wet[Rs])
+        label = self._labels(joined)
+        s = s * (d > rule.depth_floor)
+        weight = wet.astype(xp.float32)  # a dry cell's level, its lowest ground, is no water surface
+        node_level = self._node_weighted(label, level, weight)
+        node_speed = self._node_means(label, s, s > 0.0)
+        total = node_level
+        if rule.surface == CONTINUOUS:
+            relief = self._at_pixels(node_level)  # the surface, then the ground over it
+            xp.subtract(self.ground, relief, out=relief)
+            offset = self._fill_offset(relief, h * self.npix_cell) * wet  # a dry cell holds nothing to move
+            del relief
+            moves = self._node_weighted(label, offset, weight)
+            room = xp.maximum(self._node_sills(label, joined) - node_level, 0.0)
+            total = node_level + xp.minimum(moves, room)
+        drawn = wet.copy()
+        drawn[L[joined]] = True
+        drawn[Rs[joined]] = True
+        total, node_speed, met = self._meet_squares(label, total, node_speed, level, d)
+        if met is not None:
+            drawn |= met
+        pixel_depth = self._at_pixels(total)
+        pixel_depth -= self.ground
+        self._hold_water(pixel_depth, wet, h, d)
+        xp.maximum(pixel_depth, 0.0, out=pixel_depth)
+        pixel_depth *= drawn[self.cell]
+        pixel_speed = self._at_pixels(node_speed)
+        pixel_speed *= pixel_depth >= rule.depth_floor
+        xp.maximum(self.depth, pixel_depth, out=self.depth)
+        xp.maximum(self.speed, pixel_speed, out=self.speed)
+        if moment:
+            pixel_depth *= pixel_speed
+            xp.maximum(self.dv, pixel_depth, out=self.dv)
+            self.cell_dv = xp.maximum(self.cell_dv, d * s)
+        self._ordered = (None, None)
+
+    def lift_dv(self, run_hazard) -> None:
+        """The parent's lift of depth x speed to each cell's own peak; on the continuous surfaces through the nodes,
+        each node the mean of its cells' lifts, so the classes do not step at a cell edge (W100)."""
+        from wadi2d.products.pixels import CELL_FILL
+        from wadi2d.strips.pixels import TINY
+
+        if self.rule.surface == CELL_FILL:
+            super().lift_dv(run_hazard)
+            return
+        xp = self.xp
+        run = xp.asarray(np.asarray(run_hazard, np.float32))
+        missed = xp.clip(run / xp.maximum(self.cell_dv, TINY), 1.0, self.rule.peak_lift)
+        label = self._labels(self.n > self.face_r)  # every inner face: all the cells round a node
+        node = self._node_means(label, missed, xp.ones(self.n, bool))
+        self.dv = self.dv * self._at_pixels(node)
+        self._ordered = (None, None)
+
+    def _add_filled(self, d, h, s, moment: bool = True) -> None:
         """The parent's map, operation for operation, with the pixels' arrays worked in place: a pixel then takes
         half the device memory, and a block holds twice the pixels."""
         xp, rule = self.xp, self.rule

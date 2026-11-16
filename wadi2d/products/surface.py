@@ -99,6 +99,39 @@ def face_links(near, level, depth, wet, sill, axis: int, margin: float, ratio: f
     return wet & other_wet & (submerged | (reaches & alike))
 
 
+def face_joins(near, level, depth, wet, sill, axis: int, margin: float, ratio: float):
+    """Whether the cells either side of the west (axis 1) or north (axis 0) face of each cell share their corners
+    on the continuous surface (W100): water passes the face, a wet cell's level standing above its ground (crest lines
+    and walls included, so the surface is never carried over high ground), and the two are one body of water there.
+
+    One body: both levels stand above the face (a pool, a submerged bank); or the water steps down the face between
+    depths alike (``ratio``), one flow down a slope steeper than the cells; or it spills into a dry cell, which then
+    takes the water to where its ground rises through it. A step from water of another depth is a brink, a film
+    over a bank into a channel or a pool over a crest, and both keep their own surface there: tried with the two
+    joined and the levels weighted by depth (RAS Mapper's depth-weighted faces), the film's cell took the channel's
+    level at its brink, plunged, and its fill lifted its other neighbour's surface by 17 cm on a flat bank top.
+    :func:`face_links` is W9's test, without the dry cell."""
+    xp = near.xp
+    dj, di = (0, -1) if axis == 1 else (-1, 0)
+    face = sill + margin
+    other_level, other_depth, other_wet = near.at(level, dj, di), near.at(depth, dj, di), near.at(wet, dj, di)
+    passes = (wet & (level > face)) | (other_wet & (other_level > face))
+    submerged = wet & other_wet & (xp.minimum(level, other_level) > face)
+    alike = xp.minimum(depth, other_depth) >= ratio * xp.maximum(depth, other_depth)
+    return passes & (submerged | alike | ~wet | ~other_wet)
+
+
+def touched(near, groups):
+    """Cells that share a corner with another: a dry one among them takes pixels, so water spilling into it ends on
+    its ground and not at the cell edge."""
+    xp = near.xp
+    out = None
+    for side_x, side_y, diagonal in groups:
+        some = side_x | side_y | diagonal
+        out = some if out is None else (out | some)
+    return out if out is not None else xp.zeros(0, bool)
+
+
 def corner_groups(near, lx, ly) -> list[tuple]:
     """For each corner, the masks of the neighbour across x, across y and on the diagonal that share the water."""
     groups = []
@@ -109,6 +142,50 @@ def corner_groups(near, lx, ly) -> list[tuple]:
         x_of_y = near.at(lx, sy, 0 if sx < 0 else 1)
         groups.append((side_x, side_y, (side_x & y_of_x) | (side_y & x_of_y)))
     return groups
+
+
+def corner_components(near, lx, ly) -> list[tuple]:
+    """:func:`corner_groups` with every path round the corner (W100): the four cells there are four faces in a ring,
+    and a neighbour beside the cell also shares the water when it is reached the long way round, through the other two.
+    Without that, two joined cells read different values at a corner they share a quarter of the time on random
+    ground, and the surface steps along their edge."""
+    groups = []
+    for sy, sx in CORNERS:
+        a = lx if sx < 0 else near.at(lx, 0, 1)  # the cell and its neighbour across x
+        b = ly if sy < 0 else near.at(ly, 1, 0)  # the cell and its neighbour across y
+        c = near.at(ly, 0 if sy < 0 else 1, sx)  # the neighbour across x and the diagonal
+        e = near.at(lx, sy, 0 if sx < 0 else 1)  # the neighbour across y and the diagonal
+        groups.append((a | (b & e & c), b | (a & c & e), (a & c) | (b & e)))
+    return groups
+
+
+def corner_sills(near, lx, ly, sill_x, sill_y) -> list:
+    """For each corner, the lowest ground of the four faces that meet there and that water does not pass; infinite
+    where it passes all four (W100). The same number for every cell round the corner."""
+    xp = near.xp
+    out = []
+    for sy, sx in CORNERS:
+        a = (lx, sill_x) if sx < 0 else (near.at(lx, 0, 1), near.at(sill_x, 0, 1))
+        b = (ly, sill_y) if sy < 0 else (near.at(ly, 1, 0), near.at(sill_y, 1, 0))
+        c = (near.at(ly, 0 if sy < 0 else 1, sx), near.at(sill_y, 0 if sy < 0 else 1, sx))
+        e = (near.at(lx, sy, 0 if sx < 0 else 1), near.at(sill_x, sy, 0 if sx < 0 else 1))
+        lowest = None
+        for joined, ground in (a, b, c, e):
+            here = xp.where(joined, xp.inf, ground)
+            lowest = here if lowest is None else xp.minimum(lowest, here)
+        out.append(lowest)
+    return out
+
+
+def capped_moves(levels: list, moves: list, sills: list, xp) -> list:
+    """Each corner's level plus the move that holds its cells' water, the move kept from lifting the surface over
+    the lowest face round the corner that water does not pass (W100): a thin sheet spread over its cell stops short
+    of a face its cell's water never crosses, instead of meeting it in a straight line at the cell edge."""
+    out = []
+    for level, move, sill in zip(levels, moves, sills, strict=True):
+        room = xp.maximum(sill - level, 0.0)
+        out.append(level + xp.minimum(move, room))
+    return out
 
 
 def around_links(groups) -> dict:
@@ -141,6 +218,22 @@ def corner_means(near, value, weight, groups) -> list:
             + near.at(w, sy, sx) * diagonal
         )
         out.append(xp.where(count > 0, total / xp.maximum(count, 1.0), value))
+    return out
+
+
+def weighted_corner_means(near, value, weight, groups) -> list:
+    """:func:`corner_means` with weights of any size (W100): there the count of cells is at least one wherever it is
+    not zero, here a weight of a few centimetres squared is divided by itself."""
+    xp = near.xp
+    w = weight.astype(xp.float32)
+    held = value * w
+    out = []
+    for (sy, sx), (side_x, side_y, diagonal) in zip(CORNERS, groups, strict=True):
+        across, along, corner = (near.at(held, 0, sx), near.at(held, sy, 0), near.at(held, sy, sx))
+        total = held + across * side_x + along * side_y + corner * diagonal
+        count = w + near.at(w, 0, sx) * side_x + near.at(w, sy, 0) * side_y + near.at(w, sy, sx) * diagonal
+        some = count > 0.0
+        out.append(xp.where(some, total / xp.where(some, count, 1.0), value))
     return out
 
 

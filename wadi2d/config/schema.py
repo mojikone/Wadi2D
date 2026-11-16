@@ -767,11 +767,47 @@ class Pixels(_Part):
     """
 
     enabled: bool = Field(True, description="Make the pixel maps when a run finishes")
-    pixel_m: float = Field(
-        0.0, ge=0.0, le=1000.0, description="Pixel of the maps, a multiple of the DEM pixel, m; 0 means the DEM's"
+    pixel_m: float | None = Field(
+        None,
+        ge=0.0,
+        le=1000.0,
+        description="Pixel of the maps of record, a multiple of the DEM pixel, m; 0 means the DEM's; empty takes "
+        "the coarsest pixel within auto_pixel_m that gives a cell auto_cell_pixels across (W100)",
+    )
+    auto_pixel_m: float = Field(
+        2.0, gt=0.0, le=1000.0, description="Coarsest pixel the maps of record take when pixel_m is empty, m"
+    )
+    auto_cell_pixels: int = Field(
+        8, ge=1, le=1000, description="Fewest pixels across a cell the maps of record take when pixel_m is empty"
+    )
+    surface: Literal["continuous", "corners", "cell_fill"] = Field(
+        "continuous",
+        description="How the water surface is drawn over the terrain pixels (W100): 'continuous' slopes through the "
+        "cell corners, each corner taking the levels of the cells joined there and the water each of them holds; "
+        "'corners' takes the levels alone, as RAS Mapper's sloping mode; 'cell_fill' fills every cell to its own "
+        "water and eases joined edges, the rule of the maps made before W100",
     )
     cell_depth: float = Field(
-        0.05, ge=0.0, le=10.0, description="A cell whose mean depth never reaches this is left out, m"
+        0.05,
+        ge=0.0,
+        le=10.0,
+        description="Under surface 'cell_fill' only: a cell whose mean depth never reaches this is left out, m; the "
+        "other surfaces map every cell that was ever wet",
+    )
+    volume_slack: float = Field(
+        0.25,
+        ge=0.0,
+        le=100.0,
+        description="On the continuous surfaces: a wet cell may draw this share more water than it holds, or "
+        "volume_slack_m of mean depth if more; past it, its surface is lowered until it holds its own, a step at its "
+        "edges (steep ground with little water, where a surface through the corners spans a gully)",
+    )
+    volume_slack_m: float = Field(
+        0.03,
+        ge=0.0,
+        le=10.0,
+        description="On the continuous surfaces: the mean depth, m, a wet cell may draw over its own whatever it "
+        "holds, so a thin sheet varying from cell to cell is not cut into steps",
     )
     depth_floor: float = Field(
         0.05, ge=0.0, le=10.0, description="Below this a pixel is dry and takes no class, m"
@@ -788,16 +824,22 @@ class Pixels(_Part):
         0.5,
         gt=0.0,
         le=1.0,
-        description="Two cells stepping down a slope are one flow if the shallower is this share of the deeper",
+        description="Two cells stepping down a slope are one flow if the shallower is this share of the deeper; on "
+        "the continuous surfaces, below it the deeper governs the corner they share (depth-weighted)",
     )
     edge_band: float = Field(
         0.3,
         gt=0.0,
         le=0.5,
-        description="Width beside a cell edge over which two joined cells ease into one surface, share of a cell",
+        description="Under surface 'cell_fill': width beside a cell edge over which two joined cells ease into one "
+        "surface, share of a cell",
     )
     edge_passes: int = Field(
-        3, ge=0, le=12, description="Refills that remove the step at joined cell edges; 0 leaves each cell a block"
+        3,
+        ge=0,
+        le=12,
+        description="Under surface 'cell_fill': refills that remove the step at joined cell edges; 0 leaves each cell "
+        "a block",
     )
     peak_lift: float = Field(
         3.0,
@@ -807,6 +849,20 @@ class Pixels(_Part):
     )
     batch_pixels: int = Field(
         50_000_000, ge=1_000_000, le=2_000_000_000, description="Pixels handled at a time on the GPU"
+    )
+    dv_raster: bool = Field(
+        False,
+        description="Also write the depth x speed raster; the hazard classes are made from it either way (W100)",
+    )
+    max_error_m: float = Field(
+        0.001,
+        ge=0.0,
+        le=1.0,
+        description="Largest error the compression of the depth and speed rasters may make, m or m/s; 0 keeps every "
+        "digit (W100)",
+    )
+    overviews: bool = Field(
+        True, description="Build reduced copies inside each raster, so a map far out reads few pixels (W100)"
     )
 
     @model_validator(mode="after")

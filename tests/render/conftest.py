@@ -18,7 +18,7 @@ from wadi2d.products import step
 from wadi2d.products.frames import frame_names
 from wadi2d.products.ground import face_sills, read_cells
 from wadi2d.products.hazard import classify
-from wadi2d.products.pixels import PixelMaxima
+from wadi2d.products.pixels import PixelMaxima, kept_cells
 from wadi2d.products.step import PIXEL_DIR, Watch, make_products, pixel_box, spread
 from wadi2d.run import prepare_grid, run_job
 
@@ -48,7 +48,8 @@ def wadi_job(folder: Path, **outputs) -> RunConfig:
         storm={"kind": "uniform", "depth_mm": 150.0, "duration_min": 30.0},
         boundaries=[{"kind": "free", "coordinates": [(X0 + NX * CELL - 10.0, Y0), (X0 + NX * CELL - 10.0, Y0 - NY * CELL)]}],
         run={"duration_s": 2400.0, "backend": "cpu", "source_every_s": 30.0},
-        outputs={"map_every_s": MAP_EVERY_S, "smooth": {"enabled": False}, **outputs},
+        # the record compared with the drawing to 2e-4 m: every digit kept, not the bounded error of the default (W100)
+        outputs={"map_every_s": MAP_EVERY_S, "smooth": {"enabled": False}, "pixels": {"max_error_m": 0.0}, **outputs},
     )
 
 
@@ -97,7 +98,7 @@ def whole_domain(found: Finished, frame: int, xp=np) -> Yardstick:
     rule = cfg.outputs.pixels
     results = found.run / "results.h5"
     with h5py.File(results, "r") as f:
-        keep = f["maxima"]["mean_depth"][:] > rule.cell_depth
+        keep = kept_cells(f["maxima"]["mean_depth"][:], rule)  # the cells the rule keeps (W100: every one ever wet)
         group = f["maps"][frame_names(results)[frame]]
         fields = [group[name][:] for name in ("depth", "mean_depth", "speed")]
     cells = read_cells(cfg, tables, keep)

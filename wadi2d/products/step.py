@@ -22,7 +22,7 @@ from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import RunConfig
 from wadi2d.demstore import cache_folder
 from wadi2d.io.geopackage import write_geopackage
-from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, raster_profile
+from wadi2d.io.geotiff import BLOCK, THREADS, BandWriter, float_record, raster_profile
 from wadi2d.products.blocks import (
     BAND_GROUND_BYTES,
     HOST_RESULT_BYTES,
@@ -43,7 +43,7 @@ from wadi2d.products.frames import frame_names, read_frames, run_maxima, strip_r
 from wadi2d.products.ground import CellPixels, CellReader, face_sills
 from wadi2d.products.hazard import DRY, class_names, classify
 from wadi2d.products.mesh import MeshMaxima, MeshResult, classes_of, mesh_sills, read_parts, write_mesh_pixels
-from wadi2d.products.pixels import BYTES, PixelMaxima, array_module, halo
+from wadi2d.products.pixels import BYTES, CELL_FILL, PixelMaxima, array_module, halo, kept_cells
 from wadi2d.tables import GridTables
 
 PIXEL_DIR = "pixels"
@@ -233,6 +233,44 @@ class Lattice:
     done: int = 0
     shown: int = -1
     """The count of maps last reported: many blocks would say the same one many times."""
+    join: object = None
+    """The :class:`wadi2d.products.strip_join.StripJoin` of a strip on the continuous surface (W100), or None."""
+    join_stack: Stack | None = None
+    """The saved maps of the strip cells the squares take as neighbours across the join."""
+    strip_zmin: np.ndarray | None = None
+    """The strip's cells' lowest ground over the datum."""
+    join_record: tuple | None = None
+    """The squares' surface at their join corners, map by map, from the last block's squares: (rows, columns, maps)."""
+
+    def _join_ghosts(self, win_r, win_c, keep, zmin, sill_x, sill_y):
+        """The replaced squares of a window as neighbours of its squares (W100), with the window's ground and face
+        grounds made for them; None and the arrays as given when the window has none."""
+        join = self.join
+        if join is None:
+            return None, zmin, sill_x, sill_y
+        rows, cols, cells = join.ghosts_in(win_r, win_c, keep)
+        if rows.size == 0:
+            return None, zmin, sill_x, sill_y
+        lr, lc = rows - win_r[0], cols - win_c[0]
+        zmin, sill_x, sill_y = zmin.copy(), sill_x.copy(), sill_y.copy()
+        zmin[lr, lc] = self.strip_zmin[cells]
+        ghost = np.zeros(keep.shape, bool)
+        ghost[lr, lc] = True
+        ny, nx = keep.shape
+        sill = join.sill[win_r[0] : win_r[1], win_c[0] : win_c[1]]
+        # a face between a square and a replaced one: the square's own lowest join ground; between two replaced
+        # ones, the higher of their lowest grounds, so the strip's water reads as one body
+        for dj, di, faces, at in ((0, -1, sill_x, (0, 0)), (0, 1, sill_x, (0, 1)), (-1, 0, sill_y, (0, 0)), (1, 0, sill_y, (1, 0))):
+            nr, nc = lr + dj, lc + di
+            ok = (nr >= 0) & (nr < ny) & (nc >= 0) & (nc < nx)
+            fr, fc = lr[ok] + at[0], lc[ok] + at[1]  # the face's own cell: west faces are a cell's, north ones too
+            fine = (fr < ny) & (fc < nx)
+            nr, nc, fr, fc, me = nr[ok][fine], nc[ok][fine], fr[fine], fc[fine], np.flatnonzero(ok)[fine]
+            square = keep[nr, nc]
+            faces[fr[square], fc[square]] = sill[nr[square], nc[square]]
+            other = ghost[nr, nc]
+            faces[fr[other], fc[other]] = np.maximum(zmin[nr[other], nc[other]], zmin[lr[me][other], lc[me][other]])
+        return (lr, lc, cells), zmin, sill_x, sill_y
 
     def rect(self, block: Block) -> tuple[int, int, int, int]:
         """Pixel rows ``[p0, p1)`` and columns ``[q0, q1)`` of a block, on the grid's pixel frame."""
@@ -242,10 +280,18 @@ class Lattice:
             left + block.col0 * WINDOW, left + min(block.col1 * WINDOW, width),
         )  # fmt: skip
 
+    strip_reach: int = 0
+    """Cells past a block's own that the strip cells it works reach (W100): their join squares are worked that much
+    further out, so the surface the strip takes from them is the whole run's."""
+
+    def reach(self) -> int:
+        """Cells a block's squares are worked with round its own: the halo, and the strip's reach on a join."""
+        return halo(self.rule) + self.strip_reach
+
     def cell_rows(self, row0: int, row1: int) -> tuple[int, int]:
         """The run of kept cells that windows' rows ``[row0, row1)`` read: their own and the halo's."""
         top, _left, height, _width = self.box
-        k, reach = self.reader.k, halo(self.rule)
+        k, reach = self.reader.k, self.reach()
         first = (top + row0 * WINDOW) // k - reach
         last = -(-(top + min(row1 * WINDOW, height)) // k) + reach
         a, b = np.searchsorted(self.reader.rows, [first, last])
@@ -267,9 +313,10 @@ class Lattice:
         ``ground`` holds the kept cells from ``a`` on. The cells are worked with a halo round them, as a view of the
         time slider is, so their pixels are those of the whole domain."""
         xp, rule, reader = self.xp, self.rule, self.reader
+        self.join_record = None
         if stack is None:
             return None
-        k, reach = reader.k, halo(rule)
+        k, reach = reader.k, self.reach()
         p0, p1, q0, q1 = self.rect(block)
         own_r, own_c = (p0 // k, -(-p1 // k)), (q0 // k, -(-q1 // k))
         win_r = (max(own_r[0] - reach, 0), min(own_r[1] + reach, self.shape[0]))
@@ -279,28 +326,86 @@ class Lattice:
         pick = np.flatnonzero((r >= win_r[0]) & (r < win_r[1]) & (c >= win_c[0]) & (c < win_c[1]))
         r, c = r[pick], c[pick]
         own = (r >= own_r[0]) & (r < own_r[1]) & (c >= own_c[0]) & (c < own_c[1])
-        if not own.any():
-            return None
+        if r.size == 0 or (not own.any() and self.join is None):
+            return None  # with a join, a block of strip cells alone still needs the squares' surface beside it
         keep = np.zeros((win_r[1] - win_r[0], win_c[1] - win_c[0]), bool)
         keep[r - win_r[0], c - win_c[0]] = True
         cells = CellPixels(r - win_r[0], c - win_c[0], k, reader.pixel, reader.datum, ground[pick])
         window = (slice(*win_r), slice(*win_c))
-        maxima = PixelMaxima(xp, cells, self.zmin[window], self.sills[0][window], self.sills[1][window], keep, rule)
+        ghosts, zmin, sill_x, sill_y = self._join_ghosts(
+            win_r, win_c, keep, self.zmin[window], self.sills[0][window], self.sills[1][window]
+        )
+        order = None if ghosts is None else (ghosts[0], ghosts[1])
+        shaped = keep.copy()
+        if ghosts is not None:
+            shaped[ghosts[0], ghosts[1]] = True
+        maxima = PixelMaxima(xp, cells, zmin, sill_x, sill_y, shaped, rule, ghosts=order)
         maxima.tidy = False
         if maxima.resident:  # its ground is on the card: the host's copy goes while the maps run (W93)
             cells.ground = None
         listed = a + pick
         at = stack.at(listed)
+        extra, unknown, watched = None, None, None
+        if ghosts is not None:  # the strip's water beside the squares, and the squares the strip will read
+            extra = self.join_stack.at(ghosts[2])
+            unknown = np.concatenate((np.zeros(r.size, np.float32), np.full(ghosts[2].size, np.nan, np.float32)))
+            near = self.strip_reach  # the squares a block's strip cells can open onto, each worked with its own halo
+            close = (r >= own_r[0] - near) & (r < own_r[1] + near) & (c >= own_c[0] - near) & (c < own_c[1] + near)
+            watched = np.flatnonzero(np.isfinite(self.join.sill[r, c]) & close)
+            maxima.watch(watched)
+
+        def with_ghosts(values, more):
+            return values if more is None else tuple(np.concatenate((v, m)) for v, m in zip(values, more, strict=True))
+
         for index in range(stack.maps):
             self.tick(index, share)
-            maxima.add_listed(*stack.of(index, at))
+            more = None if extra is None else self.join_stack.of(index, extra)
+            maxima.add_listed(*with_ghosts(stack.of(index, at), more), offsets=unknown)
         depth, mean_depth, speed, hazard = (v[listed] for v in self.peak)
-        maxima.add_listed(depth, mean_depth, speed, moment=False)
-        maxima.lift_listed(hazard)
+        more = None
+        if extra is not None:
+            more = tuple(self.strip_peak[name][ghosts[2]] for name in ("depth", "mean_depth", "speed"))
+        maxima.add_listed(*with_ghosts((depth, mean_depth, speed), more), moment=False, offsets=unknown)
+        maxima.lift_listed(hazard if extra is None else np.concatenate((hazard, self.strip_peak["hazard"][ghosts[2]])))
         found = maxima.result()
+        self.join_record = None
+        if watched is not None and watched.size:
+            self.join_record = (r[watched], c[watched], np.stack(maxima.record))
         del maxima
         _free_device(xp)
+        if not own.any():
+            return None
         return (r[own], c[own], *(v[own] for v in found))
+
+    def _meet(self, maxima, part):
+        """Hand the block's strip its join faces with the squares the last squares' block kept the surface of
+        (W100); the squares' record, (maps + 1, 10, squares), or None."""
+        join, held = self.join, self.join_record
+        if join is None or held is None:
+            return None
+        rows, cols, record = held
+        local = np.searchsorted(part.ids, join.face_cell)
+        local = np.minimum(local, part.ids.size - 1)
+        mine = part.ids[local] == join.face_cell
+        width = self.shape[1]
+        keys = rows.astype(np.int64) * width + cols
+        order = np.argsort(keys)
+        found = np.searchsorted(keys[order], join.face_row * width + join.face_col)
+        found = np.minimum(found, keys.size - 1)
+        known = keys[order][found] == join.face_row * width + join.face_col
+        take = np.flatnonzero(mine & known)
+        if take.size == 0:
+            return None
+        cell = local[take]
+        square = order[found[take]]
+        nodes = self.strips.cell_node[part.ids[cell]]  # each slot's node, as the block's incidences stand
+        incs = []
+        for k in range(2):
+            slot = np.argmax(nodes == join.face_node[take, k][:, None], axis=1)
+            incs.append(part.cell_inc[cell, slot])
+        corner = join.face_corner[take]
+        maxima.meet(cell, incs[0], incs[1], join.face_ground[take], square, corner[:, 0], corner[:, 1])
+        return record
 
     def strip(self, block: Block, part, stack: Stack | None, share):
         """The strip's pixels in the block with their classes and maxima, or None. ``part`` is the block's
@@ -312,13 +417,16 @@ class Lattice:
             return None
         xp, rule = self.xp, self.rule
         maxima = BlockStripMaxima(xp, part, rule)
+        record = self._meet(maxima, part)
         if xp is not np:  # on the card now: the host's copies of its pixels' ground and weights can go (W93)
             part.ground = part.weights = part.cell = None
         at = stack.at(part.ids)
         for index in range(stack.maps):
             self.tick(index * (self.maps + 1) // max(stack.maps, 1), share)
+            maxima.join_map = None if record is None else record[index]
             maxima.add(*stack.of(index, at))
         peak = self.strip_peak
+        maxima.join_map = None if record is None else record[stack.maps]
         maxima.add(peak["depth"][part.ids], peak["mean_depth"][part.ids], peak["speed"][part.ids], moment=False)
         maxima.lift_dv(peak["hazard"][part.ids])
         depth, speed, dv = maxima.result()
@@ -396,7 +504,11 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
 
     with ThreadPoolExecutor(1 + len(bands)) as pool:
         counted = pool.submit(classes_raster)
-        written = [pool.submit(measure_raster, band, *pair) for band, pair in zip(bands, measures, strict=True)]
+        written = [
+            pool.submit(measure_raster, band, *pair)
+            for band, pair in zip(bands, measures, strict=True)
+            if band is not None  # depth x speed is written only when asked for (W100)
+        ]
         for done in written:
             done.result()
         tally.counts += counted.result()
@@ -408,24 +520,119 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
         tally.strip_depth = max(tally.strip_depth, float(strip.depth.max(initial=0.0)))
 
 
+MEASURE_FILES = (DEPTH_FILE, SPEED_FILE, DV_FILE)
+OVERVIEW_MEASURES, OVERVIEW_CLASSES = "average", "mode"
+"""How the reduced copies of the rasters of record are made (W100): depth and speed averaged over their wet pixels,
+the class the most of them hold."""
+
+
+def class_overviews(rule) -> str | None:
+    return OVERVIEW_CLASSES if rule.overviews else None
+
+
+def record_writers(stack: ExitStack, folder: Path, profile: dict, rule, tags) -> list:
+    """The writers of depth, speed and depth x speed, None for depth x speed unless ``dv_raster`` asks for it (W100:
+    the hazard classes hold it); float rasters within ``max_error_m``, with reduced copies unless ``overviews`` is off."""
+    floats = float_record(profile, rule.max_error_m)
+    resample = OVERVIEW_MEASURES if rule.overviews else None
+    writers = []
+    for name in MEASURE_FILES:
+        if name == DV_FILE and not rule.dv_raster:
+            (folder / name).unlink(missing_ok=True)  # a remake leaves no stale one behind
+            writers.append(None)
+            continue
+        writers.append(stack.enter_context(BandWriter(folder / name, floats, np.float32, NO_DEPTH, tags, resample)))
+    return writers
+
+
+def _join_lattice(lattice: Lattice, tables: GridTables, keep: np.ndarray, results: Path, names: list[str]) -> None:
+    """The strip's join with the squares on the continuous surface (W100): the replaced squares beside a kept square
+    and the saved maps of their strip cells, read once."""
+    from wadi2d.products.strip_join import strip_join
+
+    datum = lattice.reader.datum
+    join = strip_join(tables, datum)
+    if join is None or join.rows.size == 0:
+        return
+    near = np.zeros(join.rows.size, bool)
+    ny, nx = keep.shape
+    for dj in (-1, 0, 1):
+        for di in (-1, 0, 1):
+            r, c = join.rows + dj, join.cols + di
+            ok = (r >= 0) & (r < ny) & (c >= 0) & (c < nx)
+            near[ok] |= keep[r[ok], c[ok]]
+    join.rows, join.cols, join.cells = join.rows[near], join.cols[near], join.cells[near]
+    lattice.join = join
+    # how far past a block the strip cells it works can open onto a square: its rings of the widest strip cells
+    from wadi2d.products.strip_pixels import rings
+
+    strips = lattice.strips
+    r0, r1, c0, c1 = strips.box
+    widest = float(max(int((r1 - r0).max(initial=0)), int((c1 - c0).max(initial=0))) + 1) * strips.pixel
+    lattice.strip_reach = int(np.ceil((rings(lattice.rule) + 1) * widest / tables.grid.dx)) + 1
+    lattice.strip_zmin = (np.asarray(tables.strip.mesh.zmin[: tables.strip.mesh.real]) - datum).astype(np.float32)
+    lattice.join_stack = read_strip_stack(results, names, np.unique(join.cells))
+
+
+def window_cells(shape: tuple[int, int], x0: float, y0: float, dx: float, window, margin: int) -> np.ndarray:
+    """The lattice cells of ``shape`` that reach ``window`` (xmin, ymin, xmax, ymax, m), and ``margin`` cells more
+    round them: what a window of the maps reads (W100)."""
+    xmin, ymin, xmax, ymax = window
+    r0 = max(int(np.floor((y0 - ymax) / dx)) - margin, 0)
+    r1 = min(int(np.ceil((y0 - ymin) / dx)) + margin, shape[0])
+    c0 = max(int(np.floor((xmin - x0) / dx)) - margin, 0)
+    c1 = min(int(np.ceil((xmax - x0) / dx)) + margin, shape[1])
+    inside = np.zeros(shape, bool)
+    if r1 > r0 and c1 > c0:
+        inside[r0:r1, c0:c1] = True
+    return inside
+
+
+def window_box(box: tuple[int, int, int, int], x0: float, y0: float, pixel: float, window) -> tuple[int, int, int, int] | None:
+    """``box`` (top, left, height, width) in pixels from the grid origin, cut to ``window``; None when they miss."""
+    xmin, ymin, xmax, ymax = window
+    top = max(box[0], int(np.floor((y0 - ymax) / pixel + 1e-9)))
+    left = max(box[1], int(np.floor((xmin - x0) / pixel + 1e-9)))
+    bottom = min(box[0] + box[2], int(np.ceil((y0 - ymin) / pixel - 1e-9)))
+    right = min(box[1] + box[3], int(np.ceil((xmax - x0) / pixel - 1e-9)))
+    if bottom <= top or right <= left:
+        return None
+    return top, left, bottom - top, right - left
+
+
 def lattice_pixels(
-    cfg: RunConfig, tables: GridTables, crs, out: Path, folder: Path, tags, watch: Watch, xp, squeeze: float = 1.0
+    cfg: RunConfig,
+    tables: GridTables,
+    crs,
+    out: Path,
+    folder: Path,
+    tags,
+    watch: Watch,
+    xp,
+    squeeze: float = 1.0,
+    window: tuple[float, float, float, float] | None = None,
 ) -> dict | None:
     """The rasters of record of a run on the lattice, its strip's pixels over the cells the strip replaced, made a
     block at a time (W86): every saved map, then the run's own peaks, which do not depend on how often maps were
     saved. Returns the statistics and the rasters' profile, or None when nothing was wet enough to map.
-    ``squeeze`` is the share of the device's room the blocks are cut to, under 1 after a try that did not fit."""
+    ``squeeze`` is the share of the device's room the blocks are cut to, under 1 after a try that did not fit.
+    ``window`` (xmin, ymin, xmax, ymax) makes the rasters of that window alone, each pixel what the whole run's
+    rasters at that pixel size hold there (W100): the cells round it it reads, and the whole run's datum."""
     from wadi2d.products.strip_pixels import StripReader
 
     rule = cfg.outputs.pixels
     results = out / "results.h5"
     peak = run_maxima(results)
-    keep = peak["mean_depth"] > rule.cell_depth
+    keep = kept_cells(peak["mean_depth"], rule)
+    datum = float(tables.zmin[keep].min()) if keep.any() else 0.0
+    if window is not None:
+        grid = tables.grid
+        keep = keep & window_cells(keep.shape, grid.x0, grid.y0, grid.dx, window, halo(rule) + 1)
     names = frame_names(results)
     watch.tick("ground", 0, 1)
     with ExitStack() as held:
         cache = cache_folder(cfg, out)  # where the DEM's chunk store lies (W84)
-        reader = held.enter_context(CellReader(cfg, tables, keep, cache=cache))
+        reader = held.enter_context(CellReader(cfg, tables, keep, datum=datum, cache=cache))
         rows, cols, k = reader.rows, reader.cols, reader.k
         strips, strip_peak, extent = None, None, None
         if getattr(tables, "strip", None) is not None:
@@ -438,6 +645,10 @@ def lattice_pixels(
         if rows.size == 0 and strips is None:
             return None
         box = _box_of(rows, cols, k, extent)
+        if window is not None:
+            box = window_box(box, tables.grid.x0, tables.grid.y0, reader.pixel, window)
+            if box is None:
+                return None
         grid = tables.grid
         x0, y0 = grid.x0 + box[1] * reader.pixel, grid.y0 - box[0] * reader.pixel
         profile = raster_profile(box[2:], reader.pixel, x0, y0, crs)
@@ -462,6 +673,8 @@ def lattice_pixels(
             tuple(peak[name][rows, cols] for name in ("depth", "mean_depth", "speed", "hazard")),
             strip_peak, len(names), sum(len(blocks) for _band, blocks in bands),
         )  # fmt: skip
+        if strips is not None and rule.surface != CELL_FILL:
+            _join_lattice(lattice, tables, keep, results, names)
         runs = [lattice.cell_rows(*band) for band, _blocks in bands]
         per_cell = STACK_VALUE_BYTES * max(len(names), 1)
         groups = plan_bands(np.array([(b - a) * per_cell for a, b in runs], float), STACK_BYTES)
@@ -475,11 +688,8 @@ def lattice_pixels(
             pool = xp.get_default_memory_pool()
             held.callback(pool.set_limit, size=pool.get_limit())
             pool.set_limit(size=int(pool_cap))
-        hazard = held.enter_context(BandWriter(folder / HAZARD_FILE, profile, np.uint8, DRY, tags))
-        measures = [
-            held.enter_context(BandWriter(folder / name, profile, np.float32, NO_DEPTH, tags))
-            for name in (DEPTH_FILE, SPEED_FILE, DV_FILE)
-        ]
+        hazard = held.enter_context(BandWriter(folder / HAZARD_FILE, profile, np.uint8, DRY, tags, class_overviews(rule)))
+        measures = record_writers(held, folder, profile, rule, tags)
         # beside the card's work: the next block's ground and strip pixels are read, the last block's windows written
         ahead = held.enter_context(_Lane())
         behind = held.enter_context(_Lane())
@@ -538,6 +748,7 @@ def lattice_pixels(
         "maps": len(names),
         "kept_cells": int(rows.size),
         "pixel_m": reader.pixel,
+        "surface": rule.surface,
         "limits": rule.hazard_limits,
         "depth_floor_m": rule.depth_floor,
         "depth_max_m": tally.depth,
@@ -556,7 +767,7 @@ def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp)
     rule = cfg.outputs.pixels
     results = out / "results.h5"
     peak = run_maxima(results)
-    keep = peak["mean_depth"] > rule.cell_depth
+    keep = kept_cells(peak["mean_depth"], rule)
     parts = read_parts(cfg, tables, keep, lambda a, b: watch.tick("ground", a, b), cache_folder(cfg, out))
     if not parts:
         return MeshResult({}, {}, {}, {}, {}, 0)
@@ -580,25 +791,37 @@ def mesh_maxima(cfg: RunConfig, tables: GridTables, out: Path, watch: Watch, xp)
 
 
 def make_products(
-    cfg: RunConfig, tables: GridTables, crs, out: Path, watch: Watch, backend: str, tags: dict | None = None
+    cfg: RunConfig,
+    tables: GridTables,
+    crs,
+    out: Path,
+    watch: Watch,
+    backend: str,
+    tags: dict | None = None,
+    window: tuple[float, float, float, float] | None = None,
+    folder: Path | None = None,
 ) -> dict:
     """The whole step; returns the statistics. ``ProductsStopped`` leaves nothing half-written behind.
 
     The rasters of record and the run's map layers always; the class polygons and the depth drawing when
-    ``outputs.smooth.enabled`` asks for them, and later through :func:`wadi2d.products.runner.draw` when it did not."""
+    ``outputs.smooth.enabled`` asks for them, and later through :func:`wadi2d.products.runner.draw` when it did not.
+    With ``window`` (xmin, ymin, xmax, ymax) the rasters of that window alone go into ``folder``, and nothing else
+    (W100: the 0.5 m detail of a drawn window, the maps of record being coarser)."""
     from wadi2d.products.smooth import LAYERS_FILE, crs_text, make_drawings, run_layers
 
     on_mesh = getattr(tables.grid, "quad", False)
+    if window is not None and on_mesh:
+        raise ValueError("a window of the maps is made on the uniform grid and the aligned cells, not on a mesh of several sizes")
     xp = array_module(backend)
     _free_device(xp)
-    folder = out / PIXEL_DIR
+    folder = out / PIXEL_DIR if folder is None else Path(folder)
     folder.mkdir(parents=True, exist_ok=True)
 
     def record(xp, squeeze: float = 1.0):
         """The rasters of record made with ``xp``: their statistics and profile, or the count of the run's saved
         maps when nothing was wet enough to map."""
         if not on_mesh:
-            written = lattice_pixels(cfg, tables, crs, out, folder, tags, watch, xp, squeeze)
+            written = lattice_pixels(cfg, tables, crs, out, folder, tags, watch, xp, squeeze, window=window)
             return written if written is not None else len(frame_names(out / "results.h5"))
         found = mesh_maxima(cfg, tables, out, watch, xp)
         if found.kept == 0:
@@ -625,6 +848,11 @@ def make_products(
         return {"class_km2": {}}
     watch.tick("rasters", 0, 1)
     stats, profile = written["stats"], written["profile"]
+    if window is not None:
+        stats["window"] = list(window)
+        (folder / STATS_FILE).write_text(json.dumps(stats, indent=1), encoding="utf-8")
+        watch.tick("rasters", 1, 1)
+        return stats
     layers = run_layers(cfg, tables, crs)
     if cfg.outputs.smooth.enabled:
         del written

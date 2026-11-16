@@ -1,0 +1,74 @@
+{
+ "run": "D:\\Mojtaba\\Renardet\\Wadi2D\\W79 Block 2 four ways\\runs\\rerun2_run1_full_2d_aligned",
+ "settings": {
+  "surface": "cell_fill"
+ },
+ "backend": "gpu",
+ "exit": 0,
+ "wall_s": 104.4,
+ "to_first_stage_s": 7.3,
+ "stage_s": {
+  "ground": 37.0,
+  "maps": 37.7,
+  "rasters": 0.3
+ },
+ "peak_host_gb": 13.6,
+ "peak_sampled_commit_gb": 22.68,
+ "peak_card_over_start_gb": 12.6,
+ "rasters_mb": {
+  "pixel_depth.tif": 178.8,
+  "pixel_hazard.tif": 26.2,
+  "pixel_speed.tif": 164.8
+ },
+ "stats": {
+  "class_km2": {
+   "H1": 72.3065,
+   "H2": 35.4943,
+   "H3": 18.3659,
+   "H4": 30.6984,
+   "H5": 61.5939,
+   "H6": 43.3546
+  },
+  "maps": 192,
+  "kept_cells": 625221,
+  "pixel_m": 2.0,
+  "surface": "cell_fill",
+  "limits": [
+   [
+    0.3,
+    0.3,
+    2.0
+   ],
+   [
+    0.6,
+    0.5,
+    2.0
+   ],
+   [
+    0.6,
+    1.2,
+    2.0
+   ],
+   [
+    1.0,
+    2.0,
+    2.0
+   ],
+   [
+    4.0,
+    4.0,
+    4.0
+   ]
+  ],
+  "depth_floor_m": 0.05,
+  "depth_max_m": 46.984954833984375,
+  "speed_max_ms": 20.021137237548828,
+  "dv_max_m2s": 78.13090515136719,
+  "origin": [
+   407731.98973783385,
+   2746664.393463373
+  ],
+  "strip_pixels": 56925500,
+  "strip_depth_max_m": 53.57878112792969
+ }
+}
