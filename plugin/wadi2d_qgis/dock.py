@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import shutil
 import tempfile
+import traceback
 from pathlib import Path
 
 from qgis.core import Qgis, QgsMessageLog, QgsProject
@@ -116,6 +117,10 @@ LUMPED_RUN_NOTE = (
     "and junctions are on the map with their peaks; Result lines, or a right-click on one, shows its hydrograph."
 )
 HMS_JOB = "hms_import.json"
+SCHEMA_FAILED = (
+    "These sections could not take the engine's settings, so their fields may hold old defaults and bounds: "
+    "{sections}. The other sections are in order; the Wadi2D log panel has the detail."
+)
 
 FIRST_START_NOTE = "The first estimate can take a minute while the engine starts."
 DRAWING_NOTE = (
@@ -299,11 +304,16 @@ class Wadi2DDock(QgsDockWidget):
             return
         held = self.model.collect() if self.model.ready else None  # a second answer (Engine...) resets every field
         self.schema = schema
+        failed = []
         for section in self.sections:
-            section.apply_schema(schema)
+            try:
+                section.apply_schema(schema)
+            except Exception as problem:  # one section's error must not stop the dock halfway, with no word
+                failed.append(f"{section.heading} ({type(problem).__name__}: {problem})")
+                QgsMessageLog.logMessage(f"{section.heading}: {traceback.format_exc()}", LOG_TAG, Qgis.Critical)
         self.types.apply_schema(schema)
         self._finest_changed()
-        self.engine_label.setText("Engine ready.")
+        self.engine_label.setText(f"Engine ready. {SCHEMA_FAILED.format(sections='; '.join(failed))}" if failed else "Engine ready.")
         self._set_ready(True)
         if held is None:
             self.model.start()
