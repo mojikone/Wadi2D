@@ -262,6 +262,9 @@ def place_centres(
     # and must never be placed before the main (circle 2 of 2026-11-08, where the main's stations gave way to it)
     order = sorted(range(len(lines)), key=lambda k: (not lines[k].hard, -lines[k].rank, -shapely.LineString(lines[k].xy).length))
     xs, ls, st, sd, rw = [], [], [], [], []
+    held = np.empty((1024, 2))
+    """The centres placed so far as one array, kept as they are placed (W92: np.array of the growing list for every
+    line was 10 s of Block 2's mesh)."""
     notes: list[str] = []
     kept_stations: list[list[int]] = [[] for _ in lines]
     clearance = s.clearance_cells * s.dx
@@ -291,7 +294,7 @@ def place_centres(
         pts = 0.5 * (pts[:-1] + pts[1:])
         n_left = np.minimum(n_left[:-1], n_left[1:])
         n_right = np.minimum(n_right[:-1], n_right[1:])
-        placed = cKDTree(np.array(xs)) if xs else None
+        placed = cKDTree(held[: len(xs)]) if xs else None
         # the pair decides whether a station lives: both its centres clear of every placed centre
         pair_l = pts + 0.5 * s.dx * normals
         pair_r = pts - 0.5 * s.dx * normals
@@ -336,6 +339,9 @@ def place_centres(
                             if own_near.count and own_near.any_within(p):
                                 break  # the line's own rows meeting inside a bend
                         own_near.add(p)
+                        if len(xs) == held.shape[0]:
+                            held = np.vstack((held, np.empty_like(held)))
+                        held[len(xs)] = p
                         xs.append(p)
                         ls.append(k)
                         st.append(i)
@@ -373,7 +379,7 @@ def lattice_centres(
     kept = np.zeros(jj.size, bool)
     if keep_out is not None:
         kept[inside] = keep_out[jj[inside], ii[inside]]
-    d, _ = cKDTree(line_xy).query(np.column_stack((cx, cy)))
+    d, _ = cKDTree(line_xy).query(np.column_stack((cx, cy)), workers=-1)  # every core, each point's answer its own
     dropped = active & ~kept & (d < NEAR * dx)
     band = active & ~kept & ~dropped & (d <= BAND * dx)
     # the frame: active positions beyond the band, and positions outside the domain only beyond the band's reach, so
@@ -668,13 +674,19 @@ def build_centre_mesh(
         edge = _common_edge(rings[c], rings[other])
         if edge is not None:
             breakline_edges.setdefault(f"{lines[k].name}:0", set()).add(edge)
-    polygons: list[shapely.Geometry] = []
-    for k in range(len(lines)):
-        mine = np.nonzero(corridor == k)[0]
+    by_line = np.argsort(corridor, kind="stable")
+    bounds = np.searchsorted(corridor[by_line], np.arange(len(lines) + 1))
+
+    def outline(k: int) -> shapely.Geometry:
+        mine = by_line[bounds[k] : bounds[k + 1]]  # the line's cells in their order, as np.nonzero gave them
         if mine.size == 0:
-            polygons.append(shapely.Polygon())
-            continue
-        polygons.append(shapely.unary_union([shapely.Polygon(np.column_stack((geometry.x[r], geometry.y[r]))) for r in (rings[c] for c in mine)]))
+            return shapely.Polygon()
+        return shapely.unary_union([shapely.Polygon(np.column_stack((geometry.x[r], geometry.y[r]))) for r in (rings[c] for c in mine)])
+
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(min(16, max(1, len(lines)))) as pool:  # GEOS lets go of the interpreter: each line on a core
+        polygons: list[shapely.Geometry] = list(pool.map(outline, range(len(lines))))
     # the cells tile the squares they replace, to the last digit that matters; a sliver where the domain's edge cuts
     # a cell (2 m2 in 0.66 km2 on the Faydh reach, 2026-11-08) is noted, a real disagreement refused
     hole = masked[0].size * dx * dx
