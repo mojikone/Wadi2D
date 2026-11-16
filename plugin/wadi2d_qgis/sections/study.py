@@ -27,6 +27,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from .. import section_status
 from ..job_builder import raster_path
 from ..study_rows import (
     AREA_COUNT,
@@ -210,6 +211,9 @@ class StudySection(Section):
 
     def values(self, crs) -> dict:
         return {}  # a plain run takes nothing from here; the dock asks form_values() for a study
+
+    def standing(self, kind=None):
+        return section_status.study()
 
     def form_values(self) -> dict:
         return {

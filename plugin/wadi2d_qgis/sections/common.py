@@ -9,6 +9,7 @@ from qgis.gui import QgsCollapsibleGroupBox, QgsFieldComboBox, QgsMapLayerComboB
 from qgis.PyQt.QtWidgets import QDoubleSpinBox, QFormLayout, QVBoxLayout, QWidget
 
 from ..job_builder import SchemaView, raster_path
+from ..section_status import OPTIONAL, Status
 from ..widget_state import NOTE, inputs, read, read_rows, resolve, write, write_rows
 
 UNBOUNDED = 1e12
@@ -90,6 +91,12 @@ class Section(QgsCollapsibleGroupBox):
 
     def set_model_type(self, kind: str | None) -> None:
         """Show what a model of this type leaves to choose in the section; None is no type, everything."""
+
+    def standing(self, kind: str | None = None) -> Status:
+        """Where the section stands for a model of this type, from its own widgets alone: Ready, Optional or Missing,
+        and one line of words (``section_status``). No layer is read feature by feature here. Not named ``status``:
+        Run and the depth-area study each have a label of that name, which the dock and older checks write to."""
+        return Status(OPTIONAL, "")
 
     def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
         return []

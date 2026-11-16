@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from qgis.PyQt.QtWidgets import QLabel, QLineEdit
 
+from .. import section_status
 from ..gauge_rows import FLOW, LEVEL, RAIN, GaugeRow
 from .common import Section
 from .gauge_table import GaugeTable
@@ -60,6 +61,9 @@ class GaugesSection(Section):
 
     def set_row(self, index: int, **fields) -> None:
         self.gauges.set_row(index, **fields)
+
+    def standing(self, kind=None):
+        return section_status.gauges([(row.name, row.file, row.at) for row in self.gauges.rows])
 
     def values(self, crs) -> dict:
         return {

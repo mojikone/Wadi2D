@@ -74,8 +74,10 @@ class TypeLinks(QObject):
         self.header.show_type(self.kind)
         shown = sections_shown(self.kind, self.header.show_all.isChecked())
         for section in dock.sections:
-            section.setVisible(section.key in shown)
+            dock.cards[section.key].setVisible(section.key in shown)  # the card, and the section inside it
             section.set_model_type(self.kind)
+        if hasattr(dock, "status_links"):  # not yet while the dock is being built
+            dock.status_links.refresh()
 
     # The job
 

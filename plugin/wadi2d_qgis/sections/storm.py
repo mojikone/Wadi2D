@@ -26,6 +26,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
+from .. import section_status
 from ..gauge_rows import GAP_WORDS, INVERSE_DISTANCE, METHOD_WORDS, RAIN, VALUE_WORDS, GaugeRow
 from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
 from ..rain_chart import HyetographChart, PreviewTable
@@ -475,6 +476,12 @@ class StormSection(Section):
         self.preview_chart.show_row(rows[picked] if 0 <= picked < len(rows) else None)
 
     # Values
+
+    def standing(self, kind=None):
+        source = self.kind.currentData()
+        if source == KIND_GAUGES:  # its rows as they stand: reading its values redraws the table
+            return section_status.storm(source, {}, self._hms_in_use, len(self.gauge_table.rows))
+        return section_status.storm(source, {} if source == KIND_HMS else self.values(None), self._hms_in_use)
 
     def _reduction(self) -> dict:
         mode = self.arf_mode.currentData()

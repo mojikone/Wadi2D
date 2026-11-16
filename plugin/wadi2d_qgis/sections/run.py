@@ -18,7 +18,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from .. import settings, style
+from .. import section_status, settings, style
 from ..job_builder import (
     ANIMATION_MAP_S,
     BACKEND,
@@ -196,6 +196,9 @@ class RunSection(Section):
         """Whether the run draws its polygons and depth picture, or None for the engine's own default."""
         wanted = self.smooth.isChecked() and self.pixels.isChecked()
         return wanted if wanted != self._smooth_default else None
+
+    def standing(self, kind=None):
+        return section_status.run(self.folder.filePath(), self.pixels.isChecked())
 
     def values(self, crs) -> dict:
         return {

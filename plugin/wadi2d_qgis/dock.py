@@ -83,6 +83,7 @@ from .protocol import (
 from .rain_query import StormLinks
 from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
+from .section_card import SectionCard
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
 from .sections.gauges import GaugesSection
@@ -95,6 +96,8 @@ from .sections.structures import StructuresSection
 from .sections.study import StudySection
 from .sections.terrain import TerrainSection
 from .start_page import ModelHeader, StartPage
+from .status_bars import Footer, StepStrip
+from .status_links import StatusLinks
 from .storm_rows import rain_args, rain_reply
 from .structures_query import StructuresLinks
 from .study_rows import (
@@ -204,20 +207,29 @@ class Wadi2DDock(QgsDockWidget):
         top.addWidget(self.engine_label, 1)
         top.addWidget(self.engine_button)
         self.model_bar = ModelBar()
+        dark = look.is_dark(self.palette())  # a dark QGIS theme takes the palette's dark counterpart
+        self.cards = {section.key: SectionCard(section) for section in self.sections}  # each section in a card (W99)
         body = QWidget()
+        body.setObjectName(look.BODY)
+        body.setAttribute(Qt.WA_StyledBackground, True)
         column = QVBoxLayout(body)
+        column.setContentsMargins(look.BODY_MARGIN, look.GAP, look.BODY_MARGIN, look.GAP)  # with the card's own edge, the side margin the sections had
+        column.setSpacing(look.GAP)
         column.addWidget(self.model_bar)
         for section in self.sections:
-            column.addWidget(section)
+            column.addWidget(self.cards[section.key])
         column.addStretch(1)
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
         scroll.setWidget(body)
-        # Two pages (W99): the model types to choose from, and the model: its header over the sections.
+        self.scroll = scroll
+        # Two pages (W99): the model types to choose from, and the model: its header and the step strip over the
+        # sections, the footer under them.
         self.start_page = StartPage()
-        self.header = ModelHeader()
-        for framed in (self.start_page, self.header):
-            framed.setStyleSheet(look.sheet())  # on the dock's own frame only: the sections keep the QGIS theme
+        self.header = ModelHeader(dark)
+        self.strip = StepStrip()
+        self.footer = Footer()
         start_scroll = QScrollArea()
         start_scroll.setWidgetResizable(True)
         start_scroll.setFrameShape(QFrame.NoFrame)
@@ -228,15 +240,20 @@ class Wadi2DDock(QgsDockWidget):
         model_column.setContentsMargins(0, 0, 0, 0)
         model_column.setSpacing(0)
         model_column.addWidget(self.header)
+        model_column.addWidget(self.strip)
         model_column.addWidget(scroll, 1)
+        model_column.addWidget(self.footer)
         self.pages = QStackedWidget()
         self.pages.addWidget(start_scroll)
         self.pages.addWidget(model_page)
         frame = QWidget()
+        frame.setObjectName(look.FRAME)
+        frame.setAttribute(Qt.WA_StyledBackground, True)
         frame_column = QVBoxLayout(frame)
         frame_column.setContentsMargins(0, 0, 0, 0)
         frame_column.addLayout(top)
         frame_column.addWidget(self.pages, 1)
+        frame.setStyleSheet(look.sheet(dark))  # matched by the frame's own object names: the sections keep the QGIS theme
         self.setWidget(frame)
 
         self.engine_button.clicked.connect(self.open_settings)
@@ -280,6 +297,7 @@ class Wadi2DDock(QgsDockWidget):
         self.structures.edit_requested.connect(self.edit_profile)
         self.model = ModelLinks(self)  # the model saved with the project, in each run folder, as scenarios (W99)
         self.types = TypeLinks(self)  # the model type: the start page, the sections shown, the type in the job (W99)
+        self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -334,6 +352,7 @@ class Wadi2DDock(QgsDockWidget):
     def model_applied(self, job_type: str | None = None, infer: bool = False) -> None:
         self._finest_changed()
         self.types.restored(job_type, infer)
+        self.status_links.refresh()
 
     def show_run(self, folder: str) -> None:
         """A finished run opened into the dock: its results are the ones Make map and the sliders work on."""
@@ -1030,6 +1049,7 @@ class Wadi2DDock(QgsDockWidget):
     def release(self) -> None:
         """Leave a running engine alone: QGIS is closing or the plugin is being reloaded."""
         self.model.release()
+        self.status_links.release()
         if self.run is not None:
             self.run.release()
             self.run = None

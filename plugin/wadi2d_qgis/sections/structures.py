@@ -5,13 +5,14 @@ where each dam's pool and any other pond stand when the run starts; breaches of 
 
 from __future__ import annotations
 
-from qgis.core import QgsMapLayerProxyModel
+from qgis.core import QgsMapLayerProxyModel, QgsWkbTypes
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import QCheckBox, QFormLayout, QLabel, QPushButton, QWidget
 
+from .. import section_status
 from ..breach_rows import BreachRow
-from ..dam_rows import DamRow
-from ..job_builder import SPILLWAY_C, layer_features
+from ..dam_rows import START_EMPTY, DamRow, dam_problems
+from ..job_builder import ELEVATED_KINDS, SPILLWAY_C, layer_features
 from ..profile_table import EDGE_KINDS, ProfileStore, apply_levels, keyed
 from ..shaped import SHAPED_KINDS
 from .breach_table import BreachTable
@@ -97,6 +98,22 @@ class StructuresSection(Section):
             rows.apply_schema(schema)
         self.start_water.apply_schema(schema)
         self.breaches.apply_schema(schema)
+
+    def standing(self, kind=None):
+        chosen, no_elevation = {}, []
+        for name, picker in self.layers.items():
+            layer = picker.currentLayer()
+            if layer is None:
+                continue
+            label = RELATED[name][0] if name in RELATED else ROWS[name][0]
+            chosen[label] = layer.name()
+            if name not in ELEVATED_KINDS or QgsWkbTypes.hasZ(layer.wkbType()):
+                continue
+            if not self.fields[name]["crest_z"].currentField() and not self.profiles.count(layer, name):
+                no_elevation.append(label)
+        rows = self.start_water.rows
+        set_dams = sum(1 for row in rows if row.start != START_EMPTY)
+        return section_status.structures(chosen, no_elevation, dam_problems(rows), set_dams, len(self.breaches.rows))
 
     def values(self, crs) -> dict:
         structures = {}

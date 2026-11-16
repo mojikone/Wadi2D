@@ -7,6 +7,7 @@ from __future__ import annotations
 from qgis.core import QgsMapLayerProxyModel
 from qgis.PyQt.QtWidgets import QCheckBox
 
+from .. import section_status
 from ..job_builder import DX, FILL_PITS, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
 
@@ -42,6 +43,18 @@ class TerrainSection(Section):
 
     def dem_layer(self):
         return self.dem.currentLayer()
+
+    def standing(self, kind=None):
+        layer, domain, raster = self.dem_layer(), self.domain.currentLayer(), self.manning.raster.currentLayer()
+        return section_status.terrain(
+            layer.name() if layer is not None else None,
+            layer is not None and raster_path(layer) is not None,
+            layer is not None and layer.crs().isGeographic(),
+            self.dx.value(),
+            domain.name() if domain is not None else None,
+            self.manning.value(),
+            raster.name() if raster is not None else None,
+        )
 
     def values(self, crs) -> dict:
         layer = self.dem_layer()

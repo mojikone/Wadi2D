@@ -15,6 +15,7 @@ from qgis.gui import QgsFileWidget
 from qgis.PyQt.QtCore import QSignalBlocker, Qt
 from qgis.PyQt.QtWidgets import QCheckBox, QComboBox, QHeaderView, QLabel, QTableWidget, QTableWidgetItem
 
+from .. import section_status
 from ..boundary_rows import (
     DIRECTIONS,
     FILE_KINDS,
@@ -216,6 +217,11 @@ class BoundariesSection(Section):
         layer = self.layer.currentLayer()
         if layer is not None and self.canvas is not None and 0 <= number < len(self.rows):
             self.canvas.flashFeatureIds(layer, [self.rows[number].fid])
+
+    def standing(self, kind=None):
+        layer = self.layer.currentLayer()
+        rows = [(row.kind, row.file) for row in self.rows]
+        return section_status.boundaries(layer.name() if layer is not None else None, rows, tuple(FILE_KINDS))
 
     def values(self, crs) -> dict:
         layer = self.layer.currentLayer()
