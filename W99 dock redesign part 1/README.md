@@ -118,9 +118,19 @@ branch itself: `dock_boundary_table.py` 34 of 34, `dock_dam_start.py` 23 of 23, 
 `dock_basin_points.py` 36 of 36, their 8 `job.json` files identical to the base commit's.
 
 Nine of the fifteen do not pass on the base commit itself: they were written for an earlier dock and nobody has kept
-them up (the cell grid and the time slider layers moved into the layer groups of W68, `composite_box` was renamed,
-words in the Result lines plot and the lag default changed, his HMS project lost a file). They are here as they are:
-what matters for this work is that each stops at the same check with the same numbers before and after it.
+them up. By their own messages, not chased further: a layer group they look for is not there, `composite_box` is no
+longer a name in the study section, words in the Result lines plot and the lag method differ, his HMS project lost a
+file. They are here as they are: each stops at the same check with the same numbers before and after this work.
+
+**What that leaves unproven.** A scenario that stops early says nothing about what comes after the stop. So the time
+slider (W19 stops at its 8th check), the later Result lines checks (W21), the depth-area study (W37 stops at its 7th)
+and the cell grid layer were not exercised by an old scenario on either side. For those the evidence is weaker and of
+another kind: none of their files is touched (`result_lines.py`, `line_view.py`, `slider_layer.py`, `time_layer.py`,
+`map_sheets.py`, `workbook_dialog.py`, `element_view.py`, `layer_groups.py`, `sections/study.py` but for its key), and
+the new scenarios open Result lines' button on a finished run. Make map, the workbook and the right-click chart were
+not run here.
+
+The logs of both sides and the three scripts that made the table and compared the jobs are in `old_scenarios/`.
 
 The harness now leaves the start page by `All sections, no model type` before an older scenario starts: that is the dock
 those were written for.
