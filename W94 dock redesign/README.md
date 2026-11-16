@@ -126,3 +126,11 @@ Hydrology for every type with a 2D part:
 - Build mesh: builds and draws the cells on the map before any run, with cell count, smallest cell, the time-step
   estimate and the refusals in words (tiling guard, overlapping corridors); cached, so Run reuses it.
 - Advanced: the bank and crest thresholds of Suggest, gorge rows, local time stepping (quadtree only).
+
+His answers on item 7, the map controls (2026-11-16): a map pixel field, yes; the window button named for the
+terrain's finest resolution, not "0.5 m" (other projects' DEMs differ); no surface choice: the pixel maps use the
+continuous surface only, the cell maps (one value per cell) stay; a depth x speed tick, off by default, yes; Lumped
+models without cell size or Manning in Terrain, yes. Sent to the part 2 worker after its current item. His question the
+same day, "there's no water surface output?": a cell map of the highest water level exists (`maps/max_level.tif`, one
+value per cell); no water-surface raster at the pixel; proposed, not built: a pixel water-surface raster of record
+(the continuous surface where wet), as RAS Mapper's WSE map.
