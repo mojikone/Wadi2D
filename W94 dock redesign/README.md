@@ -134,3 +134,8 @@ models without cell size or Manning in Terrain, yes. Sent to the part 2 worker a
 same day, "there's no water surface output?": a cell map of the highest water level exists (`maps/max_level.tif`, one
 value per cell); no water-surface raster at the pixel; proposed, not built: a pixel water-surface raster of record
 (the continuous surface where wet), as RAS Mapper's WSE map.
+
+His rule of 2026-11-16 for the map controls: one depth threshold for the maps in the dock, default 0.1 m, applied to
+every output (pixel depth, speed, water level, hazard, the slider's frames, the renderer, the cell maps) and to the
+display cutoff of the depth layers, so files and screen agree; no second threshold anywhere. Sent to the part 2 worker
+with item 7.
