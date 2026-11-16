@@ -126,6 +126,11 @@ class RunSection(Section):
         self.lines_button = QPushButton("Result lines")
         self.lines_button.setEnabled(False)
         self.lines_button.setToolTip("Hydrograph, depth and water surface on a line: upfront ones, or one drawn now over the saved frames")
+        self.results_button = QPushButton("Results \N{SINGLE RIGHT-POINTING ANGLE QUOTATION MARK}")  # W101 item 6
+        self.results_button.setEnabled(False)
+        self.results_button.setToolTip(
+            "The results page of the last finished run: its elements of record, runs compared, and the maps and tools"
+        )
         self.workbook_button = QPushButton("Dam workbook...")
         self.workbook_button.setToolTip(
             "The dam-site Excel workbook from finished runs, one per return period: inflow, and outflow where a "
@@ -152,12 +157,13 @@ class RunSection(Section):
         self.form.addRow(self.open_button)
         self.form.addRow("Map title", self.map_title)
         self.form.addRow("Map background", self.background)
-        self.form.addRow(self.map_button)
-        self.form.addRow(self.frames_button)
-        self.form.addRow(self.pixel_frames_button)
-        self.form.addRow(self.window_button)
-        self.form.addRow(self.lines_button)
-        self.form.addRow(self.workbook_button)
+        self.form.addRow(self.results_button)
+        # Make map, the two time sliders, the window, Result lines and the workbook are laid out on the results page
+        # (W101 item 6): ``tools`` names them for the dock, which moves them there
+        self.tools = (
+            self.map_button, self.frames_button, self.pixel_frames_button, self.window_button, self.lines_button,
+            self.workbook_button,
+        )  # fmt: skip
 
     @staticmethod
     def _text_label() -> QLabel:

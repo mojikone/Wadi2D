@@ -1,9 +1,9 @@
 # W101 dock redesign part 2
 
 **Status (2026-11-16): branch `feature/dock-redesign-2` off `feature/fast-products` (`75be51e`); not merged, nothing
-pushed. Built item by item under a usage ceiling (96 % of his 99 % when his item 7 was added): item 1 and item 7 (the
-map controls, added mid-task) are built and tested; items 2 to 6 are not started.** Requirements: `W94 dock
-redesign/README.md`; part 1's record: `W99 dock redesign part 1/README.md`.
+pushed. Items 1 to 6 of the brief, his item 7 (the map controls and the one depth threshold), his two faults and his
+job-import item are built, each committed alone and tested through the real dock (table below); what is not done is
+under Not done.** Requirements: `W94 dock redesign/README.md`; part 1's record: `W99 dock redesign part 1/README.md`.
 
 ## Item 1: rain and area reduction (built)
 
@@ -136,6 +136,30 @@ widget names are gone). Through the real dock: `dock_rain.py`, see the table bel
   outline must come within 50 m of the boundary lines for them to stay kept edges, and with none near it the engine
   refuses ("no ground drains to the kept edges through the outline"), as it did when the first try drew it 60 m in.
 
+## Item 6: the results page (built)
+
+- **A third page of the dock** (`results_page.py`, `results_links.py`, rules in `results_rows.py`): the Run section's
+  **Results ›** button (on after a run, or when a finished run is opened) and the start page's **Open run** lead to it;
+  **‹ Model** goes back. The page is never saved: a model opens on its sections.
+- **Maps and tools**: Make map, both time sliders, the window at the terrain's finest resolution, Result lines and the
+  dam workbook are the Run section's own buttons laid out here, so every check that clicks them finds them; the map
+  title, background and threshold stay in Run, with the model's settings.
+- **Elements of record**, read by the engine (`wadi2d lines`, as the Result lines panel reads them): every upfront line
+  and point and every lumped element, filed under design points and lines (a drainage area in the run's job, or a line
+  pouring into the network), dams and reservoirs, junctions, reaches, subbasins, outlets, result lines and points,
+  observed gauges (the elements a record was compared with), other elements; a kind filter, a search by name, and for
+  each the peak (a dam's or reach's inflow), its time, the volume, the peak outflow beside a routed peak, a point's
+  deepest water. **His default when nothing is pinned**: design points and lines, else dams, else outlets. **Pins**
+  (the first column) come first whatever the filter and are saved in the project (`wadi2d` entry `pinned/<model>`, one
+  list per model, its runs sharing their names). **A row opens the hydrograph chart** of W64 on that element and run.
+- **Compare runs**: the runs beside the opened one (a model's numbered siblings) and any added by folder, ticked; one
+  engine read per run; a table of peak, time to peak, volume and peak outflow per run side by side for the elements
+  shown above (the filter and pins decide which); a row's flows of record of every run on one chart; **Export the table
+  to Excel** with openpyxl, which QGIS 3.36 and 3.44 both ship (a CSV with words where it is missing). The dam
+  workbook's code (W60) was not reused: it lays dams out by return period, not runs side by side.
+- Tests: `tests/plugin/test_results_rows.py` 3 (each kind and its numbers, a dam's inflow and outflow, the default and
+  the filter with pins, the comparison and its workbook). Through the dock `dock_results.py` 29 of 29.
+
 ## Item 7: the map controls (his, added mid-task; built)
 
 His words of 2026-11-16, applied (`sections/run.py`, `window_links.py`, `window_rows.py`, `sections/terrain.py`):
@@ -181,6 +205,7 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | `dock_inflows.py` | item 3: the hydrograph box shows the flow line chosen and hides for a normal-depth line; a file route first Missing in words; the typed table on the row, its chart a quarter-hour apart, the card Ready; the job's `flow.step_s`, `flows` and slope, taken by the engine's schema; one flow refused in words; initial points with their level and name, none without a level field; saved and brought back to the same job; **a real Bidah run that read the table** | 17 of 17 |
 | `dock_mesh.py` | item 4: the kind the first input; three kinds, squares first, each with its box; the aligned kind makes centres and shows the gorge rows, rings the corridor sizes; local time stepping on and off with the quadtree; an older model's tick read as the quadtree; **Build mesh on squares (31,971 cells, the grid's tiles holding them), the quadtree (15,856, cell sizes and grid, the last build replaced) and the aligned mesh (8,160 aligned cells, one polygon a cell, over the grid)**; the engine's refusal of a line off the domain in its words; the stream threshold, scarp and gorge rows in the job and taken by the engine's schema, none written at the engine's values; saved and brought back; **a run stepping the same 23,431 squares, 8,160 aligned cells and 8,540 replaced**; one dark picture | 37 of 37 |
 | `dock_domain.py` | item 5: the box under Terrain's domain, hidden for Lumped; no outline and no catchments refused in words; **Complete upstream on Bidah: 27.82 to 36.72 km2, the two boundary lines kept, the report in words, the domain and its changes under Inputs > Terrain, chosen as the domain, the job's domain the completed one by area**; a run on it; **Align to catchments: 28.59 km2 against the catchment's 28.77, a gap of 0.77 km2 added**, the completed layers replaced, a new folder with the first kept; the layers saved with the model | 23 of 23 |
+| `dock_results.py` | item 6: the six map tools on the results page and none left in Run, Results off before a run; two Bidah runs (10 and 20 mm/h); the page of the second: Bidah 03, the one line with a drainage area, alone under design points and lines by his default, its peak 10.4 m3/s at 1 h in the table; every element (16), the search; a pin first under the filter and **in the saved project file**; a row opens the Result lines chart on Bidah 03 of that run; the runs beside offered; **compared: four numbers a run, the pinned and the design line, 10.36 against 1.55 m3/s, both hydrographs on one chart, the table in an Excel workbook**; the page as wide as the dock; ‹ Model back; Open run on the start page leads to the run's results; the page never saved | 29 of 29 |
 | `dock_import_block2.py` | his item: the four W79 jobs imported; for each the 48 h, the ARF at 100 km2 with its factor shown, the outflow lines with their slopes, the crest lines and spillways, the result lines, the aligned centre mesh; saved as scenarios in W102; **the job the dock writes, compared field by field with the original through the engine's schema: identical but for what is listed, and the dock's own comparison lists the same** | 46 of 46 |
 | `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
 | `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched**; the one depth threshold: 0.1 m, beside the map controls, no second field, the display cutoff the same, one change moving both, a format 3 model keeping the engine's floors, and **after the run no pixel of the depth map and no cell of the cell maps under 0.1 m** | 31 of 31 |
@@ -270,8 +295,15 @@ identical to the character (`old_scenarios/floors_only.py`); the 5 preview jobs 
 
 ## Not done
 
-Items 2 to 6 of the brief (losses and roughness, boundaries, the Mesh section, the domain from an outline, the results
-view) are not started: the usage ceiling. What each needs from the engine is already there (W95 to W98); the part 1
-record's "What the next parts need" still holds, and the new sections show the pattern (`sections/tables.py` for a
-store shared by sections, `sections/reduction.py` for a section shown by model type, `table_rows.py` and
-`reduction_rows.py` for the plain rules beside a `pytest` file).
+- **Mesh (item 4)**: no time-step estimate beside Build mesh's count (W94 asked for one); Build mesh shares the run's
+  cache folder (the DEM's store, the domain mask) but not the aligned mesh itself, which the run builds again with its
+  tables; no "slope over which hills coarsen" and no aligned streams inside quadtree hills (W82, not merged); the
+  incision depth that makes a defined wadi for Suggest stays the engine's.
+- **Domain (item 5)**: the keep distance (50 m) and the alignment tolerance (100 m) are the engine's, not in the dock;
+  aligning to the model's own subbasins needs their layer chosen (the engine's `--align job` is not offered).
+- **Results (item 6)**: the comparison offers the runs beside the opened one and any added by hand, not every run of
+  the project; a depth-area study's folder is not a run of this page (its lines stay in the Study section); the Excel
+  export is a plain sheet: the dam workbook (W60) lays out dams by return period and does not fit a run-by-run table;
+  a lumped-only run (W88) goes through the same listing and was not opened on the page in a check.
+- Older dock scenarios that drive the old Storm widgets (Found 3), and the headless smoke test on QGIS 3.36 for the
+  sections of items 2 to 6 (only the real dock on 3.44.8 ran them).

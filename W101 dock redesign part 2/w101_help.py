@@ -31,6 +31,10 @@ def big_shot(h, dock, name, size=(460, 1000), top=None, open_only=None):
     held = frame.size()
     frame.resize(*size)
     QApplication.processEvents()
+    page = dock.pages.currentWidget()  # a scroll area laid out at another width lays its contents out again (W101)
+    if hasattr(page, "widget") and page.widget() is not None:
+        page.widget().resize(page.viewport().width(), page.widget().height())
+        QApplication.processEvents()
     if top is not None:
         dock.scroll.verticalScrollBar().setValue(max(dock.cards[top].y() - 8, 0))
     frame.grab().save(str(h.P / f"widget_{name}.png"))

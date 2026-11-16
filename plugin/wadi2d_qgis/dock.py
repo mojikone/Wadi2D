@@ -85,6 +85,8 @@ from .protocol import (
 from .rain_query import StormLinks
 from .result_layers import has_products, load_cell_grid, load_drawings, load_products, load_strip_mesh
 from .result_lines import ResultLinesPanel
+from .results_links import ResultsLinks
+from .results_page import ResultsPage
 from .section_card import SectionCard
 from .sections.basin_rows import basin_problems
 from .sections.boundaries import BoundariesSection
@@ -261,9 +263,13 @@ class Wadi2DDock(QgsDockWidget):
         model_column.addWidget(self.strip)
         model_column.addWidget(scroll, 1)
         model_column.addWidget(self.footer)
+        self.results_page = ResultsPage()  # W101 item 6: a finished run's elements, runs compared, maps and tools
+        for button in self.panel.tools:
+            self.results_page.tools.addWidget(button)
         self.pages = QStackedWidget()
         self.pages.addWidget(start_scroll)
         self.pages.addWidget(model_page)
+        self.pages.addWidget(self.results_page)
         frame = QWidget()
         frame.setObjectName(look.FRAME)
         frame.setAttribute(Qt.WA_StyledBackground, True)
@@ -301,7 +307,7 @@ class Wadi2DDock(QgsDockWidget):
         self._slider_client = None
         self._slider_timer = QTimer(self)
         self._slider_timer.timeout.connect(self._slider_poll)
-        self.panel.lines_button.clicked.connect(self.result_lines)
+        self.panel.lines_button.clicked.connect(lambda: self.result_lines())
         self.panel.workbook_button.clicked.connect(self.dam_workbook)
         self.workbook_dialog = None
         self.study.start_button.clicked.connect(self.start_study)
@@ -322,6 +328,7 @@ class Wadi2DDock(QgsDockWidget):
         self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
         self.window_links = WindowLinks(self)  # a window of a finished run at the DEM's pixel (W101, his item 7)
         self.domain_links = DomainLinks(self)  # Terrain's domain from a rough outline (W101 item 5)
+        self.results_links = ResultsLinks(self)  # the results page (W101 item 6)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
@@ -642,6 +649,7 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.pixel_frames_button.setEnabled(has_frames(folder))
             self.panel.lines_button.setEnabled(True)
             self.panel.window_button.setEnabled(True)
+            self.panel.results_button.setEnabled(True)
         if folder and is_lumped_run(folder) and find_run_results(folder) is None:  # the HMS way: its network is the map
             load_network(folder, Path(folder).name)
             self.panel.say(LUMPED_RUN_NOTE, "note")
@@ -914,6 +922,7 @@ class Wadi2DDock(QgsDockWidget):
         self.panel.pixel_frames_button.setEnabled(has_frames(run.out_dir))
         self.panel.lines_button.setEnabled(has_results(run.out_dir))
         self.panel.window_button.setEnabled(has_results(run.out_dir))
+        self.panel.results_button.setEnabled(has_results(run.out_dir))
         if self.line_panel is not None and self.line_panel.isVisible() and has_results(run.out_dir):
             self.line_panel.open_run(run.out_dir)
         if state.succeeded:
@@ -1067,12 +1076,14 @@ class Wadi2DDock(QgsDockWidget):
             return
         self.panel.say(slider_note(client.ready), "good")
 
-    def result_lines(self) -> None:
-        if self.results_dir is None:
+    def result_lines(self, run: Path | None = None, wanted: str | None = None) -> None:
+        """The Result lines panel on a run, the last finished one by default; ``wanted`` an element shown first."""
+        run = run or self.results_dir
+        if run is None:
             return
         if self.line_panel is None:
             self.line_panel = ResultLinesPanel(self.iface, self.iface.mainWindow())
-        self.line_panel.open_run(self.results_dir)
+        self.line_panel.open_run(run, wanted)
 
     def dam_workbook(self) -> None:
         """The dam workbook dialog (W60), the last finished run as its first return period."""

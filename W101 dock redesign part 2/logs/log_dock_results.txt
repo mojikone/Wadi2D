@@ -1,0 +1,46 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.3 === 1 the map tools left Run for the results page
+    5.3 PASS every map tool on the results page 
+    5.3 PASS none left in the Run card 
+    5.3 PASS Run has the Results button, off before a run 
+    5.3 === 2 two runs; the page of the second
+    5.4 dock says: Starting...
+    8.0 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    8.5 dock says: line S14 ring crosses no active face
+   24.9 PASS run results_run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   24.9 dock says: That folder already holds a run; this one goes to results_run_2.
+   26.5 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   27.0 dock says: line S14 ring crosses no active face
+   44.1 PASS run results_run_2 finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   44.1 PASS the second beside the first (WindowsPath('C:/Users/mojtaba/AppData/Local/Temp/claude/0411bb1eda7ca588/563cf3f8-070b-42eb-82ea-489205b14695/scratchpad/w101/dock_results/runs/results_run'), WindowsPath('C:/Users/mojtaba/AppData/Local/Temp/claude/0411bb1eda7ca588/563cf3f8-070b-42eb-82ea-489
+   44.1 PASS Results on 
+   44.1 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   45.4 PASS the results page shown Results of run results_run_2
+   45.4 PASS design lines first, by his rule (['Bidah 03'], 'design')
+   45.4 PASS its peak, time, volume (10.363, 1.0, 0.0101615507325)
+   45.4 PASS the table says them 
+   45.4 PASS every element (16, 16)
+   45.4 PASS the search by name ['Bidah 03', 'Bidah 03 ring']
+   45.4 === 3 a pin, first whatever the filter, saved with the project
+   45.4 PASS pinned first under the design filter ['Faydh 01', 'Bidah 03']
+   45.9 PASS the pin in the project file ['upfront line:Faydh 01']
+   45.9 PASS the page as wide as the dock, or its least width (285, 278, 278)
+   46.0 === 4 a row opens the hydrograph chart on that element
+   48.6 PASS the chart on Bidah 03 Upfront line: Bidah 03
+   48.6 PASS on this run 
+   48.6 === 5 the two runs compared
+   48.6 PASS the runs beside it offered, this one ticked ['results_run_2', 'results_run']
+   49.9 compared: 2 runs side by side on the 2 elements shown above: peak, time to peak, volume and peak outflow. Click a row for its hydrographs on one chart.
+   49.9 PASS four numbers a run, side by side ['Element', 'Kind', 'results_run_2: Peak, m3/s', 'results_run_2: Time to peak, h', 'results_run_2: Volume, Mm3', 'results_run_2: Peak outflow, m3/s', 'results_run: Peak, m3/s', 'results_run: Time to peak, h', 'results_run: Volume, Mm3', 'results_run: Peak outf
+   49.9 PASS the elements shown above, pinned first ['Faydh 01', 'Bidah 03']
+   49.9 PASS twice the rain, a higher peak (10.363, 1.551)
+   49.9 PASS both runs on one chart ['results_run_2: flow of record', 'results_run: flow of record']
+   50.2 PASS the table in Excel ('C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w101\\dock_results\\runs\\compare_runs.xlsx', 'results_run_2: Peak, m3/s')
+   50.3 === 6 back to the model; Open run on the start page leads to the results
+   50.3 PASS Model takes the sections back 
+   51.6 PASS Open run opens the run's results Results of run results_run
+   51.6 PASS the page is never saved: a model opens on its sections None
+   51.7 SUMMARY 29 passed, 0 failed 
+   51.7 DONE
