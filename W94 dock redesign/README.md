@@ -144,3 +144,8 @@ His rule of 2026-11-16 (answer on W103's finding): "in run 4 every lumped catchm
 actually the last point of the lumped model." So a lumped model ends at its dams (and junctions marked as last points,
 HAT-J4 on Block 2); in Hybrid Lumped the lumped water enters the 2D model at those points; with the lumped reduction in
 the curve form every lumped subbasin is read at the drainage area of the first last point below it. Being built as W105.
+His clarification the same day: "In Lumped and Hybrid Lumped, the ARF applies to each point's upstream area. But in
+Hybrid 2D, the ARF applies to the area upstream of the last point of each basin, like the dams and the one defined in
+HAT, since in Hybrid 2D we cannot run the 2D model for each upstream point." Lumped and Hybrid Lumped: HMS depth-area
+practice, each element at its own drainage area, the hydrograph handed to the grid at a last point that point's own;
+Hybrid 2D: one factor per basin, its last point's.
