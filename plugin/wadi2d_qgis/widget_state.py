@@ -19,6 +19,7 @@ from pathlib import Path
 
 from qgis.core import QgsCoordinateReferenceSystem, QgsProject, QgsRasterLayer, QgsVectorLayer
 from qgis.gui import QgsFieldComboBox, QgsFileWidget, QgsMapLayerComboBox
+from qgis.PyQt.QtCore import QObject
 from qgis.PyQt.QtWidgets import (
     QAbstractButton,
     QAbstractSpinBox,
@@ -27,6 +28,7 @@ from qgis.PyQt.QtWidgets import (
     QGroupBox,
     QLineEdit,
     QRadioButton,
+    QWidget,
 )
 
 from .model_doc import RASTER_PROVIDER
@@ -60,32 +62,47 @@ def is_input(value) -> bool:
     return _pair_table(value)
 
 
-def inputs(owner, skip: tuple[str, ...] = (), prefix: str = "", seen: set | None = None, depth: int = 0):
+def _inside(root, value) -> bool:
+    """Whether a Qt object is the section's own: a widget laid out inside it. A plain helper object is; a widget of
+    another section an attribute happens to name is not, nor is anything that points back at the dock."""
+    if not isinstance(value, QObject):
+        return True
+    return isinstance(value, QWidget) and root is not None and (value is root or root.isAncestorOf(value))
+
+
+def inputs(
+    owner, skip: tuple[str, ...] = (), prefix: str = "", seen: set | None = None, depth: int = 0, root=None
+):
     """Every input of ``owner`` as ``(path, widget)``, in the order its attributes were made; a widget reached twice
-    is given once, by its first path."""
+    is given once, by its first path. Only widgets laid out inside ``root`` count, the owner itself by default: a
+    section's state is its own widgets, whatever else its attributes lead to."""
     seen = set() if seen is None else seen
+    root = owner if root is None and isinstance(owner, QWidget) else root
+    if not hasattr(owner, "__dict__"):
+        return
     for name, value in list(vars(owner).items()):
         path = f"{prefix}{name}"
         if name.startswith("_") or path in skip:
             continue
-        yield from _visit(path, value, skip, seen, depth)
+        yield from _visit(path, value, skip, seen, depth, root)
 
 
-def _visit(path: str, value, skip, seen: set, depth: int):
+def _visit(path: str, value, skip, seen: set, depth: int, root):
     if id(value) in seen or path in skip:
         return
     if is_input(value):
-        seen.add(id(value))
-        yield path, value
+        if _inside(root, value):
+            seen.add(id(value))
+            yield path, value
     elif isinstance(value, dict):
         for key, item in list(value.items()):
             if isinstance(key, str):
-                yield from _visit(f"{path}.{key}", item, skip, seen, depth)
-    elif _own(value) and depth < MAX_DEPTH:
+                yield from _visit(f"{path}.{key}", item, skip, seen, depth, root)
+    elif _own(value) and depth < MAX_DEPTH and _inside(root, value):
         seen.add(id(value))
         if isinstance(value, QGroupBox) and value.isCheckable():
             yield f"{path}{CHECKED}", value
-        yield from inputs(value, skip, f"{path}.", seen, depth + 1)
+        yield from inputs(value, skip, f"{path}.", seen, depth + 1, root)
 
 
 # One widget

@@ -20,9 +20,10 @@ from __future__ import annotations
 import configparser
 import contextlib
 import json
+import traceback
 from pathlib import Path
 
-from qgis.core import QgsProject
+from qgis.core import Qgis, QgsMessageLog, QgsProject
 from qgis.PyQt.QtCore import QObject, QTimer
 
 from . import model_doc
@@ -30,6 +31,7 @@ from .protocol import JOB_FILE
 from .widget_state import NOTE
 
 ENTRY_SCOPE = "Wadi2D"
+LOG_TAG = "Wadi2D"
 ENTRY_KEY = "model"
 KEEP_MS = 2000
 """How often the dock is compared with the project's copy."""
@@ -78,6 +80,7 @@ class ModelLinks(QObject):
         self._applying = False
         self._last = ""
         self._pristine: dict | None = None
+        self._said: set[str] = set()
         self._version = plugin_version()
         self._timer = QTimer(self)
         self._timer.setInterval(KEEP_MS)
@@ -146,7 +149,11 @@ class ModelLinks(QObject):
         """Write the model into the project when it differs from what was last written there."""
         if not self.ready or self._applying:
             return
-        doc = self.collect()
+        try:
+            doc = self.collect()
+        except Exception:  # keeping the model must never stop the dock, nor say so every two seconds
+            self._log_once("The model could not be read from the dock, so the project's copy is not kept")
+            return
         mark = model_doc.fingerprint(doc)
         if mark != self._last:
             QgsProject.instance().writeEntry(ENTRY_SCOPE, ENTRY_KEY, model_doc.dumps(doc))
@@ -174,9 +181,19 @@ class ModelLinks(QObject):
     # A run folder
 
     def write_run_copy(self, run_folder: Path | str) -> None:
-        """The model that made a run, into its folder. A copy that cannot be written stops no run."""
-        with contextlib.suppress(OSError):
+        """The model that made a run, into its folder. A copy that cannot be made or written stops no run."""
+        try:
             model_doc.write_doc(Path(run_folder) / model_doc.MODEL_FILE, self.collect())
+        except OSError:
+            pass
+        except Exception:
+            self._log_once(f"The model of the run in {run_folder} could not be saved beside its job")
+
+    def _log_once(self, words: str) -> None:
+        """A fault of the saved model, into the Wadi2D log with its traceback, once for each kind."""
+        if words not in self._said:
+            self._said.add(words)
+            QgsMessageLog.logMessage(f"{words}: {traceback.format_exc()}", LOG_TAG, Qgis.Warning)
 
     def open_run(self, folder: str) -> None:
         """Refill the dock from a finished run: its saved model, or what its job can tell."""
