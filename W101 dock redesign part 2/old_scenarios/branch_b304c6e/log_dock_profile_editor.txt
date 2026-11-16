@@ -1,0 +1,164 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\head3\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 where the editor sits in the dock
+    5.2 PASS no button until a layer is chosen 
+    5.2 PASS walls have no profile 
+    5.3 PASS the button shows with the layer 
+    5.3 PASS no saved profile yet 
+    5.4 === 2 a run on the fields alone: what an edit has to differ from
+    5.4 dock says: Starting...
+    6.9 dock says: Wadi cut: the right dyke ends at station 2864 standing 35.8 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line.
+    7.9 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   10.0 PASS the fields run finishes Finished. Earthworks. Wadi cut: cut 565,560 m3, fill 3,722,335 m3. Wadi cut: the bed is above the ground for 1666 m from station 1197 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: its start is cut 21.1 m below the ground with a square face. Tie 
+   10.0 PASS the fields reach the job {'width': 20.0, 'left_slope': 2.0, 'right_slope': 2.0, 'left_crest_width': 3.0, 'right_crest_width': 3.0, 'left_outer_slope': 2.0, 'right_outer_slope': 2.0, 'bed_start_z': 122.0, 'bed_slope': 0.0009, 'crest_z': 125.0}
+   10.0 === 3 the same ground as Preview terrain
+   10.0 dock says: Finished. Earthworks. Wadi cut: cut 565,560 m3, fill 3,722,335 m3. Wadi cut: the bed is above the ground for 1666 m from station 1197 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: its start is cut 21.1 m below the ground with a square face. Tie it to something, or use a closed or tape
+   12.8 PASS Preview terrain still works Earthworks. Wadi cut: cut 565,560 m3, fill 3,722,335 m3. Wadi cut: the bed is above the ground for 1666 m from station 1197 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: its start is cu
+   12.8 === 4 the editor opens from the dock on the line's own numbers
+   12.8 PASS the button opens the editor 
+   12.8 PASS beside the map, not over it: not modal 
+   12.8 PASS one line in the box, by its name Wadi cut
+   12.8 PASS three series ('bed_z', 'left_top_z', 'right_top_z')
+   12.8 PASS the bed starts from its fields [[0.0, 122.0], [2863.564, 119.42279220861026]]
+   12.8 PASS the tops start from their field [[0.0, 125.0], [2863.564, 125.0]]
+   12.8 PASS one top field: both tops together 
+   12.8 PASS the route says fields In use: the fields of the layer. Nothing changes until you press Save.
+   12.8 PASS vertices are marked [0.0, 1431.7821063276353, 2863.5642126552707]
+   12.8 PASS the ground is the DEM along the line: within 0.15 m of the engine's, at the median median 0.038, worst 1.266, 573 samples
+   12.8 === 5 drag, type, undo, by real events
+   12.8 PASS a double-click adds a point on the bed [[0.0, 122.0], [1498.2, 120.65], [2863.564, 119.42279220861026]]
+   12.8 PASS the table has its row 4
+   12.8 PASS Shift and a drag lower the bed and hold the station [1498.2, 113.51]
+   12.8 PASS the tops stayed 
+   12.9 PASS undo puts it back 
+   12.9 PASS Ctrl+Y brings it again [1498.2, 113.51]
+   12.9 PASS a typed level lands on the point [1498.2, 118.5]
+   12.9 PASS the tops are the same at every point 
+   12.9 PASS both tops move together [[0.0, 125.0], [2863.564, 125.86]]
+   12.9 === 6 what cannot be built is met here, in words
+   12.9 PASS Save refuses a top under the bed The left top is below the bed at station 0. The right top is below the bed at station 0. Not saved.
+   12.9 PASS Preview refuses it too, before the engine The left top is below the bed at station 0. The right top is below the bed at station 0.
+   12.9 PASS undo clears it 
+   12.9 === 7 Preview terrain in the editor: the engine's result on unsaved points
+   12.9 PASS nothing is saved yet 
+   12.9 PASS it says it is working Working out the terrain...
+   15.7 editor says: Earthworks. Wadi cut: cut 623,989 m3, fill 3,790,141 m3. Wadi cut: the bed is above the ground for 1646 m from station 1217 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: adverse slope, the bed rises 0.92 m from station 1498 to 2864. Check the direction of the line: station 0 is its first vertex. Wadi cut: its start is cut 21.1 m below the ground with a square face. Tie it to something, or use a closed or tapered end. Wadi cut: the left dyke ends at station 2864 standing 34.9 m abo
+   15.7 PASS the engine's words reach the editor Earthworks. Wadi cut: cut 623,989 m3, fill 3,790,141 m3. Wadi cut: the bed is above the ground for 1646 m from station 1217 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: adverse slope, 
+   15.7 PASS the pane holds the engine's profile 
+   15.7 PASS the engine's bed is the bed in the plot, to 2 cm worst 0.0005
+   15.7 PASS the new ground went down where the bed did (118.504, 120.653)
+   15.7 PASS the draft left no file behind 
+   15.7 PASS the draft is gone from the store 
+   15.7 PASS the same canvas as Preview terrain 
+   15.7 PASS the map holds this preview ofile_editor\runs\wadi2d_preview_c1sd9k9j\terrain_change.tif
+   15.7 PASS taking a point turns the section to it 1431.7821063276351
+   15.8 PASS an edit marks the preview out of date You have edited since this preview: press Preview terrain to bring it up to date.
+   15.8 PASS undoing the edit makes it good again The engine's result for these points.
+   15.8 === 8 Save, and a run: the ground the engine used
+   15.8 PASS Save writes the file Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\wadi_profiles\channel_dyke_line_0.csv
+   15.8 PASS beside the layer, by line C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\wadi_profiles\channel_dyke_line_0.csv
+   15.8 PASS the dock counts it 1 saved
+   15.8 PASS the route says saved In use: the saved profile channel_dyke_line_0.csv. For this line it outranks the fields and the section table.
+   15.9 PASS the button keeps its width beside the count 80
+   15.9 PASS the count fits 135
+   15.9 PASS in the engine's own columns station,bed_z,left_top_z,right_top_z
+   15.9 dock says: Starting...
+   17.4 dock says: Wadi cut: the right dyke ends at station 2864 standing 35.8 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line.
+   18.4 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   20.4 PASS the edited run finishes Finished. Earthworks. Wadi cut: cut 623,989 m3, fill 3,790,141 m3. Wadi cut: the bed is above the ground for 1646 m from station 1217 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: adverse slope, the bed rises 0.92 m from station 1498 to 2864. Ch
+   20.4 PASS mass closes -2.0822087112242168e-09
+   20.4 PASS the job names the table in inputs C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\runs\edited\inputs\channel_dyke_1_channel_dyke_line_0.csv
+   20.4 PASS the copy holds the saved numbers 
+   20.4 PASS the engine's resolved job holds the edited level [(0.0, 122.0), (1498.2, 118.5), (2863.564, 119.4227922)]
+   20.4 terrain at station 1498.2: fields 120.65324401855469, edited 118.50420379638672, bed asked 118.5
+   20.4 PASS the modified terrain stands at the edited bed 118.50420379638672
+   20.4 PASS and the run on the fields does not 120.65324401855469
+   27.1 read_ground: {"engine": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\head3\\wadi2d\\__init__.py", "zmin": [120.65229797363281]} 
+   28.8 read_ground: {"engine": "C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\head3\\wadi2d\\__init__.py", "zmin": [118.50176239013672]} 
+   28.8 solver zmin: {'fields': {'engine': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\head3\\wadi2d\\__init__.py', 'zmin': [120.65229797363281]}, 'edited': {'engine': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\head3\\wadi2d\\__init__.py', 'zmin': [118.50176239013672]}}
+   28.8 PASS the engine under test is this worktree C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\head3\wadi2d\__init__.py
+   28.8 PASS the solver's cell went down to the edited bed [118.50176239013672]
+   28.8 PASS and by more than a metre from the fields' run (120.65229797363281, 118.50176239013672)
+   28.8 PASS more ground was cut (565560.11, 623989.421)
+   28.9 === 9 the saved profile comes back; the field and table routes stay
+   28.9 PASS closing leaves the dock free 
+   28.9 PASS a layer chosen again finds its profile 1 saved
+   29.0 PASS the editor reopens on the saved points [[0.0, 122.0], [1498.2, 118.5], [2863.564, 119.4227922]]
+   29.0 PASS the field route alone: no table on the drain None
+   29.0 PASS the Section table route works C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\drain_section.csv
+   29.0 PASS the saved profile stands beside it C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\wadi_profiles\channel_dyke_line_0.csv
+   29.0 dock says: Starting...
+   30.5 dock says: Wadi cut: the right dyke ends at station 2864 standing 35.8 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line.
+   31.5 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   33.8 PASS a run on a saved profile and a section table Finished. Earthworks. South drain: cut 126,537 m3; Wadi cut: cut 623,989 m3, fill 3,790,141 m3. South drain: the section table stops at station 2002 of 2006 m; the last section holds to the end. South drain: the bed is above the ground for 449 m from station 8
+   33.8 PASS the section table reaches the job as ever C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\runs\routes\inputs\channel_1_drain_section.csv
+   33.8 === 10 a table in the dock opens in the editor; Save keeps a copy for that line; the table stays
+   33.8 PASS the editor starts from the section table [[0.0, 122.4], [1000.0, 121.5], [2002.0, 120.6]]
+   33.8 PASS it says the table is in use In use: the section table drain_section.csv. Save keeps these points for this line alone; the table stays as it is.
+   33.8 PASS the other column stays with its stations {'station': 0.0, 'bed_z': 122.4, 'width': 30.0}
+   33.8 PASS Save Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\drain_profiles\channel_line_0.csv
+   33.8 PASS the user's table is not touched 
+   33.8 PASS the saved copy keeps width ['station,bed_z,width', '0,122.4,30', '1000,121,30']
+   33.8 PASS the edit outranks the table C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\drain_profiles\channel_line_0.csv
+   33.8 === 11 Drop goes back, and the job is the one before any edit
+   33.8 PASS the table is in use again In use: the section table drain_section.csv. Save keeps these points for this line alone; the table stays as it is.
+   33.8 PASS the file stays under another name [WindowsPath('C:/Users/mojtaba/AppData/Local/Temp/claude/0411bb1eda7ca588/563cf3f8-070b-42eb-82ea-489205b14695/scratchpad/old_branch3/dock_profile_editor/data/drain_profiles/channel_line_0.csv.dropped')]
+   33.9 PASS back to the fields [[0.0, 122.0], [2863.564, 119.42279220861026]]
+   33.9 PASS the count follows 
+   33.9 dock says: Starting...
+   35.4 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   37.9 PASS the job after Drop is the job of the fields, to the last key {}
+   37.9 PASS the cached grid of the fields is used again 
+   37.9 === 12 tops apart, on a channel with dykes given a top for each bank
+   38.0 PASS apart: the box is off 
+   38.0 PASS no name: the line goes by its number Line 1
+   38.0 === 13 an embankment's crest
+   38.0 PASS one series, the crest {'crest_z': [[0.0, 125.0], [1317.971, 125.0]]}
+   38.0 PASS a point on the crest [[0.0, 125.0], [659.0, 125.01], [1317.971, 125.0]]
+   38.1 PASS Save Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\bank_profiles\embankment_line_0.csv
+   38.1 dock says: Finished. Earthworks. Wadi cut: cut 565,560 m3, fill 3,722,335 m3. Wadi cut: the bed is above the ground for 1666 m from station 1197 to 2864, by up to 29.7 m; it stands on fill there. Wadi cut: its start is cut 21.1 m below the ground with a square face. Tie it to something, or use a closed or tape
+   40.9 PASS the preview draws its tops Earthworks. North dyke: fill 1,200,937 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another lin
+   40.9 PASS the engine's crest is the edited one 126.5
+   40.9 === 14 elevations: crest line, spillway, burn line
+   40.9 PASS each has its button 
+   40.9 PASS a crest line starts from its field {'crest_z': [[0.0, 122.0], [608.276, 122.0]]}
+   43.8 crest preview says: Earthworks. burn_line 1: cut 24,027 m3; North dyke: fill 1,119,096 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. North dyke: it ends at station 1318 standing 18.4 m above the ground,
+   43.8 PASS Save Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\crest_profiles\crest_line_line_0.csv
+   43.8 PASS Save Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\spill_profiles\spillway_line_0.csv
+   43.8 PASS the burn line says invert 
+   46.6 PASS a burn line previews its volume Earthworks. burn_line 1: cut 28,781 m3; North dyke: fill 1,119,096 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to h
+   46.6 PASS Save Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\burn_profiles\burn_line_line_0.csv
+   46.6 dock says: Starting...
+   48.1 dock says: North dyke: it ends at station 1318 standing 18.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line.
+   48.6 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   51.2 PASS a run with all four edited Finished. Earthworks. burn_line 1: cut 28,781 m3; North dyke: fill 1,119,096 m3. North dyke: it ends at station 0 standing 3.4 m above the ground, with nothing to tie into: water goes round the end. Run it to high ground or to another line. North dyke: it ends
+   51.2 PASS the crest line's job has Z per vertex and an added vertex {'kind': 'crest_line', 'coordinates': [[435700.0, 2726600.0], [435897.27878476644, 2726567.120202539], [436300.0, 2726500.0]], 'z': [122.0, 123.2, 122.0]}
+   51.2 PASS the added vertex lies on the line [[435700.0, 2726600.0], [435897.27878476644, 2726567.120202539], [436300.0, 2726500.0]]
+   51.2 PASS its length is the same 
+   51.2 PASS the spillway keeps its C and length {'kind': 'spillway', 'coordinates': [[436500.0, 2727735.0], [436620.0, 2727710.0]], 'z': [123.8, 123.99999919515294], 'coefficient': 2.1, 'length': 30.0}
+   51.2 PASS the burn line's job has its invert {'kind': 'burn_line', 'coordinates': [[436000.0, 2727500.0], [436500.0, 2727500.0]], 'z': [121.0, 119.0]}
+   51.3 PASS the ground took the burn at the edited invert [(120.50604248046875, 120.5), (120.40604400634766, 120.4), (120.30603790283203, 120.3), (120.20603942871094, 120.2), (120.10604095458984, 120.1), (120.00604248046875, 120.0)]
+   51.3 PASS the run folder holds what made it [[435700.0, 2726600.0, 122.0], [435897.279, 2726567.12, 123.2], [436300.0, 2726500.0, 122.0]]
+   51.3 === 15 a line with no level, a drawn layer, a multi-part line
+   51.4 PASS with no level a run is refused as before 
+   51.4 PASS it starts on the ground, and says so No level given yet: these points start on the ground. Drag them to the design.
+   51.4 PASS Save for a layer with no file Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\wadi2d_profiles\drawn_728743fd_4c14_4c55_b77b_f345e251afdc\channel_line_1.csv
+   51.4 PASS into the temporary folder, not the project 1
+   51.5 dock says: Starting...
+   53.0 dock says: channel: adverse slope, the bed rises 6.65 m from station 1005 to 2006. Check the direction of the line: station 0 is its first vertex.
+   54.0 dock says: a stream draining 0.41 km2 beyond the edge enters the domain at (435500, 2727615) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   56.0 PASS a line given its bed by the editor alone runs Finished. Earthworks. channel 1: cut 208,080 m3. channel: the bed is above the ground for 519 m from station 10 to 529, by up to 4.7 m; nothing is cut there. channel: the bed is above the ground for 240 m from station 669 to 908, by up to 6.5 m; nothing is cut
+   56.1 PASS each part is a line in the box ['Two reaches', 'Two reaches, part 2']
+   56.1 PASS Save part 1 Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\multi_profiles\channel_line_0.csv
+   56.1 PASS Save part 2 Saved. The next preview and the next run use it. C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch3\dock_profile_editor\data\multi_profiles\channel_line_0_part2.csv
+   56.1 PASS one file each ['channel_line_0.csv', 'channel_line_0_part2.csv']
+   56.1 PASS each part gets its own ['C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\old_branch3\\dock_profile_editor\\data\\multi_profiles\\channel_line_0.csv', 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7c
+   56.1 === 16 unsaved edits and an open editor
+   56.1 PASS Cancel keeps the editor open 
+   56.1 PASS a second click does not lose the edits 
+   56.1 PASS Discard closes it 
+   56.1 PASS the layer going closes its editor 
+   56.1 PASS no DEM: said, and no editor Choose a DEM layer first: the editor draws the ground from it.
+   56.1 SUMMARY 120 passed, 0 failed 
+   56.1 DONE

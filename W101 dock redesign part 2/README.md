@@ -283,6 +283,13 @@ base's by one named change only: every one of the 22 run jobs carries the thresh
 (`outputs.pixels.depth_floor`, `hazard_depth_floor`, `cell_depth_floor`), and with those taken out all 22 are
 identical to the character (`old_scenarios/floors_only.py`); the 5 preview jobs differ the same way.
 
+**And at the end (`b304c6e`, items 3 to 6 in)**: the same ten counts again, scenario for scenario, and the same jobs: 22
+identical once the three floors are taken out (`old_scenarios/branch_b304c6e/`). W23's preview checks now run through
+Build mesh and pass as before (the engine's numbers equal the table's, a raster of tile sizes); the map tools these
+scenarios click now sit on the results page and are found there. The headless smoke test passes on QGIS 3.36.2 (2 of
+2, the fake engine and the real one), the dock with every new section built there; all plugin tests that need no
+QGIS window pass (695).
+
 ## Found on the way
 
 1. The generated basin's reaches take their Manning n from Terrain's Manning (`wadi2d/basin/elements.py`
@@ -292,6 +299,15 @@ identical to the character (`old_scenarios/floors_only.py`); the 5 preview jobs 
    model; now ten.
 3. Older dock scenarios that drive the old Storm widgets (`W20`, `W37`, `W39`, `W53`, `W54`, `W77 dock_storm`) no longer
    find them: the sources changed by design. Not rewritten.
+4. **The engine's run listing (`wadi2d lines`) does not carry a line's or point's drainage area**, so the results page
+   names design points and lines from the run's own job; a listing that carried it would make the job's read
+   unnecessary (not changed: no engine change was needed).
+5. `wadi2d domain` writes `domain.geojson` with no CRS; QGIS reads such a file as degrees, so the dock loads the domain
+   from `domain.gpkg`, which names it. A CRS in the GeoJSON (or the dock reading only the GeoPackage, as now) closes it.
+6. The centre mesh on Bidah at 30 m gives one note per stream (13), two of them "no centres" for streams wholly inside a
+   higher line's clearance; Build mesh says four and counts the rest.
+7. On Bidah, Complete upstream adds 9.08 km2 that drains into W1's validation domain from outside it; the dock's runs
+   on Bidah warn of the same entering streams (W78), which W78 left as the window's design.
 
 ## Not done
 
@@ -305,5 +321,5 @@ identical to the character (`old_scenarios/floors_only.py`); the 5 preview jobs 
   the project; a depth-area study's folder is not a run of this page (its lines stay in the Study section); the Excel
   export is a plain sheet: the dam workbook (W60) lays out dams by return period and does not fit a run-by-run table;
   a lumped-only run (W88) goes through the same listing and was not opened on the page in a check.
-- Older dock scenarios that drive the old Storm widgets (Found 3), and the headless smoke test on QGIS 3.36 for the
-  sections of items 2 to 6 (only the real dock on 3.44.8 ran them).
+- Older dock scenarios that drive the old Storm widgets (Found 3) are not rewritten; the new sections ran through the
+  real dock on QGIS 3.44.8 only (on 3.36.2 the headless smoke test builds them and runs a job).
