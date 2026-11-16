@@ -949,7 +949,7 @@ def real_engine() -> None:
     check("0 h 15 min of 0 h 15 min" in status and "wet area" in status, f"real: {status}")
     check("mass error" in status, "real: mass error reported")
     node = group(run_dir.name)
-    names = [child.name() for child in node.children()]
+    names = [found.layer().name() for found in node.findLayers()]  # W100: the pixel rasters now come too, so the maps sit in subgroups
     check({"max_depth", "hazard", "max_speed", "arrival"} <= set(names), f"real: maps loaded {names}")
     depth = next(n.layer() for n in node.findLayers() if n.layer().name() == "max_depth")
     check(depth.name() == "max_depth", "real: depth on top")

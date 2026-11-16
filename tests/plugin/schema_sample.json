@@ -3109,8 +3109,13 @@
           "$ref": "#/$defs/Pixels",
           "default": {
             "enabled": true,
-            "pixel_m": 0.0,
+            "pixel_m": null,
+            "auto_pixel_m": 2.0,
+            "auto_cell_pixels": 8,
+            "surface": "continuous",
             "cell_depth": 0.05,
+            "volume_slack": 0.25,
+            "volume_slack_m": 0.03,
             "depth_floor": 0.05,
             "hazard_limits": [
               [
@@ -3144,7 +3149,10 @@
             "edge_band": 0.3,
             "edge_passes": 3,
             "peak_lift": 3.0,
-            "batch_pixels": 50000000
+            "batch_pixels": 50000000,
+            "dv_raster": false,
+            "max_error_m": 0.001,
+            "overviews": true
           }
         },
         "smooth": {
@@ -3270,19 +3278,69 @@
           "type": "boolean"
         },
         "pixel_m": {
-          "default": 0.0,
-          "description": "Pixel of the maps, a multiple of the DEM pixel, m; 0 means the DEM's",
+          "anyOf": [
+            {
+              "maximum": 1000.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pixel of the maps of record, a multiple of the DEM pixel, m; 0 means the DEM's; empty takes the coarsest pixel within auto_pixel_m that gives a cell auto_cell_pixels across (W100)",
+          "title": "Pixel M"
+        },
+        "auto_pixel_m": {
+          "default": 2.0,
+          "description": "Coarsest pixel the maps of record take when pixel_m is empty, m",
+          "exclusiveMinimum": 0.0,
           "maximum": 1000.0,
-          "minimum": 0.0,
-          "title": "Pixel M",
+          "title": "Auto Pixel M",
           "type": "number"
+        },
+        "auto_cell_pixels": {
+          "default": 8,
+          "description": "Fewest pixels across a cell the maps of record take when pixel_m is empty",
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Auto Cell Pixels",
+          "type": "integer"
+        },
+        "surface": {
+          "default": "continuous",
+          "description": "How the water surface is drawn over the terrain pixels (W100): 'continuous' slopes through the cell corners, each corner taking the levels of the cells joined there and the water each of them holds; 'corners' takes the levels alone, as RAS Mapper's sloping mode; 'cell_fill' fills every cell to its own water and eases joined edges, the rule of the maps made before W100",
+          "enum": [
+            "continuous",
+            "corners",
+            "cell_fill"
+          ],
+          "title": "Surface",
+          "type": "string"
         },
         "cell_depth": {
           "default": 0.05,
-          "description": "A cell whose mean depth never reaches this is left out, m",
+          "description": "Under surface 'cell_fill' only: a cell whose mean depth never reaches this is left out, m; the other surfaces map every cell that was ever wet",
           "maximum": 10.0,
           "minimum": 0.0,
           "title": "Cell Depth",
+          "type": "number"
+        },
+        "volume_slack": {
+          "default": 0.25,
+          "description": "On the continuous surfaces: a wet cell may draw this share more water than it holds, or volume_slack_m of mean depth if more; past it, its surface is lowered until it holds its own, a step at its edges (steep ground with little water, where a surface through the corners spans a gully)",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Volume Slack",
+          "type": "number"
+        },
+        "volume_slack_m": {
+          "default": 0.03,
+          "description": "On the continuous surfaces: the mean depth, m, a wet cell may draw over its own whatever it holds, so a thin sheet varying from cell to cell is not cut into steps",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Volume Slack M",
           "type": "number"
         },
         "depth_floor": {
@@ -3352,7 +3410,7 @@
         },
         "link_ratio": {
           "default": 0.5,
-          "description": "Two cells stepping down a slope are one flow if the shallower is this share of the deeper",
+          "description": "Two cells stepping down a slope are one flow if the shallower is this share of the deeper; on the continuous surfaces, below it the deeper governs the corner they share (depth-weighted)",
           "exclusiveMinimum": 0.0,
           "maximum": 1.0,
           "title": "Link Ratio",
@@ -3360,7 +3418,7 @@
         },
         "edge_band": {
           "default": 0.3,
-          "description": "Width beside a cell edge over which two joined cells ease into one surface, share of a cell",
+          "description": "Under surface 'cell_fill': width beside a cell edge over which two joined cells ease into one surface, share of a cell",
           "exclusiveMinimum": 0.0,
           "maximum": 0.5,
           "title": "Edge Band",
@@ -3368,7 +3426,7 @@
         },
         "edge_passes": {
           "default": 3,
-          "description": "Refills that remove the step at joined cell edges; 0 leaves each cell a block",
+          "description": "Under surface 'cell_fill': refills that remove the step at joined cell edges; 0 leaves each cell a block",
           "maximum": 12,
           "minimum": 0,
           "title": "Edge Passes",
@@ -3389,6 +3447,26 @@
           "minimum": 1000000,
           "title": "Batch Pixels",
           "type": "integer"
+        },
+        "dv_raster": {
+          "default": false,
+          "description": "Also write the depth x speed raster; the hazard classes are made from it either way (W100)",
+          "title": "Dv Raster",
+          "type": "boolean"
+        },
+        "max_error_m": {
+          "default": 0.001,
+          "description": "Largest error the compression of the depth and speed rasters may make, m or m/s; 0 keeps every digit (W100)",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Max Error M",
+          "type": "number"
+        },
+        "overviews": {
+          "default": true,
+          "description": "Build reduced copies inside each raster, so a map far out reads few pixels (W100)",
+          "title": "Overviews",
+          "type": "boolean"
         }
       },
       "title": "Pixels",
@@ -5831,9 +5909,12 @@
         "frame_bytes_per_cell": 10.0,
         "face_discharge": true,
         "pixels": {
+          "auto_cell_pixels": 8,
+          "auto_pixel_m": 2.0,
           "batch_pixels": 50000000,
           "cell_depth": 0.05,
           "depth_floor": 0.05,
+          "dv_raster": false,
           "edge_band": 0.3,
           "edge_passes": 3,
           "enabled": true,
@@ -5866,8 +5947,13 @@
           ],
           "link_margin": 0.01,
           "link_ratio": 0.5,
+          "max_error_m": 0.001,
+          "overviews": true,
           "peak_lift": 3.0,
-          "pixel_m": 0.0
+          "pixel_m": null,
+          "surface": "continuous",
+          "volume_slack": 0.25,
+          "volume_slack_m": 0.03
         },
         "smooth": {
           "block_px": 4096,
