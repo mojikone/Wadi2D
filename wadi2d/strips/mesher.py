@@ -96,14 +96,14 @@ def resample(line: shapely.LineString, step: float, smooth: int = 0) -> np.ndarr
     """Points every ``step`` along a line, after a running mean over ``smooth`` points of a 10 m sampling."""
     if smooth > 1:
         stations = np.linspace(0.0, line.length, max(round(line.length / 10.0), 1) + 1)  # the end included
-        fine = np.array([line.interpolate(s).coords[0] for s in stations])
+        fine = shapely.get_coordinates(shapely.line_interpolate_point(line, stations), include_z=line.has_z)  # all at once
         out = fine.copy()
         for i in range(1, len(fine) - 1):  # the ends stay: a mean there would pull the line inward
             a, b = max(0, i - smooth // 2), min(len(fine), i + smooth // 2 + 1)
             out[i] = fine[a:b].mean(axis=0)
         line = shapely.LineString(out)
     n = max(round(line.length / step), 1)
-    return np.array([line.interpolate(t, normalized=True).coords[0] for t in np.linspace(0.0, 1.0, n + 1)])
+    return shapely.get_coordinates(shapely.line_interpolate_point(line, np.linspace(0.0, 1.0, n + 1), normalized=True), include_z=line.has_z)
 
 
 def midline(left: shapely.LineString, right: shapely.LineString, step: float = 10.0) -> shapely.LineString | None:
