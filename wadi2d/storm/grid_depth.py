@@ -19,7 +19,7 @@ centroid farther than a cell spacing from every wet centre is off the grid and s
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
@@ -96,6 +96,11 @@ class DepthGrid:
         """The mean depth of the cells centred in any of ``polygons``; shapely geometries in the grid's CRS."""
         shapes = list(polygons)
         return self.mean_of((self.cells_in(polygon) for polygon in shapes), centroid_of(shapes))
+
+
+def subbasin_means(grid: DepthGrid, polygons: Mapping[str, Any], names: Iterable[str]) -> dict[str, float]:
+    """The mean depth over each named subbasin on its own, HMS's `Uniform Depth: No` (W95's depth-grid source)."""
+    return {name: grid.mean_over([polygons[name]]) for name in names}
 
 
 def centroid_of(polygons: Iterable[Any]) -> tuple[float, float]:

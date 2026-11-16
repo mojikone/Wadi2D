@@ -19,7 +19,8 @@ from rasterio import features
 from scipy.integrate import cumulative_trapezoid
 
 from wadi2d.config.constants import MM_PER_M
-from wadi2d.config.schema import Boundary, Hydrology, InitialLevel, RunConfig
+from wadi2d.config.rain import PART_GRID
+from wadi2d.config.schema import SOURCE_STORMS, Boundary, Hydrology, InitialLevel, RunConfig
 from wadi2d.grid.tiles import TileGrid
 from wadi2d.hms import load_basin
 from wadi2d.hms import sqlite as hms_sqlite
@@ -40,7 +41,9 @@ from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
 from wadi2d.storm.hyetograph import HyetographStorm
 from wadi2d.storm.hypothetical import HYPOTHETICAL_STORM, MINUTES_PER_HOUR
+from wadi2d.storm.patterns import percent_pattern
 from wadi2d.storm.rain_frames import RainFrames, RainSpec
+from wadi2d.storm.split_arf import arf_from_config, part_reduction
 from wadi2d.storm.uniform import UNIFORM_STORM
 from wadi2d.tables import GridTables, hbar_at_level
 from wadi2d.terrain.crest import NORTH, staircase
@@ -57,16 +60,15 @@ KIND_FIXED, KIND_FREE, KIND_FOLLOW = 0, 1, 2
 
 
 def arf_table(s) -> ArfTable | GivenFactor | None:
-    """The job's area reduction, for whichever storm takes one: its table, or the factor it gives (W83)."""
+    """The job's area reduction, for whichever storm takes one: its table, or the factor it gives (W83). With
+    ``storm.area_reduction`` (W95) it is the 2D part's; :func:`wadi2d.storm.split_arf.part_reduction` gives either."""
+    if s.area_reduction is not None:
+        return part_reduction(s, PART_GRID)[0]
     if s.arf_factor is not None:
         return GivenFactor(s.arf_factor)
     if s.arf is None:
         return None
-    return ArfTable(
-        np.asarray(s.arf.areas_km2),
-        np.asarray(s.arf.factors),
-        reduces_below_table=s.arf.reduces_below_table,
-    )
+    return arf_from_config(s.arf)
 
 
 def _file_stamp(path: str | Path) -> tuple:
@@ -92,10 +94,11 @@ def build_storm(cfg: RunConfig) -> Storm | None:
     s = cfg.storm
     if s.kind == "none":
         return None
+    arf, area = part_reduction(s, PART_GRID)  # the old storm's own reduction, or the 2D part's (W95)
     if s.kind == "gridded":
         spec = RainSpec(s.rain_variable, s.rain_units, s.rain_interval_min, s.rain_stamp)
         frames = _rain_frames(str(s.rain_file), spec, s.rain_start, _file_stamp(s.rain_file))
-        return GriddedStorm(frames, arf=arf_table(s), storm_area_km2=s.storm_area_km2)
+        return GriddedStorm(frames, arf=arf, storm_area_km2=area)
     if s.kind == "hyetograph":
         return HyetographStorm.from_periods(s.hyetograph_min, s.hyetograph_mm)
     if s.kind == "gauges":
@@ -103,17 +106,21 @@ def build_storm(cfg: RunConfig) -> Storm | None:
     if s.depth_grid is None and s.depth_mm <= 0.0:
         raise ValueError(f"storm kind {s.kind!r} has no depth: set storm.depth_mm or storm.depth_grid")
     depth = UNIT_DEPTH if s.depth_grid is not None else s.depth_mm
-    arf = arf_table(s)
-    if s.kind == "uniform":
+    if s.kind in SOURCE_STORMS:
+        pattern = percent_pattern(s.pattern, s.duration_min)
+    elif s.kind == "hypothetical":
+        pattern = PercentPattern(np.asarray(s.time_percent), np.asarray(s.depth_percent))
+    else:
+        pattern = None
+    if pattern is None:
         storm: UniformStorm = STORM_METHODS.build(
             UNIFORM_STORM, depth_mm=depth, duration_minutes=s.duration_min,
-            storm_area_km2=s.storm_area_km2, arf=arf,
+            storm_area_km2=area, arf=arf,
         )  # fmt: skip
         return storm
-    pattern = PercentPattern(np.asarray(s.time_percent), np.asarray(s.depth_percent))
     built: HypotheticalStorm = STORM_METHODS.build(
         HYPOTHETICAL_STORM, depth_mm=depth, pattern=pattern,
-        duration_hours=s.duration_min / MINUTES_PER_HOUR, storm_area_km2=s.storm_area_km2, arf=arf,
+        duration_hours=s.duration_min / MINUTES_PER_HOUR, storm_area_km2=area, arf=arf,
     )  # fmt: skip
     return built
 

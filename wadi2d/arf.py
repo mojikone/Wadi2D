@@ -42,6 +42,7 @@ from wadi2d.run import (
     prepare_grid,
     run_job,
 )
+from wadi2d.storm.split_arf import at_study_area, grid_curve
 
 COMPOSITE_MAPS = ("max_depth", "max_speed", "hazard")
 UNLISTED_TYPE = "unspecified"
@@ -67,6 +68,11 @@ class StudySummary:
 
 
 def table_type(cfg: RunConfig) -> str:
+    """The type of the table the study reads: the storm's, or the 2D part's curve (W95)."""
+    split = cfg.storm.area_reduction
+    if split is not None:
+        curve = split.grid.table if split.grid is not None else None
+        return curve.table_type if curve is not None else UNLISTED_TYPE
     return cfg.storm.arf.table_type if cfg.storm.arf is not None else UNLISTED_TYPE
 
 
@@ -85,7 +91,7 @@ def arf_step_areas(cfg: RunConfig, low: float, high: float) -> list[float]:
     between neighbours. One table serves the whole event (W53), so there is no duration to choose."""
     if cfg.storm.arf_factor is not None:
         raise InvalidJob(GIVEN_WORDS)
-    table = arf_table(cfg.storm)
+    table = arf_table(cfg.storm)  # the 2D part's curve under storm.area_reduction, which check_storm made a curve
     if table is None:
         raise InvalidJob("arf.by_arf_step needs storm.arf: the areas are placed by its factors")
     return table.step_areas(low, high, cfg.arf.arf_step_max)
@@ -264,10 +270,31 @@ def check_storm(cfg: RunConfig) -> None:
     """A study needs rain and an area table, which can be said before anything is read."""
     if cfg.storm.kind == "none":
         raise InvalidJob("a depth-area study needs a storm")
+    if cfg.storm.area_reduction is not None:
+        _check_split(cfg)
+        return
     if cfg.storm.arf_factor is not None:
         raise InvalidJob(GIVEN_WORDS)
     if cfg.storm.arf is None:
         raise InvalidJob("a depth-area study needs storm.arf: without a table every run is the same run")
+    own = [s.name for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None]
+    if own:
+        raise InvalidJob(
+            f"a depth-area study sets the storm area of every run; subbasins {', '.join(own)} give one of their own: "
+            "choose the study or their areas"
+        )
+
+
+def _check_split(cfg: RunConfig) -> None:
+    """A study on ``storm.area_reduction`` (W95) reads the 2D part's curve at each storm area; the lumped part reads its
+    curve there too, or keeps its fixed area or coefficient."""
+    if not grid_curve(cfg.storm):
+        given = cfg.storm.area_reduction.grid
+        what = "no reduction" if given is None else f"a fixed {given.form}"
+        raise InvalidJob(
+            f"a depth-area study reads the 2D part's curve at each storm area; storm.area_reduction.grid gives {what}, "
+            "so every run would be the same run: give the 2D part a curve, or run once"
+        )
     own = [s.name for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None]
     if own:
         raise InvalidJob(
@@ -321,7 +348,7 @@ def _study(cfg, folder: Path, backend, progress: Progress, summary: StudySummary
         if stop.exists():
             _stopped(summary, progress, stop)
             return
-        storm = cfg.storm.model_copy(update={"storm_area_km2": area})
+        storm = at_study_area(cfg.storm, area)  # the storm area, or each part's curve read there (W95)
         # every run reads the study's own cache (the edge check's streams too, W78), so nothing is cached per run
         grid = cfg.grid.model_copy(update={"cache_dir": str(cache)})
         one = cfg.model_copy(update={"storm": storm, "outputs": outputs, "grid": grid})

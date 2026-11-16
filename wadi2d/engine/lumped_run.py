@@ -52,22 +52,32 @@ def _refusals(cfg: RunConfig) -> list[str]:
         found.append("a lumped-only run needs a lumped network: hydrology.hms_basin or hydrology.basin_json")
     if cfg.storm.kind == "none":
         found.append("a lumped-only run with no rain computes nothing: give a storm")
-    if h.arf_by_element and any(s.storm_area_km2 is not None for s in h.subbasins):
+    if _by_element(cfg) and any(s.storm_area_km2 is not None for s in h.subbasins):
+        which = "hydrology.arf_by_element" if h.arf_by_element else "a lumped curve in storm.area_reduction"
         found.append(
-            "hydrology.arf_by_element reads every element at its own area: subbasins with a storm area of their own "
-            "say otherwise; choose one"
+            f"{which} reads every element at its own area: subbasins with a storm area of their own say otherwise; "
+            "choose one"
         )
     return found
+
+
+def _by_element(cfg: RunConfig) -> bool:
+    """Every element read at its own drainage area: the old switch, or a lumped curve (W95)."""
+    from wadi2d.storm.split_arf import lumped_curve
+
+    return cfg.hydrology.arf_by_element or lumped_curve(cfg.storm)
 
 
 def run_lumped(cfg: RunConfig, out: Path, crs: str, progress, summary, left_out=None, why: str = "") -> None:
     """The run; ``summary`` is filled as a 2D run fills it. ``left_out`` and ``why`` say how the run came here when
     it was not asked for (a domain wholly under left-out catchments)."""
+    from wadi2d.config.rain import PART_LUMPED
     from wadi2d.forcing import arf_table, build_storm
     from wadi2d.hydrology.depth_area import analyse_point, point_storm
     from wadi2d.hydrology.model import TimeGrid
     from wadi2d.hydrology.network import LumpedEngine
     from wadi2d.run import EXIT_DONE, InvalidJob, _lumped_basin, _lumped_rain, arf_tags
+    from wadi2d.storm.split_arf import part_reduction
 
     found = _refusals(cfg)
     if found:
@@ -86,8 +96,8 @@ def run_lumped(cfg: RunConfig, out: Path, crs: str, progress, summary, left_out=
     progress.emit("start", backend=BACKEND, cells=0, tiles=0, dx=0.0, duration_s=cfg.run.duration_s, tables_s=0.0, t=0.0)
     series: dict[str, dict] = {}
     areas: dict[str, tuple[float | None, float | None]] = {}
-    if h.arf_by_element:
-        table = arf_table(cfg.storm)
+    if _by_element(cfg):
+        table = part_reduction(cfg.storm, PART_LUMPED)[0] if cfg.storm.area_reduction is not None else arf_table(cfg.storm)
         at_point = point_storm(rain)
         for name in basin.topological_order():
             point = analyse_point(engine, at_point, grid, name)
@@ -125,7 +135,7 @@ def run_lumped(cfg: RunConfig, out: Path, crs: str, progress, summary, left_out=
     marker = {
         "kind": "lumped",
         "elements": len(rows),
-        "arf_by_element": h.arf_by_element,
+        "arf_by_element": _by_element(cfg),
         "time_step_min": h.time_step_min,
         "duration_s": cfg.run.duration_s,
         "network_layers": layers is not None,

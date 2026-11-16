@@ -13,6 +13,16 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from wadi2d.config.gauges import GaugeRain, Observed
+from wadi2d.config.rain import (
+    ARF_CURVE,
+    PATTERN_SCS,
+    SCS_DURATION_MIN,
+    AreaReduction,
+    ArfTableConfig,
+    DataTables,
+    StormPattern,
+    resolve_tables,
+)
 
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
@@ -930,28 +940,25 @@ GAUGE_STORM = "gauges"
 """Rain from station records (W54): observed too, with its own check so the line above stays as it was."""
 GIVEN_FACTOR_STORMS = ("uniform", "hypothetical", "gridded")
 """The storms that take an area reduction, so also a given factor (W83)."""
-
-
-class ArfTableConfig(_Part):
-    """An area-reduction table, read linearly in area."""
-
-    areas_km2: list[float] = Field(min_length=1, description="Storm areas, increasing, km2")
-    factors: list[float] = Field(min_length=1, description="Area-reduction factor per area")
-    table_type: str = Field(
-        "fixed-area",
-        description="What the table is; printed on every output, because a storm-centred ratio is not a "
-        "fixed-area curve",
-    )
-    reduces_below_table: bool = Field(
-        True,
-        description="Below the smallest area the first factor holds; False leaves the depth whole, as HMS",
-    )
+DEPTH_STORM, DEPTH_GRID_STORM = "depth", "depth_grid"
+SOURCE_STORMS = (DEPTH_STORM, DEPTH_GRID_STORM)
+"""A depth, or a raster of depths, spread in time by storm.pattern, reduced by storm.area_reduction alone (W95)."""
+SPLIT_STORMS = (*GIVEN_FACTOR_STORMS, *SOURCE_STORMS)
+"""The storms that take storm.area_reduction."""
 
 
 class Storm(_Part):
-    """Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``."""
+    """Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.
 
-    kind: Literal["none", "uniform", "hypothetical", "hyetograph", "gridded", "gauges"] = "none"
+    The sources of W95 share one shape: 'depth' is storm.depth_mm, 'depth_grid' the raster storm.depth_grid, each
+    spread over storm.duration_min by storm.pattern (uniform, an NRCS type, or a table, by name from data_tables or
+    given); 'gridded' is a NetCDF, DSS or GeoTIFF series. Each takes storm.area_reduction, one setting for the lumped
+    part and one for the 2D part. The kinds before them stay as they were, and an HMS met file still imports to one.
+    """
+
+    kind: Literal[
+        "none", "uniform", "hypothetical", "hyetograph", "gridded", "gauges", "depth", "depth_grid"
+    ] = "none"
     depth_mm: float = Field(0.0, ge=0.0, le=5000.0, description="Point depth, mm")
     depth_grid: str | None = Field(
         None, description="Raster of depths in mm, replacing depth_mm; each 2D cell takes its own value"
@@ -997,6 +1004,56 @@ class Storm(_Part):
         description="Rain gauges and how their rain is spread, for kind 'gauges'; rain_stamp and rain_start apply to "
         "their records as to a rain file",
     )
+    pattern: StormPattern | None = Field(
+        None, description="How a 'depth' or 'depth_grid' storm falls over storm.duration_min; None is uniform"
+    )
+    area_reduction: AreaReduction | None = Field(
+        None,
+        description="The area reduction of the lumped part and of the 2D part, each a curve, a fixed area read on a "
+        "curve, or a coefficient; in place of storm.arf, storm.storm_area_km2 and storm.arf_factor, never beside them",
+    )
+
+    @model_validator(mode="after")
+    def _sources(self) -> Storm:
+        if self.kind in SOURCE_STORMS:
+            self._check_source()
+        elif self.pattern is not None:
+            raise ValueError(
+                f"storm.pattern spreads a 'depth' or 'depth_grid' storm; a {self.kind} storm keeps its own pattern"
+            )
+        if self.area_reduction is not None:
+            if self.kind not in SPLIT_STORMS:
+                raise ValueError(f"a {self.kind} storm takes no area reduction: it is the rain itself")
+            if self.arf is not None or self.arf_factor is not None or self.storm_area_km2 is not None:
+                raise ValueError(
+                    "storm.area_reduction sets the reduction of each part: leave out storm.arf, storm.storm_area_km2 "
+                    "and storm.arf_factor; not both"
+                )
+        return self
+
+    def _check_source(self) -> None:
+        if self.arf is not None or self.arf_factor is not None or self.storm_area_km2 is not None:
+            raise ValueError(f"a {self.kind} storm takes its area reduction from storm.area_reduction")
+        if self.time_percent is not None or self.depth_percent is not None:
+            raise ValueError(f"a {self.kind} storm takes its pattern from storm.pattern, not time_percent")
+        if self.kind == DEPTH_STORM and (self.depth_grid is not None or self.depth_mm <= 0.0):
+            raise ValueError("a depth storm needs storm.depth_mm above zero; a raster of depths is kind 'depth_grid'")
+        if self.kind == DEPTH_GRID_STORM and (self.depth_grid is None or self.depth_mm != 0.0):
+            raise ValueError("a depth_grid storm needs storm.depth_grid, and takes its depths from it, not depth_mm")
+        pattern = self.pattern
+        if pattern is None:
+            return
+        if pattern.kind == PATTERN_SCS and self.duration_min != SCS_DURATION_MIN:
+            raise ValueError(
+                f"an SCS type {pattern.scs_type} pattern is the NRCS 24-hour distribution: set storm.duration_min "
+                f"{SCS_DURATION_MIN:g}, or give the curve as a table in percent to stretch it"
+            )
+        spans = pattern.values.duration_min() if pattern.values is not None else None
+        if spans is not None and abs(spans - self.duration_min) > 1e-9 * self.duration_min:
+            raise ValueError(
+                f"the pattern ends at {spans:g} min and storm.duration_min is {self.duration_min:g}: make them agree, "
+                "or give the pattern's times in percent of the duration"
+            )
 
     @model_validator(mode="after")
     def _pattern(self) -> Storm:
@@ -1702,23 +1759,44 @@ class RunConfig(_Part):
     run: Run = Run()
     arf: ArfStudy = ArfStudy()
     basin: BasinSettings = BasinSettings()
+    data_tables: DataTables = Field(
+        DataTables(),
+        description="Named rain patterns and area-reduction curves the storm refers to; filled into the storm when the "
+        "job is read, so the run and its record hold the numbers (W95)",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _stored_tables(cls, data):
+        return resolve_tables(data)
+
+    def _lumped_curve(self) -> bool:
+        """The lumped part reads a curve at each element's own area (storm.area_reduction, W95)."""
+        split = self.storm.area_reduction
+        return split is not None and split.lumped is not None and split.lumped.form == ARF_CURVE
+
+    def _reads_a_table(self) -> bool:
+        """A table read at an area of each element's own: the old storm.arf, or a lumped curve."""
+        if self.storm.area_reduction is not None:
+            return self._lumped_curve()
+        return self.storm.arf is not None and self.storm.arf_factor is None
 
     @model_validator(mode="after")
     def _by_element(self) -> RunConfig:
-        if self.hydrology.arf_by_element and (self.storm.arf is None or self.storm.arf_factor is not None):
+        if self.hydrology.arf_by_element and not self._reads_a_table():
             raise ValueError(
                 "hydrology.arf_by_element reads the area-reduction table at each element's own area: that needs "
-                "storm.arf, and no storm.arf_factor"
+                "storm.arf, and no storm.arf_factor, or a lumped curve in storm.area_reduction"
             )
         return self
 
     @model_validator(mode="after")
     def _own_storm_areas(self) -> RunConfig:
         own = [s.name for s in self.hydrology.subbasins if s.storm_area_km2 is not None]
-        if own and (self.storm.arf is None or self.storm.arf_factor is not None):
+        if own and not self._reads_a_table():
             raise ValueError(
                 f"subbasins {', '.join(own)} read the area-reduction table at an area of their own: that needs "
-                "storm.arf, and no storm.arf_factor"
+                "storm.arf, and no storm.arf_factor, or a lumped curve in storm.area_reduction"
             )
         return self
 
