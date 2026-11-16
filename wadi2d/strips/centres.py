@@ -31,6 +31,7 @@ import shapely
 from scipy.spatial import Voronoi, cKDTree
 
 from wadi2d.grid.tiles import TileGrid
+from wadi2d.strips.diagram import areas_centroids, contract_short_faces, regions_to_rings, shared_faces
 from wadi2d.strips.geometry import MeshGeometry
 from wadi2d.strips.mesher import StripMesh, resample
 
@@ -404,48 +405,15 @@ def _rings_of(points: np.ndarray, nreal: int, grid: TileGrid, dx: float) -> tupl
     _uniq, first, inverse = np.unique(key, axis=0, return_index=True, return_inverse=True)
     inverse = inverse.ravel()
     nodes = v[first]
-    rings: list[np.ndarray] = []
-    for p in range(nreal):
-        region = vor.regions[vor.point_region[p]]
-        if not region or -1 in region:
-            raise ValueError(f"the diagram is unbounded at ({points[p, 0]:.0f}, {points[p, 1]:.0f}): a line centre too near the edge of the lattice")
-        ids = inverse[np.asarray(region, np.int64)]
-        keep = np.ones(ids.size, bool)
-        keep[1:] = ids[1:] != ids[:-1]
-        ids = ids[keep]
-        if ids.size > 1 and ids[0] == ids[-1]:
-            ids = ids[:-1]
-        if ids.size >= 3:
-            x, y = nodes[ids, 0], nodes[ids, 1]
-            if 0.5 * np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y) < 0.0:
-                ids = ids[::-1]
-        rings.append(ids)
-    shared: dict[tuple[int, int], tuple[int, int]] = {}
-    for (a, b), (va, vb) in zip(vor.ridge_points.tolist(), vor.ridge_vertices, strict=True):
-        if a < nreal and b < nreal and va >= 0 and vb >= 0:
-            na, nb = int(inverse[va]), int(inverse[vb])
-            if na != nb:
-                shared[(min(a, b), max(a, b))] = (min(na, nb), max(na, nb))
+    rings = regions_to_rings(vor, nreal, inverse, nodes, points)  # the loop of one ring at a time, on whole arrays (W92)
+    shared = shared_faces(vor, nreal, inverse)
     return nodes, rings, shared
 
 
 def _areas_centroids(nodes: np.ndarray, rings: list[np.ndarray]) -> tuple[np.ndarray, np.ndarray]:
-    area = np.zeros(len(rings))
-    cen = np.zeros((len(rings), 2))
-    for k, r in enumerate(rings):
-        if r.size < 3:
-            continue
-        ox, oy = nodes[r[0], 0], nodes[r[0], 1]  # from the ring's first node: on map coordinates the products cancel (W52)
-        x, y = nodes[r, 0] - ox, nodes[r, 1] - oy
-        x1, y1 = np.roll(x, -1), np.roll(y, -1)
-        cross = x * y1 - x1 * y
-        a = 0.5 * cross.sum()
-        area[k] = a
-        if abs(a) > 1e-12:
-            cen[k] = (ox + ((x + x1) * cross).sum() / (6.0 * a), oy + ((y + y1) * cross).sum() / (6.0 * a))
-        else:
-            cen[k] = (ox + x.mean(), oy + y.mean())
-    return area, cen
+    """Signed area and centroid of every ring, from its first node (on map coordinates the products cancel, W52);
+    zero for a ring under three nodes. All rings of one length at once (``diagram.areas_centroids``, W92)."""
+    return areas_centroids(nodes, rings)
 
 
 SHORT_FACE = 0.15
@@ -463,47 +431,7 @@ def _contract_short_faces(nodes: np.ndarray, rings: list[np.ndarray], grid: Tile
     ci = np.round((nodes[:, 0] - grid.x0) / dx)
     cj = np.round((grid.y0 - nodes[:, 1]) / dx)
     corner = (np.abs(nodes[:, 0] - (grid.x0 + ci * dx)) < CORNER_SNAP) & (np.abs(nodes[:, 1] - (grid.y0 - cj * dx)) < CORNER_SNAP)
-    parent = np.arange(nodes.shape[0])
-
-    def find(a: int) -> int:
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-
-    for _round in range(6):
-        merged = 0
-        seen: set[tuple[int, int]] = set()
-        for r in rings:
-            for k in range(r.size):
-                a, b = find(int(r[k])), find(int(r[(k + 1) % r.size]))
-                if a == b:
-                    continue
-                key = (min(a, b), max(a, b))
-                if key in seen:
-                    continue
-                seen.add(key)
-                if np.hypot(*(nodes[a] - nodes[b])) < limit:
-                    if corner[a] and corner[b]:
-                        continue  # a lattice edge is never that short; two corners stay apart
-                    keep, gone = (a, b) if corner[a] else ((b, a) if corner[b] else (a, b))
-                    if not corner[keep]:
-                        nodes[keep] = 0.5 * (nodes[a] + nodes[b])
-                    parent[gone] = keep
-                    merged += 1
-        if merged == 0:
-            break
-        out = []
-        for r in rings:
-            ids = np.array([find(int(v)) for v in r], np.int64)
-            keep_mask = np.ones(ids.size, bool)
-            keep_mask[1:] = ids[1:] != ids[:-1]
-            ids = ids[keep_mask]
-            if ids.size > 1 and ids[0] == ids[-1]:
-                ids = ids[:-1]
-            out.append(ids)
-        rings = out
-    return nodes, rings
+    return contract_short_faces(nodes, rings, corner, limit)  # the same loop in the same order, compiled (W92)
 
 
 def _clip_to_hole(nodes: np.ndarray, rings: list[np.ndarray], which: np.ndarray, hole: shapely.Geometry) -> tuple[np.ndarray, list[np.ndarray]]:
