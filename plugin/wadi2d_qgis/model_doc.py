@@ -126,7 +126,9 @@ def _to_3(doc: dict) -> dict:
     Everything a model changes in the job is said in words under :data:`MIGRATED`."""
     storm, hydrology = _widgets(doc, "storm"), _widgets(doc, "hydrology")
     reduction = _widgets(doc, "reduction")
-    tables = doc["sections"].setdefault("tables", {}).setdefault("extra", {}).setdefault("store", {})
+    held = doc["sections"].setdefault("tables", {})
+    held.setdefault("widgets", {})
+    tables = held.setdefault("extra", {}).setdefault("store", {})
     patterns, curves = tables.setdefault("patterns", {}), tables.setdefault("arf_curves", {})
     words = []
     kind = _data(storm, "kind")
