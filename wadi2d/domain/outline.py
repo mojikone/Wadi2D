@@ -37,8 +37,9 @@ from wadi2d.basin.barriers import ground_edits
 from wadi2d.basin.delineate import Surface, analysis_pixel, flow_surface
 from wadi2d.basin.kernels import NONE
 from wadi2d.config.schema import BasinSettings, DomainSettings, RunConfig
+from wadi2d.demstore import cache_folder, open_bed
+from wadi2d.demstore.coarse import read_coarse_from
 from wadi2d.domain.walks import gate_in, last_inside
-from wadi2d.mesh.streams import read_coarse
 from wadi2d.terrain.vector import read_features
 
 ADDED, REMOVED, NOT_ADDED = "added", "removed", "not added"
@@ -106,7 +107,10 @@ def _window(dem: str, wanted: tuple[float, float, float, float], pixel: float):
     window = from_bounds(xmin, ymin, xmax, ymax, t).round_offsets(op="floor")
     x0, y0 = t * (window.col_off, window.row_off)
     ny, nx = int(np.ceil((y0 - ymin) / pixel)), int(np.ceil((xmax - x0) / pixel))
-    at_dem = (x0 <= b.left + pixel, y0 - ny * pixel <= b.bottom + pixel, x0 + nx * pixel >= b.right - pixel,
+    # inside the raster, so the chunk store can give GDAL's means (``demstore.coarse``); a part pixel at its edge goes
+    ny = min(ny, int(np.floor((y0 - b.bottom) / pixel + 1e-9)))
+    nx = min(nx, int(np.floor((b.right - x0) / pixel + 1e-9)))
+    at_dem =(x0 <= b.left + pixel, y0 - ny * pixel <= b.bottom + pixel, x0 + nx * pixel >= b.right - pixel,
               y0 >= b.top - pixel)  # fmt: skip
     return x0, y0, ny, nx, at_dem
 
@@ -153,10 +157,10 @@ def _across_kept(
 
 def _classify(
     cfg: RunConfig, outline: shapely.Geometry, kept: list[shapely.Geometry], keep_m: float, basin: BasinSettings,
-    window: tuple[float, float, int, int], pixel: float, crs: str,
+    window: tuple[float, float, int, int], pixel: float, crs: str, bed,
 ) -> _Pixels:  # fmt: skip
     x0, y0, ny, nx = window
-    z = read_coarse(cfg.terrain.dem, x0, y0, ny, nx, pixel, 1)
+    z = read_coarse_from(bed, cfg.terrain.dem, x0, y0, ny, nx, pixel, 1)
     notes: list[str] = []
     surface = flow_surface(z, pixel, x0, y0, crs, ground_edits(cfg, z, pixel, x0, y0, basin, notes))
     inside = features.geometry_mask(
@@ -278,21 +282,24 @@ def complete_outline(
     with rasterio.open(cfg.terrain.dem) as src:
         crs = src.crs.to_wkt() if src.crs is not None else ""
     margin, grows, xmin, ymin, xmax, ymax = settings.margin_m, 0, *outline.bounds
-    while True:
-        x0, y0, ny, nx, at_dem = _window(
-            cfg.terrain.dem, (xmin - margin, ymin - margin, xmax + margin, ymax + margin), pixel
-        )
-        if ny * nx > basin.max_pixels:
-            raise ValueError(f"the domain's delineation would take {ny * nx:,} pixels of {pixel} m, above max_pixels "
-                             f"{basin.max_pixels:,}: use a coarser analysis pixel")  # fmt: skip
-        px = _classify(cfg, outline, kept, settings.keep_m, basin, (x0, y0, ny, nx), pixel, crs)
-        ground = px.domain.reshape(px.surface.shape) & np.isfinite(px.surface.z)
-        touching = _border(ground)
-        short = [t and not d for t, d in zip(touching, at_dem, strict=True)]
-        if not any(short) or grows == MAX_GROWS:
-            break
-        margin *= 2.0
-        grows += 1
+    with open_bed(
+        cfg, cache_folder(cfg), stride=1
+    ) as bed:  # the job's chunk store, when it has a cache folder
+        while True:
+            x0, y0, ny, nx, at_dem = _window(
+                cfg.terrain.dem, (xmin - margin, ymin - margin, xmax + margin, ymax + margin), pixel
+            )
+            if ny * nx > basin.max_pixels:
+                raise ValueError(f"the domain's delineation would take {ny * nx:,} pixels of {pixel} m, above "
+                                 f"max_pixels {basin.max_pixels:,}: use a coarser analysis pixel")  # fmt: skip
+            px = _classify(cfg, outline, kept, settings.keep_m, basin, (x0, y0, ny, nx), pixel, crs, bed)
+            ground = px.domain.reshape(px.surface.shape) & np.isfinite(px.surface.z)
+            touching = _border(ground)
+            short = [t and not d for t, d in zip(touching, at_dem, strict=True)]
+            if not any(short) or grows == MAX_GROWS:
+                break
+            margin *= 2.0
+            grows += 1
     notes = px.notes
     if any(short):
         notes.append(
