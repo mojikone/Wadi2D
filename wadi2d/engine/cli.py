@@ -88,42 +88,23 @@ def _run(args: argparse.Namespace) -> int:
 
 
 def _mesh(args: argparse.Namespace) -> int:
-    from wadi2d.run import (
-        EXIT_DONE,
-        EXIT_INVALID,
-        JobError,
-        check_inputs,
-        domain_mask,
-        grid_window,
-        left_out_of,
-        with_tables,
-    )
-    from wadi2d.terrain import RasterBed
-    from wadi2d.terrain.ground import Ground
+    """The cells a run would step, before any run: squares, quadtree or the aligned mesh (W101 item 4; the quadtree's
+    cell-size raster as before)."""
+    from wadi2d.run import EXIT_DONE, EXIT_INVALID, JobError, check_inputs
 
     try:
-        cfg = with_tables(_load(args.job))
+        cfg = _load(args.job)
         check_inputs(cfg)
-        from wadi2d.mesh.build import build_grid, line_sizes, report, write_preview
+        from wadi2d.mesh.preview import build_preview
 
-        with RasterBed(cfg.terrain.dem, cfg.terrain.pixel_stride) as bed:
-            window = grid_window(cfg, bed)
-            mask = domain_mask(cfg, bed, window)
-            crs = bed.crs.to_wkt() if bed.crs is not None else ""
-            left = left_out_of(cfg, crs)
-            if left is not None and left.names:  # the preview shows the mesh the run steps (W88)
-                mask = mask & ~left.cells(window.x0, window.y0, cfg.grid.dx, mask.shape)
-            bed.bind(window.x0, window.y0)
-            grid = build_grid(cfg, mask, window.x0, window.y0, crs, Ground(bed, window.x0, window.y0))
-        summary = report(grid, int(mask.sum()), cfg.grid.dx, line_sizes(cfg))
-        written = write_preview(grid, crs, args.out, summary)
+        written = build_preview(cfg, args.out)
     except ValueError as error:
         print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
         return EXIT_INVALID
     except JobError as error:
         print(json.dumps({"ev": "error", "code": error.code, "message": str(error)}), file=sys.stderr)
         return error.code
-    print(json.dumps({"ev": "mesh", **written, "cells": summary.cells, "ratio": summary.ratio}))
+    print(json.dumps({"ev": "mesh", **written}))
     return EXIT_DONE
 
 
@@ -498,7 +479,7 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--resume", action="store_true")
     run.set_defaults(call=_run)
 
-    mesh = sub.add_parser("mesh", help="preview of the mesh: cell-size raster and counts")
+    mesh = sub.add_parser("mesh", help="the cells a run would step, before any run: cell grid, aligned cells and counts")
     mesh.add_argument("job")
     mesh.add_argument("--out", required=True)
     mesh.set_defaults(call=_mesh)
