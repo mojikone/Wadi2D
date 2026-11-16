@@ -1,0 +1,96 @@
+{
+ "analysis": {
+  "pixel_m": 5.0,
+  "x0": 407646.48973783385,
+  "y0": 2746825.393463373,
+  "ny": 9361,
+  "nx": 9767,
+  "ground_km2": 1394.3984,
+  "unassigned_km2": 31.4516
+ },
+ "counts": {
+  "subbasin": 111,
+  "reach": 51,
+  "junction": 58,
+  "reservoir": 5
+ },
+ "Bidah 03": {
+  "kind": "reservoir",
+  "drainage_area_km2": 20.0257,
+  "subbasins": 3,
+  "subbasin_km2_mean": 6.68,
+  "lag_min_range": [
+   21.5,
+   43.6
+  ],
+  "reaches": 1,
+  "reach_length_km": 1.8,
+  "reach_manning_n": [
+   0.04
+  ]
+ },
+ "Faydh 01": {
+  "kind": "reservoir",
+  "drainage_area_km2": 74.421,
+  "subbasins": 5,
+  "subbasin_km2_mean": 14.88,
+  "lag_min_range": [
+   9.1,
+   78.0
+  ],
+  "reaches": 2,
+  "reach_length_km": 4.2,
+  "reach_manning_n": [
+   0.04,
+   0.041
+  ]
+ },
+ "R5A": {
+  "kind": "reservoir",
+  "drainage_area_km2": 117.1174,
+  "subbasins": 6,
+  "subbasin_km2_mean": 19.52,
+  "lag_min_range": [
+   20.5,
+   100.8
+  ],
+  "reaches": 2,
+  "reach_length_km": 35.8,
+  "reach_manning_n": [
+   0.04
+  ]
+ },
+ "R2A": {
+  "kind": "reservoir",
+  "drainage_area_km2": 175.9445,
+  "subbasins": 14,
+  "subbasin_km2_mean": 12.57,
+  "lag_min_range": [
+   19.4,
+   100.5
+  ],
+  "reaches": 6,
+  "reach_length_km": 33.7,
+  "reach_manning_n": [
+   0.04,
+   0.041,
+   0.042,
+   0.05
+  ]
+ },
+ "Z4C": {
+  "kind": "reservoir",
+  "drainage_area_km2": 211.5597,
+  "subbasins": 19,
+  "subbasin_km2_mean": 11.13,
+  "lag_min_range": [
+   23.6,
+   83.9
+  ],
+  "reaches": 9,
+  "reach_length_km": 50.4,
+  "reach_manning_n": [
+   0.04
+  ]
+ }
+}

@@ -1,0 +1,64 @@
+    0.0 script loaded
+    5.8 PASS project read: Block2_from_the_dock.qgz D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\W104 Block 2 from the dock\Block2_from_the_dock.qgz
+    5.8 tree:
+Wadi2D – Hybrid2D: 27 layers
+  Results – Hybrid2D: 20 layers
+    Lumped network, the HMS way: 2 layers
+    Model setup: 8 layers
+    Pixel rasters, the numbers of record: 4 layers
+    Cell maps: 6 layers
+  Inputs: 7 layers
+    Terrain: 2 layers
+    Boundaries: 2 layers
+    Structures: 0 layers
+    Hydrology: 3 layers
+    Mesh: 0 layers
+Wadi2D – HybridLumped: 28 layers
+  Results – HybridLumped: 21 layers
+    Lumped network, the HMS way: 3 layers
+    Model setup: 8 layers
+    Pixel rasters, the numbers of record: 4 layers
+    Cell maps: 6 layers
+  Inputs: 7 layers
+    Terrain: 2 layers
+    Boundaries: 2 layers
+    Structures: 0 layers
+    Hydrology: 3 layers
+    Mesh: 0 layers
+Wadi2D – 2D: 25 layers
+  Results – 2D: 17 layers
+    Model setup: 7 layers
+    Pixel rasters, the numbers of record: 4 layers
+    Cell maps: 6 layers
+  Inputs: 8 layers
+    Terrain: 2 layers
+    Boundaries: 2 layers
+    Structures: 0 layers
+    Hydrology: 0 layers
+    Mesh: 4 layers
+Wadi2D – Lumped: 8 layers
+  Results – Lumped: 3 layers
+    Lumped network, the HMS way: 3 layers
+  Inputs: 5 layers
+    Terrain: 2 layers
+    Boundaries: 0 layers
+    Structures: 0 layers
+    Hydrology: 3 layers
+    Mesh: 0 layers
+    5.8 PASS the model group of Lumped 
+    5.8 PASS the model group of 2D 
+    5.8 PASS the model group of HybridLumped 
+    5.8 PASS the model group of Hybrid2D 
+    6.0 generated layers: ['D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-af9693af489868acb/W104 Block 2 from the dock/runs/Lumped/wadi2d_basin/basin.gpkg|layername=subbasins', 'D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-af9693af489868acb/W104 Block 2 from the dock/runs/HybridLumped/wadi2d_basin/basin.gpkg|layername=subbasins', 'D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-af9693af489868acb/W104 Block 2 from the dock/runs/Hybrid2D/wadi2d_basin/basin.gpkg|layername=subbasins']
+    7.5 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\plugin\wadi2d_qgis\__init__.py
+    9.1 PASS engine found Engine ready.
+   11.9 Lumped elements of record: 5 rows; 5 of 230 elements of record shown (dams and reservoirs). Click a row for its chart.
+   14.1 2D elements of record: 5 rows; 5 of 5 elements of record shown (every element). Click a row for its chart.
+   16.5 HybridLumped elements of record: 5 rows; 5 of 153 elements of record shown (dams and reservoirs). Click a row for its chart.
+   18.6 Hybrid2D elements of record: 117 rows; 117 of 117 elements of record shown (every element). Click a row for its chart.
+   24.5 compare: 4 runs side by side on the 117 elements shown above: peak, time to peak, volume and peak outflow. Click a row for its hydrographs on one chart.
+   25.8 PASS the four runs compared in the dock, the table in Excel The table is written as an Excel workbook: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-af9693af489868acb\W104 Block 2 from the dock\compare_runs.xlsx
+   26.7 PASS project saved: Block2_from_the_dock.qgz 
+   26.7 project: {"Block2_from_the_dock.qgz": 210131}
+   26.7 SUMMARY 9 passed, 0 failed 
+   26.7 DONE

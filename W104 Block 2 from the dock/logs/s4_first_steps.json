@@ -1,0 +1,9 @@
+[
+ {
+  "step": "Generate basin without the dams",
+  "seconds": 57.9,
+  "said": "70 subbasins, 36 reaches, 43 junctions, 0 reservoirs; 631.341 km2 reach the edge without meeting a stream and rain on the grid. open ground, no channel in the sections: ['R12', 'R13', 'R18', 'R19', 'R31']; 141 elements drain to no outfall of the Basin points layer: left out.",
+  "subbasins": 70,
+  "reservoirs": 0
+ }
+]

@@ -1,0 +1,21 @@
+model,dam,in_m3s,out_m3s,w79_in_m3s,w79_out_m3s,in_vs_w79,in_peak_h,in_Mm3,read
+Lumped,Bidah 03,479.2,0.0,455,0,0.053,12.58,4.14,lumped reservoir Bidah_03
+Lumped,Faydh 01,1198.1,0.0,1240,0,-0.034,12.92,15.26,lumped reservoir Faydh_01
+Lumped,R5A,1673.3,926.6,1144,754,0.463,13.58,22.88,lumped reservoir R5A
+Lumped,R2A,2732.4,979.4,1736,818,0.574,13.17,32.97,lumped reservoir R2A
+Lumped,Z4C,2978.0,2743.0,2101,2025,0.417,13.67,39.3,lumped reservoir Z4C
+2D,Bidah 03,583.5,0.0,581,0,0.004,12.51,3.82,pool balance (15-min mean) / dam line
+2D,Faydh 01,2303.9,0.0,2314,0,-0.004,12.26,14.88,pool balance (15-min mean) / dam line
+2D,R5A,2056.4,611.9,2071,608,-0.007,12.76,22.81,pool balance (15-min mean) / dam line
+2D,R2A,3928.6,1153.0,3958,1151,-0.007,12.76,34.32,pool balance (15-min mean) / dam line
+2D,Z4C,3226.1,3434.3,3240,3455,-0.004,13.76,41.67,pool balance (15-min mean) / dam line
+HybridLumped,Bidah 03,479.2,0.0,455,0,0.053,12.58,4.14,lumped reservoir Bidah_03
+HybridLumped,Faydh 01,1198.1,0.0,1240,0,-0.034,12.92,15.26,lumped reservoir Faydh_01
+HybridLumped,R5A,1673.3,926.6,1144,754,0.463,13.58,22.88,lumped reservoir R5A
+HybridLumped,R2A,2732.4,979.4,1736,818,0.574,13.17,32.97,lumped reservoir R2A
+HybridLumped,Z4C,2978.0,2743.0,2101,2025,0.417,13.67,39.3,lumped reservoir Z4C
+Hybrid2D,Bidah 03,463.0,0.0,444,0,0.043,12.51,4.15,pool balance (15-min mean) / dam line
+Hybrid2D,Faydh 01,1214.1,0.0,1221,0,-0.006,13.01,15.59,pool balance (15-min mean) / dam line
+Hybrid2D,R5A,1538.1,838.7,1115,671,0.379,14.01,24.45,pool balance (15-min mean) / dam line
+Hybrid2D,R2A,2683.5,1369.3,1516,857,0.77,13.51,36.82,pool balance (15-min mean) / dam line
+Hybrid2D,Z4C,2801.2,2957.9,1941,2018,0.443,14.26,44.87,pool balance (15-min mean) / dam line

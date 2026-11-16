@@ -1,0 +1,31 @@
+[
+ {
+  "step": "Generate basin without the dams",
+  "seconds": 51.9,
+  "said": "71 subbasins, 29 reaches, 41 junctions, 0 reservoirs; 547.698 km2 reach the edge without meeting a stream and rain on the grid. open ground, no channel in the sections: ['R12', 'R16', 'R27']; 129 elements drain to no outfall of the Basin points layer: left out.",
+  "subbasins": 71,
+  "reservoirs": 0
+ },
+ {
+  "step": "Run Hybrid 2D",
+  "seconds": 2289.2,
+  "said": "Finished. Earthworks. pit fill 1.1: fill 125 m3; pit fill 1.2: fill 4,476 m3; pit fill 1.3: fill 332 m3; pit fill 1.4: fill 4,775 m3; pit fill 2.1: fill 24 m3; pit fill 2.2: fill 73 m3; pit fill 2.3: fill 10 m3; pit fill 2.4: fill 100 m3; pit fill 2.5: fill 4 m3; pit fill 2.6: fill 1 m3; pit fill 2.7: fill 22 m3; pit fill 2.8: fill 4 m3; pit fill 3.2: fill 10 m3; pit fill 3.3: fill 117 m3; pit fill 3.4: fill 26 m3; pit fill 3.5: fill 1,227 m3; pit fill 3.6: fill 1,328 m3; pit fill 4.1: fill 17 m3; pit fill 4.3: fill 3 m3; pit fill 4.4: fill 67 m3; pit fill 4.5: fill 7 m3; pit fill 4.6: fill 3 m3; pit fill 4.7: fill 2 m3; pit fill 4.8: fill 482 m3; pit fill 4.9: fill 2 m3; pit fill 5.1: fill 3 m3; pit fill 5.2: fill 40 m3; pit fill 5.3: fill 222 m3; pit fill 5.4: fill 23 m3; pit fill 6.1: fill 12 m3; pit fill 6.2: fill 142 m3; pit fill 7.1: fill 255 m3; pit fill 7.2: fill 269 m3; pit fill 8.1: fill 6 m3; pit fill 8.2: fill 18 m3; pit fill 8.3: fill 36 m3; pit fill 8.4: fill 446 m3; pit fill 8.6: fill 10 m3; pit fill 9.2: fill 494 m3; pit fill 10: fill 291 m3; pit fill 11.1: fill 130 m3; pit fill 11.2: fill 81 m3; pit fill 12.1: fill 282 m3; pit fill 12.2: fill 236 m3; pit fill 12.3: fill 71 m3; pit fill 12.4: fill 14 m3; pit fill 13.1: fill 57 m3; pit fill 13.2: fill 42 m3; pit fill 14.1: fill 8 m3; pit fill 14.2: fill 10 m3; pit fill 14.3: fill 381 m3; pit fill 14.4: fill 18 m3; pit fill 15.1: fill 60 m3; pit fill 15.2: fill 131 m3; pit fill 15.3: fill 1 m3; pit fill 15.4: fill 3 m3; pit fill 16.1: fill 80 m3; pit fill 16.2: fill 1 m3; pit fill 16.3: fill 238 m3; pit fill 16.4: fill 40 m3; pit fill 16.5: fill 13 m3; pit fill 16.6: fill 45 m3; pit fill 16.7: fill 845 m3; pit fill 16.8: fill 42 m3; pit fill 17.1: fill 19 m3; pit fill 17.2: fill 632 m3; pit fill 17.4: fill 183 m3; pit fill 17.5: fill 11 m3; pit fill 18.1: fill 69 m3; pit fill 18.2: fill 240 m3; pit fill 19.1: fill 151 m3; pit fill 19.2: fill 98 m3; pit fill 20: fill 292 m3; pit fill 21: fill 160 m3; pi",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-af9693af489868acb\\W104 Block 2 from the dock\\runs\\Hybrid2D",
+  "started_epoch": 1794857300.5862467,
+  "ended_epoch": 1794859589.813306,
+  "first_seen_s": {
+   "warn": 2.6,
+   "basin": 2.6,
+   "output": 2.6,
+   "terrain": 326.4,
+   "strips": 329.9,
+   "start": 338.1,
+   "step": 338.9,
+   "limiter": 343.7,
+   "products:ground": 2289.2,
+   "products:maps": 2289.2,
+   "products:rasters": 2289.2,
+   "done": 2289.2
+  }
+ }
+]
