@@ -48,8 +48,9 @@ from .job_builder import (
     write_job,
 )
 from .layer_groups import SLOT_BASIN, clear_slot, find_run_results, model_name
-from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_mesh
+from .live_layer import LiveLayer, load_maps, mark_cell, remove_marker, show_built_mesh
 from .map_sheets import build_book, export_pdf, sheets_file
+from .mesh_kinds import built_words
 from .model_bar import ModelBar
 from .model_store import ModelLinks
 from .muskingum_query import MuskingumLinks
@@ -60,6 +61,7 @@ from .profile_view import ProfileDialog
 from .progress import run_is_live
 from .protocol import (
     BASIN_DIR,
+    CACHE_DIR,
     COMPOSITE_DIR,
     EXIT_STOPPED,
     FRAMES_TIMEOUT_S,
@@ -72,7 +74,6 @@ from .protocol import (
     has_drawings,
     is_lumped_run,
     mesh_args,
-    mesh_text,
     next_run_dir,
     next_study_dir,
     parse_basin,
@@ -390,7 +391,7 @@ class Wadi2DDock(QgsDockWidget):
         idle = self.run is None and self.study_run is None and self.drawing is None
         self.panel.run_button.setEnabled(ready and idle)
         self.panel.estimate_button.setEnabled(ready and idle)
-        self.mesh.preview_button.setEnabled(ready and idle and self.mesh.enabled.isChecked())
+        self.mesh.preview_button.setEnabled(ready and idle)  # Build mesh, on every kind (W101 item 4)
         self.study.start_button.setEnabled(ready and idle)
 
     def open_settings(self) -> None:
@@ -526,22 +527,30 @@ class Wadi2DDock(QgsDockWidget):
             self.panel.estimate_label.setText(estimate_text(estimate))
         self._drop_scratch()
 
-    # Mesh preview.
+    # Build mesh: the cells a run would step, before any run, on every kind of mesh (W101 item 4).
 
     def preview_mesh(self) -> None:
-        values = self._checked_values()
+        say = lambda text, _tone="": self.mesh.summary.setText(text)  # noqa: E731 - the Mesh section speaks for itself
+        values = self._checked_values(say)
         if values is None:
             return
-        if not values.get("mesh"):
-            self.mesh.summary.setText("Tick the mesh first.")
-            return
         self.mesh.preview_button.setEnabled(False)
-        self.mesh.summary.setText("Reading the ground and the streams...")
+        self.mesh.summary.setText("Building the mesh: reading the ground and the streams...")
+        chosen = self.panel.folder.filePath()
         self._scratch = tempfile.mkdtemp(prefix="wadi2d_estimate_")
         values["output"] = self._scratch
-        self._safely(values, Path(self._scratch), self._run_mesh)
+        self._safely(values, Path(self._scratch), lambda job: self._run_mesh(job, chosen), self._mesh_failed, say)
 
-    def _run_mesh(self, job: Path) -> None:
+    def _mesh_failed(self, text: str) -> None:
+        self.mesh.summary.setText(text)
+        self.mesh.preview_button.setEnabled(self.schema is not None)
+        self._drop_scratch()
+
+    def _run_mesh(self, job: Path, chosen: str = "") -> None:
+        if chosen:  # the run's own cache: the DEM's store and the domain mask are read once for both (W84)
+            data = json.loads(job.read_text(encoding="utf-8"))
+            data["grid"]["cache_dir"] = str(Path(chosen).resolve().parent / CACHE_DIR)
+            job.write_text(json.dumps(data, indent=2), encoding="utf-8")
         folder = tempfile.mkdtemp(prefix="wadi2d_mesh_")
         self._mesh_folder_next = folder
         self._query = EngineQuery(settings.engine_text(), self)
@@ -549,20 +558,21 @@ class Wadi2DDock(QgsDockWidget):
         self._query.start(mesh_args(job, folder))
 
     def _meshed(self, code: int, out: str, err: str) -> None:
-        self.mesh.preview_button.setEnabled(self.schema is not None and self.mesh.enabled.isChecked())
+        self.mesh.preview_button.setEnabled(self.schema is not None)
         self._drop_scratch()
         event = parse_mesh(out) if code == 0 else None
         if event is None:
-            self.mesh.summary.setText(f"{exit_message(code)} {engine_error_text(err)}")
+            self.mesh.summary.setText(f"The mesh was not built. {exit_message(code)} {engine_error_text(err)}".strip())
             shutil.rmtree(self._mesh_folder_next, ignore_errors=True)
             return
         summary = json.loads(Path(event["summary"]).read_text(encoding="utf-8"))
         sizes = [float(size.split()[0]) for size in summary["tiles_by_size"]]
-        self._mesh_layer = show_mesh(event["raster"], sizes, model_name(self.panel.folder.filePath()))
+        shown = show_built_mesh(event, sizes, model_name(self.panel.folder.filePath()))
+        self._mesh_layer = shown[0] if shown else None
         if self._mesh_folder:
             shutil.rmtree(self._mesh_folder, ignore_errors=True)
         self._mesh_folder = self._mesh_folder_next
-        self.mesh.summary.setText(mesh_text(summary))
+        self.mesh.summary.setText(built_words(summary))
 
     def _drop_scratch(self) -> None:
         if self._scratch:

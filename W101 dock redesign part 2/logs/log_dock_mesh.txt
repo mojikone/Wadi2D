@@ -1,0 +1,59 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 the kind first
+    5.2 PASS Mesh kind is the section's first input, under the card's words (1, ['QLabel'])
+    5.2 PASS three kinds, squares to start 
+    5.2 PASS squares: no quadtree or aligned sizes 
+    5.2 PASS Advanced closed, local time stepping not offered on squares 
+    5.2 PASS quadtree: its sizes, the mesh tick on 
+    5.2 PASS local time stepping under Advanced, on with the quadtree 
+    5.2 PASS aligned: the centre mesh, the corridors tick on 
+    5.2 PASS its box and the gorge rows; no rings sizes 
+    5.2 PASS the cells across are Terrain's 30 m Cells across the streams: 30 m (Terrain's cell size), the same along them; the rows repeat out to the floor's edge, so a cell never stretches.
+    5.2 PASS local time stepping off and gone with the quadtree False
+    5.2 PASS rings: the corridor sizes, no gorge rows 
+    5.2 PASS an older model's tick reads as the quadtree 
+    5.2 === 2 Build mesh on squares
+    5.2 PASS the button on any kind 
+    7.0 squares: 31,971 square cells of 30 m.
+    7.0 PASS the engine's count in words 31,971 square cells of 30 m.
+    7.0 PASS the cell grid under Inputs > Mesh ['Cell grid, 30 m, drawn from 1:30,000 in']
+    7.0 PASS its tiles hold the cells counted 
+    7.0 === 3 Build mesh on the quadtree
+    8.8 quadtree: 15,856 cells, 2.016 x fewer than the uniform grid. Smallest cell 30 m. Tiles: 15 of 30 m, 11 of 60 m, 1 of 120 m.
+    8.8 PASS its words: fewer cells, the smallest 15,856 cells, 2.016 x fewer than the uniform grid. Smallest cell 30 m. Tiles: 15 of 30 m, 11 of 60 m, 1 of 120 m.
+    8.8 PASS cell sizes and cell grid, the last build replaced ['Cell grid, 30 to 120 m, drawn from 1:30,000 in', 'Wadi2D mesh, cell size in m']
+    8.8 === 4 an engine refusal, in its words
+   10.6 refused: The mesh was not built. The engine refused the job: a setting is invalid. mesh line Far away touches no cell of the domain, so it would refine nothing
+   10.6 PASS the engine's refusal said in the section The mesh was not built. The engine refused the job: a setting is invalid. mesh line Far away touches no cell of the domain, so it would refine nothing
+   10.6 === 5 Suggest, then Build mesh on the aligned centre mesh
+   10.7 dock says: Reading the ground, its streams and its crests...
+   15.2 PASS a suggestion layer Suggested 128 bank lines along 21 thalwegs and 428 crests (425 other crest, 3 dam), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong an
+   15.2 PASS the card Ready in words Status(state='ready', words='The aligned centre mesh along the streams of Suggested breaklines: 128 banks, 428 crests')
+   15.3 dock says: Suggested 128 bank lines along 21 thalwegs and 428 crests (425 other crest, 3 dam), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong and save it. Use the bank lines as Refinement lines in the Mesh section, where their near_dx, rows and
+   18.1 aligned: 31,591 cells: 8,160 aligned along the streams, 23,431 squares (8,540 squares replaced). Smallest cell 393 m2, a square of 19.8 m. The mesher: line t0_22.4km2: 6 of 388 stations given up to higher lines, the domain's edge or too short to stand. line t1_21.9km2: 10 of 16 stations given up to higher lines, the domain's edge or too short to stand. line t2_19.3km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres. line t3_17.8km2: 6 of 144 stations given up to higher lines, the domain's edge or too short to stand. line t4_9.8km2: 8 of 24 stations given up to higher lines, the domain's edge or too short to stand. line t5_7.9km2: 4 of 79 stations given up to higher lines, the domain's edge or too short to stand. line t6_7.2km2: 5 of 21 stations given up to higher lines, the domain's edge or too short to stand. line t7_4.8km2: 4 of 47 stations given up to higher lines, the domain's edge or too short to stand. line t8_4.3km2: 5 of 65 stations given up to higher lines, the domain's edge or too short to stand. line t9_4.2km2: 4 of 15 stations given up to higher lines, the domain's edge or too short to stand. line t10_4.0km2: 9 of 56 stations given up to higher lines, the domain's edge or too short to stand. line t11_2.5km2: 10 of 114 stations given up to higher lines, the domain's edge or too short to stand. line t12_1.0km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres.
+   18.1 PASS its words: aligned cells, squares, the smallest 31,591 cells: 8,160 aligned along the streams, 23,431 squares (8,540 squares replaced). Smallest cell 393 m2, a square of 19.8 m. The mesher: line t0_22.4km2: 6 of 388 stations given up to higher lines, the domain's edge or too short to stand. line t1_21.9km2:
+   18.1 PASS the aligned cells over the cell grid ['Wadi2D mesh, aligned cells', 'Cell grid, 30 m, drawn from 1:30,000 in']
+   18.1 PASS one polygon a cell (8160, 8160)
+   18.3 === 6 the new settings in the job
+   18.3 PASS Suggest's streams without the quadtree {'stream_area_mid_km2': 2.5}
+   18.3 PASS the floor's scarp {'bank_rise_m': 2.0, 'bank_reach_m': 300.0, 'bank_depth_m': 0.2, 'bank_offset_cells': 1.0, 'crest_height_m': 0.5, 'disc_radius_m': 40.0, 'ground_slope_max': 0.15, 'bank_scarp_m': 1.5}
+   18.3 PASS the gorge rows of the centre mesh {'enabled': True, 'banks': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\w101\\dock_mesh\\runs\\mesh_run_breaklines\\suggested_breaklines.gpkg', 'cell_min_m': 20.0, 'cell_max_m': 50.0, 'w
+   18.7 PASS the engine's schema takes them 
+   18.8 PASS saved and brought back: the same job 
+   18.8 PASS and the same kind 
+   18.8 PASS at the engine's values none of them is written (None, {'bank_rise_m': 2.0, 'bank_reach_m': 300.0, 'bank_depth_m': 0.2, 'bank_offset_cells': 1.0, 'crest_height_m': 0.5, 'disc_radius_m': 40.0, 'ground_slope_max': 0.15})
+   18.8 === 7 a run steps the cells Build mesh drew
+   21.6 aligned again: 31,591 cells: 8,160 aligned along the streams, 23,431 squares (8,540 squares replaced). Smallest cell 393 m2, a square of 19.8 m. The mesher: line t0_22.4km2: 6 of 388 stations given up to higher lines, the domain's edge or too short to stand. line t1_21.9km2: 10 of 16 stations given up to higher lines, the domain's edge or too short to stand. line t2_19.3km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres. line t3_17.8km2: 6 of 144 stations given up to higher lines, the domain's edge or too short to stand. line t4_9.8km2: 8 of 24 stations given up to higher lines, the domain's edge or too short to stand. line t5_7.9km2: 4 of 79 stations given up to higher lines, the domain's edge or too short to stand. line t6_7.2km2: 5 of 21 stations given up to higher lines, the domain's edge or too short to stand. line t7_4.8km2: 4 of 47 stations given up to higher lines, the domain's edge or too short to stand. line t8_4.3km2: 5 of 65 stations given up to higher lines, the domain's edge or too short to stand. line t9_4.2km2: 4 of 15 stations given up to higher lines, the domain's edge or too short to stand. line t10_4.0km2: 9 of 56 stations given up to higher lines, the domain's edge or too short to stand. line t11_2.5km2: 10 of 114 stations given up to higher lines, the domain's edge or too short to stand. line t12_1.0km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres.
+   21.8 dock says: Starting...
+   25.8 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   45.1 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   45.1 run: start 23431 squares, strips {'ev': 'strips', 'corridors': 13, 'cells': 2809, 'triangles': 5351, 'replaced': 8540, 'cut': ["line t0_22.4km2: 6 of 388 stations given up to higher lines, the domain's edge or too short to stand", "line t1_21.9km2: 10 of 16 stations given up to higher lines, the domain's edge or too short to stand", 'line t2_19.3km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres', "line t3_17.8km2: 6 of 144 stations given up to higher lines, the domain's edge or too short to stand", "line t4_9.8km2: 8 of 24 stations given up to higher lines, the domain's edge or too short to stand", "line t5_7.9km2: 4 of 79 stations given up to higher lines, the domain's edge or too short to stand", "line t6_7.2km2: 5 of 21 stations given up to higher lines, the domain's edge or too short to stand", "line t7_4.8km2: 4 of 47 stations given up to higher lines, the domain's edge or too short to stand", "line t8_4.3km2: 5 of 65 stations given up to higher lines, the domain's edge or too short to stand", "line t9_4.2km2: 4 of 15 stations given up to higher lines, the domain's edge or too short to stand", "line t10_4.0km2: 9 of 56 stations given up to higher lines, the domain's edge or too short to stand", "line t11_2.5km2: 10 of 114 stations given up to higher lines, the domain's edge or too short to stand", 'line t12_1.0km2: every station lies within the clearance of a higher line or outside the active cells, or too few stand together: no centres'], 'rules': [{'name': 't0_22.4km2', 'hard': False, 'rank_km2': 22.354024, 'stations': 382, 'cells': 1544, 'cells_across': 12}, {'name': 't1_21.9km2', 'hard': False, 'rank_km2': 21.874276, 'stations': 6, 'cells': 12, 'cells_across': 2}, {'name': 't2_19.3km2', 'hard': False, 'rank_km2': 19.298375999999998, 'stations': 0, 'cells': 0, 'cells_across': 0}, {'name': 't3_17.8km2', 'hard': False, 'rank_km2': 17.75145, 'stations': 138, 'cells': 360, 'cells_across': 8}, {'name': 't4_9.8km2', 'hard': False, 'rank_km2': 9.760625, 'stations': 16, 'cells': 60, 'cells_across': 6}, {'name': 't5_7.9km2', 'hard': False, 'rank_km2': 7.9030249999999995, 'stations': 75, 'cells': 167, 'cells_across': 5}, {'name': 't6_7.2km2', 'hard': False, 'rank_km2': 7.203449999999999, 'stations': 16, 'cells': 32, 'cells_across': 2}, {'name': 't7_4.8km2', 'hard': False, 'rank_km2': 4.840599999999999, 'stations': 43, 'cells': 127, 'cells_across': 5}, {'name': 't8_4.3km2', 'hard': False, 'rank_km2': 4.33955, 'stations': 60, 'cells': 128, 'cells_across': 5}, {'name': 't9_4.2km2', 'hard': False, 'rank_km2': 4.2216, 'stations': 11, 'cells': 22, 'cells_across': 2}, {'name': 't10_4.0km2', 'hard': False, 'rank_km2': 4.0154749999999995, 'stations': 47, 'cells': 130, 'cells_across': 5}, {'name': 't11_2.5km2', 'hard': False, 'rank_km2': 2.45105, 'stations': 104, 'cells': 227, 'cells_across': 3}, {'name': 't12_1.0km2', 'hard': False, 'rank_km2': 1.010025, 'stations': 0, 'cells': 0, 'cells_across': 0}]}
+   45.1 PASS as many aligned cells ({'ev': 'strips', 'corridors': 13, 'cells': 2809, 'triangles': 5351, 'replaced': 8540, 'cut': ["line t0_22.4km2: 6 of 388 stations given up to higher lines, the domain's edge or too short to stand", "line t1_21.9km2: 10 of 16 stations given up to higher lines,
+   45.1 PASS as many squares (23431, 23431)
+   45.1 PASS the same squares replaced (8540, 8540)
+   45.1 === 8 one dark picture
+   49.7 dark picture taken
+   51.7 SUMMARY 37 passed, 0 failed 
+   51.7 DONE

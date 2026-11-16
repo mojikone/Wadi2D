@@ -44,6 +44,7 @@ PLAIN_KINDS = {
 BREAKLINE_BOXES = {
     "bank_rise": "bank_rise_m", "bank_reach": "bank_reach_m", "bank_depth": "bank_depth_m", "bank_offset": "bank_offset_cells",
     "crest_height": "crest_height_m", "crest_disc": "disc_radius_m", "crest_slope": "ground_slope_max",
+    "bank_scarp": "bank_scarp_m", "bank_slope": "bank_slope", "bank_slope_cap": "bank_slope_cap",
 }  # fmt: skip
 CORRIDOR_BOXES = {
     "corridor_cell_min": "cell_min_m", "corridor_cell_max": "cell_max_m", "corridor_fraction": "width_fraction",
@@ -304,6 +305,8 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
         ("mid_area", "stream_area_mid_km2"),
     ):
         _put(widgets, box, mesh.get(key))
+    if not mesh.get("enabled"):  # Suggest's streams without the quadtree (W101 item 4)
+        _put(widgets, "stream_area", mesh.get("stream_area_mid_km2"))
     lines = inputs_dir / "mesh_lines.geojson"
     if lines.is_file():
         widgets["lines.layer"] = layer(lines)
@@ -316,6 +319,7 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
     _put(widgets, "corridor_layer", layer(strips.get("banks")))
     for box, key in CORRIDOR_BOXES.items():
         _put(widgets, box, strips.get(key))
+    _put(widgets, "gorge_rows", strips.get("gorge_rows"))
     return {"widgets": widgets}
 
 

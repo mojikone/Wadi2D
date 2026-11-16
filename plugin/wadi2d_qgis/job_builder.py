@@ -63,6 +63,7 @@ STRIPS_CELL_MIN = "strips.cell_min_m"
 STRIPS_CELL_MAX = "strips.cell_max_m"
 STRIPS_FRACTION = "strips.width_fraction"
 STRIPS_OUTSIDE = "strips.rows_outside"
+STRIPS_GORGE = "strips.gorge_rows"
 STRIPS_KEYS = ("cell_min_m", "cell_max_m", "width_fraction", "rows_outside")
 CORRIDOR_NOTE = (
     "A corridor of cells aligned with each pair of suggested banks: its rows span the wadi between the banks, the cell "
@@ -78,10 +79,13 @@ BREAK_CREST = "breaklines.crest_height_m"
 BREAK_DISC = "breaklines.disc_radius_m"
 BREAK_SLOPE = "breaklines.ground_slope_max"
 BREAK_OFFSET = "breaklines.bank_offset_cells"
+BREAK_SCARP = "breaklines.bank_scarp_m"
+BREAK_SLOPE_CAP = "breaklines.bank_slope"
+BREAK_CAP = "breaklines.bank_slope_cap"
 BREAK_KEYS = frozenset(
     {
         "bank_rise_m", "bank_reach_m", "bank_depth_m", "bank_offset_cells", "crest_height_m", "disc_radius_m",
-        "ground_slope_max", "bank_depth_map",
+        "ground_slope_max", "bank_depth_map", "bank_scarp_m", "bank_slope", "bank_slope_cap",
     }
 )  # fmt: skip
 """What the Mesh section's Suggest settings write into the job's ``breaklines`` section."""
@@ -758,6 +762,10 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         }
         if strips.get("generator") == "centres":  # only off the engine's default: an old job stays the job it was
             job["strips"]["generator"] = "centres"
+        if strips.get("gorge_rows"):  # rows across a narrow gorge (W52), the centre mesh only (W101 item 4)
+            job["strips"]["gorge_rows"] = int(strips["gorge_rows"])
+    if values.get("stream_km2") is not None and "mesh" not in job:  # Suggest's streams without the quadtree (W101)
+        job["mesh"] = {"stream_area_mid_km2": values["stream_km2"]}
     if values.get("breaklines"):
         job["breaklines"] = _breaklines(values["breaklines"])
     return job

@@ -49,6 +49,38 @@ def show_mesh(path: Path | str, sizes: list[float], model: str) -> str | None:
     return layer.id()
 
 
+BUILT_CELLS_NAME = "Wadi2D mesh, aligned cells"
+BUILT_CELLS_LAYER = "strip_cells"
+
+
+def show_built_mesh(event: dict, sizes: list[float], model: str) -> list[str]:
+    """Build mesh's cells in the model's Inputs > Mesh, in place of the last ones (W101 item 4): the aligned cells on
+    top, the cell grid of the squares by tile, and the quadtree's cell sizes. Their ids, the top one first."""
+    from qgis.core import QgsVectorLayer
+
+    from .result_layers import open_cell_grid
+    from .style import style_strip_cells
+
+    shown: list[str] = []
+    if event.get("raster"):
+        found = show_mesh(event["raster"], sizes, model)  # clears the slot first
+        shown += [found] if found else []
+    else:
+        clear_slot(model, SLOT_MESH)
+    group = input_group(model, MESH)
+    grid = open_cell_grid(Path(event["grid"]).parent) if event.get("grid") else None
+    if grid is not None:
+        add_layer(group, grid, SLOT_MESH, index=0)
+        shown.insert(0, grid.id())
+    if event.get("strip_cells"):
+        cells = QgsVectorLayer(f"{event['strip_cells']}|layername={BUILT_CELLS_LAYER}", BUILT_CELLS_NAME, "ogr")
+        if cells.isValid():
+            style_strip_cells(cells)
+            add_layer(group, cells, SLOT_MESH, index=0)
+            shown.insert(0, cells.id())
+    return shown
+
+
 class LiveLayer:
     """One layer on the live raster: added once, reloaded when the file changes.
 
