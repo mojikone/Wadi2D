@@ -159,7 +159,19 @@ Nothing free does sub-grid + GPU + hydrology + ARF. That is the gap.
    trapezoid (bottom width, side slope) when he wants the HMS look; Manning n from land use. Valid in confined hill wadis; fans and
    braided reaches are 2D anyway. [Likely] **Version 1 (2026-10-29)**: deferred to version 2; version 1 reads the reach parameters from
    the HMS basin file.
-9. **ARF, the HMS depth-area way with one shortcut.** HMS reruns the whole basin once per analysis point with the storm area set to
+9. **ARF RULES OF RECORD (his, 2026-11-15 and 2026-11-16; they govern over everything below in this item and over any older note):**
+   - **Lumped and Hybrid Lumped:** HMS depth-area practice: every point (junction, reach, reservoir, dam) is computed with
+     the whole network above it reduced at THAT point's own upstream drainage area; the hydrograph Hybrid Lumped hands to
+     the 2D model at a dam or a marked last point (HAT-J4 on Block 2) is that point's own, at its own area.
+   - **Hybrid 2D:** one factor per basin: every lumped catchment is reduced at the drainage area of its LAST POINT (its dam,
+     or a marked junction such as HAT-J4), because the 2D routing runs once and cannot be rerun per upstream point.
+   - **The dams are the last point of the lumped model** (his words): nothing below a dam is lumped; in Hybrid Lumped the
+     lumped water enters the 2D model at the dams and the marked last points, not further down a reach.
+   - **Rain on the 2D grid** (2D, and the 2D part of the hybrids): one reduction for the run, as the job's 2D part says
+     (a curve read at a fixed area, a given area, a coefficient, or a depth-area study); Block 2's runs use 100 km2 (0.913).
+   - **The dock's area reduction section** has a lumped part and a 2D part, each a curve, a fixed area or a coefficient (1 =
+     no ARF); the lumped curve form applies the rules above automatically (built as W98, corrected by W105).
+   Original text of this item, kept for the record: **ARF, the HMS depth-area way with one shortcut.** HMS reruns the whole basin once per analysis point with the storm area set to
    that point's drainage area (Block 2: 14 points, 14 runs per return period). Here: **one run per storm-area value**, 6-8 log-spaced
    areas covering 10-600 km² (the 24 h ARF steps between neighbours are ~2%, so interpolation error is well under 1%), rain x ARF from
    his `ARF FM` table applied to lumped and 2D parts alike; **each design point reads the run matching its own drainage area** (a
