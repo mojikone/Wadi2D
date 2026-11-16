@@ -171,7 +171,18 @@ def turns_of(pts: np.ndarray) -> np.ndarray:
 
 def stations_of(line: Line, s: CentreSettings) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """The line's stations every cell along it and their left normals; a guide line smoothed where it turns more
-    than a 4-sided cell allows, a hard line reported there."""
+    than a 4-sided cell allows, a hard line reported there. Kept on the line for the settings and vertices they were
+    made from: the floor rule and the placing both ask (W92), and each caller gets copies."""
+    key = (s, line.hard, np.ascontiguousarray(line.xy, np.float64).tobytes())
+    held = line.__dict__.get("_stations")
+    if held is None or held[0] != key:
+        held = (key, _stations_of(line, s))
+        line.__dict__["_stations"] = held
+    pts, normals, notes = held[1]
+    return pts.copy(), normals.copy(), list(notes)
+
+
+def _stations_of(line: Line, s: CentreSettings) -> tuple[np.ndarray, np.ndarray, list[str]]:
     notes: list[str] = []
     pts = resample(shapely.LineString(line.xy), s.dx, s.smooth if not line.hard else 0)
     if not line.hard:
@@ -354,10 +365,12 @@ def lattice_centres(
     return placed, np.column_stack((cx[frame], cy[frame])), (jj[masked], ii[masked]), np.column_stack((cx[blocked], cy[blocked]))
 
 
-def _rings_of(points: np.ndarray, nreal: int, grid: TileGrid, dx: float) -> tuple[np.ndarray, list[np.ndarray], dict[tuple[int, int], tuple[int, int]]]:
+def _rings_of(
+    points: np.ndarray, nreal: int, grid: TileGrid, dx: float, faces: bool = True
+) -> tuple[np.ndarray, list[np.ndarray], dict[tuple[int, int], tuple[int, int]] | None]:
     """The Voronoi diagram of all points: the nodes (vertices snapped to lattice corners where they are one, then
     merged), one counter-clockwise ring of node indices per real point, and per pair of real points sharing a face
-    the two nodes of that face."""
+    the two nodes of that face (None when ``faces`` is False: only the merge rounds read them)."""
     vor = Voronoi(points)
     v = vor.vertices.copy()
     # a vertex at a lattice corner is that corner exactly, so the join faces are the lattice's own edges
@@ -371,7 +384,7 @@ def _rings_of(points: np.ndarray, nreal: int, grid: TileGrid, dx: float) -> tupl
     inverse = inverse.ravel()
     nodes = v[first]
     rings = regions_to_rings(vor, nreal, inverse, nodes, points)  # the loop of one ring at a time, on whole arrays (W92)
-    shared = shared_faces(vor, nreal, inverse)
+    shared = shared_faces(vor, nreal, inverse) if faces else None
     return nodes, rings, shared
 
 
@@ -502,9 +515,9 @@ def build_centre_mesh(
     )  # fmt: skip
     min_area = s.min_area_fraction * dx * dx
 
-    def diagram(p: Placed):
+    def diagram(p: Placed, faces: bool = True):
         pts = np.vstack((p.xy, frame))
-        nodes, rings, shared = _rings_of(pts, p.n, grid, dx)
+        nodes, rings, shared = _rings_of(pts, p.n, grid, dx, faces)
         if hole is not None:
             near, _ = edge_tree.query(p.xy)
             nodes, rings = _clip_to_hole(nodes, rings, np.nonzero(near <= 3.0 * dx)[0], hole)
@@ -567,7 +580,7 @@ def build_centre_mesh(
         if not move.any():
             break
         all_pts.xy[move] = cen[move]
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
     faces = np.array([r.size for r in rings])
     for _round in range(s.merge_rounds):
         # a band cell over the face limit loses its centre; a line cell cut to a triangle at a line's end loses the
@@ -591,12 +604,12 @@ def build_centre_mesh(
         if not drop.any():
             break
         all_pts = all_pts.keep(~drop)
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
         faces = np.array([r.size for r in rings])
     gone = faces < 3  # a cell the domain's edge cut to nothing, or a sliver the merge rounds left: its centre goes
     if gone.any():
         all_pts = all_pts.keep(~gone)
-        nodes, rings, shared, area, cen = diagram(all_pts)
+        nodes, rings, shared, area, cen = diagram(all_pts, faces=False)  # no merge round reads the faces after it
         faces = np.array([r.size for r in rings])
         if (faces < 3).any():
             c = int(np.nonzero(faces < 3)[0][0])
