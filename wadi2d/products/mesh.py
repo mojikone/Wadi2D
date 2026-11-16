@@ -23,7 +23,7 @@ from wadi2d.config.schema import Pixels, RunConfig
 from wadi2d.grid.quad import QuadGrid
 from wadi2d.io.geotiff import float_record, raster_profile, write_band
 from wadi2d.products.ground import CellPixels, read_cells
-from wadi2d.products.hazard import DRY, class_names, classify
+from wadi2d.products.hazard import DRY, class_names, classify, off_the_map
 from wadi2d.products.pixels import PixelMaxima, to_host
 from wadi2d.solver.layout import CLOSED, TILE, TILE2
 from wadi2d.tables import GridTables
@@ -260,7 +260,8 @@ def write_mesh_pixels(cfg, tables, crs, found: MeshResult, folder, tags, files: 
     box = _box(found.cells)
     pixel = found.pixel
     x0, y0 = grid.x0 + box[2] * pixel, grid.y0 - box[0] * pixel
-    classes = spread(found.cells, found.classes, DRY, np.uint8)
+    shown = {s: off_the_map(found.classes[s], found.depth[s], rule) for s in found.classes}  # thin water off the map
+    classes = spread(found.cells, shown, DRY, np.uint8)
     profile = raster_profile(classes.shape, pixel, x0, y0, crs)
     write_band(folder / files["hazard"], classes, profile, DRY, tags, "mode" if rule.overviews else None)
     nothing = files["nodata"]

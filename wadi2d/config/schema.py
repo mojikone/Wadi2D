@@ -812,6 +812,14 @@ class Pixels(_Part):
     depth_floor: float = Field(
         0.05, ge=0.0, le=10.0, description="Below this a pixel is dry and takes no class, m"
     )
+    hazard_depth_floor: float = Field(
+        0.1,
+        ge=0.0,
+        le=10.0,
+        description="Below this depth a pixel takes no hazard class, m, though its depth and speed stay in their "
+        "rasters: thin rain-on-grid water off the hazard map (his decision of 2026-11-16); the higher of this and "
+        "depth_floor holds",
+    )
     hazard_limits: list[tuple[float, float, float]] = Field(
         [(0.3, 0.3, 2.0), (0.6, 0.5, 2.0), (0.6, 1.2, 2.0), (1.0, 2.0, 2.0), (4.0, 4.0, 4.0)],
         min_length=1,

@@ -13,7 +13,7 @@ import numpy as np
 
 from wadi2d.config.schema import Pixels
 from wadi2d.products.ground import CellPixels
-from wadi2d.products.hazard import classify
+from wadi2d.products.hazard import classify, hazard_floor
 from wadi2d.products.pixels import PixelMaxima
 from wadi2d.render.ground_store import GroundStore
 from wadi2d.render.run_source import PixelTables
@@ -85,6 +85,7 @@ class WindowPixels:
         elif field == HAZARD:
             s = speed[cell, within]
             value = classify(d, s, d * s, self.rule, xp).astype(xp.float32)
+            wet = wet & (d >= hazard_floor(self.rule))  # thin water off the hazard map
         else:
             raise ValueError(f"no field {field!r}: one of {', '.join(FIELDS)}")
         return xp.where(wet, value, nothing)

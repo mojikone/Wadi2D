@@ -180,9 +180,11 @@ def test_pixels_are_wet_only_in_the_wadi(finished) -> None:
     assert classes.max() >= 1
     y = t.f + (np.arange(classes.shape[0]) + 0.5) * t.e
     off = np.abs(y - (Y0 - 160.0)) >= 45.0  # 30 m to the bank toe, and the first metres of its rise
-    assert (classes[~off] > 0).mean() > 0.5
-    assert (classes[off] > 0).mean() < 0.05
-    assert depth[off][classes[off] > 0].max(initial=0.0) < 0.15
+    wet = depth != step.NO_DEPTH  # wet by the depth raster: the hazard map leaves water under 0.1 m out (2026-11-16)
+    assert wet[~off].mean() > 0.5
+    assert wet[off].mean() < 0.05
+    assert depth[off][wet[off]].max(initial=0.0) < 0.15
+    assert not (classes[off] > 0).any() or depth[off][classes[off] > 0].min() >= 0.1
 
 
 def test_cpu_and_gpu_give_the_same_answer(finished, tmp_path) -> None:

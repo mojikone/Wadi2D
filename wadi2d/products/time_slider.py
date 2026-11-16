@@ -21,7 +21,7 @@ import numpy as np
 from wadi2d.config.schema import Pixels, RunConfig
 from wadi2d.products.cell_grid import CELL_GRID_FILE, CELL_GRID_LAYER
 from wadi2d.products.frames import frame_names, read_frames
-from wadi2d.products.hazard import classify
+from wadi2d.products.hazard import classify, hazard_floor
 from wadi2d.solver.layout import TILE
 
 FRAMES_FILE = "frames.nc"
@@ -168,6 +168,7 @@ def cell_frame(depth: np.ndarray, speed: np.ndarray, mesh: CellMesh, rule: Pixel
     s = speed[mesh.rows, mesh.columns].astype(np.float32)
     hazard = classify(d, s, d * s, rule).astype(np.float32)
     dry = d < rule.depth_floor
+    hazard = np.where(d < hazard_floor(rule), FILL, hazard)  # thin water off the hazard map, its depth kept
     return {name: np.where(dry, FILL, field) for name, field in (("depth", d), ("speed", s), ("hazard", hazard))}
 
 

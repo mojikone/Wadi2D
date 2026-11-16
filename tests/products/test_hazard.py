@@ -7,7 +7,7 @@ import pytest
 from pydantic import ValidationError
 
 from wadi2d.config.schema import Pixels
-from wadi2d.products.hazard import class_names, classify
+from wadi2d.products.hazard import class_names, classify, hazard_floor, off_the_map
 
 RULE = Pixels()
 
@@ -42,6 +42,18 @@ def test_limits_and_floor_are_the_brief_s() -> None:
 def test_a_pixel_takes_the_highest_class_any_limit_gives(depth: float, speed: float, expected: int) -> None:
     got = one(depth, speed)
     assert got == expected or (speed == 2.5 and got >= expected)
+
+
+def test_thin_water_is_off_the_hazard_map_but_keeps_its_depth() -> None:
+    """His decision of 2026-11-16: water under 0.1 m takes no class on the hazard map; the wet mask of depth and speed
+    (``classify``) still counts it from the depth floor."""
+    assert RULE.hazard_depth_floor == 0.1 and hazard_floor(RULE) == 0.1
+    depth = np.array([0.04, 0.08, 0.1, 0.3])
+    classes = classify(depth, np.full(4, 1.0), depth, RULE)
+    assert classes.tolist() == [0, 1, 1, 1]  # the wet mask: from 0.05 m
+    assert off_the_map(classes, depth, RULE).tolist() == [0, 0, 1, 1]  # the map: from 0.1 m
+    open_floor = Pixels(hazard_depth_floor=0.0)
+    assert off_the_map(classes, depth, open_floor).tolist() == [0, 1, 1, 1]
 
 
 def test_depth_times_speed_alone_lifts_a_class() -> None:

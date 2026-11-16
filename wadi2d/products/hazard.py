@@ -22,5 +22,16 @@ def classify(depth: np.ndarray, speed: np.ndarray, dv: np.ndarray, rule: Pixels,
     return out
 
 
+def hazard_floor(rule: Pixels) -> float:
+    """Depth under which a pixel is off the hazard map: the higher of the two floors."""
+    return max(rule.depth_floor, rule.hazard_depth_floor)
+
+
+def off_the_map(classes, depth, rule: Pixels, xp=np):
+    """The classes as the hazard map shows them: thin water under the hazard floor takes no class (his decision of
+    2026-11-16). Only for writing or drawing the hazard map: the wet mask of depth and speed stays ``classes > DRY``."""
+    return xp.where(depth < hazard_floor(rule), DRY, classes).astype(classes.dtype)
+
+
 def class_names(rule: Pixels) -> list[str]:
     return [f"H{k}" for k in range(1, len(rule.hazard_limits) + 2)]

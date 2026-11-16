@@ -17,7 +17,7 @@ from wadi2d.config.schema import RunConfig
 from wadi2d.products import step
 from wadi2d.products.frames import frame_names
 from wadi2d.products.ground import face_sills, read_cells
-from wadi2d.products.hazard import classify
+from wadi2d.products.hazard import classify, off_the_map
 from wadi2d.products.pixels import PixelMaxima, kept_cells
 from wadi2d.products.step import PIXEL_DIR, Watch, make_products, pixel_box, spread
 from wadi2d.run import prepare_grid, run_job
@@ -115,7 +115,7 @@ def whole_domain(found: Finished, frame: int, xp=np) -> Yardstick:
     return Yardstick(
         spread(cells, np.where(wet, depth, np.nan), np.nan, np.float32, box),
         spread(cells, np.where(wet, speed, np.nan), np.nan, np.float32, box),
-        spread(cells, classes, 0, np.uint8, box),
+        spread(cells, off_the_map(classes, depth, rule), 0, np.uint8, box),  # the hazard map leaves thin water out
         extent,
         cells.pixel,
     )

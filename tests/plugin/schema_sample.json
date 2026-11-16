@@ -3117,6 +3117,7 @@
             "volume_slack": 0.25,
             "volume_slack_m": 0.03,
             "depth_floor": 0.05,
+            "hazard_depth_floor": 0.1,
             "hazard_limits": [
               [
                 0.3,
@@ -3349,6 +3350,14 @@
           "maximum": 10.0,
           "minimum": 0.0,
           "title": "Depth Floor",
+          "type": "number"
+        },
+        "hazard_depth_floor": {
+          "default": 0.1,
+          "description": "Below this depth a pixel takes no hazard class, m, though its depth and speed stay in their rasters: thin rain-on-grid water off the hazard map (his decision of 2026-11-16); the higher of this and depth_floor holds",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Hazard Depth Floor",
           "type": "number"
         },
         "hazard_limits": {
@@ -5918,6 +5927,7 @@
           "edge_band": 0.3,
           "edge_passes": 3,
           "enabled": true,
+          "hazard_depth_floor": 0.1,
           "hazard_limits": [
             [
               0.3,

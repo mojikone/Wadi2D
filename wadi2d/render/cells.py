@@ -12,7 +12,7 @@ import math
 import numpy as np
 
 from wadi2d.config.schema import Pixels
-from wadi2d.products.hazard import classify
+from wadi2d.products.hazard import classify, hazard_floor
 from wadi2d.render.frame_pixels import DEPTH, FIELDS, SPEED
 from wadi2d.render.run_source import RunSource
 from wadi2d.render.view import View
@@ -48,6 +48,7 @@ def draw_cells(xp, source: RunSource, frame: int, view: View, field: str, rule: 
         value = speed
     else:
         value = classify(depth, speed, depth * speed, rule, xp).astype(xp.float32)
+        value = xp.where(depth < hazard_floor(rule), xp.nan, value)  # thin water off the hazard map
     value = xp.where(wet, value, xp.nan).astype(xp.float32)
     if n > 1:
         value = _pooled(xp, value, n)

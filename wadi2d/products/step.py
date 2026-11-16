@@ -41,7 +41,7 @@ from wadi2d.products.blocks import (
 )
 from wadi2d.products.frames import frame_names, read_frames, run_maxima, strip_run_maxima
 from wadi2d.products.ground import CellPixels, CellReader, face_sills
-from wadi2d.products.hazard import DRY, class_names, classify
+from wadi2d.products.hazard import DRY, class_names, classify, off_the_map
 from wadi2d.products.mesh import MeshMaxima, MeshResult, classes_of, mesh_sills, read_parts, write_mesh_pixels
 from wadi2d.products.pixels import BYTES, CELL_FILL, PixelMaxima, array_module, halo, kept_cells
 from wadi2d.tables import GridTables
@@ -485,10 +485,13 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
     top, left = lattice.box[0], lattice.box[1]
     parts = list(window_parts(cells, (p0, q0, p1 - p0, q1 - q0), strip, WINDOW))
 
+    shown = off_the_map(classes, depth, rule)
+    strip_shown = None if strip is None else off_the_map(strip.classes, strip.depth, rule)
+
     def classes_raster() -> np.ndarray:
         counts = np.zeros_like(tally.counts)
         for part in parts:
-            tile = part.paint(classes[part.cells], None if strip is None else strip.classes[part.strip], DRY, np.uint8)
+            tile = part.paint(shown[part.cells], None if strip is None else strip_shown[part.strip], DRY, np.uint8)
             hazard.write(tile, p0 - top + part.row, q0 - left + part.col)
             counts += np.bincount(tile.ravel(), minlength=counts.size)
         return counts

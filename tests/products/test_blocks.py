@@ -20,7 +20,7 @@ from wadi2d.products.blocks import plan_bands, plan_blocks
 from wadi2d.products.cell_maps import strip_on_lattice
 from wadi2d.products.frames import frame_names, read_frames, run_maxima
 from wadi2d.products.ground import face_sills, read_cells
-from wadi2d.products.hazard import DRY, classify
+from wadi2d.products.hazard import DRY, classify, off_the_map
 from wadi2d.products.pixels import PixelMaxima, array_module
 from wadi2d.products.step import PIXEL_DIR, Watch, make_products
 from wadi2d.run import prepare_grid, run_job
@@ -87,13 +87,15 @@ def _whole_rasters(cfg, tables, run) -> dict[str, np.ndarray]:
     from wadi2d.strips.pixels import strip_pixel_maxima
 
     cells, classes, depth, speed, dv = _whole_squares(cfg, tables, run)
+    rule = cfg.outputs.pixels
     strip = None
     if getattr(tables, "strip", None) is not None:
         strip = strip_pixel_maxima(cfg, tables, tables.strip, run, QUIET, np, cells.datum)
     box = step.pixel_box(cells, strip)
     wet = classes > DRY
     on_strip = None if strip is None else strip.classes > DRY
-    out = {step.HAZARD_FILE: step.spread(cells, classes, DRY, np.uint8, box, strip, None if strip is None else strip.classes)}
+    shown = None if strip is None else off_the_map(strip.classes, strip.depth, rule)  # thin water off the hazard map
+    out = {step.HAZARD_FILE: step.spread(cells, off_the_map(classes, depth, rule), DRY, np.uint8, box, strip, shown)}
     for name, values, more in (
         (step.DEPTH_FILE, depth, None if strip is None else strip.depth),
         (step.SPEED_FILE, speed, None if strip is None else strip.speed),
