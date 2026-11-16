@@ -82,3 +82,10 @@ Found by the audit of 2026-11-16 (in the engine, never in the dock, not in the r
 Proposed with it (his question of 2026-11-16, not yet his decision): scenarios as HMS runs and RAS plans (components,
 a scenario inherits a base and stores only its differences), a batch queue (all return periods or all model types), stop
 rules (end when every dam inflow has peaked and fallen), hot start from a saved state, batch sensitivity, run notes.
+
+Results view, his remark of 2026-11-16 on the mockup ("not all projects have dams"): the results table is not a dam
+table. It lists the run's elements of record with a kind filter (design points, dams and reservoirs, junctions, reaches,
+subbasins, outlets, result lines and points, observed gauges), a search box, and a pinned set the user picks, saved with the
+project and shown first in every run and in Compare. Default when nothing is pinned: the user's design points and lines; if
+none, the dams; if none, the outlets to the sea or the domain edge. Every row opens the hydrograph chart; the right-click
+chart on the map stays.
