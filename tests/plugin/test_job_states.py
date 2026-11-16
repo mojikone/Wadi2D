@@ -30,11 +30,21 @@ def test_a_plain_job_comes_back_as_section_states(tmp_path: Path) -> None:
     assert terrain["dem"]["provider"] == "gdal" and terrain["dem"]["source"].endswith("dem.tif")
     assert Path(terrain["domain"]["source"]) == tmp_path.resolve() / "inputs" / "domain.geojson"
     storm = states["storm"]["widgets"]
-    assert (storm["kind"]["data"], storm["single"]["data"], storm["rain"], storm["hours"]) == ("single", "uniform", 40.0, 0.5)
+    assert (storm["kind"]["data"], storm["single"]["data"], storm["rain"], storm["hours"]) == (
+        "single",
+        "uniform",
+        40.0,
+        0.5,
+    )
     assert states["hydrology"]["widgets"]["cn.box"] == 85.0
     assert states["points"]["widgets"]["name"] == "name"
     run = states["run"]["widgets"]
-    assert (run["duration"], run["maps"]["data"], run["pixels"], run["folder"]) == (2.0, 900.0, False, str(tmp_path))
+    assert (run["duration"], run["maps"]["data"], run["pixels"], run["folder"]) == (
+        2.0,
+        900.0,
+        False,
+        str(tmp_path),
+    )
 
 
 def test_storms_the_dock_writes_are_read_back(tmp_path: Path) -> None:
@@ -43,18 +53,32 @@ def test_storms_the_dock_writes_are_read_back(tmp_path: Path) -> None:
         "arf_mode": "area", "area_km2": 74.3, "arf": [(10.0, 0.99), (100.0, 0.913)],
     }  # fmt: skip
     storm = job_states.job_states(build_job(values(storm=design), tmp_path), tmp_path)["storm"]["widgets"]
-    assert (storm["kind"]["data"], storm["design_depth"], storm["design_hours"]) == ("hypothetical", 120.0, 6.0)
+    assert (storm["kind"]["data"], storm["design_depth"], storm["design_hours"]) == (
+        "hypothetical",
+        120.0,
+        6.0,
+    )
     assert storm["pattern"] == [[0.0, 0.0], [100.0, 100.0]]
-    assert (storm["arf_mode"]["data"], storm["storm_area"], storm["arf"]) == ("area", 74.3, [[10.0, 0.99], [100.0, 0.913]])
+    assert (storm["arf_mode"]["data"], storm["storm_area"], storm["arf"]) == (
+        "area",
+        74.3,
+        [[10.0, 0.99], [100.0, 0.913]],
+    )
     table = {"kind": "hyetograph", "rows": [(15.0, 4.0), (30.0, 11.5)]}
     storm = job_states.job_states(build_job(values(storm=table), tmp_path), tmp_path)["storm"]["widgets"]
     assert (storm["single"]["data"], storm["hyetograph"]) == ("hyetograph", [[15.0, 4.0], [30.0, 11.5]])
 
 
 def test_dam_start_levels_come_back_as_rows(tmp_path: Path) -> None:
-    job = {**build_job(values(), tmp_path), "dam_levels": [{"name": "A", "start": "spillway"}, {"name": "B", "start": 97.25}]}
+    job = {
+        **build_job(values(), tmp_path),
+        "dam_levels": [{"name": "A", "start": "spillway"}, {"name": "B", "start": 97.25}],
+    }
     rows = job_states.job_states(job, tmp_path)["structures"]["rows"]["start_water"]
-    assert rows == [{"name": "A", "start": "spillway", "level": None}, {"name": "B", "start": "level", "level": 97.25}]
+    assert rows == [
+        {"name": "A", "start": "spillway", "level": None},
+        {"name": "B", "start": "level", "level": 97.25},
+    ]
 
 
 def test_what_a_refilled_dock_would_lose_is_found_by_comparison(tmp_path: Path) -> None:
