@@ -98,14 +98,23 @@ def cut_items(items: list, cutoff: float) -> list:
     return [QgsColorRampShader.ColorRampItem(cutoff, mixed, f"{cutoff:g} m"), *above]
 
 
+CUTOFF_STEP_M = 1e-4
+"""Width of the step from clear to the cutoff's colour: a value below the cutoff reads the clear item."""
+
+
 def _depth_shader(items: list, cutoff: float | None = None) -> QgsColorRampShader:
-    """An interpolated depth shader cut at the cutoff: a value below it is not drawn (the shader clips)."""
+    """An interpolated depth shader cut at the cutoff: a value below it is not drawn, one above the ramp's top takes
+    the deepest colour. Not by the shader's clip, which hides both ends, so every pool deeper than the ramp went blank."""
     cutoff = depth_cutoff() if cutoff is None else cutoff
     cut = cut_items(items, cutoff)
+    if cut is not items:
+        clear = QColor(cut[0].color)
+        clear.setAlpha(0)
+        cut = [QgsColorRampShader.ColorRampItem(cut[0].value - CUTOFF_STEP_M, clear, ""), *cut]
     shader = QgsColorRampShader(cut[0].value, cut[-1].value)
     shader.setColorRampType(QgsColorRampShader.Interpolated)
     shader.setColorRampItemList(cut)
-    shader.setClip(cut is not items)
+    shader.setClip(False)
     return shader
 
 

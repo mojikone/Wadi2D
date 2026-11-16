@@ -80,7 +80,10 @@ deep = [(v, a) for v, a in drawn(depth) if v >= 0.06]
 assert shallow and deep, (len(shallow), len(deep))
 assert all(a == 0 for _v, a in shallow) and all(a > 0 for _v, a in deep)
 shader = depth.renderer().shader().rasterShaderFunction()
-assert shader.clip() and abs(shader.minimumValue() - 0.05) < 1e-9
+assert not shader.clip() and abs(shader.colorRampItemList()[1].value - 0.05) < 1e-9
+for value, seen in ((0.04, False), (0.06, True), (40.0, True)):  # a pool deeper than the ramp is drawn, dark
+    ok, _r, _g, _b, alpha = shader.shade(value)
+    assert ok and (alpha > 0) == seen, (value, alpha)
 settings.set_depth_cutoff(0.0)
 assert style.restyle_depth_layers() == 1
 assert any(a > 0 for v, a in drawn(depth) if 0.0 < v < 0.05), "0 draws every wet cell"
