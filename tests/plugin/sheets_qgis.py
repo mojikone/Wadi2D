@@ -48,8 +48,8 @@ if MODE == "plain":
     assert found.depth is None and found.hazard is None
     assert found.domain is not None and found.domain.isValid()
     assert found.boundaries is not None
-    # W100: depth, speed and hazard; the depth x speed raster is no longer written by default
-    assert len(found.record) == 3 and found.record_depth is not None
+    # W100: depth, speed, hazard and the highest water level; no depth x speed raster by default
+    assert len(found.record) == 4 and found.record_depth is not None
     load_maps(RUN, "run", tucked=True)
     load_products(RUN, "run")
     top = project.layerTreeRoot().findGroup(results_title("run"))
@@ -72,7 +72,7 @@ assert found.depth is not None and found.depth.isValid()
 assert found.hazard is not None and found.hazard.featureCount() >= 1
 assert found.domain is not None and found.domain.isValid()
 assert found.boundaries is not None
-assert len(found.record) == 3  # W100: no depth x speed raster by default
+assert len(found.record) == 4  # W100: depth, speed, hazard, water level; no depth x speed by default
 
 colours = {c.value(): c.symbol().color().name() for c in found.hazard.renderer().categories()}
 assert colours[1] == "#0000ff" and colours[6] == "#ff0000", colours

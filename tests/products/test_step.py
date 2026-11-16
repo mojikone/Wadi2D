@@ -86,6 +86,25 @@ def test_a_run_makes_its_pixel_maps_by_default(finished) -> None:
     assert (run / "maps" / "hazard.tif").exists()  # the cell hazard stays
 
 
+def test_the_highest_water_level_is_the_ground_plus_the_highest_depth(finished) -> None:
+    """His question of 2026-11-16, the water surface map: wet where the depth raster is, and the level less the depth
+    reads the synthetic ground at each pixel's centre."""
+    _cfg, run, _summary = finished
+    with rasterio.open(run / PIXEL_DIR / step.LEVEL_FILE) as src:
+        level, t, nodata = src.read(1), src.transform, src.nodata
+    with rasterio.open(run / PIXEL_DIR / step.DEPTH_FILE) as src:
+        depth = src.read(1)
+    wet = depth != step.NO_DEPTH
+    assert wet.sum() > 100
+    np.testing.assert_array_equal(level != nodata, wet)
+    rows, cols = np.nonzero(wet)
+    x = t.c + (cols + 0.5) * t.a - X0
+    y = (Y0 - (t.f + (rows + 0.5) * t.e))  # metres south of the DEM's north edge
+    ground = 200.0 - 0.02 * x + np.clip(np.abs(y - 64 * 5.0 / 2.0) - 30.0, 0.0, 6.0) * 0.5
+    off = np.abs(level[wet] - depth[wet] - ground)
+    assert float(np.median(off)) < 0.01 and float(np.percentile(off, 99)) < 0.1, (np.median(off), off.max())
+
+
 def test_the_polygons_and_the_depth_drawing_are_not_made_unless_asked(finished, drawn) -> None:
     """W50: they are several times the rasters' time, so a run makes them only when its job says so."""
     assert RunConfig().outputs.smooth.enabled is False

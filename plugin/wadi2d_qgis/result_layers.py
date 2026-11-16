@@ -31,6 +31,7 @@ from .protocol import (
     PIXEL_DEPTH,
     PIXEL_DIR,
     PIXEL_DV,
+    PIXEL_LEVEL,
     PIXEL_HAZARD,
     PIXEL_SPEED,
     REACH_LAYER,
@@ -131,6 +132,7 @@ def open_layers(run: Path | str, leave_out: str = "") -> RunLayers:
         (PIXEL_DEPTH, "Depth, m", style.style_pixel_depth),
         (PIXEL_SPEED, "Speed, m/s", None),
         (PIXEL_DV, "Depth x speed, m2/s", None),
+        (PIXEL_LEVEL, "Highest water level, m", None),
     )
     for name, title, styler in record:
         layer = _raster(folder, name, title)

@@ -51,6 +51,9 @@ DEPTH_FILE = "pixel_depth.tif"
 HAZARD_FILE = "pixel_hazard.tif"
 SPEED_FILE = "pixel_speed.tif"
 DV_FILE = "pixel_dv.tif"
+LEVEL_FILE = "pixel_level.tif"
+"""The highest water level at each pixel, m, the terrain's datum: its ground plus its highest depth (his question of
+2026-11-16, the water surface map of RAS Mapper)."""
 STATS_FILE = "pixels.json"
 NO_DEPTH = -9999.0
 STAGES = {"ground": (0.0, 5.0), "maps": (5.0, 80.0), "rasters": (80.0, 85.0), "smooth": (85.0, 100.0)}
@@ -375,7 +378,7 @@ class Lattice:
         _free_device(xp)
         if not own.any():
             return None
-        return (r[own], c[own], *(v[own] for v in found))
+        return (r[own], c[own], *(v[own] for v in found), ground[pick][own])
 
     def _meet(self, maxima, part):
         """Hand the block's strip its join faces with the squares the last squares' block kept the surface of
@@ -418,6 +421,7 @@ class Lattice:
         xp, rule = self.xp, self.rule
         maxima = BlockStripMaxima(xp, part, rule)
         record = self._meet(maxima, part)
+        pixel_ground = part.ground  # kept on the host for the water level raster
         if xp is not np:  # on the card now: the host's copies of its pixels' ground and weights can go (W93)
             part.ground = part.weights = part.cell = None
         at = stack.at(part.ids)
@@ -435,7 +439,10 @@ class Lattice:
         p0, p1, q0, q1 = self.rect(block)
         inside = (part.rows >= p0) & (part.rows < p1) & (part.cols >= q0) & (part.cols < q1)
         depth, speed, dv = depth[inside], speed[inside], dv[inside]
-        return StripPixelResult(part.rows[inside], part.cols[inside], classify(depth, speed, dv, rule), depth, speed, dv)
+        return StripPixelResult(
+            part.rows[inside], part.cols[inside], classify(depth, speed, dv, rule), depth, speed, dv,
+            None if pixel_ground is None else np.asarray(pixel_ground)[inside],
+        )  # fmt: skip
 
 
 class _Lane:
@@ -471,8 +478,13 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
     p0, p1, q0, q1 = lattice.rect(block)
     if squares is None:
         none = np.zeros(0, np.int64)
-        squares = (none, none, *(np.zeros((0, k * k), np.float32),) * 3)
-    rows, cols, depth, speed, dv = squares
+        squares = (none, none, *(np.zeros((0, k * k), np.float32),) * 4)
+    rows, cols, depth, speed, dv, ground = squares
+    datum = np.float32(lattice.reader.datum)
+    level = depth + ground + datum  # the highest water level: the ground plus the highest depth
+    strip_level = None
+    if strip is not None and strip.ground is not None:
+        strip_level = strip.depth + strip.ground + datum
     cells = CellPixels(rows, cols, k, lattice.reader.pixel, lattice.reader.datum, None)
     classes = classify(depth, speed, dv, rule)
     wet = classes > DRY
@@ -481,6 +493,7 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
         (depth, None if strip is None else strip.depth),
         (speed, None if strip is None else strip.speed),
         (dv, None if strip is None else strip.dv),
+        (level, None if strip is None else strip_level),
     )
     top, left = lattice.box[0], lattice.box[1]
     parts = list(window_parts(cells, (p0, q0, p1 - p0, q1 - q0), strip, WINDOW))
@@ -523,7 +536,7 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
         tally.strip_depth = max(tally.strip_depth, float(strip.depth.max(initial=0.0)))
 
 
-MEASURE_FILES = (DEPTH_FILE, SPEED_FILE, DV_FILE)
+MEASURE_FILES = (DEPTH_FILE, SPEED_FILE, DV_FILE, LEVEL_FILE)
 OVERVIEW_MEASURES, OVERVIEW_CLASSES = "average", "mode"
 """How the reduced copies of the rasters of record are made (W100): depth and speed averaged over their wet pixels,
 the class the most of them hold."""

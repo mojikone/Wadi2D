@@ -312,6 +312,8 @@ class StripPixelResult:
     depth: np.ndarray
     speed: np.ndarray
     dv: np.ndarray
+    ground: np.ndarray | None = None
+    """Each pixel's ground over the products' datum, where known: the highest water level is it plus the depth."""
 
 
 def strip_pixel_maxima(cfg: RunConfig, tables, strip, out, watch, xp, datum: float) -> StripPixelResult | None:
