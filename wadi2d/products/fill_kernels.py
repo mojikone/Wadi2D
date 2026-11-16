@@ -39,7 +39,57 @@ extern "C" __global__ void masked_gap(const float* relief, const long long* rows
     }
     if (threadIdx.x == 0) count[r] = part[0];
 }
+
+// The masked gaps summed in the kernel, in the order CUB's segmented sum adds a row that fits one tile of its
+// 256 threads (what CuPy's sum along a row calls): each thread its pixels j, j + 256, ... in turn, then each warp
+// by halving down (peers 1, 2, 4, 8, 16 lanes on, while they hold items), then the warps' sums one after another,
+// then zero plus that. Used only where a check against CuPy's own sum, on this card, gave the same bits.
+extern "C" __global__ void masked_sum(const float* relief, const long long* rows, const float* offset,
+                                      float* total, long long* count, int pixels) {
+    __shared__ long long part[256];
+    __shared__ float warps[8];
+    long long r = blockIdx.x;
+    long long row = rows[r];
+    float at = offset[row];
+    const float* own = relief + row * (long long)pixels;
+    int t = threadIdx.x;
+    float acc = 0.0f;
+    long long under = 0;
+    for (int j = t; j < pixels; j += 256) {
+        float gap = at - own[j];
+        float wet = gap > 0.0f ? 1.0f : 0.0f;
+        float v = gap * wet;
+        acc = j == t ? v : acc + v;
+        under += gap > 0.0f ? 1 : 0;
+    }
+    int valid = pixels < 256 ? pixels : 256;
+    int lane = t & 31, warp = t >> 5;
+    int warp_valid = valid - warp * 32;
+    warp_valid = warp_valid < 0 ? 0 : (warp_valid > 32 ? 32 : warp_valid);
+    for (int step = 1; step < 32; step <<= 1) {
+        float peer = __shfl_down_sync(0xffffffffu, acc, step);
+        if (lane + step < warp_valid) acc = peer + acc;
+    }
+    if (lane == 0) warps[warp] = acc;
+    part[t] = under;
+    __syncthreads();
+    for (int s = 128; s > 0; s >>= 1) {
+        if (t < s) part[t] += part[t + s];
+        __syncthreads();
+    }
+    if (t == 0) {
+        float sum = warps[0];
+        for (int w = 1; w < 8; ++w) {
+            if (w * 32 < valid) sum = sum + warps[w];
+        }
+        total[r] = 0.0f + sum;
+        count[r] = part[0];
+    }
+}
 """
+
+ONE_TILE = 256 * 16
+"""Pixels a cell may hold for :func:`masked_sum`'s order: one tile of CUB's segmented sum for float32."""
 
 RAISE_SOURCE = r"""
 // Whether a map may raise a cell's held maxima anywhere: the Newton fill walks down from start, the offset where
@@ -82,13 +132,40 @@ _KERNEL: dict = {}
 def _function(xp, name: str):
     if name not in _KERNEL:
         module = xp.RawModule(code=SOURCE + RAISE_SOURCE, options=("--fmad=false",))
-        for each in ("masked_gap", "may_raise"):
+        for each in ("masked_gap", "masked_sum", "may_raise"):
             _KERNEL[each] = module.get_function(each)
     return _KERNEL[name]
 
 
 def _masked_gap(xp):
     return _function(xp, "masked_gap")
+
+
+CHECK_ROWS = 512
+_SUMS_AGREE: dict[int, bool] = {}
+
+
+def sums_agree(xp, pixels: int) -> bool:
+    """Whether :func:`masked_sum` gives CuPy's own sum of the masked gaps to the bit for cells of ``pixels``, on
+    this card and this CuPy: tried once a size on gaps that are wet, dry and mixed, of every scale a fill meets.
+    Where it does not, the fill keeps the masked array and CuPy's sum."""
+    if pixels not in _SUMS_AGREE:
+        agree = 0 < pixels < ONE_TILE
+        if agree:
+            rng = np.random.default_rng(pixels)
+            scale = np.exp(rng.uniform(np.log(1e-4), np.log(50.0), (CHECK_ROWS, 1)))
+            relief = xp.asarray((rng.normal(0.0, 1.0, (CHECK_ROWS, pixels)) * scale).astype(np.float32))
+            offset = xp.asarray((rng.normal(0.0, 1.0, CHECK_ROWS) * scale[:, 0]).astype(np.float32))
+            rows = xp.arange(CHECK_ROWS)
+            gap = offset[:, None] - relief
+            want = (gap * (gap > 0.0)).sum(axis=1)
+            got = xp.empty(CHECK_ROWS, xp.float32)
+            count = xp.empty(CHECK_ROWS, xp.int64)
+            _function(xp, "masked_sum")((CHECK_ROWS,), (THREADS,), (relief, rows, offset, got, count, np.int32(pixels)))
+            agree = bool(xp.all(want.view(xp.int32) == got.view(xp.int32)))
+            agree = agree and bool(xp.all(count == (gap > 0.0).sum(axis=1)))
+        _SUMS_AGREE[pixels] = agree
+    return _SUMS_AGREE[pixels]
 
 
 def may_raise(xp, relief, mean_depth, top_speed, on, held, floor_depth: float):
@@ -117,14 +194,15 @@ def newton_card(xp, relief, mean_depth, steps: int, tolerance: float):
     if relief.shape[0] == 0 or pixels == 0:
         return offset
     relief = xp.ascontiguousarray(relief)
-    kernel = _masked_gap(xp)
-    buffer = xp.empty(relief.shape, xp.float32)
+    fused = sums_agree(xp, pixels)  # the sum in the kernel too, where it is CuPy's to the bit
+    kernel = _function(xp, "masked_sum" if fused else "masked_gap")
+    buffer = xp.empty(relief.shape[0] if fused else relief.shape, xp.float32)
     under = xp.empty(relief.shape[0], xp.int64)
     for _ in range(steps):
         m = int(moving.size)
         masked, count = buffer[:m], under[:m]
         kernel((m,), (THREADS,), (relief, moving, offset, masked, count, np.int32(pixels)))
-        excess = masked.sum(axis=1) - water[moving]
+        excess = (masked if fused else masked.sum(axis=1)) - water[moving]
         step = excess / xp.maximum(count, 1).astype(xp.float32)
         offset[moving] = offset[moving] - step
         going = step > tolerance
