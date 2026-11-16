@@ -343,3 +343,18 @@ test_server 6; `tests/engine` test_strips_run 15, test_fill_pits 4; `tests/demst
 - `s07_results_size.py RUN OUT.json`: what fills `results.h5`, and what other lossless layouts would take.
 - `s08_pictures.py BEFORE AFTER WINDOWS OUT`, `pictures.py`: the pictures, in the plugin's colours.
 - `pictures/`: the before and after pictures. `results/`: the measured figures quoted here (JSON). `runs/` (rasters, remakes, logs, the cache) is not in git.
+
+## Hazard floor 0.1 m, his decision of 2026-11-16 (remade after the merge)
+
+`outputs.pixels.hazard_depth_floor` 0.1 m (`aee2be0`): no hazard class under 0.1 m, depth and speed kept from 0.05 m.
+Block 2's three map sets remade from the saved results with it (`s06_remake.py ... hazard01_<run>`, in `runs/`, not
+in git). Hazard areas, km2, before (this iteration's remake) and after:
+
+| Run | H1 | H2 | H3 | H4 | H5 | H6 | All classes |
+|---|---|---|---|---|---|---|---|
+| 2D | 109.7 → 77.2 | 43.9 | 21.4 | 33.5 | 65.4 → 64.9 | 43.4 | 317.4 → 284.3 |
+| Hybrid Lumped | 82.6 → 58.0 | 31.9 | 16.0 | 24.8 | 40.0 → 39.8 | 11.8 | 207.1 → 182.3 |
+| Hybrid 2D | 83.3 → 58.4 | 32.0 | 16.7 | 25.7 | 44.9 → 44.7 | 30.7 → 30.6 | 233.3 → 208.1 |
+
+The H5 lost (0.2 to 0.5 km2) is water under 0.1 m moving over 2 m/s, classed H5 by the speed limit alone; H2 to H4
+unchanged. The hazard map now covers 284 km2 on the 2D run against the old rule's 261 km2.
