@@ -15,7 +15,8 @@ from wadi2d.config.schema import RunConfig, Storm
 from wadi2d.forcing import build_storm
 from wadi2d.run import job_hash, load_job
 from wadi2d.storm import HypotheticalStorm, UniformStorm
-from wadi2d.storm.patterns import SCS_CURVES, SCS_HOURS, percent_pattern
+from wadi2d.storm.patterns import percent_pattern
+from wadi2d.storm.scs_tables import SCS_KNOTS
 
 CURVE = {"areas_km2": [10.0, 1000.0], "factors": [1.0, 0.5], "table_type": "test table"}
 FRONT = {"time": [0.0, 25.0, 100.0], "depth": [0.0, 60.0, 100.0]}
@@ -62,15 +63,15 @@ def test_every_spelling_of_a_pattern_puts_the_whole_depth_in_the_storm(table, at
     assert storm.cumulative_depth(np.array([120.0, 500.0])) == pytest.approx([80.0, 80.0], rel=1e-12)
 
 
-@pytest.mark.parametrize("scs_type", list(SCS_CURVES))
+@pytest.mark.parametrize("scs_type", list(SCS_KNOTS))
 def test_the_scs_types_are_24_hour_curves_that_hold_the_whole_depth(scs_type) -> None:
-    curve = np.asarray(SCS_CURVES[scs_type])
-    assert len(curve) == len(SCS_HOURS) and curve[0] == 0.0 and curve[-1] == 1.0
+    curve = np.asarray(SCS_KNOTS[scs_type])  # W98: HEC-HMS 4.12's 0.1-hour ordinates, in place of W95's 23
+    assert len(curve) == 241 and curve[0] == 0.0 and curve[-1] == 1.0
     assert np.all(np.diff(curve) >= 0.0)
     storm = build_storm(_cfg({**DEPTH, "duration_min": 1440.0, "pattern": {"kind": "scs", "scs_type": scs_type}}))
     assert storm.increments(60.0, 24).sum() == pytest.approx(80.0, rel=1e-12)
-    hours = np.asarray(SCS_HOURS, np.float64)
-    assert storm.cumulative_depth(hours * 60.0) == pytest.approx(80.0 * curve, rel=1e-12)
+    minutes = np.arange(241) * 6.0
+    assert storm.cumulative_depth(minutes) == pytest.approx(80.0 * curve, rel=1e-12, abs=1e-12)
     with pytest.raises(ValidationError, match="24-hour distribution"):
         _cfg({**DEPTH, "pattern": {"kind": "scs", "scs_type": scs_type}})
 
