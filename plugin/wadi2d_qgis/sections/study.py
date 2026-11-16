@@ -87,6 +87,7 @@ COMPOSITE_TIP = (
 class StudySection(Section):
     heading = "9. Depth-area study (optional)"
     start_collapsed = True
+    key = "study"
 
     def build(self) -> None:
         intro = self._text_label()

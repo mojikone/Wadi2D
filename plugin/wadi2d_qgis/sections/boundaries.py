@@ -58,6 +58,8 @@ SHOWN_ROWS = 6
 class BoundariesSection(Section):
     heading = "6. Boundaries"
     start_collapsed = True
+    key = "boundaries"
+    state_rows = (("", Row, "_fill"),)
 
     def build(self) -> None:
         self.layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "None: all edges are walls")

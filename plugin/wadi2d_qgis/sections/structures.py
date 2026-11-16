@@ -9,6 +9,8 @@ from qgis.core import QgsMapLayerProxyModel
 from qgis.PyQt.QtCore import Qt, pyqtSignal
 from qgis.PyQt.QtWidgets import QCheckBox, QFormLayout, QLabel, QPushButton, QWidget
 
+from ..breach_rows import BreachRow
+from ..dam_rows import DamRow
 from ..job_builder import SPILLWAY_C, layer_features
 from ..profile_table import EDGE_KINDS, ProfileStore, apply_levels, keyed
 from ..shaped import SHAPED_KINDS
@@ -33,6 +35,8 @@ RELATED = {
 class StructuresSection(Section):
     heading = "5. Structures (optional)"
     start_collapsed = True
+    key = "structures"
+    state_rows = (("start_water", DamRow, "fill"), ("breaches", BreachRow, "fill"))
     edit_requested = pyqtSignal(str)
     """The profile editor is wanted for this kind."""
 

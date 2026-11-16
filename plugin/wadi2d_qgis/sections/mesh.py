@@ -32,6 +32,7 @@ from ..job_builder import (
     layer_features,
     raster_path,
 )
+from ..mesh_rows import LineRow
 
 SUGGEST_NOTE = (
     "Suggest breaklines reads the ground: a bank where it rises the given height over the bed of a defined wadi, or, "
@@ -46,6 +47,8 @@ from .mesh_lines import LineTable
 class MeshSection(Section):
     heading = "2. Mesh (optional)"
     start_collapsed = True
+    key = "mesh"
+    state_rows = (("lines", LineRow, "_fill"),)
 
     def build(self) -> None:
         self.enabled = QCheckBox("Refine where the ground changes; the cell size above is the finest")

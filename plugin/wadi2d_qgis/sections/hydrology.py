@@ -36,9 +36,17 @@ from ..job_builder import (
     hms_files,
     hms_subbasins,
 )
-from ..muskingum_rows import MUSKINGUM, hms_reaches, model_reaches
+from ..muskingum_rows import MUSKINGUM, ReachRow, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
-from .basin_rows import REACH_ROUTING, ROUTING_WORDS, SubbasinRow, hms_elements, mode_tip, subbasin_rows
+from .basin_rows import (
+    REACH_ROUTING,
+    ROUTING_WORDS,
+    HandbackRow,
+    SubbasinRow,
+    hms_elements,
+    mode_tip,
+    subbasin_rows,
+)
 from .common import Section, ValueOrRaster, bind
 from .muskingum_table import MuskingumBox
 
@@ -48,6 +56,9 @@ REFUSED_COLOUR = "#b00000"
 
 class HydrologySection(Section):
     heading = "3. Hydrology"
+    key = "hydrology"
+    state_skip = ("rain", "hours")  # the Storm section's own widgets, which older dock checks reach from here
+    state_rows = (("handbacks", HandbackRow, "_fill"), ("muskingum", ReachRow, "_show"))
     hms_changed = pyqtSignal(bool)
     """Whether an HMS project is in use."""
     structures_requested = pyqtSignal(str)
@@ -259,6 +270,31 @@ class HydrologySection(Section):
     def _subbasin_modes(self) -> dict[str, str]:
         rows = range(self.table.rowCount())
         return {self.table.item(row, 0).text(): self.table.cellWidget(row, 1).currentText() for row in rows}
+
+    # The saved model (W99): the generated basin is a file, and the mode of each subbasin a table of cell widgets.
+
+    def extra_state(self) -> dict:
+        return {"basin_json": self.basin.json_path, "modes": self._subbasin_modes()}
+
+    def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
+        found = []
+        path = extra.get("basin_json")
+        if path and not self._use_hms():
+            if Path(path).is_file():
+                self.basin.take({"basin": path})
+            else:
+                found.append(f"the generated basin is not there any more ({path}): press Generate basin")
+        modes = extra.get("modes") or {}
+        for row in range(self.table.rowCount()):
+            name, combo = self.table.item(row, 0).text(), self.table.cellWidget(row, 1)
+            if name in modes and combo.isEnabled():
+                combo.setCurrentText(modes[name])
+        missing = sorted(set(modes) - set(self._subbasin_modes()))
+        if missing:
+            found.append(f"subbasins no longer in the basin: {', '.join(missing)}")
+        if self.routing.currentData() == MUSKINGUM:
+            self._fill_reaches()
+        return found
 
     def values(self, crs) -> dict:
         values = {

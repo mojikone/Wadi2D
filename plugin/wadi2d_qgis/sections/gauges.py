@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from qgis.PyQt.QtWidgets import QLabel, QLineEdit
 
-from ..gauge_rows import FLOW, LEVEL, RAIN
+from ..gauge_rows import FLOW, LEVEL, RAIN, GaugeRow
 from .common import Section
 from .gauge_table import GaugeTable
 
@@ -29,6 +29,8 @@ AT_TIP = (
 class GaugesSection(Section):
     heading = "7b. Gauges (optional)"
     start_collapsed = True
+    key = "gauges"
+    state_rows = (("gauges", GaugeRow, "_show"),)
 
     def build(self) -> None:
         self.note = QLabel(NOTE)
