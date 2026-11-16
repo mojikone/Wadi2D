@@ -21,7 +21,7 @@ from scipy import ndimage
 from wadi2d.config.constants import M2_PER_KM2
 from wadi2d.config.schema import Pixels, RunConfig
 from wadi2d.grid.quad import QuadGrid
-from wadi2d.io.geotiff import raster_profile, write_band
+from wadi2d.io.geotiff import float_record, raster_profile, write_band
 from wadi2d.products.ground import CellPixels, read_cells
 from wadi2d.products.hazard import DRY, class_names, classify
 from wadi2d.products.pixels import PixelMaxima, to_host
@@ -262,15 +262,18 @@ def write_mesh_pixels(cfg, tables, crs, found: MeshResult, folder, tags, files: 
     x0, y0 = grid.x0 + box[2] * pixel, grid.y0 - box[0] * pixel
     classes = spread(found.cells, found.classes, DRY, np.uint8)
     profile = raster_profile(classes.shape, pixel, x0, y0, crs)
-    write_band(folder / files["hazard"], classes, profile, DRY, tags)
+    write_band(folder / files["hazard"], classes, profile, DRY, tags, "mode" if rule.overviews else None)
     nothing = files["nodata"]
-    for name, values in (
-        (files["depth"], found.depth),
-        (files["speed"], found.speed),
-        (files["dv"], found.dv),
-    ):
+    floats = float_record(profile, rule.max_error_m)  # W100: as the lattice's rasters of record
+    measures = [(files["depth"], found.depth), (files["speed"], found.speed)]
+    if rule.dv_raster:
+        measures.append((files["dv"], found.dv))
+    else:
+        (folder / files["dv"]).unlink(missing_ok=True)
+    for name, values in measures:
         marked = {s: np.where(found.classes[s] > DRY, v, nothing) for s, v in values.items()}
-        write_band(folder / name, spread(found.cells, marked, nothing, np.float32), profile, nothing, tags)
+        band = spread(found.cells, marked, nothing, np.float32)
+        write_band(folder / name, band, floats, nothing, tags, "average" if rule.overviews else None)
     km2 = pixel**2 / M2_PER_KM2
     highest = {
         name: max(float(v.max(initial=0.0)) for v in values.values())
@@ -283,6 +286,7 @@ def write_mesh_pixels(cfg, tables, crs, found: MeshResult, folder, tags, files: 
         "maps": found.maps,
         "kept_cells": found.kept,
         "pixel_m": pixel,
+        "surface": rule.surface,
         "limits": rule.hazard_limits,
         "depth_floor_m": rule.depth_floor,
         "depth_max_m": highest["depth"],

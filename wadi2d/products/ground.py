@@ -66,9 +66,28 @@ def face_sills(tables: GridTables, datum: float) -> tuple[np.ndarray, np.ndarray
     return sills[0], sills[1]
 
 
+def auto_stride(dx: float, native: float, least: int, coarsest_m: float, across: int) -> int:
+    """The DEM stride of maps whose pixel the job leaves empty (W100): the coarsest that divides the cell, stays
+    within ``coarsest_m`` and gives a cell at least ``across`` pixels across; never finer than the job's own stride.
+
+    Block 2 at 20 m on the 0.5 m DEM: 2 m, ten pixels across a cell, a sixteenth of the pixels of the DEM's own."""
+    cells = round(dx / native)
+    best = max(least, 1)
+    for stride in range(best, cells + 1):
+        if stride * native > coarsest_m * (1.0 + 1e-9) or cells // stride < across:
+            break
+        if cells % stride == 0 and stride % max(least, 1) == 0:
+            best = stride
+    return best
+
+
 def bed_stride(cfg: RunConfig, native: float) -> int:
-    """The DEM stride of the pixel maps: the job's own, unless they ask for a coarser pixel."""
-    wanted = cfg.outputs.pixels.pixel_m
+    """The DEM stride of the pixel maps: the job's own pixel when ``pixel_m`` is 0, the pixel asked for, or by the
+    rule of :func:`auto_stride` when it is left empty."""
+    rule = cfg.outputs.pixels
+    wanted = rule.pixel_m
+    if wanted is None:
+        return auto_stride(cfg.grid.dx, native, cfg.terrain.pixel_stride, rule.auto_pixel_m, rule.auto_cell_pixels)
     if wanted <= 0.0:
         return cfg.terrain.pixel_stride
     stride = round(wanted / native)

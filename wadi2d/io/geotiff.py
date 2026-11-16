@@ -84,8 +84,48 @@ def raster_profile(shape: tuple[int, int], pixel: float, x0: float, y0: float, c
     }
 
 
-def write_band(path: str | Path, band: np.ndarray, profile: dict, nodata: float, tags=None) -> Path:
-    """One band of any type; through a temporary name, so a stop never leaves half a file under the real name."""
+LOSSY = "LERC_DEFLATE"
+"""The compression of a float raster of record with a bounded error (W100): LERC keeps every value within the error
+asked for and the nodata exactly, DEFLATE packs what LERC leaves; read by any GDAL from 2.4, QGIS's included."""
+OVERVIEW_SMALLEST = BLOCK
+"""Reduced copies are halved until the longer side is under this many pixels."""
+
+
+def float_record(profile: dict, max_error: float) -> dict:
+    """``profile`` for a float raster of record: LERC within ``max_error``, or with 0 every digit kept, DEFLATE with
+    the floating-point predictor. Block 2's depth at 0.5 m: 3.4 GB in plain DEFLATE (W100 measures the rest)."""
+    out = {key: value for key, value in profile.items() if key not in ("compress", "zlevel", "predictor")}
+    if max_error > 0.0:
+        return {**out, "compress": LOSSY, "max_z_error": float(max_error)}
+    return {**out, "compress": "deflate", "zlevel": ZLEVEL, "predictor": 3}
+
+
+def overview_levels(shape: tuple[int, int]) -> list[int]:
+    """Factors 2, 4, 8, ... until the reduced raster's longer side is under :data:`OVERVIEW_SMALLEST`."""
+    levels, factor = [], 2
+    while max(shape) / (factor // 2) > OVERVIEW_SMALLEST:
+        levels.append(factor)
+        factor *= 2
+    return levels
+
+
+def _build_overviews(dst, resampling) -> None:
+    """Reduced copies inside the file, on every core: a map seen whole then reads a few blocks (W100: Block 2's
+    rasters had none, so QGIS read 9.1 G pixels at every zoom)."""
+    from rasterio.enums import Resampling
+
+    levels = overview_levels((dst.height, dst.width))
+    if levels:
+        with rasterio.Env(GDAL_NUM_THREADS=THREADS):
+            dst.build_overviews(levels, getattr(Resampling, resampling))
+        dst.update_tags(ns="rio_overview", resampling=resampling)
+
+
+def write_band(
+    path: str | Path, band: np.ndarray, profile: dict, nodata: float, tags=None, overviews: str | None = None
+) -> Path:
+    """One band of any type; through a temporary name, so a stop never leaves half a file under the real name.
+    ``overviews`` names the resampling of its reduced copies (``average``, ``mode``), None for none."""
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     tmp = out.with_name(f"{out.stem}.tmp{out.suffix}")
@@ -93,6 +133,8 @@ def write_band(path: str | Path, band: np.ndarray, profile: dict, nodata: float,
         dst.write(band, 1)
         if tags:
             dst.update_tags(**tags)
+        if overviews is not None:
+            _build_overviews(dst, overviews)
     tmp.replace(out)
     return out
 
@@ -102,14 +144,15 @@ class BandWriter:
 
     A flood on a 0.5 m raster wets a twentieth of its bounding box: written whole, Block 2's band is 17 GB in memory
     and its empty blocks are most of the file (W50). Through a temporary name, as :func:`write_band`; leaving the
-    ``with`` on an error removes it.
+    ``with`` on an error removes it. ``overviews`` as :func:`write_band`, built once every window is written.
     """
 
-    def __init__(self, path: str | Path, profile: dict, dtype, nodata: float, tags=None) -> None:
+    def __init__(self, path: str | Path, profile: dict, dtype, nodata: float, tags=None, overviews: str | None = None) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.tmp = self.path.with_name(f"{self.path.stem}.tmp{self.path.suffix}")
         self.tags = tags
+        self.overviews = overviews
         self.dst = rasterio.open(self.tmp, "w", dtype=np.dtype(dtype).name, nodata=nodata, **profile)
 
     def write(self, tile: np.ndarray, row: int, col: int) -> None:
@@ -121,6 +164,13 @@ class BandWriter:
     def __exit__(self, kind, *_exc: object) -> None:
         if kind is None and self.tags:
             self.dst.update_tags(**self.tags)
+        try:
+            if kind is None and self.overviews is not None:
+                _build_overviews(self.dst, self.overviews)
+        except BaseException:
+            self.dst.close()
+            self.tmp.unlink(missing_ok=True)
+            raise
         self.dst.close()
         if kind is None:
             self.tmp.replace(self.path)
