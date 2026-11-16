@@ -89,3 +89,28 @@ subbasins, outlets, result lines and points, observed gauges), a search box, and
 project and shown first in every run and in Compare. Default when nothing is pinned: the user's design points and lines; if
 none, the dams; if none, the outlets to the sea or the domain edge. Every row opens the hydrograph chart; the right-click
 chart on the map stays.
+
+## Review of the current dock (2026-11-16)
+
+Biggest gap: the dock saves nothing of a model. Only the engine path, the last folders and the depth cutoff persist (QGIS
+settings); every field is lost when QGIS closes, and choosing a finished run's folder does not refill the dock from its
+`job.json`. To build first: the model saved with the QGIS project, open a run's job into the dock, save as a scenario.
+
+Redundant or in the wrong place, to fold into the redesign:
+- Three "Run starts at" fields (gridded rain, rain gauges, 7b gauges): one start time in the simulation panel.
+- ARF in three places (Storm's area reduction, Hydrology's "each element at its own drainage area", section 9): one ARF
+  section with its lumped and 2D parts, the depth-area study one of the 2D choices.
+- Hydrology's "The HMS way only", "Leave the catchments out of the mesh" and "Lumped water enters the 2D model", and the
+  per-subbasin mode table's role in it: set by the model type, shown only where the type leaves a choice.
+- Two time sliders: the cell mesh layer (2.3 GB on Block 2, hung his PC) and the pixel layer: keep the pixel layer, the mesh
+  layer as an export under Results.
+- The "Steady" rain kind (mm/h for hours): a test case; "Fixed depth" with a uniform pattern covers it.
+- 7b Gauges now holds only observed flow and level gauges: it belongs with the results (calibration), renamed.
+- Run mixes the run, the products and map-making (title, background, cutoff, Make map, sliders, lines, workbook): split into
+  Run (simulation panel, Check and run) and Results.
+- Mesh holds two mesh systems (quadtree refinement, corridors) plus eight bank and crest thresholds of Suggest breaklines:
+  a mesh choice (squares, quadtree, aligned centre mesh), the thresholds under Advanced. Local time stepping under the
+  quadtree only (it saves nothing on a uniform grid, W10).
+- "Name the cell that sets the time step": a diagnostic, Advanced.
+- Two engine controls (Engine... at the top, Engine in Run): one, in the simulation panel.
+- Section numbers 7 and 7b: renumber, or drop numbers once sections show by model type.
