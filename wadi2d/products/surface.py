@@ -158,7 +158,16 @@ def fill_offset(xp, surface, ground, mean_depth):
     every pixel is wet, walks down onto the root and never past it. Deep cells stop at the first step, and work
     shrinks to the cells still moving, which is what keeps this cheap on the GPU.
     """
-    relief = ground - surface
+    return _fill(xp, ground - surface, mean_depth)
+
+
+def _fill(xp, relief, mean_depth):
+    """:func:`fill_offset` on the ground over the surface. On the card one kernel a Newton step (W93), the same
+    numbers to the digit."""
+    if xp is not np:
+        from wadi2d.products.fill_kernels import newton_card
+
+        return newton_card(xp, relief, mean_depth, FILL_STEPS, FILL_TOLERANCE)
     pixels = relief.shape[1]
     water = mean_depth * pixels
     offset = relief.mean(axis=1) + mean_depth
@@ -179,5 +188,6 @@ def fill_offset(xp, surface, ground, mean_depth):
 
 def fill_cells(xp, surface, ground, mean_depth):
     """Pixel depth under a surface of this shape, moved until it holds the cell's water exactly."""
-    offset = fill_offset(xp, surface, ground, mean_depth)
-    return xp.maximum(offset[:, None] - (ground - surface), 0.0)
+    relief = ground - surface
+    offset = _fill(xp, relief, mean_depth)
+    return xp.maximum(offset[:, None] - relief, 0.0)

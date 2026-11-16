@@ -31,6 +31,8 @@ PAIRWISE_BLOCK = 128
 """And halves a run longer than this; a ring has far fewer nodes, which :func:`check_width` holds it to."""
 THREADS = 128
 """CUDA threads a block."""
+WARP = 32
+"""Threads a cell in the warp kernels (W93)."""
 
 
 def check_width(width: int) -> None:
@@ -167,6 +169,48 @@ extern "C" __global__ void newton(const long long* ptr, const float* relief, con
     offset[c] = moved;
 }
 
+// The same two sums with a warp to a cell (W93): the warp reads 32 pixels of its cell at once, side by side in
+// memory, and every lane adds them up one after another in the pixels' order, so each sum is the one above to the
+// digit. One thread to a cell read pixels a cell apart in every load: 3 to 4 ns a pixel and map on Block 2.
+extern "C" __global__ void cell_sums_warp(const long long* ptr, const float* values, float* out, long long n) {
+    long long c = ((long long)blockIdx.x * blockDim.x + threadIdx.x) >> 5;
+    int lane = threadIdx.x & 31;
+    if (c >= n) return;
+    long long a = ptr[c], b = ptr[c + 1];
+    float total = 0.0f;
+    for (long long i0 = a; i0 < b; i0 += 32) {
+        long long i = i0 + lane;
+        float v = i < b ? values[i] : 0.0f;
+        int m = (int)(b - i0 < 32 ? b - i0 : 32);
+        for (int k = 0; k < m; ++k) total += __shfl_sync(0xffffffffu, v, k);
+    }
+    if (lane == 0) out[c] = total;
+}
+
+extern "C" __global__ void newton_warp(const long long* ptr, const float* relief, const float* water, float* offset,
+                                       float* step, bool* moving, long long n, float tolerance) {
+    long long c = ((long long)blockIdx.x * blockDim.x + threadIdx.x) >> 5;
+    int lane = threadIdx.x & 31;
+    if (c >= n || !moving[c]) return;
+    long long a = ptr[c], b = ptr[c + 1];
+    float at = offset[c], held = 0.0f, count = 0.0f;
+    for (long long i0 = a; i0 < b; i0 += 32) {
+        long long i = i0 + lane;
+        float mine = i < b ? at - relief[i] : 0.0f;
+        int m = (int)(b - i0 < 32 ? b - i0 : 32);
+        for (int k = 0; k < m; ++k) {
+            float gap = __shfl_sync(0xffffffffu, mine, k);
+            if (gap > 0.0f) { held += gap; count += 1.0f; }
+        }
+    }
+    if (lane != 0) return;
+    float move = (held - water[c]) / fmaxf(count, 1.0f);
+    float moved = at - move;
+    step[c] = move;
+    moving[c] = fabsf(move) > tolerance;
+    offset[c] = moved;
+}
+
 // incidences sorted by label, and within a label by their own number: each run summed from its first
 extern "C" __global__ void label_sums(const long long* order, const long long* label, const float* own,
                                       const float* weight, float* total, float* count, long long n) {
@@ -194,11 +238,13 @@ class StripKernels:
         self.cuda = None
         if xp is not np:
             module = xp.RawModule(code=CUDA_SOURCE, options=("--fmad=false",))  # a*b+c stays two roundings
-            self.cuda = {name: module.get_function(name) for name in ("at_pixels", "cell_sums", "newton", "label_sums")}
+            names = ("at_pixels", "cell_sums", "newton", "label_sums", "cell_sums_warp", "newton_warp")
+            self.cuda = {name: module.get_function(name) for name in names}
 
-    def _launch(self, name: str, n: int, args: tuple) -> None:
+    def _launch(self, name: str, n: int, args: tuple, per_item: int = 1) -> None:
+        """``n`` items of ``per_item`` threads each (a warp a cell for the warp kernels)."""
         if n > 0:
-            self.cuda[name]((-(-n // THREADS),), (THREADS,), args)
+            self.cuda[name]((-(-n * per_item // THREADS),), (THREADS,), args)
 
     def at_pixels(self, slots, cell, weights):
         """A node value at every pixel: the pixel's cell's slots times the pixel's weights, summed."""
@@ -217,7 +263,7 @@ class StripKernels:
         if self.cuda is None:
             _cell_sums(ptr, values, out)
         else:
-            self._launch("cell_sums", ptr.size - 1, (ptr, values, out, np.int64(ptr.size - 1)))
+            self._launch("cell_sums_warp", ptr.size - 1, (ptr, values, out, np.int64(ptr.size - 1)), WARP)
         return out
 
     def newton(self, ptr, relief, water, offset, step, moving, tolerance: float) -> None:
@@ -227,7 +273,8 @@ class StripKernels:
         if self.cuda is None:
             _newton(ptr, relief, water, offset, step, moving, limit)
         else:
-            self._launch("newton", ptr.size - 1, (ptr, relief, water, offset, step, moving, np.int64(ptr.size - 1), limit))
+            args = (ptr, relief, water, offset, step, moving, np.int64(ptr.size - 1), limit)
+            self._launch("newton_warp", ptr.size - 1, args, WARP)
 
     def label_order(self, label):
         """The incidences by label and, in a label, by their own number: what :meth:`label_sums` on the card walks."""

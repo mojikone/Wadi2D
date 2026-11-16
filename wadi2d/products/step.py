@@ -287,6 +287,8 @@ class Lattice:
         window = (slice(*win_r), slice(*win_c))
         maxima = PixelMaxima(xp, cells, self.zmin[window], self.sills[0][window], self.sills[1][window], keep, rule)
         maxima.tidy = False
+        if maxima.resident:  # its ground is on the card: the host's copy goes while the maps run (W93)
+            cells.ground = None
         listed = a + pick
         at = stack.at(listed)
         for index in range(stack.maps):
@@ -300,18 +302,18 @@ class Lattice:
         _free_device(xp)
         return (r[own], c[own], *(v[own] for v in found))
 
-    def strip(self, block: Block, sets: tuple | None, stack: Stack | None, share):
-        """The strip's pixels in the block with their classes and maxima, or None."""
+    def strip(self, block: Block, part, stack: Stack | None, share):
+        """The strip's pixels in the block with their classes and maxima, or None. ``part`` is the block's
+        :class:`wadi2d.products.strip_pixels.StripBlock`, read ahead (W93), or None."""
         from wadi2d.products.strip_pixels import BlockStripMaxima
         from wadi2d.strips.pixels import StripPixelResult
 
-        if sets is None:
-            return None
-        xp, rule = self.xp, self.rule
-        part = self.strips.block(*sets)
         if part is None:
             return None
+        xp, rule = self.xp, self.rule
         maxima = BlockStripMaxima(xp, part, rule)
+        if xp is not np:  # on the card now: the host's copies of its pixels' ground and weights can go (W93)
+            part.ground = part.weights = part.cell = None
         at = stack.at(part.ids)
         for index in range(stack.maps):
             self.tick(index * (self.maps + 1) // max(stack.maps, 1), share)
@@ -326,6 +328,33 @@ class Lattice:
         inside = (part.rows >= p0) & (part.rows < p1) & (part.cols >= q0) & (part.cols < q1)
         depth, speed, dv = depth[inside], speed[inside], dv[inside]
         return StripPixelResult(part.rows[inside], part.cols[inside], classify(depth, speed, dv, rule), depth, speed, dv)
+
+
+class _Lane:
+    """One thread beside the card's work, its jobs taken in the order given (W93): the next block's ground and
+    strip pixels read while the card works on this one, the last block's windows written meanwhile. The same inputs
+    and the same writes in the same order, so the same rasters; leaving waits for what is in hand."""
+
+    def __init__(self) -> None:
+        from concurrent.futures import ThreadPoolExecutor
+
+        self.pool = ThreadPoolExecutor(1)
+        self.last = None
+
+    def submit(self, fn, *args):
+        self.last = self.pool.submit(fn, *args)
+        return self.last
+
+    def wait(self) -> None:
+        """Until the last job is done; its error, if any, raised here."""
+        if self.last is not None:
+            self.last.result()
+
+    def __enter__(self) -> _Lane:
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self.pool.shutdown(wait=True, cancel_futures=True)
 
 
 def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, tally: Tally) -> None:
@@ -346,15 +375,31 @@ def _write_block(lattice: Lattice, block: Block, squares, strip, hazard, bands, 
         (dv, None if strip is None else strip.dv),
     )
     top, left = lattice.box[0], lattice.box[1]
-    for part in window_parts(cells, (p0, q0, p1 - p0, q1 - q0), strip, WINDOW):
-        row, col = p0 - top + part.row, q0 - left + part.col
-        tile = part.paint(classes[part.cells], None if strip is None else strip.classes[part.strip], DRY, np.uint8)
-        hazard.write(tile, row, col)
-        tally.counts += np.bincount(tile.ravel(), minlength=tally.counts.size)
-        for band, (values, more) in zip(bands, measures, strict=True):
+    parts = list(window_parts(cells, (p0, q0, p1 - p0, q1 - q0), strip, WINDOW))
+
+    def classes_raster() -> np.ndarray:
+        counts = np.zeros_like(tally.counts)
+        for part in parts:
+            tile = part.paint(classes[part.cells], None if strip is None else strip.classes[part.strip], DRY, np.uint8)
+            hazard.write(tile, p0 - top + part.row, q0 - left + part.col)
+            counts += np.bincount(tile.ravel(), minlength=counts.size)
+        return counts
+
+    def measure_raster(band, values, more) -> None:
+        for part in parts:
             marked = np.where(wet[part.cells], values[part.cells], NO_DEPTH)
             dots = None if more is None else np.where(on_strip[part.strip], more[part.strip], NO_DEPTH)
-            band.write(part.paint(marked, dots, NO_DEPTH, np.float32), row, col)
+            band.write(part.paint(marked, dots, NO_DEPTH, np.float32), p0 - top + part.row, q0 - left + part.col)
+
+    # the four rasters side by side, each its own file and its windows in the same order (W93)
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor(1 + len(bands)) as pool:
+        counted = pool.submit(classes_raster)
+        written = [pool.submit(measure_raster, band, *pair) for band, pair in zip(bands, measures, strict=True)]
+        for done in written:
+            done.result()
+        tally.counts += counted.result()
     tally.depth = max(tally.depth, float(depth.max(initial=0.0)))
     tally.speed = max(tally.speed, float(speed.max(initial=0.0)))
     tally.dv = max(tally.dv, float(dv.max(initial=0.0)))
@@ -435,9 +480,16 @@ def lattice_pixels(
             held.enter_context(BandWriter(folder / name, profile, np.float32, NO_DEPTH, tags))
             for name in (DEPTH_FILE, SPEED_FILE, DV_FILE)
         ]
+        # beside the card's work: the next block's ground and strip pixels are read, the last block's windows written
+        ahead = held.enter_context(_Lane())
+        behind = held.enter_context(_Lane())
         for number, (first, last) in enumerate(groups):
             # the saved maps of this group of bands, held once: the squares' kept cells, the strip's cells
             a0, b0 = runs[first][0], runs[last - 1][1]
+            jobs = [(n, block) for n in range(first, last) for block in bands[n][1]]
+            grounds: dict = {}
+            if jobs:  # the first band's ground read while the saved maps are (W93); the next once a band is done
+                grounds[jobs[0][0]] = ahead.submit(reader.read, *runs[jobs[0][0]])
             tick = (lambda i, n: watch.tick("ground", i, n)) if number == 0 else (lambda _i, _n: watch.check())
             stack = read_square_stack(results, names, rows, cols, a0, b0, tick) if b0 > a0 else None
             sets, strip_stack = {}, None
@@ -450,17 +502,34 @@ def lattice_pixels(
                             sets[block] = strips.sets(own, rule)
                             listed |= sets[block][1]
                 strip_stack = read_strip_stack(results, names, np.flatnonzero(listed))
-            for (_band, blocks), (a, b) in zip(bands[first:last], runs[first:last], strict=True):
+            def strip_ahead(j: int, jobs=jobs, sets=sets):
+                """Job ``j``'s strip pixels, read on the lane ahead."""
+                block = jobs[j][1]
+                return ahead.submit(strips.block, *sets[block]) if block in sets else None
+
+            coming = strip_ahead(0) if jobs else None
+            for j, (n, block) in enumerate(jobs):
                 watch.check()
-                ground = reader.read(a, b)
-                for block in blocks:
-                    both = block in sets
-                    squares = lattice.squares(block, a, ground, stack, (0.0, 0.4 if both else 1.0))
-                    start = 0.4 if squares is not None else 0.0
-                    strip = lattice.strip(block, sets.get(block), strip_stack, (start, 1.0))
-                    _write_block(lattice, block, squares, strip, hazard, measures, tally)
-                    lattice.done += 1
+                part_job = coming
+                coming = strip_ahead(j + 1) if j + 1 < len(jobs) else None
+                ground = grounds[n].result()
+                both = block in sets
+                squares = lattice.squares(block, runs[n][0], ground, stack, (0.0, 0.4 if both else 1.0))
                 del ground
+                if j + 1 == len(jobs) or jobs[j + 1][0] != n:
+                    del grounds[n]  # the band's last block: its ground goes, and the next band's is read
+                    if j + 1 < len(jobs):
+                        grounds[jobs[j + 1][0]] = ahead.submit(reader.read, *runs[jobs[j + 1][0]])
+                start = 0.4 if squares is not None else 0.0
+                part = None if part_job is None else part_job.result()
+                strip = lattice.strip(block, part, strip_stack, (start, 1.0))
+                del part, part_job
+                behind.wait()  # one block's windows in hand at most
+                behind.submit(_write_block, lattice, block, squares, strip, hazard, measures, tally)
+                del squares, strip
+                lattice.done += 1
+            behind.wait()
+            grounds.clear()
             del stack, strip_stack, sets
         watch.tick("maps", lattice.maps + 1, lattice.maps + 1)
     km2 = reader.pixel**2 / M2_PER_KM2

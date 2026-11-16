@@ -35,6 +35,9 @@ READ_WORKERS = max(1, (os.cpu_count() or 2) // 2)
 STRIPS_AHEAD = 4
 """Strips of tiles whose kept cells are with the reading threads at once. One strip has some forty tiles with cells
 kept, of uneven work, and its slowest (a hole to fill) held the other threads idle for half the stage (W84)."""
+WHOLE_READS = 2
+"""Strips of tiles read whole at once when terrain objects edit them (W93): each holds its whole window, up to a
+GB on Block 2, so more of them would buy little time for the memory."""
 READ_CACHE_MB = 256
 """GDAL's block cache while they read. Each block is read about once, so a large cache holds nothing worth keeping,
 and closing the handles freed it at 1.2 s a handle: 21 s of Block 2's 32 s (W50)."""
@@ -153,16 +156,29 @@ class CellReader:
         runs = {s: (max(int(self.first[s]), a), min(int(self.first[s + 1]), b)) for s in strips}
         # these only hand a strip's tiles to the readers and wait; with one reader, one strip at a time
         ahead = ThreadPoolExecutor(STRIPS_AHEAD if self.beds.workers > 1 else 1)
+
+        def whole(s: int, lo: int, hi: int) -> None:
+            """A strip read whole, as before, on a reading thread's own handle (W93): Block 2's terrain objects (its
+            pit fills) sent every strip down this path, one after another, 140 s a band."""
+            bed = self.beds.bed() if self.beds.workers > 1 else self.bed
+            part = out[lo - a : hi - a]
+            _whole_strip(bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
+
+        wholes = ThreadPoolExecutor(WHOLE_READS if self.beds.workers > 1 else 1)
         try:
             picked = {
                 s: ahead.submit(self.beds.pick, rows[lo:hi], cols[lo:hi], k, datum, out[lo - a : hi - a], self.spans[s])
                 for s, (lo, hi) in runs.items()
                 if self.edit is None and lo < hi
             }
+            edited = {s: wholes.submit(whole, s, lo, hi) for s, (lo, hi) in runs.items() if self.edit is not None and lo < hi}
             for s, (lo, hi) in runs.items():
                 if tick is not None:
                     tick(s, self.strips)
                 if lo >= hi:
+                    continue
+                if s in edited:
+                    edited[s].result()
                     continue
                 if s in picked and picked[s].result():
                     continue
@@ -170,6 +186,7 @@ class CellReader:
                 _whole_strip(self.bed, self.edit, rows[lo:hi], cols[lo:hi], k, s * TILE * k, datum, part, self.spans[s])
         finally:
             ahead.shutdown(wait=True, cancel_futures=True)  # a stop waits for the strips in hand, not for all
+            wholes.shutdown(wait=True, cancel_futures=True)
 
     def read(self, a: int, b: int) -> np.ndarray:
         """The ground of kept cells ``[a, b)``, (cells, k * k), float32 over the datum."""
@@ -337,6 +354,10 @@ class _ThreadBeds:
         self._lock = threading.Lock()
         self._stack = ExitStack()
         self._pool = ThreadPoolExecutor(workers) if workers > 1 else None
+
+    def bed(self) -> RasterBed:
+        """This thread's own handle, opened on its first call."""
+        return self._bed()
 
     def _bed(self) -> RasterBed:
         bed = getattr(self._local, "bed", None)

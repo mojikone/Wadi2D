@@ -27,10 +27,11 @@ import numpy as np
 
 from wadi2d.config.schema import Pixels as PixelRule
 from wadi2d.config.schema import RunConfig
+from wadi2d.products.fill_kernels import CHECK_EVERY
 from wadi2d.products.ground import bed_stride
 from wadi2d.products.strip_kernels import StripKernels, check_width
 from wadi2d.products.surface import FILL_STEPS, FILL_TOLERANCE
-from wadi2d.strips.pixels import MAX_NODES, WEIGHT_BLOCK, StripMaxima, _wachspress
+from wadi2d.strips.pixels import MAX_NODES, StripMaxima
 from wadi2d.strips.tables import PIECE_PAD_PIXELS, BedPixels, _cell_pieces, _owners_of, _ring_ranges
 from wadi2d.tables.parallel import ThreadBeds, run_all, table_workers
 
@@ -267,17 +268,13 @@ class StripReader:
 
     def _weights(self, r: np.ndarray, c: np.ndarray, cell: np.ndarray) -> np.ndarray:
         """The Wachspress weights of each pixel's cell's nodes at the pixel, zero in a padded slot."""
+        from wadi2d.products.strip_weights import pixel_weights
+
         geo, pix = self.geo, self.pix
         weights = np.zeros((r.size, self.width), np.float32)
-        for lo in range(0, r.size, WEIGHT_BLOCK):
-            hi = min(lo + WEIGHT_BLOCK, r.size)
-            rb, cb, cellb = r[lo:hi], c[lo:hi], cell[lo:hi]
-            px = pix.x0 + (cb + 0.5) * pix.pixel
-            py = pix.y0 - (rb + 0.5) * pix.pixel
-            for m in np.unique(self.length[cellb]):
-                on = np.flatnonzero(self.length[cellb] == m)
-                nodes = self.cell_node[cellb[on], :m]
-                weights[lo + on, :m] = _wachspress(px[on], py[on], geo.x[nodes], geo.y[nodes])
+        # NumPy's steps of wadi2d.strips.pixels._wachspress in one compiled pass a pixel, every core (W93)
+        x, y = np.asarray(geo.x, np.float64), np.asarray(geo.y, np.float64)
+        pixel_weights(r, c, cell, self.cell_node, self.length, float(pix.x0), float(pix.y0), float(pix.pixel), x, y, weights)
         return weights
 
     def sets(self, own: np.ndarray, rule: PixelRule) -> tuple[np.ndarray, np.ndarray]:
@@ -378,9 +375,10 @@ class BlockStripMaxima(StripMaxima):
         offset = self.kernels.cell_sums(self.ptr, relief) / pixels + water / pixels
         step = xp.zeros(self.n, xp.float32)
         moving = xp.ones(self.n, bool)
-        for _ in range(FILL_STEPS):
+        every = 1 if xp is np else CHECK_EVERY  # on the card a look waits for it: one every few steps (W93)
+        for n in range(FILL_STEPS):
             self.kernels.newton(self.ptr, relief, water, offset, step, moving, FILL_TOLERANCE)
-            if not bool(moving.any()):
+            if (n + 1) % every == 0 and not bool(moving.any()):
                 break
         return offset
 

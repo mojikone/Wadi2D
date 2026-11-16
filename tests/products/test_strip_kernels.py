@@ -72,6 +72,29 @@ def test_a_cells_fill_does_not_depend_on_the_cells_worked_with_it() -> None:
     np.testing.assert_array_equal(new._fill_offset(relief[lo:], water[part]), whole[part])
 
 
+def _warp_kernels_are_the_thread_kernels(cp, card: StripKernels, rng) -> None:
+    """A warp to a cell (W93) gives the one-thread-a-cell sums to the digit, on cells of 0 to 2,000 pixels."""
+    sizes = rng.integers(0, 2000, 700)
+    sizes[:5] = (0, 1, 31, 32, 33)
+    ptr = np.zeros(sizes.size + 1, np.int64)
+    np.cumsum(sizes, out=ptr[1:])
+    n, total = sizes.size, int(ptr[-1])
+    relief = (rng.normal(0.0, 2.0, total) * rng.random(total)).astype(np.float32)
+    water = (rng.random(n) * sizes * 0.3).astype(np.float32)
+    dptr, drelief, dwater = cp.asarray(ptr), cp.asarray(relief), cp.asarray(water)
+    old = cp.empty(n, cp.float32)
+    card._launch("cell_sums", n, (dptr, drelief, old, np.int64(n)))
+    np.testing.assert_array_equal(card.cell_sums(dptr, drelief).get(), old.get())
+    start = old / cp.maximum(cp.asarray(sizes, cp.float32), 1.0)
+    one = [start.copy(), cp.zeros(n, cp.float32), cp.ones(n, bool)]
+    warp = [start.copy(), cp.zeros(n, cp.float32), cp.ones(n, bool)]
+    for _ in range(8):
+        card._launch("newton", n, (dptr, drelief, dwater, *one, np.int64(n), np.float32(1e-4)))
+        card.newton(dptr, drelief, dwater, *warp, 1e-4)
+        for a, b in zip(one, warp, strict=True):
+            np.testing.assert_array_equal(b.get(), a.get())
+
+
 def test_the_cards_sums_are_the_hosts_to_the_digit() -> None:
     """One order of summing on both backends: the strip's pixels made on the card are those made on the host."""
     cp = pytest.importorskip("cupy")
@@ -96,6 +119,7 @@ def test_the_cards_sums_are_the_hosts_to_the_digit() -> None:
         card.newton(cp.asarray(ptr), cp.asarray(relief), cp.asarray(water), *on_card, 1e-4)
         for a, b in zip(state, on_card, strict=True):
             np.testing.assert_array_equal(b.get(), a)
+    _warp_kernels_are_the_thread_kernels(cp, card, rng)
     label = rng.integers(0, 200, 1500).astype(np.int64)
     own = (rng.random(1500) * 50.0).astype(np.float32)
     weight = (rng.random(1500) < 0.7).astype(np.float32)
