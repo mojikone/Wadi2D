@@ -57,8 +57,9 @@ class RunSection(Section):
         self._has_maps = True
         self.map_pixel = QDoubleSpinBox()  # his item 7 (W101): the pixel of the maps of record, empty the rule
         self.map_pixel.setDecimals(2)
-        self.map_pixel.setRange(0.0, 1000.0)
+        self.map_pixel.setRange(-1.0, 1000.0)  # -1 is Automatic; 0 is the DEM's own pixel, as the engine reads it
         self.map_pixel.setSpecialValueText("Automatic")
+        self.map_pixel.setValue(-1.0)
         self.map_pixel.setSuffix(" m")
         self.dv_raster = QCheckBox("Depth x speed raster")
         self.dv_raster.setChecked(False)
@@ -163,7 +164,7 @@ class RunSection(Section):
         self.limiter.setEnabled(self._has_limiter)
         self._smooth_default = bool(schema.default(SMOOTH_ON, False))
         self.smooth.setChecked(self._smooth_default)
-        self.map_pixel.setToolTip(f"{schema.tip(PIXEL_M)}. Automatic leaves it to that rule")
+        self.map_pixel.setToolTip(f"{schema.tip(PIXEL_M)}. Automatic leaves it to that rule; 0 is the DEM's own pixel")
         self.dv_raster.setToolTip(schema.tip(DV_RASTER))
         self.dv_raster.setChecked(bool(schema.default(DV_RASTER, False)))
         self._has_maps = schema.has(PIXEL_M) and schema.has(DV_RASTER)  # an engine before W100 would refuse them
@@ -193,7 +194,7 @@ class RunSection(Section):
             "pixels": self.pixels.isChecked(),
             "smooth": self.chosen_smooth(),
             "step_limiter": self.limiter.isChecked() and self._has_limiter,
-            "map_pixel": self.map_pixel.value() if self._has_maps and self.map_pixel.value() > 0.0 else None,
+            "map_pixel": self.map_pixel.value() if self._has_maps and self.map_pixel.value() >= 0.0 else None,
             "dv_raster": self._has_maps and self.dv_raster.isChecked(),
         }
 

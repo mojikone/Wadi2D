@@ -191,11 +191,13 @@ class DataTablesSection(Section):
         rows = self.pairs.rows()
         if self.kind() == PATTERNS:
             self.store[PATTERNS][name] = {
+                **self.store[PATTERNS][name],
                 "time": [r[0] for r in rows], "depth": [r[1] for r in rows],
                 "time_units": self.time_units.currentData(), "form": self.form_kind.currentData(),
             }  # fmt: skip
         else:
             self.store[CURVES][name] = {
+                **self.store[CURVES][name],
                 "areas_km2": [r[0] for r in rows], "factors": [r[1] for r in rows],
                 "reduces_below_table": bool(self.below.currentData()),
             }  # fmt: skip

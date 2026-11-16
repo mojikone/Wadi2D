@@ -91,7 +91,11 @@ def terrain(
     )
 
 
-def mesh(enabled: bool, coarse: float, lines: int, corridors: bool, corridor_layer: str | None) -> Status:
+def mesh(
+    enabled: bool, coarse: float, lines: int, corridors: bool, corridor_layer: str | None, centres: bool = False
+) -> Status:
+    if corridors and centres and corridor_layer and not enabled:  # the aligned centre mesh (W101)
+        return Status(READY, f"The aligned centre mesh along the streams of {corridor_layer}")
     if enabled and corridors:
         return Status(
             MISSING, "Corridors run on the uniform grid: untick the mesh refinement or the corridors."

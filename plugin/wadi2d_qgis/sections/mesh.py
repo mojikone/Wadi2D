@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel
 from qgis.PyQt.QtCore import Qt
-from qgis.PyQt.QtWidgets import QCheckBox, QLabel, QPushButton, QSpinBox
+from qgis.PyQt.QtWidgets import QCheckBox, QComboBox, QLabel, QPushButton, QSpinBox
 
 from .. import section_status
 from ..job_builder import (
@@ -35,6 +35,11 @@ from ..job_builder import (
 )
 from ..mesh_rows import LineRow
 
+GENERATOR_WORDS = {
+    "rings": "Rows along each bank pair (W45)",
+    "centres": "The aligned centre mesh: cells from their centres along the streams (W46)",
+}
+"""The engine's ``strips.generator`` choices, rings its default."""
 SUGGEST_NOTE = (
     "Suggest breaklines reads the ground: a bank where it rises the given height over the bed of a defined wadi, or, "
     "with a run's depth map, the edge of the flooded course; crests by the top-hat. On Bidah 2 m of rise is the lip of "
@@ -104,6 +109,9 @@ class MeshSection(Section):
         self.form.addRow(self.suggest_note)
         self.corridors = QCheckBox("Corridors of cells aligned with the suggested banks")
         self.corridor_layer = layer_combo(QgsMapLayerProxyModel.LineLayer, "Choose the Suggested breaklines layer")
+        self.corridor_generator = QComboBox()  # W101: the aligned centre mesh of the four Block 2 runs (W46)
+        for key, words in GENERATOR_WORDS.items():
+            self.corridor_generator.addItem(words, key)
         self.corridor_cell_min = number_box(0)
         self.corridor_cell_max = number_box(0)
         self.corridor_fraction = number_box(2)
@@ -113,6 +121,7 @@ class MeshSection(Section):
         self.corridor_note.setWordWrap(True)
         self.form.addRow(self.corridors)
         self.form.addRow("Suggested breaklines", self.corridor_layer)
+        self.form.addRow("Cells made by", self.corridor_generator)
         self.form.addRow("Smallest cell across, m", self.corridor_cell_min)
         self.form.addRow("Largest cell across, m", self.corridor_cell_max)
         self.form.addRow("Cell across, share of the width", self.corridor_fraction)
@@ -128,6 +137,7 @@ class MeshSection(Section):
     def _corridors_changed(self, on: bool) -> None:
         for widget in (
             self.corridor_layer,
+            self.corridor_generator,
             self.corridor_cell_min,
             self.corridor_cell_max,
             self.corridor_fraction,
@@ -185,7 +195,7 @@ class MeshSection(Section):
         banks = self.corridor_layer.currentLayer()
         return section_status.mesh(
             self.enabled.isChecked(), self.coarse.value(), len(self.lines.rows), self.corridors.isChecked(),
-            banks.name() if banks is not None else None,
+            banks.name() if banks is not None else None, self.corridor_generator.currentData() == "centres",
         )  # fmt: skip
 
     def breakline_values(self) -> dict:
@@ -214,6 +224,7 @@ class MeshSection(Section):
         source = layer.source().split("|")[0] if layer is not None else ""
         return {
             "banks": source,
+            "generator": self.corridor_generator.currentData(),
             "cell_min_m": self.corridor_cell_min.value(),
             "cell_max_m": self.corridor_cell_max.value(),
             "width_fraction": self.corridor_fraction.value(),

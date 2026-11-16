@@ -94,9 +94,21 @@ def test_depth_and_pattern_and_the_depth_grid(tmp_path) -> None:
     RunConfig.model_validate(job)
     stored = {"kind": "depth", "depth_mm": 80.0, "hours": 6.0, "pattern": "table:Front loaded"}
     job = build_job(values(tmp_path, stored, both(part())), tmp_path / "i")
+    # a percent pattern to 100 % with one reduction for every part: the design storm's own form (W101, the import)
+    assert job["storm"] == {
+        "kind": "hypothetical", "depth_mm": 80.0, "duration_min": 360.0, "time_percent": PATTERN["time"],
+        "depth_percent": PATTERN["depth"],
+    }  # fmt: skip
+    assert "data_tables" not in job
+    hours = {**STORE, "patterns": {"Front loaded": {**PATTERN, "time": [0.0, 1.5, 6.0], "time_units": "hours"}}}
+    job = build_job({**values(tmp_path, stored, both(part())), "data_tables": hours}, tmp_path / "i2")
     assert job["storm"]["pattern"] == {"kind": "table", "table": "Front loaded"}
-    assert job["data_tables"] == {"patterns": {"Front loaded": {"time": PATTERN["time"], "depth": PATTERN["depth"]}}}
+    assert job["data_tables"]["patterns"]["Front loaded"]["time_units"] == "hours"
     assert RunConfig.model_validate(job).storm.pattern.values.depth == [0.0, 60.0, 100.0]
+    split = {"lumped": part(COEFFICIENT, coefficient=0.6), "grid": part()}
+    job = build_job(values(tmp_path, stored, split), tmp_path / "i3")
+    assert job["storm"]["kind"] == "depth" and job["storm"]["area_reduction"] == {"lumped": {"form": "coefficient", "coefficient": 0.6}}
+    RunConfig.model_validate(job)
     uniform = build_job(values(tmp_path, {**stored, "pattern": "uniform"}, both(part())), tmp_path / "j")
     assert "pattern" not in uniform["storm"] and "data_tables" not in uniform
     raster = tmp_path / "pmp.tif"

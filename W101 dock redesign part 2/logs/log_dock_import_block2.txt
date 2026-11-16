@@ -1,0 +1,57 @@
+    0.0 script loaded
+    4.0 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    4.8 PASS engine found Engine ready.
+    4.9 === 2D: rerun2_run1_full_2d_aligned
+    5.8 PASS 2D: imported The job rerun2_run1_full_2d_aligned.json is in the dock. On the way: layer "GGC_2_MERGE_HDSM" added to the project from D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\Terrain\GGC_2_MERGE_HDSM.tif; layer "domain_no_rim" added to the project from D:\Moj
+    5.8 PASS 2D: simulated time 48 h 48.0
+    5.8 PASS 2D: the storm's ARF read at 100 km2, its factor shown ('area', 'Factor at 100 km2: 0.9130')
+    5.8 PASS 2D: its 4 outflow lines, normal depth at their slopes [('normal', 0.003), ('normal', 0.0057), ('normal', 0.005), ('normal', 0.005)]
+    5.8 PASS 2D: its 8 crest_lines 8
+    5.8 PASS 2D: its 7 spillways 7
+    5.8 PASS 2D: its result lines 10
+    5.8 PASS 2D: the aligned centre mesh, not the corridors centres
+    6.0 PASS 2D: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\scenarios\2D.wadi2d.json
+    6.2 PASS 2D: the dock writes its job, as Run does 
+    6.6 2D: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+    6.6 PASS 2D: the dock's own comparison and the engine's agree on the sections ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']})
+    6.6 === Lumped: rerun2_run2_hms_lumped
+    7.1 PASS Lumped: imported The job rerun2_run2_hms_lumped.json is in the dock. On the way: layer "boundaries" added to the project from D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\rerun2_run2_hms_lumped_imported_inputs.gpkg. Could not be restored: 3. Hydrology, the meteor
+    7.1 PASS Lumped: simulated time 48 h 48.0
+    7.1 PASS Lumped: the storm's ARF read at 100 km2, its factor shown ('area', 'Factor at 100 km2: 0.9130')
+    7.1 PASS Lumped: its 4 outflow lines, normal depth at their slopes [('normal', 0.003), ('normal', 0.0057), ('normal', 0.005), ('normal', 0.005)]
+    7.1 PASS Lumped: its 0 crest_lines None
+    7.1 PASS Lumped: its 0 spillways None
+    7.1 PASS Lumped: its result lines None
+    8.5 PASS Lumped: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\scenarios\Lumped.wadi2d.json
+    9.7 PASS Lumped: the dock writes its job, as Run does 
+    9.7 Lumped: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s", "run.lumped_only"]}
+    9.7 PASS Lumped: the dock's own comparison and the engine's agree on the sections ({'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']}, {'Hydrology': ['hydrology.curve_number'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s', 'run.lumped_only']})
+    9.7 === Hybrid Lumped: rerun2_run3_hybrid_aligned
+   10.2 PASS Hybrid Lumped: imported The job rerun2_run3_hybrid_aligned.json is in the dock. On the way: layer "boundaries" added to the project from D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\rerun2_run3_hybrid_aligned_imported_inputs.gpkg; layer "design_lines" added to the proje
+   10.2 PASS Hybrid Lumped: simulated time 48 h 48.0
+   10.2 PASS Hybrid Lumped: the storm's ARF read at 100 km2, its factor shown ('area', 'Factor at 100 km2: 0.9130')
+   10.2 PASS Hybrid Lumped: its 4 outflow lines, normal depth at their slopes [('normal', 0.003), ('normal', 0.0057), ('normal', 0.005), ('normal', 0.005)]
+   10.2 PASS Hybrid Lumped: its 0 crest_lines None
+   10.2 PASS Hybrid Lumped: its 0 spillways None
+   10.2 PASS Hybrid Lumped: its result lines 10
+   10.2 PASS Hybrid Lumped: the aligned centre mesh, not the corridors centres
+   11.4 PASS Hybrid Lumped: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\scenarios\Hybrid Lumped.wadi2d.json
+   12.5 PASS Hybrid Lumped: the dock writes its job, as Run does 
+   12.5 Hybrid Lumped: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number", "hydrology.inflows", "hydrology.subbasins[].outlet", "hydrology.subbasins[].storm_area_km2", "hydrology.subbasins[].entry"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+   12.5 PASS Hybrid Lumped: the dock's own comparison and the engine's agree on the sections ({'Hydrology': ['hydrology.curve_number', 'hydrology.inflows', 'hydrology.subbasins[].outlet', 'hydrology.subbasins[].storm_area_km2', 'hydrology.subbasins[].entry'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.
+   12.5 === Hybrid 2D: rerun2_run4_hybrid_2d_routing_aligned
+   13.1 PASS Hybrid 2D: imported The job rerun2_run4_hybrid_2d_routing_aligned.json is in the dock. On the way: layer "crest_line" added to the project from D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\rerun2_run4_hybrid_2d_routing_aligned_imported_inputs.gpkg; layer "spillway" 
+   13.1 PASS Hybrid 2D: simulated time 48 h 48.0
+   13.1 PASS Hybrid 2D: the storm's ARF read at 100 km2, its factor shown ('area', 'Factor at 100 km2: 0.9130')
+   13.1 PASS Hybrid 2D: its 4 outflow lines, normal depth at their slopes [('normal', 0.003), ('normal', 0.0057), ('normal', 0.005), ('normal', 0.005)]
+   13.1 PASS Hybrid 2D: its 8 crest_lines 8
+   13.1 PASS Hybrid 2D: its 7 spillways 7
+   13.1 PASS Hybrid 2D: its result lines 10
+   13.1 PASS Hybrid 2D: the aligned centre mesh, not the corridors centres
+   14.3 PASS Hybrid 2D: saved as a scenario D:\Mojtaba\Renardet\Wadi2D\W102 Block 2 models in the dock\scenarios\Hybrid 2D.wadi2d.json
+   15.4 PASS Hybrid 2D: the dock writes its job, as Run does 
+   15.5 Hybrid 2D: not held by the engine's reading: {"Hydrology": ["hydrology.curve_number", "hydrology.subbasins[].storm_area_km2", "hydrology.subbasins[].entry", "hydrology.subbasins[].outlet"], "Simulation": ["outputs.live_every_s", "run.checkpoint_every_s"]}
+   15.5 PASS Hybrid 2D: the dock's own comparison and the engine's agree on the sections ({'Hydrology': ['hydrology.curve_number', 'hydrology.subbasins[].storm_area_km2', 'hydrology.subbasins[].entry', 'hydrology.subbasins[].outlet'], 'Simulation': ['outputs.live_every_s', 'run.checkpoint_every_s']}, {'Hydrology': ['hydrology.curve_number', 'hydro
+   15.5 PASS the report written 
+   15.5 SUMMARY 46 passed, 0 failed 
+   15.5 DONE

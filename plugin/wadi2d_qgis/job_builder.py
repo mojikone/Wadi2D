@@ -29,6 +29,7 @@ from .simulation_rows import LUMPED_REPLACES, simulation_problems
 from .storm_rows import (
     KIND_DEPTH,
     KIND_DEPTH_GRID,
+    KIND_DESIGN,
     KIND_GAUGES,
     storm_job,
     storm_notes,
@@ -375,15 +376,39 @@ def _reduction_problems(values: dict) -> list[str]:
     return store_problems(store, patterns, curves)
 
 
-def _reduced(values: dict) -> tuple[dict, dict]:
-    """What the area reduction adds to the storm block, and the job's ``data_tables``: only the tables the storm names."""
+def _design_table(values: dict) -> dict | None:
+    """The stored pattern of a depth storm when the design storm's own form holds it to the digit: percent of the
+    duration, cumulative, from 0 to 100 % of the depth; None otherwise."""
+    storm = values.get("storm") or {}
+    name = pattern_name(storm.get("pattern")) if storm.get("kind") == KIND_DEPTH else None
+    table = ((values.get("data_tables") or {}).get("patterns") or {}).get(name) if name else None
+    if not table or table.get("time_units", "percent") != "percent" or table.get("form", "cumulative") != "cumulative":
+        return None
+    t, d = table.get("time") or [], table.get("depth") or []
+    return table if len(t) >= 2 and t[0] == 0.0 and d[0] == 0.0 and t[-1] == 100.0 and d[-1] == 100.0 else None
+
+
+def _reduced(values: dict, job_storm: dict) -> tuple[dict, dict]:
+    """The storm block with what the area reduction adds, and the job's ``data_tables``: only the tables the storm
+    names. A depth whose pattern and reduction the design storm's form holds is written in that form (W101), so a job
+    of that form, read into the dock, writes itself again."""
     storm = values.get("storm") or {}
     kind = storm.get("kind")
     store = values.get("data_tables") or {}
     reduction = values.get("reduction")
-    extra, curves = reduction_job(reduction, kind, store.get(CURVES, {}), _for_study(values)) if reduction else ({}, set())
+    curves_of = store.get(CURVES, {})
+    design = _design_table(values)
+    if design is not None and reduction is not None:
+        extra, curves = reduction_job(reduction, KIND_DESIGN, curves_of, _for_study(values))
+        if "area_reduction" not in extra:  # one reduction for every part: the design storm's form
+            shaped = {
+                "kind": KIND_DESIGN, "depth_mm": job_storm["depth_mm"], "duration_min": job_storm["duration_min"],
+                "time_percent": list(design["time"]), "depth_percent": list(design["depth"]), **extra,
+            }  # fmt: skip
+            return shaped, store_job(store, set(), curves)
+    extra, curves = reduction_job(reduction, kind, curves_of, _for_study(values)) if reduction else ({}, set())
     patterns = {pattern_name(storm.get("pattern"))} - {None} if kind in DEPTH_KINDS else set()
-    return extra, store_job(store, patterns, curves)
+    return {**job_storm, **extra}, store_job(store, patterns, curves)
 
 
 def _structure_problems(structures: dict) -> list[str]:
@@ -616,9 +641,7 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
     if _uses_gauges(values):
         job["storm"] = rain_storm(gauges.get("rows") or [], gauges.get("settings") or {})
     elif values.get("storm"):
-        job["storm"] = storm_job(values["storm"])
-        extra, tables = _reduced(values)  # the Area reduction and the Data tables the storm reads (W101)
-        job["storm"].update(extra)
+        job["storm"], tables = _reduced(values, storm_job(values["storm"]))  # the Area reduction, Data tables (W101)
         if tables:
             job["data_tables"] = tables
     elif not values.get("hms"):
@@ -702,6 +725,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
             "banks": str(Path(strips["banks"]).resolve()),
             **{key: strips[key] for key in STRIPS_KEYS if key in strips},
         }
+        if strips.get("generator") == "centres":  # only off the engine's default: an old job stays the job it was
+            job["strips"]["generator"] = "centres"
     if values.get("breaklines"):
         job["breaklines"] = _breaklines(values["breaklines"])
     return job

@@ -27,7 +27,7 @@ def scenario(h):
     h.log("=== 1 the controls and the job at their defaults")
     h.set_rain_job(dock, ground, "maps", dx=30.0, rain=40.0, hours=0.5, sim_hours=0.75, pixels=True)
     panel.setCollapsed(False)
-    h.check("Map pixel, Automatic first", panel.map_pixel.value() == 0.0 and panel.map_pixel.text() == "Automatic", panel.map_pixel.text())
+    h.check("Map pixel, Automatic first", panel.map_pixel.value() < 0.0 and panel.map_pixel.text() == "Automatic", panel.map_pixel.text())
     h.check("the depth x speed raster off", not panel.dv_raster.isChecked() and panel.dv_raster.text() == "Depth x speed raster")
     shown = [label.text() for label in panel.findChildren(QLabel) if label.isVisibleTo(panel)]
     h.check("no choice of surface is offered", not any("urface" in text for text in shown), shown)

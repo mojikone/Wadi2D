@@ -121,6 +121,8 @@ def _curve_job(curve: dict) -> dict:
     found = {"areas_km2": list(curve["areas_km2"]), "factors": list(curve["factors"])}
     if not curve.get("reduces_below_table", True):
         found["reduces_below_table"] = False
+    if curve.get("table_type", "fixed-area") != "fixed-area":  # what the table is, as a job not of the dock said
+        found["table_type"] = curve["table_type"]
     return found
 
 

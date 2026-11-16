@@ -59,16 +59,25 @@ UNNAMED_TYPE = "run.model_type"
 
 
 def layer(path: str | Path | None, raster: bool = False) -> dict | None:
-    """A layer named by its file alone, for the sections to find in the project or add to it."""
+    """A layer named by its file alone, for the sections to find in the project or add to it; a GeoPackage's layer by
+    its ``path|layername=name`` source and that name (W101)."""
     if not path:
         return None
-    path = Path(path)
+    source = str(path)
+    name = source.split("|layername=")[1] if "|layername=" in source else Path(source).stem
     return {
         "id": None,
-        "source": str(path),
-        "name": path.stem,
+        "source": source,
+        "name": name,
         "provider": RASTER_PROVIDER if raster else "ogr",
     }
+
+
+def _inline(gpkg, held: dict, name: str):
+    """The GeoPackage layer that holds a job's inline geometry of this name, or None (W101)."""
+    from .job_import import layer_source
+
+    return layer(layer_source(gpkg, name)) if gpkg is not None and name in held else None
 
 
 def choice(data) -> dict:
@@ -124,10 +133,10 @@ def _reduction(storm: dict, store: dict) -> dict:
         for which in ("lumped", "grid"):
             _part(widgets, which, split.get(which))
         return widgets
-    if "arf_factor" in storm:
+    if storm.get("arf_factor") is not None:  # a resolved job writes the key out as null (W101)
         for which in ("lumped", "grid"):
             _part(widgets, which, {"form": "coefficient", "coefficient": storm["arf_factor"]})
-    elif "storm_area_km2" in storm:
+    elif storm.get("storm_area_km2") is not None:
         table = storm.get("arf")
         name = HMS_TABLE
         if table:
@@ -135,6 +144,7 @@ def _reduction(storm: dict, store: dict) -> dict:
             store["arf_curves"][name] = {
                 "areas_km2": list(table.get("areas_km2", [])), "factors": list(table.get("factors", [])),
                 "reduces_below_table": table.get("reduces_below_table", True),
+                **({"table_type": table["table_type"]} if table.get("table_type", "fixed-area") != "fixed-area" else {}),
             }  # fmt: skip
         for which in ("lumped", "grid"):
             _part(widgets, which, {"form": "area", "curve": name, "area_km2": storm["storm_area_km2"]})
@@ -232,14 +242,20 @@ def _storm(storm: dict, store: dict) -> dict:
     return {"widgets": widgets, "rows": rows}
 
 
-def _structures(job: dict, inputs_dir: Path) -> dict:
+def _structures(job: dict, inputs_dir: Path, gpkg=None, inline: dict | None = None) -> dict:
     widgets: dict = {}
+    inline = inline or {}
     objects = job.get("terrain", {}).get("objects", [])
     for kind, keys in PLAIN_KINDS.items():
         path = inputs_dir / f"{kind}.geojson"
         if path.is_file():
             held = _properties(path)
             widgets[f"layers.{kind}"] = layer(path)
+            for key in keys:
+                _put(widgets, f"fields.{kind}.{key}", key if key in held else None)
+        elif _inline(gpkg, inline, kind) is not None:  # a job written elsewhere: its objects inline (W101)
+            held = {k for _xy, props in inline[kind]["features"] for k, v in props.items() if v is not None}
+            widgets[f"layers.{kind}"] = _inline(gpkg, inline, kind)
             for key in keys:
                 _put(widgets, f"fields.{kind}.{key}", key if key in held else None)
     for kind in SHAPED_KINDS:
@@ -258,6 +274,8 @@ def _structures(job: dict, inputs_dir: Path) -> dict:
     ponds = inputs_dir / "initial_water.geojson"
     if ponds.is_file():
         widgets["start_water.ponds"], widgets["start_water.pond_level"] = layer(ponds), "level"
+    elif _inline(gpkg, inline, "initial_water") is not None:
+        widgets["start_water.ponds"], widgets["start_water.pond_level"] = _inline(gpkg, inline, "initial_water"), "level"
     widgets["terrain_map"] = bool(job.get("outputs", {}).get("terrain_map"))
     dams = []
     for entry in job.get("dam_levels") or []:
@@ -291,6 +309,7 @@ def _mesh(job: dict, inputs_dir: Path) -> dict:
         _put(widgets, box, breaks.get(key))
     _put(widgets, "bank_depth_layer", layer(breaks.get("bank_depth_map"), raster=True))
     widgets["corridors"] = bool(strips.get("enabled"))
+    _put(widgets, "corridor_generator", choice(strips["generator"]) if strips.get("generator") else None)
     _put(widgets, "corridor_layer", layer(strips.get("banks")))
     for box, key in CORRIDOR_BOXES.items():
         _put(widgets, box, strips.get(key))
@@ -303,8 +322,15 @@ def _hydrology(job: dict, inputs_dir: Path) -> dict:
     hydrology, terrain, run = job.get("hydrology") or {}, job.get("terrain") or {}, job.get("run") or {}
     hms = hydrology.get("hms_basin")
     if hms:
+        from .job_import import hms_choice
+
         widgets["folder"] = str(Path(hms).parent)
         widgets["files.basin"] = {"data": None, "text": Path(hms).name}
+        if Path(hms).parent.is_dir():  # a job written elsewhere names no met or control file (W101)
+            chosen = hms_choice(Path(hms).parent, job)
+            for key, name in chosen["files"].items():
+                widgets[f"files.{key}"] = {"data": None, "text": name}
+            extra["hms_words"] = chosen["words"]
     elif hydrology.get("basin_json"):
         basin = job.get("basin") or {}
         widgets["basin#checked"] = True
@@ -356,10 +382,15 @@ def _simulation(job: dict) -> dict:
     return widgets
 
 
-def job_states(job: dict, run_folder: Path | str) -> dict:
-    """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``."""
+def job_states(job: dict, run_folder: Path | str, gpkg: Path | str | None = None) -> dict:
+    """Section states, by section key, of what ``job`` tells; ``run_folder`` holds its ``inputs``. A job written
+    elsewhere holds its lines and polygons inline: with ``gpkg``, the GeoPackage :func:`job_import.inline_layers` was
+    written into, its layers stand where the run's input files would (W101)."""
+    from .job_import import inline_layers
+
     root = Path(run_folder)
     inputs_dir = root / INPUTS_DIR
+    inline = inline_layers(job) if gpkg is not None else {}
     grid, terrain, outputs = (job.get(key) or {} for key in ("grid", "terrain", "outputs"))
     ground = {"dem": layer(terrain.get("dem"), raster=True), "fill_pits": bool(terrain.get("fill_pits"))}
     _put(ground, "dx", grid.get("dx"))
@@ -368,6 +399,7 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
     _put(ground, "manning.raster", layer(terrain.get("manning_raster"), raster=True))
     edges, design = inputs_dir / "boundaries.geojson", inputs_dir / "design_points.geojson"
     points = {}
+    inline_design = next((name for name in ("design_lines", "design_points") if name in inline), None)
     if design.is_file():
         held = _properties(design)
         points = {
@@ -375,9 +407,19 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
             "name": "name" if "name" in held else "",
             "area": AREA_KEY if AREA_KEY in held else "",
         }
+    elif inline_design is not None:
+        held = {k for _xy, props in inline[inline_design]["features"] for k, v in props.items() if v is not None}
+        points = {
+            "layer": _inline(gpkg, inline, inline_design),
+            "name": "name" if "name" in held else "",
+            "area": AREA_KEY if AREA_KEY in held else "",
+        }
     panel = {"folder": str(root), "pixels": (outputs.get("pixels") or {}).get("enabled", True)}
     _put(panel, "smooth", (outputs.get("smooth") or {}).get("enabled"))
     panel["limiter"] = bool(outputs.get("step_limiter"))
+    pixels = outputs.get("pixels") or {}
+    panel["map_pixel"] = pixels["pixel_m"] if pixels.get("pixel_m") is not None else -1.0  # W101: -1 is Automatic
+    panel["dv_raster"] = bool(pixels.get("dv_raster"))
     store = _tables(job)
     storm = job.get("storm") or {}
     storm_state = _storm(storm, store)
@@ -391,8 +433,11 @@ def job_states(job: dict, run_folder: Path | str) -> dict:
         "tables": {"widgets": {}, "extra": {"store": store}},
         "storm": storm_state,
         "reduction": {"widgets": reduction},
-        "structures": _structures(job, inputs_dir),
-        "boundaries": {"widgets": {"layer": layer(edges)} if edges.is_file() else {}},
+        "structures": _structures(job, inputs_dir, gpkg, inline),
+        "boundaries": {
+            "widgets": {"layer": layer(edges)} if edges.is_file()
+            else ({"layer": _inline(gpkg, inline, "boundaries")} if "boundaries" in inline else {})
+        },
         "points": {"widgets": points},
         "simulation": {"widgets": _simulation(job)},
         "run": {"widgets": panel},

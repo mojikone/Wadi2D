@@ -80,8 +80,39 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | Scenario | What it proves | Passed |
 |---|---|---|
 | `dock_rain.py` | item 1: the sections in their places; Data tables (add, the next free name, a refused table Missing in words, rename, remove, both charts); six sources, the Steady rain's mm/h giving its job; SCS sets 24 h and refuses 6 h; a pattern by name carried into the job and filled in by the engine; a depth grid; the parts by model type; one area for both parts = the old form, parts that differ = `area_reduction`; the study's single-run area; **a real run on Bidah of a depth with a pattern of Data tables and the 2D part's own reduction, the engine's factor equal to the dock's**; saved and brought back to the same job; a format 2 model's steady rain and design storm moved, in words | 54 of 54 |
+| `dock_import_block2.py` | his item: the four W79 jobs imported; for each the 48 h, the ARF at 100 km2 with its factor shown, the outflow lines with their slopes, the crest lines and spillways, the result lines, the aligned centre mesh; saved as scenarios in W102; **the job the dock writes, compared field by field with the original through the engine's schema: identical but for what is listed, and the dock's own comparison lists the same** | 46 of 46 |
 | `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
 | `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched** | 23 of 23 |
+
+## A job the dock did not write (his item of 2026-11-16; built)
+
+His test: `job_reader.refill` on W79's run 1 came out with 1 h (the job says 48 h), no area reduction (the job reads
+its table at 100 km2), no structures, boundaries or result lines (the job holds them inline), the corridors instead
+of the aligned centre mesh, and Open a run refused the folder for want of a `job.json`. Now:
+
+- **Open a run reads `job.json`, else the engine's `config.resolved.json`**; **Import a job...** in the Model box reads
+  any job file, with the output folder the model's (`job_import.find_job`, `model_store.import_job`).
+- **The lines and polygons a job holds inline** (boundaries, crest lines, walls, spillways, burn lines, result lines
+  and points, initial water) go into `<job>_imported_inputs.gpkg` beside the model (the output folder; a run folder
+  for Open a run) and are loaded as the sections' layers, with the fields they read (`job_import.inline_layers`,
+  `job_layers.write_gpkg`). A vector file the job names is read in the DEM's CRS, as the engine reads it (W79's domain
+  GeoJSON names none and landed in degrees).
+- **Every field the dock has a control for is mapped**; new on the way: the mesh's **Cells made by** (rings, or the
+  aligned centre mesh `strips.generator: centres`), the curve's table type carried through Data tables, the map pixel's
+  0 (the DEM's own pixel, where -1 is Automatic), a resolved job's `null` keys read as unset. The HMS route's met and
+  control files, which such a job does not name, are chosen (the only control file; the met file whose storm depth
+  is the job's) and said in words.
+- **A depth with a percent pattern to 100 % and one reduction for every part is written as the design storm**
+  (`hypothetical`, `time_percent`, `depth_percent`, `storm.arf`), so such a job round-trips to itself: item 1's
+  migrated design storms now write the job they wrote, and the words of the migration say so.
+- **The comparison**: the job the refilled dock writes, as Run writes it (the HMS import included), against the
+  original, defaults taken out of both by the engine's schema the dock holds, the terrain objects in the engine's
+  order of application, lists what differs by section in the Model box ("Hydrology: the dock cannot hold yet ...").
+- Fixed on the way: `widget_state` took two layers of one GeoPackage for one layer (the boundaries were found as the
+  crest lines).
+
+The four Block 2 jobs, imported, saved as scenarios and proved: `W102 Block 2 models in the dock` (README there, a copy
+here as `W102_README.md`). `dock_import_block2.py` 46 of 46; `tests/plugin/test_job_import.py` 7.
 
 ## His two faults of 2026-11-16 (fixed)
 

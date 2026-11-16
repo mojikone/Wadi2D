@@ -87,8 +87,7 @@ FIXED_WORDS = (
 )
 DESIGN_WORDS = (
     'The design storm is now a Depth and pattern, in Storm: its pattern is the table "{name}" of Data tables, the same '
-    "numbers. The job now names the storm kind depth with that pattern; the engine reads it as the old design storm to "
-    "the digit (W95)."
+    "numbers, and the job is the design storm it was."
 )
 CURVE_MOVED = 'The area reduction table is now the curve "{name}" of Data tables, read by the Area reduction section (4b).'
 STUDY_SPLIT = (

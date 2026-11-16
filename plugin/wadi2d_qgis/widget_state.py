@@ -121,7 +121,14 @@ def layer_state(layer) -> dict | None:
 
 
 def _file_of(source: str) -> str:
-    return os.path.normcase(os.path.normpath(source.split("|")[0])) if source else ""
+    """A layer's file, and its layer inside a file of several (a GeoPackage): two layers of one GeoPackage are not
+    one layer (W101: an imported job's boundaries were found as its crest lines)."""
+    if not source:
+        return ""
+    path, _bar, rest = source.partition("|")
+    inside = next((part.split("=", 1)[1] for part in rest.split("|") if part.startswith("layername=")), None)
+    base = os.path.normcase(os.path.normpath(path))
+    return f"{base}|{inside}" if inside else base
 
 
 def find_layer(saved: dict):
@@ -201,6 +208,8 @@ def write(widget, value, add_missing: bool = False, hold: bool = False) -> str:
         widget.setText(value or "")
         return ""
     if isinstance(widget, QAbstractSpinBox):
+        if value is None:  # a number a job leaves unset (W101): the widget keeps its default
+            return ""
         widget.setValue(type(widget.value())(value))
         return ""
     widget.set_rows([tuple(row) for row in value or []])

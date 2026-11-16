@@ -174,6 +174,8 @@ def _table_job(table: dict) -> dict:
     found = {"areas_km2": list(table["areas_km2"]), "factors": list(table["factors"])}
     if not table.get("reduces_below_table", True):
         found["reduces_below_table"] = False
+    if table.get("table_type", "fixed-area") != "fixed-area":  # what the table is, as a job not of the dock said
+        found["table_type"] = table["table_type"]
     return found
 
 

@@ -18,6 +18,11 @@ RUN_TIP = (
     "A finished run's folder: the dock is refilled with the model that made it. A run from before the model was "
     "saved has only its job, so the dock takes what the job can tell and lists the rest."
 )
+IMPORT_TIP = (
+    "A job file the dock did not write, a script's or the engine's config.resolved.json: the dock takes every field "
+    "it has a control for, writes the job's lines and polygons into a GeoPackage in the output folder, and lists by "
+    "section what it cannot hold yet"
+)
 SCENARIO_TIP = "A named copy of the model, kept in the scenarios folder inside the output folder"
 NO_SCENARIOS = "No scenario saved yet"
 
@@ -45,6 +50,8 @@ class ModelBar(QgsCollapsibleGroupBox):
         self.run_folder.setToolTip(RUN_TIP)
         self.open_run_button = QPushButton("Open run")
         self.open_run_button.setToolTip(RUN_TIP)
+        self.import_button = QPushButton("Import a job...")  # W101: a job the dock did not write
+        self.import_button.setToolTip(IMPORT_TIP)
         self.scenario_name = QLineEdit()
         self.scenario_name.setPlaceholderText("Name of the scenario")
         self.scenario_name.setToolTip(SCENARIO_TIP)
@@ -57,6 +64,7 @@ class ModelBar(QgsCollapsibleGroupBox):
         self.message.setTextInteractionFlags(Qt.TextSelectableByMouse)
         form.addRow(self.saved_note)
         form.addRow("Open a run", _row(self.run_folder, self.open_run_button))
+        form.addRow(self.import_button)
         form.addRow("Save", _row(self.scenario_name, self.save_button))
         form.addRow("Open", _row(self.scenarios, self.open_button))
         form.addRow(self.message)
