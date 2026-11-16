@@ -486,6 +486,10 @@ def lattice_pixels(
         for number, (first, last) in enumerate(groups):
             # the saved maps of this group of bands, held once: the squares' kept cells, the strip's cells
             a0, b0 = runs[first][0], runs[last - 1][1]
+            jobs = [(n, block) for n in range(first, last) for block in bands[n][1]]
+            grounds: dict = {}
+            if jobs:  # the first band's ground read while the saved maps are (W93); the next once a band is done
+                grounds[jobs[0][0]] = ahead.submit(reader.read, *runs[jobs[0][0]])
             tick = (lambda i, n: watch.tick("ground", i, n)) if number == 0 else (lambda _i, _n: watch.check())
             stack = read_square_stack(results, names, rows, cols, a0, b0, tick) if b0 > a0 else None
             sets, strip_stack = {}, None
@@ -498,16 +502,11 @@ def lattice_pixels(
                             sets[block] = strips.sets(own, rule)
                             listed |= sets[block][1]
                 strip_stack = read_strip_stack(results, names, np.flatnonzero(listed))
-            jobs = [(n, block) for n in range(first, last) for block in bands[n][1]]
-            grounds: dict = {}
-
             def strip_ahead(j: int, jobs=jobs, sets=sets):
                 """Job ``j``'s strip pixels, read on the lane ahead."""
                 block = jobs[j][1]
                 return ahead.submit(strips.block, *sets[block]) if block in sets else None
 
-            if jobs:  # a band's ground is read ahead once the band before has let its own go
-                grounds[jobs[0][0]] = ahead.submit(reader.read, *runs[jobs[0][0]])
             coming = strip_ahead(0) if jobs else None
             for j, (n, block) in enumerate(jobs):
                 watch.check()
