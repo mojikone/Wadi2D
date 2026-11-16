@@ -13,7 +13,8 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from wadi2d.config.gauges import GaugeRain, Observed
-from wadi2d.config.land import CurveOverride, Roughness
+from wadi2d.config.land import CurveOverride, ModelType, Roughness
+from wadi2d.config.model_type import implied_by_type, model_type_problems
 
 FORMAT_VERSION = "1.0"
 SHAPED_KINDS = ("embankment", "channel", "channel_dyke")
@@ -1428,6 +1429,14 @@ class Run(_Part):
         "inflow and outflow written as a series, the network as map layers. A run whose domain lies wholly under "
         "catchments left out of the mesh runs this way too (W88)",
     )
+    model_type: ModelType | None = Field(
+        None,
+        description="The kind of run, saved so the dock shows its sections (W96): '2d', rain on the grid and no lumped "
+        "part; 'lumped', the lumped network alone (sets run.lumped_only when the job does not); 'hybrid_lumped', lumped "
+        "catchments left out of the mesh (sets grid.exclude_lumped when the job does not); 'hybrid_2d', lumped "
+        "catchments whose cells stay in the mesh. Checked against the rest of the job and refused in words where it "
+        "does not fit. None: the job runs as before, its type read from it (wadi2d.config.model_type)",
+    )
 
 
 LAG_KIRPICH, LAG_NRCS, LAG_HMS_KIRPICH = "kirpich", "nrcs", "hms_kirpich"
@@ -1756,6 +1765,18 @@ class RunConfig(_Part):
     run: Run = Run()
     arf: ArfStudy = ArfStudy()
     basin: BasinSettings = BasinSettings()
+
+    @model_validator(mode="before")
+    @classmethod
+    def _implied_by_type(cls, data):
+        return implied_by_type(data)
+
+    @model_validator(mode="after")
+    def _fits_its_type(self) -> RunConfig:
+        problems = model_type_problems(self)
+        if problems:
+            raise ValueError(f"run.model_type {self.run.model_type!r}: " + "; ".join(problems))
+        return self
 
     @model_validator(mode="after")
     def _by_element(self) -> RunConfig:

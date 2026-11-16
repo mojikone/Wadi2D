@@ -3488,6 +3488,25 @@
           "description": "Run the lumped network alone, the HMS way: no grid, no tables, no 2D solver; every element's inflow and outflow written as a series, the network as map layers. A run whose domain lies wholly under catchments left out of the mesh runs this way too (W88)",
           "title": "Lumped Only",
           "type": "boolean"
+        },
+        "model_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "2d",
+                "lumped",
+                "hybrid_lumped",
+                "hybrid_2d"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The kind of run, saved so the dock shows its sections (W96): '2d', rain on the grid and no lumped part; 'lumped', the lumped network alone (sets run.lumped_only when the job does not); 'hybrid_lumped', lumped catchments left out of the mesh (sets grid.exclude_lumped when the job does not); 'hybrid_2d', lumped catchments whose cells stay in the mesh. Checked against the rest of the job and refused in words where it does not fit. None: the job runs as before, its type read from it (wadi2d.config.model_type)",
+          "title": "Model Type"
         }
       },
       "title": "Run",
@@ -5602,7 +5621,8 @@
         "estimate_speed": 8.0,
         "estimate_wave": 1.3,
         "estimate_overhead": 1.5,
-        "lumped_only": false
+        "lumped_only": false,
+        "model_type": null
       }
     },
     "arf": {

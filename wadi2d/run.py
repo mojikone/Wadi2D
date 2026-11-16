@@ -159,6 +159,7 @@ OPTIONAL_INPUT = {("grid", "cache_dir")}
 NOT_WATER = (
     ("run", "backend"),
     ("run", "checkpoint_every_s"),
+    ("run", "model_type"),  # what the dock shows; what it implies is in the fields it sets (W96)
     ("grid", "cache_dir"),
     ("outputs", "pixels"),
     ("outputs", "smooth"),
