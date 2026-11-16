@@ -33,6 +33,9 @@ SEA_ROW, HEAD_ROW = 280, 40
 A_WEST, A_EAST = 15, 105
 """Valley A's catchment by column, inclusive: the ridges lie half-way between its axis and its neighbours'."""
 THRESHOLD = BasinSettings(stream_threshold_km2=0.1)
+CORNER = 1e-6
+"""Exact, the corners too: where a rough edge meets the kept sea edge, the last row steps over the rough edge within half
+a pixel of the sea edge's end, and the rough edge, nearer, is the one it crosses."""
 
 
 def x_at(col: float) -> float:
@@ -101,9 +104,10 @@ def complete(job: Path, **settings):
 
 def test_a_cut_catchment_is_completed_and_the_overreach_cut(tmp_path: Path) -> None:
     done = complete(make_job(tmp_path, ROUGH))
-    assert done.polygon.symmetric_difference(CATCHMENT_A).area < 1e-6
+    assert done.polygon.symmetric_difference(CATCHMENT_A).area <= CORNER
     r = done.report
-    assert r["removed_km2"] == pytest.approx(5 * 130 * PIXEL**2 / 1e6)  # columns 106 to 110, rows 150 to 279
+    # columns 106 to 110, rows 150 to 279
+    assert r["removed_km2"] == pytest.approx(5 * 130 * PIXEL**2 / 1e6)
     added = (CATCHMENT_A.area - CATCHMENT_A.intersection(ROUGH).area) / 1e6
     assert r["added_km2"] == pytest.approx(added)
     assert (
@@ -136,7 +140,7 @@ def test_water_arriving_across_a_kept_edge_stays_outside(tmp_path: Path) -> None
 def test_the_window_widens_until_the_catchment_is_whole(tmp_path: Path) -> None:
     done = complete(make_job(tmp_path, ROUGH), margin_m=100.0)
     assert done.report["window"]["widened"] >= 1
-    assert done.polygon.symmetric_difference(CATCHMENT_A).area < 1e-6
+    assert done.polygon.symmetric_difference(CATCHMENT_A).area <= CORNER
 
 
 def test_the_command_writes_the_domain(tmp_path: Path) -> None:
@@ -147,7 +151,7 @@ def test_the_command_writes_the_domain(tmp_path: Path) -> None:
     job = make_job(tmp_path, ROUGH)
     assert main(["domain", str(job), "--out", str(tmp_path / "out"), "--threshold-km2", "0.1"]) == 0
     ((_p, polygon),) = read_features(tmp_path / "out" / "domain.geojson")
-    assert polygon.symmetric_difference(CATCHMENT_A).area < 1e-6
+    assert polygon.symmetric_difference(CATCHMENT_A).area <= CORNER
     assert set(layer_names(tmp_path / "out" / "domain.gpkg")) >= {"domain", "changes"}
     report = json.loads((tmp_path / "out" / "domain_report.json").read_text(encoding="utf-8"))
     assert report["mode"] == "complete" and report["stream_threshold_km2"] == 0.1

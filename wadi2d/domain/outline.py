@@ -3,10 +3,10 @@ outline was drawn over a divide into ground draining elsewhere it is cut back, s
 D8 lines and a hybrid model has no rain-on-grid rim there.
 
 The user draws the downstream part exactly (to the sea, say) and the rest roughly. The exact part is told by **kept
-lines**: the job's boundary lines and any lines given. Water crosses a kept edge where its D8 step over the outline
-lies within ``keep_m`` of a kept line and makes 30 degrees or more with it (a step along it, at the corner where a rough
-edge meets a kept one, does not). The rule, pixel by pixel on the basin generator's D8 lines (the same reading, breach,
-walls and burns):
+lines**: the job's boundary lines and any lines given. A **kept edge** is a part of the outline within ``keep_m`` of a
+kept line and within 30 degrees of its direction (a rough edge meeting a kept one at a corner is not); water crosses it
+where its D8 step over the outline lies within a pixel of it, or where the ground ends within ``keep_m`` of a kept line
+(the sea). The rule, pixel by pixel on the basin generator's D8 lines (the same reading, breach, walls and burns):
 
 - a pixel whose way down passes through the outline belongs to the domain when its water last leaves the outline
   across a kept edge; with no kept line, wherever it leaves (then nothing is cut back);
@@ -50,9 +50,11 @@ NO_THRESHOLD_KM2 = 1.0
 EDGE_BAND_PIXELS = 1.5
 """Half-width of the band round the drawn outline where it replaces the pixel staircase, where nothing moved."""
 MAX_GROWS = 8
-CROSSING_SINE = 0.5
-"""A D8 step crosses a kept line when it makes 30 degrees or more with it: a step along it, where a rough edge meets a
-kept one at a corner, does not."""
+STEP_REACH = 0.75
+"""A D8 step crosses an edge when its middle lies this many pixels from it: every step over a straight edge does."""
+PARALLEL_SINE = 0.5
+"""An edge of the outline is drawn on a kept line where it runs within 30 degrees of it: a rough edge meeting a kept one
+at a corner is not, however close to the line its first metres lie."""
 
 
 @dataclass
@@ -131,28 +133,56 @@ class _Pixels:
     notes: list[str]
 
 
+def kept_edges(outline: shapely.Geometry, kept: list[shapely.Geometry], keep_m: float, piece_m: float):
+    """The outline's edges drawn on a kept line: pieces of ``piece_m`` of its boundary within ``keep_m`` of a kept
+    line and within 30 degrees of its direction there, and the rest of it; either None when empty."""
+    lines = [part for geom in kept for part in shapely.get_parts(geom) if part.length > 0.0]
+    segments, rough = [], []
+    for ring in shapely.get_parts(outline.boundary):
+        xy = np.asarray(ring.segmentize(piece_m).coords)
+        if len(xy) < 2:
+            continue
+        a, b = xy[:-1], xy[1:]
+        mid, d = shapely.points(0.5 * (a + b)), b - a
+        best, sine = np.full(len(a), np.inf), np.ones(len(a))
+        for line in lines:
+            distance = shapely.distance(line, mid)
+            along = shapely.line_locate_point(line, mid)
+            p = shapely.line_interpolate_point(line, np.maximum(along - 1.0, 0.0))
+            q = shapely.line_interpolate_point(line, np.minimum(along + 1.0, line.length))
+            lx, ly = shapely.get_x(q) - shapely.get_x(p), shapely.get_y(q) - shapely.get_y(p)
+            across = np.abs(d[:, 0] * ly - d[:, 1] * lx) / np.maximum(np.hypot(*d.T) * np.hypot(lx, ly), 1e-9)
+            closer = distance < best
+            best[closer], sine[closer] = distance[closer], across[closer]
+        on = (best <= keep_m) & (sine <= PARALLEL_SINE)
+        segments.extend(shapely.linestrings(np.stack([a[on], b[on]], axis=1)))
+        rough.extend(shapely.linestrings(np.stack([a[~on], b[~on]], axis=1)))
+    return (
+        shapely.multilinestrings(segments) if segments else None,
+        shapely.multilinestrings(rough) if rough else None,
+    )
+
+
 def _across_kept(
-    surface: Surface, frm: np.ndarray, to: np.ndarray, kept: list[shapely.Geometry], keep_m: float
+    surface: Surface, frm: np.ndarray, to: np.ndarray, edges, kept: list[shapely.Geometry], keep_m: float
 ) -> np.ndarray:
-    """Do the D8 steps ``frm`` to ``to`` cross a kept edge: the step's middle within ``keep_m`` of a kept line, and the
-    step at 30 degrees or more to it. A step off the ground (``to`` NONE) needs only its pixel within ``keep_m``."""
+    """Do the D8 steps ``frm`` to ``to`` cross a kept edge: the step's middle within ``STEP_REACH`` pixels of a kept
+    edge and nearer to it than to any rough edge (at a corner the rough edge is the one crossed). ``edges`` are
+    :func:`kept_edges`' pair. A step off the ground (``to`` NONE: the sea, say) needs its pixel within ``keep_m`` of a
+    kept line."""
     fx, fy = surface.xy(frm)
     off = to == NONE
     tx, ty = surface.xy(np.where(off, frm, to))
     points = shapely.points(0.5 * (fx + tx), 0.5 * (fy + ty))
-    dx, dy = tx - fx, ty - fy
-    step = np.where(off, 1.0, np.hypot(dx, dy))
-    best, sine = np.full(frm.size, np.inf), np.zeros(frm.size)
-    for line in (part for geom in kept for part in shapely.get_parts(geom) if part.length > 0.0):
-        distance = shapely.distance(line, points)
-        along = shapely.line_locate_point(line, points)
-        a = shapely.line_interpolate_point(line, np.maximum(along - 1.0, 0.0))
-        b = shapely.line_interpolate_point(line, np.minimum(along + 1.0, line.length))
-        lx, ly = shapely.get_x(b) - shapely.get_x(a), shapely.get_y(b) - shapely.get_y(a)
-        across = np.abs(dx * ly - dy * lx) / (step * np.maximum(np.hypot(lx, ly), 1e-9))
-        closer = distance < best
-        best[closer], sine[closer] = distance[closer], across[closer]
-    return (best <= keep_m) & (off | (sine >= CROSSING_SINE))
+    on, rough = edges
+    near = np.zeros(frm.size, dtype=bool)
+    if on is not None:
+        to_kept = shapely.distance(on, points)
+        near = to_kept <= STEP_REACH * surface.pixel
+        if rough is not None:
+            near &= to_kept < shapely.distance(rough, points)
+    ends = shapely.distance(shapely.union_all(kept), points) <= keep_m
+    return np.where(off, ends, near)
 
 
 def _classify(
@@ -179,13 +209,14 @@ def _classify(
     if not kept:
         domain = reached
     else:
+        edges = kept_edges(outline, kept, keep_m, pixel)
         exits = np.unique(last[reached])
         leaves = np.zeros(inside.size, dtype=bool)
-        leaves[exits] = _across_kept(surface, exits, down[exits], kept, keep_m)
+        leaves[exits] = _across_kept(surface, exits, down[exits], edges, kept, keep_m)
         domain = reached & leaves[np.where(reached, last, 0)]
         gates = np.unique(gate[entered])
         arrives = np.zeros(inside.size, dtype=bool)
-        arrives[gates] = _across_kept(surface, gates, down[gates], kept, keep_m)
+        arrives[gates] = _across_kept(surface, gates, down[gates], edges, kept, keep_m)
         not_added = ~inside & domain & arrives[np.where(entered, gate, 0)]
         domain &= ~not_added
     return _Pixels(surface, inside, domain, first, last, not_added, notes)
