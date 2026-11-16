@@ -13,6 +13,7 @@ from .common import Section, ValueOrRaster, bind, layer_combo, number_box
 
 class TerrainSection(Section):
     heading = "1. Terrain"
+    key = "terrain"
 
     def build(self) -> None:
         self.dem = layer_combo(QgsMapLayerProxyModel.RasterLayer)

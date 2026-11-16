@@ -9,6 +9,7 @@ from qgis.gui import QgsCollapsibleGroupBox, QgsFieldComboBox, QgsMapLayerComboB
 from qgis.PyQt.QtWidgets import QDoubleSpinBox, QFormLayout, QVBoxLayout, QWidget
 
 from ..job_builder import SchemaView, raster_path
+from ..widget_state import NOTE, inputs, read, read_rows, resolve, write, write_rows
 
 UNBOUNDED = 1e12
 
@@ -37,6 +38,61 @@ class Section(QgsCollapsibleGroupBox):
     def values(self, crs) -> dict:
         """Plain values for the job builder; geometry comes back in ``crs``, the DEM's."""
         return {}
+
+    # The saved model (W99): what the section's inputs hold, as JSON, and back. A section lists nothing: its input
+    # widgets are found by walking its attributes. It names only what the walk cannot know.
+
+    key = ""
+    """The section's name in a saved model; never changed once a model has been saved with it."""
+    state_skip: tuple[str, ...] = ()
+    """Attribute paths left out of the saved model: another section's widgets, display settings kept elsewhere."""
+    state_hold: tuple[str, ...] = ()
+    """Paths of lists the engine fills after the section is restored: the saved choice waits in the empty list."""
+    state_rows: tuple[tuple[str, type, str], ...] = ()
+    """Tables of dataclass rows: (path of the object that holds ``rows``, the row class, its method that redraws)."""
+
+    def state(self) -> dict:
+        found = {"widgets": {path: read(widget) for path, widget in inputs(self, self.state_skip)}, "rows": {}}
+        for path, _row_class, _redraw in self.state_rows:
+            found["rows"][path] = read_rows(resolve(self, path).rows)
+        extra = self.extra_state()
+        if extra:
+            found["extra"] = extra
+        return found
+
+    def restore(self, state: dict, add_missing: bool = False) -> list[str]:
+        """Set the inputs from a saved state; what could not be set, in words, and what was added to the project,
+        each of those marked with ``NOTE``. Set twice: a choice set in the first pass can refill a list a later widget
+        chooses from, and can move a widget that was already set."""
+        saved = state.get("widgets", {})
+        news: list[str] = []
+        failed: dict[str, str] = {}
+        for last in (False, True):
+            for path, widget in inputs(self, self.state_skip):
+                if path not in saved:
+                    continue
+                text = write(widget, saved[path], add_missing, path in self.state_hold)
+                if text.startswith(NOTE):
+                    news.append(text[len(NOTE) :])
+                elif last and text:
+                    failed[path] = text
+        for path, row_class, redraw in self.state_rows:
+            if path in state.get("rows", {}):
+                holder = resolve(self, path)
+                holder.rows = write_rows(row_class, state["rows"][path])
+                getattr(holder, redraw)()
+        found = [f"{NOTE}{text}" for text in news] + [f"{path}: {text}" for path, text in failed.items()]
+        return found + list(self.restore_extra(state.get("extra") or {}, add_missing))
+
+    def extra_state(self) -> dict:
+        """What neither the walk nor ``state_rows`` reaches."""
+        return {}
+
+    def set_model_type(self, kind: str | None) -> None:
+        """Show what a model of this type leaves to choose in the section; None is no type, everything."""
+
+    def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
+        return []
 
 
 def layer_combo(filters, empty: str | None = None) -> QgsMapLayerComboBox:

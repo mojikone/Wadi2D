@@ -1,0 +1,79 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\step2\plugin\wadi2d_qgis\__init__.py
+    4.9 PASS engine found Engine ready.
+    5.0 === 1 generate the basin from the DEM
+    5.0 PASS the box starts unticked and the subbasin table hidden 
+    5.0 FAIL the lag choices are the engine's 
+    5.0 PASS the HMS folder is disabled while the basin is on 
+    5.1 PASS the button is busy 
+    7.6 summary: 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    7.6 PASS a basin was generated 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    7.6 PASS subbasins, reaches and junctions (8, 4, 5)
+    7.6 PASS the crest line is a reservoir with its rating complete []
+    7.6 FAIL three basin layers loaded []
+    7.6 PASS the subbasin table shows every subbasin 8
+    7.6 PASS every subbasin lumped by default {'S1': 'lumped', 'S2': 'lumped', 'S3': 'lumped', 'S4': 'lumped', 'S5': 'lumped', 'S6': 'lumped', 'S7': 'lumped', 'S8': 'lumped'}
+    7.6 PASS the junction table has every junction 5
+    7.6 PASS the route column says what happens before a run ['water enters the 2D grid here', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it', 'routed; a line is built here if 2D water reaches it']
+    7.6 PASS the summary counts 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. crest line saddle 2 drains under 1 km2, a saddle: no node; crest line saddle 3 drains under 1 km2, a saddle: no node.
+    8.1 PASS basin.json and basin.gpkg are inside the output folder 
+    8.1 === 2 run lumped by default
+    8.2 dock says: Starting...
+   11.7 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   17.7 dock says: water stood 3.0 m deep against the domain edge at (431816, 2725010), in 400 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment
+   18.2 PASS the run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   18.2 PASS the job names basin.json and every subbasin lumped 
+   18.2 FAIL the job records the threshold and the lag method {'stream_threshold_km2': 2.0, 'lag_method': 'kirpich'}
+   18.2 PASS one basin event in progress.jsonl []
+   18.2 FAIL no warning but the test domain's edge ['a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line', 'a stream draining 2.48 km2 beyond the edge e
+   18.2 FAIL the water enters as inflow at the junctions, and only the unassigned ground rains (70698.98076158506, 185531.8902102388)
+   18.2 PASS mass closes -1.490596326552742e-08
+   18.2 PASS network series for every element 17
+   18.2 PASS the resolved job lists every subbasin and the junction inflows 1
+   18.2 PASS the junction table took the run's word 
+   18.2 lumped balance: {'rain_m3': 185531.8902102388, 'inflow_m3': 70698.98076158506, 'outflow_m3': 166809.12333939943, 'storage_start_m3': 0.0, 'storage_end_m3': 89421.75145179238, 'error_m3': -0.0038193679502001032, 'relative_error': -1.490596326552742e-08}
+   18.2 === 3 one subbasin switched to rain-on-grid
+   18.3 dock says: Starting...
+   19.8 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   21.8 PASS the 2D run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   21.8 PASS a hand-back line was built at Bidah 03 for S2 (['Bidah 03'], {'junction': 'Bidah 03', 'kind': 'reservoir', 'route': 'reach', 'reach': 'R1', 'next_junction': 'J1', 'reach_missing': [], 'enters_2d': False, 'handback': True, 'two_d_sources': ['S2']})
+   21.8 PASS the job says 2d for that subbasin and nothing else changed 
+   21.8 PASS the resolved job carries the built line 
+   21.8 PASS the same water for S2 within 5 % (the hydrograph's tail is the rest) (66399, 65921)
+   21.8 PASS what the arm rained crossed the line or is still on the grid (58568, 7355, 65921)
+   21.8 PASS the whole closes to the routing defect (-6.183245762951885e-09, -1.6880564253579715e-08)
+   21.8 PASS handback_Bidah_03.csv written 
+   21.8 2d balance: {'rain_m3': 251452.6957969219, 'inflow_m3': 70644.90938625386, 'outflow_m3': 225320.6832152371, 'storage_start_m3': 0.0, 'storage_end_m3': 96776.92740512798, 'error_m3': -0.005437189320218749, 'relative_error': -1.6880564253579715e-08, 'handback_m3': 58568.13947815403, 'reentry_m3': 70644.90938625386, 'lateral_m3': 627889.5669345261, 'network_out_m3': 0.0, 'network_storage_m3': 615812.7970264263, 'routing_defect_m3': 0.0, 'whole_error_m3': -0.005437189320218749, 'whole_relative_error': -6.183245762951885e-09}
+   21.8 === 4 an element lacking a parameter is refused into rain-on-grid and named
+   21.9 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   24.1 PASS generated again 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S2 (curve_number), S3
+   24.1 PASS every row says 2d and cannot be changed {'S1': '2d', 'S2': '2d', 'S3': '2d', 'S4': '2d', 'S5': '2d', 'S6': '2d', 'S7': '2d', 'S8': '2d'}
+   24.1 PASS the tooltip names curve_number S1 lacks curve_number, so it runs as rain-on-grid whatever is chosen here. Fill the value in basin.json, then generate again.
+   24.2 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+   25.7 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   26.7 dock says: 39 more places with deep water against the domain edge: see edge_checks.gpkg
+   27.0 PASS the run finished Finished. subbasin S1 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S2 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbas
+   27.0 PASS the warning names the element and curve_number ['subbasin S1 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters', 'subbasin S2 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].
+   27.0 PASS the event lists them as incomplete and 2d (8, 8)
+   27.0 PASS every reach junction got a line, chained down to the outlet ['Bidah 03', 'J2', 'J3', 'J4']
+   27.0 PASS the dock shows the warning Finished. subbasin S1 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S2 lacks curve_number: it runs as rain-on-grid;
+   27.1 === 5 hand-back rows from a line layer
+   27.1 PASS one row per line 16
+   27.1 PASS the element choices are the generated reaches and junctions ['R1', 'R2', 'R3', 'R4', 'J1', 'Bidah 03']
+   27.1 PASS the values carry the lines with their elements [{'name': 'Bidah 03', 'element': 'R1'}, {'name': 'Faydh 01', 'element': 'R1'}]
+   27.1 === 6 the transmission loss row
+   27.1 PASS off by default 
+   27.1 PASS the job has the loss on at 25 mm/h {'enabled': True, 'rate_mm_h': 25.0}
+   27.2 PASS off leaves the job without it 
+   27.2 === 7 an HMS project switches the basin off, and back
+   27.2 PASS the basin box is off and disabled under an HMS project 
+   27.2 PASS the subbasin table shows the HMS subbasins 18
+   27.2 PASS the basin box is enabled again 
+   27.2 PASS the generated subbasins are back in the table 8
+   27.2 SUMMARY 47 passed, 5 failed 
+   27.2   FAILED the lag choices are the engine's: 
+   27.2   FAILED three basin layers loaded: []
+   27.2   FAILED the job records the threshold and the lag method: {'stream_threshold_km2': 2.0, 'lag_method': 'kirpich'}
+   27.2   FAILED no warning but the test domain's edge: ['a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it
+   27.2   FAILED the water enters as inflow at the junctions, and only the unassigned ground rains: (70698.98076158506, 185531.8902102388)
+   27.2 DONE

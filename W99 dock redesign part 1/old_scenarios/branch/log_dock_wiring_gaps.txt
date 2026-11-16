@@ -1,0 +1,71 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\step2\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.3 === 1 a diversion point through the box's table, a source on its junction
+   10.4 summary: 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 (spillways). crest li
+   10.4 PASS a plain basin 8 subbasins, 4 reaches, 4 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S2 (curve_number), S3
+   10.4 PASS the new layer has the parameters field ['name', 'kind', 'alias', 'crest_line', 'method', 'divert_to', 'table', 'parameters', 'limits', 'file', 'series', 'area_km2']
+   10.5 PASS no diversion row before a diversion point 
+   10.5 PASS the table shows the diversion point [{'fid': 2, 'name': 'Diversion 1', 'method': '', 'divert_to': '', 'table': '', 'parameters': '', 'limits': ''}]
+   10.5 PASS the five methods are offered ['', 'Inflow-Diversion Table', 'Constant Flow', 'Specified Flow', 'Lateral Weir', 'Pump Station']
+   10.5 PASS the Needs column follows the method parameters {"rate_m3s": ...}; no table
+   10.5 PASS the edits are in the layer's fields ['Constant Flow', 'J1', '{"rate_m3s": 5.0}', '{"max_volume_m3": 9000.0}']
+   12.9 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 
+   12.9 PASS basin.json: the junction carries the read block {'method': 'Constant Flow', 'divert_to': 'J1', 'table': None, 'parameters': {'rate_m3s': 5.0}, 'limits': {'max_volume_m3': 9000.0}, 'point': 'Diversion 1', 'tables': None}
+   12.9 PASS the box names the diversion 
+   12.9 PASS a source with no area: the box says the area below is the ground's 
+   12.9 === 2 the source's area
+   15.2 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.4301 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 
+   15.2 PASS the source's area is in the diversion junction's drainage area (21.8825, 24.8825)
+   15.2 PASS and in the outlet's (22.3553, 25.3553)
+   15.2 PASS the box says so 
+   15.2 === 3 a parameter the method does not take: refused in the engine's words
+   17.3 summary: The engine refused the job: a setting is invalid. diversion Diversion 1: Constant Flow takes no ['rate']; it takes ['rate_m3s']
+   17.3 PASS refused, the last model kept The engine refused the job: a setting is invalid. diversion Diversion 1: Constant Flow takes no ['rate']; it takes ['rate_m3s']
+   19.6 summary: 9 subbasins, 5 reaches, 5 junctions, 1 reservoirs; 6.43 km2 reach the edge without meeting a stream and rain on the grid. Rain-on-grid for lack of a parameter: S1 (curve_number), S9 (curve_number), S2 (curve_number), S3 (curve_number), S4 (curve_number), S5 (curve_number), S6 (curve_number), S7 (curve_number), S8 (curve_number). Routed as a junction, no reach or no rating, for lack of: Bidah 03 (s
+   19.6 PASS mended, generated again 
+   19.6 === 4 a run on the generated basin with the diversion
+   19.7 dock says: No curve number: rain on the 2D area outside the lumped subbasins runs off with no losses.
+   21.7 dock says: reservoir Bidah 03 lacks spillways: it passes its inflow on as a junction
+   23.2 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   45.6 PASS the run finished Finished. subbasin S1 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbasins[].parameters. subbasin S9 lacks curve_number: it runs as rain-on-grid; fill the value in basin.json or give it in hydrology.subbas
+   45.6 PASS the diversion's series network_Diversion_1.csv
+   45.7 diversion: inflow peak 335.50, diverted peak 5.000 m3/s, diverted volume 9000.0 m3, inflow volume 454722.1 m3
+   45.7 PASS diverted reaches the rate and never passes it 5.0
+   45.7 PASS its volume capped at the limit 9000.0
+   45.7 PASS mass closes per ordinate, to the CSV's six digits 2.9999999999752447e-05
+   45.7 === 5 a flow line's two columns, and Bidah's pile re-measured
+   45.7 PASS the two columns 
+   45.7 PASS off on a free line 
+   45.7 PASS on for a flow line, ticked and auto by default 
+   45.7 PASS a direction chosen reaches the job's line {'kind': 'flow', 'value': None, 'file': None, 'direction': 'right'}
+   45.8 dock says: Starting...
+   47.3 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   67.5 PASS at rest (W61): finished Finished. a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley. a stream draining 1.01 km2 leaves the domain at (437791
+   67.5 PASS at rest (W61): the job says it {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_step2\\dock_wiring_gaps\\runs\\flow.csv', 'momentum': False}
+   67.5 PASS at rest (W61): direction left to the engine {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_step2\\dock_wiring_gaps\\runs\\flow.csv', 'momentum': False}
+   67.5 at rest (W61): {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 m over 100 m of edge and 0.034 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line'], 'inflow_m3': 35999.99958651423, 'relative_error': -2.8738361373585495e-09}
+   67.6 dock says: Starting...
+   69.1 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   88.3 dock says: water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 m over 100 m of edge and 0.034 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line
+   88.6 PASS moving (W70): finished Finished. a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley. a stream draining 1.01 km2 leaves the domain at (437791
+   88.6 PASS moving (W70): the job says it {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_step2\\dock_wiring_gaps\\runs\\flow.csv'}
+   88.6 PASS moving (W70): direction left to the engine {'file': 'C:\\Users\\mojtaba\\AppData\\Local\\Temp\\claude\\0411bb1eda7ca588\\563cf3f8-070b-42eb-82ea-489205b14695\\scratchpad\\runs_step2\\dock_wiring_gaps\\runs\\flow.csv'}
+   88.6 moving (W70): {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 m over 100 m of edge and 0.034 km2 of water behind it: a pool the edge holds, so the domain polygon likely cuts a valley there; draw it past the valley or open the edge with a boundary line'], 'inflow_m3': 35999.99958651423, 'relative_error': -3.853369623370928e-09}
+   88.6 PASS W61's pile stands at rest {'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00 
+   88.6 FAIL with momentum the pile is lower ({'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain edge at (439416, 2728690), its level 77.00 m flat within 0.00
+   88.6 === 6 an HMS basin's reservoirs, read only
+   88.6 Traceback (most recent call last):
+  File "<string>", line 244, in tick
+  File "C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\step2\W75 wiring the gaps\dock_wiring_gaps.py", line 245, in scenario
+    hms = copy.make(h.P / "hms")
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\step2\W68 layer groups and dock rows\hms_copy.py", line 66, in make
+    shutil.copy2(HMS / name, out / name)
+  File "C:\PROGRA~1\QGIS34~1.8\apps\Python312\Lib\shutil.py", line 460, in copy2
+    _winapi.CopyFile2(src_, dst_, flags)
+FileNotFoundError: [WinError 2] The system cannot find the file specified
+
+   88.6 SUMMARY 33 passed, 1 failed exception
+   88.6   FAILED with momentum the pile is lower: ({'pile_m': 4.295, 'pile_at': (439415.98973783385, 2728690.393463373), 'line_max_m': 2.195, 'line_at': (439495.98973783385, 2728690.393463373), 'warning': ['water stood 4.3 m deep against the domain e
+   88.6 DONE

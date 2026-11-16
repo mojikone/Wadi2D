@@ -1,0 +1,22 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-ac9604c8937416fa3\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.2 === 1 every section has a state, and a new dock is not a changed project
+    5.2 PASS the model is kept once the engine answers 
+    5.2 PASS every section has its name in the model ['terrain', 'mesh', 'hydrology', 'storm', 'structures', 'boundaries', 'points', 'gauges', 'run', 'study']
+    5.2 PASS the document names its format 1
+    5.2 inputs found by section: {'terrain': 6, 'mesh': 22, 'hydrology': 26, 'storm': 26, 'structures': 77, 'boundaries': 3, 'points': 3, 'gauges': 1, 'run': 9, 'study': 9}
+    5.2 PASS every section's inputs are found {'terrain': 6, 'mesh': 22, 'hydrology': 26, 'storm': 26, 'structures': 77, 'boundaries': 3, 'points': 3, 'gauges': 1, 'run': 9, 'study': 9}
+    5.2 PASS the Storm widgets Hydrology borrows are saved once 
+    5.2 PASS an untouched dock writes nothing into the project 
+    5.2 === 2 fill the dock
+    5.3 PASS the filled dock has a job to build []
+    5.4 PASS the job carries the mesh lines dict_keys(['enabled', 'coarse_dx', 'stream_area_fine_km2', 'stream_area_mid_km2', 'zones', 'lines'])
+    5.4 PASS the job carries the dam's start level [{'name': 'Bidah 03', 'start': 97.25}]
+    5.4 PASS the job carries the pinned boundary [{'kind': 'stage', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]], 'stage': 2.5}, {'kind': 'normal', 'coordinates': [[437300.0, 2728690.0], [440300.0, 2728690.0]], 'slope': 0.008}]
+    5.4 PASS the job carries the observed gauge ['points', 'lines', 'observed', 'map_every_s', 'pixels', 'terrain_map', 'step_limiter']
+    5.4 === 3 save the project at once: the model goes with it
+    5.4 PASS the project is written 
+    5.4 PASS the project holds the model 
+    5.5 SUMMARY 15 passed, 0 failed 
+    5.5 DONE

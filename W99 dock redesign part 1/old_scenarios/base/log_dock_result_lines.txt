@@ -1,0 +1,79 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.3 PASS engine from this worktree C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\wadi2d\__init__.py
+    5.3 PASS engine.py names this worktree import sys
+sys.path.insert(0, r'C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca58
+    5.4 === 1 a run with upfront lines; the button and the panel
+    5.4 PASS no button before a run 
+    5.5 dock says: Starting...
+    8.0 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   10.0 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   10.0 PASS button after a run 
+   10.0 PASS nothing new in the run folder 
+   10.0 PASS the panel opened 
+   10.0 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   12.5 PASS a run's upfront lines are listed 3
+   12.5 PASS the first line shows Upfront line: Across. Flow computed during the run; depth and water surface read from saved frames.
+   12.5 PASS both kinds in the flow chart 
+   12.5 FAIL each labelled in the plot ['Upfront, computed in the run: number of record', 'Saved frames, every 5 min: from the faces, of record']
+   12.5 FAIL the limit is stated Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the frame interval, drawn as a size. A line that crosses a wadi twi
+   12.5 PASS depth and a section 
+   12.5 PASS nothing added to the run folder 
+   12.5 PASS a frame per saved map (24, 23)
+   12.5 === 2 flow from frames against the record, the limit that is stated
+   12.5 PASS Across: the plot holds the record of the run 310.062
+   12.5 Across: record peak 310.1, frames 310.0, ratio 1.000
+   13.8 PASS Oblique: the plot holds the record of the run 320.44
+   13.8 Oblique: record peak 320.4, frames 320.4, ratio 1.000
+   15.0 PASS Axis: the plot holds the record of the run 322.286
+   15.0 Axis: record peak 322.3, frames 322.1, ratio 0.999
+   15.0 PASS a line square to the flow stands within 10 % 0.9996452322438738
+   15.0 PASS the long axis stands within 10 % 0.9994632096957361
+   15.0 PASS an oblique line stands within 30 % 0.9999594307826739
+   15.1 === 3 a temporary line, drawn through the real map tool
+   15.1 PASS no temporary layer yet 
+   15.2 PASS the map tool let go 
+   16.4 drawn line on the plot in 1.3 s, a quarter second of it this check's own wait
+   16.4 PASS the drawn line is chosen Temporary line: Line 1
+   16.4 PASS labelled temporary Temporary line: Line 1. Read from saved frames.
+   16.4 PASS no record on a temporary line 
+   16.4 FAIL the limit is on it too 
+   16.4 PASS water on it 289.533
+   16.4 PASS the line went where it was clicked [[437357.57924264716, 2726694.2449429412], [437387.9694707844, 2726451.123117843], [437387.9694707844, 2726208.001292745]]
+   16.4 FAIL the layer sits on top of the run's group 
+   16.4 PASS it is a scratch layer 
+   16.5 PASS in the run's CRS EPSG:32640
+   16.5 PASS the panel does not offer it as a layer 
+   16.5 === 3b a line dropped
+   16.5 PASS Escape drops it 4
+   16.5 PASS one point is no line 4
+   16.5 === 4 a line picked from a layer
+   16.5 PASS its lines are listed Upstream
+   17.7 PASS it is a temporary line Temporary line: Upstream, from other lines
+   17.7 PASS read from frames 
+   17.7 PASS flow on it 120.589
+   17.7 PASS not added to the scratch layer 1
+   17.7 === 4b another CRS, on a layer and on the map
+   19.3 PASS a layer in another CRS reads the same line 120.589
+   20.5 PASS a map in another CRS draws in the run's Temporary line: Line 2
+   20.5 PASS in metres, where it was clicked (437377.3379742318, 2726692.5289919893, 61.371749429093036)
+   20.5 === 5 it moves with the time slider
+   20.5 PASS the panel works before the Time slider button 
+   20.5 dock says: Writing the saved frames to one file...
+   22.2 Traceback (most recent call last):
+  File "<string>", line 237, in tick
+  File "C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\W21 result lines\dock_result_lines.py", line 231, in scenario
+    layer = frames_layer(h, "uniform")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\W21 result lines\dock_result_lines.py", line 74, in frames_layer
+    return next(n.layer() for n in h.group_of(run).findLayers() if n.layer().name() == "Flood over time, cells")
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'findLayers'
+
+   22.3 SUMMARY 42 passed, 4 failed exception
+   22.3   FAILED each labelled in the plot: ['Upfront, computed in the run: number of record', 'Saved frames, every 5 min: from the faces, of record']
+   22.3   FAILED the limit is stated: Saved frames, every 5 min: a peak between two frames is not seen. Flow is the discharge through the faces the line crosses, summed as an upfront line is, with its sign: the number of record at the fra
+   22.3   FAILED the limit is on it too: 
+   22.3   FAILED the layer sits on top of the run's group: 
+   22.3 DONE

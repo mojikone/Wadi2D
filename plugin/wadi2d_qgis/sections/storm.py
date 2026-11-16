@@ -26,7 +26,7 @@ from qgis.PyQt.QtWidgets import (
     QWidget,
 )
 
-from ..gauge_rows import GAP_WORDS, INVERSE_DISTANCE, METHOD_WORDS, RAIN, VALUE_WORDS
+from ..gauge_rows import GAP_WORDS, INVERSE_DISTANCE, METHOD_WORDS, RAIN, VALUE_WORDS, GaugeRow
 from ..job_builder import MINUTES_PER_HOUR, RAIN_DEPTH, RAIN_DURATION
 from ..rain_chart import HyetographChart, PreviewTable
 from ..storm_rows import (
@@ -149,6 +149,9 @@ def _words(text: str) -> QLabel:
 
 class StormSection(Section):
     heading = "4. Storm"
+    key = "storm"
+    state_rows = (("gauge_table", GaugeRow, "_show"),)
+    state_hold = ("variable",)  # the series of a rain file: the engine reads the file and answers later
     rain_file_changed = pyqtSignal()
     """The rain file or how it is read has changed: ask the engine what it holds."""
     preview_requested = pyqtSignal()

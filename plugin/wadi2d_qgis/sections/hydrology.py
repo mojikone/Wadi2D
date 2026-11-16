@@ -36,9 +36,18 @@ from ..job_builder import (
     hms_files,
     hms_subbasins,
 )
-from ..muskingum_rows import MUSKINGUM, hms_reaches, model_reaches
+from ..model_types import HYBRID_LUMPED, LUMPED, TWO_D
+from ..muskingum_rows import MUSKINGUM, ReachRow, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
-from .basin_rows import REACH_ROUTING, ROUTING_WORDS, SubbasinRow, hms_elements, mode_tip, subbasin_rows
+from .basin_rows import (
+    REACH_ROUTING,
+    ROUTING_WORDS,
+    HandbackRow,
+    SubbasinRow,
+    hms_elements,
+    mode_tip,
+    subbasin_rows,
+)
 from .common import Section, ValueOrRaster, bind
 from .muskingum_table import MuskingumBox
 
@@ -48,16 +57,23 @@ REFUSED_COLOUR = "#b00000"
 
 class HydrologySection(Section):
     heading = "3. Hydrology"
+    key = "hydrology"
+    state_skip = ("rain", "hours")  # the Storm section's own widgets, which older dock checks reach from here
+    state_rows = (("handbacks", HandbackRow, "_fill"), ("muskingum", ReachRow, "_show"))
     hms_changed = pyqtSignal(bool)
     """Whether an HMS project is in use."""
     structures_requested = pyqtSignal(str)
     """An HMS basin file was chosen: the dock asks the engine what its reservoirs route by (W75)."""
 
     def build(self) -> None:
+        self.lumped_box = QWidget()  # every row of the lumped part: a 2D model hides them in one go (W99)
+        lumped = QFormLayout(self.lumped_box)
+        lumped.setContentsMargins(0, 0, 0, 0)
+        lumped.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.folder = QgsFileWidget()
         self.folder.setStorageMode(QgsFileWidget.GetDirectory)
         self.folder.setDialogTitle("HEC-HMS project folder")
-        self.form.addRow("HMS project (optional)", self.folder)
+        lumped.addRow("HMS project (optional)", self.folder)
 
         self.hms_box = QWidget()
         hms = QFormLayout(self.hms_box)
@@ -87,30 +103,31 @@ class HydrologySection(Section):
         self.arf_by_element = QCheckBox("Each element at its own drainage area's area reduction (depth-area analysis)")
         hms.addRow(self.arf_by_element)
         self.lumped_only.toggled.connect(self._lumped_only_toggled)
-        self.form.addRow(self.hms_box)
+        lumped.addRow(self.hms_box)
         self.hms_box.hide()
 
         self.basin = BasinBox()
-        self.form.addRow(self.basin)
+        lumped.addRow(self.basin)
 
         self.table = QTableWidget(0, 2)
         self.table.setHorizontalHeaderLabels(["Subbasin", "Treated as"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().hide()
-        self.form.addRow(self.table)
+        lumped.addRow(self.table)
         self.table.hide()
 
         self.routing = QComboBox()
-        self.form.addRow("Reach routing", self.routing)
+        lumped.addRow("Reach routing", self.routing)
         self.muskingum = MuskingumBox()
-        self.form.addRow(self.muskingum)
+        lumped.addRow(self.muskingum)
         self.muskingum.hide()
         self._exclude_known = False
         self.exclude = QCheckBox("Leave the catchments the lumped network carries out of the 2D mesh")
-        self.form.addRow(self.exclude)
+        lumped.addRow(self.exclude)
 
         self.handbacks = HandbackBox()
-        self.form.addRow(self.handbacks)
+        lumped.addRow(self.handbacks)
+        self.form.addRow(self.lumped_box)
         self.loss = LossRow()
         self.form.addRow(self.loss)
 
@@ -149,6 +166,25 @@ class HydrologySection(Section):
         self.basin.apply_schema(schema)
         self.loss.apply_schema(schema)
         self._basin_changed(self.files["basin"].currentText())
+
+    def set_model_type(self, kind: str | None) -> None:
+        """What the model type leaves to choose here (W99). A 2D model has no lumped part. A type sets the HMS way
+        only and the catchments left out of the mesh, and Hybrid 2D the entry at the outlets: those three show only
+        where a real choice is left. The two ticks follow the type, so what they switch on and off follows too; the
+        entry keeps the user's choice for the day the type is Hybrid Lumped again (the job takes the type's,
+        ``model_types.apply_type``). With no type every row shows, as before."""
+        typed = kind is not None
+        self.lumped_box.setVisible(kind != TWO_D)
+        self.lumped_only.setVisible(not typed)
+        self.exclude.setVisible(not typed)
+        self.arf_by_element.setVisible(not typed or kind == LUMPED)
+        entry = not typed or kind == HYBRID_LUMPED
+        self.lumped_entry.setVisible(entry)
+        self.hms_box.layout().labelForField(self.lumped_entry).setVisible(entry)
+        if not typed:
+            return
+        self.lumped_only.setChecked(kind == LUMPED)
+        self.exclude.setChecked(kind == HYBRID_LUMPED)
 
     def _routing_changed(self, *_) -> None:
         """The reach table shows under Muskingum, with the reaches of the basin in use."""
@@ -259,6 +295,31 @@ class HydrologySection(Section):
     def _subbasin_modes(self) -> dict[str, str]:
         rows = range(self.table.rowCount())
         return {self.table.item(row, 0).text(): self.table.cellWidget(row, 1).currentText() for row in rows}
+
+    # The saved model (W99): the generated basin is a file, and the mode of each subbasin a table of cell widgets.
+
+    def extra_state(self) -> dict:
+        return {"basin_json": self.basin.json_path, "modes": self._subbasin_modes()}
+
+    def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
+        found = []
+        path = extra.get("basin_json")
+        if path and not self._use_hms():
+            if Path(path).is_file():
+                self.basin.take({"basin": path})
+            else:
+                found.append(f"the generated basin is not there any more ({path}): press Generate basin")
+        modes = extra.get("modes") or {}
+        for row in range(self.table.rowCount()):
+            name, combo = self.table.item(row, 0).text(), self.table.cellWidget(row, 1)
+            if name in modes and combo.isEnabled():
+                combo.setCurrentText(modes[name])
+        missing = sorted(set(modes) - set(self._subbasin_modes()))
+        if missing:
+            found.append(f"subbasins no longer in the basin: {', '.join(missing)}")
+        if self.routing.currentData() == MUSKINGUM:
+            self._fill_reaches()
+        return found
 
     def values(self, crs) -> dict:
         values = {

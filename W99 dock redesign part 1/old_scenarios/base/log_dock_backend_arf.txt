@@ -1,0 +1,18 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\plugin\wadi2d_qgis\__init__.py
+    4.7 PASS engine found Engine ready.
+    4.7 === 1 the widgets
+    4.7 PASS the engine choices are the schema's ['auto', 'gpu', 'cpu']
+    4.7 PASS the engine starts automatic Automatic: the GPU if there is one
+    4.7 PASS the study comes after Run 
+    4.7 PASS bracketing areas by default Around the drainage areas
+    4.7 PASS the label says the rule Up to 6 runs, picked when the study starts: log-spaced from the smallest to the largest drainage area of the design lines and of the lumped elements a hand-back feeds, neighbours at most 2 x apart. A lumped element with no 2D water above it needs no run: it is
+    4.7 Traceback (most recent call last):
+  File "<string>", line 237, in tick
+  File "C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\base\W37 dock backend and ARF\dock_backend_arf.py", line 143, in scenario
+    h.check("the composite map is off by default", not box.composite.isChecked() and not box.composite_box.isVisible())
+                                                                                         ^^^^^^^^^^^^^^^^^
+AttributeError: 'StudySection' object has no attribute 'composite_box'. Did you mean: 'composite'?
+
+    5.1 SUMMARY 7 passed, 0 failed exception
+    5.1 DONE

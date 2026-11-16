@@ -47,6 +47,8 @@ SECONDS_PER_MINUTE = 60.0
 
 class RunSection(Section):
     heading = "8. Run"
+    key = "run"
+    state_skip = ("cutoff",)  # a display setting, kept with QGIS, not with the model
 
     def build(self) -> None:
         self.folder = QgsFileWidget()

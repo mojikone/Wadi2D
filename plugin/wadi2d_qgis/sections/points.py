@@ -19,6 +19,7 @@ AREA_TIP = (
 class PointsSection(Section):
     heading = "7. Results points (optional)"
     start_collapsed = True
+    key = "points"
 
     def build(self) -> None:
         self.layer = layer_combo(QgsMapLayerProxyModel.PointLayer | QgsMapLayerProxyModel.LineLayer, "None")
