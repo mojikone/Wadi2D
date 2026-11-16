@@ -325,6 +325,23 @@ def test_the_command_line_refuses_a_folder_with_no_run(tmp_path) -> None:
     assert cli(["products", str(tmp_path)]) == runner.EXIT_INVALID
 
 
+def test_a_window_at_the_dem_pixel_from_the_command_line(finished, tmp_path) -> None:
+    """W100, ``wadi2d window``: a drawn window's rasters at the DEM's pixel, into a folder of its own; the run's own
+    pixel maps untouched."""
+    _cfg, run, _summary = finished
+    before = {p.name: p.stat().st_mtime for p in (run / PIXEL_DIR).glob("*.tif")}
+    box = [str(v) for v in (X0 + 100.0, Y0 - 250.0, X0 + 400.0, Y0 - 80.0)]
+    out = tmp_path / "w"
+    assert cli(["window", str(run), *box, "--pixel", "5", "--out", str(out), "--backend", "cpu"]) == 0
+    with rasterio.open(out / step.DEPTH_FILE) as src:
+        assert src.transform.a == 5.0 and src.width <= 60 and src.height <= 34
+        assert (src.read(1) != step.NO_DEPTH).any()
+    assert json.loads((out / step.STATS_FILE).read_text("utf-8"))["window"] == [float(v) for v in box]
+    assert {p.name: p.stat().st_mtime for p in (run / PIXEL_DIR).glob("*.tif")} == before
+    wrong = [box[2], box[1], box[0], box[3]]  # east before west
+    assert cli(["window", str(run), *wrong, "--out", str(tmp_path / "x")]) == runner.EXIT_INVALID
+
+
 def test_peak_depth_does_not_wait_for_a_saved_map(tmp_path) -> None:
     """Maps every 2300 s miss the peak of a short storm; the run's own peak still reaches the pixels."""
     summary = run_job(wadi_job(tmp_path, map_every_s=2300.0), tmp_path / "coarse")
