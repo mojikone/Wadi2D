@@ -25,7 +25,9 @@ from scipy import ndimage
 
 from wadi2d.breach import build_breaches
 from wadi2d.config.constants import M2_PER_KM2, G
+from wadi2d.config.rain import PART_GRID, PART_LUMPED, absolute_store
 from wadi2d.config.schema import (
+    DEPTH_GRID_STORM,
     ENTRY_POINT,
     FILL_KIND,
     LUMPED_AT_OUTLETS,
@@ -98,6 +100,15 @@ from wadi2d.solver.model import Model
 from wadi2d.solver.stepper import NumericalFailure
 from wadi2d.storm.gauges import GaugeStorm
 from wadi2d.storm.gridded import GriddedStorm
+from wadi2d.storm.split_arf import (
+    at_study_area,
+    grid_curve,
+    lumped_curve,
+    part_record,
+    part_reduction,
+    part_words,
+    with_reduction,
+)
 from wadi2d.tables import GridTables, build_tables
 from wadi2d.terrain import GridWindow, Ground, RasterBed, apply_objects
 from wadi2d.terrain.checks import terrain_notes
@@ -187,7 +198,7 @@ def load_job(path: str | Path) -> RunConfig:
     if not source.is_file():
         raise InputMissing(f"job file not found: {source}")
     try:
-        cfg = RunConfig.model_validate(json.loads(source.read_text(encoding="utf-8")))
+        cfg = RunConfig.model_validate(absolute_store(json.loads(source.read_text(encoding="utf-8")), source.parent))
     except (ValidationError, json.JSONDecodeError) as error:
         raise InvalidJob(str(error)) from error
     return resolve_paths(cfg, source.parent)
@@ -396,6 +407,15 @@ def job_hash(cfg: RunConfig) -> str:
         data["storm"].pop("gauges")  # and a job without gauges the one it had before them (W54)
     if cfg.storm.arf_factor is None:
         data["storm"].pop("arf_factor")  # and a job with no given factor the one it had before it (W83)
+    for name in ("pattern", "area_reduction"):  # and a job of the old kinds the one it had before W95's sources
+        if data["storm"][name] is None:
+            data["storm"].pop(name)
+    if data["storm"].get("pattern") is not None:  # a stored table's name is not water: its numbers, filled in, are
+        data["storm"]["pattern"].pop("table")
+    for part in (data["storm"].get("area_reduction") or {}).values():
+        if part is not None:
+            part.pop("curve")
+    data.pop("data_tables")  # the tables a storm names are in the storm by now; the rest change no water (W95)
     if not cfg.grid.exclude_lumped and not cfg.grid.exclude_subbasins:  # and one that leaves no catchment out (W88)
         for name in ("exclude_lumped", "exclude_subbasins"):
             data["grid"].pop(name)
@@ -715,9 +735,15 @@ def _project_tables(h, hms_basin):
 
 def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
     """What falls on the lumped network: the storm, or a grid averaged over each subbasin; a subbasin with a storm area
-    of its own reads the area reduction there."""
+    of its own reads the area reduction there. With ``storm.area_reduction`` the network takes the lumped part's
+    reduction, and a lumped curve in a run with a 2D part reads each subbasin at its own storm area, else at its own
+    area (W95)."""
+    if cfg.storm.area_reduction is not None:
+        storm = with_reduction(storm, part_reduction(cfg.storm, PART_LUMPED))
     rain = _network_rain(cfg, storm, basin, hms_basin, crs)
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
+    if lumped_curve(cfg.storm) and not cfg.run.lumped_only:  # a lumped-only run reads every element by itself
+        own = {name: own.get(name, subbasin.area_km2) for name, subbasin in basin.subbasins.items()} | own
     if not own:
         return rain
     from wadi2d.storm.own_area import OwnAreas
@@ -739,6 +765,16 @@ def _network_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str):
         return storm.bind(load_polygons(h, crs), system or crs, crs)
     if cfg.storm.depth_grid is None:
         return storm
+    if cfg.storm.kind == DEPTH_GRID_STORM:  # a source of its own: any polygons the job has, an HMS basin's or not (W95)
+        from wadi2d.storm.by_subbasin import StormBySubbasin
+        from wadi2d.storm.grid_depth import DepthGrid, subbasin_means
+
+        polygons = load_polygons(h, crs)
+        missing = sorted(set(basin.subbasins) - set(polygons))
+        if missing:
+            raise InvalidJob(f"a depth grid on the lumped network needs a polygon for every subbasin; none for {missing}")
+        grid = DepthGrid.load(cfg.storm.depth_grid, system or crs or None)
+        return StormBySubbasin(storm, subbasin_means(grid, polygons, basin.subbasins)).at_area(storm.storm_area_km2)
     from wadi2d.hydrology.from_hms import grid_storm
     from wadi2d.storm.grid_depth import DepthGrid
 
@@ -958,7 +994,14 @@ def _failed_cell(model: Model) -> dict[str, float]:
 
 
 def arf_tags(cfg: RunConfig) -> dict[str, str]:
-    """What every output of an area-reduced run says about its rain."""
+    """What every output of an area-reduced run says about its rain; with ``storm.area_reduction``, each part's."""
+    if cfg.storm.area_reduction is not None:
+        tags = {}
+        for part in (PART_LUMPED, PART_GRID):
+            record = part_record(cfg.storm, part)
+            if record is not None:
+                tags[f"arf_{part}"] = part_words(record).split(": ", 1)[1]
+        return tags
     if cfg.storm.arf_factor is not None:
         return {"arf_table_type": GIVEN_FACTOR, "arf_factor": f"{cfg.storm.arf_factor:g}"}
     arf = cfg.storm.arf
@@ -1183,8 +1226,7 @@ def lumped_view(cfg: RunConfig, crs: str) -> LumpedView | None:
 
 def lumped_rain_at(view: LumpedView, area_km2: float, crs: str):
     """The rain of the lumped network with the storm read at ``area_km2``, as a run at that storm area takes it."""
-    storm = view.cfg.storm.model_copy(update={"storm_area_km2": area_km2})
-    cfg = view.cfg.model_copy(update={"storm": storm})
+    cfg = view.cfg.model_copy(update={"storm": at_study_area(view.cfg.storm, area_km2)})
     return _lumped_rain(cfg, build_storm(cfg), view.basin, view.hms_basin, crs)
 
 
@@ -1289,6 +1331,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
     cfg, generated = _resolved(cfg, crs)
     if cfg.run.lumped_only:
         return _lumped(cfg, out, crs, progress, summary)
+    if grid_curve(cfg.storm):
+        raise InvalidJob(
+            "storm.area_reduction.grid reads its curve at each storm area of a depth-area study, and the 2D cells of "
+            "a single run have no area of their own: give the 2D part a fixed area or a coefficient, or run the study"
+        )
     design = design_plans(cfg, generated)
     checkpoint = out / "checkpoint.h5"
     continuing = _check_resume(cfg, checkpoint, resume, progress)
@@ -1325,6 +1372,11 @@ def _run(cfg, out: Path, backend, tables, resume, progress, summary: RunSummary,
             message=f"rain: every depth is multiplied by {cfg.storm.arf_factor:.4f}, the given area-reduction factor, "
             "over the whole event",
         )
+    for part in (PART_LUMPED, PART_GRID):  # each part's reduction, on the record of the run (W95)
+        record = part_record(cfg.storm, part)
+        if record is not None:
+            progress.emit("output", kind="area_reduction", **record)
+            progress.emit("warn", message=part_words(record))
     own = {s.name: s.storm_area_km2 for s in cfg.hydrology.subbasins if s.storm_area_km2 is not None}
     if own and cfg.storm.arf is not None:  # the subbasins that read the table at an area of their own (W79)
         progress.emit("output", kind="subbasin_storm_areas", areas_km2=own, arf_table_type=cfg.storm.arf.table_type)

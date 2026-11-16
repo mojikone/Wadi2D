@@ -1,5 +1,112 @@
 {
   "$defs": {
+    "AreaReduction": {
+      "additionalProperties": false,
+      "description": "The area reduction of the lumped part and of the 2D part, set apart; a part left out is not reduced.",
+      "properties": {
+        "lumped": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArfPart"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rain on the lumped subbasins"
+        },
+        "grid": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArfPart"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rain on the 2D cells"
+        }
+      },
+      "title": "AreaReduction",
+      "type": "object"
+    },
+    "ArfPart": {
+      "additionalProperties": false,
+      "description": "The area reduction of one part of the model: a curve, a fixed area read on a curve, or a fixed coefficient.",
+      "properties": {
+        "form": {
+          "description": "'curve': read at each element's own area (lumped) or at each run's storm area of a depth-area study (2D). 'area': read on the curve at area_km2, one factor for the part. 'coefficient': one factor given",
+          "enum": [
+            "curve",
+            "area",
+            "coefficient"
+          ],
+          "title": "Form",
+          "type": "string"
+        },
+        "curve": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Name of a curve in data_tables.arf_curves",
+          "title": "Curve"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArfTableConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The curve itself; filled from the store when the job names one"
+        },
+        "area_km2": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Storm area the curve is read at, for form 'area', km2",
+          "title": "Area Km2"
+        },
+        "coefficient": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The factor, for form 'coefficient': 0.7 is a 30 % reduction",
+          "title": "Coefficient"
+        }
+      },
+      "required": [
+        "form"
+      ],
+      "title": "ArfPart",
+      "type": "object"
+    },
     "ArfStudy": {
       "additionalProperties": false,
       "description": "The depth-area study: one run per storm area, each design point reading its own drainage area.",
@@ -1125,6 +1232,43 @@
         "name"
       ],
       "title": "DamLevel",
+      "type": "object"
+    },
+    "DataTables": {
+      "additionalProperties": false,
+      "description": "Named patterns and area-reduction curves, which storms refer to by name (the dock's Data tables section).",
+      "properties": {
+        "file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "A JSON file of more tables, with the keys 'patterns' and 'arf_curves'; relative to the job",
+          "title": "File"
+        },
+        "patterns": {
+          "additionalProperties": {
+            "$ref": "#/$defs/PatternTable"
+          },
+          "default": {},
+          "title": "Patterns",
+          "type": "object"
+        },
+        "arf_curves": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ArfTableConfig"
+          },
+          "default": {},
+          "title": "Arf Curves",
+          "type": "object"
+        }
+      },
+      "title": "DataTables",
       "type": "object"
     },
     "DesignLine": {
@@ -2844,6 +2988,57 @@
       "title": "Outputs",
       "type": "object"
     },
+    "PatternTable": {
+      "additionalProperties": false,
+      "description": "How a storm's depth falls in time: a dimensionless or cumulative curve, or the share of each period.",
+      "properties": {
+        "time": {
+          "description": "Times of the table, in time_units from the storm's start",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1,
+          "title": "Time",
+          "type": "array"
+        },
+        "depth": {
+          "description": "Depth at each time (form 'cumulative': depth fallen by then, any unit, read as a share of the last) or in the period that ends there (form 'incremental': read as a share of the sum)",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1,
+          "title": "Depth",
+          "type": "array"
+        },
+        "time_units": {
+          "default": "percent",
+          "description": "'percent' or 'fraction' of the storm's duration, ending at 100 or 1; 'hours' or 'minutes' from the start, ending at the storm's duration",
+          "enum": [
+            "percent",
+            "fraction",
+            "hours",
+            "minutes"
+          ],
+          "title": "Time Units",
+          "type": "string"
+        },
+        "form": {
+          "default": "cumulative",
+          "enum": [
+            "cumulative",
+            "incremental"
+          ],
+          "title": "Form",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time",
+        "depth"
+      ],
+      "title": "PatternTable",
+      "type": "object"
+    },
     "Pixels": {
       "additionalProperties": false,
       "description": "The post-run product: depth and hazard at the terrain pixel, from the saved maps of the run.\n\nA pixel takes the highest class any limit gives, and H1 where it is wet but under every limit. The engine's\ncell hazard (``maps/hazard.tif``) stays as it is; this is a second, finer reading of the same run.",
@@ -3772,7 +3967,7 @@
     },
     "Storm": {
       "additionalProperties": false,
-      "description": "Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.",
+      "description": "Rain as a function of time. ``kind`` selects the builder in ``wadi2d.storm``.\n\nThe sources of W95 share one shape: 'depth' is storm.depth_mm, 'depth_grid' the raster storm.depth_grid, each\nspread over storm.duration_min by storm.pattern (uniform, an NRCS type, or a table, by name from data_tables or\ngiven); 'gridded' is a NetCDF, DSS or GeoTIFF series. Each takes storm.area_reduction, one setting for the lumped\npart and one for the 2D part. The kinds before them stay as they were, and an HMS met file still imports to one.",
       "properties": {
         "kind": {
           "default": "none",
@@ -3782,7 +3977,9 @@
             "hypothetical",
             "hyetograph",
             "gridded",
-            "gauges"
+            "gauges",
+            "depth",
+            "depth_grid"
           ],
           "title": "Kind",
           "type": "string"
@@ -4007,9 +4204,96 @@
           ],
           "default": null,
           "description": "Rain gauges and how their rain is spread, for kind 'gauges'; rain_stamp and rain_start apply to their records as to a rain file"
+        },
+        "pattern": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StormPattern"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How a 'depth' or 'depth_grid' storm falls over storm.duration_min; None is uniform"
+        },
+        "area_reduction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AreaReduction"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The area reduction of the lumped part and of the 2D part, each a curve, a fixed area read on a curve, or a coefficient; in place of storm.arf, storm.storm_area_km2 and storm.arf_factor, never beside them"
         }
       },
       "title": "Storm",
+      "type": "object"
+    },
+    "StormPattern": {
+      "additionalProperties": false,
+      "description": "How a depth or a depth grid is spread over the storm's duration.",
+      "properties": {
+        "kind": {
+          "default": "uniform",
+          "description": "'uniform': a constant rate. 'scs': an NRCS 24-hour distribution (storm.duration_min 1440). 'table': a pattern of data_tables.patterns by name, or given here",
+          "enum": [
+            "uniform",
+            "scs",
+            "table"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "scs_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "I",
+                "IA",
+                "II",
+                "III"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The NRCS type, for kind 'scs'",
+          "title": "Scs Type"
+        },
+        "table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Name of a pattern in data_tables.patterns, for kind 'table'",
+          "title": "Table"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PatternTable"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "The pattern itself, for kind 'table'; filled from the store when the job names one"
+        }
+      },
+      "title": "StormPattern",
       "type": "object"
     },
     "Strips": {
@@ -5072,7 +5356,9 @@
         "rain_interval_min": null,
         "rain_stamp": "end",
         "rain_start": null,
-        "gauges": null
+        "gauges": null,
+        "pattern": null,
+        "area_reduction": null
       }
     },
     "hydrology": {
@@ -5295,6 +5581,15 @@
         "handback_span": 1.5,
         "handback_min_cells": 4
       }
+    },
+    "data_tables": {
+      "$ref": "#/$defs/DataTables",
+      "default": {
+        "file": null,
+        "patterns": {},
+        "arf_curves": {}
+      },
+      "description": "Named rain patterns and area-reduction curves the storm refers to; filled into the storm when the job is read, so the run and its record hold the numbers (W95)"
     }
   },
   "title": "RunConfig",
