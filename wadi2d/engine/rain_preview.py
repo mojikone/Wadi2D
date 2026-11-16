@@ -118,8 +118,8 @@ def rain_preview(cfg: RunConfig, map_dir=None) -> dict:
     steps = math.ceil(resolved.run.duration_s / SECONDS_PER_MINUTE / dt)
     rows = []
     if _has_network(resolved):
-        basin, hms_basin, _cut = _lumped_basin(resolved, crs)
-        rain = _lumped_rain(resolved, storm, basin, hms_basin, crs)
+        basin, hms_basin, cut = _lumped_basin(resolved, crs)
+        rain = _lumped_rain(resolved, storm, basin, hms_basin, crs, cut)
         for name, subbasin in basin.subbasins.items():
             if name not in _lumped_names(resolved, basin):
                 continue
