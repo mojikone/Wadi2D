@@ -1,0 +1,7 @@
+entry,element_W79,x_W79,y_W79,peak_W79,volume_W79_Mm3,peak_dock_faithful,volume_dock_faithful_Mm3,entry_dock_way,element_dock_way,x_dock_way,y_dock_way,distance_m,dock_way_from_left_out_m,peak_dock_way,volume_dock_way_Mm3,peak_ratio,volume_ratio,time_of_peak_W79_h,time_of_peak_dock_way_h
+Bidah 03 outflow,Bidah 03 Reservoir,438748.49,2727147.89,0.0,0.0,0.0,0.0,BID-R1 outflow,BID-R1,444033.49,2730162.89,6084.5,6156.1,0.0,0.0,,,0.0,0.0
+Faydh 01 outflow,Faydh 01 Reservoir,431278.49,2733422.89,0.0,0.0,0.0,0.0,FAY-R1 outflow,FAY-R1,442259.01,2738606.73,12142.7,11661.5,0.0,0.0,,,0.0,0.0
+R5A outflow,R5A Reservoir,439243.49,2721077.89,753.76,13.4579,753.76,13.4579,RIJ-R2 outflow,RIJ-R2,444349.64,2720687.02,5121.1,5243.2,750.05,13.5023,0.9951,1.0033,15.917,16.917
+R2A outflow,R2A Reservoir,439633.49,2716632.89,818.42,17.8767,818.42,17.8767,RIJ-R1 outflow,RIJ-R1,444349.64,2720687.02,6219.2,5243.2,815.61,17.9384,0.9966,1.0035,16.5,17.833
+Z4C outflow,Z4C Reservoir,441223.49,2710462.89,2024.97,34.6102,2024.97,34.6102,FIZ-R1 outflow,FIZ-R1,449333.49,2713572.89,8685.9,8805.5,2007.24,34.7435,0.9912,1.0039,15.833,17.333
+HAT-J4 outflow,HAT-J4,427883.49,2740317.89,2471.99,47.0709,2471.99,47.0709,HAT-R4 outflow,HAT-R4,434753.49,2738867.89,7021.4,5929.8,2304.18,47.0507,0.9321,0.9996,15.75,17.167

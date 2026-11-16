@@ -1,0 +1,69 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa47a89265c3edf0b\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 === 0 what is under test
+    5.7 PASS the engine code is this checkout's D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa47a89265c3edf0b\wadi2d\__init__.py
+    5.7 PASS the engine answering knows mesh lines 
+    5.7 PASS the mesh is off by default 
+    5.7 PASS the table is off with the mesh 
+    5.7 PASS it says the ladder The mesh only doubles a cell, so each size goes down to the finest cell times 1, 2, 4 or 8, never coarser than you asked: the Actual columns show what you get. Bands are whole tiles of 32 cells, so a band is usually wider than its rows, and up to 32 rows the 2
+    5.7 === 1 a layer with no fields fills the table
+    5.8 PASS the table is on with the mesh 
+    5.8 PASS no layer, no rows 0
+    5.8 PASS one row per line 2
+    5.8 PASS names from the layer, numbers else 
+    5.8 PASS the name is not editable 
+    5.8 PASS near starts at the finest 10.0
+    5.8 PASS far starts at the coarsest 40.0
+    5.8 PASS rows start at the engine's default 
+    5.8 PASS rows take the engine's bounds 
+    5.8 PASS on the ladder nothing moves ('10', '40')
+    5.8 PASS no rounding said 
+    5.8 === 2 sizes off the ladder show what they become, before any run
+    5.8 PASS requested stays as typed 
+    5.8 PASS actual near goes down ('10', '20')
+    5.8 PASS actual far goes down ('10', '20')
+    5.8 PASS a moved size stands out 
+    5.8 PASS a size that did not move does not 
+    5.8 PASS the dock says it in words Wadi: near 15 m becomes 10 m, far 30 m becomes 20 m.
+    5.8 PASS the tooltip gives both 
+    5.8 PASS below the finest holds at the finest ('10', '40')
+    5.8 PASS typing keeps its keys, and Actual answers at once ('25', ('20', '40'))
+    6.0 === 3 the ladder follows the finest and the coarsest cell
+    6.0 PASS line 1, a set near, stands on a finer ladder ('10', '20')
+    6.0 PASS the ladder is the snapped cell: 12 m on 5 m pixels is 10 ('10', '20')
+    6.0 PASS a far nobody set follows the coarsest 80.0
+    6.0 PASS a far set by hand stays 30.0
+    6.0 === 4 near above far is refused before a run
+    6.1 PASS refused in plain words Line 2: the near cell must not be larger than the far cell.
+    6.1 PASS nothing started 
+    6.1 === 5 the preview: the engine's own numbers equal the table's
+    6.1 dock says: Line 2: the near cell must not be larger than the far cell.
+    8.6 preview says: 119,628 cells, 2.404 x fewer than the uniform grid. Smallest cell 10 m. Tiles: 88 of 10 m, 38 of 20 m, 11 of 40 m. Wadi: 10 m for 8 rows each side, no coarser than 20 m within 240 m. Line 2: 10 m for 4 rows each side, no coarser than 40 m within 280 m.
+    8.6 PASS the preview names the line 119,628 cells, 2.404 x fewer than the uniform grid. Smallest cell 10 m. Tiles: 88 of 10 m, 38 of 20 m, 11 of 40 m. Wadi: 10 m for 8 rows each side, no coarser than 20 m within 240 m. Line 2: 10 m for 4 rows each side, no coarser than 40 m within 280 m.
+    8.6 PASS table and engine agree, line by line ([('Wadi', '10', '20'), ('Line 2', '10', '40')], [('Wadi', '10', '20'), ('Line 2', '10', '40')])
+    8.6 PASS a raster of tile sizes 
+    8.6 === 6 a run on the band
+    8.7 dock says: The rain outlasts the simulated time, so the run ends while it is still raining. Wadi: near 15 m becomes 10 m, far 30 m becomes 20 m.
+   10.2 dock says: mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two
+   14.8 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   18.8 dock says: water stood 3.6 m deep against the domain edge at (432011, 2725065): an edge is a wall, so check the domain polygon there
+   19.3 PASS finished Finished. mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reach
+   19.3 PASS the job holds what was asked {'name': 'Wadi', 'near_dx': 15.0, 'rows': 8, 'far_dx': 30.0, 'coordinates': [[439048.48973783385, 2727557.893463373], [439003.48973783385, 2727497.893463373], [439013.48973783385, 2727417.893463373], [438953.48973783385, 2727317.893463373], [438808.48973783385
+   19.3 PASS two lines in the job 2
+   19.3 PASS the lines are on file 
+   19.3 PASS the engine took them Wadi
+   19.3 PASS the run says what it rounded ['mesh line Wadi: near 15 m runs at 10 m, far 30 m at 20 m: sizes are rounded down to 10 m times a power of two', 'a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the
+   19.3 PASS the dock said it on starting 
+   19.3 PASS mass closes 6.434215801601744e-10
+   19.3 FAIL cell grid in Model setup 
+   19.3 Traceback (most recent call last):
+  File "<string>", line 244, in tick
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-aa47a89265c3edf0b\W23 mesh controls\dock_mesh_controls.py", line 168, in scenario
+    h.check("its cells are the solver's", sum(f["cells"] for f in grid.getFeatures()) == start["cells"])
+                                                                  ^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'getFeatures'
+
+   19.4 SUMMARY 44 passed, 1 failed exception
+   19.4   FAILED cell grid in Model setup: 
+   19.4 DONE
