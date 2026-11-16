@@ -1,0 +1,39 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.3 Bidah's domain 28.771 km2, the rough outline 27.821 km2
+    5.3 === 1 the box in Terrain, by model type
+    5.3 PASS Domain from an outline under Terrain's domain 
+    5.3 PASS not for a Lumped model 
+    5.3 PASS back with no type 
+    5.3 === 2 refused in words
+    5.3 Complete upstream: Choose the rough outline, a polygon layer.
+    5.3 PASS no outline: said Choose the rough outline, a polygon layer.
+    5.3 Align to catchments: Choose the catchments to align to, a polygon layer: the HMS subbasins or a generated basin's.
+    5.3 PASS no catchments to align to: said Choose the catchments to align to, a polygon layer: the HMS subbasins or a generated basin's.
+    5.3 === 3 Complete upstream, the boundary lines kept
+   12.5 Complete upstream: Domain 36.72 km2, the outline of 27.82 km2 completed upstream: 9.08 km2 added, draining in (0 catchments with a stream over 10 km2, 9.08 km2 in smaller pieces); 0.17 km2 removed, draining out past the outline (0 catchments with a stream over 10 km2, 0.17 km2 in smaller pieces). Not added, draining in across kept edges: 0.04 km2 (0 catchments with a stream over 10 km2). Kept edges: 2 lines; the ground read at 5 m. 1 holes inside the domain filled, 0.000 km2.
+   12.5 PASS the report's areas in words Domain 36.72 km2, the outline of 27.82 km2 completed upstream: 9.08 km2 added, draining in (0 catchments with a stream over 10 km2, 9.08 km2 in smaller pieces); 0.17 km2 removed, draining out past the
+   12.5 PASS the catchments draining in added (27.8205, 36.7195, 9.0758)
+   12.5 PASS the boundary lines kept as edges (2, 2)
+   12.5 PASS the folder beside the run folder C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w101\dock_domain\runs\domain_run_domain
+   12.5 PASS domain and what changed under Inputs > Terrain ['Domain completed upstream, 36.72 km2', 'Domain completed upstream: what changed']
+   12.5 PASS chosen as Terrain's domain Domain completed upstream, 36.72 km2
+   12.5 PASS the job's domain is the completed one (36.71953339992549, 36.7195)
+   12.7 === 4 a run on the completed domain
+   12.8 dock says: Starting...
+   30.2 PASS finished Finished.
+   30.2 PASS on that domain (36.71953339992549, 36.7195)
+   30.2 === 5 Align to catchments
+   30.3 dock says: Finished.
+   34.1 Align to catchments: Domain 28.59 km2, the outline of 27.82 km2 aligned to 1 catchment: a rim of 0.00 km2 outside them removed, gaps of 0.77 km2 added (bands narrower than twice 100 m). Cells of 30 m outside every catchment: 0, 0.00 km2 (were 0).
+   34.1 PASS aligned to the one catchment, in words Domain 28.59 km2, the outline of 27.82 km2 aligned to 1 catchment: a rim of 0.00 km2 outside them removed, gaps of 0.77 km2 added (bands narrower than twice 100 m). Cells of 30 m outside every catchme
+   34.1 PASS the 30 m band added back as a gap (28.5904, 28.771338930394652, 0.7699)
+   34.1 PASS the completed layers replaced ['Domain aligned to the catchments, 28.59 km2', 'Domain aligned to the catchments: what changed']
+   34.1 PASS a new folder, the first kept C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\w101\dock_domain\runs\domain_run_domain_2
+   34.1 PASS Terrain's domain the aligned one 
+   34.1 === 6 saved with the model
+   34.1 PASS reset empties the outline 
+   34.1 PASS the outline and the catchments come back 
+   34.1 SUMMARY 23 passed, 0 failed 
+   34.1 DONE

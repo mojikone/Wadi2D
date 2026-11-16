@@ -805,6 +805,20 @@ def preview_job(values: dict, out_dir: Path | str) -> dict:
     return job
 
 
+def domain_job(values: dict, out_dir: Path | str) -> dict:
+    """What ``wadi2d domain`` reads (W101 item 5): the terrain and its objects, the boundary lines as the edges kept as
+    drawn (their place only, so a flow line with no hydrograph yet does not stop it), and the generated basin's
+    delineation settings when the model has them, so the domain and the basin read the same streams (W97)."""
+    job = preview_job({**values, "basin": None, "handbacks": [], "transmission": None}, out_dir)  # no water
+    lines = [f.xy() for f in values.get("boundaries") or [] if getattr(f, "kind", "LineString") == "LineString"]
+    job["boundaries"] = [{"kind": "free", "coordinates": xy} for xy in lines if len(xy) > 1]
+    basin = values.get("basin") or {}
+    if basin.get("settings"):
+        job["basin"] = basin_settings(**basin["settings"])
+        apply_delineate(job["terrain"]["objects"], basin.get("delineate"))
+    return job
+
+
 def basin_job(values: dict, out_dir: Path | str) -> dict:
     """What ``wadi2d basin`` reads: the terrain, its dams, the CN and Manning, the design lines and points as pour
     points, and the settings of the box. No water, no basin of its own."""

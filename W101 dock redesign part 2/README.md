@@ -116,6 +116,26 @@ widget names are gone). Through the real dock: `dock_rain.py`, see the table bel
   **on Bidah at 30 m a run's own cells equal Build mesh's: 23,431 squares, 8,160 aligned cells (2,809 quads and 5,351
   polygons in the run's words), 8,540 squares replaced**; the quadtree 15,856 cells against 31,971 squares.
 
+## Item 5: the domain from an outline (built)
+
+- **Domain from an outline**, a box in Terrain under Domain (hidden for a Lumped model): a rough outline (polygon
+  layer), edges kept as drawn (a line layer, beside the Boundaries lines, which are always kept), catchments to align
+  to (a polygon layer: the HMS subbasins or a generated basin's), and two buttons, **Complete upstream** and **Align to
+  catchments**, each running `wadi2d domain` (W97; no engine change). The layers are written as GeoJSON in the DEM's
+  CRS beside a job of the terrain, its objects and the boundary lines (`job_builder.domain_job`; the generated basin's
+  stream threshold and walls when the model has one), in a folder beside the run folder, a new one each time
+  (`domain_rows.py`). The result is loaded under Inputs > Terrain with what changed (added green, removed red), from
+  the GeoPackage, which names its CRS (the GeoJSON beside it names none and read as degrees), chosen as Terrain's
+  domain, and **the report's areas said in words** under the buttons; a refusal in the engine's words. The three
+  layers are saved with the model.
+- Tests: `tests/plugin/test_domain_rows.py` 4 (the folder, the command, the refusals, both reports in words, the job's
+  boundary lines kept where they lie, a flow line with no hydrograph yet no obstacle). Through the dock
+  `dock_domain.py` 23 of 23.
+- Seen on Bidah: a rough outline 30 m inside Bidah's validation domain (27.82 km2) completes upstream to **36.72 km2**,
+  9.08 km2 of ground draining in that the domain of W1 leaves out (the "five entering streams" W78 did not judge); the
+  outline must come within 50 m of the boundary lines for them to stay kept edges, and with none near it the engine
+  refuses ("no ground drains to the kept edges through the outline"), as it did when the first try drew it 60 m in.
+
 ## Item 7: the map controls (his, added mid-task; built)
 
 His words of 2026-11-16, applied (`sections/run.py`, `window_links.py`, `window_rows.py`, `sections/terrain.py`):
@@ -160,6 +180,7 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | `dock_losses.py` | item 2: four Manning forms, each showing its own fields; one value the job of before; a raster makes it a grid and one value drops it; split refused without aligned cells; land-use classes Missing until its table is filled, then the job's roughness; Lumped shows no Manning; the CN override's forms and columns, overlapping ranges Missing, the job's override; saved and brought back to the same job; **a real Bidah run whose `config.resolved.json` holds the land-use Manning and the CN by range** | 24 of 24 |
 | `dock_inflows.py` | item 3: the hydrograph box shows the flow line chosen and hides for a normal-depth line; a file route first Missing in words; the typed table on the row, its chart a quarter-hour apart, the card Ready; the job's `flow.step_s`, `flows` and slope, taken by the engine's schema; one flow refused in words; initial points with their level and name, none without a level field; saved and brought back to the same job; **a real Bidah run that read the table** | 17 of 17 |
 | `dock_mesh.py` | item 4: the kind the first input; three kinds, squares first, each with its box; the aligned kind makes centres and shows the gorge rows, rings the corridor sizes; local time stepping on and off with the quadtree; an older model's tick read as the quadtree; **Build mesh on squares (31,971 cells, the grid's tiles holding them), the quadtree (15,856, cell sizes and grid, the last build replaced) and the aligned mesh (8,160 aligned cells, one polygon a cell, over the grid)**; the engine's refusal of a line off the domain in its words; the stream threshold, scarp and gorge rows in the job and taken by the engine's schema, none written at the engine's values; saved and brought back; **a run stepping the same 23,431 squares, 8,160 aligned cells and 8,540 replaced**; one dark picture | 37 of 37 |
+| `dock_domain.py` | item 5: the box under Terrain's domain, hidden for Lumped; no outline and no catchments refused in words; **Complete upstream on Bidah: 27.82 to 36.72 km2, the two boundary lines kept, the report in words, the domain and its changes under Inputs > Terrain, chosen as the domain, the job's domain the completed one by area**; a run on it; **Align to catchments: 28.59 km2 against the catchment's 28.77, a gap of 0.77 km2 added**, the completed layers replaced, a new folder with the first kept; the layers saved with the model | 23 of 23 |
 | `dock_import_block2.py` | his item: the four W79 jobs imported; for each the 48 h, the ARF at 100 km2 with its factor shown, the outflow lines with their slopes, the crest lines and spillways, the result lines, the aligned centre mesh; saved as scenarios in W102; **the job the dock writes, compared field by field with the original through the engine's schema: identical but for what is listed, and the dock's own comparison lists the same** | 46 of 46 |
 | `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
 | `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched**; the one depth threshold: 0.1 m, beside the map controls, no second field, the display cutoff the same, one change moving both, a format 3 model keeping the engine's floors, and **after the run no pixel of the depth map and no cell of the cell maps under 0.1 m** | 31 of 31 |

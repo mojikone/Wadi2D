@@ -1,11 +1,21 @@
 # Wadi2D QGIS plugin. Copyright (C) 2026 Mojtaba.
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""1. Terrain: the DEM, the cell size, the domain, the roughness."""
+"""1. Terrain: the DEM, the cell size, the domain (drawn, or completed from a rough outline), the roughness."""
 
 from __future__ import annotations
 
 from qgis.core import QgsMapLayerProxyModel, QgsProject
-from qgis.PyQt.QtWidgets import QCheckBox, QComboBox
+from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtWidgets import (
+    QCheckBox,
+    QComboBox,
+    QFormLayout,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QWidget,
+)
 
 from .. import section_status
 from ..dem_choice import default_dem
@@ -14,6 +24,13 @@ from ..land_rows import GRID, LAND, LAND_COLUMNS, ONE, ROUGH_WORDS, SPLIT
 from ..model_types import LUMPED
 from .class_table import ClassTable
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
+
+OUTLINE_NOTE = (
+    "Draw a rough outline: Complete upstream adds every catchment draining into it, read on this DEM with the generated "
+    "basin's pixel and stream threshold, and keeps as drawn the edges along the boundary lines and the layer above; "
+    "Align to catchments snaps the outline's edge to catchment polygons, a band narrower than 200 m removed or added. "
+    "Either loads the result as the Domain above (W97)."
+)
 
 
 class TerrainSection(Section):
@@ -38,6 +55,28 @@ class TerrainSection(Section):
         self.form.addRow("DEM", self.dem)
         self.form.addRow("Cell size, m", self.dx)
         self.form.addRow("Domain", self.domain)
+        self.outline_box = QGroupBox("Domain from an outline")  # W101 item 5: wadi2d domain (W97)
+        outline = QFormLayout(self.outline_box)
+        outline.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        self.outline = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "Choose a rough outline")
+        self.outline_keep = layer_combo(QgsMapLayerProxyModel.LineLayer, "The boundary lines alone")
+        self.outline_catchments = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "Choose the catchments")
+        self.complete_button = QPushButton("Complete upstream")
+        self.align_button = QPushButton("Align to catchments")
+        buttons = QWidget()
+        row = QHBoxLayout(buttons)
+        row.setContentsMargins(0, 0, 0, 0)
+        row.addWidget(self.complete_button)
+        row.addWidget(self.align_button)
+        self.outline_words = QLabel(OUTLINE_NOTE)
+        self.outline_words.setWordWrap(True)
+        self.outline_words.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        outline.addRow("Rough outline", self.outline)
+        outline.addRow("Edges kept as drawn, beside the boundary lines", self.outline_keep)
+        outline.addRow("Catchments to align to", self.outline_catchments)
+        outline.addRow(buttons)
+        outline.addRow(self.outline_words)
+        self.form.addRow(self.outline_box)
         self.form.addRow("Manning given as", self.manning_form)
         self.form.addRow("Manning n", self.manning)
         self.form.addRow("Manning n, aligned cells", self.manning_aligned)
@@ -108,6 +147,7 @@ class TerrainSection(Section):
         self._lumped = lumped
         for widget in (self.dx, self.fill_pits):
             self._row(widget, not lumped)
+        self.outline_box.setVisible(not lumped)  # a domain is for the 2D part (W101 item 5)
         self._manning_shown()
 
     def dem_layer(self):

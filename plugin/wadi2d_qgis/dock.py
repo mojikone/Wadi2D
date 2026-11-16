@@ -30,6 +30,7 @@ from . import look, settings
 from .basin_layers import load_basin_layers
 from .basin_points import BasinPointsLinks
 from .check_layers import clear_terrain_checks, load_terrain_checks
+from .domain_links import DomainLinks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
 from .gauge_rows import joined_gauges
@@ -320,6 +321,7 @@ class Wadi2DDock(QgsDockWidget):
         self.types = TypeLinks(self)  # the model type: the start page, the sections shown, the type in the job (W99)
         self.status_links = StatusLinks(self)  # each section's status on its card, the strip and the footer (W99)
         self.window_links = WindowLinks(self)  # a window of a finished run at the DEM's pixel (W101, his item 7)
+        self.domain_links = DomainLinks(self)  # Terrain's domain from a rough outline (W101 item 5)
 
         self.load_engine()
         self.attach_if_live(settings.last_run())
