@@ -30,6 +30,7 @@ def tied_ground(seed: int = 5) -> np.ndarray:
     z[:300, :400][rng.random((300, 400)) < 0.02] = np.nan
     z[700:760, 900:1000] = np.nan
     z[:, -15:] = np.nan
+    z[205, 33], z[950, 1210], z[1100, 400] = 3.0e33, np.inf, -np.inf  # data to GDAL, whatever a reader makes of it
     return z
 
 
@@ -69,15 +70,15 @@ def test_the_two_paths_differ_on_this_ground_so_the_test_can_fail(tmp_path) -> N
     _dem, bed = stored(tmp_path)
     chunks = gdal_chunks(0, 0, NY, NX, NY // 10, NX // 10, (NY, NX))
     assert len(chunks) > 2
-    from wadi2d.demstore.coarse import _block_means
+    from wadi2d.demstore.coarse import _block_means, _pixels
 
     with bed:
-        z, mask = bed._window(0, 0, NY, NX)
+        z = _pixels(bed.store, 0, NY, 0, NX)
         k = 10
         plain = np.empty((NY // k, NX // k))
         masked = np.empty_like(plain)
         count = np.empty(plain.shape, np.int32)
-        _block_means(z, mask, k, plain, masked, count, 0)
+        _block_means(z, k, plain, masked, count, np.empty(plain.shape, np.uint8), 0)
     full = count == k * k
     assert (plain[full] != masked[full]).sum() > 20
 

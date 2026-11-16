@@ -29,19 +29,23 @@ from pathlib import Path
 import numpy as np
 from numba import njit
 
+from wadi2d.demstore import chunks
 from wadi2d.demstore.bed import StoredBed
 
 BAND_ROWS = 16
-"""Output rows a thread averages at a time: 16 x 10 rows of DEM pixels across Block 2's window are 150 MB."""
+"""Output rows a thread averages at a time: 16 x 10 rows of DEM pixels across Block 2's window are 62 MB."""
 WORKERS = max(1, min(16, os.cpu_count() or 1))
 FULL_RES_CHUNK = 1024 * 1024
 """GDAL's limit on a chunk's DEM pixels in ``RasterIOResampled``."""
 
 
 @njit(cache=True, nogil=True)
-def _block_means(z, mask, k, plain, masked, count, r0):
-    """Rows ``r0`` on of the two means of every block and its valid count, from ``z`` (float64) and ``mask`` (True
-    where no data), each as GDAL forms it (the module's words), cast to float32."""
+def _block_means(z, k, plain, masked, count, edge, r0):
+    """Rows ``r0`` on of the two means of every block and its valid count, from ``z`` (the raster's float32 pixels,
+    NaN where its mask says no data, as the store holds them), each as GDAL forms it (the module's words), cast to
+    float32. A value GDAL counts as data counts here, however large: ``read_coarse`` drops a mean over 1e30 after.
+    ``edge`` gets 1 where the block's first row is all data, 2 where its first column is, 4 where its first pixel is:
+    the margins of GDAL's chunks are those pixels."""
     nr = z.shape[0] // k
     nc = plain.shape[1]
     inv = 1.0 / (k * k)
@@ -52,6 +56,8 @@ def _block_means(z, mask, k, plain, masked, count, r0):
             total_b = 0.0
             weight_b = 0.0
             n = 0
+            row_ok = True
+            col_ok = True
             for a in range(k):
                 r = i * k + a
                 line_a = 0.0
@@ -59,18 +65,24 @@ def _block_means(z, mask, k, plain, masked, count, r0):
                 line_w = 0.0
                 for b in range(k):
                     c = j * k + b
-                    v = z[r, c]
+                    v = np.float64(z[r, c])
                     line_a += v * inv
-                    if not mask[r, c]:
+                    if v == v:
                         line_b += v
                         line_w += 1.0
                         n += 1
+                    else:
+                        if a == 0:
+                            row_ok = False
+                        if b == 0:
+                            col_ok = False
                 total_a += line_a
                 total_b += line_b
                 weight_b += line_w
             plain[r0 + i, j] = np.float64(np.float32(kk * (total_a / (float(k) * float(k)))))
             masked[r0 + i, j] = np.float64(np.float32(total_b / weight_b)) if n else np.nan
             count[r0 + i, j] = n
+            edge[r0 + i, j] = (1 if row_ok else 0) + (2 if col_ok else 0) + (4 if z[i * k, j * k] == z[i * k, j * k] else 0)
 
 
 def gdal_chunks(row: int, col: int, height: int, width: int, out_rows: int, out_cols: int, raster: tuple[int, int]):
@@ -126,11 +138,14 @@ def coarse_mean(bed: StoredBed, x0: float, y0: float, ny: int, nx: int, cell: fl
     plain = np.empty(shape, np.float64)
     masked = np.empty(shape, np.float64)
     count = np.empty(shape, np.int32)
+    edge = np.empty(shape, np.uint8)
+
+    store = bed.store
+    store.ensure(store.keys(row, col, 1, height, width))  # a first run decodes the window's chunks on every core
 
     def band(r0: int) -> None:
         rows = min(BAND_ROWS, shape[0] - r0)
-        z, mask = bed._window(row + r0 * k, col, rows * k, width)
-        _block_means(z, mask, k, plain, masked, count, r0)
+        _block_means(_pixels(store, row + r0 * k, row + (r0 + rows) * k, col, col + width), k, plain, masked, count, edge, r0)
 
     starts = range(0, shape[0], BAND_ROWS)
     if workers > 1 and len(starts) > 1:
@@ -143,20 +158,59 @@ def coarse_mean(bed: StoredBed, x0: float, y0: float, ny: int, nx: int, cell: fl
     full = k * k
     for (dy, dx, cy, cx), (y0r, y1r, x0r, x1r) in gdal_chunks(row, col, height, width, shape[0], shape[1], (bed.src.height, bed.src.width)):
         blocks = count[dy : dy + cy, dx : dx + cx]
-        if (blocks == full).all() and _margin_valid(bed, (y0r, y1r, x0r, x1r), (row + dy * k, row + (dy + cy) * k, col + dx * k, col + (dx + cx) * k)):
+        if not (blocks == full).all():
+            continue
+        inner = (row + dy * k, row + (dy + cy) * k, col + dx * k, col + (dx + cx) * k)
+        ok = None
+        if dy + cy < shape[0] and dx + cx < shape[1]:  # the margin's pixels open the blocks below and to the right
+            ok = _margin_from_edges(edge, (y0r, y1r, x0r, x1r), inner, dy, dx, cy, cx)
+        if ok is None:
+            ok = _margin_valid(store, (y0r, y1r, x0r, x1r), inner)
+        if ok:
             masked[dy : dy + cy, dx : dx + cx] = plain[dy : dy + cy, dx : dx + cx]
     return np.where(np.abs(masked) > 1e30, np.nan, masked)
 
 
-def _margin_valid(bed, queried, inner) -> bool:
+def _pixels(store, r0: int, r1: int, c0: int, c1: int) -> np.ndarray:
+    """The raster's pixels [r0, r1) x [c0, c1), all inside it, as the store holds them: float32, NaN where no data."""
+    out = np.empty((r1 - r0, c1 - c0), np.float32)
+    size = chunks.CHUNK
+    for cr in range(r0 // size, (r1 - 1) // size + 1):
+        a0, a1 = max(r0, cr * size), min(r1, (cr + 1) * size)
+        for cc in range(c0 // size, (c1 - 1) // size + 1):
+            b0, b1 = max(c0, cc * size), min(c1, (cc + 1) * size)
+            held = store.chunk((cr, cc))
+            if held is None:
+                out[a0 - r0 : a1 - r0, b0 - c0 : b1 - c0] = np.nan
+            else:
+                out[a0 - r0 : a1 - r0, b0 - c0 : b1 - c0] = held[a0 - cr * size : a1 - cr * size, b0 - cc * size : b1 - cc * size]
+    return out
+
+
+def _margin_from_edges(edge, queried, inner, dy, dx, cy, cx) -> bool | None:
+    """``_margin_valid`` from the first rows and columns of the blocks beyond the chunk, where GDAL's margin is one
+    row below and one column to the right of it (the usual case); anything else is read."""
+    y0, y1, x0, x1 = queried
+    a0, a1, b0, b1 = inner
+    if y0 != a0 or x0 != b0 or y1 > a1 + 1 or x1 > b1 + 1:
+        return None
+    if y1 == a1 + 1:  # the row below: the first rows of the blocks under the chunk, and the first pixel past its corner
+        if not (edge[dy + cy, dx : dx + cx] & 1).all():
+            return False
+        if x1 == b1 + 1 and not edge[dy + cy, dx + cx] & 4:
+            return False
+    if x1 == b1 + 1 and not (edge[dy : dy + cy, dx + cx] & 2).all():  # the column to the right
+        return False
+    return True
+
+
+def _margin_valid(store, queried, inner) -> bool:
     """Whether every DEM pixel GDAL reads the mask over, outside the blocks themselves, holds data."""
     y0, y1, x0, x1 = queried
     a0, a1, b0, b1 = inner
     for r0, r1, c0, c1 in ((y0, a0, x0, x1), (a1, y1, x0, x1), (a0, a1, x0, b0), (a0, a1, b1, x1)):
-        if r1 > r0 and c1 > c0:
-            _z, mask = bed._window(r0, c0, r1 - r0, c1 - c0)
-            if mask.any():
-                return False
+        if r1 > r0 and c1 > c0 and np.isnan(_pixels(store, r0, r1, c0, c1)).any():
+            return False
     return True
 
 
