@@ -21,7 +21,6 @@ from qgis.PyQt.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
-    QStackedWidget,
     QWidget,
 )
 
@@ -43,6 +42,7 @@ from ..storm_rows import (
 from ..table_rows import PATTERN_CHOICES, SCS, SCS_HOURS, TABLE_PREFIX
 from .common import Section, bind, layer_combo, number_box
 from .gauge_table import GaugeTable
+from .page_stack import PageStack
 from .pair_table import PairTable
 
 RAIN_UNITS = "storm.rain_units"
@@ -112,7 +112,7 @@ class StormSection(Section):
         self.kind = QComboBox()
         self.kind.setToolTip("Where the rain comes from; only the chosen source's fields are shown")
         self.form.addRow("Rain source", self.kind)
-        self.pages = QStackedWidget()
+        self.pages = PageStack()  # each page at its own height (his fault of 2026-11-16)
         self.form.addRow(self.pages)
         self._page_of: dict[str, int] = {}
         self._add_page(KIND_HMS, _words("The storm of the HMS meteorologic file, with its area reduction. Preview "

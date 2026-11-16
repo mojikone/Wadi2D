@@ -1,0 +1,20 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.0 PASS engine found Engine ready.
+    5.2 === 1 a uniform run
+    5.3 dock says: Starting...
+    7.8 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+    8.3 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   10.3 dock says: 42 more places with deep water against the domain edge: see edge_checks.gpkg
+   22.0 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   22.0 FAIL cell grid under Model setup 
+   22.0 Traceback (most recent call last):
+  File "<string>", line 244, in tick
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\W17 cell grid layer\dock_cell_grid.py", line 33, in scenario
+    h.check("name says the size and the scale", layer.name() == "Cell grid, 20 m, drawn from 1:20,000 in", layer.name())
+                                                ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'name'
+
+   22.2 SUMMARY 3 passed, 1 failed exception
+   22.2   FAILED cell grid under Model setup: 
+   22.2 DONE

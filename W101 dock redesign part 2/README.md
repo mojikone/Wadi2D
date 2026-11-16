@@ -80,7 +80,45 @@ engine's schema with the continuous surface, none without pixel maps, the window
 | Scenario | What it proves | Passed |
 |---|---|---|
 | `dock_rain.py` | item 1: the sections in their places; Data tables (add, the next free name, a refused table Missing in words, rename, remove, both charts); six sources, the Steady rain's mm/h giving its job; SCS sets 24 h and refuses 6 h; a pattern by name carried into the job and filled in by the engine; a depth grid; the parts by model type; one area for both parts = the old form, parts that differ = `area_reduction`; the study's single-run area; **a real run on Bidah of a depth with a pattern of Data tables and the 2D part's own reduction, the engine's factor equal to the dock's**; saved and brought back to the same job; a format 2 model's steady rain and design storm moved, in words | 54 of 54 |
+| `dock_fixes.py` | his two faults: in a project whose first raster is a run's depth map, the dock starts on the DEM the run was made on; with it gone, nothing, and Terrain Missing; a raster no run names is not taken; the DEM's own file under a results group taken for want of another; a project read with no saved model chooses again; the Storm stack as tall as the page shown (101 px for a fixed depth, 447 for the gauges) | 14 of 14 |
 | `dock_maps.py` | item 7: Map pixel Automatic first, the depth x speed raster off, no surface choice shown, no pixel settings in the job at the defaults; the window button's name and its tooltip with this DEM's pixel; Lumped hides cell size, Manning and pit fill, 2D and no type show them; **a real Bidah run with a 10 m pixel and the raster: the maps of record at 10 m, `pixel_dv.tif` written; a window of 800 m mapped at the DEM's 5 m pixel, depth, speed and hazard loaded into the run's group, the run's maps untouched** | 23 of 23 |
+
+## His two faults of 2026-11-16 (fixed)
+
+1. **The DEM picker took the first raster of the project**, which in his W100 project of results was a depth map.
+   Terrain now starts on the DEM a run in the project was made on (the `job.json` of the run folder a layer's file lies
+   in), never on a run's own raster (a file in a run folder's `pixels`, `maps`, `windows` or `composite`, or a layer
+   under a "Results – ..." group, unless it is that DEM's own file and no other copy exists); with none, the picker is
+   empty and Terrain says Missing (`dem_choice.py`). Chosen when the dock is made and when a project with no saved
+   model is read.
+2. **Storm's short pages stood over a gap** the height of the tallest page (a `QStackedWidget` is as tall as its
+   tallest page). The pages now lie in a column with all but the shown one hidden (`sections/page_stack.py`, the same
+   calls): a fixed depth's stack is 101 px where it was 447.
+
+`dock_fixes.py` 14 of 14 (below). The headless smoke test set the DEM by hand where it had relied on the first raster.
+
+## Older dock scenarios: the same counts and the same jobs
+
+The ten W99 used, on the base (`75be51e`) and on this branch at item 7 (`2b92b41`), each batch from its own copy:
+
+| Scenario | Base | Branch |
+|---|---|---|
+| `dock_cell_grid.py` (W17) | 3 passed, 1 failed, stopped by an exception | 3 passed, 1 failed, stopped by an exception |
+| `dock_boundary_table.py` (W18) | 34 passed, 0 failed | 34 passed, 0 failed |
+| `dock_profile_editor.py` (W22) | 120 passed, 0 failed | 120 passed, 0 failed |
+| `dock_mesh_controls.py` (W23) | 44 passed, 1 failed, stopped by an exception | 44 passed, 1 failed, stopped by an exception |
+| `dock_suggest.py` (W26) | 32 passed, 0 failed | 32 passed, 0 failed |
+| `dock_dam_start.py` (W34) | 23 passed, 0 failed | 23 passed, 0 failed |
+| `dock_flow_line.py` (W61) | 13 passed, 1 failed | 13 passed, 1 failed |
+| `dock_breach.py` (W68) | 14 passed, 0 failed | 14 passed, 0 failed |
+| `dock_basin_points.py` (W73) | 36 passed, 0 failed | 36 passed, 0 failed |
+| `dock_gauges.py` (W77) | 42 passed, 1 failed | 42 passed, 1 failed |
+
+**Every job they wrote is the same**: 22 of the runs' `job.json` identical to the character once each batch's folder
+is taken out (W99's `compare_jobs.py`), and the 5 profile-editor preview jobs on each side pair up, 3 identical and 2
+differing only in their random scratch names (W99's `compare_previews.py`), as in W99. The four that do not pass stop
+at the same check on the base. These run the Steady rain's mm/h through the new fixed depth, so they are also the
+proof that it writes the old job. Logs in `old_scenarios/`. The faults' fix came after this batch; it changes no job.
 
 ## Found on the way
 

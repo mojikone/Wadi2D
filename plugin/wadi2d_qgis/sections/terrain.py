@@ -4,10 +4,11 @@
 
 from __future__ import annotations
 
-from qgis.core import QgsMapLayerProxyModel
+from qgis.core import QgsMapLayerProxyModel, QgsProject
 from qgis.PyQt.QtWidgets import QCheckBox
 
 from .. import section_status
+from ..dem_choice import default_dem
 from ..job_builder import DX, FILL_PITS, MANNING, PREFERRED_DX, layer_features, map_extent, raster_path
 from ..model_types import LUMPED
 from .common import Section, ValueOrRaster, bind, layer_combo, number_box
@@ -18,7 +19,7 @@ class TerrainSection(Section):
     key = "terrain"
 
     def build(self) -> None:
-        self.dem = layer_combo(QgsMapLayerProxyModel.RasterLayer)
+        self.dem = layer_combo(QgsMapLayerProxyModel.RasterLayer, "Choose the DEM")  # W101: never a run's raster
         self.dx = number_box(2)
         self.domain = layer_combo(QgsMapLayerProxyModel.PolygonLayer, "Current map extent")
         self.manning = ValueOrRaster(3, "Same value everywhere")
@@ -29,7 +30,13 @@ class TerrainSection(Section):
         self.fill_pits = QCheckBox("Fill pits: small deep holes of the terrain, to their spill level")
         self.form.addRow(self.fill_pits)
         self.dem.layerChanged.connect(self._dem_changed)
+        self.choose_default_dem()
         self._dem_changed(self.dem.currentLayer())
+
+    def choose_default_dem(self) -> None:
+        """The DEM a run in the project was made on, or none: a layer picker would take the first raster, which in a
+        project of results is a depth map (his fault of 2026-11-16)."""
+        self.dem.setLayer(default_dem(QgsProject.instance()))
 
     def _dem_changed(self, layer) -> None:
         if layer is not None:

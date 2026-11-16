@@ -482,7 +482,10 @@ def smoke() -> None:
     check(dock.panel.duration.value() == 1.0, "simulated time from schema")
     kinds = [dock.boundaries.kind.itemText(i) for i in range(dock.boundaries.kind.count())]
     check(kinds == ["stage", "normal", "free", "flow"], "boundary kinds from schema")
-    check(dock.terrain.dem_layer().id() == dem.id(), "DEM combo lists the project raster")
+    check(dock.terrain.dem_layer() is None, "no DEM chosen for the user: the project's raster may be anything (W101)")
+    combo = dock.terrain.dem
+    check(any(combo.layer(i) is not None and combo.layer(i).id() == dem.id() for i in range(combo.count())), "DEM combo lists the project raster")
+    combo.setLayer(dem)
 
     dialog = settings.EngineDialog(dock)
     dialog.check()
@@ -948,6 +951,7 @@ def real_engine() -> None:
     dock = plugin.dock
     pump(lambda: dock.schema is not None, 60.0, "the real schema")
     check(dock.terrain.dx.value() == 20.0, "real: the dock takes its defaults from wadi2d schema")
+    dock.terrain.dem.setLayer(dem)  # W101: the dock no longer chooses the first raster for the user
     dock.hydrology.rain.setValue(100.0)
     dock.hydrology.hours.setValue(0.2)
     dock.panel.duration.setValue(0.25)

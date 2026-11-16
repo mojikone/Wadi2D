@@ -1,0 +1,49 @@
+    0.0 script loaded
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a8afa09a382cc8783\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 PASS button in the Mesh section Suggest breaklines
+    5.4 PASS mesh need not be ticked 
+    5.4 === 1 without a DEM
+    5.4 PASS refused without a DEM Choose a DEM layer first.
+    5.4 === 2 Bidah at 10 m
+    5.7 PASS says it is working Reading the ground, its streams and its crests...
+    5.7 dock says: Reading the ground, its streams and its crests...
+   12.3 PASS suggested Suggested 99 bank lines along 21 thalwegs and 428 crests (425 other crest, 3 dam), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong and save it. Use the bank lines as Refinement lines in the Mesh
+   12.3 PASS file beside the run folder C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch\dock_suggest\runs\banks_breaklines\suggested_breaklines.gpkg
+   12.3 PASS one suggestion layer, one thalweg layer (1, 1)
+   12.3 PASS layer is valid and in editing Suggested breaklines: 99 banks, 428 crests
+   12.3 PASS thalwegs are read-only 
+   12.3 PASS fields ['fid', 'name', 'kind', 'side', 'height_m', 'length_m', 'area_km2', 'slope', 'score', 'why', 'near_dx', 'rows', 'far_dx']
+   12.3 PASS vertices carry Z MultiLineStringZ
+   12.3 PASS in the DEM's CRS EPSG:32640
+   12.3 kinds {'stream bank': 99, 'other crest': 425, 'dam': 3}; first rows [('stream bank', 'right', 21.08, 1861), ('stream bank', 'left', 21.7, 1757), ('stream bank', 'left', 14.95, 1235), ('stream bank', 'left', 7.79, 2040), ('stream bank', 'right', 14.24, 1039), ('stream bank', 'left', 7.89, 1698)]
+   12.3 PASS banks and crests found {'stream bank': 99, 'other crest': 425, 'dam': 3}
+   12.3 PASS biggest first [39225.415880065964, 38123.75284301691, 18470.63955532061, 15896.136016238712, 14795.013978860738]
+   12.3 PASS name counts them Suggested breaklines: 99 banks, 428 crests
+   12.3 PASS every line has a reason 
+   12.3 PASS kinds are the four {'other crest', 'dam', 'stream bank'}
+   12.3 PASS no bank vertex within a cell of a thalweg (10.0, 991)
+   12.3 bank vertex distance to thalweg: min 10.0, median 26.0
+   12.3 PASS the layer is the file (527, 527)
+   12.5 === 2b the same layer fills the Mesh table
+   12.8 PASS mesh table has a row per line (527, 527)
+   12.8 PASS mesh table reads near, rows and far from the layer (10.0, 4, 40.0)
+   12.9 === 3 delete one line and save
+   12.9 PASS deleted in the buffer 
+   12.9 PASS saved ['SUCCESS: 1 feature deleted.']
+   12.9 PASS the file lost it too (526, 527)
+   12.9 === 4 the rest run as crest lines, no field needed
+   14.1 dock says: The rain outlasts the simulated time, so the run ends while it is still raining.
+   18.2 dock says: 4 more pits; 9 pits hold 3828 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   26.7 dock says: water stood 3.3 m deep against the domain edge at (432791, 2727275), in 200 m2 of edge cells and no more: cells on the outline whose ground falls outward, past a divide, hold their own rain against the wall; little water, but the outline there runs beyond the catchment
+   28.8 PASS run finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   28.8 PASS every line became a crest line (526, 526)
+   28.8 PASS each with its vertex elevations 
+   28.8 run with lines: cells 287578, peaks {}
+   28.8 === 5 a second click replaces the layers
+   28.9 dock says: Reading the ground, its streams and its crests...
+   34.2 PASS still one of each 
+   34.2 PASS the second suggestion is a numbered folder, the edited file untouched C:\Users\mojtaba\AppData\Local\Temp\claude\0411bb1eda7ca588\563cf3f8-070b-42eb-82ea-489205b14695\scratchpad\old_branch\dock_suggest\runs\banks_breaklines_2\suggested_breaklines.gpkg|layername=breaklines
+   34.2 PASS and is whole again (527, 527)
+   34.2 SUMMARY 32 passed, 0 failed 
+   34.2 DONE

@@ -134,7 +134,8 @@ class ModelLinks(QObject):
 
     def restore_from_project(self) -> None:
         text, found = QgsProject.instance().readEntry(ENTRY_SCOPE, ENTRY_KEY, "")
-        if not found or not text:
+        if not found or not text:  # no saved model: the DEM of a run in the project, never a run's raster (W101)
+            self.dock.terrain.choose_default_dem()
             return
         try:
             doc = model_doc.loads(text)
