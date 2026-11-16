@@ -88,6 +88,59 @@ extern "C" __global__ void masked_sum(const float* relief, const long long* rows
 }
 """
 
+STEP_SOURCE = r"""
+// One Newton step of every cell still moving, whole in the kernel: the sum of masked_sum, the step, the offset and
+// whether the cell goes on, as the array steps take them; a cell that has stopped is left as it is.
+extern "C" __global__ void newton_step(const float* relief, float* offset, const float* water, bool* moving,
+                                       int pixels, float tolerance) {
+    __shared__ long long part[256];
+    __shared__ float warps[8];
+    long long r = blockIdx.x;
+    if (!moving[r]) return;
+    float at = offset[r];
+    const float* own = relief + r * (long long)pixels;
+    int t = threadIdx.x;
+    float acc = 0.0f;
+    long long under = 0;
+    for (int j = t; j < pixels; j += 256) {
+        float gap = at - own[j];
+        float wet = gap > 0.0f ? 1.0f : 0.0f;
+        float v = gap * wet;
+        acc = j == t ? v : acc + v;
+        under += gap > 0.0f ? 1 : 0;
+    }
+    int valid = pixels < 256 ? pixels : 256;
+    int lane = t & 31, warp = t >> 5;
+    int warp_valid = valid - warp * 32;
+    warp_valid = warp_valid < 0 ? 0 : (warp_valid > 32 ? 32 : warp_valid);
+    for (int step = 1; step < 32; step <<= 1) {
+        float peer = __shfl_down_sync(0xffffffffu, acc, step);
+        if (lane + step < warp_valid) acc = peer + acc;
+    }
+    if (lane == 0) warps[warp] = acc;
+    part[t] = under;
+    __syncthreads();
+    for (int s = 128; s > 0; s >>= 1) {
+        if (t < s) part[t] += part[t + s];
+        __syncthreads();
+    }
+    if (t == 0) {
+        float sum = warps[0];
+        for (int w = 1; w < 8; ++w) {
+            if (w * 32 < valid) sum = sum + warps[w];
+        }
+        float total = 0.0f + sum;
+        long long count = part[0] > 1 ? part[0] : 1;
+        float move = (total - water[r]) / (float)count;
+        offset[r] = at - move;
+        moving[r] = move > tolerance;
+    }
+}
+"""
+
+CHECK_EVERY = 3
+"""Newton steps between the looks at whether any cell still moves: each look waits for the card."""
+
 ONE_TILE = 256 * 16
 """Pixels a cell may hold for :func:`masked_sum`'s order: one tile of CUB's segmented sum for float32."""
 
@@ -131,8 +184,8 @@ _KERNEL: dict = {}
 
 def _function(xp, name: str):
     if name not in _KERNEL:
-        module = xp.RawModule(code=SOURCE + RAISE_SOURCE, options=("--fmad=false",))
-        for each in ("masked_gap", "masked_sum", "may_raise"):
+        module = xp.RawModule(code=SOURCE + STEP_SOURCE + RAISE_SOURCE, options=("--fmad=false",))
+        for each in ("masked_gap", "masked_sum", "newton_step", "may_raise"):
             _KERNEL[each] = module.get_function(each)
     return _KERNEL[name]
 
@@ -195,6 +248,14 @@ def newton_card(xp, relief, mean_depth, steps: int, tolerance: float):
         return offset
     relief = xp.ascontiguousarray(relief)
     fused = sums_agree(xp, pixels)  # the sum in the kernel too, where it is CuPy's to the bit
+    if fused:  # the whole step in the kernel, the cells that stopped left alone, a look every few steps
+        still = xp.ones(relief.shape[0], bool)
+        water = xp.ascontiguousarray(water, xp.float32)
+        for n in range(steps):
+            _function(xp, "newton_step")((relief.shape[0],), (THREADS,), (relief, offset, water, still, np.int32(pixels), np.float32(tolerance)))
+            if (n + 1) % CHECK_EVERY == 0 and n + 1 < steps and not bool(still.any()):
+                break
+        return offset
     kernel = _function(xp, "masked_sum" if fused else "masked_gap")
     buffer = xp.empty(relief.shape[0] if fused else relief.shape, xp.float32)
     under = xp.empty(relief.shape[0], xp.int64)

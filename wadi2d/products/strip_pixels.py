@@ -27,6 +27,7 @@ import numpy as np
 
 from wadi2d.config.schema import Pixels as PixelRule
 from wadi2d.config.schema import RunConfig
+from wadi2d.products.fill_kernels import CHECK_EVERY
 from wadi2d.products.ground import bed_stride
 from wadi2d.products.strip_kernels import StripKernels, check_width
 from wadi2d.products.surface import FILL_STEPS, FILL_TOLERANCE
@@ -374,9 +375,10 @@ class BlockStripMaxima(StripMaxima):
         offset = self.kernels.cell_sums(self.ptr, relief) / pixels + water / pixels
         step = xp.zeros(self.n, xp.float32)
         moving = xp.ones(self.n, bool)
-        for _ in range(FILL_STEPS):
+        every = 1 if xp is np else CHECK_EVERY  # on the card a look waits for it: one every few steps (W93)
+        for n in range(FILL_STEPS):
             self.kernels.newton(self.ptr, relief, water, offset, step, moving, FILL_TOLERANCE)
-            if not bool(moving.any()):
+            if (n + 1) % every == 0 and not bool(moving.any()):
                 break
         return offset
 
