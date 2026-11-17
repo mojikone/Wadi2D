@@ -116,8 +116,9 @@ def count_holes(
     x0, x1, y0, y1 = layer.GetExtent()
     width, height = max(int(np.ceil((x1 - x0) / dx)), 1), max(int(np.ceil((y1 - y0) / dx)), 1)
     bounds = (x0, y1 - height * dx, x0 + width * dx, y1)
-    band = gdal.Open(str(cn_raster)).GetRasterBand(1)
-    nodata = band.GetNoDataValue()
+    raster = gdal.Open(str(cn_raster))  # held: a band outlives no dataset in GDAL's Python
+    nodata = raster.GetRasterBand(1).GetNoDataValue()
+    raster = None
     srs = layer.GetSpatialRef()
     warped = gdal.Warp(
         "", str(cn_raster), format="MEM", outputBounds=bounds, width=width, height=height, resampleAlg="near",
