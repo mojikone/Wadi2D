@@ -4,6 +4,8 @@
 
 ## His rules of record (read before anything below; each overrides any older note in this file)
 
+- **HIS STANDING ORDER, 2026-11-16: "When all tests pass, push and release."** My reading: after `W106` (the dock gaps fixed and Block 2's four models rebuilt through the dock) merges into `feature/fast-products`: the full suite, the version bump to 0.5.0, the Windows package as `W16 release package` builds it, the install test in throwaway QGIS profiles, then `main` fast-forwarded, pushed with the tag, and `v0.5.0` published as a normal release. Any failure stops the push and the release until fixed and rerun.
+
 - **The four model types** (his names, 2026-11-15): **2D** (rain on the grid everywhere, dams as 2D pools); **Lumped** (the HMS
   way: subbasins, reaches, reservoirs, no 2D); **Hybrid Lumped** (the catchments above the dams and the marked last points,
   HAT-J4 on Block 2, lumped and LEFT OUT of the mesh, their routed outflow entering the 2D model at the dams; rain on the grid
