@@ -227,7 +227,8 @@ def pool_records(cfg, out: Path | str, into: Path | str | None = None) -> list[d
                         "the dam line between them" + ("" if line is not None else "; no dam line, so no outflow"),
                 "peak_inflow_m3s": None if peak is None else round(float(inflow[peak]), 3),
                 "peak_inflow_h": None if peak is None else round(float(ends[peak]) / 3600.0, 3),
-                "peak_outflow_m3s": round(float(outflow.max()), 3) if outflow.size else None,
+                # the dam line's own peak, at the series step, as a lumped reservoir's outflow peak is read
+                "peak_outflow_m3s": round(float(np.max(line[1])), 3) if line is not None and line[1].size else None,
             })  # fmt: skip
     into.mkdir(parents=True, exist_ok=True)
     (into / FILE).write_text(json.dumps({"rule": __doc__.split("\n\n")[1], "dams": records}, indent=1), encoding="utf-8")

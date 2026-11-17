@@ -172,7 +172,8 @@ def pool_rows(run: Path | str | None) -> list[Row]:
         row = Row(dam_key(name), name, DAMS, Entry(UPFRONT_LINE, name, record={"pool": True}))
         row.peak, row.time_h = _peak(times, inflow)
         row.volume_mm3 = _volume(times, [max(q, 0.0) for q in inflow])
-        row.outflow = max(outflow) if any(outflow) else 0.0
+        held = (known.get(name) or {}).get("peak_outflow_m3s")  # the dam line's own peak, at the series step
+        row.outflow = float(held) if held is not None else (max(outflow) if any(outflow) else 0.0)
         row.times_h = [t / SECONDS_PER_HOUR for t in times]
         row.flow = [abs(q) for q in outflow]
         found.append(row)
