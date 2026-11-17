@@ -187,6 +187,7 @@ def _domain(args: argparse.Namespace) -> int:
                         g.centroid.y if not g.is_empty else 0.0)
                        for kind, g in ((RIM, done.rim), (GAP, done.gap)) if not g.is_empty]  # fmt: skip
         report["outline"] = str(source)
+        report["leaving"] = _leaving(cfg, polygon, crs)  # W106: streams out through closed edges, with lines to open them
         written = write_domain(Path(args.out), polygon, Path(str(source)).stem, crs, report, changes)
     except ValueError as error:
         print(json.dumps({"ev": "error", "code": EXIT_INVALID, "message": str(error)}), file=sys.stderr)
@@ -196,6 +197,16 @@ def _domain(args: argparse.Namespace) -> int:
         return error.code
     print(json.dumps({"ev": "domain", **written, "domain_km2": report["domain_km2"], "notes": report["notes"]}))
     return EXIT_DONE
+
+
+def _leaving(cfg, polygon, crs: str) -> list[dict]:
+    """The streams above the edge check's threshold that leave the new domain through edges no boundary line opens,
+    each with a line along the edge to open it (W106, gap 9 of W104); none when the check is off or has no ground."""
+    from wadi2d.edge_valleys import outflow_lines, stream_crossings
+
+    if not cfg.outputs.edge_check.enabled or cfg.terrain.dem is None:
+        return []
+    return outflow_lines(stream_crossings(cfg, crs, outline=polygon), polygon, cfg.grid.dx)
 
 
 def _arf(args: argparse.Namespace) -> int:

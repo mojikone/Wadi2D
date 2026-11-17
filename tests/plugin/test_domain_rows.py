@@ -85,3 +85,15 @@ def test_align_aligns_terrains_domain_before_the_rough_outline() -> None:
     assert align_source(None, None) is None
     assert domain_problems(ALIGN, True, False, True, True) == []  # the domain alone is enough to align
     assert any("Terrain's domain or the rough outline" in p for p in domain_problems(ALIGN, True, False, True, False))
+
+
+def test_the_streams_leaving_a_new_domain_in_words() -> None:
+    """W106 gap 9: after Complete upstream, what leaves by a closed edge, the largest first, and the button's promise."""
+    from wadi2d_qgis.domain_rows import leaving_words, outflow_name
+
+    rows = [{"x": 441114.0, "y": 2740396.0, "area_km2": 35.72}, {"x": 452352.0, "y": 2715540.0, "area_km2": 269.87, "no_ground": True}]
+    words = leaving_words(rows)
+    assert words.index("269.87 km2") < words.index("35.72 km2") and "where the DEM ends" in words
+    assert "2 streams leave this domain" in words and "Add outflow lines there" in words
+    assert "1 stream leaves" in leaving_words(rows[:1]) and leaving_words([]) == ""
+    assert outflow_name(rows[1]) == "Outflow 269.9 km2"

@@ -38,6 +38,31 @@ def output_folder(run_folder: str) -> Path:
     return candidate
 
 
+OUTFLOW_KIND = "normal"
+"""What an added outflow line is: normal depth, its slope the Boundaries table's to check (W106)."""
+
+
+def leaving_words(leaving: list[dict]) -> str:
+    """The streams the new domain sends out through closed edges, the largest first, and what the button does."""
+    if not leaving:
+        return ""
+    streams = "; ".join(
+        f"{row['area_km2']:,.2f} km2 at ({row['x']:.0f}, {row['y']:.0f})"
+        + (", where the DEM ends" if row.get("no_ground") else "")
+        for row in sorted(leaving, key=lambda r: -r["area_km2"])
+    )
+    many = len(leaving) > 1
+    return (
+        f" {len(leaving)} stream{'s' if many else ''} leave{'' if many else 's'} this domain through a closed edge, "
+        f"where the edge is a wall that would dam {'them' if many else 'it'}: {streams}. Add outflow lines there "
+        "puts a normal-depth line along the edge at each, to Boundaries; check its slope there."
+    )
+
+
+def outflow_name(row: dict) -> str:
+    return f"Outflow {row['area_km2']:,.1f} km2"
+
+
 def align_source(domain_name: str | None, outline_name: str | None) -> tuple[str, str] | None:
     """What Align to catchments aligns (W106, gap 4 of W104): Terrain's domain when one is chosen, the completed one
     after Complete upstream, else the rough outline; with the words that say which. None with neither."""

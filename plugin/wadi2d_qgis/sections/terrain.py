@@ -76,6 +76,13 @@ class TerrainSection(Section):
         outline.addRow("Catchments to align to", self.outline_catchments)
         outline.addRow(buttons)
         outline.addRow(self.outline_words)
+        self.outflow_button = QPushButton("Add outflow lines there")  # W106: where streams leave by closed edges
+        self.outflow_button.setToolTip(
+            "Adds a normal-depth outflow line along the domain's edge at every stream the last domain sends out "
+            "through a closed edge, to the Boundaries layer; check each line's slope in the Boundaries table."
+        )
+        self.outflow_button.hide()
+        outline.addRow(self.outflow_button)
         self.form.addRow(self.outline_box)
         self.form.addRow("Manning given as", self.manning_form)
         self.form.addRow("Manning n", self.manning)

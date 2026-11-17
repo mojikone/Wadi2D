@@ -152,16 +152,21 @@ def _candidates(cfg: RunConfig, polygon: shapely.Geometry, crs: str) -> dict[str
 
 
 def stream_crossings(
-    cfg: RunConfig, crs: str, cache_dir: Path | None = None, left_out: shapely.Geometry | None = None
+    cfg: RunConfig,
+    crs: str,
+    cache_dir: Path | None = None,
+    left_out: shapely.Geometry | None = None,
+    outline: shapely.Geometry | None = None,
 ) -> list[Crossing]:
     """Streams above the threshold crossing the domain outline where no boundary line or inflow point is.
 
     The D8 part waits in ``cache_dir`` for the next run on the same ground and outline (an ARF study runs many).
     ``left_out`` is the area of the catchments the run leaves out of its mesh (W88): the outline along them is no
     edge of the model, the lumped network carries their water, and a stream across it there is not named.
+    ``outline``: a domain not yet in the job, as ``wadi2d domain`` has just made it (W106).
     """
     check: EdgeCheck = cfg.outputs.edge_check
-    polygon = _outline(cfg, crs)
+    polygon = outline if outline is not None else _outline(cfg, crs)
     if not check.enabled or polygon is None or cfg.terrain.dem is None:
         return []
     cached = None if cache_dir is None else Path(cache_dir) / f"edge_streams_{_key(cfg, polygon)}.npz"
@@ -192,6 +197,43 @@ def stream_crossings(
             continue
         found.append(Crossing(float(on.x), float(on.y), kind, float(area), bool(bare)))
     return found
+
+
+OUTFLOW_HALF_M = (200.0, 1500.0)
+"""Half the length of a suggested outflow line, least and most, m (W106)."""
+OUTFLOW_PER_ROOT_KM2 = 15.0
+"""And from the area it drains: 15 m of half-length per square root of km2, 490 m of line on a 270 km2 wadi."""
+
+
+def outflow_lines(found: list[Crossing], polygon: shapely.Geometry, cell_m: float) -> list[dict]:
+    """A line along the domain's edge at every stream that leaves it through a closed edge (W106, gap 9 of W104): its
+    coordinates, centred on the crossing, as long as the wadi's width at that drainage area may be, and what it drains.
+    The dock adds them to Boundaries as normal-depth outflow lines when the user asks; the slope stays the user's."""
+    from shapely.ops import substring
+
+    rings = list(polygon.geoms) if hasattr(polygon, "geoms") else [polygon]
+    lines = []
+    for c in found:
+        if c.kind != LEAVES:
+            continue
+        point = shapely.Point(c.x, c.y)
+        ring = min((r.exterior for r in rings), key=lambda e: e.distance(point))
+        half = min(max(OUTFLOW_PER_ROOT_KM2 * np.sqrt(c.area_km2), OUTFLOW_HALF_M[0], 3.0 * cell_m), OUTFLOW_HALF_M[1])
+        at, length = ring.project(point), ring.length
+        if 2.0 * half >= length:
+            continue
+        start, end = at - half, at + half
+        if start < 0.0 or end > length:  # the ring's seam lies under the line: the two pieces joined
+            a = substring(ring, start % length, length)
+            b = substring(ring, 0.0, end % length)
+            coords = list(a.coords) + list(b.coords)[1:]
+        else:
+            coords = list(substring(ring, start, end).coords)
+        lines.append({
+            "x": c.x, "y": c.y, "area_km2": round(c.area_km2, 3), "no_ground": c.no_ground,
+            "coordinates": [[round(x, 2), round(y, 2)] for x, y, *_z in coords],
+        })  # fmt: skip
+    return lines
 
 
 def crossing_notes(found: list[Crossing], check: EdgeCheck) -> list[str]:
