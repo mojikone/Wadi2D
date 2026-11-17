@@ -1,0 +1,33 @@
+[
+ {
+  "step": "Generate basin",
+  "seconds": 63.5,
+  "said": "108 subbasins, 49 reaches, 57 junctions, 5 reservoirs; 34.0732 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 14 subbasins take CN 88 where the CN raster has none, weighted by area; open ground, no channel in the sections: ['R12', 'R15', 'R24']. Basin points: Z4C moved 0 m to the stream there, draining 211.56 km2; R2A moved 0 m to the stream there, draining 175.94 km2; R5A moved 0 m to the stream there, draining 117.12 km2; Faydh 01 moved 0 m to the stream there, draining 74.42 km2; Bidah 03 moved 0 m to the stream there, draining 20.03 km2; HAT-J4 moved 0 m to the stream there, draining 260.36 km2.",
+  "subbasins": 108,
+  "reservoirs": 5
+ },
+ {
+  "step": "Run Hybrid Lumped",
+  "seconds": 1214.5,
+  "said": "Finished. Earthworks. pit fill 1.1: fill 24 m3; pit fill 1.2: fill 73 m3; pit fill 1.3: fill 10 m3; pit fill 1.4: fill 100 m3; pit fill 1.5: fill 4 m3; pit fill 1.6: fill 1 m3; pit fill 1.7: fill 22 m3; pit fill 1.8: fill 4 m3; pit fill 2.1: fill 17 m3; pit fill 2.3: fill 3 m3; pit fill 2.4: fill 67 m3; pit fill 2.5: fill 7 m3; pit fill 2.6: fill 3 m3; pit fill 2.7: fill 2 m3; pit fill 2.8: fill 482 m3; pit fill 2.9: fill 2 m3; pit fill 3.1: fill 3 m3; pit fill 3.2: fill 40 m3; pit fill 3.3: fill 222 m3; pit fill 3.4: fill 23 m3; pit fill 4.1: fill 12 m3; pit fill 4.2: fill 142 m3; pit fill 5.1: fill 6 m3; pit fill 5.2: fill 18 m3; pit fill 5.3: fill 36 m3; pit fill 5.4: fill 446 m3; pit fill 5.6: fill 10 m3; pit fill 6.2: fill 494 m3; pit fill 7: fill 291 m3; pit fill 8.1: fill 130 m3; pit fill 8.2: fill 81 m3; pit fill 9.1: fill 282 m3; pit fill 9.2: fill 236 m3; pit fill 9.3: fill 71 m3; pit fill 9.4: fill 14 m3; pit fill 10.1: fill 57 m3; pit fill 10.2: fill 42 m3; pit fill 11.1: fill 8 m3; pit fill 11.2: fill 10 m3; pit fill 11.3: fill 381 m3; pit fill 11.4: fill 18 m3; pit fill 12.1: fill 60 m3; pit fill 12.2: fill 131 m3; pit fill 12.3: fill 1 m3; pit fill 12.4: fill 3 m3; pit fill 13.1: fill 69 m3; pit fill 13.2: fill 240 m3; pit fill 14.1: fill 151 m3; pit fill 14.2: fill 98 m3; pit fill 15: fill 160 m3; pit fill 16: fill 104 m3; pit fill 17.1: fill 4 m3; pit fill 17.2: fill 144 m3; pit fill 17.3: fill 18 m3. 41 subbasins lie below every last point and rain on the grid: S1, S101, S105, S107, S12, S2, S20, S21, S23, S25, S27, S3, S30, S39, S4, S40, S42, S44, S45, S48, S5, S51, S54, S56, S57, S58, S59, S61, S64, S66, S7, S70, S74, S77, S79, S80, S81, S82, S87, S92, S96. Hybrid Lumped: the lumped network ends at Bidah 03, Faydh 01, HAT-J4, R2A, R5A, Z4C; its water enters the grid there, and nothing below is lumped. rain on the lumped part: the curve 'ARF FM' is read at each element's own drainage area in a lumped-only run, and at the drainage area of the eleme",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\HybridLumped",
+  "started_epoch": 1794895808.057766,
+  "ended_epoch": 1794897022.5697262,
+  "first_seen_s": {
+   "warn": 2.9,
+   "basin": 2.9,
+   "output": 2.9,
+   "left_out": 149.5,
+   "terrain": 152.4,
+   "entries": 153.2,
+   "strips": 156.6,
+   "start": 160.3,
+   "step": 160.5,
+   "limiter": 165.7,
+   "products:ground": 1108.9,
+   "products:maps": 1142.0,
+   "products:rasters": 1190.7,
+   "done": 1190.7
+  }
+ }
+]

@@ -1,0 +1,15 @@
+{
+ "warn": 2.7,
+ "basin": 2.7,
+ "output": 2.7,
+ "terrain": 306.2,
+ "entries": 355.5,
+ "strips": 360.0,
+ "start": 369.1,
+ "step": 369.7,
+ "limiter": 374.5,
+ "products:ground": 2251.2,
+ "products:maps": 2298.8,
+ "products:rasters": 2362.3,
+ "done": 2362.3
+}

@@ -1,0 +1,30 @@
+    0.0 script loaded
+    4.0 STEP open the project
+    4.5 PASS project read: Block2_from_the_dock_W106.qgz D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\Block2_from_the_dock_W106.qgz
+    4.5 STEP DONE open the project 0.5 s: 
+    4.5 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\plugin\wadi2d_qgis\__init__.py
+    6.2 PASS engine found Engine ready.
+    6.2 restored: page model, type lumped, folder D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\Lumped; The model was restored from the QGIS project. Could not be restored: 4b. Area reduction, grid.curve: no choice "Curve".
+    6.2 PASS the aligned domain restored Domain aligned to the catchments, 1,398.25 km2
+    6.2 PASS the CN value 88 restored beside the grid (88.0, '88.0')
+    6.2 === the Mesh section: the aligned centre mesh, Suggest breaklines, Build mesh
+    6.2 PASS aligned kind made from centres ('aligned', 'centres')
+    6.2 STEP Suggest breaklines
+    7.1 dock says: Reading the ground, its streams and its crests...
+  235.8 STEP DONE Suggest breaklines 229.6 s: Suggested 4755 bank lines along 768 thalwegs and 13725 crests (13162 other crest, 561 dam, 2 road), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong and save it. Use the bank lines as Refinement lines in the Mesh section, where their n
+  235.8 PASS the Suggested breaklines layer loaded Suggested 4755 bank lines along 768 thalwegs and 13725 crests (13162 other crest, 561 dam, 2 road), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong and save it. Use the bank lines as Refinement 
+  236.0 reduction: lumped curve Each lumped subbasin read at its dam's (last point's) drainage area: in Hybrid 2D, where the lumped subbasins enter at their own outlets and the 2D model routes them once, every one at the drainage ar | 2D area Factor at 100 km2: 0.9130
+  236.0 PASS the 2D part reads the curve at 100 km2 Factor at 100 km2: 0.9130
+  236.0 simulation: 48.0 h, lumped 5.0 min, maps Every 15 minutes, for design work, GPU only
+  236.0 STEP Build mesh
+  237.8 dock says: Suggested 4755 bank lines along 768 thalwegs and 13725 crests (13162 other crest, 561 dam, 2 road), from the ground at 5 m. Banks: ground 2 m over the bed of the wadi. The layer is in editing: delete what is wrong and save it. Use the bank lines as Refinement lines in the Mesh section, where their n
+  389.4 STEP DONE Build mesh 153.4 s: 3,461,233 cells: 536,278 aligned along the streams, 2,924,955 squares (560,900 squares replaced). Smallest cell 154 m2, a square of 12.4 m. The mesher: line crest_line:Bidah 03 part 3: 3 of 20 stations given up to higher lines, the domain's edge or too short to stand. line crest_line:Faydh 01 part 2
+  394.7 === gap 1: the CN grid's holes with no value beside it, said before the run
+  394.7 STEP Run with no CN for the grid's holes
+  402.1 STEP DONE Run with no CN for the grid's holes 7.5 s: Starting...
+  402.1 FAIL gap 1: Run stops before the engine and gives the count of cells without a CN Starting...
+  404.7 2D job: strips {'enabled': True, 'banks': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\2D_breaklines\\suggested_breaklines.gpkg', 'cell_min_m': 20.0, 'cell_max_m': 50.0, 'width_fraction': 0.25, 'rows_outside': 1, 'generator': 'centres'} | hydrology {'curve_number': 88.0, 'reach_routing': 'hms'} | terrain cn D:\Mojtaba\Renardet\2224 WS11\Batinah\Block 2\Hydrology\HEC_HMS_Block_02\Hydrology Data\CN_Include_Hill_Area.tif | run {'duration_s': 172800.0, 'backend': 'gpu', 'model_type': '2d'}
+  404.7 PASS the 2D job: CN 88 beside the grid, no lumped part {'curve_number': 88.0, 'reach_routing': 'hms'}
+  405.1 PASS project saved: Block2_from_the_dock_W106.qgz 
+  405.1 STEP Run 2D (s2)
+  405.1 dock says: Starting...

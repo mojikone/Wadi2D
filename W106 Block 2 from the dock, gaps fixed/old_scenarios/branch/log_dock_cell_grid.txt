@@ -1,0 +1,21 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\branch_636d0bf\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.3 === 1 a uniform run
+    5.4 dock says: Starting...
+   15.0 dock says: a stream draining 0.74 km2 beyond the edge enters the domain at (439021, 2725700) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line
+   16.5 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   18.6 dock says: 42 more places with deep water against the domain edge: see edge_checks.gpkg
+   24.6 dock says: The pixel maps could not be made: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\branch_636d0bf\.venv\Lib\site-packages\cupy\_core\include/cupy/_cccl/libcudacxx/cuda/__ptx/instructions/cp_async_bulk_tensor.h(38): catastrophic error: c
+   24.9 PASS finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   24.9 FAIL cell grid under Model setup 
+   24.9 Traceback (most recent call last):
+  File "<string>", line 244, in tick
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\branch_636d0bf\W17 cell grid layer\dock_cell_grid.py", line 33, in scenario
+    h.check("name says the size and the scale", layer.name() == "Cell grid, 20 m, drawn from 1:20,000 in", layer.name())
+                                                ^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'name'
+
+   25.0 SUMMARY 3 passed, 1 failed exception
+   25.0   FAILED cell grid under Model setup: 
+   25.0 DONE

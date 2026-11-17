@@ -1,0 +1,46 @@
+[
+ {
+  "step": "open the dock",
+  "seconds": 1.0,
+  "said": "Engine ready."
+ },
+ {
+  "step": "Complete upstream",
+  "seconds": 124.1,
+  "said": "Domain 1,399.36 km2, the outline of 1,416.58 km2 completed upstream: 17.39 km2 added, draining in (0 catchments with a stream over 10 km2, 17.39 km2 in smaller pieces); 22.76 km2 removed, draining out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, draining in across kept edges: 0.06 km2 (0 catchments with a stream over 10 km2). Kept edges: 8 lines; the ground read at 5 m. 29 pieces apart from the domain left out, 0.195 km2. 10 holes inside the domain filled, 4.265 km2. 2 streams leave this domain through a closed edge, where the edge is a wall that would dam them: 269.87 km2 at (452351, 2715540); 0.35 km2 at (440306, 2740610). Add outflow lines there puts a normal-depth line along the edge at each, to Boundaries; check its slope there.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Lumped_domain"
+ },
+ {
+  "step": "Generate basin",
+  "seconds": 53.1,
+  "said": "111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.2624 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 15 subbasins take CN 88 where the CN raster has none, weighted by area; open ground, no channel in the sections: ['R12', 'R13', 'R16', 'R17', 'R26']. Basin points: Z4C moved 0 m to the stream there, draining 211.56 km2; R2A moved 0 m to the stream there, draining 175.94 km2; R5A moved 0 m to the stream there, draining 117.12 km2; Faydh 01 moved 0 m to the stream there, draining 74.42 km2; Bidah 03 moved 0 m to the stream there, draining 20.03 km2.",
+  "subbasins": 111
+ },
+ {
+  "step": "Align to catchments",
+  "seconds": 229.5,
+  "said": "Domain 1,398.25 km2, the outline of 1,399.36 km2 aligned to 173 catchments: a rim of 1.29 km2 outside them removed, gaps of 0.00 km2 added (bands narrower than twice 100 m). Cells of 20 m outside every catchment: 85,612, 34.24 km2 (were 88,411). 10 pieces apart from the domain left out, 0.0468 km2. 138 holes inside the domain filled, 0.2202 km2. 3 streams leave this domain through a closed edge, where the edge is a wall that would dam them: 35.72 km2 at (441114, 2740396); 0.83 km2 at (435246, 2740578); 0.64 km2 at (434638, 2740490). Add outflow lines there puts a normal-depth line along the edge at each, to Boundaries; check its slope there.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Lumped_domain_2"
+ },
+ {
+  "step": "Generate basin on the aligned domain",
+  "seconds": 64.0,
+  "said": "109 subbasins, 50 reaches, 57 junctions, 5 reservoirs; 34.153 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 15 subbasins take CN 88 where the CN raster has none, weighted by area; open ground, no channel in the sections: ['R13', 'R16', 'R17', 'R26']. Basin points: Z4C moved 0 m to the stream there, draining 211.56 km2; R2A moved 0 m to the stream there, draining 175.94 km2; R5A moved 0 m to the stream there, draining 117.12 km2; Faydh 01 moved 0 m to the stream there, draining 74.42 km2; Bidah 03 moved 0 m to the stream there, draining 20.03 km2.",
+  "subbasins": 109,
+  "reservoirs": 5
+ },
+ {
+  "step": "Run Lumped",
+  "seconds": 10.2,
+  "said": "Finished. rain: each of the 221 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it.",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Lumped",
+  "started_epoch": 1794891858.1049573,
+  "ended_epoch": 1794891868.3592565,
+  "first_seen_s": {
+   "start": 2.4,
+   "warn": 9.0,
+   "output": 9.7,
+   "done": 9.7
+  }
+ }
+]
