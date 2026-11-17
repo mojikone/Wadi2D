@@ -407,8 +407,9 @@ class HydrologySection(Section):
             self._reach_n_rows.pop(name.text(), None)
 
     def reach_n_values(self) -> tuple[float | None, dict[str, float]]:
-        """``hydrology.reach_manning_n`` and ``reach_manning`` on a generated basin; (None, {}) otherwise."""
-        if not self.basin.in_use() or self._use_hms():
+        """``hydrology.reach_manning_n`` and ``reach_manning`` on a generated basin, the first Generate basin's too
+        (the box ticked, no basin yet); (None, {}) otherwise."""
+        if not self.basin.isChecked() or self._use_hms():
             return None, {}
         names = {e["name"] for e in (self.basin.model or {}).get("elements", []) if e.get("kind") == "reach"}
         every = self.reach_n.value() if self.reach_n.value() > self.reach_n.minimum() else None
