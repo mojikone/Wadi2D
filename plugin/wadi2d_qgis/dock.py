@@ -28,7 +28,8 @@ from qgis.PyQt.QtWidgets import (
 
 from . import look, settings
 from .basin_layers import load_basin_layers
-from .basin_points import BasinPointsLinks
+from .basin_point_rows import snapped_rows, snapped_words
+from .basin_points import BasinPointsLinks, show_snapped
 from .check_layers import clear_terrain_checks, load_terrain_checks
 from .cn_holes import check_job
 from .domain_links import DomainLinks
@@ -728,6 +729,12 @@ class Wadi2DDock(QgsDockWidget):
         try:
             box.take(event)
             layers = load_basin_layers(event["geometry"], self._basin_model)
+            rows = snapped_rows(box.model or {})  # W106: each point's stream and drainage area, before any run
+            if rows:
+                box.say(f"{box.summary.text()} {snapped_words(rows)}")
+                dem = self.terrain.dem_layer()
+                if dem is not None:
+                    show_snapped(rows, dem.crs(), self._basin_model)
         finally:
             box.set_busy(False)
         if layers:

@@ -178,3 +178,61 @@ def delineate_field(value) -> bool | None:
     if value is None or str(value).strip() == "":
         return None
     return str(value).strip().lower() not in ("0", "false", "no", "off")
+
+
+# Where each point snapped (W106, gap 6 of W104): which stream, and its drainage area, before any run.
+
+SNAP_FLAG_M = 50.0
+"""A point that moved farther than this to its stream is named for a look: W79's point below R2A moved over 100 m to a
+0.08 km2 rill, and R2A's 176 km2 rained on the grid."""
+SNAPPED_TITLE = "Basin points: where each snapped"
+
+
+def snapped_rows(model: dict) -> list[dict]:
+    """Each point of the Basin points layer and of the dams, with the node it snapped to: from ``basin.json``'s
+    ``pour_point`` (the point as given) and the node's outlet and drainage area."""
+    rows = []
+    for element in model.get("elements", []):
+        pour = element.get("pour_point")
+        if not pour or pour.get("x") is None:
+            continue
+        x, y = float(pour["x"]), float(pour["y"])
+        ox, oy = (float(v) for v in element["outlet"])
+        area = ((element.get("parameters") or {}).get("drainage_area_km2") or {}).get("value")
+        rows.append({
+            "name": element["name"], "kind": pour.get("role") or pour.get("kind"), "element": element.get("kind"),
+            "x": x, "y": y, "outlet": (ox, oy), "moved_m": ((ox - x) ** 2 + (oy - y) ** 2) ** 0.5, "area_km2": area,
+        })  # fmt: skip
+    return rows
+
+
+def snapped_words(rows: list[dict]) -> str:
+    """The points in words, the far moves first: which node each snapped to, how far it moved, what drains there."""
+    if not rows:
+        return ""
+    far = [r for r in rows if r["moved_m"] > SNAP_FLAG_M]
+    parts = []
+    for row in sorted(rows, key=lambda r: -r["moved_m"]):
+        area = "an unknown area" if row["area_km2"] is None else f"{row['area_km2']:,.2f} km2"
+        parts.append(f"{row['name']} moved {row['moved_m']:.0f} m to the stream there, draining {area}")
+    words = "Basin points: " + "; ".join(parts) + "."
+    if far:
+        words += (
+            f" Check {', '.join(r['name'] for r in far)}: moved more than {SNAP_FLAG_M:g} m, so it may sit on another "
+            "stream than meant (the map shows each move)."
+        )
+    return words
+
+
+def provisional_words(name: str, reach: str | None, area_km2: float | None, distance_m: float, snap_m: float) -> str:
+    """Before the basin is generated again: the stream of the last generated basin nearest the click."""
+    if reach is None or distance_m > snap_m:
+        return (
+            f"{name}: no stream of the last generated basin within {snap_m:g} m: the next Generate basin takes the "
+            "largest drainage area within reach and makes a stream there; it says where."
+        )
+    area = "" if area_km2 is None else f", which drains {area_km2:,.2f} km2 at its lower end"
+    return (
+        f"{name} lies {distance_m:.0f} m from reach {reach} of the last generated basin{area}: Generate basin snaps it "
+        "and says the drainage area there."
+    )
