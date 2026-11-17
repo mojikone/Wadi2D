@@ -1804,6 +1804,20 @@ def _design_records(design, monitor, results, out: Path, progress) -> dict:
     return made
 
 
+def _pool_records(cfg, out, progress) -> None:
+    """Each named dam's 2D pool as an element of record, inflow by balance and outflow over the crest (W106); a reading
+    of the run's own maps, so a failure is a warning and the run stands."""
+    from wadi2d.products.pools import pool_records
+
+    try:
+        records = pool_records(cfg, Path(out))
+    except Exception as error:  # noqa: BLE001 - a reading of the maps never fails the run
+        progress.emit("warn", message=f"the dams' 2D pools were not read: {error}")
+        return
+    if records:
+        progress.emit("output", kind="pools", dams=[r["dam"] for r in records if "peak_inflow_m3s" in r])
+
+
 def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t1, design=()) -> None:
     st = model.stepper
     monitor.finish(st.t)
@@ -1836,6 +1850,7 @@ def _finish(cfg, tables, model, monitor, results, out, crs, progress, summary, t
         balance.update(part.figures(b))
     results.attributes({"status": summary.status, "t_end_s": st.t, "steps": st.nsteps, **balance, **tags})
     results.close()
+    _pool_records(cfg, out, progress)
     summary.done = dict(
         status=summary.status, code=summary.exit_code, partial=summary.status != "finished", t=st.t,
         duration_s=cfg.run.duration_s, steps=st.nsteps, loop_s=round(summary.loop_s, 2),

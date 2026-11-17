@@ -83,3 +83,29 @@ def test_runs_compared_and_written(tmp_path) -> None:
 
     sheet = load_workbook(written).active
     assert sheet.cell(1, 3).value == "base: Peak, m3/s" and sheet.cell(2, 7).value == 200.0
+
+
+def test_a_dam_lines_up_across_model_types(tmp_path) -> None:
+    """W106 gap 8: a 2D pool's inflow by balance and outflow over its crest, from the engine's pool series, on the same
+    row as a lumped reservoir of the same dam (an HMS name's "Reservoir" set aside)."""
+    import json
+
+    from wadi2d_qgis.results_rows import dam_key, pool_rows
+
+    run = tmp_path / "2D"
+    (run / "series").mkdir(parents=True)
+    (run / "series" / "pool_Bidah_03.csv").write_text(
+        "t_s,inflow_m3s,outflow_m3s,storage_m3\n900,10,0,9000\n1800,580,0,531000\n2700,300,12,800000\n", encoding="utf-8"
+    )
+    (run / "pools.json").write_text(json.dumps({"dams": [{"dam": "Bidah 03"}]}), encoding="utf-8")
+    (pool,) = pool_rows(run)
+    assert pool.key == dam_key("Bidah 03") == dam_key("Bidah 03 Reservoir") == "dam:bidah 03"
+    assert (pool.name, pool.kind, pool.peak, pool.time_h, pool.outflow) == ("Bidah 03", DAMS, 580.0, 0.5, 12.0)
+    lumped = {"lines": [], "points": [], "lumped": [
+        {"name": "Bidah 03 Reservoir", "t_s": T, "inflow_m3s": [0.0, 455.0, 100.0], "outflow_m3s": [0.0, 0.0, 0.0],
+         "element": {"kind": "reservoir"}},
+    ]}  # fmt: skip
+    table = compare({"Lumped": rows_of(lumped, {}), "2D": rows_of({"lines": [], "points": [], "lumped": []}, {}, run)})
+    (line,) = table.table()
+    assert line[0] == "Bidah 03 Reservoir" and line[2] == 455.0 and line[6] == 580.0  # one row, both runs' inflow
+    assert pool_rows(None) == [] and pool_rows(tmp_path / "none") == []
