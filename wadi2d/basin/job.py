@@ -171,9 +171,30 @@ def dry_start(model: Model) -> Model:
     return model
 
 
+def with_reach_manning(model: Model, every: float | None, by_reach: dict[str, float]) -> Model:
+    """The model with the job's Manning n on its reaches (W106): ``every`` on each, ``by_reach`` over it, marked as the
+    job's; a celerity derived from the file's n is derived again. Nothing given leaves the model as it was."""
+    if every is None and not by_reach:
+        return model
+    reaches = {e["name"]: e for e in model["elements"] if e["kind"] == REACH}
+    strangers = sorted(set(by_reach) - set(reaches))
+    if strangers:
+        raise ValueError(f"hydrology.reach_manning names {strangers}, not reaches of basin.json")
+    for name, element in reaches.items():
+        n = by_reach.get(name, every)
+        if n is None:
+            continue
+        element["parameters"]["manning_n"] = parameter(n, SOURCE_JOB)
+        celerity = element["parameters"].get("index_celerity")
+        if celerity is not None and celerity["source"] == SOURCE_DERIVED:
+            element["parameters"]["index_celerity"] = parameter(None, SOURCE_DERIVED)
+    return refresh(model)
+
+
 def load_model(h: Hydrology) -> Model:
     """The job's basin model with its overrides; a derived reservoir start is the empty pool."""
     model = with_overrides(dry_start(read_model(h.basin_json)), h.subbasins)
+    model = with_reach_manning(model, h.reach_manning_n, h.reach_manning)
     return with_reach_routing(model, h.reach_routing, h.muskingum)
 
 

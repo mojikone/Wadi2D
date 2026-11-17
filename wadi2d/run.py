@@ -410,6 +410,10 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("reach_routing")
     if not cfg.hydrology.muskingum:  # and the hash it had before Muskingum reaches existed (W89)
         data["hydrology"].pop("muskingum")
+    if cfg.hydrology.reach_manning_n is None:  # and the one before a reach n of the job's (W106)
+        data["hydrology"].pop("reach_manning_n")
+    if not cfg.hydrology.reach_manning:
+        data["hydrology"].pop("reach_manning")
     if not cfg.dam_levels:
         data.pop("dam_levels")
     if not cfg.initial_points:

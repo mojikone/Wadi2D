@@ -193,7 +193,10 @@ def _subbasin_parameters(
 def _manning(
     cfg: RunConfig, raster: np.ndarray | None, pixels: np.ndarray, settings: BasinSettings
 ) -> dict[str, Any]:
-    """Manning n along a reach: the raster, else a value the job sets. The schema's default is nobody's decision."""
+    """Manning n along a reach: the job's reach n (W106), else the raster, else a value the job sets. The schema's
+    default is nobody's decision."""
+    if cfg.hydrology.reach_manning_n is not None:
+        return parameter(cfg.hydrology.reach_manning_n, SOURCE_JOB)
     if raster is not None:
         along = raster[pixels]
         if np.count_nonzero(np.isfinite(along)) >= settings.min_raster_share * along.size:

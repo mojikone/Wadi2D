@@ -240,13 +240,24 @@ def _to_6(doc: dict) -> dict:
     return doc
 
 
+REACH_N_KEPT = (
+    "The generated reaches now take a Manning n of their own (Hydrology, Reach Manning n; 0.1 in a new model, as the "
+    "HEC-HMS model of Block 2 routes them). This model keeps Terrain's Manning along each reach, as its runs had it: "
+    "type 0.1 there for the HMS value."
+)
+
+
 def _to_7(doc: dict) -> dict:
     """Format 6 to 7 (W106): the CN value stays open beside a CN grid, where it is the CN of the grid's holes. A model
     from before held the value greyed out and unused beside a grid, so it comes up empty there and its job is the job it
-    was; nothing is said."""
+    was; nothing is said. And the generated reaches' own Manning n: a model with a generated basin keeps Terrain's along
+    each reach, its job the job it was, and is told so."""
     hydrology = _widgets(doc, "hydrology")
     if hydrology.get("cn.raster"):
         hydrology["cn.box"] = 0.0
+    if hydrology.get("basin#checked") and not hydrology.get("folder") and "reach_n" not in hydrology:
+        hydrology["reach_n"] = 0.0  # the generated reaches keep Terrain's n, as the model's runs had it
+        doc[MIGRATED] = [*doc.get(MIGRATED, []), REACH_N_KEPT]
     return doc
 
 

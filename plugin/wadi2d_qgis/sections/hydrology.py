@@ -13,7 +13,7 @@ from pathlib import Path
 
 from qgis.core import QgsMapLayerProxyModel
 from qgis.gui import QgsFileWidget
-from qgis.PyQt.QtCore import QSignalBlocker, pyqtSignal
+from qgis.PyQt.QtCore import QSignalBlocker, Qt, pyqtSignal
 from qgis.PyQt.QtGui import QColor
 from qgis.PyQt.QtWidgets import (
     QCheckBox,
@@ -69,6 +69,16 @@ NAME, MODE, AREA, ENTRY, OUTLET = range(len(SUBBASIN_COLUMNS))
 EDIT_COLUMNS = (AREA, ENTRY, OUTLET)
 """The columns of each subbasin's own storm area, entry and outlet (W103): shown on an HMS project, whose import the
 job's subbasins come from. A generated basin's subbasins take neither storm area nor entry in this engine."""
+REACH_N_DEFAULT = 0.1
+REACH_N_EMPTY = "Terrain's Manning along the reach"
+REACH_N_NOTE = (
+    "0.1 by default: the n the owner's HEC-HMS model of Block 2 routes its reaches at (W1). Emptied, a reach takes "
+    "Terrain's Manning along its line, the 2D wadi bed's n, which is not a lumped reach's."
+)
+REACH_N_TIP = (
+    "Manning n of the generated basin's reaches, routed lumped by Muskingum-Cunge. A row of the table sets one reach; "
+    "an empty row takes the value above. An HMS project's reaches keep their own n."
+)
 CN_FILL_EMPTY = "None where the grid has none"
 CN_TIP = (
     "One CN everywhere, or, beside a CN grid, the CN of the grid's holes: the cells and the parts of subbasins it gives "
@@ -166,6 +176,31 @@ class HydrologySection(Section):
 
         self.routing = QComboBox()
         lumped.addRow("Reach routing", self.routing)
+        self.reach_box = QWidget()  # W106: the generated reaches' Manning n, one value and a table by reach
+        reach_form = QFormLayout(self.reach_box)
+        reach_form.setContentsMargins(0, 0, 0, 0)
+        self.reach_n = QDoubleSpinBox()
+        self.reach_n.setDecimals(3)
+        self.reach_n.setRange(0.0, 1.0)
+        self.reach_n.setSingleStep(0.005)
+        self.reach_n.setSpecialValueText(REACH_N_EMPTY)
+        self.reach_n.setValue(REACH_N_DEFAULT)
+        self.reach_n.setToolTip(REACH_N_TIP)
+        reach_form.addRow("Reach Manning n", self.reach_n)
+        self.reach_n_note = QLabel(REACH_N_NOTE)
+        self.reach_n_note.setWordWrap(True)
+        reach_form.addRow(self.reach_n_note)
+        self.reach_n_table = QTableWidget(0, 2)
+        self.reach_n_table.setHorizontalHeaderLabels(["Reach", "Manning n (empty: the value above)"])
+        self.reach_n_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.reach_n_table.verticalHeader().hide()
+        self.reach_n_table.setToolTip(REACH_N_TIP)
+        reach_form.addRow(self.reach_n_table)
+        self._reach_n_rows: dict[str, float] = {}
+        """Each reach's own n, by name: what the table holds, kept while the basin is generated again."""
+        self.reach_n_table.itemChanged.connect(self._reach_n_edited)
+        lumped.addRow(self.reach_box)
+        self.reach_box.hide()
         self.muskingum = MuskingumBox()
         lumped.addRow(self.muskingum)
         self.muskingum.hide()
@@ -330,7 +365,46 @@ class HydrologySection(Section):
             return self.basin.json_path, None
         return None
 
+    def _show_reach_n(self) -> None:
+        """The reach n box and its table, with the generated basin's reaches (W106); hidden on an HMS project."""
+        generated = self.basin.in_use() and self.basin.model is not None and not self._use_hms()
+        self.reach_box.setVisible(generated)
+        names = [e["name"] for e in (self.basin.model or {}).get("elements", []) if e.get("kind") == "reach"]
+        with QSignalBlocker(self.reach_n_table):
+            self.reach_n_table.setRowCount(len(names) if generated else 0)
+            if not generated:
+                return
+            for number, name in enumerate(names):
+                item = QTableWidgetItem(name)
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                self.reach_n_table.setItem(number, 0, item)
+                held = self._reach_n_rows.get(name)
+                self.reach_n_table.setItem(number, 1, QTableWidgetItem("" if held is None else f"{held:g}"))
+
+    def _reach_n_edited(self, cell: QTableWidgetItem) -> None:
+        """A reach's own n typed: a number in (0, 1] is kept, anything else clears it."""
+        name = self.reach_n_table.item(cell.row(), 0)
+        if cell.column() != 1 or name is None:
+            return
+        try:
+            value = float(cell.text()) if cell.text().strip() else None
+        except ValueError:
+            value = None
+        if value is not None and 0.0 < value <= 1.0:
+            self._reach_n_rows[name.text()] = value
+        else:
+            self._reach_n_rows.pop(name.text(), None)
+
+    def reach_n_values(self) -> tuple[float | None, dict[str, float]]:
+        """``hydrology.reach_manning_n`` and ``reach_manning`` on a generated basin; (None, {}) otherwise."""
+        if not self.basin.in_use() or self._use_hms():
+            return None, {}
+        names = {e["name"] for e in (self.basin.model or {}).get("elements", []) if e.get("kind") == "reach"}
+        every = self.reach_n.value() if self.reach_n.value() > self.reach_n.minimum() else None
+        return every, {name: n for name, n in sorted(self._reach_n_rows.items()) if name in names}
+
     def _fill_reaches(self) -> None:
+        self._show_reach_n()
         if self._use_hms():
             source = self.reach_source()
             self.muskingum.set_reaches(hms_reaches(source[0]) if source else [], False)
@@ -519,10 +593,12 @@ class HydrologySection(Section):
             "basin_json": self.basin.json_path,
             "modes": self._subbasin_modes(),
             "edits": entry_rows.clean_all(self._edits),  # W103, format 5
+            "reach_manning": dict(self._reach_n_rows),  # W106, format 7
         }
 
     def restore_extra(self, extra: dict, add_missing: bool = False) -> list[str]:
         found = []
+        self._reach_n_rows = {str(k): float(v) for k, v in (extra.get("reach_manning") or {}).items()}
         path = extra.get("basin_json")
         if path and not self._use_hms():
             if Path(path).is_file():
@@ -565,6 +641,7 @@ class HydrologySection(Section):
         }  # fmt: skip
         if values["reach_routing"] == MUSKINGUM:
             values["muskingum"] = self.muskingum.values()
+        values["reach_manning_n"], values["reach_manning"] = self.reach_n_values()  # W106: a generated basin's only
         if self._use_hms():
             hms = {key: combo.currentText() for key, combo in self.files.items()}
             values["hms"] = {

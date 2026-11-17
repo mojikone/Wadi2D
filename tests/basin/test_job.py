@@ -309,3 +309,39 @@ def test_muskingum_numbers_for_a_reach_that_is_not_there_are_refused(generated: 
     rows = [{"reach": "R99", "k_hours": 0.3, "x": 0.25}]
     with pytest.raises(ValueError, match=r"names \['R99'\]"):
         generated_basin(job_on(generated, generated["basin"], reach_routing="muskingum", muskingum=rows))
+
+
+def test_the_jobs_reach_n_stands_for_the_files_and_moves_the_celerity(generated: dict) -> None:
+    """W106: hydrology.reach_manning_n on every generated reach, reach_manning on one; the celerity follows."""
+    from wadi2d.basin.job import load_model
+
+    plain = load_model(job_on(generated, generated["basin"]).hydrology)
+    every = load_model(job_on(generated, generated["basin"], reach_manning_n=0.1).hydrology)
+    (reach,) = names(plain, "reach")
+    before = next(e for e in plain["elements"] if e["name"] == reach)
+    after = next(e for e in every["elements"] if e["name"] == reach)
+    assert value_of(before, "manning_n") == pytest.approx(0.05)
+    assert after["parameters"]["manning_n"] == {"value": 0.1, "source": SOURCE_JOB}
+    assert value_of(after, "index_celerity") < value_of(before, "index_celerity")  # rougher: a slower wave
+    one = load_model(job_on(generated, generated["basin"], reach_manning_n=0.1, reach_manning={reach: 0.07}).hydrology)
+    assert value_of(next(e for e in one["elements"] if e["name"] == reach), "manning_n") == pytest.approx(0.07)
+    with pytest.raises(ValueError, match="not reaches of basin.json"):
+        load_model(job_on(generated, generated["basin"], reach_manning={"R99": 0.07}).hydrology)
+
+
+def test_a_basin_generated_with_the_jobs_reach_n_holds_it(generated: dict) -> None:
+    folder = generated["folder"]
+    (folder / "n").mkdir(exist_ok=True)
+    job = write_job(folder / "n", generated["dem"], terrain={"cn_raster": str(generated["cn"]), "manning": 0.05},
+                    hydrology={"reach_manning_n": 0.1})  # fmt: skip
+    model = read_model(build_basin(load_job(job), SETTINGS, None, folder / "basin_n")["basin"])
+    for reach in (e for e in model["elements"] if e["kind"] == "reach"):
+        assert reach["parameters"]["manning_n"] == {"value": 0.1, "source": SOURCE_JOB}
+
+
+def test_a_job_without_a_reach_n_keeps_its_hash(generated: dict) -> None:
+    from wadi2d.run import job_hash
+
+    base = job_on(generated, generated["basin"])
+    assert job_hash(base) == job_hash(job_on(generated, generated["basin"], reach_manning={}))
+    assert job_hash(base) != job_hash(job_on(generated, generated["basin"], reach_manning_n=0.1))

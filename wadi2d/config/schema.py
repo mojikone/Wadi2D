@@ -1367,6 +1367,19 @@ class Hydrology(_Part):
         "from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written "
         "here",
     )
+    reach_manning_n: float | None = Field(
+        None,
+        gt=0.0,
+        le=1.0,
+        description="Manning n of every reach of a generated basin (hydrology.basin_json), in place of what 'wadi2d "
+        "basin' read from Terrain's Manning along the reach, which is the wadi bed's n of the 2D cells, not a lumped "
+        "reach's; None keeps the file's. The owner's HEC-HMS model of Block 2 routes its reaches at 0.1 (W1, W106). An "
+        "HMS basin's reaches keep their own",
+    )
+    reach_manning: dict[str, float] = Field(
+        {},
+        description="Manning n by reach of a generated basin, over reach_manning_n and the file's (W106)",
+    )
     lumped_entry: Literal["outlet", "network"] = Field(
         LUMPED_AT_OUTLETS,
         description="Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, "
