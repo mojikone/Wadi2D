@@ -31,9 +31,13 @@ from .domain_rows import (
     DOMAIN_LAYER,
     KEEP_FILE,
     OUTLINE_FILE,
+    OUTFLOW_KIND,
     TIMEOUT_S,
     WORKING,
+    align_source,
     domain_args,
+    leaving_words,
+    outflow_name,
     domain_problems,
     domain_words,
     output_folder,
@@ -82,6 +86,8 @@ class DomainLinks(QObject):
         terrain = dock.terrain
         terrain.complete_button.clicked.connect(lambda: self.start(COMPLETE))
         terrain.align_button.clicked.connect(lambda: self.start(ALIGN))
+        terrain.outflow_button.clicked.connect(self.add_outflows)
+        self.leaving: list[dict] = []
 
     def _say(self, text: str) -> None:
         self.dock.terrain.outline_words.setText(text)
@@ -97,10 +103,18 @@ class DomainLinks(QObject):
             return
         dem, outline = terrain.dem_layer(), terrain.outline.currentLayer()
         catchments, keep = terrain.outline_catchments.currentLayer(), terrain.outline_keep.currentLayer()
-        found = domain_problems(mode, dem is not None and raster_path(dem) is not None, outline is not None, catchments is not None)
+        domain = terrain.domain.currentLayer()
+        found = domain_problems(
+            mode, dem is not None and raster_path(dem) is not None, outline is not None, catchments is not None,
+            domain is not None,
+        )  # fmt: skip
         if found:
             self._say(" ".join(found))
             return
+        working = WORKING[mode]
+        if mode == ALIGN:  # W106: Terrain's domain (the completed one), else the rough outline, said in words
+            which, working = align_source(domain.name() if domain else None, outline.name() if outline else None)
+            outline = domain if which == "domain" else outline
         try:
             values: dict = {}
             for section in self.dock.sections:
@@ -118,7 +132,7 @@ class DomainLinks(QObject):
             return
         self.folder = folder
         self._buttons(False)
-        self._say(WORKING[mode])
+        self._say(working)
         self.query = EngineQuery(settings.engine_text(), self)
         self.query.done.connect(lambda code, out, err: self._done(mode, code, out, err))
         self.query.start(domain_args(job, folder, outline_file, keep_file, align), TIMEOUT_S)
@@ -132,7 +146,54 @@ class DomainLinks(QObject):
             return
         report = json.loads(Path(event["report"]).read_text(encoding="utf-8"))
         self.layers = self.load(mode, event, report)
-        self._say(domain_words(report))
+        self.leaving = list(report.get("leaving") or [])  # W106: streams out through closed edges
+        button = self.dock.terrain.outflow_button
+        button.setText(f"Add {len(self.leaving)} outflow line{'s' if len(self.leaving) != 1 else ''} there")
+        button.setVisible(bool(self.leaving))
+        self._say(domain_words(report) + leaving_words(self.leaving))
+
+    def add_outflows(self) -> list[str]:
+        """The outflow lines of the last domain, along its edge, added to the Boundaries layer: a new memory layer in
+        Inputs > Boundaries when there is none. Each line's kind is normal depth; its slope is the table's to check."""
+        from qgis.core import QgsFeature, QgsGeometry, QgsPointXY
+
+        if not self.leaving:
+            return []
+        layer = self.dock.boundaries.layer.currentLayer()
+        dem = self.dock.terrain.dem_layer()
+        if layer is None:
+            layer = QgsVectorLayer("LineString?field=name:string&field=kind:string&field=value:double", "Boundary lines", "memory")
+            if dem is not None:
+                layer.setCrs(dem.crs())
+            from .layer_groups import BOUNDARIES
+
+            add_layer(input_group(model_name(self.dock.panel.folder.filePath()), BOUNDARIES), layer, "boundary lines", index=0)
+            self.dock.boundaries.layer.setLayer(layer)
+        names = layer.fields().names()
+        added = []
+        features = []
+        for row in self.leaving:
+            feature = QgsFeature(layer.fields())
+            feature.setGeometry(QgsGeometry.fromPolylineXY([QgsPointXY(x, y) for x, y in row["coordinates"]]))
+            if "name" in names:
+                feature.setAttribute("name", outflow_name(row))
+            if "kind" in names:
+                feature.setAttribute("kind", OUTFLOW_KIND)
+            features.append(feature)
+            added.append(outflow_name(row))
+        if layer.isEditable():
+            layer.addFeatures(features)
+        else:
+            layer.dataProvider().addFeatures(features)
+            layer.updateExtents()
+        layer.triggerRepaint()
+        layer.dataChanged.emit()  # the Boundaries table watches it and lists the new lines
+        self.leaving = []
+        self.dock.terrain.outflow_button.hide()
+        self._say(
+            f"Added to {layer.name()}: {', '.join(added)}, normal depth; check each slope in the Boundaries table."
+        )
+        return added
 
     def load(self, mode: str, event: dict, report: dict) -> list:
         """The domain and what changed, under the model's Inputs > Terrain, the domain chosen in Terrain."""

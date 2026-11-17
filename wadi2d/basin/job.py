@@ -47,6 +47,7 @@ from wadi2d.basin.geometry import ModelGeometry, first_direction, model_geometry
 from wadi2d.basin.loader import load_network
 from wadi2d.basin.routes import ROUTE_NONE, ROUTE_REACH, JunctionRoute, junction_routes
 from wadi2d.config.schema import (
+    ENTRY_EDGE,
     ENTRY_POINT,
     ENTRY_WADI,
     REACH_HMS,
@@ -102,6 +103,12 @@ class GeneratedBasin:
     cut: frozenset[tuple[str, str]]
     inflows: list[Inflow]
     handbacks: list[Handback]
+    last_point_of: dict[str, str] | None = None
+    """Under a hybrid rule (``hydrology.generated_entry``, W106): every element at or above a last point, with the
+    first last point at or below it, read on the whole file; None under 'routes'."""
+    topology: Model | None = None
+    """The whole file's model under a hybrid rule, whose drainage areas the area reduction reads; ``model`` is what
+    the rule leaves lumped."""
 
     def report(self) -> dict:
         """What the run says about the basin, for ``progress.jsonl`` and the dock."""
@@ -171,9 +178,30 @@ def dry_start(model: Model) -> Model:
     return model
 
 
+def with_reach_manning(model: Model, every: float | None, by_reach: dict[str, float]) -> Model:
+    """The model with the job's Manning n on its reaches (W106): ``every`` on each, ``by_reach`` over it, marked as the
+    job's; a celerity derived from the file's n is derived again. Nothing given leaves the model as it was."""
+    if every is None and not by_reach:
+        return model
+    reaches = {e["name"]: e for e in model["elements"] if e["kind"] == REACH}
+    strangers = sorted(set(by_reach) - set(reaches))
+    if strangers:
+        raise ValueError(f"hydrology.reach_manning names {strangers}, not reaches of basin.json")
+    for name, element in reaches.items():
+        n = by_reach.get(name, every)
+        if n is None:
+            continue
+        element["parameters"]["manning_n"] = parameter(n, SOURCE_JOB)
+        celerity = element["parameters"].get("index_celerity")
+        if celerity is not None and celerity["source"] == SOURCE_DERIVED:
+            element["parameters"]["index_celerity"] = parameter(None, SOURCE_DERIVED)
+    return refresh(model)
+
+
 def load_model(h: Hydrology) -> Model:
     """The job's basin model with its overrides; a derived reservoir start is the empty pool."""
     model = with_overrides(dry_start(read_model(h.basin_json)), h.subbasins)
+    model = with_reach_manning(model, h.reach_manning_n, h.reach_manning)
     return with_reach_routing(model, h.reach_routing, h.muskingum)
 
 
@@ -209,6 +237,116 @@ def _modes(model: Model, subbasins: list[Subbasin]) -> tuple[dict[str, str], dic
     return modes, missing, notes
 
 
+GEN_ROUTES, GEN_LAST_POINTS, GEN_OUTLETS = "routes", "last_points", "outlets"
+"""``hydrology.generated_entry``: as always; Hybrid Lumped's rule; Hybrid 2D's rule (W106)."""
+
+
+def _drainage(element: Element) -> float:
+    value = value_of(element, "drainage_area_km2")
+    if value is None:
+        value = value_of(element, "area_km2")
+    return float(value) if value is not None else float("inf")
+
+
+def above_last_points(model: Model, given: list[str] | None) -> dict[str, str]:
+    """Every element of the file at or above a last point, with the first last point at or below it: of two, the one of
+    smaller drainage area, which its water reaches first. The last points are every dam (reservoir) of the file when
+    ``given`` is None, as the engine's default (W105), read on the file so a dam without a rating counts too.
+    ``ValueError`` in words for a name the file does not hold."""
+    elements = {e["name"]: e for e in model["elements"]}
+    if given is None:
+        points = [name for name, e in elements.items() if e["kind"] == RESERVOIR]
+    else:
+        unknown = [name for name in given if name not in elements]
+        if unknown:
+            raise ValueError(
+                f"hydrology.last_points names {', '.join(unknown)}, which the generated basin does not hold: a last "
+                "point is one of its dams or junctions"
+            )
+        points = list(dict.fromkeys(given))
+    upstream: dict[str, list[str]] = {}
+    for name, element in elements.items():
+        if element["downstream"] is not None:
+            upstream.setdefault(element["downstream"], []).append(name)
+    found: dict[str, str] = {}
+    for point in points:
+        todo, seen = [point], set()
+        while todo:
+            name = todo.pop()
+            if name in seen:
+                continue
+            seen.add(name)
+            held = found.get(name)
+            if held is None or (held != name and (point == name or _drainage(elements[point]) < _drainage(elements[held]))):
+                found[name] = point
+            todo.extend(upstream.get(name, []))
+    return found
+
+
+def hybrid_model(
+    model: Model, modes: dict[str, str], rule: str, given: list[str] | None
+) -> tuple[Model, dict[str, str], list[str], dict[str, str]]:
+    """What a hybrid rule leaves of a generated basin (W106, his rules of record): the model the lumped engine runs,
+    every subbasin's mode, the words, and each element above a last point with its first last point.
+
+    Both rules: a subbasin at or above a last point keeps its mode; one below every last point rains on the grid.
+    'last_points' (Hybrid Lumped): the elements at or above a last point stay, each linked as in the file, the lowest
+    last point on each way an outlet of the network, whose water enters the grid there; nothing below is lumped.
+    'outlets' (Hybrid 2D): only the subbasins stay, each an outlet of its own; no reach or reservoir is routed."""
+    above = above_last_points(model, given)
+    new_modes = dict(modes)
+    below = sorted(n for n, m in modes.items() if m == MODE_LUMPED and n not in above)
+    for name in below:
+        new_modes[name] = MODE_2D
+    words = []
+    if below:
+        words.append(f"{len(below)} subbasins lie below every last point and rain on the grid: {', '.join(below)}")
+    kept = []
+    for element in model["elements"]:
+        if rule == GEN_OUTLETS and element["kind"] != SUBBASIN:
+            continue
+        if rule == GEN_LAST_POINTS and element["kind"] != SUBBASIN and element["name"] not in above:
+            continue
+        copy = dict(element)
+        if rule == GEN_OUTLETS or copy["downstream"] not in above or element["name"] not in above:
+            copy["downstream"] = None
+        kept.append(copy)
+    lumped = sorted(n for n, m in new_modes.items() if m == MODE_LUMPED)
+    if rule == GEN_OUTLETS:
+        words.append(
+            f"Hybrid 2D: {len(lumped)} lumped subbasins enter the grid at their own outlets; no reach or reservoir is "
+            "routed lumped, the grid routes their water"
+        )
+    else:
+        ends = sorted({point for name, point in above.items() if name == point and model_downstream_out(model, name, above)})
+        words.append(
+            f"Hybrid Lumped: the lumped network ends at {', '.join(ends) or 'no last point'}; its water enters the grid "
+            "there, and nothing below is lumped"
+        )
+    return {**model, "elements": kept}, new_modes, words, above
+
+
+def model_downstream_out(model: Model, name: str, above: dict[str, str]) -> bool:
+    """Whether an element's water leaves the elements above the last points: it is the lowest last point there."""
+    element = next(e for e in model["elements"] if e["name"] == name)
+    return element["downstream"] is None or element["downstream"] not in above
+
+
+class AreasOfFile:
+    """A lumped basin's subbasins with the drainage areas of the whole file (W106): under the 'outlets' rule the
+    engine's basin holds the subbasins alone, so a last point's area is read where the file measured it."""
+
+    def __init__(self, basin: Basin, whole: Model) -> None:
+        self.basin = basin
+        self.subbasins = basin.subbasins
+        self.areas = {e["name"]: _drainage(e) for e in whole["elements"]}
+
+    def drainage_area(self, name: str) -> float:
+        if name in self.basin.elements:
+            return self.basin.drainage_area(name)
+        return self.areas[name]
+
+
 def engine_basin(model: Model, modes: dict[str, str], reach_routing: str = REACH_HMS) -> Basin:
     """The lumped engine's basin: every element that can run, the 2D subbasins left out (their water is on the grid)."""
     kept = [e for e in model["elements"] if not (e["kind"] == SUBBASIN and modes.get(e["name"]) == MODE_2D)]
@@ -231,13 +369,15 @@ def _line(junction: Element, reach: Element, geometry: ModelGeometry, cfg: RunCo
 
 
 def _plan(
-    model: Model, modes: dict[str, str], basin: Basin, geometry: ModelGeometry, cfg: RunConfig
+    model: Model, modes: dict[str, str], basin: Basin, geometry: ModelGeometry, cfg: RunConfig, rule: str = GEN_ROUTES
 ) -> tuple[list[JunctionPlan], frozenset[tuple[str, str]], list[Inflow], list[Handback]]:
+    """Under 'last_points' (W106) a junction joined to the next with no reach passes its water on, lumped, and the
+    network's ends (its lowest last points) enter on the edge of the catchments the mesh leaves out."""
     elements = {e["name"]: e for e in model["elements"]}
     routes: dict[str, JunctionRoute] = junction_routes(model)
     direct_2d: dict[str, list[str]] = {name: [] for name in routes}
     for element in model["elements"]:
-        if element["kind"] == SUBBASIN and modes[element["name"]] == MODE_2D:
+        if element["kind"] == SUBBASIN and modes[element["name"]] == MODE_2D and element["downstream"] in direct_2d:
             direct_2d[element["downstream"]].append(element["name"])
     feeding: dict[str, list[str]] = {name: [] for name in routes}
     for name, route in routes.items():
@@ -251,6 +391,8 @@ def _plan(
         element = elements[name]
         sources = tuple(direct_2d[name] + feeding[name])
         enters = route.route == ROUTE_NONE
+        if rule == GEN_LAST_POINTS:  # on to the next junction, lumped, unless a reach there cannot run
+            enters = enters and (route.next_junction is None or route.reach is not None)
         handback = route.route == ROUTE_REACH and bool(sources)
         plan = JunctionPlan(
             name, element["kind"], route.route, route.reach, route.next_junction, route.reach_missing,
@@ -261,6 +403,8 @@ def _plan(
             x, y = element["outlet"]
             on_line = bool((element.get("pour_point") or {}).get("line"))
             entry = ENTRY_WADI if on_line else ENTRY_POINT  # a junction on a design line enters above it
+            if rule == GEN_LAST_POINTS and route.next_junction is None:
+                entry = ENTRY_EDGE  # a last point: on the edge of the catchments left out, the wadi just below (W105)
             inflows.append(Inflow(name=name, x=x, y=y, element=name, entry=entry))
             below = basin.elements[name].downstream
             if below is not None:
@@ -279,10 +423,16 @@ def generated_basin(cfg: RunConfig, crs: str = "") -> GeneratedBasin:
     path = Path(h.basin_json)
     model = load_model(h)
     modes, missing, notes = _modes(model, h.subbasins)
+    rule = h.generated_entry
+    whole, last_point_of = None, None
+    if rule != GEN_ROUTES:
+        whole = model
+        model, modes, words, last_point_of = hybrid_model(model, modes, rule, h.last_points)
+        notes += words
     basin = engine_basin(model, modes, h.reach_routing)
     geometry = model_geometry(model, path, crs)
-    plans, cut, inflows, handbacks = _plan(model, modes, basin, geometry, cfg)
-    return GeneratedBasin(path, model, modes, missing, notes, plans, cut, inflows, handbacks)
+    plans, cut, inflows, handbacks = _plan(model, modes, basin, geometry, cfg, rule)
+    return GeneratedBasin(path, model, modes, missing, notes, plans, cut, inflows, handbacks, last_point_of, whole)
 
 
 def resolve(cfg: RunConfig, crs: str = "") -> tuple[RunConfig, GeneratedBasin]:
@@ -300,11 +450,17 @@ def resolve(cfg: RunConfig, crs: str = "") -> tuple[RunConfig, GeneratedBasin]:
         curve = given.curve_number if given is not None and given.curve_number is not None else None
         if mode == MODE_2D and curve is None:
             curve = value_of(elements[name], "curve_number")
+        outlet = given.outlet if given is not None else None
+        entry = given.entry if given is not None else ENTRY_POINT
+        if h.generated_entry == GEN_OUTLETS and mode == MODE_LUMPED and outlet is None:
+            outlet = tuple(elements[name]["outlet"])  # Hybrid 2D: at its own outlet, inside its own polygon (W106)
+            entry = ENTRY_WADI
         subbasins.append(
             Subbasin(
                 name=name,
                 mode=mode,
-                outlet=given.outlet if given is not None else None,
+                outlet=outlet,
+                entry=entry,
                 curve_number=curve,
                 parameters=given.parameters if given is not None else None,
             )

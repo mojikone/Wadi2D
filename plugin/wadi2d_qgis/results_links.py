@@ -128,7 +128,7 @@ class ResultsLinks(QObject):
             words = f"Run {run.name} could not be read. {exit_message(code)} {engine_error_text(err)}".strip()
             then(run, None, words)
             return
-        then(run, rows_of(json.loads(out.read_text(encoding="utf-8")), run_job(run)), "")
+        then(run, rows_of(json.loads(out.read_text(encoding="utf-8")), run_job(run), run), "")  # W106: its 2D pools too
 
     def _listed(self, run: Path, rows, words: str) -> None:
         if rows is None:

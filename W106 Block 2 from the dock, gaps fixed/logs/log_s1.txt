@@ -1,0 +1,59 @@
+    0.0 script loaded
+    4.3 inputs: dem valid=True, cn valid=True, manning valid=True, rough_outline valid=True, outflow_lines valid=True, crest_lines valid=True, spillways valid=True, dam_lines valid=True
+    4.3 STEP open the dock
+    4.3 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\plugin\wadi2d_qgis\__init__.py
+    5.3 PASS engine found Engine ready.
+    5.3 STEP DONE open the dock 1.0 s: Engine ready.
+    5.5 === 1 the Lumped card first: Terrain, its domain box (gap 5), the dams and the dam lines
+    5.7 terrain: GGC_2_MERGE_HDSM (0.5 m), 20.0 m, Manning A grid of n Manning n, hills 0.1 (W79) / 0.04, pits True
+    5.7 PASS his four outflow lines, normal depth at their slopes [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005)]
+    5.7 boundary rows: [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005)]
+    5.7 structures: Crest lines, Spillways | points: 5 lines and points from Dam lines
+    5.7 PASS gap 5: the Lumped card shows Domain from an outline 
+    5.7 STEP Complete upstream
+  129.8 STEP DONE Complete upstream 124.1 s: Domain 1,399.36 km2, the outline of 1,416.58 km2 completed upstream: 17.39 km2 added, draining in (0 catchments with a stream over 10 km2, 17.39 km2 in smaller pieces); 22.76 km2 removed, draining out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, 
+  129.8 PASS the completed domain chosen as Terrain's domain Domain completed upstream, 1,399.36 km2
+  129.8 gap 9: streams leaving by closed edges: [{"x": 452351.49, "y": 2715540.39, "area_km2": 269.872, "no_ground": false}, {"x": 440306.48973783385, "y": 2740610.39, "area_km2": 0.349, "no_ground": false}]
+  129.8 PASS gap 9: the dock names the streams leaving the completed domain, the Fizh branch among them out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, draining in across kept edges: 0.06 km2 (0 catchments with a stream over 10 km2). Kept edges: 8 lines; the ground read at 5 m. 29 pieces apart from the domai
+  130.0 PASS gap 9: Add outflow lines there adds them to the Boundaries layer (4, 2, 'Added to Outflow lines: Outflow 269.9 km2, Outflow 0.3 km2, normal depth; check each slope in the Boundaries table.')
+  130.0 PASS his four outflow lines, normal depth at their slopes [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005), ('Outflow 269.9 km2', 'normal', 0.005), ('Outflow 0.3 km2', 'normal', 0.005)]
+  130.0 boundary rows: [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005), ('Outflow 269.9 km2', 'normal', 0.005), ('Outflow 0.3 km2', 'normal', 0.005)]
+  130.0 === 2 Hydrology: his CN grid with 88 beside it, the reach n, the basin from the DEM
+  130.1 PASS the CN value stays open beside the CN grid None where the grid has none
+  130.1 curve number: grid CN_Include_Hill_Area, value 88.0 (88.0)
+  130.1 STEP Generate basin
+  183.2 STEP DONE Generate basin 53.1 s: 111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.2624 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under
+  183.2 PASS gap 2: every generated subbasin has its CN (88 where the grid has none, by area) ([], '111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.2624 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no
+  183.2 PASS gap 7: the reach n box at 0.1, said where it comes from 0.100
+  183.2 PASS gap 7: the generated reaches hold n 0.1, the job's {'value': 0.1, 'source': 'job'}
+  183.2 === 3 Align to catchments, on Terrain's (completed) domain in place (gap 4); the basin again
+  183.2 STEP Align to catchments
+  184.7 PASS gap 4: Align says it aligns Terrain's completed domain Aligning Terrain's domain "Domain completed upstream, 1,399.36 km2" to the catchments...
+  412.7 STEP DONE Align to catchments 229.5 s: Domain 1,398.25 km2, the outline of 1,399.36 km2 aligned to 173 catchments: a rim of 1.29 km2 outside them removed, gaps of 0.00 km2 added (bands narrower than twice 100 m). Cells of 20 m outside every catchment: 85,612, 34.24 km2 (were 88,411). 10 pieces apart from the domain left out, 0.0468 km2. 
+  412.7 PASS gap 4: the completed domain aligned, not the rough outline ('Domain aligned to the catchments, 1,398.25 km2', 1399.3622, 1399.3621992217459)
+  412.7 align report: {"mode": "align", "tolerance_m": 100.0, "catchments": 173, "outline_km2": 1399.3622, "domain_km2": 1398.248, "rim_removed_km2": 1.2896, "gap_added_km2": 0.002, "notes": ["10 pieces apart from the domain left out, 0.0468 km2", "138 holes inside the domain filled, 0.2202 km2"], "cell_m": 20.0, "cells_outside_catchments_before": 88411, "cells_outside_catchments": 85612, "outside_catchments_km2": 34.2448, "catchment_cells_outside": 3, "seconds": 197.7, "outline": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Lumped_domain_2\\outline.geojson"}; leaving after it: [(35.715, 441114, 2740396), (0.835, 435246, 2740578), (0.642, 434638, 2740490)]
+  414.5 STEP Generate basin on the aligned domain
+  478.5 STEP DONE Generate basin on the aligned domain 64.0 s: 109 subbasins, 50 reaches, 57 junctions, 5 reservoirs; 34.153 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 
+  478.5 PASS five reservoirs from the crest lines 5
+  478.5 reservoir Z4C: 211.5597 km2 against Basin 3's 211.09
+  478.5 reservoir R2A: 175.9445 km2 against Basin 3's 175.87
+  478.5 reservoir R5A: 117.1174 km2 against Basin 3's 117.1
+  478.5 reservoir Faydh 01: 74.421 km2 against Basin 3's 74.3
+  478.5 reservoir Bidah 03: 20.0257 km2 against Basin 3's 20.97
+  484.6 === 4 the storm, the area reduction, the simulation, Run
+  484.6 PASS pattern typed into Data tables (145, '')
+  484.6 PASS ARF FM typed into Data tables ([0.999, 0.994, 0.987, 0.976, 0.965, 0.956, 0.948, 0.913, 0.864, 0.776, 0.694, 0.606], '')
+  484.6 PASS Storm: 251 mm in 24 h on the pattern FM 10-1000yr (Data tables)
+  484.6 reduction: lumped curve Each lumped subbasin read at its dam's (last point's) drainage area: in Hybrid 2D, where the lumped subbasins enter at their own outlets and the 2D model routes them once, every one at the drainage ar | 2D none 
+  484.6 simulation: 48.0 h, lumped 5.0 min, maps Every 15 minutes, for design work, GPU only
+  485.8 Lumped job hydrology: {"curve_number": 88.0, "reach_routing": "hms", "reach_manning_n": 0.1, "basin_json": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Lumped\\wadi2d_basin\\basin.json"} | run {'duration_s': 172800.0, 'backend': 'gpu', 'model_type': 'lumped', 'lumped_only': True}
+  485.8 PASS the job: Lumped, CN 88 beside the grid, reach n 0.1 88.0
+  485.8 STEP Run Lumped
+  486.8 dock says: Starting...
+  495.0 dock says: rain: each of the 221 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it
+  496.0 STEP DONE Run Lumped 10.2 s: Finished. rain: each of the 221 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it.
+  496.0 PASS Lumped finished Finished. rain: each of the 221 elements read at the area-reduction table of its own drainage area, HMS's depth-area analysis; an element's series holds for it and the elements above it.
+  496.5 PASS scenario Lumped saved Scenario Lumped saved: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\Lumped\scenarios\Lumped.wadi2d.json
+  496.7 PASS project saved: Block2_from_the_dock_W106.qgz 
+  496.7 SUMMARY 22 passed, 0 failed 
+  496.7 DONE

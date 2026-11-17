@@ -106,13 +106,25 @@ def _number(value: float, digits: int) -> float | None:
 def _curve_numbers(
     cfg: RunConfig, surface: Surface, net: Network, labels: int, settings: BasinSettings, notes: list[str]
 ) -> tuple[np.ndarray, str]:
-    """Mean CN per label: from the raster, else the job's single value, else missing."""
+    """Mean CN per label: from the raster, else the job's single value, else missing. Beside a raster the job's value
+    is the CN of the raster's holes (W106), as on the cells: a subbasin the raster covers in part takes the area-
+    weighted mean of the two, one it does not cover at all the value; with no value, one covered under
+    ``min_raster_share`` lacks its CN."""
     if cfg.terrain.cn_raster is not None:
         mean, share = zonal_mean(read_on_surface(cfg.terrain.cn_raster, surface), net.label, labels)
+        fill = cfg.hydrology.curve_number
+        if fill is not None:
+            part = np.flatnonzero(share < 1.0)
+            if part.size:
+                notes.append(
+                    f"{part.size} subbasins take CN {fill:g} where the CN raster has none, weighted by area"
+                )
+            return np.where(share > 0.0, share * np.nan_to_num(mean) + (1.0 - share) * fill, fill), SOURCE_RASTER
         poor = np.flatnonzero((share < settings.min_raster_share) & (share > 0.0))
         if poor.size:
             notes.append(
-                f"{poor.size} subbasins have the CN raster over less of them than {settings.min_raster_share:g}"
+                f"{poor.size} subbasins have the CN raster over less of them than {settings.min_raster_share:g}: "
+                "give a CN for the raster's holes (hydrology.curve_number)"
             )
         return np.where(share >= settings.min_raster_share, mean, np.nan), SOURCE_RASTER
     if cfg.hydrology.curve_number is not None:
@@ -181,7 +193,10 @@ def _subbasin_parameters(
 def _manning(
     cfg: RunConfig, raster: np.ndarray | None, pixels: np.ndarray, settings: BasinSettings
 ) -> dict[str, Any]:
-    """Manning n along a reach: the raster, else a value the job sets. The schema's default is nobody's decision."""
+    """Manning n along a reach: the job's reach n (W106), else the raster, else a value the job sets. The schema's
+    default is nobody's decision."""
+    if cfg.hydrology.reach_manning_n is not None:
+        return parameter(cfg.hydrology.reach_manning_n, SOURCE_JOB)
     if raster is not None:
         along = raster[pixels]
         if np.count_nonzero(np.isfinite(along)) >= settings.min_raster_share * along.size:

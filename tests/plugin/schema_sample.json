@@ -2153,6 +2153,41 @@
           "title": "Muskingum",
           "type": "array"
         },
+        "reach_manning_n": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "maximum": 1.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Manning n of every reach of a generated basin (hydrology.basin_json), in place of what 'wadi2d basin' read from Terrain's Manning along the reach, which is the wadi bed's n of the 2D cells, not a lumped reach's; None keeps the file's. The owner's HEC-HMS model of Block 2 routes its reaches at 0.1 (W1, W106). An HMS basin's reaches keep their own",
+          "title": "Reach Manning N"
+        },
+        "reach_manning": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "default": {},
+          "description": "Manning n by reach of a generated basin, over reach_manning_n and the file's (W106)",
+          "title": "Reach Manning",
+          "type": "object"
+        },
+        "generated_entry": {
+          "default": "routes",
+          "description": "What a generated basin (hydrology.basin_json) runs lumped and where its water enters the grid. 'routes', as always: every complete subbasin lumped unless listed 2d, the reaches and reservoirs routing where they are defined, the water entering at the junctions where they are not, a hand-back where 2D water meets a routed reach. 'last_points' (Hybrid Lumped, W106): only the subbasins at or above a last point (hydrology.last_points; every dam by default) are lumped, the rest rain on the grid; the network routes them down to the lowest last point on their way, whose outflow enters the grid there (entry 'edge': on the edge of the catchments left out, grid.exclude_lumped), and nothing below a last point is lumped. 'outlets' (Hybrid 2D, W106): the same subbasins lumped, each entering the grid at its own outlet (entry 'wadi', inside its own polygon, so a dam's own subbasin enters the pool above the crest); no reach and no reservoir is routed lumped: the grid routes the water, the dams as pools behind their crest lines, and a lumped curve reads every subbasin at the drainage area of its first last point. An HMS basin reads lumped_entry instead",
+          "enum": [
+            "routes",
+            "last_points",
+            "outlets"
+          ],
+          "title": "Generated Entry",
+          "type": "string"
+        },
         "lumped_entry": {
           "default": "outlet",
           "description": "Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, the grid routes it from there. 'network': it stays on the HMS reaches, junctions and reservoirs while only lumped subbasins drain to them, and enters where a rain-on-grid subbasin's water first joins, at that element's icon or an inflow the job gives from it; at an outlet of the network it leaves the model, as in HMS. With grid.exclude_lumped the catchments it carries leave the 2D mesh (W88). The water stops at the lowest last point on its way (hydrology.last_points) and enters there, on the edge of the catchments it brings in (W105)",
@@ -5849,6 +5884,9 @@
         "hms_basin": null,
         "reach_routing": "hms",
         "muskingum": [],
+        "reach_manning_n": null,
+        "reach_manning": {},
+        "generated_entry": "routes",
         "lumped_entry": "outlet",
         "last_points": null,
         "arf_by_element": false,

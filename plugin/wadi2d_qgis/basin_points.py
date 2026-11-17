@@ -23,7 +23,7 @@ from qgis.core import (
 from qgis.gui import QgsMapToolEmitPoint
 from qgis.PyQt.QtGui import QColor
 
-from .basin_point_rows import LAYER_TITLE, NAME_STEMS, POINT_FIELDS, next_name
+from .basin_point_rows import LAYER_TITLE, NAME_STEMS, POINT_FIELDS, SNAPPED_TITLE, next_name, provisional_words
 from .layer_groups import HYDROLOGY, SLOT_BASIN_POINTS, add_layer, input_group
 
 MARKERS = {
@@ -143,4 +143,82 @@ class BasinPointsLinks:
         except ValueError as problem:
             self.box.point_placed(str(problem))
             return
-        self.box.point_placed(f"{name} ({self.kind}) added to {layer.name()}: Generate basin applies it.")
+        said = f"{name} ({self.kind}) added to {layer.name()}: Generate basin applies it."
+        near = self._nearest_reach(point)  # W106: the stream it lies on, from the last generated basin
+        if near is not None:
+            said += " " + provisional_words(name, *near, self._snap_m())
+        self.box.point_placed(said)
+
+    def _snap_m(self) -> float:
+        schema = getattr(self.dock, "schema", None)
+        found = schema.default(SNAP_PATH) if schema is not None else None
+        return float(found) if found else DEFAULT_SNAP_M
+
+    def _nearest_reach(self, point) -> tuple[str | None, float | None, float] | None:
+        """The last generated basin's reach nearest a click, the drainage area at its lower end and the distance;
+        None with no generated basin. The click is in the map's CRS, the basin in the DEM's: one of them, the DEM's."""
+        model, path = self.box.model, self.box.json_path
+        if not model or not path:
+            return None
+        from pathlib import Path
+
+        reaches = QgsVectorLayer(f"{Path(path).with_name('basin.gpkg')}|layername=reaches", "reaches", "ogr")
+        if not reaches.isValid():
+            return None
+        here = QgsGeometry.fromPointXY(QgsPointXY(point))
+        crs = self.canvas.mapSettings().destinationCrs()
+        if crs != reaches.crs():
+            from qgis.core import QgsCoordinateTransform, QgsProject
+
+            here.transform(QgsCoordinateTransform(crs, reaches.crs(), QgsProject.instance()))
+        best = (None, float("inf"))
+        for feature in reaches.getFeatures():
+            distance = feature.geometry().distance(here)
+            if distance < best[1]:
+                best = (str(feature["name"]), distance)
+        if best[0] is None:
+            return None
+        elements = {e["name"]: e for e in model.get("elements", [])}
+        below = (elements.get(best[0]) or {}).get("downstream")
+        area = ((elements.get(below) or {}).get("parameters") or {}).get("drainage_area_km2", {}).get("value")
+        return best[0], area, best[1]
+
+
+SNAP_PATH = "basin.snap_m"
+DEFAULT_SNAP_M = 100.0
+SLOT_SNAPPED = "basin points snapped"
+"""The lines from each point to where it snapped: the next Generate basin replaces them."""
+
+
+def show_snapped(rows: list[dict], crs, model: str):
+    """Each point's move to its stream as a line, labelled with the drainage area there, in Inputs > Hydrology."""
+    from qgis.core import QgsLineSymbol, QgsSingleSymbolRenderer
+
+    from .layer_groups import clear_slot
+
+    clear_slot(model, SLOT_SNAPPED)
+    if not rows:
+        return None
+    layer = QgsVectorLayer("LineString?field=name:string&field=area_km2:double&field=moved_m:double&field=label:string", SNAPPED_TITLE, "memory")
+    layer.setCrs(crs)
+    features = []
+    for row in rows:
+        feature = QgsFeature(layer.fields())
+        start, end = QgsPointXY(row["x"], row["y"]), QgsPointXY(*row["outlet"])
+        feature.setGeometry(QgsGeometry.fromPolylineXY([start, end]))
+        area = row["area_km2"]
+        feature.setAttributes([row["name"], area, row["moved_m"], f"{row['name']}: {area:,.2f} km2" if area is not None else row["name"]])
+        features.append(feature)
+    layer.dataProvider().addFeatures(features)
+    layer.updateExtents()
+    layer.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({"color": "#c00000", "width": "0.8", "line_style": "dash"})))
+    text = QgsTextFormat()
+    text.setSize(LABEL_SIZE)
+    text.setColor(QColor("#c00000"))
+    labels = QgsPalLayerSettings()
+    labels.fieldName = "label"
+    labels.setFormat(text)
+    layer.setLabeling(QgsVectorLayerSimpleLabeling(labels))
+    layer.setLabelsEnabled(True)
+    add_layer(input_group(model, HYDROLOGY), layer, SLOT_SNAPPED, index=0)
+    return layer

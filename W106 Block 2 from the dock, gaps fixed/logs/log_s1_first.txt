@@ -1,0 +1,45 @@
+    0.0 script loaded
+    4.2 inputs: dem valid=True, cn valid=True, manning valid=True, rough_outline valid=True, outflow_lines valid=True, crest_lines valid=True, spillways valid=True, dam_lines valid=True
+    4.2 STEP open the dock
+    4.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\plugin\wadi2d_qgis\__init__.py
+    5.1 PASS engine found Engine ready.
+    5.1 STEP DONE open the dock 1.0 s: Engine ready.
+    5.3 === 1 the Lumped card first: Terrain, its domain box (gap 5), the dams and the dam lines
+    5.5 terrain: GGC_2_MERGE_HDSM (0.5 m), 20.0 m, Manning A grid of n Manning n, hills 0.1 (W79) / 0.04, pits True
+    5.5 PASS his four outflow lines, normal depth at their slopes [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005)]
+    5.5 boundary rows: [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005)]
+    5.6 structures: Crest lines, Spillways | points: 5 lines and points from Dam lines
+    5.6 PASS gap 5: the Lumped card shows Domain from an outline 
+    5.6 STEP Complete upstream
+  184.5 STEP DONE Complete upstream 178.9 s: Domain 1,399.36 km2, the outline of 1,416.58 km2 completed upstream: 17.40 km2 added, draining in (0 catchments with a stream over 10 km2, 17.40 km2 in smaller pieces); 22.76 km2 removed, draining out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, 
+  184.5 PASS the completed domain chosen as Terrain's domain Domain completed upstream, 1,399.36 km2
+  184.5 gap 9: streams leaving by closed edges: [{"x": 452351.49, "y": 2715540.39, "area_km2": 269.872, "no_ground": false}, {"x": 440306.48973783385, "y": 2740610.39, "area_km2": 0.349, "no_ground": false}]
+  184.5 PASS gap 9: the dock names the streams leaving the completed domain, the Fizh branch among them out past the outline (0 catchments with a stream over 10 km2, 22.76 km2 in smaller pieces). Not added, draining in across kept edges: 0.05 km2 (0 catchments with a stream over 10 km2). Kept edges: 8 lines; the ground read at 5 m. 29 pieces apart from the domai
+  184.8 PASS gap 9: Add outflow lines there adds them to the Boundaries layer (4, 2, 'Added to Outflow lines: Outflow 269.9 km2, Outflow 0.3 km2, normal depth; check each slope in the Boundaries table.')
+  184.8 PASS his four outflow lines, normal depth at their slopes [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005), ('Outflow 269.9 km2', 'normal', 0.005), ('Outflow 0.3 km2', 'normal', 0.005)]
+  184.8 boundary rows: [('Sea', 'normal', 0.003), ('Wadi HAT north', 'normal', 0.0057), ('Wadi Fizh branch', 'normal', 0.005), ('North stream', 'normal', 0.005), ('Outflow 269.9 km2', 'normal', 0.005), ('Outflow 0.3 km2', 'normal', 0.005)]
+  184.8 === 2 Hydrology: his CN grid with 88 beside it, the reach n, the basin from the DEM
+  184.8 PASS the CN value stays open beside the CN grid None where the grid has none
+  184.8 curve number: grid CN_Include_Hill_Area, value 88.0 (88.0)
+  184.8 STEP Generate basin
+  238.6 STEP DONE Generate basin 53.8 s: 111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.2265 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under
+  238.6 PASS gap 2: every generated subbasin has its CN (88 where the grid has none, by area) ([], '111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.2265 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no
+  238.6 PASS gap 7: the reach n box at 0.1, said where it comes from 0.100
+  238.6 FAIL gap 7: the generated reaches hold n 0.1, the job's {'value': 0.04, 'source': 'raster'}
+  238.6 === 3 Align to catchments, on Terrain's (completed) domain in place (gap 4); the basin again
+  238.6 STEP Align to catchments
+  240.0 PASS gap 4: Align says it aligns Terrain's completed domain Aligning Terrain's domain "Domain completed upstream, 1,399.36 km2" to the catchments...
+  466.2 STEP DONE Align to catchments 227.6 s: Domain 1,398.25 km2, the outline of 1,399.36 km2 aligned to 174 catchments: a rim of 1.27 km2 outside them removed, gaps of 0.00 km2 added (bands narrower than twice 100 m). Cells of 20 m outside every catchment: 85,521, 34.21 km2 (were 88,320). 10 pieces apart from the domain left out, 0.0468 km2. 
+  466.2 Traceback (most recent call last):
+  File "<string>", line 244, in tick
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\s1_setup_lumped.py", line 92, in scenario
+    h.check("gap 4: the completed domain aligned, not the rough outline", aligned is not None and aligned.name().startswith("Domain aligned") and abs(report.get("outline_km2", 0.0) - _area(completed)) < 0.05, (aligned.name() if aligned else None, report.get("outline_km2"), _area(completed)))
+                                                                                                                                                                                       ^^^^^^^^^^^^^^^^
+  File "D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\s1_setup_lumped.py", line 125, in _area
+    return sum(f.geometry().area() for f in layer.getFeatures()) / 1e6 if layer is not None else 0.0
+                                            ^^^^^^^^^^^^^^^^^^^
+RuntimeError: wrapped C/C++ object of type QgsVectorLayer has been deleted
+
+  466.2 SUMMARY 12 passed, 1 failed exception
+  466.2   FAILED gap 7: the generated reaches hold n 0.1, the job's: {'value': 0.04, 'source': 'raster'}
+  466.2 DONE

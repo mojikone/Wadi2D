@@ -20,8 +20,9 @@ from datetime import datetime
 from pathlib import Path
 
 FORMAT = "wadi2d-model"
-VERSION = 6
-"""6 (W105): Hydrology holds the last points of the lumped model (every dam by default, junctions added).
+VERSION = 7
+"""7 (W106): the CN value beside a CN grid is the CN of its holes.
+6 (W105): Hydrology holds the last points of the lumped model (every dam by default, junctions added).
 5 (W103): Hydrology holds each subbasin's own storm area, entry and outlet and the point inflows of lumped elements.
 4 (W101, his item 7): the one depth threshold for the maps is the model's (Run). 3 (W101): Data tables and the Area reduction are sections; the Steady rain is a fixed depth and the design storm a
 depth and a pattern. 2 (W99 step 4): the Simulation section holds the run's one start, the simulated time, the saved
@@ -239,7 +240,28 @@ def _to_6(doc: dict) -> dict:
     return doc
 
 
-MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4, 4: _to_5, 5: _to_6}
+REACH_N_KEPT = (
+    "The generated reaches now take a Manning n of their own (Hydrology, Reach Manning n; 0.1 in a new model, as the "
+    "HEC-HMS model of Block 2 routes them). This model keeps Terrain's Manning along each reach, as its runs had it: "
+    "type 0.1 there for the HMS value."
+)
+
+
+def _to_7(doc: dict) -> dict:
+    """Format 6 to 7 (W106): the CN value stays open beside a CN grid, where it is the CN of the grid's holes. A model
+    from before held the value greyed out and unused beside a grid, so it comes up empty there and its job is the job it
+    was; nothing is said. And the generated reaches' own Manning n: a model with a generated basin keeps Terrain's along
+    each reach, its job the job it was, and is told so."""
+    hydrology = _widgets(doc, "hydrology")
+    if hydrology.get("cn.raster"):
+        hydrology["cn.box"] = 0.0
+    if hydrology.get("basin#checked") and not hydrology.get("folder") and "reach_n" not in hydrology:
+        hydrology["reach_n"] = 0.0  # the generated reaches keep Terrain's n, as the model's runs had it
+        doc[MIGRATED] = [*doc.get(MIGRATED, []), REACH_N_KEPT]
+    return doc
+
+
+MIGRATIONS: dict = {1: _to_2, 2: _to_3, 3: _to_4, 4: _to_5, 5: _to_6, 6: _to_7}
 """``{from_version: function(doc) -> doc}``; each takes a document one version up."""
 RASTER_PROVIDER = "gdal"
 """The provider of a raster layer in a saved layer choice; any other is read as a vector file."""

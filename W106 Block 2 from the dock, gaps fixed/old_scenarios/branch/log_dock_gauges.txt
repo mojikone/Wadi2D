@@ -1,0 +1,65 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\branch_636d0bf\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 === 1 the section and its table
+    5.4 PASS gauges come after the results points 
+    5.4 PASS the heading 7b. Gauges (optional)
+    5.4 PASS the storm offers the rain gauges 
+    5.4 PASS W77: the rain gauges' table is in the Storm section 
+    5.4 PASS W77: 7b holds flow and level gauges only ['flow', 'level']
+    5.4 PASS an empty table 
+    5.4 PASS each point is a rain gauge row [('West', 'rain'), ('East', 'rain')]
+    5.4 PASS at its point (433000.0, 2725500.0)
+    5.4 PASS the table shows the position 433000.0, 2725500.0
+    5.4 PASS a flow gauge row typed by hand 
+    5.4 PASS typed name and line reach the row ('Dam gauge', 'Bidah 03')
+    5.6 === 2 what stops a run
+    5.6 PASS a gauge with no record is refused in words Gauge West: choose its record, a CSV table or a DSS file. Gauge East: choose its record, a CSV table or a DSS file. Gauge Dam gauge: choose its record, a CSV table or a DSS file.
+    5.6 PASS no run started 
+    5.6 PASS the record shows in the table 
+    5.6 === 2b W77: Preview rain's storm map, before any run
+    5.7 dock says: Gauge West: choose its record, a CSV table or a DSS file. Gauge East: choose its record, a CSV table or a DSS file. Gauge Dam gauge: choose its record, a CSV table or a DSS file.
+    7.2 preview: Depths with no area reduction, on the hydrology step of 5 min. [('2D area', 23.2799)]
+    7.2 PASS W77: the map's two layers in Inputs > Hydrology ['Rain depth by area, before the run', 'Total rain depth, before the run']
+    7.2 PASS W77: the raster steps from 10 to 40 mm by nearest gauge (10.0, 40.0)
+    7.2 PASS W77: the 2D area drawn at the preview's depth ([23.2799], 23.2799)
+    7.3 === 3 a run by thiessen
+    7.3 PASS thiessen: the radius only for inverse distance 
+    7.4 dock says: Starting...
+    9.4 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   36.9 dock says: 10 more places with deep water against the domain edge: see edge_checks.gpkg
+   37.2 PASS thiessen: finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   37.2 PASS thiessen: the job's storm is the gauges gauges
+   37.2 PASS thiessen: the run starts at the time typed 2021-10-04 00:00
+   37.2 PASS thiessen: the observed record names the line [{'name': 'Dam gauge', 'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\old_branch\\dock_gauges\\data\\observed_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah
+   37.2 PASS W77 thiessen: the flow record starts with the rain 2021-10-04 00:00
+   37.2 thiessen: shares {'West': 0.4444, 'East': 0.5556}, totals {'West': 40.0, 'East': 10.0}, mean 23.332 mm, rain 667188.0 m3
+   37.2 PASS W77: the preview's 2D depth is the run's mean rain, within 0.5 % (23.2799, 23.332)
+   37.2 PASS thiessen: observed compared after the run []
+   37.2 thiessen: {'peak': 141.657, 'rain_m3': 667188.0074175695, 'mean_mm': 23.332, 'area_m2': 28595405.7696541, 'stats': {'nse': -3.735124525184241, 'rsr': 2.176034127761842, 'pbias_percent': 138.0917138842408, 'peak_ratio': 2.3609500000000003, 'observed_peak': 60.0, 'simulated_peak': 141.657}}
+   37.2 === 3 a run by inverse_distance
+   37.2 PASS inverse_distance: the radius only for inverse distance 
+   37.3 dock says: Starting...
+   38.8 dock says: 1 pits hold 171 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+   64.8 PASS inverse_distance: finished Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the 
+   64.8 PASS inverse_distance: the job's storm is the gauges gauges
+   64.8 PASS inverse_distance: the run starts at the time typed 2021-10-04 00:00
+   64.8 PASS inverse_distance: the observed record names the line [{'name': 'Dam gauge', 'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\old_branch\\dock_gauges\\data\\observed_flow.csv', 'quantity': 'flow', 'compare': 'line', 'target': 'Bidah
+   64.8 PASS W77 inverse_distance: the flow record starts with the rain 2021-10-04 00:00
+   64.8 inverse_distance: shares {'West': 0.4688, 'East': 0.5312}, totals {'West': 40.0, 'East': 10.0}, mean 24.064 mm, rain 688138.2 m3
+   64.8 PASS inverse_distance: observed compared after the run []
+   64.8 inverse_distance: {'peak': 142.487, 'rain_m3': 688138.1565110396, 'mean_mm': 24.064, 'area_m2': 28596166.743311156, 'stats': {'nse': -3.792194971334153, 'rsr': 2.1891082593910594, 'pbias_percent': 142.8861597864116, 'peak_ratio': 2.3747833333333332, 'observed_peak': 60.0, 'simulated_peak': 142.487}}
+   64.8 PASS the rained area is one area under both methods (28595405.7696541, 28596166.743311156)
+   64.8 PASS the rained area is the domain's, about 28.8 km2 28595405.7696541
+   64.8 FAIL the two methods differ at the dam line (141.657, 142.487)
+   64.8 === 4 the observed flow in Result lines, on the time slider
+   64.8 dock says: Finished. a stream draining 3.41 km2 beyond the edge enters the domain at (437300, 2727855) with no inflow line or point there: its water never reaches the model; draw the domain over its catchment or give it a flow line. a stream draining 2.48 km2 beyond the edge enters the domain at (438821, 27257
+   67.6 PASS the observed flow is drawn with the computed one ['upfront', 'frames', 'observed']
+   67.6 PASS drawn distinctly: dashed, with a dot per value Observed: Dam gauge
+   67.6 PASS labelled as observed Observed: Dam gauge
+   67.6 PASS the agreement is stated Observed Dam gauge: peak 60.00 m3/s at 1 h 30 min, model 142.49 at 1 h 20 min; volume 0.216 against 0.522 Mm3; Nash-Sutcliffe -3.79; RMSE over the observed spread 2.19; bias 142.9 % (model high).
+   67.6 PASS its peak is the record's 60.0
+   67.6 PASS the readout names the observed value at the frame 1 h 15 min from the start of the run; flow 141.10 m3/s (upfront); flow 141.25 m3/s (frames); flow 45.13 m3/s (observed); deepest 0.78 m (frames)
+   67.7 SUMMARY 42 passed, 1 failed 
+   67.7   FAILED the two methods differ at the dam line: (141.657, 142.487)
+   67.7 DONE

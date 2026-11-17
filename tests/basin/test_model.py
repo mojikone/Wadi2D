@@ -171,6 +171,26 @@ def test_a_raster_that_covers_too_little_leaves_cn_missing_and_says_so(
     assert any("CN raster" in note for note in model["notes"])
 
 
+def test_the_cn_of_the_job_fills_the_raster_holes_by_area(tmp_path: Path, valley: Valley) -> None:
+    """W106: beside a CN raster the job's CN is the CN of its holes, as on the cells; never a missing CN."""
+    partial = np.full((NY, NX), 85.0)
+    partial[:, : NX // 2 + 40] = -9999.0
+    cn = write_raster(tmp_path / "cn.tif", partial)
+    gaps = write_job(tmp_path, valley.dem, terrain={"cn_raster": str(cn)}, hydrology={"curve_number": 60.0})
+    full = write_raster(tmp_path / "cn_full.tif", np.full((NY, NX), 85.0))
+    (tmp_path / "w").mkdir()
+    whole = write_job(tmp_path / "w", valley.dem, terrain={"cn_raster": str(full)}, hydrology={"curve_number": 60.0})
+    model = model_of(gaps)
+    for subbasin in by_kind(model, "subbasin"):
+        assert subbasin["missing"] == [] and subbasin["parameters"]["curve_number"]["source"] == SOURCE_RASTER
+        assert 60.0 <= value_of(subbasin, "curve_number") <= 85.0
+    assert any("where the CN raster has none" in note for note in model["notes"])
+    first = by_kind(model, "subbasin")[0]
+    share = (value_of(first, "curve_number") - 60.0) / 25.0  # the share the raster covers, from the weighted mean
+    assert 0.0 <= share < 0.9  # the subbasin W104 left without a CN
+    assert all(value_of(s, "curve_number") == pytest.approx(85.0) for s in by_kind(model_of(whole), "subbasin"))
+
+
 def test_manning_comes_from_a_raster_before_the_job(tmp_path: Path, valley: Valley) -> None:
     n = write_raster(tmp_path / "n.tif", np.full((NY, NX), 0.07))
     job = complete_job(tmp_path, valley.dem, terrain={"manning_raster": str(n)})

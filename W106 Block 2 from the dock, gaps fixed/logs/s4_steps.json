@@ -1,0 +1,32 @@
+[
+ {
+  "step": "Generate basin",
+  "seconds": 62.7,
+  "said": "111 subbasins, 51 reaches, 58 junctions, 5 reservoirs; 31.5116 km2 reach the edge without meeting a stream and rain on the grid. crest line Bidah 03 part 2 drains under 1 km2, a saddle: no node; crest line Bidah 03 part 3 drains under 1 km2, a saddle: no node; crest line Faydh 01 part 2 drains under 1 km2, a saddle: no node; 14 subbasins take CN 88 where the CN raster has none, weighted by area; open ground, no channel in the sections: ['R12', 'R13', 'R16', 'R17', 'R26']. Basin points: Z4C moved 0 m to the stream there, draining 211.56 km2; R2A moved 0 m to the stream there, draining 175.94 km2; R5A moved 0 m to the stream there, draining 117.12 km2; Faydh 01 moved 0 m to the stream there, draining 74.42 km2; Bidah 03 moved 0 m to the stream there, draining 20.03 km2; HAT-J4 moved 0 m to the stream there, draining 260.36 km2.",
+  "subbasins": 111,
+  "reservoirs": 5
+ },
+ {
+  "step": "Run Hybrid 2D",
+  "seconds": 2379.8,
+  "said": "Finished. Earthworks. pit fill 1.1: fill 125 m3; pit fill 1.2: fill 4,476 m3; pit fill 1.3: fill 332 m3; pit fill 1.4: fill 4,775 m3; pit fill 2.1: fill 24 m3; pit fill 2.2: fill 73 m3; pit fill 2.3: fill 10 m3; pit fill 2.4: fill 100 m3; pit fill 2.5: fill 4 m3; pit fill 2.6: fill 1 m3; pit fill 2.7: fill 22 m3; pit fill 2.8: fill 4 m3; pit fill 3.2: fill 10 m3; pit fill 3.3: fill 117 m3; pit fill 3.4: fill 26 m3; pit fill 3.5: fill 1,227 m3; pit fill 3.6: fill 1,328 m3; pit fill 4.1: fill 17 m3; pit fill 4.3: fill 3 m3; pit fill 4.4: fill 67 m3; pit fill 4.5: fill 7 m3; pit fill 4.6: fill 3 m3; pit fill 4.7: fill 2 m3; pit fill 4.8: fill 482 m3; pit fill 4.9: fill 2 m3; pit fill 5.1: fill 3 m3; pit fill 5.2: fill 40 m3; pit fill 5.3: fill 222 m3; pit fill 5.4: fill 23 m3; pit fill 6.1: fill 12 m3; pit fill 6.2: fill 142 m3; pit fill 7.1: fill 255 m3; pit fill 7.2: fill 269 m3; pit fill 8.1: fill 6 m3; pit fill 8.2: fill 18 m3; pit fill 8.3: fill 36 m3; pit fill 8.4: fill 446 m3; pit fill 8.6: fill 10 m3; pit fill 9.2: fill 494 m3; pit fill 10: fill 291 m3; pit fill 11.1: fill 130 m3; pit fill 11.2: fill 81 m3; pit fill 12.1: fill 282 m3; pit fill 12.2: fill 236 m3; pit fill 12.3: fill 71 m3; pit fill 12.4: fill 14 m3; pit fill 13.1: fill 57 m3; pit fill 13.2: fill 42 m3; pit fill 14.1: fill 8 m3; pit fill 14.2: fill 10 m3; pit fill 14.3: fill 381 m3; pit fill 14.4: fill 18 m3; pit fill 15.1: fill 60 m3; pit fill 15.2: fill 131 m3; pit fill 15.3: fill 1 m3; pit fill 15.4: fill 3 m3; pit fill 16.1: fill 80 m3; pit fill 16.2: fill 1 m3; pit fill 16.3: fill 238 m3; pit fill 16.4: fill 40 m3; pit fill 16.5: fill 13 m3; pit fill 16.6: fill 45 m3; pit fill 16.7: fill 845 m3; pit fill 16.8: fill 42 m3; pit fill 17.1: fill 19 m3; pit fill 17.2: fill 632 m3; pit fill 17.4: fill 183 m3; pit fill 17.5: fill 11 m3; pit fill 18.1: fill 69 m3; pit fill 18.2: fill 240 m3; pit fill 19.1: fill 151 m3; pit fill 19.2: fill 98 m3; pit fill 20: fill 292 m3; pit fill 21: fill 160 m3; pi",
+  "folder": "D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\Hybrid2D",
+  "started_epoch": 1794897236.473164,
+  "ended_epoch": 1794899616.3041017,
+  "first_seen_s": {
+   "warn": 2.7,
+   "basin": 2.7,
+   "output": 2.7,
+   "terrain": 306.2,
+   "entries": 355.5,
+   "strips": 360.0,
+   "start": 369.1,
+   "step": 369.7,
+   "limiter": 374.5,
+   "products:ground": 2251.2,
+   "products:maps": 2298.8,
+   "products:rasters": 2362.3,
+   "done": 2362.3
+  }
+ }
+]

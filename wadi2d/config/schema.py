@@ -1367,6 +1367,33 @@ class Hydrology(_Part):
         "from each reach's section or length; a proposal is shown and nothing is taken from it unless it is written "
         "here",
     )
+    reach_manning_n: float | None = Field(
+        None,
+        gt=0.0,
+        le=1.0,
+        description="Manning n of every reach of a generated basin (hydrology.basin_json), in place of what 'wadi2d "
+        "basin' read from Terrain's Manning along the reach, which is the wadi bed's n of the 2D cells, not a lumped "
+        "reach's; None keeps the file's. The owner's HEC-HMS model of Block 2 routes its reaches at 0.1 (W1, W106). An "
+        "HMS basin's reaches keep their own",
+    )
+    reach_manning: dict[str, float] = Field(
+        {},
+        description="Manning n by reach of a generated basin, over reach_manning_n and the file's (W106)",
+    )
+    generated_entry: Literal["routes", "last_points", "outlets"] = Field(
+        "routes",
+        description="What a generated basin (hydrology.basin_json) runs lumped and where its water enters the grid. "
+        "'routes', as always: every complete subbasin lumped unless listed 2d, the reaches and reservoirs routing where "
+        "they are defined, the water entering at the junctions where they are not, a hand-back where 2D water meets a "
+        "routed reach. 'last_points' (Hybrid Lumped, W106): only the subbasins at or above a last point "
+        "(hydrology.last_points; every dam by default) are lumped, the rest rain on the grid; the network routes them "
+        "down to the lowest last point on their way, whose outflow enters the grid there (entry 'edge': on the edge of "
+        "the catchments left out, grid.exclude_lumped), and nothing below a last point is lumped. 'outlets' (Hybrid "
+        "2D, W106): the same subbasins lumped, each entering the grid at its own outlet (entry 'wadi', inside its own "
+        "polygon, so a dam's own subbasin enters the pool above the crest); no reach and no reservoir is routed "
+        "lumped: the grid routes the water, the dams as pools behind their crest lines, and a lumped curve reads every "
+        "subbasin at the drainage area of its first last point. An HMS basin reads lumped_entry instead",
+    )
     lumped_entry: Literal["outlet", "network"] = Field(
         LUMPED_AT_OUTLETS,
         description="Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, "
@@ -1467,6 +1494,11 @@ class Hydrology(_Part):
             raise ValueError(
                 f"hydrology.muskingum gives K and X for {reaches} but hydrology.reach_routing is "
                 f"{self.reach_routing!r}: set it to {REACH_MUSKINGUM!r}, or the numbers would be ignored"
+            )
+        if self.basin_json is None and self.generated_entry != "routes":
+            raise ValueError(
+                f"hydrology.generated_entry {self.generated_entry!r} is for a generated basin (hydrology.basin_json); "
+                "an HMS basin's lumped water is placed by hydrology.lumped_entry"
             )
         if self.basin_json is not None and self.lumped_entry == LUMPED_ON_NETWORK:
             raise ValueError(

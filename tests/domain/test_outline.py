@@ -155,3 +155,5 @@ def test_the_command_writes_the_domain(tmp_path: Path) -> None:
     assert set(layer_names(tmp_path / "out" / "domain.gpkg")) >= {"domain", "changes"}
     report = json.loads((tmp_path / "out" / "domain_report.json").read_text(encoding="utf-8"))
     assert report["mode"] == "complete" and report["stream_threshold_km2"] == 0.1
+    for row in report["leaving"]:  # W106: each stream leaving by a closed edge, with a line along the edge to open it
+        assert row["area_km2"] > 0.0 and len(row["coordinates"]) >= 2

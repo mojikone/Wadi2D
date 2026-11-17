@@ -82,3 +82,27 @@ def test_the_diversion_points_become_rows_and_their_tables_are_made_absolute(tmp
     assert '"tailwater": "' in made.properties["parameters"] and "tw.csv" in made.properties["parameters"]
     assert str(tmp_path).replace("\\", "\\\\") in made.properties["parameters"]
     assert kept.properties["table"] == "[[0, 0], [1, 1]]"
+
+
+def test_each_point_says_where_it_snapped_and_what_drains_there() -> None:
+    """W106 gap 6: from basin.json, the move from the click to the node and the node's drainage area; a far move named."""
+    from wadi2d_qgis.basin_point_rows import SNAP_FLAG_M, provisional_words, snapped_rows, snapped_words
+
+    def node(name, x, y, outlet, area, role="outfall"):
+        return {"name": name, "kind": "junction", "outlet": list(outlet), "pour_point": {"kind": "point", "role": role, "x": x, "y": y},
+                "parameters": {"drainage_area_km2": {"value": area, "source": "terrain"}}}  # fmt: skip
+
+    model = {"elements": [
+        node("HAT-J4", 1000.0, 2000.0, (1012.0, 2005.0), 260.36, "junction"),
+        node("R2A out", 0.0, 0.0, (90.0, 50.0), 0.08),
+        {"name": "S1", "kind": "subbasin", "outlet": [5.0, 5.0], "parameters": {}},
+    ]}  # fmt: skip
+    rows = snapped_rows(model)
+    assert [r["name"] for r in rows] == ["HAT-J4", "R2A out"]
+    assert rows[0]["moved_m"] == 13.0 and rows[0]["area_km2"] == 260.36 and rows[0]["kind"] == "junction"
+    words = snapped_words(rows)
+    assert words.index("R2A out") < words.index("HAT-J4")  # the far move first
+    assert "draining 0.08 km2" in words and f"Check R2A out: moved more than {SNAP_FLAG_M:g} m" in words
+    assert "Check" not in snapped_words(rows[:1]) and snapped_words([]) == ""
+    assert "reach R7" in provisional_words("P1", "R7", 175.94, 20.0, 100.0) and "175.94 km2" in provisional_words("P1", "R7", 175.94, 20.0, 100.0)
+    assert "no stream of the last generated basin" in provisional_words("P1", "R7", 1.0, 150.0, 100.0)

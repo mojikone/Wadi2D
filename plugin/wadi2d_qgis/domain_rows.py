@@ -38,10 +38,50 @@ def output_folder(run_folder: str) -> Path:
     return candidate
 
 
-def domain_problems(mode: str, has_dem: bool, has_outline: bool, has_catchments: bool) -> list[str]:
+OUTFLOW_KIND = "normal"
+"""What an added outflow line is: normal depth, its slope the Boundaries table's to check (W106)."""
+
+
+def leaving_words(leaving: list[dict]) -> str:
+    """The streams the new domain sends out through closed edges, the largest first, and what the button does."""
+    if not leaving:
+        return ""
+    streams = "; ".join(
+        f"{row['area_km2']:,.2f} km2 at ({row['x']:.0f}, {row['y']:.0f})"
+        + (", where the DEM ends" if row.get("no_ground") else "")
+        for row in sorted(leaving, key=lambda r: -r["area_km2"])
+    )
+    many = len(leaving) > 1
+    return (
+        f" {len(leaving)} stream{'s' if many else ''} leave{'' if many else 's'} this domain through a closed edge, "
+        f"where the edge is a wall that would dam {'them' if many else 'it'}: {streams}. Add outflow lines there "
+        "puts a normal-depth line along the edge at each, to Boundaries; check its slope there."
+    )
+
+
+def outflow_name(row: dict) -> str:
+    return f"Outflow {row['area_km2']:,.1f} km2"
+
+
+def align_source(domain_name: str | None, outline_name: str | None) -> tuple[str, str] | None:
+    """What Align to catchments aligns (W106, gap 4 of W104): Terrain's domain when one is chosen, the completed one
+    after Complete upstream, else the rough outline; with the words that say which. None with neither."""
+    if domain_name:
+        return "domain", f'Aligning Terrain\'s domain "{domain_name}" to the catchments...'
+    if outline_name:
+        return "outline", f'Aligning the rough outline "{outline_name}" to the catchments (Terrain has no domain yet)...'
+    return None
+
+
+def domain_problems(mode: str, has_dem: bool, has_outline: bool, has_catchments: bool, has_domain: bool = False) -> list[str]:
+    """``has_domain``: Terrain holds a domain, which Align aligns in place of the rough outline (W106)."""
     found = [] if has_dem else ["Choose the DEM first: the catchments are read on it."]
-    if not has_outline:
-        found.append("Choose the rough outline, a polygon layer.")
+    if not has_outline and not (mode == ALIGN and has_domain):
+        found.append(
+            "Choose the rough outline, a polygon layer."
+            if mode != ALIGN
+            else "Choose Terrain's domain or the rough outline: Align to catchments aligns the domain, or the outline."
+        )
     if mode == ALIGN and not has_catchments:
         found.append("Choose the catchments to align to, a polygon layer: the HMS subbasins or a generated basin's.")
     return found

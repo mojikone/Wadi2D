@@ -16,7 +16,7 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .line_view import LUMPED, UPFRONT_POINT, Entry, entries
+from .line_view import LUMPED, UPFRONT_LINE, UPFRONT_POINT, Entry, entries
 
 DESIGN, DAMS, JUNCTIONS, REACHES, SUBBASINS, OUTLETS, LINES, OBSERVED, OTHER, ALL = (
     "design", "dams", "junctions", "reaches", "subbasins", "outlets", "lines", "observed", "other", "all",
@@ -120,10 +120,71 @@ def _flow(entry: Entry) -> tuple[list[float], list[float]]:
     return record.get("t_s", []), record.get("discharge_m3s", [])
 
 
+DAM_SUFFIXES = (" reservoir", " dam")
+POOL_PREFIX = "pool_"
+POOL_WORDS = "2D pool: inflow by the pool's balance, outflow over its crest"
+
+
+def _safe(name: str) -> str:
+    """The engine's file name of a series (``wadi2d.io.results.safe_name``)."""
+    import re
+
+    return re.sub(r"[^A-Za-z0-9._-]+", "_", name).strip("_") or "unnamed"
+
+
+def dam_key(name: str) -> str:
+    """One key for a dam across model types (W106, gap 8 of W104): a lumped reservoir and the 2D pool of the same dam,
+    an HMS reservoir's trailing "Reservoir" or "Dam" set aside, so Compare runs puts them on one row."""
+    base = name.strip()
+    for suffix in DAM_SUFFIXES:
+        if base.lower().endswith(suffix):
+            base = base[: -len(suffix)].strip()
+    return f"dam:{base.lower()}"
+
+
+def pool_rows(run: Path | str | None) -> list[Row]:
+    """A run's 2D pools as dams of record, from ``series/pool_<dam>.csv`` (the engine's pool balance, W106): peak
+    inflow, its time and volume, and the peak outflow; the row's chart is the dam line's."""
+    if run is None:
+        return []
+    found = []
+    folder = Path(run) / "series"
+    known = {}
+    pools = Path(run) / "pools.json"
+    if pools.is_file():
+        import json
+
+        try:
+            known = {item["dam"]: item for item in json.loads(pools.read_text(encoding="utf-8")).get("dams", [])}
+        except (ValueError, KeyError, TypeError):
+            known = {}
+    for path in sorted(folder.glob(f"{POOL_PREFIX}*.csv")) if folder.is_dir() else []:
+        safe = path.stem[len(POOL_PREFIX) :]
+        name = next((dam for dam in known if _safe(dam) == safe), safe.replace("_", " "))
+        with path.open(encoding="utf-8") as f:
+            data = [line for line in csv.reader(f)]
+        head, values = data[0], [[float(v) for v in line] for line in data[1:] if line]
+        if not values:
+            continue
+        times = [v[0] for v in values]
+        inflow = [v[head.index("inflow_m3s")] for v in values]
+        outflow = [v[head.index("outflow_m3s")] for v in values]
+        row = Row(dam_key(name), name, DAMS, Entry(UPFRONT_LINE, name, record={"pool": True}))
+        row.peak, row.time_h = _peak(times, inflow)
+        row.volume_mm3 = _volume(times, [max(q, 0.0) for q in inflow])
+        held = (known.get(name) or {}).get("peak_outflow_m3s")  # the dam line's own peak, at the series step
+        row.outflow = float(held) if held is not None else (max(outflow) if any(outflow) else 0.0)
+        row.times_h = [t / SECONDS_PER_HOUR for t in times]
+        row.flow = [abs(q) for q in outflow]
+        found.append(row)
+    return found
+
+
 def row_of(entry: Entry, design: set[str] | None = None) -> Row:
     record = entry.record
     kind = _kind(entry, design or set())
-    row = Row(f"{entry.kind}:{entry.name}", entry.name, kind, entry, observed=bool(record.get("observed")))
+    key = dam_key(entry.name) if entry.kind == LUMPED and kind == DAMS else f"{entry.kind}:{entry.name}"
+    row = Row(key, entry.name, kind, entry, observed=bool(record.get("observed")))
     if entry.kind == UPFRONT_POINT:
         depth = record.get("depth_m") or []
         row.deepest = max(depth) if depth else None
@@ -140,11 +201,13 @@ def row_of(entry: Entry, design: set[str] | None = None) -> Row:
     return row
 
 
-def rows_of(listing: dict, job: dict | None = None) -> list[Row]:
-    """The run's elements of record, in the listing's order: lines, points, then the lumped elements; ``job`` the run's
-    own, which names the design points and lines."""
+def rows_of(listing: dict, job: dict | None = None, run: Path | str | None = None) -> list[Row]:
+    """The run's elements of record, in the listing's order: lines, points, then the lumped elements, then the 2D
+    pools of ``run``'s folder (W106); ``job`` the run's own, which names the design points and lines."""
     design = design_names(job)
-    return [row_of(entry, design) for entry in entries(listing)]
+    rows = [row_of(entry, design) for entry in entries(listing)]
+    lumped = {row.key for row in rows if row.kind == DAMS}
+    return rows + [row for row in pool_rows(run) if row.key not in lumped]
 
 
 def default_kind(rows: list[Row]) -> str:

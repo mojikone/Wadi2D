@@ -22,6 +22,9 @@ ALL_SECTIONS = (
 )  # fmt: skip
 """Section keys in the dock's order; a contract test holds them to the dock's own."""
 ENTRY_OUTLET = "outlet"
+GENERATED_RULES = {HYBRID_LUMPED: "last_points", HYBRID_2D: "outlets"}
+"""``hydrology.generated_entry`` a hybrid type sets on a generated basin (W106): the lumped model ends at the last
+points, and in Hybrid 2D no reach or reservoir is routed lumped; an HMS project reads ``lumped_entry`` instead."""
 
 
 @dataclass(frozen=True)
@@ -142,6 +145,8 @@ def apply_type(values: dict, kind: str | None) -> dict:
         out["arf_by_element"] = False
     if kind == HYBRID_2D:
         out["lumped_entry"] = ENTRY_OUTLET
+    if values.get("basin") and not values.get("hms") and kind in GENERATED_RULES:  # W106: a generated basin's rules
+        out["generated_entry"] = GENERATED_RULES[kind]
     return out
 
 

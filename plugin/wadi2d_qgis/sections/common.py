@@ -142,17 +142,42 @@ def bind(box: QDoubleSpinBox, schema: SchemaView, path: str, scale: float = 1.0,
 
 
 class ValueOrRaster(QWidget):
-    """One number for the whole domain, or a raster instead."""
+    """One number for the whole domain, or a raster instead.
 
-    def __init__(self, decimals: int, empty: str) -> None:
+    ``fills``: the number stays open beside a raster and stands where the raster has no value (its holes), as the
+    engine reads a CN beside a CN grid (W106); the words are its empty text beside a raster, and choosing a raster
+    empties the box, so a value is never carried over from before the raster without being typed again."""
+
+    def __init__(self, decimals: int, empty: str, fills: str | None = None) -> None:
         super().__init__()
         self.box = number_box(decimals)
         self.raster = layer_combo(QgsMapLayerProxyModel.RasterLayer, empty)
+        self.fills = fills
+        self._alone_text = ""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.box)
         layout.addWidget(self.raster)
-        self.raster.layerChanged.connect(lambda layer: self.box.setEnabled(layer is None))
+        if fills is None:
+            self.raster.layerChanged.connect(lambda layer: self.box.setEnabled(layer is None))
+        else:
+            self.raster.layerChanged.connect(self._raster_changed)
+
+    def set_alone_text(self, text: str) -> None:
+        """The box's empty text with no raster; beside a raster it reads ``fills``."""
+        self._alone_text = text
+        self.box.setSpecialValueText(self.fills if self.fills and self.raster.currentLayer() else text)
+
+    def _raster_changed(self, layer) -> None:
+        self.box.setSpecialValueText(self.fills if layer is not None else self._alone_text)
+        if layer is not None:
+            self.box.setValue(self.box.minimum())
+
+    def fill_value(self) -> float | None:
+        """The number where the raster has none; None when the box is empty or no raster is chosen."""
+        if self.fills is None or self.raster.currentLayer() is None or self.box.value() <= self.box.minimum():
+            return None
+        return self.box.value()
 
     def value(self) -> float:
         return self.box.value()

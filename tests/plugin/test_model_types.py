@@ -127,3 +127,21 @@ def test_the_engine_infers_as_the_dock_does(tmp_path: Path) -> None:
     assert engine_types.model_type(cfg) == "2d" and engine_types.model_type_problems(cfg) == []
     untyped = schema.RunConfig.model_validate(build_job(values(dem=str(dem)), tmp_path / "run"))
     assert engine_types.inferred_type(untyped) == model_types.inferred(values())
+
+
+def test_the_hybrids_set_a_generated_basins_rule_and_leave_an_hms_project_alone(tmp_path) -> None:
+    """W106 gap 3: on a generated basin Hybrid Lumped ends the lumped model at its last points and Hybrid 2D routes no
+    reach or reservoir lumped; the job carries the rule, an HMS project's job does not."""
+    from tests.plugin.test_job_builder import values as job_values
+    from tests.plugin.test_reach_n import _basin
+    from wadi2d_qgis.job_builder import build_job
+    from wadi2d_qgis.model_types import GENERATED_RULES, HYBRID_2D, HYBRID_LUMPED, LUMPED, TWO_D, apply_type
+
+    generated = {"basin": {"json": "b.json"}}
+    assert apply_type(generated, HYBRID_LUMPED)["generated_entry"] == GENERATED_RULES[HYBRID_LUMPED] == "last_points"
+    assert apply_type(generated, HYBRID_2D)["generated_entry"] == GENERATED_RULES[HYBRID_2D] == "outlets"
+    for kind in (LUMPED, TWO_D, None):
+        assert "generated_entry" not in apply_type(generated, kind)
+    assert "generated_entry" not in apply_type({"hms": {"folder": "x"}}, HYBRID_2D)
+    job = build_job(apply_type(job_values(tmp_path, basin=_basin(tmp_path)), HYBRID_2D), tmp_path / "out")
+    assert job["hydrology"]["generated_entry"] == "outlets" and job["run"]["model_type"] == "hybrid_2d"

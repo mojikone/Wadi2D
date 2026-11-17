@@ -34,6 +34,14 @@ ROUTING_WORDS = {
     "muskingum": "Muskingum: K and X per reach, as HEC-HMS routes them",
 }
 """What the dock calls each reach routing scheme; the keys are the engine's."""
+MISSING_FIX = {
+    "curve_number": (
+        "The CN grid covers too little of it: give a CN where the grid has none (Curve number, below), then press "
+        "Generate basin again; it takes that value for the part the grid does not cover."
+    ),
+}
+"""What a user does in the dock for a generated subbasin that lacks one parameter (W106: never edit basin.json)."""
+MISSING_ELSE = "Give the missing values in Terrain and Hydrology, then press Generate basin again."
 JUNCTION_COLUMNS = ["Junction", "Route", "Next", "At this junction", "Tc, min"]
 """The last (W64): Kirpich on the longest path from the whole drainage area above; a figure outside Kirpich's range on a
 large junction, and never a lag."""
@@ -61,10 +69,8 @@ def read_basin(path: str | Path) -> dict:
 
 def mode_tip(name: str, missing: list[str], mode: str) -> str:
     if missing:
-        return (
-            f"{name} lacks {', '.join(missing)}, so it runs as rain-on-grid whatever is chosen here. Fill the value in "
-            "basin.json, then generate again."
-        )
+        fix = MISSING_FIX.get(missing[0], MISSING_ELSE) if len(missing) == 1 else MISSING_ELSE
+        return f"{name} lacks {', '.join(missing)}, so it runs as rain-on-grid whatever is chosen here. {fix}"
     return f"{name}: lumped masks its rain in 2D and routes its hydrograph; 2d rains on its cells."
 
 

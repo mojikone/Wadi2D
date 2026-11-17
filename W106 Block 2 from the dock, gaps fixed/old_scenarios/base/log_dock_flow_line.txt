@@ -1,0 +1,23 @@
+    0.0 script loaded
+    4.1 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\base_903fc77\plugin\wadi2d_qgis\__init__.py
+    5.2 PASS engine found Engine ready.
+    5.4 === 1 the kind is offered with its file column
+    5.4 PASS flow is a kind ['stage', 'normal', 'free', 'flow']
+    5.4 FAIL a file column 
+    5.4 PASS one row per line 2
+    5.4 PASS a free line has no file 
+    5.4 PASS a flow line takes a file 
+    5.4 PASS and no value 
+    5.4 === 2 a run on Bidah ground at 20 m
+    5.4 === 3 the file reaches the engine and its water enters whole
+    5.6 dock says: Starting...
+    8.2 dock says: 1 pits hold 219 m3 of dead storage, see terrain_checks.gpkg. A hole of the terrain model stands like this, and deep water on a sliver of a cell can set the time step of the whole run: look at the ground there, and tick Fill pits (terrain.fill_pits) if they are not real
+    9.7 PASS finished Finished. a stream draining 4.01 km2 leaves the domain at (438561, 2728700) with no outflow line there: the edge is a wall and will dam it; open it with a boundary line or draw the domain past the valley. a stream draining 1.01 km2 leaves the domain at (437791
+    9.7 PASS line 1 stays free {'kind': 'free', 'coordinates': [[440290.0, 2725700.0], [440290.0, 2728700.0]]}
+    9.7 PASS line 2 is a flow line with its file {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'flow': {'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Block 2 from the dock, gaps fixed\\runs\\old_base\\dock_flow_line\\runs\\inflow.c
+    9.7 PASS the engine took it {'kind': 'flow', 'coordinates': [[438050.0, 2728690.0], [439550.0, 2728690.0]], 'stage': 0.0, 'slope': 0.005, 'snap_m': 150.0, 'min_share': 0.6, 'name': None, 'flow': {'file': 'D:\\Mojtaba\\Renardet\\Wadi2D\\.claude\\worktrees\\agent-a357ccab85f712ea9\\W106 Bl
+    9.7 PASS the hydrograph entered whole (35999.99958651423, 36000.0)
+    9.7 PASS mass closes 7.035268462088075e-10
+    9.7 SUMMARY 13 passed, 1 failed 
+    9.7   FAILED a file column: 
+    9.7 DONE

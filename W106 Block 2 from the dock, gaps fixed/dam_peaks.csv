@@ -1,0 +1,21 @@
+model,dam,in_m3s,out_m3s,w79_in_m3s,w79_out_m3s,in_vs_w79,w104_in_m3s,w104_out_m3s,in_vs_w104,in_peak_h,in_Mm3,engine_pool_in_m3s,engine_pool_out_m3s,read
+Lumped,Bidah 03,462.8,0.0,455,0,0.017,479.2,0.0,-0.034,12.83,4.14,,,lumped reservoir Bidah_03
+Lumped,Faydh 01,1172.8,0.0,1240,0,-0.054,1198.1,0.0,-0.021,13.08,15.25,,,lumped reservoir Faydh_01
+Lumped,R5A,1204.8,891.2,1144,754,0.053,1673.3,926.6,-0.28,15.17,22.87,,,lumped reservoir R5A
+Lumped,R2A,2197.6,925.1,1736,818,0.266,2732.4,979.4,-0.196,13.58,32.96,,,lumped reservoir R2A
+Lumped,Z4C,2125.5,2026.9,2101,2025,0.012,2978.0,2743.0,-0.286,15.25,39.25,,,lumped reservoir Z4C
+2D,Bidah 03,583.5,0.0,581,0,0.004,583.5,0.0,-0.0,12.51,3.82,583.8,0.0,pool balance (15-min mean) / dam line
+2D,Faydh 01,2305.1,0.0,2314,0,-0.004,2303.9,0.0,0.001,12.26,14.88,2304.9,0.0,pool balance (15-min mean) / dam line
+2D,R5A,2056.4,612.0,2071,608,-0.007,2056.4,611.9,-0.0,12.76,22.8,2056.2,612.0,pool balance (15-min mean) / dam line
+2D,R2A,3930.7,1145.0,3958,1151,-0.007,3928.6,1153.0,0.001,12.76,34.31,3928.6,1145.0,pool balance (15-min mean) / dam line
+2D,Z4C,3225.7,3434.4,3240,3455,-0.004,3226.1,3434.3,-0.0,13.76,41.66,3221.7,3434.4,pool balance (15-min mean) / dam line
+HybridLumped,Bidah 03,462.8,0.0,455,0,0.017,479.2,0.0,-0.034,12.83,4.14,,,lumped reservoir Bidah_03
+HybridLumped,Faydh 01,1172.8,0.0,1240,0,-0.054,1198.1,0.0,-0.021,13.08,15.25,,,lumped reservoir Faydh_01
+HybridLumped,R5A,1204.8,891.2,1144,754,0.053,1673.3,926.6,-0.28,15.17,22.87,,,lumped reservoir R5A
+HybridLumped,R2A,2197.6,925.1,1736,818,0.266,2732.4,979.4,-0.196,13.58,32.96,,,lumped reservoir R2A
+HybridLumped,Z4C,2125.5,2026.9,2101,2025,0.012,2978.0,2743.0,-0.286,15.25,39.25,,,lumped reservoir Z4C
+Hybrid2D,Bidah 03,431.0,0.0,444,0,-0.029,463.0,0.0,-0.069,13.01,4.15,431.2,0.0,pool balance (15-min mean) / dam line
+Hybrid2D,Faydh 01,994.9,0.0,1221,0,-0.185,1214.1,0.0,-0.181,13.51,15.25,994.6,0.0,pool balance (15-min mean) / dam line
+Hybrid2D,R5A,1380.6,599.1,1115,671,0.238,1538.1,838.7,-0.102,14.51,22.79,1380.5,599.1,pool balance (15-min mean) / dam line
+Hybrid2D,R2A,2155.6,933.6,1516,857,0.422,2683.5,1369.3,-0.197,13.76,32.86,2155.1,933.6,pool balance (15-min mean) / dam line
+Hybrid2D,Z4C,2065.0,2109.9,1941,2018,0.064,2801.2,2957.9,-0.263,14.51,39.18,2064.5,2109.9,pool balance (15-min mean) / dam line

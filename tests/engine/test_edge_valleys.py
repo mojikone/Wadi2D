@@ -252,3 +252,22 @@ def test_a_run_with_its_outlet_open_names_nothing(ground, tmp_path):
     events = [json.loads(line) for line in (out / "progress.jsonl").read_text().splitlines()]
     assert not [e for e in events if e["ev"] == "warn" and "domain" in e["message"]]
     assert not (out / FILE).exists()
+
+
+def test_an_outflow_line_lies_along_the_edge_at_a_leaving_stream() -> None:
+    """W106 gap 9: a line on the outline, centred on the crossing, as long as the wadi may be wide; across the seam of
+    the ring too; none for a stream that enters."""
+    import shapely
+
+    from wadi2d.edge_valleys import ENTERS, LEAVES, OUTFLOW_PER_ROOT_KM2, Crossing, outflow_lines
+
+    square = shapely.box(0.0, 0.0, 10000.0, 10000.0)
+    found = [Crossing(10000.0, 5000.0, LEAVES, 400.0), Crossing(0.0, 0.0, LEAVES, 4.0), Crossing(5000.0, 0.0, ENTERS, 50.0)]
+    lines = outflow_lines(found, square, 20.0)
+    assert len(lines) == 2
+    first = shapely.LineString(lines[0]["coordinates"])
+    assert first.length == pytest.approx(2.0 * OUTFLOW_PER_ROOT_KM2 * 20.0, rel=1e-6)  # 15 m a root km2, both sides
+    assert square.exterior.distance(first) < 1e-6 and first.distance(shapely.Point(10000.0, 5000.0)) < 1e-6
+    corner = shapely.LineString(lines[1]["coordinates"])  # on the ring's start: the two pieces joined
+    assert corner.length == pytest.approx(400.0, rel=1e-6) and corner.distance(shapely.Point(0.0, 0.0)) < 1e-6
+    assert lines[0]["area_km2"] == 400.0

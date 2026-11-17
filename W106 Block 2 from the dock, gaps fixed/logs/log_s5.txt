@@ -1,0 +1,62 @@
+    0.0 script loaded
+    5.5 PASS project read: Block2_from_the_dock_W106.qgz D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\Block2_from_the_dock_W106.qgz
+    5.5 tree:
+Wadi2D – Hybrid2D: 4 layers
+  Inputs: 4 layers
+    Terrain: 0 layers
+    Boundaries: 0 layers
+    Structures: 0 layers
+    Hydrology: 4 layers
+    Mesh: 0 layers
+Wadi2D – HybridLumped: 29 layers
+  Results – HybridLumped: 21 layers
+    Lumped network, the HMS way: 3 layers
+    Model setup: 8 layers
+    Pixel rasters, the numbers of record: 4 layers
+    Cell maps: 6 layers
+  Inputs: 8 layers
+    Terrain: 2 layers
+    Boundaries: 2 layers
+    Structures: 0 layers
+    Hydrology: 4 layers
+    Mesh: 0 layers
+Wadi2D – 2D: 25 layers
+  Results – 2D: 17 layers
+    Model setup: 7 layers
+    Pixel rasters, the numbers of record: 4 layers
+    Cell maps: 6 layers
+  Inputs: 8 layers
+    Terrain: 2 layers
+    Boundaries: 2 layers
+    Structures: 0 layers
+    Hydrology: 0 layers
+    Mesh: 4 layers
+Wadi2D – Lumped: 9 layers
+  Results – Lumped: 3 layers
+    Lumped network, the HMS way: 3 layers
+  Inputs: 6 layers
+    Terrain: 2 layers
+    Boundaries: 0 layers
+    Structures: 0 layers
+    Hydrology: 4 layers
+    Mesh: 0 layers
+    5.5 PASS the model group of Lumped 
+    5.5 PASS the model group of 2D 
+    5.5 PASS the model group of HybridLumped 
+    5.5 PASS the model group of Hybrid2D 
+    5.6 generated layers: ['D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-a357ccab85f712ea9/W106 Block 2 from the dock, gaps fixed/runs/HybridLumped/wadi2d_basin/basin.gpkg|layername=subbasins', 'D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-a357ccab85f712ea9/W106 Block 2 from the dock, gaps fixed/runs/Lumped/wadi2d_basin/basin.gpkg|layername=subbasins', 'D:/Mojtaba/Renardet/Wadi2D/.claude/worktrees/agent-a357ccab85f712ea9/W106 Block 2 from the dock, gaps fixed/runs/Hybrid2D/wadi2d_basin/basin.gpkg|layername=subbasins']
+    7.2 PASS plugin from this checkout D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\plugin\wadi2d_qgis\__init__.py
+    9.0 PASS engine found Engine ready.
+   12.7 Lumped elements of record: 5 rows; 5 of 226 elements of record shown (dams and reservoirs). Click a row for its chart.
+   15.2 2D elements of record: 5 rows; 5 of 10 elements of record shown (dams and reservoirs). Click a row for its chart.
+   17.9 HybridLumped elements of record: 5 rows; 5 of 136 elements of record shown (dams and reservoirs). Click a row for its chart.
+   20.5 Hybrid2D elements of record: 5 rows; 5 of 77 elements of record shown (dams and reservoirs). Click a row for its chart.
+   20.6 PASS scenario Hybrid 2D saved Scenario Hybrid 2D saved: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\runs\Hybrid2D\scenarios\Hybrid 2D.wadi2d.json
+   25.5 compare: 4 runs side by side on the 5 elements shown above: peak, time to peak, volume and peak outflow. Click a row for its hydrographs on one chart.
+   26.8 gap 8: compared rows ['dam:bidah 03', 'dam:faydh 01', 'dam:r2a', 'dam:r5a', 'dam:z4c']; runs with an inflow per dam {'dam:bidah 03': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:faydh 01': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:r2a': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:r5a': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:z4c': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped']}
+   26.8 PASS gap 8: Compare runs lines each of the five dams up across the four model types {'dam:bidah 03': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:faydh 01': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:r2a': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:r5a': ['Hybrid2D', '2D', 'HybridLumped', 'Lumped'], 'dam:z4c': ['Hybrid2D
+   26.8 PASS the four runs compared in the dock, the table in Excel The table is written as an Excel workbook: D:\Mojtaba\Renardet\Wadi2D\.claude\worktrees\agent-a357ccab85f712ea9\W106 Block 2 from the dock, gaps fixed\compare_runs.xlsx
+   27.5 PASS project saved: Block2_from_the_dock_W106.qgz 
+   27.5 project: {"Block2_from_the_dock_W106.qgz": 179737}
+   27.5 SUMMARY 11 passed, 0 failed 
+   27.5 DONE
