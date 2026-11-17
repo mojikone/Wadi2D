@@ -147,7 +147,8 @@ class TerrainSection(Section):
         self._lumped = lumped
         for widget in (self.dx, self.fill_pits):
             self._row(widget, not lumped)
-        self.outline_box.setVisible(not lumped)  # a domain is for the 2D part (W101 item 5)
+        # W106 (gap 5 of W104): a Lumped model's basin is generated inside Terrain's domain, so it keeps the box too
+        self.outline_box.setVisible(True)
         self._manning_shown()
 
     def dem_layer(self):
