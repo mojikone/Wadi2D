@@ -72,3 +72,16 @@ def test_the_job_keeps_the_boundary_lines_where_they_lie(tmp_path) -> None:
     cfg = RunConfig.model_validate(job)
     assert cfg.basin.stream_threshold_km2 == 2.0, "the basin's own streams"
     assert "hydrology" not in job or not job["hydrology"].get("basin_json"), "no basin of its own"
+
+
+def test_align_aligns_terrains_domain_before_the_rough_outline() -> None:
+    """W106 gap 4: after Complete upstream the domain is the completed layer, and Align reads it, saying which."""
+    from wadi2d_qgis.domain_rows import align_source
+
+    which, words = align_source("Domain completed upstream, 1,399.36 km2", "rough outline")
+    assert which == "domain" and "Domain completed upstream" in words
+    which, words = align_source(None, "rough outline")
+    assert which == "outline" and "rough outline" in words and "no domain yet" in words
+    assert align_source(None, None) is None
+    assert domain_problems(ALIGN, True, False, True, True) == []  # the domain alone is enough to align
+    assert any("Terrain's domain or the rough outline" in p for p in domain_problems(ALIGN, True, False, True, False))

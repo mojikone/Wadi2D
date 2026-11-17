@@ -33,6 +33,7 @@ from .domain_rows import (
     OUTLINE_FILE,
     TIMEOUT_S,
     WORKING,
+    align_source,
     domain_args,
     domain_problems,
     domain_words,
@@ -97,10 +98,18 @@ class DomainLinks(QObject):
             return
         dem, outline = terrain.dem_layer(), terrain.outline.currentLayer()
         catchments, keep = terrain.outline_catchments.currentLayer(), terrain.outline_keep.currentLayer()
-        found = domain_problems(mode, dem is not None and raster_path(dem) is not None, outline is not None, catchments is not None)
+        domain = terrain.domain.currentLayer()
+        found = domain_problems(
+            mode, dem is not None and raster_path(dem) is not None, outline is not None, catchments is not None,
+            domain is not None,
+        )  # fmt: skip
         if found:
             self._say(" ".join(found))
             return
+        working = WORKING[mode]
+        if mode == ALIGN:  # W106: Terrain's domain (the completed one), else the rough outline, said in words
+            which, working = align_source(domain.name() if domain else None, outline.name() if outline else None)
+            outline = domain if which == "domain" else outline
         try:
             values: dict = {}
             for section in self.dock.sections:
@@ -118,7 +127,7 @@ class DomainLinks(QObject):
             return
         self.folder = folder
         self._buttons(False)
-        self._say(WORKING[mode])
+        self._say(working)
         self.query = EngineQuery(settings.engine_text(), self)
         self.query.done.connect(lambda code, out, err: self._done(mode, code, out, err))
         self.query.start(domain_args(job, folder, outline_file, keep_file, align), TIMEOUT_S)

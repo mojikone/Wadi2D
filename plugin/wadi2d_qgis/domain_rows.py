@@ -38,10 +38,25 @@ def output_folder(run_folder: str) -> Path:
     return candidate
 
 
-def domain_problems(mode: str, has_dem: bool, has_outline: bool, has_catchments: bool) -> list[str]:
+def align_source(domain_name: str | None, outline_name: str | None) -> tuple[str, str] | None:
+    """What Align to catchments aligns (W106, gap 4 of W104): Terrain's domain when one is chosen, the completed one
+    after Complete upstream, else the rough outline; with the words that say which. None with neither."""
+    if domain_name:
+        return "domain", f'Aligning Terrain\'s domain "{domain_name}" to the catchments...'
+    if outline_name:
+        return "outline", f'Aligning the rough outline "{outline_name}" to the catchments (Terrain has no domain yet)...'
+    return None
+
+
+def domain_problems(mode: str, has_dem: bool, has_outline: bool, has_catchments: bool, has_domain: bool = False) -> list[str]:
+    """``has_domain``: Terrain holds a domain, which Align aligns in place of the rough outline (W106)."""
     found = [] if has_dem else ["Choose the DEM first: the catchments are read on it."]
-    if not has_outline:
-        found.append("Choose the rough outline, a polygon layer.")
+    if not has_outline and not (mode == ALIGN and has_domain):
+        found.append(
+            "Choose the rough outline, a polygon layer."
+            if mode != ALIGN
+            else "Choose Terrain's domain or the rough outline: Align to catchments aligns the domain, or the outline."
+        )
     if mode == ALIGN and not has_catchments:
         found.append("Choose the catchments to align to, a polygon layer: the HMS subbasins or a generated basin's.")
     return found
