@@ -30,6 +30,7 @@ from . import look, settings
 from .basin_layers import load_basin_layers
 from .basin_points import BasinPointsLinks
 from .check_layers import clear_terrain_checks, load_terrain_checks
+from .cn_holes import check_job
 from .domain_links import DomainLinks
 from .edge_layers import clear_edge_checks, load_edge_checks
 from .engine_process import DrawingRun, EngineQuery, EngineRun, StudyRun
@@ -614,7 +615,19 @@ class Wadi2DDock(QgsDockWidget):
         self._safely(values, out, lambda job: self._launch(job, out))
 
     def _launch(self, job: Path, out: Path) -> None:
-        duration = json.loads(job.read_text(encoding="utf-8"))["run"]["duration_s"]
+        data = json.loads(job.read_text(encoding="utf-8"))
+        try:  # W106: a CN grid's holes on rained cells, said before the run rather than refused after the tables
+            holes = check_job(data)
+        except Exception as problem:  # the check is the dock's courtesy: the engine still has the last word
+            QgsMessageLog.logMessage(f"CN grid check skipped: {problem}", LOG_TAG, Qgis.Warning)
+            holes = None
+        if holes is not None:
+            words, refused = holes
+            if refused:
+                self._job_failed(words)
+                return
+            self.panel.say(words, "note")
+        duration = data["run"]["duration_s"]
         self.run = EngineRun(settings.engine_text(), self)
         self._follow(self.run)
         settings.set_last_run(str(out))

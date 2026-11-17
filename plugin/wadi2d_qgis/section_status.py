@@ -116,7 +116,11 @@ def mesh(
 
 
 def _losses(cn: float | None, cn_raster: str | None, loss: float | None) -> str:
-    curve = f"curve number from {cn_raster}" if cn_raster else (f"curve number {cn:g}" if cn else NO_LOSSES)
+    """``cn`` beside ``cn_raster`` is the CN of the grid's holes (W106)."""
+    if cn_raster:
+        curve = f"curve number from {cn_raster}" + (f", {cn:g} where it has none" if cn else "")
+    else:
+        curve = f"curve number {cn:g}" if cn else NO_LOSSES
     return join(curve, f"transmission loss {loss:g} mm/h" if loss else "")
 
 

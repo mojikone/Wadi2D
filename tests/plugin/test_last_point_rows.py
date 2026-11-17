@@ -171,7 +171,7 @@ def test_a_model_of_format_5_comes_up_with_the_dams_and_says_what_moves(
     model_type, form, entry, said
 ) -> None:
     doc = model_doc.loads(json.dumps(_doc(5, model_type, form, entry)))
-    assert doc["version"] == model_doc.VERSION == 6
+    assert doc["version"] == model_doc.VERSION == 7
     assert doc.get(model_doc.MIGRATED, []) == ([said] if said else [])
     assert "last_points" not in doc["sections"]["hydrology"]["widgets"], (
         "the table comes up with every dam ticked"

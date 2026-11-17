@@ -69,6 +69,11 @@ NAME, MODE, AREA, ENTRY, OUTLET = range(len(SUBBASIN_COLUMNS))
 EDIT_COLUMNS = (AREA, ENTRY, OUTLET)
 """The columns of each subbasin's own storm area, entry and outlet (W103): shown on an HMS project, whose import the
 job's subbasins come from. A generated basin's subbasins take neither storm area nor entry in this engine."""
+CN_FILL_EMPTY = "None where the grid has none"
+CN_TIP = (
+    "One CN everywhere, or, beside a CN grid, the CN of the grid's holes: the cells and the parts of subbasins it gives "
+    "no value. Empty beside a grid: a hole on a rained cell stops the run before it starts, with the count of cells."
+)
 AREA_DECIMALS = 4
 AREA_MOST = 1.0e7
 OWN_STORM = "the storm's"
@@ -174,8 +179,9 @@ class HydrologySection(Section):
         self.loss = LossRow()
         self.form.addRow(self.loss)
 
-        self.cn = ValueOrRaster(1, "Same value everywhere")
-        self.cn.box.setSpecialValueText("No losses")
+        self.cn = ValueOrRaster(1, "Same value everywhere", CN_FILL_EMPTY)  # W106: the value stays open beside a grid
+        self.cn.set_alone_text("No losses")
+        self.cn.box.setToolTip(CN_TIP)
         self.form.addRow("Curve number", self.cn)
         self.cn_by = QComboBox()  # W101 item 2: the CN override (W96's hydrology.cn_override)
         for key, words in CN_WORDS.items():
@@ -225,6 +231,7 @@ class HydrologySection(Section):
 
     def apply_schema(self, schema) -> None:
         bind(self.cn.box, schema, CURVE_NUMBER)
+        self.cn.box.setToolTip(CN_TIP)
         self._modes = schema.enum(SUBBASIN_MODE)
         self.routing.clear()
         for key in schema.enum(REACH_ROUTING):
