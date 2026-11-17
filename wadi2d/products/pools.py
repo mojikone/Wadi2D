@@ -36,8 +36,8 @@ DAM_KINDS = ("crest_line", "embankment")
 ABOVE_CREST_M = 0.3
 WIDEN_M = 60.0
 PIXEL_M = 5.0
-WINDOW_M = (3000.0, 48000.0)
-"""The first and the widest half-size of the window round a dam's lines, m."""
+WINDOW_M = (3000.0, 12000.0)
+"""The first and the widest half-size of the window round a dam's lines, m: a reservoir held within 24 km."""
 WALL_M = 6.0
 
 
@@ -46,11 +46,20 @@ PART = re.compile(r"\s+part\s+\d+$", re.IGNORECASE)
 
 
 def _dams(cfg) -> dict[str, list]:
+    """The named dams of the job: crest lines and embankments with a spillway within ``basin.dam_join_m`` (the
+    generated basin's own test of a dam) or a result line of the same name (its outflow). A road or a dyke drawn as a
+    crest line, or Suggest's crests, have neither and make no pool."""
+    from wadi2d.basin.reservoirs import spillways_of
+
     found: dict[str, list] = {}
     for obj in cfg.terrain.objects:
         if obj.kind in DAM_KINDS and obj.name:
             found.setdefault(PART.sub("", obj.name.strip()), []).append(obj)
-    return found
+    lines = {line.name for line in cfg.outputs.lines}
+    return {
+        name: pieces for name, pieces in found.items()
+        if name in lines or any(spillways_of(piece, cfg, cfg.basin) for piece in pieces)
+    }  # fmt: skip
 
 
 def _top(pieces) -> float:

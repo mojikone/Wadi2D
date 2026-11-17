@@ -52,3 +52,25 @@ def test_the_inflow_is_the_change_of_the_water_plus_what_left() -> None:
     ends, inflow, outflow = _balance(t, storage, line)
     assert list(ends) == [900.0, 1800.0]
     assert inflow == pytest.approx([100.0, (45000.0 + 9000.0) / 900.0]) and outflow == pytest.approx([0.0, 10.0])
+
+
+def test_a_pool_is_made_for_a_dam_not_for_any_crest_line() -> None:
+    """A named crest line with a spillway on it, or a result line of its name, is a dam; a road or Suggest's crests
+    are not (the older dock scenarios' runs slowed by a pool search on every crest line)."""
+    from wadi2d.config.schema import RunConfig
+    from wadi2d.products.pools import _dams
+
+    def crest(name, x0, y0=0.0):
+        return {"kind": "crest_line", "name": name, "coordinates": [[x0, y0], [x0 + 200.0, y0]], "z_constant": 110.0}
+
+    cfg = RunConfig.model_validate({
+        "terrain": {"dem": "x.tif", "objects": [
+            crest("Dam A", 0.0), crest("Dam A part 2", 300.0),
+            {"kind": "spillway", "name": "Dam A spillway", "coordinates": [[50.0, 0.0], [120.0, 0.0]], "z_constant": 105.0,
+             "coefficient": 2.1, "length": 70.0},
+            crest("Road", 5000.0), crest("Dyke B", 9000.0),
+        ]},
+        "outputs": {"lines": [{"name": "Dyke B", "coordinates": [[9000.0, 0.0], [9200.0, 0.0]]}]},
+    })  # fmt: skip
+    dams = _dams(cfg)
+    assert set(dams) == {"Dam A", "Dyke B"} and len(dams["Dam A"]) == 2
