@@ -27,7 +27,7 @@
 - **A domain and its catchments come from one delineation**, or a hybrid run keeps rain-on-grid cells at the edge (W97).
 - **Reach routing**: Muskingum-Cunge (HMS-faithful) stays the default; Muskingum (K, X) is an option (W89).
 - **Design PMP** is the HMS PMF on the 823 mm raster, not the DSS grid (2026-11-14). The Lihban record is W11's (2026-11-14).
-- **Usage**: he can reset the weekly all-models window himself; after his reset of 2026-11-16 the ceiling is **25 %**: at it, launch nothing new, let running workers finish, tell him.
+- **Usage**: he can reset the weekly all-models window himself; after his reset of 2026-11-16 the ceiling is **35 %** (raised from 25 % on 2026-11-17): at it, launch nothing new, let running workers finish, tell him.
 - **Never push or publish without his word**, every time; his files are read-only; never save over his QGIS projects.
 
 **State (2026-11-08, branch `feature/centre-mesh` off `feature/aligned-mesh`; W47 and W48 on `feature/face-depth-carry` off it, W49 on `feature/face-local-radius` off that; none merged):**
