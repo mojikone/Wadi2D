@@ -692,6 +692,8 @@ def build_job(values: dict, out_dir: Path | str) -> dict:
         job["hydrology"]["last_points"] = list(values["last_points"])
     if values.get("reach_routing"):
         job["hydrology"]["reach_routing"] = values["reach_routing"]
+    if values.get("basin") and values.get("generated_entry"):  # W106: a hybrid type's rule on a generated basin
+        job["hydrology"]["generated_entry"] = values["generated_entry"]
     if values.get("basin") and values.get("reach_manning_n"):  # W106: the generated reaches' n, written when given
         job["hydrology"]["reach_manning_n"] = values["reach_manning_n"]
     if values.get("basin") and values.get("reach_manning"):

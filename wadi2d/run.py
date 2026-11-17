@@ -410,6 +410,8 @@ def job_hash(cfg: RunConfig) -> str:
         data["hydrology"].pop("reach_routing")
     if not cfg.hydrology.muskingum:  # and the hash it had before Muskingum reaches existed (W89)
         data["hydrology"].pop("muskingum")
+    if cfg.hydrology.generated_entry == "routes":  # and a generated basin the hash it had before the hybrid rules (W106)
+        data["hydrology"].pop("generated_entry")
     if cfg.hydrology.reach_manning_n is None:  # and the one before a reach n of the job's (W106)
         data["hydrology"].pop("reach_manning_n")
     if not cfg.hydrology.reach_manning:
@@ -445,6 +447,7 @@ def job_hash(cfg: RunConfig) -> str:
             data["grid"].pop(name)
         data["hydrology"].pop("entry_snap_m")
     untouched = cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS and not lumped_curve(cfg.storm)
+    untouched = untouched and cfg.hydrology.generated_entry == "routes"  # a hybrid rule reads its last points (W106)
     if cfg.hydrology.last_points is None and untouched:  # a job they cannot touch keeps its hash; one they can, not
         data["hydrology"].pop("last_points")  # (W105)
     if cfg.hydrology.lumped_entry == LUMPED_AT_OUTLETS:  # and the lumped water at the outlets, as always (W88)
@@ -790,10 +793,20 @@ def _reads_entry_areas(cfg: RunConfig) -> bool:
     return lumped_curve(cfg.storm) and not cfg.run.lumped_only
 
 
+def _area_basin(basin):
+    """What the area reduction reads drainage areas on: the basin, or the whole file's areas under a generated basin's
+    'outlets' rule, whose lumped basin holds the subbasins alone (W106)."""
+    return getattr(basin, "area_view", None) or basin
+
+
 def _last_point_map(cfg: RunConfig, basin) -> dict[str, str]:
-    """Every element of the network at or above a last point, with the first last point at or below it (W105)."""
+    """Every element of the network at or above a last point, with the first last point at or below it (W105); under
+    a generated basin's 'outlets' rule, as read on the whole file (W106)."""
     from wadi2d.engine.last_points import first_last_point, last_points
 
+    held = getattr(basin, "last_point_of", None)
+    if held is not None:
+        return held
     try:
         return first_last_point(basin, last_points(cfg.hydrology.last_points, basin))
     except ValueError as error:
@@ -815,7 +828,7 @@ def _lumped_rain(cfg: RunConfig, storm, basin, hms_basin, crs: str, decided=(), 
     if at_entry and _reads_entry_areas(cfg):  # a lumped-only run reads every element by itself
         from wadi2d.engine.entry_area import read_areas
 
-        read = read_areas(basin, _entry_map(cfg, basin, decided), _last_point_map(cfg, basin))
+        read = read_areas(_area_basin(basin), _entry_map(cfg, basin, decided), _last_point_map(cfg, basin))
         own = {name: read[name][0] for name in basin.subbasins} | own
     if not own:
         return rain
@@ -931,8 +944,16 @@ def _lumped_basin(cfg: RunConfig, crs: str):
     if h.basin_json is not None:
         from wadi2d.basin.job import engine_basin, generated_basin
 
-        gen = generated_basin(cfg, crs)
+        try:
+            gen = generated_basin(cfg, crs)
+        except ValueError as error:  # a last point the file does not hold, in words (W106)
+            raise InvalidJob(str(error)) from error
         basin = engine_basin(gen.model, gen.modes, h.reach_routing)
+        if gen.topology is not None and h.generated_entry == "outlets":  # Hybrid 2D on a generated basin (W106)
+            from wadi2d.basin.job import AreasOfFile
+
+            basin.last_point_of = gen.last_point_of
+            basin.area_view = AreasOfFile(basin, gen.topology)
         with_dam_starts(basin, cfg.dam_levels)
         _curve_overrides(basin, cfg, crs)
         return basin, None, gen.cut
@@ -1039,7 +1060,7 @@ def _own_area_series(cfg: RunConfig, storm, basin, hms_basin, crs, decided, rout
     table = part_reduction(cfg.storm, PART_LUMPED)[0]
     curve = cfg.storm.area_reduction.lumped.curve
     last = _last_point_map(cfg, basin)
-    series.record = entry_record(basin, table, entry, explicit, series.own_area, curve, last)
+    series.record = entry_record(_area_basin(basin), table, entry, explicit, series.own_area, curve, last)
 
 
 def _ran(basin, wanted, routes) -> set[str]:

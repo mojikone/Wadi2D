@@ -44,7 +44,8 @@ from ..job_builder import (
     raster_path,
 )
 from ..land_rows import BY_LAND, CN_COLUMNS, CN_WORDS, NONE, by_rows, cn_problems, cn_words
-from ..model_types import HYBRID_LUMPED, LUMPED, TWO_D
+from ..cn_holes import lumped_above
+from ..model_types import HYBRID_2D, HYBRID_LUMPED, LUMPED, TWO_D
 from ..muskingum_rows import MUSKINGUM, ReachRow, hms_reaches, model_reaches
 from .basin import BasinBox, HandbackBox, LossRow
 from .basin_rows import (
@@ -336,9 +337,19 @@ class HydrologySection(Section):
         if found and status.state != section_status.MISSING:  # W103: what the table holds, in words
             return section_status.Status(section_status.MISSING, found[0])
         words = section_status.join(
-            status.words, cn_words(override), entry_rows.words(edits, rows), last_point_rows.words(lasts)
-        )
+            status.words, cn_words(override), entry_rows.words(edits, rows), last_point_rows.words(lasts),
+            self._hybrid_words(kind),
+        )  # fmt: skip
         return section_status.Status(status.state, words)
+
+    def _hybrid_words(self, kind) -> str:
+        """A hybrid on a generated basin: how many subbasins its last points leave lumped (W106)."""
+        if kind not in (HYBRID_LUMPED, HYBRID_2D) or self._use_hms() or not self.basin.in_use() or not self.basin.model:
+            return ""
+        model = self.basin.model
+        total = sum(1 for e in model.get("elements", []) if e.get("kind") == "subbasin")
+        above = lumped_above(model, self.last_points_value())
+        return f"{len(above)} of {total} subbasins lie above the last points and run lumped; the rest rain on the grid"
 
     def last_points_value(self) -> list[str] | None:
         """``hydrology.last_points`` as the table holds it: None, not written, while every dam is ticked and no

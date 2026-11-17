@@ -1380,6 +1380,20 @@ class Hydrology(_Part):
         {},
         description="Manning n by reach of a generated basin, over reach_manning_n and the file's (W106)",
     )
+    generated_entry: Literal["routes", "last_points", "outlets"] = Field(
+        "routes",
+        description="What a generated basin (hydrology.basin_json) runs lumped and where its water enters the grid. "
+        "'routes', as always: every complete subbasin lumped unless listed 2d, the reaches and reservoirs routing where "
+        "they are defined, the water entering at the junctions where they are not, a hand-back where 2D water meets a "
+        "routed reach. 'last_points' (Hybrid Lumped, W106): only the subbasins at or above a last point "
+        "(hydrology.last_points; every dam by default) are lumped, the rest rain on the grid; the network routes them "
+        "down to the lowest last point on their way, whose outflow enters the grid there (entry 'edge': on the edge of "
+        "the catchments left out, grid.exclude_lumped), and nothing below a last point is lumped. 'outlets' (Hybrid "
+        "2D, W106): the same subbasins lumped, each entering the grid at its own outlet (entry 'wadi', inside its own "
+        "polygon, so a dam's own subbasin enters the pool above the crest); no reach and no reservoir is routed "
+        "lumped: the grid routes the water, the dams as pools behind their crest lines, and a lumped curve reads every "
+        "subbasin at the drainage area of its first last point. An HMS basin reads lumped_entry instead",
+    )
     lumped_entry: Literal["outlet", "network"] = Field(
         LUMPED_AT_OUTLETS,
         description="Where an HMS basin's lumped water enters the grid. 'outlet': each lumped subbasin at its own outlet, "
@@ -1480,6 +1494,11 @@ class Hydrology(_Part):
             raise ValueError(
                 f"hydrology.muskingum gives K and X for {reaches} but hydrology.reach_routing is "
                 f"{self.reach_routing!r}: set it to {REACH_MUSKINGUM!r}, or the numbers would be ignored"
+            )
+        if self.basin_json is None and self.generated_entry != "routes":
+            raise ValueError(
+                f"hydrology.generated_entry {self.generated_entry!r} is for a generated basin (hydrology.basin_json); "
+                "an HMS basin's lumped water is placed by hydrology.lumped_entry"
             )
         if self.basin_json is not None and self.lumped_entry == LUMPED_ON_NETWORK:
             raise ValueError(

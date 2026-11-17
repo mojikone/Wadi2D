@@ -345,3 +345,69 @@ def test_a_job_without_a_reach_n_keeps_its_hash(generated: dict) -> None:
     base = job_on(generated, generated["basin"])
     assert job_hash(base) == job_hash(job_on(generated, generated["basin"], reach_manning={}))
     assert job_hash(base) != job_hash(job_on(generated, generated["basin"], reach_manning_n=0.1))
+
+
+def _subs(model: dict) -> dict[str, str]:
+    return {e["name"]: e["downstream"] for e in model["elements"] if e["kind"] == "subbasin"}
+
+
+def test_hybrid_2d_on_a_generated_basin_enters_every_lumped_subbasin_at_its_own_outlet(generated: dict) -> None:
+    """W106 gap 3: 'outlets' routes no reach and no reservoir; each lumped subbasin at its own outlet, inside its own
+    polygon; a subbasin below every last point rains on the grid."""
+    model = read_model(generated["basin"])
+    every = job_on(generated, generated["basin"], generated_entry="outlets", last_points=["J1"])
+    gen = generated_basin(every)
+    assert {e["kind"] for e in gen.model["elements"]} == {"subbasin"}
+    assert all(down is None for down in _subs(gen.model).values())
+    assert gen.inflows == [] and gen.handbacks == [] and gen.cut == frozenset()
+    assert set(gen.modes.values()) == {MODE_LUMPED}
+    resolved, _gen = resolve(every)
+    for sub in resolved.hydrology.subbasins:
+        element = next(e for e in model["elements"] if e["name"] == sub.name)
+        assert sub.outlet == tuple(element["outlet"]) and sub.entry == "wadi"
+    fork = job_on(generated, generated["basin"], generated_entry="outlets", last_points=["J2"])
+    above = {name for name, down in _subs(model).items() if down == "J2"}
+    gen = generated_basin(fork)
+    assert {n for n, m in gen.modes.items() if m == MODE_LUMPED} == above
+    assert any("below every last point" in note for note in gen.notes)
+    assert gen.last_point_of["J2"] == "J2" and all(gen.last_point_of[n] == "J2" for n in above)
+
+
+def test_hybrid_lumped_on_a_generated_basin_ends_the_network_at_the_last_point(generated: dict) -> None:
+    """W106 gap 3: 'last_points' keeps what lies above the last point, routed as in the file, and its outflow enters
+    on the edge of the catchments left out; the reach below and the subbasin below are not lumped."""
+    model = read_model(generated["basin"])
+    fork = job_on(generated, generated["basin"], generated_entry="last_points", last_points=["J2"])
+    gen = generated_basin(fork)
+    kept = {e["name"] for e in gen.model["elements"] if e["kind"] != "subbasin"}
+    assert kept == {"J2"}
+    (inflow,) = gen.inflows
+    assert inflow.element == "J2" and inflow.entry == "edge" and gen.handbacks == []
+    above = {name for name, down in _subs(model).items() if down == "J2"}
+    assert {n for n, m in gen.modes.items() if m == MODE_LUMPED} == above
+    plain = generated_basin(job_on(generated, generated["basin"]))
+    assert {i.element for i in plain.inflows} != {"J2"} or plain.handbacks  # the file's own routes, as always
+
+
+def test_a_hybrid_rule_names_a_last_point_the_file_does_not_hold(generated: dict) -> None:
+    with pytest.raises(ValueError, match="does not hold"):
+        generated_basin(job_on(generated, generated["basin"], generated_entry="outlets", last_points=["J99"]))
+    with pytest.raises(ValueError, match="for a generated basin"):
+        RunConfig.model_validate(
+            {"terrain": {"dem": "x.tif"}, "hydrology": {"hms_basin": "a.basin", "generated_entry": "outlets"}}
+        )
+
+
+def test_hybrid_2d_reads_a_lumped_curve_at_the_last_points_area(generated: dict) -> None:
+    """W106: the subbasins above J2 read the curve at J2's drainage area, the file's, one factor per last point."""
+    from wadi2d.engine.entry_area import read_areas
+    from wadi2d.run import _area_basin, _entry_map, _last_point_map, _lumped_basin
+
+    model = read_model(generated["basin"])
+    cfg = job_on(generated, generated["basin"], generated_entry="outlets", last_points=["J2"])
+    cfg = resolve(cfg)[0]
+    basin, _hms, decided = _lumped_basin(cfg, "")
+    read = read_areas(_area_basin(basin), _entry_map(cfg, basin, decided), _last_point_map(cfg, basin))
+    j2 = next(e for e in model["elements"] if e["name"] == "J2")
+    for name, (area, at, why) in read.items():
+        assert at == "J2" and why == "last point" and area == pytest.approx(value_of(j2, "drainage_area_km2"))
