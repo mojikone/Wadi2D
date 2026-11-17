@@ -1,5 +1,7 @@
 # Wadi2D - profile and live state (read first; then `README.md`)
 
+**Released 2026-11-17, on his standing order of 2026-11-16 ("When all tests pass, push and release"): `v0.5.0`, https://github.com/mojikone/Wadi2D/releases/tag/v0.5.0, the tag on the build commit `c50f5c7`, `main` fast-forwarded to `feature/fast-products`; full suite 3,124 passed, 10 skipped; install test GPU 17 of 17, zip 8 of 8, CPU 10 of 10, the Block 2 hybrid dam peaks equal the record to the digit; Block 2's four models built through the dock alone (W106, 77 of 77). Record: `W16 release package/README.md`, section 0.5.0. Not tested on another PC.**
+
 **Released 2026-11-15, on his standing order of that day (merge, push, release): `v0.4.0`, the first normal release, https://github.com/mojikone/Wadi2D/releases/tag/v0.4.0; `main` fast-forwarded to `feature/fast-products` with `release/0.4.0-rc1` (W88 to W90) and `perf/pre-solver` (W91) merged in. Full suite 2,787 passed, 10 skipped; install test 35 of 35; the Block 2 hybrid dam peaks equal the record to the digit. Record and limits: `W16 release package/README.md`, section 0.4.0. Not tested on another PC.**
 
 ## His rules of record (read before anything below; each overrides any older note in this file)
