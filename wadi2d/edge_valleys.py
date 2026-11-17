@@ -122,11 +122,14 @@ def _candidates(cfg: RunConfig, polygon: shapely.Geometry, crs: str) -> dict[str
     centre, 1 where the stream leaves, its area, 1 where the DEM ends under it."""
     from wadi2d.basin.delineate import flow_surface
     from wadi2d.basin.kernels import NONE
-    from wadi2d.mesh.streams import read_coarse
+
+    from wadi2d.demstore import cache_folder, open_bed
+    from wadi2d.demstore.coarse import read_coarse_from
 
     check = cfg.outputs.edge_check
     x0, y0, ny, nx, pixel = _window(cfg.terrain.dem, polygon, check.beyond_m, check.pixel_m, check.max_pixels)
-    z = read_coarse(cfg.terrain.dem, x0, y0, ny, nx, pixel, 1)
+    with open_bed(cfg, cache_folder(cfg), stride=1) as bed:  # the DEM's chunk store when the job has one (W84, W106)
+        z = read_coarse_from(bed, cfg.terrain.dem, x0, y0, ny, nx, pixel, 1)
     if not np.isfinite(z).any():
         return {k: np.empty(0) for k in ("x", "y", "leaves", "area", "no_ground")}
     surface = flow_surface(z, pixel, x0, y0, crs)
